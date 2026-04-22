@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Star, MessageSquare, TrendingUp, Bell, LayoutDashboard, Award, ChevronRight, X, Send, Sparkles, Copy, Check, RefreshCw, AlertCircle, ThumbsUp, Clock, MapPin, Gift, Smartphone, Settings, ExternalLink, ChevronDown, Link2, ShieldCheck, Building2, ArrowRight, Zap, Eye, EyeOff, LogOut } from "lucide-react";
 
 // ── USUÁRIOS PERMITIDOS ───────────────────────────────────
@@ -276,6 +276,8 @@ function CustomerPage({ brinde, onClose }) {
 export default function ReputaZap({ user, onLogout }) {
   const [tab, setTab] = useState("dashboard");
   const [reviews, setReviews] = useState(MOCK_REVIEWS);
+  const [bizInfo, setBizInfo] = useState(null);
+  const [loadingReviews, setLoadingReviews] = useState(true);
   const [activeReview, setActiveReview] = useState(null);
   const [aiReply, setAiReply] = useState("");
   const [loading, setLoading] = useState(false);
@@ -288,11 +290,26 @@ export default function ReputaZap({ user, onLogout }) {
   const [googleConnected, setGoogleConnected] = useState(false);
   const [connectStep, setConnectStep] = useState(0);
 
+  // Carrega reviews reais do Google via backend
+  useEffect(() => {
+    fetch("http://localhost:3001/api/places/reviews")
+      .then(r => r.json())
+      .then(data => {
+        if (data.reviews?.length) {
+          setReviews(data.reviews);
+          setBizInfo({ name: data.name, rating: data.rating, total: data.total });
+          setGoogleConnected(true);
+        }
+        setLoadingReviews(false);
+      })
+      .catch(() => setLoadingReviews(false));
+  }, []);
+
   const pending = reviews.filter(r=>!r.replied).length;
-  const avgRating = (reviews.reduce((a,r)=>a+r.rating,0)/reviews.length).toFixed(1);
+  const avgRating = bizInfo?.rating?.toFixed(1) || (reviews.reduce((a,r)=>a+r.rating,0)/reviews.length).toFixed(1);
   const negative = reviews.filter(r=>r.rating<=2).length;
   const nfcCount = reviews.filter(r=>r.via==="nfc").length;
-  const biz = user?.biz || "Café Bello Vista";
+  const biz = bizInfo?.name || user?.biz || "SAIF - A Loja da Limpeza";
 
   async function generateReply(review) {
     setActiveReview(review); setAiReply(""); setEditedReply(""); setSent(false); setLoading(true);
@@ -393,11 +410,13 @@ export default function ReputaZap({ user, onLogout }) {
             {/* Google status */}
             <div onClick={()=>setTab("google")} style={{padding:"10px 12px",background:googleConnected?"#0d1f14":"#1a0c04",borderRadius:10,cursor:"pointer",border:`1px solid ${googleConnected?"#064e3b":"#451a03"}`}}>
               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-                <div style={{width:7,height:7,borderRadius:"50%",background:googleConnected?"#10b981":"#f97316"}}/>
-                <span style={{fontSize:11,color:googleConnected?"#10b981":"#f97316",fontWeight:600}}>{googleConnected?"Conectado":"Não conectado"}</span>
+                <div style={{width:7,height:7,borderRadius:"50%",background:googleConnected?"#10b981":loadingReviews?"#f59e0b":"#f97316"}}/>
+                <span style={{fontSize:11,color:googleConnected?"#10b981":loadingReviews?"#f59e0b":"#f97316",fontWeight:600}}>
+                  {loadingReviews?"Carregando...":googleConnected?"Conectado":"Não conectado"}
+                </span>
               </div>
               <div style={{fontSize:12,color:"#9ca3af",fontWeight:500}}>{biz}</div>
-              <div style={{fontSize:10,color:"#4b5563",marginTop:2}}>Google Meu Negócio</div>
+              <div style={{fontSize:10,color:"#4b5563",marginTop:2}}>{bizInfo?`${bizInfo.total} avaliações no Google`:"Google Meu Negócio"}</div>
             </div>
           </div>
         </div>

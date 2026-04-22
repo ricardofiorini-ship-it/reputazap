@@ -188,6 +188,52 @@ app.put("/api/reviews/:accountId/:locationId/:reviewId/reply", async (req, res) 
   }
 });
 
+const PLACES_API_KEY = process.env.PLACES_API_KEY;
+const BUSINESS_NAME = "SAIF - A Loja da Limpeza";
+const BUSINESS_ADDRESS = "Av. São Camilo, 1081, Carapicuíba, SP";
+
+// 9. Busca reviews via Places API (sem OAuth)
+app.get("/api/places/reviews", async (req, res) => {
+  try {
+    // Passo 1: busca o place_id pelo nome e endereço
+    const searchRes = await fetch(
+      `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(BUSINESS_NAME + " " + BUSINESS_ADDRESS)}&inputtype=textquery&fields=place_id,name,rating,user_ratings_total&key=${PLACES_API_KEY}`
+    );
+    const searchData = await searchRes.json();
+    if (!searchData.candidates?.length) {
+      return res.status(404).json({ error: "Negócio não encontrado" });
+    }
+
+    const place = searchData.candidates[0];
+    const placeId = place.place_id;
+
+    // Passo 2: busca detalhes + reviews
+    const detailRes = await fetch(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,user_ratings_total,reviews&language=pt-BR&key=${PLACES_API_KEY}`
+    );
+    const detailData = await detailRes.json();
+    const result = detailData.result;
+
+    res.json({
+      name: result.name,
+      rating: result.rating,
+      total: result.user_ratings_total,
+      reviews: (result.reviews || []).map(r => ({
+        author: r.author_name,
+        avatar: r.author_name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase(),
+        rating: r.rating,
+        text: r.text,
+        date: r.relative_time_description,
+        replied: !!r.owner_response,
+        reply: r.owner_response?.text || null,
+        via: "organic"
+      }))
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 8. Logout
 app.post("/auth/logout", (req, res) => {
   if (existsSync(TOKEN_FILE)) {
