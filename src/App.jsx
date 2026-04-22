@@ -32,6 +32,13 @@ function LoginScreen({ onLogin }) {
 
   return (
     <div style={{minHeight:"100vh",background:"#0a0f1a",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,position:"relative",overflow:"hidden"}}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{background:#0a0f1a;font-family:'Plus Jakarta Sans',sans-serif;}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+      `}</style>
       {/* Background glow */}
       <div style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:600,height:600,background:"radial-gradient(circle,rgba(16,185,129,0.07) 0%,transparent 70%)",pointerEvents:"none"}}/>
 
@@ -266,8 +273,7 @@ function CustomerPage({ brinde, onClose }) {
 }
 
 // ── MAIN ──────────────────────────────────────────────────
-export default function ReputaZap() {
-  const [user, setUser] = useState(null);
+export default function ReputaZap({ user, onLogout }) {
   const [tab, setTab] = useState("dashboard");
   const [reviews, setReviews] = useState(MOCK_REVIEWS);
   const [activeReview, setActiveReview] = useState(null);
@@ -279,14 +285,14 @@ export default function ReputaZap() {
   const [brinde, setBrinde] = useState("Cafezinho grátis");
   const [showPreview, setShowPreview] = useState(false);
   const [customMode, setCustomMode] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [connectStep, setConnectStep] = useState(0);
 
   const pending = reviews.filter(r=>!r.replied).length;
   const avgRating = (reviews.reduce((a,r)=>a+r.rating,0)/reviews.length).toFixed(1);
   const negative = reviews.filter(r=>r.rating<=2).length;
   const nfcCount = reviews.filter(r=>r.via==="nfc").length;
   const biz = user?.biz || "Café Bello Vista";
-
-  if (!user) return <LoginScreen onLogin={setUser}/>;
 
   async function generateReply(review) {
     setActiveReview(review); setAiReply(""); setEditedReply(""); setSent(false); setLoading(true);
@@ -305,9 +311,6 @@ export default function ReputaZap() {
     setReviews(prev=>prev.map(r=>r.id===activeReview.id?{...r,replied:true,reply:editedReply}:r));
     setSent(true); setTimeout(()=>{setActiveReview(null);setSent(false);},1800);
   }
-
-  const [googleConnected, setGoogleConnected] = useState(false);
-  const [connectStep, setConnectStep] = useState(0);
 
   const rc = r=>r>=4?"#10b981":r===3?"#f59e0b":"#ef4444";
   const rb = r=>r>=4?"#064e3b":r===3?"#451a03":"#450a0a";
@@ -368,7 +371,7 @@ export default function ReputaZap() {
                 <div style={{fontSize:12,color:"#e5e7eb",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.name?.split(" ")[0]}</div>
                 <div style={{fontSize:10,color:"#4b5563",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.email}</div>
               </div>
-              <button onClick={()=>setUser(null)} title="Sair"
+              <button onClick={onLogout} title="Sair"
                 style={{background:"none",border:"none",cursor:"pointer",color:"#4b5563",display:"flex",padding:4,borderRadius:6,flexShrink:0}}
                 onMouseEnter={e=>e.currentTarget.style.color="#ef4444"} onMouseLeave={e=>e.currentTarget.style.color="#4b5563"}>
                 <LogOut size={15}/>
@@ -771,4 +774,3 @@ export default function ReputaZap() {
     </>
   );
 }
- 
