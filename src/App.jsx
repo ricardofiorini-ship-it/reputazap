@@ -1,5 +1,115 @@
 import { useState } from "react";
-import { Star, MessageSquare, TrendingUp, Bell, LayoutDashboard, Award, ChevronRight, X, Send, Sparkles, Copy, Check, RefreshCw, AlertCircle, ThumbsUp, Clock, MapPin, Gift, Smartphone, Settings, ExternalLink, ChevronDown, Link2, ShieldCheck, Building2, ArrowRight, Zap } from "lucide-react";
+import { Star, MessageSquare, TrendingUp, Bell, LayoutDashboard, Award, ChevronRight, X, Send, Sparkles, Copy, Check, RefreshCw, AlertCircle, ThumbsUp, Clock, MapPin, Gift, Smartphone, Settings, ExternalLink, ChevronDown, Link2, ShieldCheck, Building2, ArrowRight, Zap, Eye, EyeOff, LogOut } from "lucide-react";
+
+// ── USUÁRIOS PERMITIDOS ───────────────────────────────────
+const USERS = [
+  { email: "ricardo@reputazap.com.br", password: "reputazap2024", name: "Ricardo Fiorini", biz: "ReputaZap Admin" },
+  { email: "demo@reputazap.com.br", password: "demo123", name: "Demo User", biz: "Café Bello Vista" },
+];
+
+// ── LOGIN SCREEN ──────────────────────────────────────────
+function LoginScreen({ onLogin }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function handleLogin(e) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setTimeout(() => {
+      const user = USERS.find(u => u.email === email && u.password === password);
+      if (user) {
+        onLogin(user);
+      } else {
+        setError("Email ou senha incorretos. Tente novamente.");
+      }
+      setLoading(false);
+    }, 800);
+  }
+
+  return (
+    <div style={{minHeight:"100vh",background:"#0a0f1a",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,position:"relative",overflow:"hidden"}}>
+      {/* Background glow */}
+      <div style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:600,height:600,background:"radial-gradient(circle,rgba(16,185,129,0.07) 0%,transparent 70%)",pointerEvents:"none"}}/>
+
+      {/* Logo */}
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:48,animation:"fadeUp 0.4s ease"}}>
+        <div style={{width:40,height:40,background:"linear-gradient(135deg,#10b981,#0d9488)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <Star size={20} fill="#fff" color="#fff"/>
+        </div>
+        <div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:22,color:"#f9fafb"}}>ReputaZap</div>
+          <div style={{fontSize:11,color:"#4b5563"}}>Reputação com IA</div>
+        </div>
+      </div>
+
+      {/* Card */}
+      <div style={{width:"100%",maxWidth:400,background:"#111827",border:"1px solid #1f2937",borderRadius:24,padding:36,animation:"fadeUp 0.5s ease"}}>
+        <div style={{marginBottom:28,textAlign:"center"}}>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#f9fafb",marginBottom:6}}>Bem-vindo de volta</div>
+          <div style={{fontSize:13,color:"#6b7280"}}>Entre na sua conta para continuar</div>
+        </div>
+
+        <form onSubmit={handleLogin} style={{display:"flex",flexDirection:"column",gap:16}}>
+          {/* Email */}
+          <div>
+            <label style={{fontSize:12,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:6}}>Email</label>
+            <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="seu@email.com.br" required
+              style={{width:"100%",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:"12px 16px",color:"#f9fafb",fontSize:14,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"border-color .15s"}}
+              onFocus={e=>e.target.style.borderColor="#10b981"} onBlur={e=>e.target.style.borderColor="#1f2937"}/>
+          </div>
+
+          {/* Senha */}
+          <div>
+            <label style={{fontSize:12,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:6}}>Senha</label>
+            <div style={{position:"relative"}}>
+              <input type={showPass?"text":"password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required
+                style={{width:"100%",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:"12px 48px 12px 16px",color:"#f9fafb",fontSize:14,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"border-color .15s"}}
+                onFocus={e=>e.target.style.borderColor="#10b981"} onBlur={e=>e.target.style.borderColor="#1f2937"}/>
+              <button type="button" onClick={()=>setShowPass(!showPass)}
+                style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"#4b5563",display:"flex"}}>
+                {showPass?<EyeOff size={16}/>:<Eye size={16}/>}
+              </button>
+            </div>
+          </div>
+
+          {/* Erro */}
+          {error&&(
+            <div style={{background:"#1a0505",border:"1px solid #7f1d1d",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#ef4444",display:"flex",alignItems:"center",gap:8}}>
+              <AlertCircle size={14}/> {error}
+            </div>
+          )}
+
+          {/* Botão */}
+          <button type="submit" disabled={loading}
+            style={{width:"100%",background:"linear-gradient(135deg,#10b981,#0d9488)",color:"#fff",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif",cursor:loading?"not-allowed":"pointer",opacity:loading?0.7:1,marginTop:4,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            {loading?<><RefreshCw size={15} style={{animation:"spin 1s linear infinite"}}/> Entrando...</>:"Entrar"}
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div style={{display:"flex",alignItems:"center",gap:12,margin:"24px 0"}}>
+          <div style={{flex:1,height:1,background:"#1f2937"}}/>
+          <span style={{fontSize:12,color:"#374151"}}>ou</span>
+          <div style={{flex:1,height:1,background:"#1f2937"}}/>
+        </div>
+
+        {/* Demo hint */}
+        <div style={{background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:"12px 16px",textAlign:"center"}}>
+          <div style={{fontSize:12,color:"#4b5563",marginBottom:4}}>Conta de demonstração</div>
+          <div style={{fontSize:12,color:"#6b7280"}}>demo@reputazap.com.br / demo123</div>
+        </div>
+      </div>
+
+      <div style={{marginTop:24,fontSize:12,color:"#374151",animation:"fadeUp 0.6s ease"}}>
+        Não tem conta? <a href="/landing.html" style={{color:"#10b981",fontWeight:600}}>Comece grátis</a>
+      </div>
+    </div>
+  );
+}
 
 const MOCK_REVIEWS = [
   { id:1, author:"Carla Mendes", avatar:"CM", rating:5, text:"Atendimento incrível! Fui bem recebida desde o primeiro momento. A equipe é muito atenciosa e o serviço superou minhas expectativas.", date:"há 2 horas", replied:false, via:"nfc" },
@@ -157,6 +267,7 @@ function CustomerPage({ brinde, onClose }) {
 
 // ── MAIN ──────────────────────────────────────────────────
 export default function ReputaZap() {
+  const [user, setUser] = useState(null);
   const [tab, setTab] = useState("dashboard");
   const [reviews, setReviews] = useState(MOCK_REVIEWS);
   const [activeReview, setActiveReview] = useState(null);
@@ -173,7 +284,9 @@ export default function ReputaZap() {
   const avgRating = (reviews.reduce((a,r)=>a+r.rating,0)/reviews.length).toFixed(1);
   const negative = reviews.filter(r=>r.rating<=2).length;
   const nfcCount = reviews.filter(r=>r.via==="nfc").length;
-  const biz = "Café Bello Vista";
+  const biz = user?.biz || "Café Bello Vista";
+
+  if (!user) return <LoginScreen onLogin={setUser}/>;
 
   async function generateReply(review) {
     setActiveReview(review); setAiReply(""); setEditedReply(""); setSent(false); setLoading(true);
@@ -248,7 +361,33 @@ export default function ReputaZap() {
               </div>
             ))}
           </div>
-          <div style={{borderTop:"1px solid #1a2235",paddingTop:16}}>
+          <div style={{borderTop:"1px solid #1a2235",paddingTop:16,display:"flex",flexDirection:"column",gap:10}}>
+            {/* User + Logout */}
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 12px",background:"#0a0f1a",borderRadius:10,border:"1px solid #1f2937"}}>
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:12,color:"#e5e7eb",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.name?.split(" ")[0]}</div>
+                <div style={{fontSize:10,color:"#4b5563",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.email}</div>
+              </div>
+              <button onClick={()=>setUser(null)} title="Sair"
+                style={{background:"none",border:"none",cursor:"pointer",color:"#4b5563",display:"flex",padding:4,borderRadius:6,flexShrink:0}}
+                onMouseEnter={e=>e.currentTarget.style.color="#ef4444"} onMouseLeave={e=>e.currentTarget.style.color="#4b5563"}>
+                <LogOut size={15}/>
+              </button>
+            </div>
+            {/* WhatsApp Support */}
+            <a href="https://wa.me/5511982882662?text=Ol%C3%A1!%20Preciso%20de%20ajuda%20com%20o%20ReputaZap" target="_blank" rel="noreferrer"
+              style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"#0a1f0e",border:"1px solid #14532d",borderRadius:10,cursor:"pointer",textDecoration:"none",transition:"background .15s"}}
+              onMouseEnter={e=>e.currentTarget.style.background="#0f2a14"} onMouseLeave={e=>e.currentTarget.style.background="#0a1f0e"}>
+              <div style={{width:28,height:28,borderRadius:8,background:"#16a34a",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              </div>
+              <div>
+                <div style={{fontSize:12,color:"#4ade80",fontWeight:600}}>Suporte</div>
+                <div style={{fontSize:10,color:"#166534"}}>Fale conosco agora</div>
+              </div>
+            </a>
+
+            {/* Google status */}
             <div onClick={()=>setTab("google")} style={{padding:"10px 12px",background:googleConnected?"#0d1f14":"#1a0c04",borderRadius:10,cursor:"pointer",border:`1px solid ${googleConnected?"#064e3b":"#451a03"}`}}>
               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
                 <div style={{width:7,height:7,borderRadius:"50%",background:googleConnected?"#10b981":"#f97316"}}/>
