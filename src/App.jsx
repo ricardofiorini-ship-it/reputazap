@@ -290,9 +290,9 @@ export default function ReputaZap({ user, onLogout }) {
   const [googleConnected, setGoogleConnected] = useState(false);
   const [connectStep, setConnectStep] = useState(0);
 
-  // Carrega reviews reais do Google via backend
+  // Carrega reviews reais via Vercel API route
   useEffect(() => {
-    fetch("http://localhost:3001/api/places/reviews")
+    fetch("/api/reviews")
       .then(r => r.json())
       .then(data => {
         if (data.reviews?.length) {
