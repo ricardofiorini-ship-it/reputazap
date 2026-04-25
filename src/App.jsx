@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Star, MessageSquare, TrendingUp, Bell, LayoutDashboard, Award, ChevronRight, X, Send, Sparkles, Copy, Check, RefreshCw, AlertCircle, ThumbsUp, Clock, MapPin, Gift, Smartphone, Settings, ExternalLink, ChevronDown, Link2, ShieldCheck, Building2, ArrowRight, Zap, Eye, EyeOff, LogOut } from "lucide-react";
+import { Star, MessageSquare, TrendingUp, Bell, LayoutDashboard, Award, ChevronRight, X, Send, Sparkles, Copy, Check, RefreshCw, AlertCircle, ThumbsUp, Clock, MapPin, Gift, Smartphone, Settings, ExternalLink, ChevronDown, Link2, ShieldCheck, Building2, ArrowRight, Zap, LogOut, Menu } from "lucide-react";
 
 // ── USUÁRIOS PERMITIDOS ───────────────────────────────────
 const USERS = [
@@ -275,6 +275,7 @@ function CustomerPage({ brinde, onClose }) {
 // ── MAIN ──────────────────────────────────────────────────
 export default function ReputaZap({ user, onLogout }) {
   const [tab, setTab] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [reviews, setReviews] = useState(MOCK_REVIEWS);
   const [bizInfo, setBizInfo] = useState(null);
   const [loadingReviews, setLoadingReviews] = useState(true);
@@ -292,17 +293,46 @@ export default function ReputaZap({ user, onLogout }) {
 
   // Carrega reviews reais via Vercel API route
   useEffect(() => {
-    fetch("/api/reviews")
-      .then(r => r.json())
-      .then(data => {
-        if (data.reviews?.length) {
-          setReviews(data.reviews);
-          setBizInfo({ name: data.name, rating: data.rating, total: data.total });
-          setGoogleConnected(true);
-        }
-        setLoadingReviews(false);
-      })
-      .catch(() => setLoadingReviews(false));
+    const token = localStorage.getItem("rz_token");
+
+    // Primeiro busca o negócio do usuário no Supabase
+    const loadBusiness = async () => {
+      if (token) {
+        try {
+          const res = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token_check: token })
+          });
+          const data = await res.json();
+          if (data.business?.place_id) {
+            // Busca reviews com o place_id do negócio do usuário
+            const reviewRes = await fetch(`/api/reviews?place_id=${data.business.place_id}`);
+            const reviewData = await reviewRes.json();
+            if (reviewData.reviews?.length) {
+              setReviews(reviewData.reviews);
+              setBizInfo({ name: reviewData.name, rating: reviewData.rating, total: reviewData.total });
+              setGoogleConnected(true);
+            }
+            setLoadingReviews(false);
+            return;
+          }
+        } catch {}
+      }
+      // Fallback: busca reviews padrão
+      fetch("/api/reviews")
+        .then(r => r.json())
+        .then(data => {
+          if (data.reviews?.length) {
+            setReviews(data.reviews);
+            setBizInfo({ name: data.name, rating: data.rating, total: data.total });
+            setGoogleConnected(true);
+          }
+          setLoadingReviews(false);
+        })
+        .catch(() => setLoadingReviews(false));
+    };
+    loadBusiness();
   }, []);
 
   const pending = reviews.filter(r=>!r.replied).length;
@@ -358,20 +388,34 @@ export default function ReputaZap({ user, onLogout }) {
         .rc:hover{border-color:#374151!important;transform:translateY(-1px);}
         .bg{transition:opacity .15s,transform .1s;cursor:pointer;}
         .bg:hover{opacity:.9;transform:translateY(-1px);}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:40;}
+        .sidebar-overlay.open{display:block;}
+        .mobile-header{display:none;align-items:center;justify-content:space-between;padding:14px 20px;background:#0d1424;border-bottom:1px solid #1a2235;position:sticky;top:0;z-index:30;}
+        @media(max-width:768px){
+          .sidebar{position:fixed!important;left:-240px!important;top:0!important;height:100vh!important;z-index:50!important;transition:left .25s ease!important;overflow-y:auto!important;}
+          .sidebar.open{left:0!important;}
+          .mobile-header{display:flex!important;}
+          .main-pad{padding:20px 16px!important;}
+        }
       `}</style>
       <div style={{display:"flex",minHeight:"100vh",background:"#0a0f1a",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
 
         {showPreview&&<CustomerPage brinde={brinde} onClose={()=>setShowPreview(false)}/>}
 
+        {/* Overlay mobile */}
+        <div className={`sidebar-overlay${sidebarOpen?" open":""}`} onClick={()=>setSidebarOpen(false)}/>
+
+        </div>
+
         {/* Sidebar */}
-        <div style={{width:220,background:"#0d1424",borderRight:"1px solid #1a2235",display:"flex",flexDirection:"column",padding:"28px 16px",position:"sticky",top:0,height:"100vh",flexShrink:0}}>
+        <div className={`sidebar${sidebarOpen?" open":""}`} style={{width:220,background:"#0d1424",borderRight:"1px solid #1a2235",display:"flex",flexDirection:"column",padding:"28px 16px",position:"sticky",top:0,height:"100vh",flexShrink:0}}>
           <div style={{padding:"0 8px 24px",borderBottom:"1px solid #1a2235",display:"flex",alignItems:"center",gap:10}}>
             <div style={{width:36,height:36,background:"linear-gradient(135deg,#10b981,#0d9488)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center"}}><Star size={18} fill="#fff" color="#fff"/></div>
             <div><div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:16,color:"#f9fafb"}}>ReputaZap</div><div style={{fontSize:10,color:"#4b5563"}}>Reputação com IA</div></div>
           </div>
           <div style={{marginTop:20,flex:1,display:"flex",flexDirection:"column",gap:4}}>
             {nav.map(item=>(
-              <div key={item.id} className="ni" onClick={()=>setTab(item.id)}
+              <div key={item.id} className="ni" onClick={()=>{setTab(item.id);setSidebarOpen(false);}}
                 style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,background:tab===item.id?"#0f2a1f":"transparent",color:tab===item.id?"#10b981":"#6b7280"}}>
                 <item.icon size={17}/>
                 <span style={{fontSize:14,fontWeight:tab===item.id?600:400}}>{item.label}</span>
@@ -422,7 +466,7 @@ export default function ReputaZap({ user, onLogout }) {
         </div>
 
         {/* Content */}
-        <div style={{flex:1,overflow:"auto",padding:"32px 28px",minWidth:0}}>
+        <div className="main-pad" style={{flex:1,overflow:"auto",padding:"32px 28px",minWidth:0}}>
           {/* Header */}
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,animation:"fadeUp 0.4s ease"}}>
             <div>
