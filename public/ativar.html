@@ -385,7 +385,7 @@ function goToStep4(){
   const placeId=state.business.place_id;
   state.nfcLink=state.plan==="free"
     ?`https://search.google.com/local/writereview?placeid=${placeId}`
-    :`https://reputazap.vercel.app/avaliar?place=${placeId}`;
+    :`https://reputazap.vercel.app/avaliar.html?place=${placeId}`;
   document.getElementById("nfcLinkDisplay").textContent=state.nfcLink;
   goToStep(4);
 }
