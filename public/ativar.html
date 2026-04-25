@@ -214,6 +214,7 @@
     <div style="font-size:12px;color:#4b5563;margin-top:4px;" id="successPlan"></div>
   </div>
   <a href="/app" style="text-decoration:none;" class="btn-primary">Acessar meu Dashboard →</a>
+  <p style="text-align:center;font-size:12px;color:#4b5563;margin-top:12px;">Redirecionando automaticamente em 3 segundos...</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -274,14 +275,45 @@ function updateProgress(step) {
   if(step===5) document.getElementById("progressBar").style.display="none";
 }
 
-function goToStep2(){
+async function goToStep2(){
   const name=document.getElementById("userName").value.trim();
   const email=document.getElementById("userEmail").value.trim();
   const phone=document.getElementById("userPhone").value.trim();
   const pass=document.getElementById("userPass").value;
   if(!name||!email||!phone||!pass){alert("Preencha todos os campos!");return;}
-  state.user={name,email,phone,pass};
-  goToStep(2);
+
+  const btn=document.querySelector("#screen1 .btn-primary");
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner">⟳</span> Criando conta...';
+
+  try {
+    const res=await fetch("/api/register",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name,email,phone,password:pass})
+    });
+    const data=await res.json();
+    if(!res.ok){alert(data.error||"Erro ao criar conta");btn.disabled=false;btn.innerHTML="Continuar →";return;}
+
+    // Faz login para pegar o token
+    const loginRes=await fetch("/api/login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email,password:pass})
+    });
+    const loginData=await loginRes.json();
+    if(loginData.token){
+      localStorage.setItem("rz_token",loginData.token);
+      localStorage.setItem("rz_user",JSON.stringify(loginData.user));
+    }
+
+    state.user={name,email,phone,pass};
+    goToStep(2);
+  } catch {
+    alert("Erro de conexão. Tente novamente.");
+  }
+  btn.disabled=false;
+  btn.innerHTML="Continuar →";
 }
 
 function clearResults(){
@@ -399,10 +431,32 @@ function copyNFCLink(){
   });
 }
 
-function goToSuccess(){
+async function goToSuccess(){
   document.getElementById("successBizName").textContent=state.business.name;
   document.getElementById("successPlan").textContent=state.plan==="free"?"Plano Gratuito":"Plano Pro — 14 dias grátis";
   goToStep(5);
+
+  // Salva o negócio no Supabase
+  const token=localStorage.getItem("rz_token");
+  if(token && state.business){
+    try {
+      await fetch("/api/savebiz",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
+        body:JSON.stringify({
+          place_id:state.business.place_id,
+          name:state.business.name,
+          address:state.business.address,
+          rating:state.business.rating,
+          total:state.business.total,
+          plan:state.plan
+        })
+      });
+    } catch(e){ console.error("Erro ao salvar negócio",e); }
+  }
+
+  // Redireciona para o dashboard após 3 segundos
+  setTimeout(()=>{ window.location.href="/app"; }, 3000);
 }
 </script>
 </body>
