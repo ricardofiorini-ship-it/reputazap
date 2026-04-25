@@ -405,8 +405,6 @@ export default function ReputaZap({ user, onLogout }) {
         {/* Overlay mobile */}
         <div className={`sidebar-overlay${sidebarOpen?" open":""}`} onClick={()=>setSidebarOpen(false)}/>
 
-        </div>
-
         {/* Sidebar */}
         <div className={`sidebar${sidebarOpen?" open":""}`} style={{width:220,background:"#0d1424",borderRight:"1px solid #1a2235",display:"flex",flexDirection:"column",padding:"28px 16px",position:"sticky",top:0,height:"100vh",flexShrink:0}}>
           <div style={{padding:"0 8px 24px",borderBottom:"1px solid #1a2235",display:"flex",alignItems:"center",gap:10}}>
@@ -837,4 +835,3 @@ export default function ReputaZap({ user, onLogout }) {
     </>
   );
 }
-
