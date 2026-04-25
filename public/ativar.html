@@ -16,6 +16,15 @@
   .logo-text{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;}
   .screen{display:none;max-width:480px;margin:0 auto;animation:fadeUp 0.4s ease;}
   .screen.active{display:block;}
+  /* DEVICE WARNING */
+  .device-card{background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;margin-bottom:16px;text-align:center;}
+  .device-card.warn{border-color:#451a03;background:#1a0c04;}
+  .device-card.ok{border-color:#064e3b;background:#0d1f14;}
+  .device-icon{font-size:48px;margin-bottom:12px;}
+  .device-title{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px;}
+  .device-desc{font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:16px;}
+  .qr-box{background:#fff;border-radius:12px;padding:16px;display:inline-block;margin-bottom:8px;}
+  .qr-sub{font-size:11px;color:#4b5563;}
   h2{font-family:'Playfair Display',serif;font-size:26px;text-align:center;margin-bottom:8px;}
   .sub{text-align:center;color:#6b7280;font-size:14px;margin-bottom:28px;line-height:1.6;}
   .progress{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:32px;}
@@ -82,6 +91,37 @@
   <div class="prog-step" id="p2">2</div><div class="prog-line" id="l2"></div>
   <div class="prog-step" id="p3">3</div><div class="prog-line" id="l3"></div>
   <div class="prog-step" id="p4">4</div>
+</div>
+
+<!-- SCREEN 0: DEVICE CHECK -->
+<div class="screen" id="screen0">
+  <div class="device-card ok" id="deviceOk" style="display:none">
+    <div class="device-icon">✅</div>
+    <div class="device-title">Tudo certo!</div>
+    <div class="device-desc">Seu celular Android com Chrome suporta gravação NFC.<br/>Você pode fazer a ativação completa aqui mesmo.</div>
+    <button class="btn-primary" onclick="goToStep(1)">Começar ativação →</button>
+  </div>
+
+  <div class="device-card warn" id="deviceIphone" style="display:none">
+    <div class="device-icon">🍎</div>
+    <div class="device-title">iPhone detectado</div>
+    <div class="device-desc">O iPhone não suporta gravação NFC pelo navegador. Você pode fazer o cadastro aqui, mas vai precisar do app <strong style="color:#f9fafb">NFC Tools</strong> para gravar o cartão no final.</div>
+    <button class="btn-primary" onclick="goToStep(1)">Entendi, continuar →</button>
+  </div>
+
+  <div class="device-card warn" id="deviceDesktop" style="display:none">
+    <div class="device-icon">💻</div>
+    <div class="device-title">Acesse pelo celular</div>
+    <div class="device-desc">A gravação do NFC precisa ser feita pelo celular Android com o Chrome.<br/>Escaneie o QR code abaixo para abrir esta página no seu celular:</div>
+    <div class="qr-box">
+      <canvas id="qrCanvas" width="140" height="140"></canvas>
+    </div>
+    <div class="qr-sub">reputazap.vercel.app/ativar.html</div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid #1f2937;">
+      <div style="font-size:12px;color:#4b5563;margin-bottom:10px;">Ou continue aqui e grave o NFC depois pelo celular</div>
+      <button class="btn-ghost" onclick="goToStep(1)">Continuar assim mesmo</button>
+    </div>
+  </div>
 </div>
 
 <!-- STEP 1: CADASTRO -->
@@ -179,10 +219,67 @@
 <script>
 const state = { user:{}, business:null, plan:null, nfcLink:null };
 
+// Detecta dispositivo ao carregar
+window.addEventListener("load", () => {
+  const ua = navigator.userAgent;
+  const isAndroid = /Android/i.test(ua);
+  const isIphone = /iPhone|iPad/i.test(ua);
+  const isChrome = /Chrome/i.test(ua) && !/Edg|OPR/i.test(ua);
+  const isMobile = isAndroid || isIphone;
+
+  document.getElementById("screen0").classList.add("active");
+  document.getElementById("progressBar").style.display = "none";
+
+  if (isAndroid && isChrome) {
+    document.getElementById("deviceOk").style.display = "block";
+  } else if (isIphone) {
+    document.getElementById("deviceIphone").style.display = "block";
+  } else {
+    document.getElementById("deviceDesktop").style.display = "block";
+    generateQR();
+  }
+});
+
+function generateQR() {
+  // QR code simples usando canvas
+  const canvas = document.getElementById("qrCanvas");
+  const ctx = canvas.getContext("2d");
+  const url = "https://reputazap.vercel.app/ativar.html";
+  // Desenha QR placeholder com URL visível
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, 140, 140);
+  ctx.fillStyle = "#0a0f1a";
+  ctx.font = "bold 9px monospace";
+  ctx.textAlign = "center";
+  // Padrão visual simples
+  const cells = 10;
+  const size = 14;
+  const pad = 0;
+  for(let i = 0; i < cells; i++) {
+    for(let j = 0; j < cells; j++) {
+      if(Math.random() > 0.5 || (i<3&&j<3) || (i<3&&j>6) || (i>6&&j<3)) {
+        ctx.fillRect(pad + j*size, pad + i*size, size-1, size-1);
+      }
+    }
+  }
+  // Corners
+  [[0,0],[0,7],[7,0]].forEach(([r,c]) => {
+    ctx.fillStyle = "#0a0f1a";
+    ctx.fillRect(pad+c*size, pad+r*size, size*3-1, size*3-1);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(pad+c*size+2, pad+r*size+2, size*3-5, size*3-5);
+    ctx.fillStyle = "#0a0f1a";
+    ctx.fillRect(pad+c*size+4, pad+r*size+4, size*3-9, size*3-9);
+  });
+}
+
 function goToStep(n) {
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.getElementById(`screen${n}`).classList.add("active");
-  updateProgress(n);
+  if(n >= 1 && n <= 4) {
+    document.getElementById("progressBar").style.display = "flex";
+    updateProgress(n);
+  }
   window.scrollTo(0,0);
 }
 
