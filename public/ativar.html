@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ativar Plaquinha — ReputaZap</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#0a0f1a;font-family:'Plus Jakarta Sans',sans-serif;color:#f9fafb;min-height:100vh;padding:32px 20px;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  .logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:40px;animation:fadeUp 0.4s ease;}
+  .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#10b981,#0d9488);border-radius:10px;display:flex;align-items:center;justify-content:center;}
+  .logo-text{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;}
+  h1{font-family:'Playfair Display',serif;font-size:clamp(24px,5vw,36px);text-align:center;margin-bottom:10px;animation:fadeUp 0.5s ease;}
+  .subtitle{text-align:center;color:#6b7280;font-size:15px;margin-bottom:40px;animation:fadeUp 0.6s ease;}
+
+  /* PLANS */
+  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:680px;margin:0 auto 48px;animation:fadeUp 0.6s ease;}
+  .plan{background:#111827;border:1px solid #1f2937;border-radius:20px;padding:28px;position:relative;transition:border-color .2s,transform .2s;cursor:pointer;}
+  .plan:hover{border-color:#374151;transform:translateY(-2px);}
+  .plan.featured{background:linear-gradient(145deg,#0d1f14,#111827);border-color:#065f46;}
+  .plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;font-size:11px;font-weight:700;border-radius:100px;padding:4px 14px;white-space:nowrap;}
+  .plan-name{font-size:13px;font-weight:600;color:#6b7280;margin-bottom:6px;}
+  .plan-price{font-family:'Playfair Display',serif;font-size:40px;font-weight:700;line-height:1;margin-bottom:4px;}
+  .plan-price span{font-size:16px;font-weight:500;color:#6b7280;}
+  .plan-period{font-size:12px;color:#4b5563;margin-bottom:20px;}
+  .plan-features{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:24px;}
+  .plan-features li{font-size:13px;color:#9ca3af;display:flex;align-items:center;gap:8px;}
+  .plan-features li::before{content:'✓';color:#10b981;font-weight:700;flex-shrink:0;}
+  .plan-features li.no::before{content:'✗';color:#374151;}
+  .plan-features li.no{color:#374151;}
+  .btn{width:100%;padding:13px;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .15s;}
+  .btn-ghost{background:transparent;border:1px solid #1f2937;color:#6b7280;}
+  .btn-ghost:hover{border-color:#374151;color:#f9fafb;}
+  .btn-solid{background:#10b981;color:#fff;}
+  .btn-solid:hover{background:#059669;transform:translateY(-1px);}
+
+  /* INSTRUCTIONS */
+  .instructions{max-width:680px;margin:0 auto;display:none;}
+  .instructions.active{display:block;animation:fadeUp 0.4s ease;}
+  .instr-title{font-family:'Playfair Display',serif;font-size:22px;text-align:center;margin-bottom:6px;}
+  .instr-sub{text-align:center;color:#6b7280;font-size:13px;margin-bottom:28px;}
+
+  /* OS TABS */
+  .os-tabs{display:flex;gap:8px;background:#111827;border:1px solid #1f2937;border-radius:14px;padding:4px;margin-bottom:24px;}
+  .os-tab{flex:1;padding:10px;border:none;border-radius:10px;font-size:13px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;background:transparent;color:#6b7280;transition:all .15s;}
+  .os-tab.active{background:#10b981;color:#fff;}
+
+  /* STEPS */
+  .steps{display:flex;flex-direction:column;gap:4px;margin-bottom:24px;}
+  .step{background:#111827;border:1px solid #1f2937;border-radius:14px;padding:16px 20px;display:flex;align-items:flex-start;gap:14px;}
+  .step-n{width:28px;height:28px;background:#0a0f1a;border:1px solid #1f2937;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#10b981;flex-shrink:0;}
+  .step-text h3{font-size:13px;font-weight:700;color:#e5e7eb;margin-bottom:3px;}
+  .step-text p{font-size:12px;color:#6b7280;line-height:1.5;}
+  .step-text a{color:#10b981;text-decoration:none;font-weight:600;}
+  .step-text code{background:#0a0f1a;border:1px solid #1f2937;border-radius:6px;padding:2px 8px;font-size:11px;color:#10b981;font-family:monospace;}
+
+  /* NFC BUTTON */
+  .nfc-btn{width:100%;padding:16px;background:linear-gradient(135deg,#10b981,#0d9488);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;transition:all .15s;}
+  .nfc-btn:hover{opacity:.9;transform:translateY(-1px);}
+  .nfc-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+  .nfc-status{text-align:center;font-size:13px;color:#6b7280;min-height:20px;}
+  .nfc-status.success{color:#10b981;}
+  .nfc-status.error{color:#ef4444;}
+
+  .back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:#4b5563;font-size:13px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin:0 auto 24px;padding:0;}
+  .back-btn:hover{color:#9ca3af;}
+
+  .app-store-links{display:flex;gap:10px;flex-wrap:wrap;}
+  .app-link{flex:1;min-width:120px;padding:10px 14px;background:#0a0f1a;border:1px solid #1f2937;border-radius:10px;text-decoration:none;display:flex;align-items:center;gap:8px;font-size:12px;color:#9ca3af;font-weight:600;transition:border-color .15s;}
+  .app-link:hover{border-color:#374151;color:#f9fafb;}
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <div class="logo-icon">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+  </div>
+  <span class="logo-text">ReputaZap</span>
+</div>
+
+<!-- PLANS -->
+<div id="plansSection">
+  <h1>Ative sua plaquinha</h1>
+  <p class="subtitle">Escolha como quer usar o ReputaZap</p>
+
+  <div class="plans">
+    <!-- FREE -->
+    <div class="plan" onclick="showInstructions('free')">
+      <div class="plan-name">Gratuito</div>
+      <div class="plan-price">R$<span>0</span></div>
+      <div class="plan-period">para sempre</div>
+      <ul class="plan-features">
+        <li>Clientes vão direto ao Google</li>
+        <li>Sem cadastro necessário</li>
+        <li class="no">Filtro de avaliações negativas</li>
+        <li class="no">Dashboard com métricas</li>
+        <li class="no">Alertas de novos reviews</li>
+      </ul>
+      <button class="btn btn-ghost">Usar gratuitamente</button>
+    </div>
+
+    <!-- PRO -->
+    <div class="plan featured" onclick="showInstructions('pro')">
+      <div class="plan-badge">⭐ Recomendado</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">R$<span>79</span></div>
+      <div class="plan-period">por mês · 14 dias grátis</div>
+      <ul class="plan-features">
+        <li>Clientes vão direto ao Google</li>
+        <li>Filtro — negativo vai só pra você</li>
+        <li>Dashboard com métricas</li>
+        <li>Alertas de novos reviews</li>
+        <li>IA para responder avaliações</li>
+      </ul>
+      <button class="btn btn-solid">Começar grátis por 14 dias</button>
+    </div>
+  </div>
+</div>
+
+<!-- INSTRUCTIONS FREE -->
+<div class="instructions" id="instrFree">
+  <button class="back-btn" onclick="goBack()">← Voltar</button>
+  <div class="instr-title">Plano Gratuito</div>
+  <p class="instr-sub">Siga os passos abaixo para programar sua plaquinha</p>
+
+  <div class="os-tabs">
+    <button class="os-tab active" onclick="switchOS('free','android')">📱 Android</button>
+    <button class="os-tab" onclick="switchOS('free','iphone')">🍎 iPhone</button>
+  </div>
+
+  <div id="free-android">
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div class="step-text"><h3>Clique no botão abaixo</h3><p>Vamos gravar o link direto no seu cartão NFC agora mesmo pelo navegador.</p></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-text"><h3>Aproxime o cartão NFC do celular</h3><p>Quando aparecer a mensagem, encoste o cartão na parte traseira do celular.</p></div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-text"><h3>Pronto!</h3><p>Coloque a plaquinha no balcão. Quando o cliente tocar, vai direto para o Google.</p></div></div>
+    </div>
+    <button class="nfc-btn" onclick="writeNFC('free')" id="nfcBtnFree">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      Gravar no cartão NFC
+    </button>
+    <p class="nfc-status" id="nfcStatusFree"></p>
+  </div>
+
+  <div id="free-iphone" style="display:none">
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div class="step-text"><h3>Baixe o NFC Tools</h3><p>Disponível gratuitamente na App Store.</p><div class="app-store-links" style="margin-top:8px"><a class="app-link" href="https://apps.apple.com/br/app/nfc-tools/id1252962749" target="_blank">📱 App Store — NFC Tools</a></div></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-text"><h3>Abra o app e toque em "Write"</h3><p>Depois em "Add a record" → "URL"</p></div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-text"><h3>Cole este link</h3><code id="freeLinkDisplay">Carregando...</code></div></div>
+      <div class="step"><div class="step-n">4</div><div class="step-text"><h3>Aproxime o cartão e grave</h3><p>Toque em "Write" e encoste o cartão NFC no iPhone.</p></div></div>
+    </div>
+    <button class="nfc-btn" onclick="copyLink('free')">
+      📋 Copiar link
+    </button>
+    <p class="nfc-status" id="freeCopyStatus"></p>
+  </div>
+</div>
+
+<!-- INSTRUCTIONS PRO -->
+<div class="instructions" id="instrPro">
+  <button class="back-btn" onclick="goBack()">← Voltar</button>
+  <div class="instr-title">Plano Pro — 14 dias grátis</div>
+  <p class="instr-sub">Crie sua conta e depois programe a plaquinha</p>
+
+  <div class="os-tabs">
+    <button class="os-tab active" onclick="switchOS('pro','android')">📱 Android</button>
+    <button class="os-tab" onclick="switchOS('pro','iphone')">🍎 iPhone</button>
+  </div>
+
+  <div id="pro-android">
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div class="step-text"><h3>Crie sua conta grátis</h3><p>Acesse <a href="/app" target="_blank">reputazap.vercel.app/app</a> e cadastre seu negócio.</p></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-text"><h3>Volte aqui e grave o cartão</h3><p>Depois de criar sua conta, clique no botão abaixo e aproxime o cartão NFC.</p></div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-text"><h3>Coloque no balcão</h3><p>Clientes que avaliarem bem vão pro Google. Os insatisfeitos vão só pra você.</p></div></div>
+    </div>
+    <button class="nfc-btn" onclick="writeNFC('pro')" id="nfcBtnPro">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      Gravar no cartão NFC
+    </button>
+    <p class="nfc-status" id="nfcStatusPro"></p>
+  </div>
+
+  <div id="pro-iphone" style="display:none">
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div class="step-text"><h3>Crie sua conta grátis</h3><p>Acesse <a href="/app" target="_blank">reputazap.vercel.app/app</a> e cadastre seu negócio.</p></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-text"><h3>Baixe o NFC Tools</h3><div class="app-store-links" style="margin-top:8px"><a class="app-link" href="https://apps.apple.com/br/app/nfc-tools/id1252962749" target="_blank">📱 App Store — NFC Tools</a></div></div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-text"><h3>Cole este link no NFC Tools</h3><code id="proLinkDisplay">Carregando...</code></div></div>
+      <div class="step"><div class="step-n">4</div><div class="step-text"><h3>Grave e coloque no balcão</h3><p>Pronto! O filtro inteligente já está ativo.</p></div></div>
+    </div>
+    <button class="nfc-btn" onclick="copyLink('pro')">
+      📋 Copiar link
+    </button>
+    <p class="nfc-status" id="proCopyStatus"></p>
+  </div>
+</div>
+
+<script>
+let placeId = null;
+const FREE_LINK = () => placeId ? `https://search.google.com/local/writereview?placeid=${placeId}` : "https://reputazap.vercel.app/avaliar";
+const PRO_LINK = "https://reputazap.vercel.app/avaliar";
+
+// Busca place_id
+fetch("/api/placeid")
+  .then(r => r.json())
+  .then(data => {
+    placeId = data.place_id;
+    document.getElementById("freeLinkDisplay").textContent = FREE_LINK();
+    document.getElementById("proLinkDisplay").textContent = PRO_LINK;
+  })
+  .catch(() => {
+    document.getElementById("freeLinkDisplay").textContent = "https://reputazap.vercel.app/avaliar";
+    document.getElementById("proLinkDisplay").textContent = PRO_LINK;
+  });
+
+function showInstructions(plan) {
+  document.getElementById("plansSection").style.display = "none";
+  document.getElementById(plan === "free" ? "instrFree" : "instrPro").classList.add("active");
+}
+
+function goBack() {
+  document.getElementById("plansSection").style.display = "block";
+  document.getElementById("instrFree").classList.remove("active");
+  document.getElementById("instrPro").classList.remove("active");
+}
+
+function switchOS(plan, os) {
+  const prefix = plan;
+  document.getElementById(`${prefix}-android`).style.display = os === "android" ? "block" : "none";
+  document.getElementById(`${prefix}-iphone`).style.display = os === "iphone" ? "block" : "none";
+  document.querySelectorAll(`#instr${plan.charAt(0).toUpperCase()+plan.slice(1)} .os-tab`).forEach((t,i) => {
+    t.classList.toggle("active", (os === "android" && i === 0) || (os === "iphone" && i === 1));
+  });
+}
+
+async function writeNFC(plan) {
+  const link = plan === "free" ? FREE_LINK() : PRO_LINK;
+  const btn = document.getElementById(`nfcBtn${plan.charAt(0).toUpperCase()+plan.slice(1)}`);
+  const status = document.getElementById(`nfcStatus${plan.charAt(0).toUpperCase()+plan.slice(1)}`);
+
+  if (!("NDEFReader" in window)) {
+    status.textContent = "Seu navegador não suporta Web NFC. Use o Chrome no Android.";
+    status.className = "nfc-status error";
+    return;
+  }
+
+  try {
+    btn.disabled = true;
+    btn.textContent = "Aproxime o cartão NFC...";
+    status.textContent = "Aguardando cartão NFC...";
+    status.className = "nfc-status";
+
+    const ndef = new NDEFReader();
+    await ndef.write({ records: [{ recordType: "url", data: link }] });
+
+    status.textContent = "✅ Cartão gravado com sucesso! Coloque no balcão.";
+    status.className = "nfc-status success";
+    btn.textContent = "✅ Gravado!";
+  } catch (err) {
+    status.textContent = `Erro: ${err.message}`;
+    status.className = "nfc-status error";
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Tentar novamente`;
+  }
+}
+
+function copyLink(plan) {
+  const link = plan === "free" ? FREE_LINK() : PRO_LINK;
+  const statusId = plan === "free" ? "freeCopyStatus" : "proCopyStatus";
+  navigator.clipboard.writeText(link).then(() => {
+    document.getElementById(statusId).textContent = "✅ Link copiado! Cole no NFC Tools.";
+    document.getElementById(statusId).className = "nfc-status success";
+  });
+}
+</script>
+</body>
+</html>
