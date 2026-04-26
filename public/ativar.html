@@ -438,30 +438,45 @@ function copyNFCLink(){
 }
 
 async function goToSuccess(){
-  document.getElementById("successBizName").textContent=state.business.name;
+  document.getElementById("successBizName").textContent=state.business?.name||"Negócio";
   document.getElementById("successPlan").textContent=state.plan==="free"?"Plano Gratuito":"Plano Pro — 14 dias grátis";
   goToStep(5);
 
-  // Salva o negócio no Supabase
   const token=localStorage.getItem("rz_token");
-  if(token && state.business){
-    try {
-      await fetch("/api/savebiz",{
-        method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
-        body:JSON.stringify({
-          place_id:state.business.place_id,
-          name:state.business.name,
-          address:state.business.address,
-          rating:state.business.rating,
-          total:state.business.total,
-          plan:state.plan
-        })
-      });
-    } catch(e){ console.error("Erro ao salvar negócio",e); }
+  console.log("Token:", token ? "existe" : "NÃO EXISTE");
+  console.log("Business:", state.business);
+
+  if(!token) {
+    console.error("Token não encontrado - negócio não será salvo");
+    setTimeout(()=>{ window.location.href="/app"; }, 3000);
+    return;
   }
 
-  // Redireciona para o dashboard após 3 segundos
+  if(!state.business?.place_id) {
+    console.error("place_id não encontrado");
+    setTimeout(()=>{ window.location.href="/app"; }, 3000);
+    return;
+  }
+
+  try {
+    const r = await fetch("/api/savebiz",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
+      body:JSON.stringify({
+        place_id:state.business.place_id,
+        name:state.business.name,
+        address:state.business.address||"",
+        rating:state.business.rating||0,
+        total:state.business.total||0,
+        plan:state.plan
+      })
+    });
+    const d = await r.json();
+    console.log("Savebiz response:", d);
+  } catch(e){
+    console.error("Erro ao salvar negócio:", e);
+  }
+
   setTimeout(()=>{ window.location.href="/app"; }, 3000);
 }
 </script>
