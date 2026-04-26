@@ -295,16 +295,22 @@ async function goToStep2(){
     const data=await res.json();
     if(!res.ok){alert(data.error||"Erro ao criar conta");btn.disabled=false;btn.innerHTML="Continuar →";return;}
 
-    // Faz login para pegar o token
-    const loginRes=await fetch("/api/login",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({email,password:pass})
-    });
-    const loginData=await loginRes.json();
-    if(loginData.token){
-      localStorage.setItem("rz_token",loginData.token);
-      localStorage.setItem("rz_user",JSON.stringify(loginData.user));
+    // Salva token retornado direto do register
+    if(data.token){
+      localStorage.setItem("rz_token", data.token);
+      localStorage.setItem("rz_user", JSON.stringify(data.user));
+    } else {
+      // Fallback: faz login separado
+      const loginRes=await fetch("/api/login",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({email,password:pass})
+      });
+      const loginData=await loginRes.json();
+      if(loginData.token){
+        localStorage.setItem("rz_token",loginData.token);
+        localStorage.setItem("rz_user",JSON.stringify(loginData.user));
+      }
     }
 
     state.user={name,email,phone,pass};

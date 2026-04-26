@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
+  process.env.SUPABASE_ANON_KEY
 );
 
 export default async function handler(req, res) {
@@ -18,16 +18,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { data, error } = await supabase.auth.admin.createUser({
+    // Cria conta e já retorna a sessão
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      email_confirm: true,
-      user_metadata: { name, phone }
+      options: {
+        data: { name, phone }
+      }
     });
 
     if (error) return res.status(400).json({ error: error.message });
 
-    res.json({ ok: true, user_id: data.user.id });
+    // Retorna token direto se a sessão foi criada
+    const token = data.session?.access_token || null;
+
+    res.json({
+      ok: true,
+      user_id: data.user.id,
+      token,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        name
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
