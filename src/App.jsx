@@ -78,7 +78,7 @@ function LoginScreen({ onLogin }) {
                 onFocus={e=>e.target.style.borderColor="#10b981"} onBlur={e=>e.target.style.borderColor="#1f2937"}/>
               <button type="button" onClick={()=>setShowPass(!showPass)}
                 style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"#4b5563",display:"flex"}}>
-                {showPass?<EyeOff size={16}/>:<Eye size={16}/>}
+                {showPass?"🙈":"👁"}
               </button>
             </div>
           </div>
@@ -291,35 +291,57 @@ export default function ReputaZap({ user, onLogout }) {
   const [googleConnected, setGoogleConnected] = useState(false);
   const [connectStep, setConnectStep] = useState(0);
 
-  // Carrega reviews reais via Vercel API route
+  // Carrega o negócio do usuário logado e seus reviews
   useEffect(() => {
     const token = localStorage.getItem("rz_token");
 
-    // Primeiro busca o negócio do usuário no Supabase
     const loadBusiness = async () => {
       if (token) {
         try {
-          const res = await fetch("/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token_check: token })
+          // Busca o negócio do usuário logado via endpoint dedicado
+          const res = await fetch("/api/mybiz", {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${token}` }
           });
-          const data = await res.json();
-          if (data.business?.place_id) {
-            // Busca reviews com o place_id do negócio do usuário
-            const reviewRes = await fetch(`/api/reviews?place_id=${data.business.place_id}`);
-            const reviewData = await reviewRes.json();
-            if (reviewData.reviews?.length) {
-              setReviews(reviewData.reviews);
-              setBizInfo({ name: reviewData.name, rating: reviewData.rating, total: reviewData.total });
+
+          if (res.ok) {
+            const data = await res.json();
+            console.log("[App] Business do usuário:", data.business);
+
+            if (data.business?.place_id) {
+              // Busca reviews reais do Google com o place_id do negócio
+              const reviewRes = await fetch(`/api/reviews?place_id=${data.business.place_id}`);
+              const reviewData = await reviewRes.json();
+
+              if (reviewData.reviews?.length) {
+                setReviews(reviewData.reviews);
+                setBizInfo({
+                  name: reviewData.name || data.business.name,
+                  rating: reviewData.rating ?? data.business.rating,
+                  total: reviewData.total ?? data.business.total_reviews
+                });
+              } else {
+                // Sem reviews ainda, mas mostra os dados do negócio
+                setBizInfo({
+                  name: data.business.name,
+                  rating: data.business.rating,
+                  total: data.business.total_reviews
+                });
+              }
               setGoogleConnected(true);
+              setLoadingReviews(false);
+              return;
             }
-            setLoadingReviews(false);
-            return;
+          } else {
+            console.warn("[App] /api/mybiz retornou:", res.status);
           }
-        } catch {}
+        } catch (err) {
+          console.error("[App] Erro ao buscar negócio:", err);
+        }
       }
-      // Fallback: busca reviews padrão
+
+      // Fallback: usuário não tem negócio cadastrado ou sem token
+      console.log("[App] Caindo no fallback (sem negócio cadastrado)");
       fetch("/api/reviews")
         .then(r => r.json())
         .then(data => {
@@ -824,7 +846,7 @@ export default function ReputaZap({ user, onLogout }) {
                 <div style={{background:"linear-gradient(145deg,#0d1f14,#111827)",border:"1px solid #064e3b",borderRadius:16,padding:32,textAlign:"center"}}>
                   <div style={{fontSize:36,marginBottom:12}}>✅</div>
                   <div style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#f9fafb",marginBottom:8}}>Google Meu Negócio conectado</div>
-                  <div style={{fontSize:13,color:"#6ee7b7",marginBottom:24}}>Café Bello Vista · fiorini@gmail.com</div>
+                  <div style={{fontSize:13,color:"#6ee7b7",marginBottom:24}}>{biz} · {user?.email}</div>
                   <button onClick={()=>{setGoogleConnected(false);setConnectStep(0);}} style={{background:"none",border:"1px solid #374151",color:"#6b7280",borderRadius:10,padding:"8px 18px",fontSize:12,cursor:"pointer"}}>Desconectar</button>
                 </div>
               )}
