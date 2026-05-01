@@ -151,7 +151,7 @@ function Metric({ icon:Icon, label, value, sub, color, bg }) {
 }
 
 // ── CUSTOMER PAGE ─────────────────────────────────────────
-function CustomerPage({ brinde, onClose }) {
+function CustomerPage({ brinde, onClose, biz }) {
   const [step, setStep] = useState("feeling");
   const [feedback, setFeedback] = useState("");
   const [burst, setBurst] = useState(false);
@@ -185,7 +185,7 @@ function CustomerPage({ brinde, onClose }) {
         {step==="feeling"&&(
           <div style={{padding:"28px 24px 36px",textAlign:"center",animation:"fadeUp 0.4s ease"}}>
             <div style={{width:60,height:60,background:"linear-gradient(135deg,#10b981,#0d9488)",borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px"}}><Star size={26} fill="#fff" color="#fff"/></div>
-            <div style={{fontSize:11,fontWeight:700,color:"#10b981",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Café Bello Vista</div>
+            <div style={{fontSize:11,fontWeight:700,color:"#10b981",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>{biz}</div>
             <div style={{fontSize:21,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",lineHeight:1.2,marginBottom:6}}>Como foi sua experiência hoje?</div>
             <div style={{fontSize:13,color:"#64748b",marginBottom:28,lineHeight:1.6}}>Sua opinião nos ajuda a melhorar sempre</div>
             <div style={{display:"flex",gap:10}}>
@@ -213,7 +213,7 @@ function CustomerPage({ brinde, onClose }) {
             <div style={{background:"#f8fafc",borderRadius:16,padding:"14px 18px",marginBottom:20,border:"1px solid #e2e8f0",textAlign:"left"}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                 <div style={{width:30,height:30,borderRadius:8,background:"linear-gradient(135deg,#ea4335 0%,#fbbc04 33%,#34a853 66%,#4285f4 100%)"}}/>
-                <div><div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>Café Bello Vista</div><div style={{fontSize:11,color:"#64748b"}}>Google Meu Negócio</div></div>
+                <div><div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{biz}</div><div style={{fontSize:11,color:"#64748b"}}>Google Meu Negócio</div></div>
               </div>
               <div style={{display:"flex",gap:2}}>{[1,2,3,4,5].map(i=><Star key={i} size={17} fill="#f59e0b" color="#f59e0b"/>)}</div>
             </div>
@@ -422,7 +422,7 @@ export default function ReputaZap({ user, onLogout }) {
       `}</style>
       <div style={{display:"flex",minHeight:"100vh",background:"#0a0f1a",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
 
-        {showPreview&&<CustomerPage brinde={brinde} onClose={()=>setShowPreview(false)}/>}
+        {showPreview&&<CustomerPage brinde={brinde} biz={biz} onClose={()=>setShowPreview(false)}/>}
 
         {/* Overlay mobile */}
         <div className={`sidebar-overlay${sidebarOpen?" open":""}`} onClick={()=>setSidebarOpen(false)}/>
@@ -486,7 +486,15 @@ export default function ReputaZap({ user, onLogout }) {
         </div>
 
         {/* Content */}
-        <div className="main-pad" style={{flex:1,overflow:"auto",padding:"32px 28px",minWidth:0}}>
+        <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0,overflow:"auto"}}>
+          <div className="mobile-header">
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <div style={{width:28,height:28,background:"linear-gradient(135deg,#10b981,#0d9488)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center"}}><Star size={14} fill="#fff" color="#fff"/></div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:15,color:"#f9fafb"}}>ReputaZap</div>
+            </div>
+            <button onClick={()=>setSidebarOpen(true)} aria-label="Abrir menu" style={{background:"none",border:"none",color:"#9ca3af",cursor:"pointer",padding:8,borderRadius:8,display:"flex"}}><Menu size={22}/></button>
+          </div>
+        <div className="main-pad" style={{padding:"32px 28px",minWidth:0}}>
           {/* Header */}
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,animation:"fadeUp 0.4s ease"}}>
             <div>
@@ -512,10 +520,10 @@ export default function ReputaZap({ user, onLogout }) {
           {tab==="dashboard"&&(
             <div style={{animation:"fadeUp 0.4s ease"}}>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:16,marginBottom:24}}>
-                <Metric icon={Star} label="Nota Média" value={avgRating} sub={`${reviews.length} avaliações`} color="#f59e0b" bg="#1c1404"/>
-                <Metric icon={MessageSquare} label="Sem Resposta" value={pending} sub="aguardando" color="#ef4444" bg="#1a0505"/>
-                <Metric icon={Gift} label="Via NFC+Brinde" value={nfcCount} sub="capturados" color="#10b981" bg="#061612"/>
-                <Metric icon={AlertCircle} label="Negativas" value={negative} sub="precisam ação" color="#f97316" bg="#1a0c04"/>
+                <Metric icon={Star} label="Nota Média" value={avgRating} sub={`${bizInfo?.total ?? reviews.length} avaliações no Google`} color="#f59e0b" bg="#1c1404"/>
+                <Metric icon={MessageSquare} label="Sem Resposta" value={pending} sub="nas últimas 5" color="#ef4444" bg="#1a0505"/>
+                <Metric icon={Gift} label="Via NFC+Brinde" value={nfcCount} sub="nas últimas 5" color="#10b981" bg="#061612"/>
+                <Metric icon={AlertCircle} label="Negativas" value={negative} sub="nas últimas 5" color="#f97316" bg="#1a0c04"/>
               </div>
 
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
@@ -852,6 +860,7 @@ export default function ReputaZap({ user, onLogout }) {
               )}
             </div>
           )}
+        </div>
         </div>
       </div>
     </>
