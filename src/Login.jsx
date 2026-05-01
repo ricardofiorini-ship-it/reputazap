@@ -12,6 +12,23 @@ export default function Login({ onLogin }) {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [mode, setMode] = useState("login"); // "login" | "forgot" | "forgot-sent"
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+
+  async function handleForgot(e) {
+    e.preventDefault();
+    setForgotLoading(true);
+    try {
+      await fetch("/api/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail })
+      });
+    } catch {}
+    setMode("forgot-sent");
+    setForgotLoading(false);
+  }
 
   // Verifica se já tem sessão ativa
   useEffect(() => {
@@ -97,45 +114,88 @@ export default function Login({ onLogin }) {
 
       {/* Card */}
       <div style={{width:"100%",maxWidth:400,background:"#111827",border:"1px solid #1f2937",borderRadius:24,padding:36,animation:"fadeUp 0.5s ease"}}>
-        <div style={{textAlign:"center",marginBottom:28}}>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#f9fafb",marginBottom:6}}>Bem-vindo de volta</div>
-          <div style={{fontSize:13,color:"#6b7280"}}>Entre na sua conta para continuar</div>
-        </div>
 
-        <form onSubmit={handleLogin} style={{display:"flex",flexDirection:"column",gap:16}}>
-          <div>
-            <label style={{fontSize:12,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:6}}>Email</label>
-            <input className="login-input" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="seu@email.com.br" required/>
-          </div>
-          <div>
-            <label style={{fontSize:12,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:6}}>Senha</label>
-            <div style={{position:"relative"}}>
-              <input className="login-input" type={showPass?"text":"password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required style={{paddingRight:44}}/>
-              <button type="button" onClick={()=>setShowPass(!showPass)} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"#4b5563",display:"flex"}}>
-                {showPass?<EyeOff size={16}/>:<Eye size={16}/>}
+        {mode==="login"&&(
+          <>
+            <div style={{textAlign:"center",marginBottom:28}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#f9fafb",marginBottom:6}}>Bem-vindo de volta</div>
+              <div style={{fontSize:13,color:"#6b7280"}}>Entre na sua conta para continuar</div>
+            </div>
+
+            <form onSubmit={handleLogin} style={{display:"flex",flexDirection:"column",gap:16}}>
+              <div>
+                <label style={{fontSize:12,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:6}}>Email</label>
+                <input className="login-input" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="seu@email.com.br" required/>
+              </div>
+              <div>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                  <label style={{fontSize:12,fontWeight:600,color:"#9ca3af"}}>Senha</label>
+                  <button type="button" onClick={()=>{setError("");setMode("forgot");setForgotEmail(email);}} style={{background:"none",border:"none",color:"#10b981",fontSize:12,fontWeight:600,cursor:"pointer",padding:0}}>
+                    Esqueci a senha
+                  </button>
+                </div>
+                <div style={{position:"relative"}}>
+                  <input className="login-input" type={showPass?"text":"password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required style={{paddingRight:44}}/>
+                  <button type="button" onClick={()=>setShowPass(!showPass)} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"#4b5563",display:"flex"}}>
+                    {showPass?<EyeOff size={16}/>:<Eye size={16}/>}
+                  </button>
+                </div>
+              </div>
+              {error&&(
+                <div style={{background:"#1a0505",border:"1px solid #7f1d1d",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#ef4444",display:"flex",alignItems:"center",gap:8}}>
+                  <AlertCircle size={14}/>{error}
+                </div>
+              )}
+              <button type="submit" className="login-btn" disabled={loading}>
+                {loading?<><RefreshCw size={15} style={{animation:"spin 1s linear infinite"}}/> Entrando...</>:"Entrar"}
               </button>
+            </form>
+
+            <div style={{display:"flex",alignItems:"center",gap:12,margin:"24px 0"}}>
+              <div style={{flex:1,height:1,background:"#1f2937"}}/>
+              <span style={{fontSize:12,color:"#374151"}}>conta demo</span>
+              <div style={{flex:1,height:1,background:"#1f2937"}}/>
             </div>
+
+            <div style={{background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:"12px 16px",textAlign:"center"}}>
+              <div style={{fontSize:12,color:"#4b5563",marginBottom:4}}>Credenciais de demonstração</div>
+              <div style={{fontSize:12,color:"#6b7280"}}>demo@reputazap.com.br / demo123</div>
+            </div>
+          </>
+        )}
+
+        {mode==="forgot"&&(
+          <>
+            <div style={{textAlign:"center",marginBottom:24}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#f9fafb",marginBottom:6}}>Recuperar senha</div>
+              <div style={{fontSize:13,color:"#6b7280"}}>Te mandamos um link por email pra redefinir.</div>
+            </div>
+            <form onSubmit={handleForgot} style={{display:"flex",flexDirection:"column",gap:16}}>
+              <div>
+                <label style={{fontSize:12,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:6}}>Email da conta</label>
+                <input className="login-input" type="email" value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)} placeholder="seu@email.com.br" required autoFocus/>
+              </div>
+              <button type="submit" className="login-btn" disabled={forgotLoading}>
+                {forgotLoading?<><RefreshCw size={15} style={{animation:"spin 1s linear infinite"}}/> Enviando...</>:"Enviar link"}
+              </button>
+              <button type="button" onClick={()=>setMode("login")} style={{background:"none",border:"none",color:"#6b7280",fontSize:13,fontWeight:600,cursor:"pointer"}}>
+                ← Voltar
+              </button>
+            </form>
+          </>
+        )}
+
+        {mode==="forgot-sent"&&(
+          <div style={{textAlign:"center",padding:"8px 0"}}>
+            <div style={{fontSize:48,marginBottom:14}}>📧</div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#f9fafb",marginBottom:8}}>Verifique seu email</div>
+            <div style={{fontSize:13,color:"#9ca3af",lineHeight:1.6,marginBottom:24}}>
+              Se <strong style={{color:"#e5e7eb"}}>{forgotEmail}</strong> estiver cadastrado, você vai receber um link em alguns segundos.<br/><br/>
+              Não esqueça de olhar o spam.
+            </div>
+            <button onClick={()=>setMode("login")} className="login-btn">Voltar pro login</button>
           </div>
-          {error&&(
-            <div style={{background:"#1a0505",border:"1px solid #7f1d1d",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#ef4444",display:"flex",alignItems:"center",gap:8}}>
-              <AlertCircle size={14}/>{error}
-            </div>
-          )}
-          <button type="submit" className="login-btn" disabled={loading}>
-            {loading?<><RefreshCw size={15} style={{animation:"spin 1s linear infinite"}}/> Entrando...</>:"Entrar"}
-          </button>
-        </form>
-
-        <div style={{display:"flex",alignItems:"center",gap:12,margin:"24px 0"}}>
-          <div style={{flex:1,height:1,background:"#1f2937"}}/>
-          <span style={{fontSize:12,color:"#374151"}}>conta demo</span>
-          <div style={{flex:1,height:1,background:"#1f2937"}}/>
-        </div>
-
-        <div style={{background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:"12px 16px",textAlign:"center"}}>
-          <div style={{fontSize:12,color:"#4b5563",marginBottom:4}}>Credenciais de demonstração</div>
-          <div style={{fontSize:12,color:"#6b7280"}}>demo@reputazap.com.br / demo123</div>
-        </div>
+        )}
       </div>
 
       <div style={{marginTop:24,fontSize:12,color:"#374151"}}>

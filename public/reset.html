@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nova senha — ReputaZap</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#0a0f1a;font-family:'Plus Jakarta Sans',sans-serif;color:#f9fafb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .card{width:100%;max-width:400px;background:#111827;border:1px solid #1f2937;border-radius:24px;padding:36px;}
+  .logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;justify-content:center;}
+  .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#10b981,#0d9488);border-radius:12px;display:flex;align-items:center;justify-content:center;}
+  .logo-text{font-family:'Playfair Display',serif;font-weight:700;font-size:22px;color:#f9fafb;}
+  h1{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#f9fafb;margin-bottom:6px;text-align:center;}
+  .sub{font-size:13px;color:#6b7280;text-align:center;margin-bottom:24px;}
+  label{font-size:12px;font-weight:600;color:#9ca3af;display:block;margin-bottom:6px;}
+  input{width:100%;background:#0a0f1a;border:1px solid #1f2937;border-radius:12px;padding:12px 16px;color:#f9fafb;font-size:14px;outline:none;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:16px;}
+  input:focus{border-color:#10b981;}
+  button{width:100%;background:linear-gradient(135deg,#10b981,#0d9488);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;}
+  button:disabled{opacity:0.7;cursor:not-allowed;}
+  .msg{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;}
+  .msg.error{background:#1a0505;border:1px solid #7f1d1d;color:#ef4444;}
+  .msg.success{background:#0d1f14;border:1px solid #064e3b;color:#10b981;}
+  a{color:#10b981;text-decoration:none;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+    <div class="logo-text">ReputaZap</div>
+  </div>
+
+  <div id="loading" style="text-align:center;color:#6b7280;font-size:13px;">Validando link...</div>
+
+  <div id="form" style="display:none;">
+    <h1>Nova senha</h1>
+    <p class="sub">Defina uma senha segura para acessar sua conta.</p>
+    <div id="errorMsg" class="msg error" style="display:none;"></div>
+    <label>Nova senha</label>
+    <input type="password" id="pass1" placeholder="••••••••" minlength="6"/>
+    <label>Confirmar nova senha</label>
+    <input type="password" id="pass2" placeholder="••••••••" minlength="6"/>
+    <button id="submitBtn" onclick="resetPassword()">Atualizar senha</button>
+  </div>
+
+  <div id="success" style="display:none;text-align:center;">
+    <div style="font-size:48px;margin-bottom:14px;">✅</div>
+    <h1>Senha atualizada!</h1>
+    <p class="sub" style="margin-bottom:20px;">Vá pro login com a nova senha.</p>
+    <a href="/app" style="display:block;background:linear-gradient(135deg,#10b981,#0d9488);color:#fff;border-radius:12px;padding:14px;font-size:15px;font-weight:700;">Ir para o login →</a>
+  </div>
+
+  <div id="invalid" style="display:none;text-align:center;">
+    <div style="font-size:48px;margin-bottom:14px;">⚠️</div>
+    <h1>Link inválido</h1>
+    <p class="sub" style="margin-bottom:20px;">Esse link expirou ou já foi usado. Peça um novo.</p>
+    <a href="/app">Voltar pro login →</a>
+  </div>
+</div>
+
+<script>
+// Tokens vem no fragment da URL: #access_token=...&refresh_token=...&type=recovery
+const hash = window.location.hash.substring(1);
+const params = new URLSearchParams(hash);
+const accessToken = params.get("access_token");
+const refreshToken = params.get("refresh_token");
+const type = params.get("type");
+
+window.addEventListener("load", () => {
+  document.getElementById("loading").style.display = "none";
+  if (!accessToken || !refreshToken || type !== "recovery") {
+    document.getElementById("invalid").style.display = "block";
+    return;
+  }
+  document.getElementById("form").style.display = "block";
+});
+
+async function resetPassword() {
+  const pass1 = document.getElementById("pass1").value;
+  const pass2 = document.getElementById("pass2").value;
+  const errEl = document.getElementById("errorMsg");
+  const btn = document.getElementById("submitBtn");
+
+  errEl.style.display = "none";
+
+  if (pass1.length < 6) {
+    errEl.textContent = "A senha precisa ter pelo menos 6 caracteres.";
+    errEl.style.display = "block";
+    return;
+  }
+  if (pass1 !== pass2) {
+    errEl.textContent = "As senhas não conferem.";
+    errEl.style.display = "block";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Atualizando...";
+
+  try {
+    const res = await fetch("/api/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        password: pass1
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.error || "Erro ao atualizar senha. Tente novamente.";
+      errEl.style.display = "block";
+      btn.disabled = false;
+      btn.textContent = "Atualizar senha";
+      return;
+    }
+    document.getElementById("form").style.display = "none";
+    document.getElementById("success").style.display = "block";
+  } catch (err) {
+    errEl.textContent = "Erro de conexão. Tente novamente.";
+    errEl.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "Atualizar senha";
+  }
+}
+</script>
+</body>
+</html>
