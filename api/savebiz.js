@@ -35,6 +35,14 @@ export default async function handler(req, res) {
     const user_id = userData.user.id;
     console.log("[savebiz] user_id autenticado:", user_id);
 
+    // Garante que existe profile (FK businesses.user_id pode apontar pra profiles)
+    const { error: profileError } = await supabase.from("profiles").upsert({
+      id: user_id,
+      name: userData.user.user_metadata?.name || "Usuário",
+      phone: userData.user.user_metadata?.phone || ""
+    }, { onConflict: "id" });
+    if (profileError) console.error("[savebiz] aviso ao upsert profile:", profileError);
+
     const insertPayload = {
       user_id,
       place_id,

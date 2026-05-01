@@ -284,6 +284,7 @@ export default function ReputaZap({ user, onLogout }) {
   const [customMode, setCustomMode] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchCity, setSearchCity] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchMode, setSearchMode] = useState(false);
@@ -356,10 +357,11 @@ export default function ReputaZap({ user, onLogout }) {
 
   async function doSearch() {
     if (!searchQuery.trim()) return;
+    const q = `${searchQuery.trim()} ${searchCity.trim()}`.trim();
     setSearchLoading(true);
     setSearchResults([]);
     try {
-      const res = await fetch(`/api/searchbiz?q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`/api/searchbiz?q=${encodeURIComponent(q)}`);
       const data = await res.json();
       setSearchResults(data.results || []);
     } catch {
@@ -758,14 +760,24 @@ export default function ReputaZap({ user, onLogout }) {
                   <div style={{fontSize:13,color:"#6b7280",marginBottom:18,lineHeight:1.6}}>
                     Busque seu negócio no Google. As avaliações públicas são importadas automaticamente.
                   </div>
-                  <div style={{display:"flex",gap:8,marginBottom:14}}>
-                    <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}
-                      onKeyDown={e=>e.key==="Enter"&&doSearch()}
-                      placeholder="ex: Pão de Açúcar Av Paulista"
-                      style={{flex:1,background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:10,padding:"10px 14px",color:"#f9fafb",fontSize:13,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif"}}/>
+                  <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:14}}>
+                    <div>
+                      <label style={{fontSize:11,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:4}}>Nome do negócio</label>
+                      <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}
+                        onKeyDown={e=>e.key==="Enter"&&doSearch()}
+                        placeholder="ex: Pão de Açúcar"
+                        style={{width:"100%",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:10,padding:"10px 14px",color:"#f9fafb",fontSize:13,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif"}}/>
+                    </div>
+                    <div>
+                      <label style={{fontSize:11,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:4}}>Cidade <span style={{color:"#4b5563",fontWeight:400}}>(recomendado)</span></label>
+                      <input value={searchCity} onChange={e=>setSearchCity(e.target.value)}
+                        onKeyDown={e=>e.key==="Enter"&&doSearch()}
+                        placeholder="ex: São Paulo, SP"
+                        style={{width:"100%",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:10,padding:"10px 14px",color:"#f9fafb",fontSize:13,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif"}}/>
+                    </div>
                     <button onClick={doSearch} disabled={searchLoading||!searchQuery.trim()} className="bg"
-                      style={{background:"#10b981",color:"#fff",border:"none",borderRadius:10,padding:"10px 20px",fontSize:13,fontWeight:600,cursor:searchLoading?"wait":"pointer",opacity:searchLoading||!searchQuery.trim()?0.6:1}}>
-                      {searchLoading?"Buscando...":"Buscar"}
+                      style={{background:"#10b981",color:"#fff",border:"none",borderRadius:10,padding:"11px 20px",fontSize:13,fontWeight:600,cursor:searchLoading?"wait":"pointer",opacity:searchLoading||!searchQuery.trim()?0.6:1}}>
+                      {searchLoading?"Buscando...":"Buscar no Google"}
                     </button>
                   </div>
                   {searchResults.length>0 && (
@@ -793,7 +805,7 @@ export default function ReputaZap({ user, onLogout }) {
                     </div>
                   )}
                   {bizInfo && (
-                    <button onClick={()=>{setSearchMode(false);setSearchQuery("");setSearchResults([]);}}
+                    <button onClick={()=>{setSearchMode(false);setSearchQuery("");setSearchCity("");setSearchResults([]);}}
                       style={{background:"none",border:"none",color:"#6b7280",fontSize:12,marginTop:6,cursor:"pointer",padding:0}}>
                       ← Cancelar
                     </button>
