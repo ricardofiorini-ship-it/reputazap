@@ -29,6 +29,9 @@
   .logo-icon { width: 32px; height: 32px; background: var(--green); border-radius: 9px; display: flex; align-items: center; justify-content: center; }
   .logo-icon svg { width: 16px; height: 16px; fill: #fff; }
   .logo-text { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 18px; color: var(--text); }
+  .nav-actions { display: flex; align-items: center; gap: 8px; }
+  .nav-link { color: var(--soft); font-size: 13px; font-weight: 600; padding: 9px 14px; border-radius: 10px; transition: color .15s, background .15s; }
+  .nav-link:hover { color: var(--text); background: rgba(255,255,255,0.04); }
   .nav-cta { background: var(--green); color: #fff; border: none; border-radius: 10px; padding: 9px 20px; font-size: 13px; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: background .15s, transform .1s; }
   .nav-cta:hover { background: var(--green-dark); transform: translateY(-1px); }
 
@@ -178,7 +181,10 @@
     </div>
     <span class="logo-text">ReputaZap</span>
   </div>
-  <a class="nav-cta" href="/app">Testar grátis</a>
+  <div class="nav-actions">
+    <a class="nav-link" href="/app">Entrar</a>
+    <a class="nav-cta" href="/app">Testar grátis</a>
+  </div>
 </nav>
 
 <!-- HERO -->
