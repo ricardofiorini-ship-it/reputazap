@@ -7,75 +7,63 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:#0a0f1a;font-family:'Plus Jakarta Sans',sans-serif;color:#f9fafb;min-height:100vh;padding:32px 20px 60px;}
+  body{background:#f9fafb;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;min-height:100vh;padding:32px 20px 60px;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
   .logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:32px;}
-  .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#10b981,#0d9488);border-radius:10px;display:flex;align-items:center;justify-content:center;}
-  .logo-text{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;}
+  .logo-icon{width:36px;height:36px;background:#1a73e8;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+  .logo-text{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;color:#0f172a;}
   .screen{display:none;max-width:480px;margin:0 auto;animation:fadeUp 0.4s ease;}
   .screen.active{display:block;}
   /* DEVICE WARNING */
-  .device-card{background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;margin-bottom:16px;text-align:center;}
-  .device-card.warn{border-color:#451a03;background:#1a0c04;}
-  .device-card.ok{border-color:#064e3b;background:#0d1f14;}
+  .device-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px;margin-bottom:16px;text-align:center;box-shadow:0 4px 12px rgba(15,23,42,0.04);}
+  .device-card.warn{border-color:#fed7aa;background:#fffbeb;}
+  .device-card.ok{border-color:#a7f3d0;background:#ecfdf5;}
   .device-icon{font-size:48px;margin-bottom:12px;}
-  .device-title{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px;}
+  .device-title{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px;color:#0f172a;}
   .device-desc{font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:16px;}
-  .qr-box{background:#fff;border-radius:12px;padding:16px;display:inline-block;margin-bottom:8px;}
-  .qr-sub{font-size:11px;color:#4b5563;}
-  h2{font-family:'Playfair Display',serif;font-size:26px;text-align:center;margin-bottom:8px;}
+  .qr-box{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;display:inline-block;margin-bottom:8px;}
+  .qr-sub{font-size:11px;color:#9ca3af;}
+  h2{font-family:'Playfair Display',serif;font-size:26px;text-align:center;margin-bottom:8px;color:#0f172a;}
   .sub{text-align:center;color:#6b7280;font-size:14px;margin-bottom:28px;line-height:1.6;}
   .progress{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:32px;}
-  .prog-step{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid #1f2937;color:#4b5563;transition:all .3s;}
-  .prog-step.done{background:#10b981;border-color:#10b981;color:#fff;}
-  .prog-step.active{border-color:#10b981;color:#10b981;}
-  .prog-line{width:32px;height:2px;background:#1f2937;border-radius:2px;}
-  .prog-line.done{background:#10b981;}
+  .prog-step{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid #e5e7eb;color:#9ca3af;background:#fff;transition:all .3s;}
+  .prog-step.done{background:#1a73e8;border-color:#1a73e8;color:#fff;}
+  .prog-step.active{border-color:#1a73e8;color:#1a73e8;}
+  .prog-line{width:32px;height:2px;background:#e5e7eb;border-radius:2px;}
+  .prog-line.done{background:#1a73e8;}
   .form-group{margin-bottom:16px;}
-  label{font-size:12px;font-weight:600;color:#9ca3af;display:block;margin-bottom:6px;}
-  input{width:100%;background:#111827;border:1px solid #1f2937;border-radius:12px;padding:13px 16px;color:#f9fafb;font-size:14px;outline:none;font-family:'Plus Jakarta Sans',sans-serif;transition:border-color .15s;}
-  input:focus{border-color:#10b981;}
-  input::placeholder{color:#374151;}
-  .btn-primary{width:100%;padding:14px;background:linear-gradient(135deg,#10b981,#0d9488);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
-  .btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+  label{font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;}
+  input{width:100%;background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;padding:13px 16px;color:#0f172a;font-size:14px;outline:none;font-family:'Plus Jakarta Sans',sans-serif;transition:border-color .15s;}
+  input:focus{border-color:#1a73e8;}
+  input::placeholder{color:#9ca3af;}
+  .btn-primary{width:100%;padding:14px;background:#1a73e8;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn-primary:hover:not(:disabled){background:#1557b0;transform:translateY(-1px);}
   .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
-  .btn-ghost{width:100%;padding:13px;background:transparent;border:1px solid #1f2937;color:#6b7280;border-radius:12px;font-size:14px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .15s;margin-top:10px;}
-  .btn-ghost:hover{border-color:#374151;color:#f9fafb;}
-  .result-item{background:#111827;border:1px solid #1f2937;border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .15s;margin-bottom:8px;}
-  .result-item:hover{border-color:#10b981;background:#0d1f14;}
-  .result-name{font-size:14px;font-weight:600;color:#e5e7eb;margin-bottom:3px;}
-  .result-addr{font-size:12px;color:#4b5563;}
-  .plan{background:#111827;border:2px solid #1f2937;border-radius:16px;padding:22px;cursor:pointer;transition:all .15s;position:relative;margin-bottom:12px;}
-  .plan:hover{border-color:#374151;}
-  .plan.selected{border-color:#10b981;background:#0d1f14;}
-  .plan-badge{position:absolute;top:-10px;right:16px;background:#10b981;color:#fff;font-size:10px;font-weight:700;border-radius:100px;padding:3px 12px;}
-  .plan-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-  .plan-name{font-size:15px;font-weight:700;}
-  .plan-price{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#10b981;}
-  .plan-price span{font-size:12px;color:#6b7280;font-family:'Plus Jakarta Sans',sans-serif;}
-  .feat{font-size:12px;color:#9ca3af;display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-  .feat::before{content:'✓';color:#10b981;font-weight:700;}
-  .feat.no::before{content:'✗';color:#374151;}
-  .feat.no{color:#374151;}
-  .os-tabs{display:flex;gap:6px;background:#111827;border:1px solid #1f2937;border-radius:12px;padding:4px;margin-bottom:16px;}
+  .btn-ghost{width:100%;padding:13px;background:transparent;border:1.5px solid #e5e7eb;color:#6b7280;border-radius:12px;font-size:14px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .15s;margin-top:10px;}
+  .btn-ghost:hover{border-color:#9ca3af;color:#0f172a;}
+  .result-item{background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .15s;margin-bottom:8px;}
+  .result-item:hover{border-color:#1a73e8;background:#e8f0fe;}
+  .result-name{font-size:14px;font-weight:600;color:#0f172a;margin-bottom:3px;}
+  .result-addr{font-size:12px;color:#9ca3af;}
+  .os-tabs{display:flex;gap:6px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:4px;margin-bottom:16px;}
   .os-tab{flex:1;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;background:transparent;color:#6b7280;transition:all .15s;}
-  .os-tab.active{background:#10b981;color:#fff;}
-  .nfc-card{background:#111827;border:1px solid #1f2937;border-radius:14px;padding:16px 20px;margin-bottom:16px;}
+  .os-tab.active{background:#1a73e8;color:#fff;}
+  .nfc-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px 20px;margin-bottom:16px;}
   .nfc-step{display:flex;gap:12px;margin-bottom:14px;}
-  .nfc-n{width:22px;height:22px;background:#1f2937;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#10b981;flex-shrink:0;margin-top:2px;}
-  .nfc-step h4{font-size:13px;font-weight:600;color:#e5e7eb;margin-bottom:3px;}
+  .nfc-n{width:22px;height:22px;background:#e8f0fe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#1a73e8;flex-shrink:0;margin-top:2px;}
+  .nfc-step h4{font-size:13px;font-weight:600;color:#0f172a;margin-bottom:3px;}
   .nfc-step p{font-size:12px;color:#6b7280;line-height:1.5;}
-  .nfc-step code{background:#0a0f1a;border:1px solid #1f2937;border-radius:5px;padding:3px 8px;font-size:11px;color:#10b981;font-family:monospace;display:block;margin-top:6px;word-break:break-all;}
-  .app-link{display:flex;align-items:center;gap:8px;background:#0a0f1a;border:1px solid #1f2937;border-radius:10px;padding:10px 14px;text-decoration:none;color:#9ca3af;font-size:12px;font-weight:600;margin-top:8px;transition:border-color .15s;}
-  .app-link:hover{border-color:#374151;}
+  .nfc-step code{background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:3px 8px;font-size:11px;color:#1a73e8;font-family:monospace;display:block;margin-top:6px;word-break:break-all;}
+  .app-link{display:flex;align-items:center;gap:8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;text-decoration:none;color:#6b7280;font-size:12px;font-weight:600;margin-top:8px;transition:border-color .15s;}
+  .app-link:hover{border-color:#9ca3af;}
   .status-msg{text-align:center;font-size:13px;min-height:20px;margin-top:10px;}
-  .status-msg.success{color:#10b981;}
-  .status-msg.error{color:#ef4444;}
+  .status-msg.success{color:#059669;}
+  .status-msg.error{color:#dc2626;}
   .status-msg.loading{color:#6b7280;animation:pulse 1.5s infinite;}
-  .back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:#4b5563;font-size:13px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;padding:0;margin-bottom:20px;}
-  .biz-confirm{background:#0d1f14;border:2px solid #10b981;border-radius:14px;padding:14px 18px;margin-bottom:20px;}
+  .back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:#9ca3af;font-size:13px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;padding:0;margin-bottom:20px;}
+  .biz-confirm{background:#ecfdf5;border:2px solid #a7f3d0;border-radius:14px;padding:14px 18px;margin-bottom:20px;}
   .spinner{display:inline-block;animation:spin 1s linear infinite;}
 </style>
 </head>
@@ -116,8 +104,8 @@
       <div id="qrcode"></div>
     </div>
     <div class="qr-sub">reputazap.vercel.app/ativar.html</div>
-    <div style="margin-top:16px;padding-top:16px;border-top:1px solid #1f2937;">
-      <div style="font-size:12px;color:#4b5563;margin-bottom:10px;">Ou continue aqui e grave o NFC depois pelo celular</div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
+      <div style="font-size:12px;color:#9ca3af;margin-bottom:10px;">Ou continue aqui e grave o NFC depois pelo celular</div>
       <button class="btn-ghost" onclick="goToStep(1)">Continuar assim mesmo</button>
     </div>
   </div>
@@ -132,7 +120,7 @@
   <div class="form-group"><label>WhatsApp</label><input type="tel" id="userPhone" placeholder="(11) 99999-9999"/></div>
   <div class="form-group"><label>Senha</label><input type="password" id="userPass" placeholder="••••••••"/></div>
   <button class="btn-primary" onclick="goToStep2()">Continuar →</button>
-  <p style="text-align:center;font-size:12px;color:#374151;margin-top:16px;">Já tem conta? <a href="/app" style="color:#10b981;font-weight:600">Entrar</a></p>
+  <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:16px;">Já tem conta? <a href="/app" style="color:#1a73e8;font-weight:600">Entrar</a></p>
 </div>
 
 <!-- STEP 2: BUSCA -->
@@ -182,13 +170,13 @@
   <div style="font-size:56px;text-align:center;margin-bottom:16px;">🎉</div>
   <h2>Conta criada!</h2>
   <p class="sub">Tudo certo. Vamos te levar pro seu dashboard.</p>
-  <div style="background:#0d1f14;border:2px solid #10b981;border-radius:14px;padding:16px 20px;text-align:center;margin-bottom:20px;">
-    <div style="font-size:13px;color:#6ee7b7;margin-bottom:4px;">Negócio cadastrado</div>
-    <div style="font-size:16px;font-weight:700;" id="successBizName"></div>
-    <div style="font-size:12px;color:#4b5563;margin-top:4px;" id="successPlan"></div>
+  <div style="background:#ecfdf5;border:2px solid #a7f3d0;border-radius:14px;padding:16px 20px;text-align:center;margin-bottom:20px;">
+    <div style="font-size:13px;color:#059669;margin-bottom:4px;font-weight:600;">Negócio cadastrado</div>
+    <div style="font-size:16px;font-weight:700;color:#0f172a;" id="successBizName"></div>
+    <div style="font-size:12px;color:#6b7280;margin-top:4px;" id="successPlan"></div>
   </div>
   <a href="/app" style="text-decoration:none;" class="btn-primary">Acessar meu Dashboard →</a>
-  <p style="text-align:center;font-size:12px;color:#4b5563;margin-top:12px;">Redirecionando automaticamente em 3 segundos...</p>
+  <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:12px;">Redirecionando automaticamente em 3 segundos...</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
