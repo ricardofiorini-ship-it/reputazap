@@ -103,18 +103,20 @@
 
   /* HOW IT WORKS */
   .how { background: var(--bg-soft); }
-  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; position: relative; }
   @media (max-width: 880px) { .how-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 480px) { .how-grid { grid-template-columns: 1fr; } }
-  .how-step { text-align: center; }
-  .how-icon { width: 64px; height: 64px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; color: #fff; }
-  .how-icon svg { width: 28px; height: 28px; }
-  .how-icon.red { background: var(--red); }
-  .how-icon.yellow { background: var(--yellow); }
-  .how-icon.green { background: var(--green); }
-  .how-icon.blue { background: var(--blue); }
+  .how-step { text-align: center; padding: 0 8px; position: relative; }
+  .how-icon { width: 80px; height: 80px; border-radius: 50%; border: 2.5px solid; background: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; position: relative; }
+  .how-icon svg { width: 32px; height: 32px; }
+  .how-icon.red { border-color: var(--red); color: var(--red); }
+  .how-icon.yellow { border-color: var(--yellow); color: var(--yellow); }
+  .how-icon.green { border-color: var(--green); color: var(--green); }
+  .how-icon.blue { border-color: var(--blue); color: var(--blue); }
+  .how-step-num { position: absolute; top: -6px; right: 50%; margin-right: -52px; width: 26px; height: 26px; border-radius: 50%; background: var(--text); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
   .how-step h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-  .how-step p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .how-step p { font-size: 14px; color: var(--muted); line-height: 1.6; max-width: 220px; margin: 0 auto; }
+  .google-g-logo { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 32px; background: linear-gradient(120deg, #ea4335 0%, #fbbc04 35%, #34a853 65%, #4285f4 100%); -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1; }
 
   /* FEATURES */
   .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -252,36 +254,40 @@
     <div class="section-head">
       <div class="section-eyebrow">Como funciona</div>
       <h2 class="section-title">Como funciona</h2>
-      <p class="section-sub">Simples, rápido e eficiente.</p>
+      <p class="section-sub">Simples, rápido e automático.</p>
     </div>
     <div class="how-grid">
       <div class="how-step">
         <div class="how-icon red">
+          <span class="how-step-num">1</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
         </div>
         <h3>Cliente aproxima o celular</h3>
-        <p>Toque na plaquinha NFC ou aponte a câmera para o QR code.</p>
+        <p>Um toque na plaquinha NFC e tudo começa.</p>
       </div>
       <div class="how-step">
         <div class="how-icon yellow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span class="how-step-num">2</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <h3>Avalia em segundos</h3>
-        <p>Cliente escolhe um emoji que reflete a experiência dele.</p>
+        <p>O cliente responde como foi a experiência com 1 emoji.</p>
       </div>
       <div class="how-step">
         <div class="how-icon green">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          <span class="how-step-num">3</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
         </div>
         <h3>Feedback organizado</h3>
-        <p>Positivo vai pro Google. Negativo vai pro seu email — não pra timeline.</p>
+        <p>Avaliações negativas ficam privadas — só você recebe.</p>
       </div>
       <div class="how-step">
         <div class="how-icon blue">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+          <span class="how-step-num">4</span>
+          <span class="google-g-logo">G</span>
         </div>
-        <h3>Resposta efetiva</h3>
-        <p>Você responde direto pelo seu Google Meu Negócio com o cliente já feliz.</p>
+        <h3>Avaliações positivas vão ao Google</h3>
+        <p>As boas experiências viram review pública e crescem sua reputação.</p>
       </div>
     </div>
   </div>
@@ -301,42 +307,42 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
         </div>
         <h3>Plaquinha NFC</h3>
-        <p>Cartão de mesa que captura a avaliação com um toque.</p>
+        <p>Personalizada com seu logo, fixe na mesa. Fácil de usar e o cliente engaja.</p>
       </div>
       <div class="feat-card">
         <div class="feat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
         </div>
-        <h3>Filtro inteligente</h3>
-        <p>Avaliações neutras e negativas vão direto pro seu email — não pro Google.</p>
+        <h3>Coleta inteligente de feedback</h3>
+        <p>Filtra negativos antes que virem reviews públicas no seu Google.</p>
       </div>
       <div class="feat-card">
         <div class="feat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         </div>
-        <h3>Email pro gerente</h3>
-        <p>Cada feedback ruim chega na sua caixa antes de virar review pública.</p>
+        <h3>Alertas automáticos</h3>
+        <p>Feedbacks negativos chegam direto no email do gestor, em tempo real.</p>
       </div>
       <div class="feat-card">
         <div class="feat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </div>
         <h3>Dashboard simples</h3>
-        <p>Veja todas as avaliações do seu Google em um lugar só.</p>
+        <p>Acompanhe avaliações e métricas reais do seu negócio em um só lugar.</p>
       </div>
       <div class="feat-card">
         <div class="feat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
-        <h3>Tempo real</h3>
-        <p>Reviews novos aparecem automaticamente no seu painel.</p>
+        <h3>Widget de avaliações</h3>
+        <p>Mostre suas melhores avaliações em qualquer site (em breve).</p>
       </div>
       <div class="feat-card">
         <div class="feat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         </div>
-        <h3>Sem fricção</h3>
-        <p>Cliente avalia em 5 segundos, sem cadastro, sem download.</p>
+        <h3>Experiência sem fricção</h3>
+        <p>Sem app, sem login, sem cadastro. Em poucos toques o cliente já avaliou.</p>
       </div>
     </div>
   </div>
