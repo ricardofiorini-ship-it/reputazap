@@ -31,32 +31,32 @@ function LoginScreen({ onLogin }) {
   }
 
   return (
-    <div style={{minHeight:"100vh",background:"#0a0f1a",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,position:"relative",overflow:"hidden"}}>
+    <div style={{minHeight:"100vh",background:"#f9fafb",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,position:"relative",overflow:"hidden"}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
-        body{background:#0a0f1a;font-family:'Plus Jakarta Sans',sans-serif;}
+        body{background:#f9fafb;font-family:'Plus Jakarta Sans',sans-serif;}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
       `}</style>
       {/* Background glow */}
-      <div style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:600,height:600,background:"radial-gradient(circle,rgba(16,185,129,0.07) 0%,transparent 70%)",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:600,height:600,background:"radial-gradient(circle,rgba(26,115,232,0.07) 0%,transparent 70%)",pointerEvents:"none"}}/>
 
       {/* Logo */}
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:48,animation:"fadeUp 0.4s ease"}}>
-        <div style={{width:40,height:40,background:"linear-gradient(135deg,#10b981,#0d9488)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{width:40,height:40,background:"linear-gradient(135deg,#1a73e8,#1557b0)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center"}}>
           <Star size={20} fill="#fff" color="#fff"/>
         </div>
         <div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:22,color:"#f9fafb"}}>ReputaZap</div>
-          <div style={{fontSize:11,color:"#4b5563"}}>Reputação com IA</div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:22,color:"#0f172a"}}>ReputaZap</div>
+          <div style={{fontSize:11,color:"#9ca3af"}}>Reputação com IA</div>
         </div>
       </div>
 
       {/* Card */}
-      <div style={{width:"100%",maxWidth:400,background:"#111827",border:"1px solid #1f2937",borderRadius:24,padding:36,animation:"fadeUp 0.5s ease"}}>
+      <div style={{width:"100%",maxWidth:400,background:"#fff",border:"1px solid #e5e7eb",borderRadius:24,padding:36,animation:"fadeUp 0.5s ease"}}>
         <div style={{marginBottom:28,textAlign:"center"}}>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#f9fafb",marginBottom:6}}>Bem-vindo de volta</div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#0f172a",marginBottom:6}}>Bem-vindo de volta</div>
           <div style={{fontSize:13,color:"#6b7280"}}>Entre na sua conta para continuar</div>
         </div>
 
@@ -65,8 +65,8 @@ function LoginScreen({ onLogin }) {
           <div>
             <label style={{fontSize:12,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:6}}>Email</label>
             <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="seu@email.com.br" required
-              style={{width:"100%",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:"12px 16px",color:"#f9fafb",fontSize:14,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"border-color .15s"}}
-              onFocus={e=>e.target.style.borderColor="#10b981"} onBlur={e=>e.target.style.borderColor="#1f2937"}/>
+              style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:12,padding:"12px 16px",color:"#0f172a",fontSize:14,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"border-color .15s"}}
+              onFocus={e=>e.target.style.borderColor="#1a73e8"} onBlur={e=>e.target.style.borderColor="#e5e7eb"}/>
           </div>
 
           {/* Senha */}
@@ -74,10 +74,10 @@ function LoginScreen({ onLogin }) {
             <label style={{fontSize:12,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:6}}>Senha</label>
             <div style={{position:"relative"}}>
               <input type={showPass?"text":"password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required
-                style={{width:"100%",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:"12px 48px 12px 16px",color:"#f9fafb",fontSize:14,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"border-color .15s"}}
-                onFocus={e=>e.target.style.borderColor="#10b981"} onBlur={e=>e.target.style.borderColor="#1f2937"}/>
+                style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:12,padding:"12px 48px 12px 16px",color:"#0f172a",fontSize:14,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"border-color .15s"}}
+                onFocus={e=>e.target.style.borderColor="#1a73e8"} onBlur={e=>e.target.style.borderColor="#e5e7eb"}/>
               <button type="button" onClick={()=>setShowPass(!showPass)}
-                style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"#4b5563",display:"flex"}}>
+                style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"#9ca3af",display:"flex"}}>
                 {showPass?"🙈":"👁"}
               </button>
             </div>
@@ -85,34 +85,34 @@ function LoginScreen({ onLogin }) {
 
           {/* Erro */}
           {error&&(
-            <div style={{background:"#1a0505",border:"1px solid #7f1d1d",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#ef4444",display:"flex",alignItems:"center",gap:8}}>
+            <div style={{background:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#ef4444",display:"flex",alignItems:"center",gap:8}}>
               <AlertCircle size={14}/> {error}
             </div>
           )}
 
           {/* Botão */}
           <button type="submit" disabled={loading}
-            style={{width:"100%",background:"linear-gradient(135deg,#10b981,#0d9488)",color:"#fff",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif",cursor:loading?"not-allowed":"pointer",opacity:loading?0.7:1,marginTop:4,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            style={{width:"100%",background:"linear-gradient(135deg,#1a73e8,#1557b0)",color:"#fff",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif",cursor:loading?"not-allowed":"pointer",opacity:loading?0.7:1,marginTop:4,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
             {loading?<><RefreshCw size={15} style={{animation:"spin 1s linear infinite"}}/> Entrando...</>:"Entrar"}
           </button>
         </form>
 
         {/* Divider */}
         <div style={{display:"flex",alignItems:"center",gap:12,margin:"24px 0"}}>
-          <div style={{flex:1,height:1,background:"#1f2937"}}/>
-          <span style={{fontSize:12,color:"#374151"}}>ou</span>
-          <div style={{flex:1,height:1,background:"#1f2937"}}/>
+          <div style={{flex:1,height:1,background:"#e5e7eb"}}/>
+          <span style={{fontSize:12,color:"#d1d5db"}}>ou</span>
+          <div style={{flex:1,height:1,background:"#e5e7eb"}}/>
         </div>
 
         {/* Demo hint */}
-        <div style={{background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:"12px 16px",textAlign:"center"}}>
-          <div style={{fontSize:12,color:"#4b5563",marginBottom:4}}>Conta de demonstração</div>
+        <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:12,padding:"12px 16px",textAlign:"center"}}>
+          <div style={{fontSize:12,color:"#9ca3af",marginBottom:4}}>Conta de demonstração</div>
           <div style={{fontSize:12,color:"#6b7280"}}>demo@reputazap.com.br / demo123</div>
         </div>
       </div>
 
-      <div style={{marginTop:24,fontSize:12,color:"#374151",animation:"fadeUp 0.6s ease"}}>
-        Não tem conta? <a href="/landing.html" style={{color:"#10b981",fontWeight:600}}>Comece grátis</a>
+      <div style={{marginTop:24,fontSize:12,color:"#d1d5db",animation:"fadeUp 0.6s ease"}}>
+        Não tem conta? <a href="/landing.html" style={{color:"#1a73e8",fontWeight:600}}>Comece grátis</a>
       </div>
     </div>
   );
@@ -131,7 +131,7 @@ const MOCK_REVIEWS = [
 const BRINDES = ["Cafezinho grátis","10% na próxima compra","Sobremesa grátis","Amostra grátis","Frete grátis","Brinde surpresa"];
 
 function Stars({ rating, size=16 }) {
-  return <div style={{display:"flex",gap:2}}>{[1,2,3,4,5].map(i=><Star key={i} size={size} fill={i<=rating?"#f59e0b":"none"} color={i<=rating?"#f59e0b":"#374151"}/>)}</div>;
+  return <div style={{display:"flex",gap:2}}>{[1,2,3,4,5].map(i=><Star key={i} size={size} fill={i<=rating?"#f59e0b":"none"} color={i<=rating?"#f59e0b":"#d1d5db"}/>)}</div>;
 }
 function Av({ initials }) {
   const c={CM:"#059669",RS:"#dc2626",AP:"#7c3aed",MO:"#0284c7",FL:"#db2777",JS:"#d97706",BN:"#64748b"};
@@ -139,13 +139,13 @@ function Av({ initials }) {
 }
 function Metric({ icon:Icon, label, value, sub, color, bg }) {
   return (
-    <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:"20px 24px",display:"flex",flexDirection:"column",gap:12}}>
+    <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:"20px 24px",display:"flex",flexDirection:"column",gap:12}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <span style={{fontSize:13,color:"#6b7280"}}>{label}</span>
         <div style={{width:36,height:36,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Icon size={18} color={color}/></div>
       </div>
-      <div style={{fontSize:32,fontWeight:700,color:"#f9fafb",fontFamily:"'Playfair Display',serif",lineHeight:1}}>{value}</div>
-      {sub&&<div style={{fontSize:12,color:"#4b5563"}}>{sub}</div>}
+      <div style={{fontSize:32,fontWeight:700,color:"#0f172a",fontFamily:"'Playfair Display',serif",lineHeight:1}}>{value}</div>
+      {sub&&<div style={{fontSize:12,color:"#9ca3af"}}>{sub}</div>}
     </div>
   );
 }
@@ -158,7 +158,7 @@ function CustomerPage({ brinde, onClose, biz }) {
 
   const pieces = Array.from({length:20},(_,i)=>({
     id:i, x:10+Math.random()*80,
-    color:["#10b981","#f59e0b","#3b82f6","#ec4899","#8b5cf6"][i%5],
+    color:["#1a73e8","#f59e0b","#3b82f6","#ec4899","#8b5cf6"][i%5],
     delay:Math.random()*0.4, size:5+Math.random()*7, dur:1+Math.random()*0.8
   }));
 
@@ -184,8 +184,8 @@ function CustomerPage({ brinde, onClose, biz }) {
         {/* FEELING */}
         {step==="feeling"&&(
           <div style={{padding:"28px 24px 36px",textAlign:"center",animation:"fadeUp 0.4s ease"}}>
-            <div style={{width:60,height:60,background:"linear-gradient(135deg,#10b981,#0d9488)",borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px"}}><Star size={26} fill="#fff" color="#fff"/></div>
-            <div style={{fontSize:11,fontWeight:700,color:"#10b981",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>{biz}</div>
+            <div style={{width:60,height:60,background:"linear-gradient(135deg,#1a73e8,#1557b0)",borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px"}}><Star size={26} fill="#fff" color="#fff"/></div>
+            <div style={{fontSize:11,fontWeight:700,color:"#1a73e8",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>{biz}</div>
             <div style={{fontSize:21,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",lineHeight:1.2,marginBottom:6}}>Como foi sua experiência hoje?</div>
             <div style={{fontSize:13,color:"#64748b",marginBottom:28,lineHeight:1.6}}>Sua opinião nos ajuda a melhorar sempre</div>
             <div style={{display:"flex",gap:10}}>
@@ -218,7 +218,7 @@ function CustomerPage({ brinde, onClose, biz }) {
               <div style={{display:"flex",gap:2}}>{[1,2,3,4,5].map(i=><Star key={i} size={17} fill="#f59e0b" color="#f59e0b"/>)}</div>
             </div>
             <button onClick={onGoogleClick}
-              style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#10b981,#0d9488)",color:"#fff",border:"none",borderRadius:14,fontSize:14,fontWeight:700,fontFamily:"'Playfair Display',serif",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:10}}>
+              style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#1a73e8,#1557b0)",color:"#fff",border:"none",borderRadius:14,fontSize:14,fontWeight:700,fontFamily:"'Playfair Display',serif",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:10}}>
               <ExternalLink size={15}/> Avaliar no Google
             </button>
             <button onClick={()=>setStep("feeling")} style={{background:"none",border:"none",color:"#94a3b8",fontSize:12,cursor:"pointer"}}>Voltar</button>
@@ -245,11 +245,11 @@ function CustomerPage({ brinde, onClose, biz }) {
         {step==="brinde"&&(
           <div style={{padding:"28px 24px 44px",textAlign:"center",animation:"fadeUp 0.4s ease"}}>
             <div style={{fontSize:52,marginBottom:4,display:"inline-block",animation:"bonce 0.6s ease"}}>🎁</div>
-            <div style={{fontSize:12,fontWeight:700,color:"#10b981",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Parabéns!</div>
+            <div style={{fontSize:12,fontWeight:700,color:"#1a73e8",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Parabéns!</div>
             <div style={{fontSize:22,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",lineHeight:1.2,marginBottom:16}}>Seu brinde está esperando!</div>
-            <div style={{background:"linear-gradient(135deg,#ecfdf5,#d1fae5)",border:"2px solid #6ee7b7",borderRadius:20,padding:"22px 20px",marginBottom:20}}>
+            <div style={{background:"linear-gradient(135deg,#ecfdf5,#d1fae5)",border:"2px solid #059669",borderRadius:20,padding:"22px 20px",marginBottom:20}}>
               <div style={{fontSize:28,marginBottom:8}}>✨</div>
-              <div style={{fontSize:22,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#065f46"}}>{brinde}</div>
+              <div style={{fontSize:22,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#a7f3d0"}}>{brinde}</div>
               <div style={{fontSize:12,color:"#059669",marginTop:6}}>Mostre esta tela no balcão</div>
             </div>
             <div style={{background:"#f8fafc",borderRadius:14,padding:"12px 16px",display:"flex",alignItems:"center",gap:10,textAlign:"left"}}>
@@ -401,8 +401,8 @@ export default function ReputaZap({ user, onLogout }) {
     }
   }
 
-  const rc = r=>r>=4?"#10b981":r===3?"#f59e0b":"#ef4444";
-  const rb = r=>r>=4?"#064e3b":r===3?"#451a03":"#450a0a";
+  const rc = r=>r>=4?"#1a73e8":r===3?"#f59e0b":"#ef4444";
+  const rb = r=>r>=4?"#a7f3d0":r===3?"#fed7aa":"#fee2e2";
 
   const nav=[
     {id:"dashboard",icon:LayoutDashboard,label:"Dashboard"},
@@ -418,22 +418,22 @@ export default function ReputaZap({ user, onLogout }) {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
-        body{background:#0a0f1a;font-family:'Plus Jakarta Sans',sans-serif;}
+        body{background:#f9fafb;font-family:'Plus Jakarta Sans',sans-serif;}
         textarea,input{font-family:'Plus Jakarta Sans',sans-serif;}
-        ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:#1f2937;border-radius:2px;}
+        ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:2px;}
         @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
         @keyframes bonce{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px)}70%{transform:translateY(-6px)}}
         @keyframes cfall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
         .ni{transition:background .15s,color .15s;cursor:pointer;}
-        .ni:hover{background:#1f2937!important;}
+        .ni:hover{background:#e5e7eb!important;}
         .rc{transition:border-color .15s,transform .15s;}
-        .rc:hover{border-color:#374151!important;transform:translateY(-1px);}
+        .rc:hover{border-color:#d1d5db!important;transform:translateY(-1px);}
         .bg{transition:opacity .15s,transform .1s;cursor:pointer;}
         .bg:hover{opacity:.9;transform:translateY(-1px);}
         .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:40;}
         .sidebar-overlay.open{display:block;}
-        .mobile-header{display:none;align-items:center;justify-content:space-between;padding:14px 20px;background:#0d1424;border-bottom:1px solid #1a2235;position:sticky;top:0;z-index:30;}
+        .mobile-header{display:none;align-items:center;justify-content:space-between;padding:14px 20px;background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:30;}
         @media(max-width:768px){
           .sidebar{position:fixed!important;left:-240px!important;top:0!important;height:100vh!important;z-index:50!important;transition:left .25s ease!important;overflow-y:auto!important;}
           .sidebar.open{left:0!important;}
@@ -441,7 +441,7 @@ export default function ReputaZap({ user, onLogout }) {
           .main-pad{padding:20px 16px!important;}
         }
       `}</style>
-      <div style={{display:"flex",minHeight:"100vh",background:"#0a0f1a",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+      <div style={{display:"flex",minHeight:"100vh",background:"#f9fafb",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
 
         {showPreview&&<CustomerPage brinde={brinde} biz={biz} onClose={()=>setShowPreview(false)}/>}
 
@@ -449,40 +449,40 @@ export default function ReputaZap({ user, onLogout }) {
         <div className={`sidebar-overlay${sidebarOpen?" open":""}`} onClick={()=>setSidebarOpen(false)}/>
 
         {/* Sidebar */}
-        <div className={`sidebar${sidebarOpen?" open":""}`} style={{width:220,background:"#0d1424",borderRight:"1px solid #1a2235",display:"flex",flexDirection:"column",padding:"28px 16px",position:"sticky",top:0,height:"100vh",flexShrink:0}}>
-          <div style={{padding:"0 8px 24px",borderBottom:"1px solid #1a2235",display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:36,height:36,background:"linear-gradient(135deg,#10b981,#0d9488)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center"}}><Star size={18} fill="#fff" color="#fff"/></div>
-            <div><div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:16,color:"#f9fafb"}}>ReputaZap</div><div style={{fontSize:10,color:"#4b5563"}}>Reputação com IA</div></div>
+        <div className={`sidebar${sidebarOpen?" open":""}`} style={{width:220,background:"#fff",borderRight:"1px solid #e5e7eb",display:"flex",flexDirection:"column",padding:"28px 16px",position:"sticky",top:0,height:"100vh",flexShrink:0}}>
+          <div style={{padding:"0 8px 24px",borderBottom:"1px solid #e5e7eb",display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:36,height:36,background:"linear-gradient(135deg,#1a73e8,#1557b0)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center"}}><Star size={18} fill="#fff" color="#fff"/></div>
+            <div><div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:16,color:"#0f172a"}}>ReputaZap</div><div style={{fontSize:10,color:"#9ca3af"}}>Reputação com IA</div></div>
           </div>
           <div style={{marginTop:20,flex:1,display:"flex",flexDirection:"column",gap:4}}>
             {nav.map(item=>(
               <div key={item.id} className="ni" onClick={()=>{setTab(item.id);setSidebarOpen(false);}}
-                style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,background:tab===item.id?"#0f2a1f":"transparent",color:tab===item.id?"#10b981":"#6b7280"}}>
+                style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,background:tab===item.id?"#e8f0fe":"transparent",color:tab===item.id?"#1a73e8":"#6b7280"}}>
                 <item.icon size={17}/>
                 <span style={{fontSize:14,fontWeight:tab===item.id?600:400}}>{item.label}</span>
                 {item.id==="reviews"&&pending>0&&<div style={{marginLeft:"auto",background:"#dc2626",color:"#fff",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px"}}>{pending}</div>}
-                {item.id==="capturar"&&<div style={{marginLeft:"auto",background:"#0f2a1f",color:"#10b981",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px"}}>{nfcCount}</div>}
-                {item.id==="google"&&!googleConnected&&<div style={{marginLeft:"auto",background:"#451a03",color:"#f97316",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px"}}>!</div>}
+                {item.id==="capturar"&&<div style={{marginLeft:"auto",background:"#e8f0fe",color:"#1a73e8",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px"}}>{nfcCount}</div>}
+                {item.id==="google"&&!googleConnected&&<div style={{marginLeft:"auto",background:"#fed7aa",color:"#f97316",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px"}}>!</div>}
               </div>
             ))}
           </div>
-          <div style={{borderTop:"1px solid #1a2235",paddingTop:16,display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{borderTop:"1px solid #e5e7eb",paddingTop:16,display:"flex",flexDirection:"column",gap:10}}>
             {/* User + Logout */}
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 12px",background:"#0a0f1a",borderRadius:10,border:"1px solid #1f2937"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 12px",background:"#f9fafb",borderRadius:10,border:"1px solid #e5e7eb"}}>
               <div style={{minWidth:0}}>
-                <div style={{fontSize:12,color:"#e5e7eb",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.name?.split(" ")[0]}</div>
-                <div style={{fontSize:10,color:"#4b5563",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.email}</div>
+                <div style={{fontSize:12,color:"#0f172a",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.name?.split(" ")[0]}</div>
+                <div style={{fontSize:10,color:"#9ca3af",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.email}</div>
               </div>
               <button onClick={onLogout} title="Sair"
-                style={{background:"none",border:"none",cursor:"pointer",color:"#4b5563",display:"flex",padding:4,borderRadius:6,flexShrink:0}}
-                onMouseEnter={e=>e.currentTarget.style.color="#ef4444"} onMouseLeave={e=>e.currentTarget.style.color="#4b5563"}>
+                style={{background:"none",border:"none",cursor:"pointer",color:"#9ca3af",display:"flex",padding:4,borderRadius:6,flexShrink:0}}
+                onMouseEnter={e=>e.currentTarget.style.color="#ef4444"} onMouseLeave={e=>e.currentTarget.style.color="#9ca3af"}>
                 <LogOut size={15}/>
               </button>
             </div>
             {/* WhatsApp Support */}
             <a href="https://wa.me/5511982882662?text=Ol%C3%A1!%20Preciso%20de%20ajuda%20com%20o%20ReputaZap" target="_blank" rel="noreferrer"
-              style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"#0a1f0e",border:"1px solid #14532d",borderRadius:10,cursor:"pointer",textDecoration:"none",transition:"background .15s"}}
-              onMouseEnter={e=>e.currentTarget.style.background="#0f2a14"} onMouseLeave={e=>e.currentTarget.style.background="#0a1f0e"}>
+              style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"#ecfdf5",border:"1px solid #a7f3d0",borderRadius:10,cursor:"pointer",textDecoration:"none",transition:"background .15s"}}
+              onMouseEnter={e=>e.currentTarget.style.background="#d1fae5"} onMouseLeave={e=>e.currentTarget.style.background="#ecfdf5"}>
               <div style={{width:28,height:28,borderRadius:8,background:"#16a34a",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
               </div>
@@ -493,22 +493,22 @@ export default function ReputaZap({ user, onLogout }) {
             </a>
 
             {/* Google status */}
-            <div onClick={()=>setTab("google")} style={{padding:"10px 12px",background:googleConnected?"#0d1f14":"#1a0c04",borderRadius:10,cursor:"pointer",border:`1px solid ${googleConnected?"#064e3b":"#451a03"}`}}>
+            <div onClick={()=>setTab("google")} style={{padding:"10px 12px",background:googleConnected?"#ecfdf5":"#1a0c04",borderRadius:10,cursor:"pointer",border:`1px solid ${googleConnected?"#a7f3d0":"#fed7aa"}`}}>
               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-                <div style={{width:7,height:7,borderRadius:"50%",background:googleConnected?"#10b981":loadingReviews?"#f59e0b":"#f97316"}}/>
-                <span style={{fontSize:11,color:googleConnected?"#10b981":loadingReviews?"#f59e0b":"#f97316",fontWeight:600}}>
+                <div style={{width:7,height:7,borderRadius:"50%",background:googleConnected?"#1a73e8":loadingReviews?"#f59e0b":"#f97316"}}/>
+                <span style={{fontSize:11,color:googleConnected?"#1a73e8":loadingReviews?"#f59e0b":"#f97316",fontWeight:600}}>
                   {loadingReviews?"Carregando...":googleConnected?"Conectado":"Não conectado"}
                 </span>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
                 <div style={{fontSize:12,color:"#9ca3af",fontWeight:500,flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{biz}</div>
                 {bizInfo&&(
-                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.05em",borderRadius:4,padding:"2px 6px",background:isPro?"#10b981":"#1f2937",color:isPro?"#fff":"#9ca3af"}}>
+                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.05em",borderRadius:4,padding:"2px 6px",background:isPro?"#1a73e8":"#e5e7eb",color:isPro?"#fff":"#9ca3af"}}>
                     {isPro?"PRO":"FREE"}
                   </span>
                 )}
               </div>
-              <div style={{fontSize:10,color:"#4b5563",marginTop:2}}>{bizInfo?`${bizInfo.total} avaliações no Google`:"Google Meu Negócio"}</div>
+              <div style={{fontSize:10,color:"#9ca3af",marginTop:2}}>{bizInfo?`${bizInfo.total} avaliações no Google`:"Google Meu Negócio"}</div>
             </div>
           </div>
         </div>
@@ -517,8 +517,8 @@ export default function ReputaZap({ user, onLogout }) {
         <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0,overflow:"auto"}}>
           <div className="mobile-header">
             <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <div style={{width:28,height:28,background:"linear-gradient(135deg,#10b981,#0d9488)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center"}}><Star size={14} fill="#fff" color="#fff"/></div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:15,color:"#f9fafb"}}>ReputaZap</div>
+              <div style={{width:28,height:28,background:"linear-gradient(135deg,#1a73e8,#1557b0)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center"}}><Star size={14} fill="#fff" color="#fff"/></div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:15,color:"#0f172a"}}>ReputaZap</div>
             </div>
             <button onClick={()=>setSidebarOpen(true)} aria-label="Abrir menu" style={{background:"none",border:"none",color:"#9ca3af",cursor:"pointer",padding:8,borderRadius:8,display:"flex"}}><Menu size={22}/></button>
           </div>
@@ -526,10 +526,10 @@ export default function ReputaZap({ user, onLogout }) {
           {/* Header */}
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,animation:"fadeUp 0.4s ease"}}>
             <div>
-              <div style={{fontSize:24,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#f9fafb",lineHeight:1.2}}>
+              <div style={{fontSize:24,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",lineHeight:1.2}}>
                 {tab==="dashboard"&&"Dashboard"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Capturar Reviews"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Plano e loja"}
               </div>
-              <div style={{fontSize:13,color:"#4b5563",marginTop:4}}>
+              <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
                 {tab==="dashboard"&&"Visão geral da sua reputação"}
                 {tab==="reviews"&&`${pending} aguardando resposta`}
                 {tab==="capturar"&&`Plaquinha NFC · Brinde ativo: ${brinde}`}
@@ -539,7 +539,7 @@ export default function ReputaZap({ user, onLogout }) {
               </div>
             </div>
             {pending>0&&tab!=="reviews"&&(
-              <div onClick={()=>setTab("reviews")} style={{display:"flex",alignItems:"center",gap:8,background:"#1a0a0a",border:"1px solid #7f1d1d",borderRadius:10,padding:"8px 14px",cursor:"pointer"}}>
+              <div onClick={()=>setTab("reviews")} style={{display:"flex",alignItems:"center",gap:8,background:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,padding:"8px 14px",cursor:"pointer"}}>
                 <Bell size={14} color="#ef4444"/><span style={{fontSize:12,color:"#ef4444",fontWeight:600}}>{pending} sem resposta</span>
               </div>
             )}
@@ -549,25 +549,25 @@ export default function ReputaZap({ user, onLogout }) {
           {tab==="dashboard"&&(
             <div style={{animation:"fadeUp 0.4s ease"}}>
               {!isPro&&bizInfo&&(
-                <div onClick={()=>setTab("plano")} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:14,background:"linear-gradient(135deg,#0d1f14,#111827)",border:"1px solid #064e3b",borderRadius:14,padding:"14px 18px",marginBottom:20}}>
-                  <div style={{width:36,height:36,borderRadius:10,background:"#10b981",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Zap size={18} color="#fff"/></div>
+                <div onClick={()=>setTab("plano")} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:14,background:"linear-gradient(135deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:14,padding:"14px 18px",marginBottom:20}}>
+                  <div style={{width:36,height:36,borderRadius:10,background:"#1a73e8",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Zap size={18} color="#fff"/></div>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:13,fontWeight:700,color:"#f9fafb",marginBottom:2}}>Ative a peneira de avaliações</div>
+                    <div style={{fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:2}}>Ative a peneira de avaliações</div>
                     <div style={{fontSize:12,color:"#9ca3af",lineHeight:1.5}}>Filtre negativos antes de chegar no Google. Disponível no plano Pro.</div>
                   </div>
-                  <ArrowRight size={16} color="#10b981"/>
+                  <ArrowRight size={16} color="#1a73e8"/>
                 </div>
               )}
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:16,marginBottom:24}}>
-                <Metric icon={Star} label="Nota Média" value={avgRating} sub={`${bizInfo?.total ?? reviews.length} avaliações no Google`} color="#f59e0b" bg="#1c1404"/>
-                <Metric icon={MessageSquare} label="Sem Resposta" value={pending} sub="nas últimas 5" color="#ef4444" bg="#1a0505"/>
-                <Metric icon={Gift} label="Via NFC+Brinde" value={nfcCount} sub="nas últimas 5" color="#10b981" bg="#061612"/>
-                <Metric icon={AlertCircle} label="Negativas" value={negative} sub="nas últimas 5" color="#f97316" bg="#1a0c04"/>
+                <Metric icon={Star} label="Nota Média" value={avgRating} sub={`${bizInfo?.total ?? reviews.length} avaliações no Google`} color="#f59e0b" bg="#fef3c7"/>
+                <Metric icon={MessageSquare} label="Sem Resposta" value={pending} sub="nas últimas 5" color="#ef4444" bg="#fef2f2"/>
+                <Metric icon={Gift} label="Via NFC+Brinde" value={nfcCount} sub="nas últimas 5" color="#1a73e8" bg="#ecfdf5"/>
+                <Metric icon={AlertCircle} label="Negativas" value={negative} sub="nas últimas 5" color="#f97316" bg="#fffbeb"/>
               </div>
 
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-                <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:24}}>
-                  <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb",marginBottom:18}}>Distribuição de Notas</div>
+                <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24}}>
+                  <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:18}}>Distribuição de Notas</div>
                   {[5,4,3,2,1].map(s=>{
                     const cnt=reviews.filter(r=>r.rating===s).length;
                     const pct=Math.round(cnt/reviews.length*100);
@@ -575,41 +575,41 @@ export default function ReputaZap({ user, onLogout }) {
                       <div key={s} style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
                         <span style={{fontSize:12,color:"#9ca3af",fontWeight:600,width:16}}>{s}</span>
                         <Star size={11} fill="#f59e0b" color="#f59e0b"/>
-                        <div style={{flex:1,height:8,background:"#1f2937",borderRadius:4,overflow:"hidden"}}>
+                        <div style={{flex:1,height:8,background:"#e5e7eb",borderRadius:4,overflow:"hidden"}}>
                           <div style={{height:"100%",width:`${pct}%`,background:rc(s),borderRadius:4}}/>
                         </div>
-                        <span style={{fontSize:11,color:"#4b5563",width:16,textAlign:"right"}}>{cnt}</span>
+                        <span style={{fontSize:11,color:"#9ca3af",width:16,textAlign:"right"}}>{cnt}</span>
                       </div>
                     );
                   })}
                 </div>
 
-                <div style={{background:"linear-gradient(145deg,#0d1f14,#111827)",border:"1px solid #064e3b",borderRadius:16,padding:24}}>
-                  <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb",marginBottom:4}}>Plaquinha NFC</div>
-                  <div style={{fontSize:12,color:"#4b5563",marginBottom:16}}>Reviews com brinde este mês</div>
-                  <div style={{fontSize:48,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#10b981",lineHeight:1}}>{nfcCount}</div>
-                  <div style={{fontSize:12,color:"#065f46",marginTop:6,marginBottom:18}}>Brinde: <strong style={{color:"#6ee7b7"}}>{brinde}</strong></div>
+                <div style={{background:"linear-gradient(145deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:16,padding:24}}>
+                  <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4}}>Plaquinha NFC</div>
+                  <div style={{fontSize:12,color:"#9ca3af",marginBottom:16}}>Reviews com brinde este mês</div>
+                  <div style={{fontSize:48,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#1a73e8",lineHeight:1}}>{nfcCount}</div>
+                  <div style={{fontSize:12,color:"#a7f3d0",marginTop:6,marginBottom:18}}>Brinde: <strong style={{color:"#059669"}}>{brinde}</strong></div>
                   <div style={{display:"flex",gap:8}}>
-                    <button onClick={()=>setTab("capturar")} className="bg" style={{background:"#10b981",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:5}}><Settings size={12}/> Configurar</button>
-                    <button onClick={()=>setShowPreview(true)} className="bg" style={{background:"#0f2a1f",color:"#6ee7b7",border:"1px solid #065f46",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:5}}><Smartphone size={12}/> Preview</button>
+                    <button onClick={()=>setTab("capturar")} className="bg" style={{background:"#1a73e8",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:5}}><Settings size={12}/> Configurar</button>
+                    <button onClick={()=>setShowPreview(true)} className="bg" style={{background:"#e8f0fe",color:"#059669",border:"1px solid #a7f3d0",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:5}}><Smartphone size={12}/> Preview</button>
                   </div>
                 </div>
               </div>
 
-              <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:24}}>
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-                  <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb"}}>Recentes sem resposta</div>
-                  <div onClick={()=>setTab("reviews")} style={{fontSize:12,color:"#10b981",cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>Ver todas<ChevronRight size={13}/></div>
+                  <div style={{fontSize:14,fontWeight:600,color:"#0f172a"}}>Recentes sem resposta</div>
+                  <div onClick={()=>setTab("reviews")} style={{fontSize:12,color:"#1a73e8",cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>Ver todas<ChevronRight size={13}/></div>
                 </div>
                 {reviews.filter(r=>!r.replied).slice(0,3).map(r=>(
-                  <div key={r.id} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"12px 0",borderBottom:"1px solid #1a2235"}}>
+                  <div key={r.id} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"12px 0",borderBottom:"1px solid #e5e7eb"}}>
                     <Av initials={r.avatar}/>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
-                        <span style={{fontSize:13,fontWeight:600,color:"#e5e7eb"}}>{r.author}</span>
+                        <span style={{fontSize:13,fontWeight:600,color:"#0f172a"}}>{r.author}</span>
                         <Stars rating={r.rating} size={11}/>
-                        {r.via==="nfc"&&<span style={{fontSize:10,background:"#0f2a1f",color:"#10b981",borderRadius:5,padding:"1px 6px",fontWeight:600}}>NFC</span>}
-                        <span style={{fontSize:11,color:"#4b5563",marginLeft:"auto"}}>{r.date}</span>
+                        {r.via==="nfc"&&<span style={{fontSize:10,background:"#e8f0fe",color:"#1a73e8",borderRadius:5,padding:"1px 6px",fontWeight:600}}>NFC</span>}
+                        <span style={{fontSize:11,color:"#9ca3af",marginLeft:"auto"}}>{r.date}</span>
                       </div>
                       <div style={{fontSize:12,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.text}</div>
                     </div>
@@ -623,7 +623,7 @@ export default function ReputaZap({ user, onLogout }) {
           {tab==="reviews"&&(
             <div style={{animation:"fadeUp 0.4s ease",display:"flex",flexDirection:"column",gap:12}}>
               {reviews.map((rev,i)=>(
-                <div key={rev.id} className="rc" style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:20,animation:"fadeUp 0.4s ease both",animationDelay:`${i*.04}s`}}>
+                <div key={rev.id} className="rc" style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,animation:"fadeUp 0.4s ease both",animationDelay:`${i*.04}s`}}>
                   <div style={{display:"flex",alignItems:"flex-start",gap:14}}>
                     <Av initials={rev.avatar}/>
                     <div style={{flex:1,minWidth:0}}>
@@ -633,14 +633,14 @@ export default function ReputaZap({ user, onLogout }) {
                         <div style={{padding:"2px 8px",borderRadius:6,background:rb(rev.rating),color:rc(rev.rating),fontSize:11,fontWeight:700}}>
                           {rev.rating>=4?"Positiva":rev.rating===3?"Neutra":"Negativa"}
                         </div>
-                        {rev.via==="nfc"&&<div style={{padding:"2px 8px",borderRadius:6,background:"#0f2a1f",color:"#10b981",fontSize:11,fontWeight:700,display:"flex",alignItems:"center",gap:3}}><Smartphone size={10}/> NFC</div>}
-                        <span style={{marginLeft:"auto",fontSize:11,color:"#4b5563",display:"flex",alignItems:"center",gap:3}}><Clock size={11}/>{rev.date}</span>
+                        {rev.via==="nfc"&&<div style={{padding:"2px 8px",borderRadius:6,background:"#e8f0fe",color:"#1a73e8",fontSize:11,fontWeight:700,display:"flex",alignItems:"center",gap:3}}><Smartphone size={10}/> NFC</div>}
+                        <span style={{marginLeft:"auto",fontSize:11,color:"#9ca3af",display:"flex",alignItems:"center",gap:3}}><Clock size={11}/>{rev.date}</span>
                       </div>
                       <p style={{fontSize:13,color:"#9ca3af",lineHeight:1.6,marginBottom:12}}>{rev.text}</p>
                       {rev.replied&&(
-                        <div style={{background:"#0d1f14",border:"1px solid #064e3b",borderRadius:10,padding:"10px 14px",marginBottom:12}}>
-                          <div style={{fontSize:11,color:"#10b981",fontWeight:600,marginBottom:4,display:"flex",alignItems:"center",gap:5}}><Check size={11}/> Resposta enviada</div>
-                          <p style={{fontSize:12,color:"#6ee7b7"}}>{rev.reply}</p>
+                        <div style={{background:"#ecfdf5",border:"1px solid #a7f3d0",borderRadius:10,padding:"10px 14px",marginBottom:12}}>
+                          <div style={{fontSize:11,color:"#1a73e8",fontWeight:600,marginBottom:4,display:"flex",alignItems:"center",gap:5}}><Check size={11}/> Resposta enviada</div>
+                          <p style={{fontSize:12,color:"#059669"}}>{rev.reply}</p>
                         </div>
                       )}
                     </div>
@@ -654,19 +654,19 @@ export default function ReputaZap({ user, onLogout }) {
           {tab==="capturar"&&(
             <div style={{animation:"fadeUp 0.4s ease"}}>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:16,marginBottom:24}}>
-                <Metric icon={Gift} label="Via NFC este mês" value={nfcCount} sub="reviews capturados" color="#10b981" bg="#061612"/>
-                <Metric icon={TrendingUp} label="Taxa conversão" value="73%" sub="quem toca, avalia" color="#8b5cf6" bg="#1a0a2e"/>
-                <Metric icon={Star} label="Nota média NFC" value="4.8" sub="vs 3.9 orgânico" color="#f59e0b" bg="#1c1404"/>
+                <Metric icon={Gift} label="Via NFC este mês" value={nfcCount} sub="reviews capturados" color="#1a73e8" bg="#ecfdf5"/>
+                <Metric icon={TrendingUp} label="Taxa conversão" value="73%" sub="quem toca, avalia" color="#8b5cf6" bg="#f5f3ff"/>
+                <Metric icon={Star} label="Nota média NFC" value="4.8" sub="vs 3.9 orgânico" color="#f59e0b" bg="#fef3c7"/>
               </div>
 
               {/* NFC card visual */}
-              <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:24,marginBottom:20}}>
-                <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb",marginBottom:20}}>Sua Plaquinha NFC</div>
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24,marginBottom:20}}>
+                <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:20}}>Sua Plaquinha NFC</div>
                 <div style={{display:"flex",gap:24,alignItems:"flex-start",flexWrap:"wrap"}}>
-                  <div style={{width:200,height:116,background:"linear-gradient(135deg,#0f2a1f,#064e3b)",borderRadius:16,border:"1px solid #065f46",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,flexShrink:0,boxShadow:"0 8px 32px rgba(16,185,129,0.15)"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6}}><Star size={15} fill="#10b981" color="#10b981"/><span style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:15,color:"#ecfdf5"}}>ReputaZap</span></div>
-                    <div style={{fontSize:12,color:"#6ee7b7",textAlign:"center",lineHeight:1.5}}>Toque o celular aqui<br/>e ganhe um brinde 🎁</div>
-                    <div style={{fontSize:9,color:"#065f46",display:"flex",alignItems:"center",gap:3}}><Smartphone size={9}/> NFC</div>
+                  <div style={{width:200,height:116,background:"linear-gradient(135deg,#e8f0fe,#a7f3d0)",borderRadius:16,border:"1px solid #a7f3d0",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,flexShrink:0,boxShadow:"0 8px 32px rgba(26,115,232,0.15)"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}><Star size={15} fill="#1a73e8" color="#1a73e8"/><span style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:15,color:"#ecfdf5"}}>ReputaZap</span></div>
+                    <div style={{fontSize:12,color:"#059669",textAlign:"center",lineHeight:1.5}}>Toque o celular aqui<br/>e ganhe um brinde 🎁</div>
+                    <div style={{fontSize:9,color:"#a7f3d0",display:"flex",alignItems:"center",gap:3}}><Smartphone size={9}/> NFC</div>
                   </div>
                   <div style={{flex:1,minWidth:180}}>
                     <div style={{fontSize:13,color:"#9ca3af",lineHeight:1.7,marginBottom:16}}>
@@ -674,7 +674,7 @@ export default function ReputaZap({ user, onLogout }) {
                     </div>
                     <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                       {["Plaquinha de mesa","Adesivo de parede","Cartão de visita"].map((f,i)=>(
-                        <div key={f} style={{background:i===0?"#0f2a1f":"#0a0f1a",border:`1px solid ${i===0?"#065f46":"#1f2937"}`,borderRadius:8,padding:"6px 12px",fontSize:12,color:i===0?"#10b981":"#4b5563"}}>{f}</div>
+                        <div key={f} style={{background:i===0?"#e8f0fe":"#f9fafb",border:`1px solid ${i===0?"#a7f3d0":"#e5e7eb"}`,borderRadius:8,padding:"6px 12px",fontSize:12,color:i===0?"#1a73e8":"#9ca3af"}}>{f}</div>
                       ))}
                     </div>
                   </div>
@@ -682,13 +682,13 @@ export default function ReputaZap({ user, onLogout }) {
               </div>
 
               {/* Configure brinde */}
-              <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:24,marginBottom:20}}>
-                <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb",marginBottom:4}}>Configure o Brinde</div>
-                <div style={{fontSize:12,color:"#4b5563",marginBottom:20}}>O cliente só vê o brinde depois de avaliar no Google. Escolha algo que realmente motive.</div>
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24,marginBottom:20}}>
+                <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4}}>Configure o Brinde</div>
+                <div style={{fontSize:12,color:"#9ca3af",marginBottom:20}}>O cliente só vê o brinde depois de avaliar no Google. Escolha algo que realmente motive.</div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:10,marginBottom:16}}>
                   {BRINDES.map(b=>(
                     <button key={b} onClick={()=>{setBrinde(b);setCustomMode(false);}}
-                      style={{background:brinde===b&&!customMode?"#0f2a1f":"#0a0f1a",border:`1.5px solid ${brinde===b&&!customMode?"#10b981":"#1f2937"}`,borderRadius:12,padding:"10px 14px",fontSize:12,color:brinde===b&&!customMode?"#10b981":"#6b7280",cursor:"pointer",textAlign:"left",fontWeight:brinde===b&&!customMode?700:400,display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
+                      style={{background:brinde===b&&!customMode?"#e8f0fe":"#f9fafb",border:`1.5px solid ${brinde===b&&!customMode?"#1a73e8":"#e5e7eb"}`,borderRadius:12,padding:"10px 14px",fontSize:12,color:brinde===b&&!customMode?"#1a73e8":"#6b7280",cursor:"pointer",textAlign:"left",fontWeight:brinde===b&&!customMode?700:400,display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
                       {brinde===b&&!customMode&&<Check size={12}/>}{b}
                     </button>
                   ))}
@@ -698,20 +698,20 @@ export default function ReputaZap({ user, onLogout }) {
                 </button>
                 {customMode&&(
                   <input value={brinde} onChange={e=>setBrinde(e.target.value)} placeholder="Ex: Brigadeiro grátis, Desconto de R$15..."
-                    style={{width:"100%",background:"#0a0f1a",border:"1px solid #374151",borderRadius:10,padding:"10px 14px",color:"#e5e7eb",fontSize:13,outline:"none"}}/>
+                    style={{width:"100%",background:"#f9fafb",border:"1px solid #d1d5db",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none"}}/>
                 )}
               </div>
 
               {/* Preview */}
-              <div style={{background:"linear-gradient(145deg,#0d1f14,#111827)",border:"1px solid #064e3b",borderRadius:16,padding:24}}>
-                <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb",marginBottom:4}}>Prévia da Tela do Cliente</div>
-                <div style={{fontSize:12,color:"#4b5563",marginBottom:16}}>Veja exatamente o que o cliente verá ao tocar na plaquinha. O filtro inteligente redireciona felizes pro Google e insatisfeitos pro formulário privado.</div>
+              <div style={{background:"linear-gradient(145deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:16,padding:24}}>
+                <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4}}>Prévia da Tela do Cliente</div>
+                <div style={{fontSize:12,color:"#9ca3af",marginBottom:16}}>Veja exatamente o que o cliente verá ao tocar na plaquinha. O filtro inteligente redireciona felizes pro Google e insatisfeitos pro formulário privado.</div>
                 <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:16}}>
-                  <div style={{background:"#0f2a1f",borderRadius:10,padding:"8px 14px",fontSize:12,color:"#6ee7b7",display:"flex",alignItems:"center",gap:6}}><Check size={12}/> 😊 Ótima → Google Reviews</div>
-                  <div style={{background:"#1a0505",borderRadius:10,padding:"8px 14px",fontSize:12,color:"#fca5a5",display:"flex",alignItems:"center",gap:6}}><Check size={12}/> 😞 Ruim → Formulário privado</div>
+                  <div style={{background:"#e8f0fe",borderRadius:10,padding:"8px 14px",fontSize:12,color:"#059669",display:"flex",alignItems:"center",gap:6}}><Check size={12}/> 😊 Ótima → Google Reviews</div>
+                  <div style={{background:"#fef2f2",borderRadius:10,padding:"8px 14px",fontSize:12,color:"#fca5a5",display:"flex",alignItems:"center",gap:6}}><Check size={12}/> 😞 Ruim → Formulário privado</div>
                 </div>
                 <button onClick={()=>setShowPreview(true)} className="bg"
-                  style={{background:"linear-gradient(135deg,#10b981,#0d9488)",color:"#fff",border:"none",borderRadius:12,padding:"12px 24px",fontSize:13,fontWeight:700,display:"flex",alignItems:"center",gap:8}}>
+                  style={{background:"linear-gradient(135deg,#1a73e8,#1557b0)",color:"#fff",border:"none",borderRadius:12,padding:"12px 24px",fontSize:13,fontWeight:700,display:"flex",alignItems:"center",gap:8}}>
                   <Smartphone size={15}/> Simular experiência do cliente
                 </button>
               </div>
@@ -721,21 +721,21 @@ export default function ReputaZap({ user, onLogout }) {
           {/* ─ WALL ─ */}
           {tab==="wall"&&(
             <div style={{animation:"fadeUp 0.4s ease"}}>
-              <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:20,marginBottom:20}}>
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,marginBottom:20}}>
                 <div style={{fontSize:13,color:"#6b7280",marginBottom:8}}>Cole no seu site</div>
-                <div style={{background:"#0a0f1a",borderRadius:10,padding:12,fontFamily:"monospace",fontSize:11,color:"#10b981",border:"1px solid #1a2235"}}>{`<script src="https://reputazap.com.br/widget.js" data-id="seu-negocio"></script>`}</div>
+                <div style={{background:"#f9fafb",borderRadius:10,padding:12,fontFamily:"monospace",fontSize:11,color:"#1a73e8",border:"1px solid #e5e7eb"}}>{`<script src="https://reputazap.com.br/widget.js" data-id="seu-negocio"></script>`}</div>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
                 {reviews.filter(r=>r.rating>=4).map((rev,i)=>(
-                  <div key={rev.id} style={{background:"linear-gradient(145deg,#0d1f14,#111827)",border:"1px solid #064e3b",borderRadius:16,padding:20,animation:"fadeUp 0.4s ease both",animationDelay:`${i*.06}s`,position:"relative",overflow:"hidden"}}>
-                    {rev.via==="nfc"&&<div style={{position:"absolute",top:12,right:12,background:"#0f2a1f",color:"#10b981",fontSize:9,fontWeight:700,borderRadius:5,padding:"2px 6px",display:"flex",alignItems:"center",gap:3}}><Smartphone size={9}/> NFC</div>}
+                  <div key={rev.id} style={{background:"linear-gradient(145deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:16,padding:20,animation:"fadeUp 0.4s ease both",animationDelay:`${i*.06}s`,position:"relative",overflow:"hidden"}}>
+                    {rev.via==="nfc"&&<div style={{position:"absolute",top:12,right:12,background:"#e8f0fe",color:"#1a73e8",fontSize:9,fontWeight:700,borderRadius:5,padding:"2px 6px",display:"flex",alignItems:"center",gap:3}}><Smartphone size={9}/> NFC</div>}
                     <div style={{marginBottom:12}}><Stars rating={rev.rating} size={14}/></div>
                     <p style={{fontSize:13,color:"#9ca3af",lineHeight:1.7,marginBottom:14,fontStyle:"italic"}}>"{rev.text}"</p>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
                       <Av initials={rev.avatar}/>
                       <div>
-                        <div style={{fontSize:13,fontWeight:700,color:"#e5e7eb"}}>{rev.author}</div>
-                        <div style={{fontSize:11,color:"#4b5563",display:"flex",alignItems:"center",gap:3}}><MapPin size={10}/> Google · {rev.date}</div>
+                        <div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{rev.author}</div>
+                        <div style={{fontSize:11,color:"#9ca3af",display:"flex",alignItems:"center",gap:3}}><MapPin size={10}/> Google · {rev.date}</div>
                       </div>
                     </div>
                   </div>
@@ -748,12 +748,12 @@ export default function ReputaZap({ user, onLogout }) {
           {tab==="google"&&(
             <div style={{animation:"fadeUp 0.4s ease"}}>
               {(searchMode || !bizInfo) ? (
-                <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:24}}>
+                <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24}}>
                   <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:6}}>
                     <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#ea4335,#fbbc04,#34a853,#4285f4)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                       <Building2 size={18} color="#fff"/>
                     </div>
-                    <div style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#f9fafb"}}>
+                    <div style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a"}}>
                       {bizInfo ? "Trocar negócio" : "Conectar negócio"}
                     </div>
                   </div>
@@ -766,17 +766,17 @@ export default function ReputaZap({ user, onLogout }) {
                       <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}
                         onKeyDown={e=>e.key==="Enter"&&doSearch()}
                         placeholder="ex: Pão de Açúcar"
-                        style={{width:"100%",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:10,padding:"10px 14px",color:"#f9fafb",fontSize:13,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif"}}/>
+                        style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif"}}/>
                     </div>
                     <div>
-                      <label style={{fontSize:11,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:4}}>Cidade <span style={{color:"#4b5563",fontWeight:400}}>(recomendado)</span></label>
+                      <label style={{fontSize:11,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:4}}>Cidade <span style={{color:"#9ca3af",fontWeight:400}}>(recomendado)</span></label>
                       <input value={searchCity} onChange={e=>setSearchCity(e.target.value)}
                         onKeyDown={e=>e.key==="Enter"&&doSearch()}
                         placeholder="ex: São Paulo, SP"
-                        style={{width:"100%",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:10,padding:"10px 14px",color:"#f9fafb",fontSize:13,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif"}}/>
+                        style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif"}}/>
                     </div>
                     <button onClick={doSearch} disabled={searchLoading||!searchQuery.trim()} className="bg"
-                      style={{background:"#10b981",color:"#fff",border:"none",borderRadius:10,padding:"11px 20px",fontSize:13,fontWeight:600,cursor:searchLoading?"wait":"pointer",opacity:searchLoading||!searchQuery.trim()?0.6:1}}>
+                      style={{background:"#1a73e8",color:"#fff",border:"none",borderRadius:10,padding:"11px 20px",fontSize:13,fontWeight:600,cursor:searchLoading?"wait":"pointer",opacity:searchLoading||!searchQuery.trim()?0.6:1}}>
                       {searchLoading?"Buscando...":"Buscar no Google"}
                     </button>
                   </div>
@@ -784,9 +784,9 @@ export default function ReputaZap({ user, onLogout }) {
                     <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:12}}>
                       {searchResults.map(r=>(
                         <div key={r.place_id} onClick={()=>!savingBiz&&selectAndSave(r)}
-                          style={{background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:10,padding:"12px 14px",cursor:savingBiz?"wait":"pointer",opacity:savingBiz?0.5:1,transition:"border-color .15s"}}
-                          onMouseEnter={e=>!savingBiz&&(e.currentTarget.style.borderColor="#10b981")} onMouseLeave={e=>e.currentTarget.style.borderColor="#1f2937"}>
-                          <div style={{fontSize:13,fontWeight:600,color:"#e5e7eb",marginBottom:4}}>{r.name}</div>
+                          style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"12px 14px",cursor:savingBiz?"wait":"pointer",opacity:savingBiz?0.5:1,transition:"border-color .15s"}}
+                          onMouseEnter={e=>!savingBiz&&(e.currentTarget.style.borderColor="#1a73e8")} onMouseLeave={e=>e.currentTarget.style.borderColor="#e5e7eb"}>
+                          <div style={{fontSize:13,fontWeight:600,color:"#0f172a",marginBottom:4}}>{r.name}</div>
                           <div style={{fontSize:11,color:"#6b7280",marginBottom:6}}>{r.address}</div>
                           <div style={{display:"flex",alignItems:"center",gap:10,fontSize:11,color:"#9ca3af"}}>
                             <span style={{display:"flex",alignItems:"center",gap:3}}>
@@ -812,14 +812,14 @@ export default function ReputaZap({ user, onLogout }) {
                   )}
                 </div>
               ) : (
-                <div style={{background:"linear-gradient(145deg,#0d1f14,#111827)",border:"1px solid #064e3b",borderRadius:16,padding:32,textAlign:"center"}}>
+                <div style={{background:"linear-gradient(145deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:16,padding:32,textAlign:"center"}}>
                   <div style={{fontSize:36,marginBottom:12}}>✅</div>
-                  <div style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#f9fafb",marginBottom:8}}>{bizInfo.name}</div>
-                  <div style={{fontSize:13,color:"#6ee7b7",marginBottom:6}}>{user?.email}</div>
-                  <div style={{fontSize:12,color:"#4b5563",marginBottom:24}}>
+                  <div style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",marginBottom:8}}>{bizInfo.name}</div>
+                  <div style={{fontSize:13,color:"#059669",marginBottom:6}}>{user?.email}</div>
+                  <div style={{fontSize:12,color:"#9ca3af",marginBottom:24}}>
                     ⭐ {bizInfo.rating?bizInfo.rating.toFixed(1):"—"} · {bizInfo.total||0} avaliações no Google
                   </div>
-                  <button onClick={()=>setSearchMode(true)} style={{background:"none",border:"1px solid #374151",color:"#9ca3af",borderRadius:10,padding:"8px 18px",fontSize:12,cursor:"pointer"}}>
+                  <button onClick={()=>setSearchMode(true)} style={{background:"none",border:"1px solid #d1d5db",color:"#9ca3af",borderRadius:10,padding:"8px 18px",fontSize:12,cursor:"pointer"}}>
                     Trocar negócio
                   </button>
                 </div>
@@ -831,11 +831,11 @@ export default function ReputaZap({ user, onLogout }) {
           {tab==="plano"&&(
             <div style={{animation:"fadeUp 0.4s ease"}}>
               {/* Card plano atual */}
-              <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:24,marginBottom:16}}>
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24,marginBottom:16}}>
                 <div style={{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Seu plano atual</div>
                 <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
-                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:700,color:"#f9fafb"}}>{isPro?"Pro":"Free"}</span>
-                  <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.05em",borderRadius:6,padding:"3px 8px",background:isPro?"#10b981":"#1f2937",color:isPro?"#fff":"#9ca3af"}}>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:700,color:"#0f172a"}}>{isPro?"Pro":"Free"}</span>
+                  <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.05em",borderRadius:6,padding:"3px 8px",background:isPro?"#1a73e8":"#e5e7eb",color:isPro?"#fff":"#9ca3af"}}>
                     {isPro?"PRO":"FREE"}
                   </span>
                 </div>
@@ -848,12 +848,12 @@ export default function ReputaZap({ user, onLogout }) {
 
               {/* Upgrade Pro (só para Free) */}
               {!isPro&&(
-                <div style={{background:"linear-gradient(145deg,#0d1f14,#111827)",border:"1px solid #064e3b",borderRadius:16,padding:24,marginBottom:16}}>
+                <div style={{background:"linear-gradient(145deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:16,padding:24,marginBottom:16}}>
                   <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-                    <div style={{width:40,height:40,borderRadius:10,background:"#10b981",display:"flex",alignItems:"center",justifyContent:"center"}}><Zap size={20} color="#fff"/></div>
+                    <div style={{width:40,height:40,borderRadius:10,background:"#1a73e8",display:"flex",alignItems:"center",justifyContent:"center"}}><Zap size={20} color="#fff"/></div>
                     <div>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#f9fafb"}}>Upgrade pra Pro</div>
-                      <div style={{fontSize:13,color:"#10b981",fontWeight:600}}>R$79/mês · 14 dias grátis</div>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#0f172a"}}>Upgrade pra Pro</div>
+                      <div style={{fontSize:13,color:"#1a73e8",fontWeight:600}}>R$79/mês · 14 dias grátis</div>
                     </div>
                   </div>
                   <ul style={{listStyle:"none",padding:0,margin:"0 0 18px",display:"flex",flexDirection:"column",gap:8}}>
@@ -864,33 +864,33 @@ export default function ReputaZap({ user, onLogout }) {
                       "Cancele quando quiser — sem fidelidade",
                     ].map((f,i)=>(
                       <li key={i} style={{display:"flex",alignItems:"flex-start",gap:8,fontSize:13,color:"#d1d5db",lineHeight:1.5}}>
-                        <Check size={14} color="#10b981" style={{marginTop:3,flexShrink:0}}/>
+                        <Check size={14} color="#1a73e8" style={{marginTop:3,flexShrink:0}}/>
                         <span>{f}</span>
                       </li>
                     ))}
                   </ul>
-                  <a href="https://wa.me/5511982882662?text=Quero%20fazer%20upgrade%20do%20ReputaZap%20pro%20plano%20Pro" target="_blank" rel="noreferrer" style={{textDecoration:"none",display:"block",background:"#10b981",color:"#fff",borderRadius:12,padding:"13px 20px",fontSize:14,fontWeight:700,textAlign:"center"}}>
+                  <a href="https://wa.me/5511982882662?text=Quero%20fazer%20upgrade%20do%20ReputaZap%20pro%20plano%20Pro" target="_blank" rel="noreferrer" style={{textDecoration:"none",display:"block",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"13px 20px",fontSize:14,fontWeight:700,textAlign:"center"}}>
                     Quero o Pro →
                   </a>
                 </div>
               )}
 
               {/* Loja */}
-              <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:24}}>
-                <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb",marginBottom:6}}>Loja — hardware NFC</div>
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24}}>
+                <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:6}}>Loja — hardware NFC</div>
                 <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6,marginBottom:18}}>Coloque sua plaquinha no balcão e capture mais avaliações com um toque do cliente.</div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12}}>
-                  <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer" style={{textDecoration:"none",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:18,display:"flex",flexDirection:"column",gap:6,transition:"border-color .15s"}}
-                    onMouseEnter={e=>e.currentTarget.style.borderColor="#374151"} onMouseLeave={e=>e.currentTarget.style.borderColor="#1f2937"}>
+                  <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer" style={{textDecoration:"none",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:12,padding:18,display:"flex",flexDirection:"column",gap:6,transition:"border-color .15s"}}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor="#d1d5db"} onMouseLeave={e=>e.currentTarget.style.borderColor="#e5e7eb"}>
                     <div style={{fontSize:24}}>🪧</div>
-                    <div style={{fontSize:14,fontWeight:700,color:"#f9fafb"}}>Plaquinha de mesa</div>
+                    <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>Plaquinha de mesa</div>
                     <div style={{fontSize:12,color:"#6b7280",lineHeight:1.5}}>Acrílico cristal com QR code do seu negócio.</div>
-                    <div style={{fontSize:12,color:"#10b981",fontWeight:700,marginTop:6,display:"flex",alignItems:"center",gap:5}}>Comprar no Mercado Livre <ExternalLink size={11}/></div>
+                    <div style={{fontSize:12,color:"#1a73e8",fontWeight:700,marginTop:6,display:"flex",alignItems:"center",gap:5}}>Comprar no Mercado Livre <ExternalLink size={11}/></div>
                   </a>
-                  <div style={{background:"#0a0f1a",border:"1px dashed #1f2937",borderRadius:12,padding:18,display:"flex",flexDirection:"column",gap:6}}>
+                  <div style={{background:"#f9fafb",border:"1px dashed #e5e7eb",borderRadius:12,padding:18,display:"flex",flexDirection:"column",gap:6}}>
                     <div style={{fontSize:24,opacity:0.5}}>💳</div>
                     <div style={{fontSize:14,fontWeight:700,color:"#9ca3af"}}>Cartões NFC</div>
-                    <div style={{fontSize:12,color:"#4b5563",lineHeight:1.5}}>Em breve.</div>
+                    <div style={{fontSize:12,color:"#9ca3af",lineHeight:1.5}}>Em breve.</div>
                   </div>
                 </div>
               </div>
