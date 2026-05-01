@@ -340,19 +340,9 @@ export default function ReputaZap({ user, onLogout }) {
         }
       }
 
-      // Fallback: usuário não tem negócio cadastrado ou sem token
-      console.log("[App] Caindo no fallback (sem negócio cadastrado)");
-      fetch("/api/reviews")
-        .then(r => r.json())
-        .then(data => {
-          if (data.reviews?.length) {
-            setReviews(data.reviews);
-            setBizInfo({ name: data.name, rating: data.rating, total: data.total });
-            setGoogleConnected(true);
-          }
-          setLoadingReviews(false);
-        })
-        .catch(() => setLoadingReviews(false));
+      // Sem token ou sem negócio cadastrado: fica no estado vazio
+      console.log("[App] Sem negócio cadastrado para esse usuário");
+      setLoadingReviews(false);
     };
     loadBusiness();
   }, []);
@@ -361,7 +351,7 @@ export default function ReputaZap({ user, onLogout }) {
   const avgRating = bizInfo?.rating?.toFixed(1) || (reviews.reduce((a,r)=>a+r.rating,0)/reviews.length).toFixed(1);
   const negative = reviews.filter(r=>r.rating<=2).length;
   const nfcCount = reviews.filter(r=>r.via==="nfc").length;
-  const biz = bizInfo?.name || user?.biz || "SAIF - A Loja da Limpeza";
+  const biz = bizInfo?.name || user?.biz || "Meu Negócio";
 
   async function generateReply(review) {
     setActiveReview(review); setAiReply(""); setEditedReply(""); setSent(false); setLoading(true);

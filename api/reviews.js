@@ -3,25 +3,15 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET");
 
   const API_KEY = process.env.PLACES_API_KEY;
-  let place_id = req.query.place_id;
+  const place_id = req.query.place_id;
+
+  if (!place_id) {
+    return res.status(400).json({ error: "place_id é obrigatório" });
+  }
 
   try {
-    // Se não veio place_id na URL, cai no fallback antigo (SAIF)
-    if (!place_id) {
-      console.log("[reviews] Sem place_id na URL, usando fallback SAIF");
-      const query = "SAIF A Loja da Limpeza Carapicuíba SP";
-      const searchRes = await fetch(
-        `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(query)}&inputtype=textquery&fields=place_id,name,rating,user_ratings_total&key=${API_KEY}`
-      );
-      const searchData = await searchRes.json();
-      const place = searchData.candidates?.[0];
-      if (!place) return res.status(404).json({ error: "Negócio não encontrado" });
-      place_id = place.place_id;
-    } else {
-      console.log("[reviews] Buscando reviews do place_id:", place_id);
-    }
+    console.log("[reviews] Buscando reviews do place_id:", place_id);
 
-    // Busca os reviews do place_id (seja o do usuário ou o fallback)
     const detailRes = await fetch(
       `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,rating,user_ratings_total,reviews&language=pt-BR&key=${API_KEY}`
     );
