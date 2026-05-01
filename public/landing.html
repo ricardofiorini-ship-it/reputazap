@@ -68,34 +68,30 @@
   .proof-stars { color: #fbbc04; font-size: 13px; letter-spacing: 1px; }
   .proof-text strong { color: var(--text); font-weight: 700; }
 
-  /* HERO MOCKUP */
-  .hero-mockup { background: #fff; border: 1px solid var(--border); border-radius: 24px; padding: 28px; box-shadow: 0 30px 60px -20px rgba(15,23,42,0.15), 0 18px 36px -18px rgba(15,23,42,0.08); position: relative; }
-  .mockup-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
-  .mockup-biz { display: flex; align-items: center; gap: 12px; }
-  .mockup-google { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #ea4335 0%, #fbbc04 33%, #34a853 66%, #4285f4 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 16px; }
-  .mockup-name { font-size: 16px; font-weight: 700; color: var(--text); }
-  .mockup-cat { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .mockup-rating { text-align: right; }
-  .mockup-stars-big { color: #fbbc04; font-size: 18px; letter-spacing: 1px; }
-  .mockup-rating-num { font-size: 13px; color: var(--muted); margin-top: 2px; }
-  .mockup-review { background: var(--bg-soft); border-radius: 16px; padding: 18px; }
-  .mockup-rev-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .mockup-rev-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ec4899; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
-  .mockup-rev-name { font-size: 13px; font-weight: 700; color: var(--text); }
-  .mockup-rev-stars { color: #fbbc04; font-size: 11px; letter-spacing: 1px; margin-top: 2px; }
-  .mockup-rev-text { font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 14px; }
-  .mockup-rev-actions { display: flex; gap: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
-  .mockup-rev-btn { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 600; }
-  .mockup-rev-btn svg { width: 14px; height: 14px; }
-
-  /* FLOATING BADGE */
-  .float-badge { position: absolute; right: -18px; top: 28%; background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 12px 16px; box-shadow: 0 12px 32px rgba(15,23,42,0.1); display: flex; align-items: center; gap: 10px; }
-  .float-badge-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--primary-soft); display: flex; align-items: center; justify-content: center; }
-  .float-badge-icon svg { width: 16px; height: 16px; color: var(--primary); }
-  .float-badge-text { font-size: 12px; }
-  .float-badge-text strong { display: block; color: var(--text); font-weight: 700; }
-  .float-badge-text span { color: var(--muted); }
-  @media (max-width: 980px) { .float-badge { display: none; } }
+  /* HERO MOCKUP — 2 cards lado a lado */
+  .hero-mockup-wrap { position: relative; }
+  .hero-mockup-title { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 14px; text-align: center; letter-spacing: 0.02em; }
+  .hero-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 540px) { .hero-cards { grid-template-columns: 1fr; } }
+  .flow-card { background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: 16px; box-shadow: 0 18px 40px -16px rgba(15,23,42,0.1); display: flex; flex-direction: column; gap: 10px; }
+  .flow-head { display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .flow-google { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, #ea4335 0%, #fbbc04 33%, #34a853 66%, #4285f4 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 12px; flex-shrink: 0; }
+  .flow-biz-name { font-size: 12px; font-weight: 700; color: var(--text); }
+  .flow-q { font-size: 12px; color: var(--text); font-weight: 600; line-height: 1.4; }
+  .flow-emojis { display: flex; gap: 6px; }
+  .flow-emoji { flex: 1; padding: 8px 4px; border-radius: 10px; background: var(--bg-soft); border: 1.5px solid var(--border); text-align: center; font-size: 18px; }
+  .flow-emoji.selected.good { background: #ecfdf5; border-color: #10b981; }
+  .flow-emoji.selected.bad { background: #fef2f2; border-color: #ef4444; }
+  .flow-arrow { text-align: center; color: var(--muted); font-size: 14px; line-height: 0.5; }
+  .flow-result { padding: 10px 12px; border-radius: 12px; font-size: 11px; line-height: 1.5; }
+  .flow-result.positive { background: #ecfdf5; border: 1px solid #a7f3d0; }
+  .flow-result.private { background: #fef2f2; border: 1px solid #fecaca; }
+  .flow-result-title { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .flow-result-stars { color: #fbbc04; font-size: 13px; letter-spacing: 1px; }
+  .flow-input-fake { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; font-size: 10px; color: var(--soft); margin-bottom: 6px; }
+  .flow-private-btn { display: block; background: #1f2937; color: #fff; border-radius: 8px; padding: 6px; font-size: 10px; font-weight: 700; text-align: center; }
+  .hero-mockup-bottom { margin-top: 16px; display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--primary-soft); border: 1px solid #c7d8ff; border-radius: 12px; font-size: 12px; color: var(--primary-dark); font-weight: 600; line-height: 1.4; }
+  .hero-mockup-bottom svg { width: 16px; height: 16px; flex-shrink: 0; }
 
   /* SECTION */
   section { padding: 96px 5%; }
@@ -180,11 +176,11 @@
 <!-- HERO -->
 <section class="hero">
   <div>
-    <h1>Aumente suas avaliações <span class="accent">no Google</span><br/>sem pedir para o cliente</h1>
-    <p class="hero-sub">Transforma toda passagem identificando em uma nova avaliação. O cliente toca a plaquinha, ganha um brinde e avalia em segundos. Você cresce no ranking sem stress.</p>
+    <h1>Evite avaliações negativas antes que elas cheguem ao <span class="accent">Google</span></h1>
+    <p class="hero-sub">Capture o feedback do cliente primeiro. Resolva o problema antes da reclamação virar review pública. Boas experiências viram 5 estrelas no Google — sem fricção.</p>
     <div class="hero-cta">
       <a class="btn-primary" href="/ativar.html?from=web">Começar grátis</a>
-      <a class="btn-ghost" href="#como-funciona">Ver como funciona</a>
+      <a class="btn-ghost" href="#como-funciona">Como funciona</a>
     </div>
     <div class="social-proof">
       <div class="avatar-group">
@@ -195,56 +191,57 @@
       </div>
       <div>
         <div class="proof-stars">★★★★★</div>
-        <div class="proof-text"><strong>1.249 reviews</strong> capturadas no último mês</div>
+        <div class="proof-text">Negócios locais já <strong>protegem sua reputação</strong> com o ReputaZap</div>
       </div>
     </div>
   </div>
 
-  <!-- MOCKUP CARD -->
-  <div class="hero-mockup">
-    <div class="mockup-head">
-      <div class="mockup-biz">
-        <div class="mockup-google">G</div>
-        <div>
-          <div class="mockup-name">Café Bello Vista</div>
-          <div class="mockup-cat">Cafeteria · São Paulo</div>
+  <!-- MOCKUP — fluxo de pre-avaliacao -->
+  <div class="hero-mockup-wrap">
+    <div class="hero-mockup-title">Fluxo de pré-avaliação inteligente</div>
+    <div class="hero-cards">
+      <!-- Card 1: positivo -->
+      <div class="flow-card">
+        <div class="flow-head">
+          <div class="flow-google">G</div>
+          <div class="flow-biz-name">Café Bello Vista</div>
+        </div>
+        <div class="flow-q">Como foi sua experiência hoje?</div>
+        <div class="flow-emojis">
+          <div class="flow-emoji selected good">😊</div>
+          <div class="flow-emoji">😐</div>
+          <div class="flow-emoji">🙁</div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-result positive">
+          <div class="flow-result-title">Avalie no Google</div>
+          <div class="flow-result-stars">★★★★★</div>
         </div>
       </div>
-      <div class="mockup-rating">
-        <div class="mockup-stars-big">★★★★★</div>
-        <div class="mockup-rating-num">5,0 (105)</div>
-      </div>
-    </div>
-    <div class="mockup-review">
-      <div class="mockup-rev-head">
-        <div class="mockup-rev-avatar">MS</div>
-        <div>
-          <div class="mockup-rev-name">Mariana Souza</div>
-          <div class="mockup-rev-stars">★★★★★</div>
-        </div>
-      </div>
-      <p class="mockup-rev-text">Atendimento espetacular e o café é maravilhoso! Ambiente aconchegante e acolhedor. Voltarei sempre!</p>
-      <div class="mockup-rev-actions">
-        <span class="mockup-rev-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10v12M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H7l-3-1V10l5-7 1.5 1.5L9 10z"/></svg>
-          Curtir
-        </span>
-        <span class="mockup-rev-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          Compartilhar
-        </span>
-      </div>
-    </div>
 
-    <!-- floating badge -->
-    <div class="float-badge">
-      <div class="float-badge-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <!-- Card 2: negativo -->
+      <div class="flow-card">
+        <div class="flow-head">
+          <div class="flow-google">G</div>
+          <div class="flow-biz-name">Café Bello Vista</div>
+        </div>
+        <div class="flow-q">Como foi sua experiência hoje?</div>
+        <div class="flow-emojis">
+          <div class="flow-emoji">😊</div>
+          <div class="flow-emoji">😐</div>
+          <div class="flow-emoji selected bad">🙁</div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-result private">
+          <div class="flow-result-title">O que podemos melhorar?</div>
+          <div class="flow-input-fake">Sua mensagem...</div>
+          <div class="flow-private-btn">Enviar privadamente</div>
+        </div>
       </div>
-      <div class="float-badge-text">
-        <strong>+1 avaliação</strong>
-        <span>capturada agora</span>
-      </div>
+    </div>
+    <div class="hero-mockup-bottom">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Feedback negativo vai direto para o gestor — não vira review pública
     </div>
   </div>
 </section>
@@ -254,7 +251,8 @@
   <div class="section-inner">
     <div class="section-head">
       <div class="section-eyebrow">Como funciona</div>
-      <h2 class="section-title">Quatro passos para mais reputação</h2>
+      <h2 class="section-title">Como funciona</h2>
+      <p class="section-sub">Simples, rápido e eficiente.</p>
     </div>
     <div class="how-grid">
       <div class="how-step">
