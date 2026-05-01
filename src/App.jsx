@@ -283,7 +283,11 @@ export default function ReputaZap({ user, onLogout }) {
   const [showPreview, setShowPreview] = useState(false);
   const [customMode, setCustomMode] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
-  const [connectStep, setConnectStep] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchMode, setSearchMode] = useState(false);
+  const [savingBiz, setSavingBiz] = useState(false);
 
   // Carrega o negócio do usuário logado e seus reviews
   useEffect(() => {
@@ -349,6 +353,51 @@ export default function ReputaZap({ user, onLogout }) {
   const nfcCount = reviews.filter(r=>r.via==="nfc").length;
   const biz = bizInfo?.name || user?.biz || "Meu Negócio";
   const isPro = bizInfo?.plan === "pro";
+
+  async function doSearch() {
+    if (!searchQuery.trim()) return;
+    setSearchLoading(true);
+    setSearchResults([]);
+    try {
+      const res = await fetch(`/api/searchbiz?q=${encodeURIComponent(searchQuery)}`);
+      const data = await res.json();
+      setSearchResults(data.results || []);
+    } catch {
+      setSearchResults([]);
+    }
+    setSearchLoading(false);
+  }
+
+  async function selectAndSave(b) {
+    const token = localStorage.getItem("rz_token");
+    if (!token) { alert("Sessão expirada. Entre novamente."); return; }
+    setSavingBiz(true);
+    try {
+      const res = await fetch("/api/savebiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({
+          place_id: b.place_id,
+          name: b.name,
+          address: b.address,
+          rating: b.rating,
+          total: b.total,
+          plan: bizInfo?.plan || "free"
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        alert("Erro ao salvar: " + (err.error || "tente novamente"));
+        setSavingBiz(false);
+        return;
+      }
+      // Recarrega tudo (bizInfo, reviews, etc) com o novo negocio
+      window.location.reload();
+    } catch {
+      alert("Erro de conexão. Tente novamente.");
+      setSavingBiz(false);
+    }
+  }
 
   const rc = r=>r>=4?"#10b981":r===3?"#f59e0b":"#ef4444";
   const rb = r=>r>=4?"#064e3b":r===3?"#451a03":"#450a0a";
@@ -696,114 +745,71 @@ export default function ReputaZap({ user, onLogout }) {
           {/* ─ GOOGLE ─ */}
           {tab==="google"&&(
             <div style={{animation:"fadeUp 0.4s ease"}}>
-              {!googleConnected ? (
-                <>
-                  {/* Hero */}
-                  <div style={{background:"linear-gradient(145deg,#111827,#0d1424)",border:"1px solid #1f2937",borderRadius:20,padding:32,marginBottom:20,textAlign:"center"}}>
-                    <div style={{width:64,height:64,borderRadius:20,background:"linear-gradient(135deg,#ea4335,#fbbc04,#34a853,#4285f4)",margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <Building2 size={28} color="#fff"/>
+              {(searchMode || !bizInfo) ? (
+                <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:24}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:6}}>
+                    <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#ea4335,#fbbc04,#34a853,#4285f4)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                      <Building2 size={18} color="#fff"/>
                     </div>
-                    <div style={{fontSize:24,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#f9fafb",marginBottom:8}}>Conecte seu Google Meu Negócio</div>
-                    <div style={{fontSize:14,color:"#6b7280",lineHeight:1.7,maxWidth:480,margin:"0 auto 28px"}}>
-                      Com a integração ativa, o ReputaZap puxa suas avaliações automaticamente, monitora sua nota em tempo real e envia alertas quando chega um review novo.
+                    <div style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#f9fafb"}}>
+                      {bizInfo ? "Trocar negócio" : "Conectar negócio"}
                     </div>
-                    <div style={{display:"flex",justifyContent:"center",gap:20,flexWrap:"wrap",marginBottom:32}}>
-                      {[
-                        {icon:Star,text:"Reviews em tempo real"},
-                        {icon:Bell,text:"Alertas instantâneos"},
-                        {icon:Zap,text:"Resposta com 1 clique"},
-                      ].map(f=>(
-                        <div key={f.text} style={{display:"flex",alignItems:"center",gap:8,background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:"10px 16px"}}>
-                          <f.icon size={15} color="#10b981"/>
-                          <span style={{fontSize:13,color:"#9ca3af"}}>{f.text}</span>
+                  </div>
+                  <div style={{fontSize:13,color:"#6b7280",marginBottom:18,lineHeight:1.6}}>
+                    Busque seu negócio no Google. As avaliações públicas são importadas automaticamente.
+                  </div>
+                  <div style={{display:"flex",gap:8,marginBottom:14}}>
+                    <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}
+                      onKeyDown={e=>e.key==="Enter"&&doSearch()}
+                      placeholder="ex: Pão de Açúcar Av Paulista"
+                      style={{flex:1,background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:10,padding:"10px 14px",color:"#f9fafb",fontSize:13,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif"}}/>
+                    <button onClick={doSearch} disabled={searchLoading||!searchQuery.trim()} className="bg"
+                      style={{background:"#10b981",color:"#fff",border:"none",borderRadius:10,padding:"10px 20px",fontSize:13,fontWeight:600,cursor:searchLoading?"wait":"pointer",opacity:searchLoading||!searchQuery.trim()?0.6:1}}>
+                      {searchLoading?"Buscando...":"Buscar"}
+                    </button>
+                  </div>
+                  {searchResults.length>0 && (
+                    <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:12}}>
+                      {searchResults.map(r=>(
+                        <div key={r.place_id} onClick={()=>!savingBiz&&selectAndSave(r)}
+                          style={{background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:10,padding:"12px 14px",cursor:savingBiz?"wait":"pointer",opacity:savingBiz?0.5:1,transition:"border-color .15s"}}
+                          onMouseEnter={e=>!savingBiz&&(e.currentTarget.style.borderColor="#10b981")} onMouseLeave={e=>e.currentTarget.style.borderColor="#1f2937"}>
+                          <div style={{fontSize:13,fontWeight:600,color:"#e5e7eb",marginBottom:4}}>{r.name}</div>
+                          <div style={{fontSize:11,color:"#6b7280",marginBottom:6}}>{r.address}</div>
+                          <div style={{display:"flex",alignItems:"center",gap:10,fontSize:11,color:"#9ca3af"}}>
+                            <span style={{display:"flex",alignItems:"center",gap:3}}>
+                              <Star size={10} fill="#f59e0b" color="#f59e0b"/>
+                              {r.rating?r.rating.toFixed(1):"—"}
+                            </span>
+                            <span>{r.total||0} avaliações</span>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  </div>
-
-                  {/* Steps */}
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16,marginBottom:20}}>
-                    {[
-                      {n:"1",title:"Autorize o acesso",desc:"Clique em Conectar e faça login com a conta Google do seu negócio.",icon:ShieldCheck,active:connectStep>=0},
-                      {n:"2",title:"Escolha o local",desc:"Selecione qual perfil do Google Meu Negócio quer conectar.",icon:MapPin,active:connectStep>=1},
-                      {n:"3",title:"Pronto!",desc:"Reviews importados automaticamente e monitoramento ativo.",icon:Check,active:connectStep>=2},
-                    ].map((s,i)=>(
-                      <div key={i} style={{background:s.active&&connectStep===i?"linear-gradient(145deg,#0d1f14,#111827)":"#111827",border:`1px solid ${s.active&&connectStep===i?"#065f46":"#1f2937"}`,borderRadius:16,padding:20}}>
-                        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-                          <div style={{width:28,height:28,borderRadius:8,background:s.active&&connectStep===i?"#10b981":"#1f2937",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                            <s.icon size={14} color={s.active&&connectStep===i?"#fff":"#4b5563"}/>
-                          </div>
-                          <span style={{fontSize:11,fontWeight:700,color:s.active&&connectStep===i?"#10b981":"#4b5563",letterSpacing:"0.05em"}}>PASSO {s.n}</span>
-                        </div>
-                        <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb",marginBottom:6,fontFamily:"'Playfair Display',serif"}}>{s.title}</div>
-                        <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6}}>{s.desc}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* CTA */}
-                  <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:24}}>
-                    {connectStep===0&&(
-                      <div>
-                        <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb",marginBottom:4,fontFamily:"'Playfair Display',serif"}}>Passo 1 — Autorize o ReputaZap</div>
-                        <div style={{fontSize:12,color:"#4b5563",marginBottom:20,lineHeight:1.6}}>Você será redirecionado para a tela de login do Google. Usamos OAuth 2.0 — não armazenamos sua senha em nenhum momento.</div>
-                        <div style={{display:"flex",gap:10,alignItems:"center",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:"12px 16px",marginBottom:20}}>
-                          <ShieldCheck size={16} color="#10b981"/>
-                          <span style={{fontSize:12,color:"#6b7280"}}>Acesso somente leitura e resposta de reviews. Nunca editamos seu perfil.</span>
-                        </div>
-                        <button onClick={()=>setConnectStep(1)} className="bg"
-                          style={{background:"linear-gradient(135deg,#4285f4,#1a73e8)",color:"#fff",border:"none",borderRadius:12,padding:"13px 28px",fontSize:14,fontWeight:600,fontFamily:"'Plus Jakarta Sans',sans-serif",display:"flex",alignItems:"center",gap:10}}>
-                          <div style={{width:20,height:20,borderRadius:4,background:"#fff",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                            <span style={{fontSize:11,fontWeight:900,color:"#4285f4"}}>G</span>
-                          </div>
-                          Entrar com Google
-                        </button>
-                      </div>
-                    )}
-                    {connectStep===1&&(
-                      <div style={{animation:"fadeUp 0.3s ease"}}>
-                        <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb",marginBottom:4,fontFamily:"'Playfair Display',serif"}}>Passo 2 — Confirme seu estabelecimento</div>
-                        <div style={{fontSize:12,color:"#4b5563",marginBottom:20}}>Conta conectada: <span style={{color:"#10b981"}}>{user?.email||"—"}</span></div>
-                        {bizInfo ? (
-                          <div onClick={()=>setConnectStep(2)}
-                            style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:"14px 16px",marginBottom:10,cursor:"pointer",transition:"border-color .15s"}}
-                            onMouseEnter={e=>e.currentTarget.style.borderColor="#374151"} onMouseLeave={e=>e.currentTarget.style.borderColor="#1f2937"}>
-                            <div>
-                              <div style={{fontSize:13,fontWeight:600,color:"#e5e7eb",marginBottom:3}}>{bizInfo.name}</div>
-                              <div style={{fontSize:11,color:"#4b5563"}}>{bizInfo.total} avaliações no Google</div>
-                            </div>
-                            <div style={{display:"flex",alignItems:"center",gap:6}}>
-                              <Star size={12} fill="#f59e0b" color="#f59e0b"/>
-                              <span style={{fontSize:12,color:"#9ca3af"}}>{bizInfo.rating?.toFixed(1)}</span>
-                              <ArrowRight size={14} color="#4b5563"/>
-                            </div>
-                          </div>
-                        ) : (
-                          <div style={{background:"#0a0f1a",border:"1px dashed #1f2937",borderRadius:12,padding:"14px 16px",fontSize:12,color:"#6b7280",textAlign:"center"}}>
-                            Nenhum negócio cadastrado ainda.
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {connectStep===2&&(
-                      <div style={{animation:"fadeUp 0.3s ease",textAlign:"center",padding:"12px 0"}}>
-                        <div style={{fontSize:40,marginBottom:12}}>🎉</div>
-                        <div style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#f9fafb",marginBottom:8}}>Integração concluída!</div>
-                        <div style={{fontSize:13,color:"#6b7280",marginBottom:24,lineHeight:1.6}}>Importamos seus últimos 7 reviews. A partir de agora tudo é automático.</div>
-                        <button onClick={()=>setGoogleConnected(true)} className="bg"
-                          style={{background:"#10b981",color:"#fff",border:"none",borderRadius:12,padding:"12px 28px",fontSize:13,fontWeight:600,fontFamily:"'Plus Jakarta Sans',sans-serif",display:"inline-flex",alignItems:"center",gap:8}}>
-                          <Check size={15}/> Ir para o Dashboard
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </>
+                  )}
+                  {searchResults.length===0 && searchQuery && !searchLoading && (
+                    <div style={{fontSize:12,color:"#6b7280",textAlign:"center",padding:"16px 0"}}>
+                      Sem resultados. Tente incluir o bairro ou cidade.
+                    </div>
+                  )}
+                  {bizInfo && (
+                    <button onClick={()=>{setSearchMode(false);setSearchQuery("");setSearchResults([]);}}
+                      style={{background:"none",border:"none",color:"#6b7280",fontSize:12,marginTop:6,cursor:"pointer",padding:0}}>
+                      ← Cancelar
+                    </button>
+                  )}
+                </div>
               ) : (
                 <div style={{background:"linear-gradient(145deg,#0d1f14,#111827)",border:"1px solid #064e3b",borderRadius:16,padding:32,textAlign:"center"}}>
                   <div style={{fontSize:36,marginBottom:12}}>✅</div>
-                  <div style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#f9fafb",marginBottom:8}}>Google Meu Negócio conectado</div>
-                  <div style={{fontSize:13,color:"#6ee7b7",marginBottom:24}}>{biz} · {user?.email}</div>
-                  <button onClick={()=>{setGoogleConnected(false);setConnectStep(0);}} style={{background:"none",border:"1px solid #374151",color:"#6b7280",borderRadius:10,padding:"8px 18px",fontSize:12,cursor:"pointer"}}>Desconectar</button>
+                  <div style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#f9fafb",marginBottom:8}}>{bizInfo.name}</div>
+                  <div style={{fontSize:13,color:"#6ee7b7",marginBottom:6}}>{user?.email}</div>
+                  <div style={{fontSize:12,color:"#4b5563",marginBottom:24}}>
+                    ⭐ {bizInfo.rating?bizInfo.rating.toFixed(1):"—"} · {bizInfo.total||0} avaliações no Google
+                  </div>
+                  <button onClick={()=>setSearchMode(true)} style={{background:"none",border:"1px solid #374151",color:"#9ca3af",borderRadius:10,padding:"8px 18px",fontSize:12,cursor:"pointer"}}>
+                    Trocar negócio
+                  </button>
                 </div>
               )}
             </div>
