@@ -89,8 +89,7 @@
 <div class="progress" id="progressBar">
   <div class="prog-step active" id="p1">1</div><div class="prog-line" id="l1"></div>
   <div class="prog-step" id="p2">2</div><div class="prog-line" id="l2"></div>
-  <div class="prog-step" id="p3">3</div><div class="prog-line" id="l3"></div>
-  <div class="prog-step" id="p4">4</div>
+  <div class="prog-step" id="p3">3</div>
 </div>
 
 <!-- SCREEN 0: DEVICE CHECK -->
@@ -148,35 +147,10 @@
   <div id="searchResults" style="margin-top:16px;"></div>
 </div>
 
-<!-- STEP 3: PLANO -->
-<div class="screen" id="screen3">
-  <button class="back-btn" onclick="goToStep(2)">← Voltar</button>
-  <h2>Escolha seu plano</h2>
-  <div class="biz-confirm" id="bizConfirm">
-    <div style="font-size:15px;font-weight:700;color:#f9fafb;" id="bizConfirmName"></div>
-    <div style="font-size:12px;color:#6b7280;margin-top:4px;" id="bizConfirmMeta"></div>
-  </div>
-  <div class="plan" id="planFree" onclick="selectPlan('free')">
-    <div class="plan-header"><span class="plan-name">Gratuito</span><span class="plan-price">R$0<span>/mês</span></span></div>
-    <div class="feat">Clientes vão direto ao Google</div>
-    <div class="feat">Sem mensalidade</div>
-    <div class="feat no">Filtro de avaliações negativas</div>
-    <div class="feat no">Dashboard com métricas</div>
-  </div>
-  <div class="plan" id="planPro" onclick="selectPlan('pro')">
-    <div class="plan-badge">⭐ Recomendado</div>
-    <div class="plan-header"><span class="plan-name">Pro</span><span class="plan-price">R$79<span>/mês</span></span></div>
-    <div class="feat">Filtro — negativo vai só pra você</div>
-    <div class="feat">Dashboard com métricas reais</div>
-    <div class="feat">Alertas de novos reviews</div>
-    <div class="feat">14 dias grátis para testar</div>
-  </div>
-  <button class="btn-primary" onclick="goToStep4()" id="planBtn" disabled>Continuar →</button>
-</div>
 
 <!-- STEP 4: NFC -->
 <div class="screen" id="screen4">
-  <button class="back-btn" onclick="goToStep(3)">← Voltar</button>
+  <button class="back-btn" onclick="goToStep(2)">← Voltar</button>
   <h2>Grave sua plaquinha</h2>
   <p class="sub">Último passo — programe o cartão NFC</p>
   <div class="os-tabs">
@@ -216,7 +190,7 @@
   <div id="webBuyBox" style="display:none;background:#0a1f0e;border:1px solid #14532d;border-radius:14px;padding:16px 18px;margin-bottom:20px;">
     <div style="font-size:13px;font-weight:700;color:#4ade80;margin-bottom:6px;">📦 Falta pegar sua plaquinha NFC</div>
     <p style="font-size:12px;color:#9ca3af;line-height:1.6;margin-bottom:12px;">Pra começar a capturar avaliações, peça sua plaquinha de mesa ou cartões NFC. Quando chegar, é só voltar aqui pra ativar.</p>
-    <a id="buyLink" href="https://www.mercadolivre.com.br/" target="_blank" rel="noreferrer" style="text-decoration:none;display:block;background:#10b981;color:#fff;border-radius:10px;padding:11px 14px;font-size:13px;font-weight:700;text-align:center;">Comprar no Mercado Livre →</a>
+    <a id="buyLink" href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer" style="text-decoration:none;display:block;background:#10b981;color:#fff;border-radius:10px;padding:11px 14px;font-size:13px;font-weight:700;text-align:center;">Comprar no Mercado Livre →</a>
   </div>
   <a href="/app" style="text-decoration:none;" class="btn-primary">Acessar meu Dashboard →</a>
   <p style="text-align:center;font-size:12px;color:#4b5563;margin-top:12px;" id="autoRedirectMsg">Redirecionando automaticamente em 3 segundos...</p>
@@ -266,18 +240,24 @@ function generateQR() {
   });
 }
 
+// screen 1 = passo 1, screen 2 = passo 2, screen 4 = passo 3 (NFC)
+const screenToProgress = { 1:1, 2:2, 4:3 };
+
 function goToStep(n) {
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.getElementById(`screen${n}`).classList.add("active");
-  if(n >= 1 && n <= 4) {
+  const progStep = screenToProgress[n];
+  if (progStep) {
     document.getElementById("progressBar").style.display = "flex";
-    updateProgress(n);
+    updateProgress(progStep);
+  } else {
+    document.getElementById("progressBar").style.display = "none";
   }
   window.scrollTo(0,0);
 }
 
 function updateProgress(step) {
-  for(let i=1;i<=4;i++){
+  for(let i=1;i<=3;i++){
     const el=document.getElementById(`p${i}`);
     const line=document.getElementById(`l${i}`);
     if(i<step){el.classList.add("done");el.classList.remove("active");el.textContent="✓";}
@@ -285,7 +265,6 @@ function updateProgress(step) {
     else{el.classList.remove("done","active");el.textContent=i;}
     if(line){i<step?line.classList.add("done"):line.classList.remove("done");}
   }
-  if(step===5) document.getElementById("progressBar").style.display="none";
 }
 
 async function goToStep2(){
@@ -386,32 +365,19 @@ function selectBusiness(biz){
   setTimeout(()=>goToStep3(),700);
 }
 
+// Apos confirmar o negocio: cria conta como Free e roteia conforme origem.
+// Decisao de plano e compra de hardware acontecem dentro do dashboard.
 function goToStep3(){
-  document.getElementById("bizConfirmName").textContent=state.business.name;
-  document.getElementById("bizConfirmMeta").textContent=`⭐ ${state.business.rating||"?"} · ${state.business.total||0} avaliações no Google`;
-  goToStep(3);
-}
-
-function selectPlan(plan){
-  state.plan=plan;
-  document.getElementById("planFree").classList.toggle("selected",plan==="free");
-  document.getElementById("planPro").classList.toggle("selected",plan==="pro");
-  document.getElementById("planBtn").disabled=false;
-}
-
-function goToStep4(){
-  if(!state.plan)return;
-  const placeId=state.business.place_id;
-  state.nfcLink=state.plan==="free"
-    ?`https://search.google.com/local/writereview?placeid=${placeId}`
-    :`https://reputazap.vercel.app/avaliar.html?place=${placeId}`;
-  document.getElementById("nfcLinkDisplay").textContent=state.nfcLink;
-  // Cliente da web nao tem cartao NFC pra gravar agora — pula direto pro sucesso
+  state.plan = "free";
+  // NFC sempre aponta pra /avaliar.html — assim upgrade Free→Pro nao requer
+  // re-gravar o cartao (a peneira liga/desliga via plan no DB)
+  state.nfcLink = `https://reputazap.vercel.app/avaliar.html?place=${state.business.place_id}`;
+  document.getElementById("nfcLinkDisplay").textContent = state.nfcLink;
   if (state.from === "web") {
     goToSuccess();
-    return;
+  } else {
+    goToStep(4);
   }
-  goToStep(4);
 }
 
 function switchOS(os){
@@ -457,7 +423,7 @@ function copyNFCLink(){
 
 async function goToSuccess(){
   document.getElementById("successBizName").textContent=state.business?.name||"Negócio";
-  document.getElementById("successPlan").textContent=state.plan==="free"?"Plano Gratuito":"Plano Pro — 14 dias grátis";
+  document.getElementById("successPlan").textContent="Plano Gratuito · você pode mudar a qualquer hora no dashboard";
 
   // Mensagem diferente para quem veio direto da web (ainda nao tem plaquinha)
   if (state.from === "web") {

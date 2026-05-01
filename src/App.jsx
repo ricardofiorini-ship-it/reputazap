@@ -359,6 +359,7 @@ export default function ReputaZap({ user, onLogout }) {
     {id:"capturar",icon:Gift,label:"Capturar"},
     {id:"wall",icon:Award,label:"Mural"},
     {id:"google",icon:Link2,label:"Google"},
+    {id:"plano",icon:Zap,label:"Plano"},
   ];
 
   return (
@@ -475,7 +476,7 @@ export default function ReputaZap({ user, onLogout }) {
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,animation:"fadeUp 0.4s ease"}}>
             <div>
               <div style={{fontSize:24,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#f9fafb",lineHeight:1.2}}>
-                {tab==="dashboard"&&"Dashboard"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Capturar Reviews"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}
+                {tab==="dashboard"&&"Dashboard"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Capturar Reviews"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Plano e loja"}
               </div>
               <div style={{fontSize:13,color:"#4b5563",marginTop:4}}>
                 {tab==="dashboard"&&"Visão geral da sua reputação"}
@@ -483,6 +484,7 @@ export default function ReputaZap({ user, onLogout }) {
                 {tab==="capturar"&&`Plaquinha NFC · Brinde ativo: ${brinde}`}
                 {tab==="wall"&&"Suas melhores avaliações"}
                 {tab==="google"&&(googleConnected?"Sincronização ativa":"Configure sua conta Google")}
+                {tab==="plano"&&"Faça upgrade ou peça sua plaquinha"}
               </div>
             </div>
             {pending>0&&tab!=="reviews"&&(
@@ -495,6 +497,16 @@ export default function ReputaZap({ user, onLogout }) {
           {/* ─ DASHBOARD ─ */}
           {tab==="dashboard"&&(
             <div style={{animation:"fadeUp 0.4s ease"}}>
+              {!isPro&&bizInfo&&(
+                <div onClick={()=>setTab("plano")} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:14,background:"linear-gradient(135deg,#0d1f14,#111827)",border:"1px solid #064e3b",borderRadius:14,padding:"14px 18px",marginBottom:20}}>
+                  <div style={{width:36,height:36,borderRadius:10,background:"#10b981",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Zap size={18} color="#fff"/></div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:13,fontWeight:700,color:"#f9fafb",marginBottom:2}}>Ative a peneira de avaliações</div>
+                    <div style={{fontSize:12,color:"#9ca3af",lineHeight:1.5}}>Filtre negativos antes de chegar no Google. Disponível no plano Pro.</div>
+                  </div>
+                  <ArrowRight size={16} color="#10b981"/>
+                </div>
+              )}
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:16,marginBottom:24}}>
                 <Metric icon={Star} label="Nota Média" value={avgRating} sub={`${bizInfo?.total ?? reviews.length} avaliações no Google`} color="#f59e0b" bg="#1c1404"/>
                 <Metric icon={MessageSquare} label="Sem Resposta" value={pending} sub="nas últimas 5" color="#ef4444" bg="#1a0505"/>
@@ -794,6 +806,76 @@ export default function ReputaZap({ user, onLogout }) {
                   <button onClick={()=>{setGoogleConnected(false);setConnectStep(0);}} style={{background:"none",border:"1px solid #374151",color:"#6b7280",borderRadius:10,padding:"8px 18px",fontSize:12,cursor:"pointer"}}>Desconectar</button>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ─ PLANO + LOJA ─ */}
+          {tab==="plano"&&(
+            <div style={{animation:"fadeUp 0.4s ease"}}>
+              {/* Card plano atual */}
+              <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:24,marginBottom:16}}>
+                <div style={{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Seu plano atual</div>
+                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:700,color:"#f9fafb"}}>{isPro?"Pro":"Free"}</span>
+                  <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.05em",borderRadius:6,padding:"3px 8px",background:isPro?"#10b981":"#1f2937",color:isPro?"#fff":"#9ca3af"}}>
+                    {isPro?"PRO":"FREE"}
+                  </span>
+                </div>
+                <div style={{fontSize:13,color:"#9ca3af",lineHeight:1.6}}>
+                  {isPro
+                    ? "Você tem a peneira ativa: clientes neutros e negativos não chegam no Google, vão pro seu email."
+                    : "Você vê suas avaliações do Google. Sem peneira: cliente que escaneia o QR vai direto avaliar publicamente."}
+                </div>
+              </div>
+
+              {/* Upgrade Pro (só para Free) */}
+              {!isPro&&(
+                <div style={{background:"linear-gradient(145deg,#0d1f14,#111827)",border:"1px solid #064e3b",borderRadius:16,padding:24,marginBottom:16}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                    <div style={{width:40,height:40,borderRadius:10,background:"#10b981",display:"flex",alignItems:"center",justifyContent:"center"}}><Zap size={20} color="#fff"/></div>
+                    <div>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#f9fafb"}}>Upgrade pra Pro</div>
+                      <div style={{fontSize:13,color:"#10b981",fontWeight:600}}>R$79/mês · 14 dias grátis</div>
+                    </div>
+                  </div>
+                  <ul style={{listStyle:"none",padding:0,margin:"0 0 18px",display:"flex",flexDirection:"column",gap:8}}>
+                    {[
+                      "Peneira: positivo vai pro Google, negativo vai pro seu email",
+                      "Gerente recebe os feedbacks ruins direto na caixa de entrada",
+                      "Você responde antes do problema virar review pública",
+                      "Cancele quando quiser — sem fidelidade",
+                    ].map((f,i)=>(
+                      <li key={i} style={{display:"flex",alignItems:"flex-start",gap:8,fontSize:13,color:"#d1d5db",lineHeight:1.5}}>
+                        <Check size={14} color="#10b981" style={{marginTop:3,flexShrink:0}}/>
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <a href="https://wa.me/5511982882662?text=Quero%20fazer%20upgrade%20do%20ReputaZap%20pro%20plano%20Pro" target="_blank" rel="noreferrer" style={{textDecoration:"none",display:"block",background:"#10b981",color:"#fff",borderRadius:12,padding:"13px 20px",fontSize:14,fontWeight:700,textAlign:"center"}}>
+                    Quero o Pro →
+                  </a>
+                </div>
+              )}
+
+              {/* Loja */}
+              <div style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:24}}>
+                <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb",marginBottom:6}}>Loja — hardware NFC</div>
+                <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6,marginBottom:18}}>Coloque sua plaquinha no balcão e capture mais avaliações com um toque do cliente.</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12}}>
+                  <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer" style={{textDecoration:"none",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:18,display:"flex",flexDirection:"column",gap:6,transition:"border-color .15s"}}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor="#374151"} onMouseLeave={e=>e.currentTarget.style.borderColor="#1f2937"}>
+                    <div style={{fontSize:24}}>🪧</div>
+                    <div style={{fontSize:14,fontWeight:700,color:"#f9fafb"}}>Plaquinha de mesa</div>
+                    <div style={{fontSize:12,color:"#6b7280",lineHeight:1.5}}>Acrílico cristal com QR code do seu negócio.</div>
+                    <div style={{fontSize:12,color:"#10b981",fontWeight:700,marginTop:6,display:"flex",alignItems:"center",gap:5}}>Comprar no Mercado Livre <ExternalLink size={11}/></div>
+                  </a>
+                  <div style={{background:"#0a0f1a",border:"1px dashed #1f2937",borderRadius:12,padding:18,display:"flex",flexDirection:"column",gap:6}}>
+                    <div style={{fontSize:24,opacity:0.5}}>💳</div>
+                    <div style={{fontSize:14,fontWeight:700,color:"#9ca3af"}}>Cartões NFC</div>
+                    <div style={{fontSize:12,color:"#4b5563",lineHeight:1.5}}>Em breve.</div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
