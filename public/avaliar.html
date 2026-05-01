@@ -81,8 +81,8 @@
       <div class="question-sub">Sua opinião nos ajuda a melhorar sempre</div>
       <div class="feelings">
         <div class="feeling feeling-g" onclick="goPositive()"><span class="feeling-emoji">😊</span><span class="feeling-label">Ótima!</span></div>
-        <div class="feeling feeling-y" onclick="goNegative()"><span class="feeling-emoji">😐</span><span class="feeling-label">Ok</span></div>
-        <div class="feeling feeling-r" onclick="goNegative()"><span class="feeling-emoji">😞</span><span class="feeling-label">Ruim</span></div>
+        <div class="feeling feeling-y" onclick="goNegative(3)"><span class="feeling-emoji">😐</span><span class="feeling-label">Ok</span></div>
+        <div class="feeling feeling-r" onclick="goNegative(1)"><span class="feeling-emoji">😞</span><span class="feeling-label">Ruim</span></div>
       </div>
     </div>
 
@@ -138,6 +138,8 @@
 // Pega o place_id da URL
 const params = new URLSearchParams(window.location.search);
 const placeId = params.get("place");
+let bizPlan = "free";
+let lastRating = null;
 
 // Carrega info do negócio
 async function loadBusiness() {
@@ -153,8 +155,14 @@ async function loadBusiness() {
       document.getElementById("bizSub").textContent = `⭐ ${data.rating} · ${data.total} avaliações no Google`;
       document.getElementById("googleBizName").textContent = data.name;
     }
+    bizPlan = data.plan || "free";
     // Link direto pro Google Reviews
     document.getElementById("googleLink").href = `https://search.google.com/local/writereview?placeid=${placeId}`;
+
+    // Plano Free: pula o filtro, vai direto pro Google
+    if (bizPlan !== "pro") {
+      show("stepPositive");
+    }
   } catch {}
 }
 loadBusiness();
@@ -183,7 +191,7 @@ function goPositive() {
   show("stepPositive");
 }
 
-function goNegative() { show("stepNegative"); }
+function goNegative(rating) { lastRating = rating; show("stepNegative"); }
 function goBack() { show("stepFeeling"); }
 
 function handleGoogleClick() {
@@ -208,12 +216,11 @@ function handleGoogleClick() {
 async function sendFeedback() {
   const text = document.getElementById("feedbackText").value.trim();
   if (!text) { alert("Escreva seu feedback antes de enviar."); return; }
-  // Salva feedback no Supabase via API
   try {
     await fetch("/api/feedback", {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ place_id: placeId, text })
+      body: JSON.stringify({ place_id: placeId, text, rating: lastRating })
     });
   } catch {}
   show("stepThanks");
