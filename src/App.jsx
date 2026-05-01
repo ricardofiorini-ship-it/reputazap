@@ -815,26 +815,27 @@ export default function ReputaZap({ user, onLogout }) {
                     )}
                     {connectStep===1&&(
                       <div style={{animation:"fadeUp 0.3s ease"}}>
-                        <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb",marginBottom:4,fontFamily:"'Playfair Display',serif"}}>Passo 2 — Escolha seu estabelecimento</div>
-                        <div style={{fontSize:12,color:"#4b5563",marginBottom:20}}>Conta conectada: <span style={{color:"#10b981"}}>fiorini@gmail.com</span></div>
-                        {[
-                          {name:"Café Bello Vista",addr:"Rua das Flores, 123 — São Paulo, SP",rating:"4.2"},
-                          {name:"Café Bello Vista — Filial",addr:"Av. Paulista, 900 — São Paulo, SP",rating:"4.6"},
-                        ].map((loc,i)=>(
-                          <div key={i} onClick={()=>setConnectStep(2)}
+                        <div style={{fontSize:14,fontWeight:600,color:"#e5e7eb",marginBottom:4,fontFamily:"'Playfair Display',serif"}}>Passo 2 — Confirme seu estabelecimento</div>
+                        <div style={{fontSize:12,color:"#4b5563",marginBottom:20}}>Conta conectada: <span style={{color:"#10b981"}}>{user?.email||"—"}</span></div>
+                        {bizInfo ? (
+                          <div onClick={()=>setConnectStep(2)}
                             style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#0a0f1a",border:"1px solid #1f2937",borderRadius:12,padding:"14px 16px",marginBottom:10,cursor:"pointer",transition:"border-color .15s"}}
                             onMouseEnter={e=>e.currentTarget.style.borderColor="#374151"} onMouseLeave={e=>e.currentTarget.style.borderColor="#1f2937"}>
                             <div>
-                              <div style={{fontSize:13,fontWeight:600,color:"#e5e7eb",marginBottom:3}}>{loc.name}</div>
-                              <div style={{fontSize:11,color:"#4b5563"}}>{loc.addr}</div>
+                              <div style={{fontSize:13,fontWeight:600,color:"#e5e7eb",marginBottom:3}}>{bizInfo.name}</div>
+                              <div style={{fontSize:11,color:"#4b5563"}}>{bizInfo.total} avaliações no Google</div>
                             </div>
                             <div style={{display:"flex",alignItems:"center",gap:6}}>
                               <Star size={12} fill="#f59e0b" color="#f59e0b"/>
-                              <span style={{fontSize:12,color:"#9ca3af"}}>{loc.rating}</span>
+                              <span style={{fontSize:12,color:"#9ca3af"}}>{bizInfo.rating?.toFixed(1)}</span>
                               <ArrowRight size={14} color="#4b5563"/>
                             </div>
                           </div>
-                        ))}
+                        ) : (
+                          <div style={{background:"#0a0f1a",border:"1px dashed #1f2937",borderRadius:12,padding:"14px 16px",fontSize:12,color:"#6b7280",textAlign:"center"}}>
+                            Nenhum negócio cadastrado ainda.
+                          </div>
+                        )}
                       </div>
                     )}
                     {connectStep===2&&(
