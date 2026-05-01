@@ -560,7 +560,7 @@ export default function ReputaZap({ user, onLogout }) {
           {tab==="reviews"&&(
             <div style={{animation:"fadeUp 0.4s ease",display:"flex",flexDirection:"column",gap:12}}>
               {reviews.map((rev,i)=>(
-                <div key={rev.id} className="rc" style={{background:"#111827",border:`1px solid ${activeReview?.id===rev.id?"#10b981":"#1f2937"}`,borderRadius:16,padding:20,animation:"fadeUp 0.4s ease both",animationDelay:`${i*.04}s`}}>
+                <div key={rev.id} className="rc" style={{background:"#111827",border:"1px solid #1f2937",borderRadius:16,padding:20,animation:"fadeUp 0.4s ease both",animationDelay:`${i*.04}s`}}>
                   <div style={{display:"flex",alignItems:"flex-start",gap:14}}>
                     <Av initials={rev.avatar}/>
                     <div style={{flex:1,minWidth:0}}>
