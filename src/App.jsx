@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Star, MessageSquare, TrendingUp, Bell, LayoutDashboard, Award, ChevronRight, X, Send, Sparkles, Copy, Check, RefreshCw, AlertCircle, ThumbsUp, Clock, MapPin, Gift, Smartphone, Settings, ExternalLink, ChevronDown, Link2, ShieldCheck, Building2, ArrowRight, Zap, LogOut, Menu } from "lucide-react";
+import { Star, MessageSquare, TrendingUp, Bell, LayoutDashboard, Award, ChevronRight, X, Check, RefreshCw, AlertCircle, ThumbsUp, Clock, MapPin, Gift, Smartphone, Settings, ExternalLink, ChevronDown, Link2, ShieldCheck, Building2, ArrowRight, Zap, LogOut, Menu } from "lucide-react";
 
 // ── USUÁRIOS PERMITIDOS ───────────────────────────────────
 const USERS = [
@@ -279,12 +279,6 @@ export default function ReputaZap({ user, onLogout }) {
   const [reviews, setReviews] = useState(MOCK_REVIEWS);
   const [bizInfo, setBizInfo] = useState(null);
   const [loadingReviews, setLoadingReviews] = useState(true);
-  const [activeReview, setActiveReview] = useState(null);
-  const [aiReply, setAiReply] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [editedReply, setEditedReply] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [sent, setSent] = useState(false);
   const [brinde, setBrinde] = useState("Cafezinho grátis");
   const [showPreview, setShowPreview] = useState(false);
   const [customMode, setCustomMode] = useState(false);
@@ -355,25 +349,6 @@ export default function ReputaZap({ user, onLogout }) {
   const nfcCount = reviews.filter(r=>r.via==="nfc").length;
   const biz = bizInfo?.name || user?.biz || "Meu Negócio";
   const isPro = bizInfo?.plan === "pro";
-
-  async function generateReply(review) {
-    if (!isPro) return;
-    setActiveReview(review); setAiReply(""); setEditedReply(""); setSent(false); setLoading(true);
-    try {
-      const tone = review.rating>=4?"agradecer e reforçar o ponto positivo":review.rating===3?"agradecer e mostrar abertura para melhorar":"pedir desculpas com empatia e oferecer solução";
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:`Você é dono do "${biz}" respondendo avaliações do Google. Escreva 2-3 frases, calorosas, em português brasileiro informal mas respeitoso. Sem emojis. Direto e humano.`,messages:[{role:"user",content:`Avaliação: ${review.rating} estrelas\n"${review.text}"\n\nResponda para ${tone}. Só a resposta, sem aspas.`}]})});
-      const data = await res.json();
-      const text = data.content?.[0]?.text||"Não foi possível gerar agora.";
-      setAiReply(text); setEditedReply(text);
-    } catch { setAiReply("Erro ao conectar. Tente novamente."); }
-    setLoading(false);
-  }
-
-  function sendReply() {
-    if(!editedReply.trim()) return;
-    setReviews(prev=>prev.map(r=>r.id===activeReview.id?{...r,replied:true,reply:editedReply}:r));
-    setSent(true); setTimeout(()=>{setActiveReview(null);setSent(false);},1800);
-  }
 
   const rc = r=>r>=4?"#10b981":r===3?"#f59e0b":"#ef4444";
   const rb = r=>r>=4?"#064e3b":r===3?"#451a03":"#450a0a";
@@ -575,17 +550,6 @@ export default function ReputaZap({ user, onLogout }) {
                       </div>
                       <div style={{fontSize:12,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.text}</div>
                     </div>
-                    {isPro ? (
-                      <button onClick={()=>{setTab("reviews");setTimeout(()=>generateReply(r),50);}} className="bg"
-                        style={{background:"#10b981",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:600,flexShrink:0,display:"flex",alignItems:"center",gap:5}}>
-                        <Sparkles size={11}/> Responder
-                      </button>
-                    ) : (
-                      <button title="Disponível no plano Pro" className="bg"
-                        style={{background:"#1f2937",color:"#9ca3af",border:"1px solid #374151",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:600,flexShrink:0,display:"flex",alignItems:"center",gap:5,cursor:"not-allowed"}}>
-                        <Sparkles size={11}/> Pro
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>
@@ -616,52 +580,8 @@ export default function ReputaZap({ user, onLogout }) {
                           <p style={{fontSize:12,color:"#6ee7b7"}}>{rev.reply}</p>
                         </div>
                       )}
-                      {!rev.replied&&(
-                        isPro ? (
-                          <button onClick={()=>generateReply(rev)} className="bg"
-                            style={{background:"#10b981",color:"#fff",border:"none",borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
-                            <Sparkles size={13}/> Responder com IA
-                          </button>
-                        ) : (
-                          <div style={{display:"flex",alignItems:"center",gap:10,background:"#0a0f1a",border:"1px dashed #374151",borderRadius:10,padding:"8px 14px"}}>
-                            <Sparkles size={13} color="#9ca3af"/>
-                            <span style={{fontSize:12,color:"#9ca3af"}}>Resposta com IA é uma feature do plano <strong style={{color:"#10b981"}}>Pro</strong></span>
-                          </div>
-                        )
-                      )}
                     </div>
                   </div>
-                  {activeReview?.id===rev.id&&(
-                    <div style={{marginTop:16,background:"#0a0f1a",border:"1px solid #1a2235",borderRadius:12,padding:16}}>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-                        <div style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"#10b981",fontWeight:600}}><Sparkles size={13}/> Resposta gerada por IA</div>
-                        <div style={{display:"flex",gap:8}}>
-                          {!loading&&aiReply&&<button onClick={()=>generateReply(rev)} style={{background:"#111827",border:"1px solid #1f2937",color:"#6b7280",borderRadius:8,padding:"4px 10px",fontSize:11,display:"flex",alignItems:"center",gap:4,cursor:"pointer"}}><RefreshCw size={11}/> Regerar</button>}
-                          <button onClick={()=>setActiveReview(null)} style={{background:"transparent",border:"none",color:"#4b5563",cursor:"pointer",display:"flex"}}><X size={16}/></button>
-                        </div>
-                      </div>
-                      {loading?(
-                        <div style={{display:"flex",alignItems:"center",gap:8,padding:"12px 0",color:"#4b5563",fontSize:13}}>
-                          <div style={{animation:"spin 1s linear infinite",display:"flex"}}><RefreshCw size={15}/></div> Gerando resposta...
-                        </div>
-                      ):aiReply?(
-                        <>
-                          <textarea value={editedReply} onChange={e=>setEditedReply(e.target.value)}
-                            style={{width:"100%",background:"#111827",border:"1px solid #1f2937",borderRadius:10,padding:"10px 12px",color:"#e5e7eb",fontSize:13,lineHeight:1.6,minHeight:80,outline:"none"}}/>
-                          <div style={{display:"flex",gap:8,marginTop:10}}>
-                            {sent?<div style={{display:"flex",alignItems:"center",gap:6,color:"#10b981",fontSize:13,fontWeight:600}}><Check size={15}/> Enviado!</div>:(
-                              <>
-                                <button onClick={sendReply} className="bg" style={{background:"#10b981",color:"#fff",border:"none",borderRadius:10,padding:"8px 18px",fontSize:12,fontWeight:700,display:"flex",alignItems:"center",gap:6}}><Send size={12}/> Enviar</button>
-                                <button onClick={()=>{navigator.clipboard.writeText(editedReply);setCopied(true);setTimeout(()=>setCopied(false),2000);}} style={{background:"#1f2937",color:"#9ca3af",border:"none",borderRadius:10,padding:"8px 14px",fontSize:12,display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}>
-                                  {copied?<><Check size={12}/> Copiado!</>:<><Copy size={12}/> Copiar</>}
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </>
-                      ):null}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
