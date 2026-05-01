@@ -318,14 +318,16 @@ export default function ReputaZap({ user, onLogout }) {
                 setBizInfo({
                   name: reviewData.name || data.business.name,
                   rating: reviewData.rating ?? data.business.rating,
-                  total: reviewData.total ?? data.business.total_reviews
+                  total: reviewData.total ?? data.business.total_reviews,
+                  plan: data.business.plan || "free"
                 });
               } else {
                 // Sem reviews ainda, mas mostra os dados do negócio
                 setBizInfo({
                   name: data.business.name,
                   rating: data.business.rating,
-                  total: data.business.total_reviews
+                  total: data.business.total_reviews,
+                  plan: data.business.plan || "free"
                 });
               }
               setGoogleConnected(true);
@@ -352,8 +354,10 @@ export default function ReputaZap({ user, onLogout }) {
   const negative = reviews.filter(r=>r.rating<=2).length;
   const nfcCount = reviews.filter(r=>r.via==="nfc").length;
   const biz = bizInfo?.name || user?.biz || "Meu Negócio";
+  const isPro = bizInfo?.plan === "pro";
 
   async function generateReply(review) {
+    if (!isPro) return;
     setActiveReview(review); setAiReply(""); setEditedReply(""); setSent(false); setLoading(true);
     try {
       const tone = review.rating>=4?"agradecer e reforçar o ponto positivo":review.rating===3?"agradecer e mostrar abertura para melhorar":"pedir desculpas com empatia e oferecer solução";
@@ -469,7 +473,14 @@ export default function ReputaZap({ user, onLogout }) {
                   {loadingReviews?"Carregando...":googleConnected?"Conectado":"Não conectado"}
                 </span>
               </div>
-              <div style={{fontSize:12,color:"#9ca3af",fontWeight:500}}>{biz}</div>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
+                <div style={{fontSize:12,color:"#9ca3af",fontWeight:500,flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{biz}</div>
+                {bizInfo&&(
+                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.05em",borderRadius:4,padding:"2px 6px",background:isPro?"#10b981":"#1f2937",color:isPro?"#fff":"#9ca3af"}}>
+                    {isPro?"PRO":"FREE"}
+                  </span>
+                )}
+              </div>
               <div style={{fontSize:10,color:"#4b5563",marginTop:2}}>{bizInfo?`${bizInfo.total} avaliações no Google`:"Google Meu Negócio"}</div>
             </div>
           </div>
@@ -564,10 +575,17 @@ export default function ReputaZap({ user, onLogout }) {
                       </div>
                       <div style={{fontSize:12,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.text}</div>
                     </div>
-                    <button onClick={()=>{setTab("reviews");setTimeout(()=>generateReply(r),50);}} className="bg"
-                      style={{background:"#10b981",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:600,flexShrink:0,display:"flex",alignItems:"center",gap:5}}>
-                      <Sparkles size={11}/> Responder
-                    </button>
+                    {isPro ? (
+                      <button onClick={()=>{setTab("reviews");setTimeout(()=>generateReply(r),50);}} className="bg"
+                        style={{background:"#10b981",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:600,flexShrink:0,display:"flex",alignItems:"center",gap:5}}>
+                        <Sparkles size={11}/> Responder
+                      </button>
+                    ) : (
+                      <button title="Disponível no plano Pro" className="bg"
+                        style={{background:"#1f2937",color:"#9ca3af",border:"1px solid #374151",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:600,flexShrink:0,display:"flex",alignItems:"center",gap:5,cursor:"not-allowed"}}>
+                        <Sparkles size={11}/> Pro
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -599,10 +617,17 @@ export default function ReputaZap({ user, onLogout }) {
                         </div>
                       )}
                       {!rev.replied&&(
-                        <button onClick={()=>generateReply(rev)} className="bg"
-                          style={{background:"#10b981",color:"#fff",border:"none",borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
-                          <Sparkles size={13}/> Responder com IA
-                        </button>
+                        isPro ? (
+                          <button onClick={()=>generateReply(rev)} className="bg"
+                            style={{background:"#10b981",color:"#fff",border:"none",borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
+                            <Sparkles size={13}/> Responder com IA
+                          </button>
+                        ) : (
+                          <div style={{display:"flex",alignItems:"center",gap:10,background:"#0a0f1a",border:"1px dashed #374151",borderRadius:10,padding:"8px 14px"}}>
+                            <Sparkles size={13} color="#9ca3af"/>
+                            <span style={{fontSize:12,color:"#9ca3af"}}>Resposta com IA é uma feature do plano <strong style={{color:"#10b981"}}>Pro</strong></span>
+                          </div>
+                        )
                       )}
                     </div>
                   </div>
