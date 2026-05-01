@@ -124,8 +124,12 @@
   @media (max-width: 540px) { .features-grid { grid-template-columns: 1fr; } }
   .feat-card { background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: 28px; transition: transform .15s, border-color .15s, box-shadow .15s; }
   .feat-card:hover { transform: translateY(-3px); border-color: #d1d5db; box-shadow: 0 12px 32px rgba(15,23,42,0.06); }
-  .feat-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--primary-soft); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; color: var(--primary); }
-  .feat-icon svg { width: 22px; height: 22px; }
+  .feat-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+  .feat-icon svg { width: 24px; height: 24px; }
+  .feat-icon.green { background: #d1fae5; color: #059669; }
+  .feat-icon.yellow { background: #fef3c7; color: #d97706; }
+  .feat-icon.red { background: #fee2e2; color: #dc2626; }
+  .feat-icon.blue { background: #dbeafe; color: #2563eb; }
   .feat-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
   .feat-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
 
@@ -260,7 +264,7 @@
       <div class="how-step">
         <div class="how-icon red">
           <span class="how-step-num">1</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 8.5a4 4 0 016 0"/><path d="M11 11a1.5 1.5 0 012 0"/><line x1="12" y1="17" x2="12" y2="17.01"/></svg>
         </div>
         <h3>Cliente aproxima o celular</h3>
         <p>Um toque na plaquinha NFC e tudo começa.</p>
@@ -268,18 +272,18 @@
       <div class="how-step">
         <div class="how-icon yellow">
           <span class="how-step-num">2</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
         </div>
         <h3>Avalia em segundos</h3>
-        <p>O cliente responde como foi a experiência com 1 emoji.</p>
+        <p>O cliente responde como foi sua experiência.</p>
       </div>
       <div class="how-step">
         <div class="how-icon green">
           <span class="how-step-num">3</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
         </div>
         <h3>Feedback organizado</h3>
-        <p>Avaliações negativas ficam privadas — só você recebe.</p>
+        <p>Avaliações negativas ficam privadas para você resolver.</p>
       </div>
       <div class="how-step">
         <div class="how-icon blue">
@@ -287,7 +291,7 @@
           <span class="google-g-logo">G</span>
         </div>
         <h3>Avaliações positivas vão ao Google</h3>
-        <p>As boas experiências viram review pública e crescem sua reputação.</p>
+        <p>As boas experiências viram avaliações públicas.</p>
       </div>
     </div>
   </div>
@@ -303,46 +307,46 @@
     </div>
     <div class="features-grid">
       <div class="feat-card">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+        <div class="feat-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0114 0"/><path d="M2 8.55a16 16 0 0120 0"/><path d="M8.5 16.55a6 6 0 017 0"/><line x1="12" y1="20" x2="12" y2="20.01"/></svg>
         </div>
         <h3>Plaquinha NFC</h3>
-        <p>Personalizada com seu logo, fixe na mesa. Fácil de usar e o cliente engaja.</p>
+        <p>Personalizada com seu logo. Sem QR code, sem app. Mais praticidade para o cliente.</p>
       </div>
       <div class="feat-card">
-        <div class="feat-icon">
+        <div class="feat-icon yellow">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
         </div>
         <h3>Coleta inteligente de feedback</h3>
-        <p>Filtra negativos antes que virem reviews públicas no seu Google.</p>
+        <p>Organize o feedback antes da avaliação pública e transforme problemas em soluções.</p>
       </div>
       <div class="feat-card">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <div class="feat-icon yellow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M3 12h3M18 12h3M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3"/></svg>
         </div>
-        <h3>Alertas automáticos</h3>
-        <p>Feedbacks negativos chegam direto no email do gestor, em tempo real.</p>
+        <h3>Respostas automáticas com IA</h3>
+        <p>Ganhe tempo respondendo avaliações com qualidade e personalidade.</p>
       </div>
       <div class="feat-card">
-        <div class="feat-icon">
+        <div class="feat-icon red">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </div>
         <h3>Dashboard simples</h3>
-        <p>Acompanhe avaliações e métricas reais do seu negócio em um só lugar.</p>
+        <p>Acompanhe suas avaliações, notas, evolução e clientes em um só lugar.</p>
       </div>
       <div class="feat-card">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <div class="feat-icon blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
         </div>
         <h3>Widget de avaliações</h3>
-        <p>Mostre suas melhores avaliações em qualquer site (em breve).</p>
+        <p>Mostre suas melhores avaliações no site, WhatsApp e redes sociais e ganhe mais conversão.</p>
       </div>
       <div class="feat-card">
-        <div class="feat-icon">
+        <div class="feat-icon green">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         </div>
         <h3>Experiência sem fricção</h3>
-        <p>Sem app, sem login, sem cadastro. Em poucos toques o cliente já avaliou.</p>
+        <p>Sem app, sem login, sem barreiras. Do jeito que o cliente gosta: rápido e fácil.</p>
       </div>
     </div>
   </div>
