@@ -128,8 +128,6 @@ const MOCK_REVIEWS = [
   { id:7, author:"Beatriz Nunes", avatar:"BN", rating:3, text:"Produto ok, atendimento ok. Uma experiência mediana que não me fez querer voltar logo.", date:"há 5 dias", replied:false, via:"organic" },
 ];
 
-const BRINDES = ["Cafezinho grátis","10% na próxima compra","Sobremesa grátis","Amostra grátis","Frete grátis","Brinde surpresa"];
-
 function Stars({ rating, size=16 }) {
   return <div style={{display:"flex",gap:2}}>{[1,2,3,4,5].map(i=><Star key={i} size={size} fill={i<=rating?"#f59e0b":"none"} color={i<=rating?"#f59e0b":"#d1d5db"}/>)}</div>;
 }
@@ -151,7 +149,7 @@ function Metric({ icon:Icon, label, value, sub, color, bg }) {
 }
 
 // ── CUSTOMER PAGE ─────────────────────────────────────────
-function CustomerPage({ brinde, onClose, biz }) {
+function CustomerPage({ onClose, biz }) {
   const [step, setStep] = useState("feeling");
   const [feedback, setFeedback] = useState("");
   const [burst, setBurst] = useState(false);
@@ -163,7 +161,7 @@ function CustomerPage({ brinde, onClose, biz }) {
   }));
 
   function onGood() { setStep("positive"); }
-  function onGoogleClick() { setBurst(true); setTimeout(()=>setStep("brinde"),900); }
+  function onGoogleClick() { setBurst(true); setTimeout(()=>setStep("thanks"),900); }
   function onSendFeedback() { setStep("thanks"); }
 
   return (
@@ -209,7 +207,7 @@ function CustomerPage({ brinde, onClose, biz }) {
           <div style={{padding:"28px 24px 36px",textAlign:"center",animation:"fadeUp 0.35s ease"}}>
             <div style={{fontSize:44,marginBottom:14}}>🎉</div>
             <div style={{fontSize:21,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",marginBottom:8}}>Que ótimo ouvir isso!</div>
-            <div style={{fontSize:13,color:"#64748b",marginBottom:24,lineHeight:1.6}}>Você tem um <strong style={{color:"#0f172a"}}>brinde especial</strong> te esperando.<br/>Só precisa deixar uma avaliação rápida no Google.</div>
+            <div style={{fontSize:13,color:"#64748b",marginBottom:24,lineHeight:1.6}}>Deixa uma avaliação rápida no Google.<br/>Leva menos de 30 segundos.</div>
             <div style={{background:"#f8fafc",borderRadius:16,padding:"14px 18px",marginBottom:20,border:"1px solid #e2e8f0",textAlign:"left"}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                 <div style={{width:30,height:30,borderRadius:8,background:"linear-gradient(135deg,#ea4335 0%,#fbbc04 33%,#34a853 66%,#4285f4 100%)"}}/>
@@ -241,24 +239,6 @@ function CustomerPage({ brinde, onClose, biz }) {
           </div>
         )}
 
-        {/* BRINDE */}
-        {step==="brinde"&&(
-          <div style={{padding:"28px 24px 44px",textAlign:"center",animation:"fadeUp 0.4s ease"}}>
-            <div style={{fontSize:52,marginBottom:4,display:"inline-block",animation:"bonce 0.6s ease"}}>🎁</div>
-            <div style={{fontSize:12,fontWeight:700,color:"#1a73e8",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Parabéns!</div>
-            <div style={{fontSize:22,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",lineHeight:1.2,marginBottom:16}}>Seu brinde está esperando!</div>
-            <div style={{background:"linear-gradient(135deg,#ecfdf5,#d1fae5)",border:"2px solid #059669",borderRadius:20,padding:"22px 20px",marginBottom:20}}>
-              <div style={{fontSize:28,marginBottom:8}}>✨</div>
-              <div style={{fontSize:22,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#a7f3d0"}}>{brinde}</div>
-              <div style={{fontSize:12,color:"#059669",marginTop:6}}>Mostre esta tela no balcão</div>
-            </div>
-            <div style={{background:"#f8fafc",borderRadius:14,padding:"12px 16px",display:"flex",alignItems:"center",gap:10,textAlign:"left"}}>
-              <span style={{fontSize:18}}>⏰</span>
-              <span style={{fontSize:12,color:"#64748b",lineHeight:1.5}}>Válido somente hoje, apresentando esta tela para um atendente.</span>
-            </div>
-          </div>
-        )}
-
         {/* THANKS */}
         {step==="thanks"&&(
           <div style={{padding:"48px 24px",textAlign:"center",animation:"fadeUp 0.4s ease"}}>
@@ -279,9 +259,7 @@ export default function ReputaZap({ user, onLogout }) {
   const [reviews, setReviews] = useState(MOCK_REVIEWS);
   const [bizInfo, setBizInfo] = useState(null);
   const [loadingReviews, setLoadingReviews] = useState(true);
-  const [brinde, setBrinde] = useState("Cafezinho grátis");
   const [showPreview, setShowPreview] = useState(false);
-  const [customMode, setCustomMode] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchCity, setSearchCity] = useState("");
@@ -443,7 +421,7 @@ export default function ReputaZap({ user, onLogout }) {
       `}</style>
       <div style={{display:"flex",minHeight:"100vh",background:"#f9fafb",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
 
-        {showPreview&&<CustomerPage brinde={brinde} biz={biz} onClose={()=>setShowPreview(false)}/>}
+        {showPreview&&<CustomerPage biz={biz} onClose={()=>setShowPreview(false)}/>}
 
         {/* Overlay mobile */}
         <div className={`sidebar-overlay${sidebarOpen?" open":""}`} onClick={()=>setSidebarOpen(false)}/>
@@ -532,7 +510,7 @@ export default function ReputaZap({ user, onLogout }) {
               <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
                 {tab==="dashboard"&&"Visão geral da sua reputação"}
                 {tab==="reviews"&&`${pending} aguardando resposta`}
-                {tab==="capturar"&&`Plaquinha NFC · Brinde ativo: ${brinde}`}
+                {tab==="capturar"&&"Plaquinha NFC e captura de avaliações"}
                 {tab==="wall"&&"Suas melhores avaliações"}
                 {tab==="google"&&(googleConnected?"Sincronização ativa":"Configure sua conta Google")}
                 {tab==="plano"&&"Faça upgrade ou peça sua plaquinha"}
@@ -561,7 +539,7 @@ export default function ReputaZap({ user, onLogout }) {
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:16,marginBottom:24}}>
                 <Metric icon={Star} label="Nota Média" value={avgRating} sub={`${bizInfo?.total ?? reviews.length} avaliações no Google`} color="#f59e0b" bg="#fef3c7"/>
                 <Metric icon={MessageSquare} label="Sem Resposta" value={pending} sub="nas últimas 5" color="#ef4444" bg="#fef2f2"/>
-                <Metric icon={Gift} label="Via NFC+Brinde" value={nfcCount} sub="nas últimas 5" color="#1a73e8" bg="#ecfdf5"/>
+                <Metric icon={Gift} label="Via NFC" value={nfcCount} sub="nas últimas 5" color="#1a73e8" bg="#ecfdf5"/>
                 <Metric icon={AlertCircle} label="Negativas" value={negative} sub="nas últimas 5" color="#f97316" bg="#fffbeb"/>
               </div>
 
@@ -586,11 +564,10 @@ export default function ReputaZap({ user, onLogout }) {
 
                 <div style={{background:"linear-gradient(145deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:16,padding:24}}>
                   <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4}}>Plaquinha NFC</div>
-                  <div style={{fontSize:12,color:"#9ca3af",marginBottom:16}}>Reviews com brinde este mês</div>
-                  <div style={{fontSize:48,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#1a73e8",lineHeight:1}}>{nfcCount}</div>
-                  <div style={{fontSize:12,color:"#a7f3d0",marginTop:6,marginBottom:18}}>Brinde: <strong style={{color:"#059669"}}>{brinde}</strong></div>
+                  <div style={{fontSize:12,color:"#9ca3af",marginBottom:16}}>Reviews capturados este mês</div>
+                  <div style={{fontSize:48,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#1a73e8",lineHeight:1,marginBottom:18}}>{nfcCount}</div>
                   <div style={{display:"flex",gap:8}}>
-                    <button onClick={()=>setTab("capturar")} className="bg" style={{background:"#1a73e8",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:5}}><Settings size={12}/> Configurar</button>
+                    <button onClick={()=>setTab("capturar")} className="bg" style={{background:"#1a73e8",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:5}}><Settings size={12}/> Detalhes</button>
                     <button onClick={()=>setShowPreview(true)} className="bg" style={{background:"#e8f0fe",color:"#059669",border:"1px solid #a7f3d0",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:5}}><Smartphone size={12}/> Preview</button>
                   </div>
                 </div>
@@ -665,7 +642,7 @@ export default function ReputaZap({ user, onLogout }) {
                 <div style={{display:"flex",gap:24,alignItems:"flex-start",flexWrap:"wrap"}}>
                   <div style={{width:200,height:116,background:"linear-gradient(135deg,#e8f0fe,#a7f3d0)",borderRadius:16,border:"1px solid #a7f3d0",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,flexShrink:0,boxShadow:"0 8px 32px rgba(26,115,232,0.15)"}}>
                     <div style={{display:"flex",alignItems:"center",gap:6}}><Star size={15} fill="#1a73e8" color="#1a73e8"/><span style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:15,color:"#ecfdf5"}}>ReputaZap</span></div>
-                    <div style={{fontSize:12,color:"#059669",textAlign:"center",lineHeight:1.5}}>Toque o celular aqui<br/>e ganhe um brinde 🎁</div>
+                    <div style={{fontSize:12,color:"#059669",textAlign:"center",lineHeight:1.5}}>Toque o celular aqui<br/>para avaliar</div>
                     <div style={{fontSize:9,color:"#a7f3d0",display:"flex",alignItems:"center",gap:3}}><Smartphone size={9}/> NFC</div>
                   </div>
                   <div style={{flex:1,minWidth:180}}>
@@ -679,27 +656,6 @@ export default function ReputaZap({ user, onLogout }) {
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Configure brinde */}
-              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24,marginBottom:20}}>
-                <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4}}>Configure o Brinde</div>
-                <div style={{fontSize:12,color:"#9ca3af",marginBottom:20}}>O cliente só vê o brinde depois de avaliar no Google. Escolha algo que realmente motive.</div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:10,marginBottom:16}}>
-                  {BRINDES.map(b=>(
-                    <button key={b} onClick={()=>{setBrinde(b);setCustomMode(false);}}
-                      style={{background:brinde===b&&!customMode?"#e8f0fe":"#f9fafb",border:`1.5px solid ${brinde===b&&!customMode?"#1a73e8":"#e5e7eb"}`,borderRadius:12,padding:"10px 14px",fontSize:12,color:brinde===b&&!customMode?"#1a73e8":"#6b7280",cursor:"pointer",textAlign:"left",fontWeight:brinde===b&&!customMode?700:400,display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
-                      {brinde===b&&!customMode&&<Check size={12}/>}{b}
-                    </button>
-                  ))}
-                </div>
-                <button onClick={()=>setCustomMode(!customMode)} style={{background:"none",border:"none",color:"#6b7280",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:6,marginBottom:customMode?12:0}}>
-                  <ChevronDown size={13} style={{transform:customMode?"rotate(180deg)":"none",transition:"transform .2s"}}/> Personalizar brinde
-                </button>
-                {customMode&&(
-                  <input value={brinde} onChange={e=>setBrinde(e.target.value)} placeholder="Ex: Brigadeiro grátis, Desconto de R$15..."
-                    style={{width:"100%",background:"#f9fafb",border:"1px solid #d1d5db",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none"}}/>
-                )}
               </div>
 
               {/* Preview */}

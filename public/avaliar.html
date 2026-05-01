@@ -49,13 +49,6 @@
   textarea{width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 14px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;outline:none;resize:none;line-height:1.6;}
   textarea:focus{border-color:#10b981;}
 
-  /* Brinde */
-  .brinde-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid #6ee7b7;border-radius:20px;padding:24px 20px;text-align:center;margin-bottom:20px;}
-  .brinde-emoji{font-size:40px;margin-bottom:8px;display:block;animation:bounce 0.6s ease;}
-  .brinde-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#065f46;}
-  .brinde-desc{font-size:12px;color:#059669;margin-top:6px;}
-  .validity{background:#f8fafc;border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:#64748b;}
-
   /* Thanks */
   .thanks{text-align:center;padding:8px 0;}
 
@@ -89,7 +82,7 @@
     <!-- POSITIVE -->
     <div id="stepPositive" style="display:none">
       <div class="question" style="margin-bottom:6px">Que ótimo!</div>
-      <div class="question-sub" style="margin-bottom:20px">Deixa uma avaliação rápida no Google e ganhe um brinde 🎁</div>
+      <div class="question-sub" style="margin-bottom:20px">Deixa uma avaliação rápida no Google. Leva 30 segundos.</div>
       <div class="google-box">
         <div class="google-row">
           <div class="google-logo"></div>
@@ -111,16 +104,6 @@
       <textarea id="feedbackText" rows="4" placeholder="O que poderia ter sido melhor?"></textarea>
       <button class="btn btn-google" style="margin-top:14px" onclick="sendFeedback()">Enviar feedback</button>
       <button class="btn-back" onclick="goBack()">Voltar</button>
-    </div>
-
-    <!-- BRINDE -->
-    <div id="stepBrinde" style="display:none">
-      <div class="brinde-box">
-        <span class="brinde-emoji">🎁</span>
-        <div class="brinde-name" id="brindeText">Seu brinde</div>
-        <div class="brinde-desc">Mostre esta tela no balcão</div>
-      </div>
-      <div class="validity">⏰ Válido somente hoje, apresentando ao atendente.</div>
     </div>
 
     <!-- THANKS -->
@@ -210,7 +193,7 @@ function handleGoogleClick() {
     document.body.appendChild(el);
     setTimeout(()=>el.remove(), 2000);
   }
-  setTimeout(()=>show("stepBrinde"), 1000);
+  setTimeout(()=>show("stepThanks"), 1000);
 }
 
 async function sendFeedback() {
@@ -227,7 +210,7 @@ async function sendFeedback() {
 }
 
 function show(stepId) {
-  ["stepFeeling","stepPositive","stepNegative","stepBrinde","stepThanks"].forEach(id => {
+  ["stepFeeling","stepPositive","stepNegative","stepThanks"].forEach(id => {
     document.getElementById(id).style.display = id===stepId ? "block" : "none";
   });
 }
