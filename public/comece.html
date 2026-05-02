@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Comece — ReputaZap</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#f9fafb;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;min-height:100vh;padding:32px 20px 60px;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(26,115,232,0.45)}50%{box-shadow:0 0 0 10px rgba(26,115,232,0)}}
+  .container{max-width:520px;margin:0 auto;animation:fadeUp 0.4s ease;}
+  .logo{display:flex;justify-content:center;margin-bottom:28px;}
+  .biz-bar{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:12px 18px;margin-bottom:24px;display:flex;align-items:center;gap:12px;}
+  .biz-google{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#ea4335,#fbbc04 33%,#34a853 66%,#4285f4);flex-shrink:0;}
+  .biz-label{font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;display:block;margin-bottom:2px;}
+  .biz-name{font-size:13px;font-weight:700;color:#0f172a;line-height:1.2;}
+  h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;line-height:1.2;text-align:center;margin-bottom:8px;}
+  .sub{font-size:14px;color:#6b7280;text-align:center;margin-bottom:32px;line-height:1.55;}
+  .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:22px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;}
+  .card-header{display:flex;align-items:flex-start;gap:14px;}
+  .card-visual{width:54px;height:54px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:26px;}
+  .card-visual.link{background:#fef2f2;}
+  .card-visual.qr{background:#fff;border:1px solid #e5e7eb;padding:4px;}
+  .card-visual.placa{background:#e8f0fe;}
+  .card-visual.qr canvas, .card-visual.qr img{width:46px!important;height:46px!important;}
+  .card-title{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:4px;}
+  .card-desc{font-size:13px;color:#6b7280;line-height:1.55;}
+  .link-preview{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:9px 11px;font-size:11px;color:#6b7280;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .btn{padding:11px 14px;border:none;border-radius:11px;font-size:13px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;text-decoration:none;width:100%;}
+  .btn-primary{background:#0f172a;color:#fff;}
+  .btn-primary:hover{background:#1e293b;transform:translateY(-1px);}
+  .btn-primary.copied{background:#059669;}
+  .divider{height:1px;background:#e5e7eb;margin:28px 0 22px;}
+  .next{text-align:center;}
+  .next-label{font-size:13px;color:#6b7280;margin-bottom:12px;}
+  .btn-dashboard{width:100%;padding:15px;border:1.5px solid #e5e7eb;background:#fff;color:#475569;border-radius:14px;font-size:14px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;}
+  .btn-dashboard:hover{border-color:#cbd5e1;background:#f8fafc;}
+  .btn-dashboard.highlighted{background:#1a73e8;color:#fff;border-color:#1a73e8;animation:glow 2s ease-out;}
+  .btn-dashboard.highlighted:hover{background:#1557b0;}
+  .skip{display:block;text-align:center;margin-top:14px;color:#9ca3af;font-size:12px;cursor:pointer;background:none;border:none;font-family:'Plus Jakarta Sans',sans-serif;width:100%;padding:8px;}
+  .skip:hover{color:#6b7280;}
+  .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.15);animation:fadeUp 0.3s ease;z-index:200;}
+  .spinner{display:inline-block;animation:spin 1s linear infinite;}
+
+  /* Modal placas */
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.6);display:none;align-items:flex-start;justify-content:center;padding:24px;z-index:100;overflow-y:auto;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:#fff;border-radius:18px;max-width:520px;width:100%;padding:24px;animation:fadeUp 0.3s ease;margin:auto;}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
+  .modal-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#0f172a;}
+  .modal-close{background:none;border:none;font-size:26px;color:#9ca3af;cursor:pointer;line-height:1;padding:4px 8px;}
+  .modal-close:hover{color:#0f172a;}
+  .modal-sub{font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.55;}
+  .placas-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:420px){.placas-grid{grid-template-columns:1fr;}}
+  .placa-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;}
+  .placa-emoji{font-size:24px;}
+  .placa-title{font-size:13px;font-weight:700;color:#0f172a;}
+  .placa-desc{font-size:11px;color:#6b7280;line-height:1.5;flex:1;}
+  .placa-cta{background:#1a73e8;color:#fff;border:none;border-radius:9px;padding:8px 10px;font-size:11px;font-weight:600;text-decoration:none;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;}
+  .placa-cta:hover{background:#1557b0;}
+
+  /* Loading */
+  .loading{text-align:center;padding:48px 24px;color:#6b7280;}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="logo">
+    <img src="/reputazap-logo.png" alt="Reputazap" style="height:46px;width:auto;display:block"/>
+  </div>
+
+  <div id="loading" class="loading">
+    <div style="font-size:32px;margin-bottom:12px"><span class="spinner">⟳</span></div>
+    <div>Carregando seu negócio…</div>
+  </div>
+
+  <div id="content" style="display:none">
+    <h1>Comece a capturar feedback hoje</h1>
+    <p class="sub">Você já pode usar o ReputaZap sem placa</p>
+
+    <div class="biz-bar">
+      <div class="biz-google"></div>
+      <div style="flex:1;min-width:0">
+        <span class="biz-label">Seu negócio</span>
+        <span class="biz-name" id="bizName">—</span>
+      </div>
+    </div>
+
+    <!-- 1. Link direto -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-visual link">🔗</div>
+        <div style="flex:1;min-width:0">
+          <div class="card-title">Link direto</div>
+          <div class="card-desc">Compartilhe pelo WhatsApp, redes ou email. Sem hardware.</div>
+        </div>
+      </div>
+      <div class="link-preview" id="linkPreview">—</div>
+      <button class="btn btn-primary" id="copyBtn" onclick="copyLink()">📋 Copiar meu link</button>
+    </div>
+
+    <!-- 2. QR Code -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-visual qr"><div id="qrMini"></div></div>
+        <div style="flex:1;min-width:0">
+          <div class="card-title">QR Code próprio</div>
+          <div class="card-desc">Imprima e cole no cardápio, recibo, comanda ou balcão.</div>
+        </div>
+      </div>
+      <a class="btn btn-primary" id="qrBtn" target="_blank" rel="noopener" onclick="onQrClick()">⬇ Baixar QR Code</a>
+    </div>
+
+    <!-- 3. Placas inteligentes -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-visual placa">🪧</div>
+        <div style="flex:1;min-width:0">
+          <div class="card-title">Placas inteligentes</div>
+          <div class="card-desc">Use placas NFC para capturar feedback automaticamente no balcão, mesa ou atendimento.</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="openPlacasModal()">Ver placas</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="next">
+      <div class="next-label" id="nextLabel">Já deu o primeiro passo?</div>
+      <button class="btn-dashboard" id="dashboardBtn" onclick="goToDashboard()">Ir pro dashboard →</button>
+      <button class="skip" onclick="skipOrientation()">Pular orientação</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de placas -->
+<div class="modal-overlay" id="placasModal" onclick="if(event.target===this)closePlacasModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Placas inteligentes</div>
+      <button class="modal-close" onclick="closePlacasModal()">×</button>
+    </div>
+    <div class="modal-sub">Modelos disponíveis pra implantar no seu negócio. Cada um cobre um lugar diferente do atendimento.</div>
+    <div class="placas-grid">
+      <div class="placa-card">
+        <div class="placa-emoji">🏪</div>
+        <div class="placa-title">Placa de balcão</div>
+        <div class="placa-desc">No caixa ou recepção. Cliente vê na hora de pagar.</div>
+        <a class="placa-cta" href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noopener">Comprar</a>
+      </div>
+      <div class="placa-card">
+        <div class="placa-emoji">🍽️</div>
+        <div class="placa-title">Plaquinha de mesa</div>
+        <div class="placa-desc">Ideal pra restaurantes. Cliente avalia enquanto espera.</div>
+        <a class="placa-cta" href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noopener">Comprar</a>
+      </div>
+      <div class="placa-card">
+        <div class="placa-emoji">🖼️</div>
+        <div class="placa-title">Placa de parede</div>
+        <div class="placa-desc">Saída ou área de espera. Visibilidade máxima.</div>
+        <a class="placa-cta" href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noopener">Comprar</a>
+      </div>
+      <div class="placa-card">
+        <div class="placa-emoji">💳</div>
+        <div class="placa-title">Cartões NFC</div>
+        <div class="placa-desc">Garçom ou atendente apresenta. Cliente toca o celular.</div>
+        <a class="placa-cta" href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noopener">Comprar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="display:none" class="toast">Link copiado!</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+let placeId = null, bizName = null, nfcLink = null;
+let actionTaken = false;
+
+async function init() {
+  const token = localStorage.getItem("rz_token");
+  if (!token) {
+    window.location.href = "/landing";
+    return;
+  }
+  try {
+    const res = await fetch("/api/mybiz", { headers: { Authorization: `Bearer ${token}` }});
+    if (!res.ok) {
+      window.location.href = "/landing";
+      return;
+    }
+    const data = await res.json();
+    if (!data.business?.place_id) {
+      window.location.href = "/ativar?from=web";
+      return;
+    }
+    placeId = data.business.place_id;
+    bizName = data.business.name;
+    nfcLink = `${window.location.origin}/avaliar?place_id=${placeId}`;
+
+    document.getElementById("bizName").textContent = bizName;
+    document.getElementById("linkPreview").textContent = nfcLink;
+    document.getElementById("qrBtn").href = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(nfcLink)}`;
+
+    new QRCode(document.getElementById("qrMini"), {
+      text: nfcLink,
+      width: 46, height: 46,
+      colorDark: "#0f172a",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.M
+    });
+
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("content").style.display = "block";
+  } catch {
+    window.location.href = "/landing";
+  }
+}
+
+function markAction(label) {
+  if (!actionTaken) {
+    actionTaken = true;
+    const btn = document.getElementById("dashboardBtn");
+    btn.classList.add("highlighted");
+    document.getElementById("nextLabel").textContent = "Pronto! Agora pode acessar o dashboard.";
+  }
+}
+
+function showToast(text) {
+  const t = document.getElementById("toast");
+  t.textContent = text;
+  t.style.display = "block";
+  setTimeout(() => { t.style.display = "none"; }, 2000);
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(nfcLink).then(() => {
+    const btn = document.getElementById("copyBtn");
+    btn.classList.add("copied");
+    btn.innerHTML = "✓ Copiado!";
+    showToast("Link copiado!");
+    markAction("link");
+    setTimeout(() => {
+      btn.classList.remove("copied");
+      btn.innerHTML = "📋 Copiar meu link";
+    }, 2200);
+  });
+}
+
+function onQrClick() {
+  markAction("qr");
+}
+
+function openPlacasModal() {
+  document.getElementById("placasModal").classList.add("open");
+}
+
+function closePlacasModal() {
+  document.getElementById("placasModal").classList.remove("open");
+}
+
+function goToDashboard() {
+  localStorage.setItem("rz_comece_done", "1");
+  window.location.href = "/app";
+}
+
+function skipOrientation() {
+  localStorage.setItem("rz_comece_done", "1");
+  window.location.href = "/app";
+}
+
+window.addEventListener("load", init);
+</script>
+</body>
+</html>

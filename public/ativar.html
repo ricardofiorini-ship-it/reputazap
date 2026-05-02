@@ -483,7 +483,9 @@ async function goToSuccess(){
   document.getElementById("successBizName").textContent=state.business?.name||"Negócio";
   document.getElementById("successPlan").textContent="Plano Gratuito" + (state.tagCount > 0 ? ` · ${state.tagCount} placa(s) ativada(s)` : "");
   goToStep(5);
-  setTimeout(()=>{ window.location.href="/app"; }, 3000);
+  // Web vai pra orientação /comece; NFC já gravou placa, vai direto pro dashboard
+  const dest = state.from === "web" ? "/comece" : "/app";
+  setTimeout(()=>{ window.location.href = dest; }, 3000);
 }
 </script>
 </body>

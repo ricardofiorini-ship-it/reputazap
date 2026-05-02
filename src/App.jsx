@@ -441,6 +441,10 @@ export default function ReputaZap({ user, onLogout }) {
                 {item.id==="google"&&!googleConnected&&<div style={{marginLeft:"auto",background:"#fed7aa",color:"#f97316",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px"}}>!</div>}
               </div>
             ))}
+            <a href="/comece" className="ni" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,color:"#9ca3af",textDecoration:"none",marginTop:8,borderTop:"1px dashed #e5e7eb",paddingTop:14}}>
+              <Gift size={15}/>
+              <span style={{fontSize:13}}>Como começar</span>
+            </a>
           </div>
           <div style={{borderTop:"1px solid #e5e7eb",paddingTop:16,display:"flex",flexDirection:"column",gap:10}}>
             {/* User + Logout */}

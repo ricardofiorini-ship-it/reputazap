@@ -6,7 +6,8 @@
     { "source": "/ativar.html", "destination": "/ativar", "permanent": true },
     { "source": "/ativar-placa.html", "destination": "/ativar-placa", "permanent": true },
     { "source": "/avaliar.html", "destination": "/avaliar", "permanent": true },
-    { "source": "/reset.html", "destination": "/reset", "permanent": true }
+    { "source": "/reset.html", "destination": "/reset", "permanent": true },
+    { "source": "/comece.html", "destination": "/comece", "permanent": true }
   ],
   "rewrites": [
     { "source": "/landing", "destination": "/landing.html" },
@@ -14,6 +15,7 @@
     { "source": "/ativar-placa", "destination": "/ativar-placa.html" },
     { "source": "/avaliar", "destination": "/avaliar.html" },
     { "source": "/reset", "destination": "/reset.html" },
+    { "source": "/comece", "destination": "/comece.html" },
     { "source": "/app", "destination": "/index.html" },
     { "source": "/app/(.*)", "destination": "/index.html" }
   ]
