@@ -16,26 +16,27 @@ Tabelas: `profiles`, `businesses` (com `UNIQUE user_id`), `feedbacks`.
 
 ## Endpoints (`api/`)
 
-`register`, `login`, `savebiz`, `mybiz`, `reviews` (aceita `?place_id=`), `searchbiz`, `bizinfo`, `feedback`, `placeid`.
+`register`, `login`, `forgot-password`, `reset-password`, `savebiz`, `mybiz`, `reviews` (aceita `?place_id=`), `searchbiz`, `bizinfo` (retorna `plan`), `feedback` (envia email via Resend se `RESEND_API_KEY` definida), `placeid`.
 
 ## Status atual
 
-Fluxo principal funcionando: cadastro → `savebiz` → dashboard mostra empresa real do usuário com reviews do Google.
+Fluxo end-to-end funcionando:
+- **Onboarding:** cadastro → `savebiz` → dashboard.
+- **Dashboard como vitrine:** 6 produtos (placa balcão, plaquinha mesa, placa parede, cartões NFC + QR Code próprio + link direto). Hardware com link Mercado Livre placeholder; QR e link são gerados pelo app. Cada card mostra inline o flow conforme o plano (Free → direto pro Google, Pro → peneira).
+- **`avaliar.html`:** roteia por plano. Pro vê peneira (positivo→Google, negativo→form que envia email pro dono via Resend). Free vai direto pra step neutra de avaliação no Google. Anti-dupla avaliação por device (localStorage 30 dias) roda em ambos.
 
-## Pendências (foco em layout)
+## Pendências
 
-1. Cards do dashboard mostram só 5 reviews mas exibem como total — corrigir labels para refletir os números reais do Google.
-2. Mobile sidebar quebrado, hambúrguer não aparece no celular.
-3. `CustomerPage` em `App.jsx` ainda tem "Café Bello Vista" hardcoded.
-4. Aba Google ainda mostra dados fake.
-5. `place_id` real no botão "Avaliar no Google".
-6. Gerar QR code.
-7. Bloqueio anti-dupla avaliação por device.
-8. Deploy backend no Railway.
+1. Mobile sidebar quebrado, hambúrguer não aparece no celular.
+2. `LoginScreen` + array `USERS` (com "Café Bello Vista") em `App.jsx` é código morto — `main.jsx` usa `Login.jsx`. Limpar.
+3. Hardware NFC: os 4 cards do dashboard apontam pro mesmo SKU Mercado Livre placeholder. Trocar por links específicos quando tiver SKU por produto.
+4. Endpoint pra trocar plano Free↔Pro (hoje é manual no Supabase). Sem ele, não dá pra cliente real fazer upgrade pelo app.
+5. `RESEND_API_KEY` precisa ser setada na Vercel pro envio de email da peneira Pro funcionar (sem ela, feedback é salvo no Supabase mas email é skipado com log).
+6. Deploy backend no Railway (avaliar se ainda faz sentido com Vercel functions).
 
 ## Variáveis de ambiente (Vercel)
 
-`PLACES_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+`PLACES_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY` (opcional — sem ela, peneira Pro salva feedback mas não envia email).
 
 ## Links
 
