@@ -265,6 +265,13 @@ export default function ReputaZap({ user, onLogout }) {
   const [copiedLink, setCopiedLink] = useState(false);
   const [pendingFeedbacks, setPendingFeedbacks] = useState([]);
   const [showPlacasModal, setShowPlacasModal] = useState(false);
+  const [actionTaken, setActionTaken] = useState(false);
+  const [toast, setToast] = useState(null); // { message, kind: 'success'|'error' }
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3500);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   // Carrega feedbacks com decision='wait' (clientes aguardando contato)
   useEffect(() => {
@@ -541,6 +548,7 @@ export default function ReputaZap({ user, onLogout }) {
               if (!directLink) return;
               navigator.clipboard.writeText(directLink);
               setCopiedLink(true);
+              setActionTaken(true);
               setTimeout(()=>setCopiedLink(false),2000);
             };
             // Avaliações ≤3★ encontradas (do array de reviews trazido do Google)
@@ -586,14 +594,21 @@ export default function ReputaZap({ user, onLogout }) {
             const markResolved = async (id) => {
               const token = localStorage.getItem("rz_token");
               if (!token) return;
+              const snapshot = pendingFeedbacks;
               setPendingFeedbacks(prev => prev.filter(f => f.id !== id));
               try {
-                await fetch("/api/feedback", {
+                const res = await fetch("/api/feedback", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ id, resolved: true })
                 });
-              } catch {}
+                if (!res.ok) throw new Error("falha na resposta");
+                setToast({ message: "Esse cliente não deve virar uma avaliação pública", kind: "success" });
+              } catch {
+                // Rollback otimista
+                setPendingFeedbacks(snapshot);
+                setToast({ message: "Não foi possível marcar como resolvido. Tente novamente.", kind: "error" });
+              }
             };
             return (
             <div style={{animation:"fadeUp 0.4s ease"}}>
@@ -759,7 +774,8 @@ export default function ReputaZap({ user, onLogout }) {
                     onMouseEnter={e=>{if(directLink&&!copiedLink)e.currentTarget.style.background="#1e293b";}} onMouseLeave={e=>{if(!copiedLink)e.currentTarget.style.background="#0f172a";}}>
                     {copiedLink ? <><Check size={16}/> Link copiado</> : <><Copy size={16}/> Copiar meu link</>}
                   </button>
-                  <a href={directLink ? `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(directLink)}` : "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
+                  <a href={directLink ? `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(directLink)}` : "#"} target="_blank" rel="noopener"
+                    onClick={e=>{if(!directLink){e.preventDefault();return;}setActionTaken(true);}}
                     style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1px solid #e5e7eb",borderRadius:12,padding:"12px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
                     <ExternalLink size={13}/> Baixar QR
                   </a>
@@ -768,6 +784,12 @@ export default function ReputaZap({ user, onLogout }) {
                     <Smartphone size={13}/> Ver simulação
                   </a>
                 </div>
+                {actionTaken && (
+                  <div style={{background:"#ecfdf5",border:"1px solid #a7f3d0",borderRadius:12,padding:"12px 14px",marginTop:4}}>
+                    <div style={{fontSize:13,color:"#065f46",fontWeight:700,marginBottom:2}}>✓ Agora você já pode começar</div>
+                    <div style={{fontSize:12,color:"#059669",lineHeight:1.5}}>Envie para um cliente e veja funcionando.</div>
+                  </div>
+                )}
               </div>
 
               {/* ── Z5: Feedbacks pendentes com ações inline ── */}
@@ -783,6 +805,12 @@ export default function ReputaZap({ user, onLogout }) {
                     </div>
                   )}
                 </div>
+                {pendingFeedbacks.length > 0 && (
+                  <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:10,padding:"9px 12px",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>
+                    <AlertCircle size={14} color="#b45309" style={{flexShrink:0}}/>
+                    <div style={{fontSize:12,color:"#92400e",fontWeight:600,lineHeight:1.4}}>Esses clientes podem virar avaliações públicas</div>
+                  </div>
+                )}
                 {pendingFeedbacks.length === 0 ? (
                   isPro ? (
                     <div style={{padding:"24px 16px",textAlign:"center",color:"#059669",fontSize:13,lineHeight:1.55,background:"#ecfdf5",borderRadius:12,border:"1px solid #a7f3d0"}}>
@@ -876,10 +904,19 @@ export default function ReputaZap({ user, onLogout }) {
                     </ul>
                     <a href={upgradeUrl} target="_blank" rel="noreferrer"
                       style={{textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"14px 26px",fontSize:15,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,marginBottom:12}}>
-                      <ShieldCheck size={16}/> Quero o Pro →
+                      <ShieldCheck size={16}/> Proteger minha reputação agora
                     </a>
-                    <div style={{fontSize:12,color:"#94a3b8",fontWeight:500}}>R$79/mês · 14 dias grátis · sem fidelidade</div>
+                    <div style={{fontSize:13,color:"#fff",fontWeight:700,lineHeight:1.4}}>Teste grátis por 14 dias</div>
+                    <div style={{fontSize:12,color:"#94a3b8",fontWeight:500,marginTop:2}}>Depois R$79/mês · sem fidelidade</div>
                   </div>
+                </div>
+              )}
+
+              {/* Toast (sucesso/erro de marcação de feedback) */}
+              {toast && (
+                <div style={{position:"fixed",top:24,left:"50%",transform:"translateX(-50%)",background:toast.kind==="error"?"#dc2626":"#059669",color:"#fff",padding:"12px 20px",borderRadius:12,fontSize:13,fontWeight:600,boxShadow:"0 12px 32px rgba(0,0,0,0.2)",zIndex:300,display:"flex",alignItems:"center",gap:8,maxWidth:"90%",animation:"fadeUp 0.3s ease"}}>
+                  {toast.kind==="error" ? <AlertCircle size={14}/> : <Check size={14}/>}
+                  <span>{toast.message}</span>
                 </div>
               )}
 
