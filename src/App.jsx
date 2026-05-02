@@ -43,14 +43,9 @@ function LoginScreen({ onLogin }) {
       <div style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:600,height:600,background:"radial-gradient(circle,rgba(26,115,232,0.07) 0%,transparent 70%)",pointerEvents:"none"}}/>
 
       {/* Logo */}
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:48,animation:"fadeUp 0.4s ease"}}>
-        <div style={{width:40,height:40,background:"linear-gradient(135deg,#1a73e8,#1557b0)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <Star size={20} fill="#fff" color="#fff"/>
-        </div>
-        <div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:22,color:"#0f172a"}}>ReputaZap</div>
-          <div style={{fontSize:11,color:"#9ca3af"}}>Reputação com IA</div>
-        </div>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,marginBottom:48,animation:"fadeUp 0.4s ease"}}>
+        <img src="/reputazap-logo.png" alt="Reputazap" style={{height:44,width:"auto"}}/>
+        <div style={{fontSize:11,color:"#9ca3af"}}>Reputação com IA</div>
       </div>
 
       {/* Card */}
@@ -431,9 +426,9 @@ export default function ReputaZap({ user, onLogout }) {
 
         {/* Sidebar */}
         <div className={`sidebar${sidebarOpen?" open":""}`} style={{width:220,background:"#fff",borderRight:"1px solid #e5e7eb",display:"flex",flexDirection:"column",padding:"28px 16px",position:"sticky",top:0,height:"100vh",flexShrink:0}}>
-          <div style={{padding:"0 8px 24px",borderBottom:"1px solid #e5e7eb",display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:36,height:36,background:"linear-gradient(135deg,#1a73e8,#1557b0)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center"}}><Star size={18} fill="#fff" color="#fff"/></div>
-            <div><div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:16,color:"#0f172a"}}>ReputaZap</div><div style={{fontSize:10,color:"#9ca3af"}}>Reputação com IA</div></div>
+          <div style={{padding:"0 8px 24px",borderBottom:"1px solid #e5e7eb",display:"flex",flexDirection:"column",alignItems:"flex-start",gap:4}}>
+            <img src="/reputazap-logo.png" alt="Reputazap" style={{height:28,width:"auto"}}/>
+            <div style={{fontSize:10,color:"#9ca3af",paddingLeft:2}}>Reputação com IA</div>
           </div>
           <div style={{marginTop:20,flex:1,display:"flex",flexDirection:"column",gap:4}}>
             {nav.map(item=>(
@@ -497,10 +492,7 @@ export default function ReputaZap({ user, onLogout }) {
         {/* Content */}
         <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0,overflow:"auto"}}>
           <div className="mobile-header">
-            <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <div style={{width:28,height:28,background:"linear-gradient(135deg,#1a73e8,#1557b0)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center"}}><Star size={14} fill="#fff" color="#fff"/></div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:15,color:"#0f172a"}}>ReputaZap</div>
-            </div>
+            <img src="/reputazap-logo.png" alt="Reputazap" style={{height:24,width:"auto"}}/>
             <button onClick={()=>setSidebarOpen(true)} aria-label="Abrir menu" style={{background:"none",border:"none",color:"#9ca3af",cursor:"pointer",padding:8,borderRadius:8,display:"flex"}}><Menu size={22}/></button>
           </div>
         <div className="main-pad" style={{padding:"32px 28px",minWidth:0}}>
@@ -822,7 +814,7 @@ export default function ReputaZap({ user, onLogout }) {
                 <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:20}}>Sua Plaquinha NFC</div>
                 <div style={{display:"flex",gap:24,alignItems:"flex-start",flexWrap:"wrap"}}>
                   <div style={{width:200,height:116,background:"linear-gradient(135deg,#e8f0fe,#a7f3d0)",borderRadius:16,border:"1px solid #a7f3d0",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,flexShrink:0,boxShadow:"0 8px 32px rgba(26,115,232,0.15)"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6}}><Star size={15} fill="#1a73e8" color="#1a73e8"/><span style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:15,color:"#ecfdf5"}}>ReputaZap</span></div>
+                    <img src="/reputazap-logo.png" alt="Reputazap" style={{height:18,width:"auto"}}/>
                     <div style={{fontSize:12,color:"#059669",textAlign:"center",lineHeight:1.5}}>Toque o celular aqui<br/>para avaliar</div>
                     <div style={{fontSize:9,color:"#a7f3d0",display:"flex",alignItems:"center",gap:3}}><Smartphone size={9}/> NFC</div>
                   </div>

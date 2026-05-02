@@ -94,14 +94,9 @@ export default function Login({ onLogin }) {
       `}</style>
 
       {/* Logo */}
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:40,animation:"fadeUp 0.4s ease"}}>
-        <div style={{width:40,height:40,background:"#1a73e8",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <Star size={20} fill="#fff" color="#fff"/>
-        </div>
-        <div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:22,color:"#0f172a"}}>ReputaZap</div>
-          <div style={{fontSize:11,color:"#9ca3af"}}>Reputação no piloto automático</div>
-        </div>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,marginBottom:40,animation:"fadeUp 0.4s ease"}}>
+        <img src="/reputazap-logo.png" alt="Reputazap" style={{height:44,width:"auto"}}/>
+        <div style={{fontSize:11,color:"#9ca3af"}}>Reputação no piloto automático</div>
       </div>
 
       {/* Card */}
