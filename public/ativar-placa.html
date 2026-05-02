@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ativar nova placa — ReputaZap</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#f9fafb;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;min-height:100vh;padding:32px 20px 60px;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:24px;}
+  .biz-header{max-width:480px;margin:0 auto 28px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;}
+  .biz-header-google{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#ea4335,#fbbc04 33%,#34a853 66%,#4285f4);flex-shrink:0;}
+  .biz-header-label{font-size:11px;color:#9ca3af;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:2px;}
+  .biz-header-name{font-size:14px;font-weight:700;color:#0f172a;line-height:1.2;}
+  .screen{display:none;max-width:480px;margin:0 auto;animation:fadeUp 0.4s ease;}
+  .screen.active{display:block;}
+  .device-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px;margin-bottom:16px;text-align:center;box-shadow:0 4px 12px rgba(15,23,42,0.04);}
+  .device-card.warn{border-color:#fed7aa;background:#fffbeb;}
+  .device-card.ok{border-color:#a7f3d0;background:#ecfdf5;}
+  .device-icon{font-size:48px;margin-bottom:12px;}
+  .device-title{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px;color:#0f172a;}
+  .device-desc{font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:16px;}
+  .qr-box{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;display:inline-block;margin-bottom:8px;}
+  .qr-sub{font-size:11px;color:#9ca3af;}
+  h2{font-family:'Playfair Display',serif;font-size:24px;text-align:center;margin-bottom:8px;color:#0f172a;}
+  .sub{text-align:center;color:#6b7280;font-size:13px;margin-bottom:24px;line-height:1.6;}
+  .tag-counter{display:inline-block;background:#e8f0fe;color:#1a73e8;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:4px 12px;border-radius:8px;margin-bottom:14px;}
+  .btn-primary{width:100%;padding:14px;background:#1a73e8;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn-primary:hover:not(:disabled){background:#1557b0;transform:translateY(-1px);}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+  .btn-secondary{width:100%;padding:13px;background:transparent;border:1.5px solid #e5e7eb;color:#475569;border-radius:12px;font-size:14px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .15s;margin-top:10px;}
+  .btn-secondary:hover{border-color:#9ca3af;background:#f8fafc;}
+  .btn-back{display:flex;align-items:center;gap:6px;background:none;border:none;color:#9ca3af;font-size:13px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;padding:0;margin-bottom:20px;}
+  .os-tabs{display:flex;gap:6px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:4px;margin-bottom:16px;}
+  .os-tab{flex:1;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;background:transparent;color:#6b7280;transition:all .15s;}
+  .os-tab.active{background:#1a73e8;color:#fff;}
+  .nfc-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px 20px;margin-bottom:16px;}
+  .nfc-step{display:flex;gap:12px;margin-bottom:14px;}
+  .nfc-step:last-child{margin-bottom:0;}
+  .nfc-n{width:22px;height:22px;background:#e8f0fe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#1a73e8;flex-shrink:0;margin-top:2px;}
+  .nfc-step h4{font-size:13px;font-weight:600;color:#0f172a;margin-bottom:3px;}
+  .nfc-step p{font-size:12px;color:#6b7280;line-height:1.5;}
+  .nfc-step code{background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:3px 8px;font-size:11px;color:#1a73e8;font-family:monospace;display:block;margin-top:6px;word-break:break-all;}
+  .app-link{display:flex;align-items:center;gap:8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;text-decoration:none;color:#6b7280;font-size:12px;font-weight:600;margin-top:8px;transition:border-color .15s;}
+  .app-link:hover{border-color:#9ca3af;}
+  .status-msg{text-align:center;font-size:13px;min-height:20px;margin-top:10px;}
+  .status-msg.success{color:#059669;}
+  .status-msg.error{color:#dc2626;}
+  .status-msg.loading{color:#6b7280;animation:pulse 1.5s infinite;}
+  .success-card{background:#ecfdf5;border:2px solid #a7f3d0;border-radius:16px;padding:28px 22px;text-align:center;margin-bottom:18px;}
+  .success-card-icon{font-size:48px;margin-bottom:8px;}
+  .success-card-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#065f46;margin-bottom:4px;}
+  .success-card-sub{font-size:13px;color:#059669;}
+  .spinner{display:inline-block;animation:spin 1s linear infinite;}
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <img src="/reputazap-logo.png" alt="Reputazap" style="height:46px;width:auto;display:block"/>
+</div>
+
+<div class="biz-header" id="bizHeader" style="display:none">
+  <div class="biz-header-google"></div>
+  <div style="flex:1;min-width:0">
+    <div class="biz-header-label">Ativando placa para</div>
+    <div class="biz-header-name" id="bizName">—</div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="screen active" id="screenLoading">
+  <div class="device-card">
+    <div class="device-icon"><span class="spinner">⟳</span></div>
+    <div class="device-title">Carregando seus dados…</div>
+    <div class="device-desc">Verificando seu negócio cadastrado.</div>
+  </div>
+</div>
+
+<!-- DEVICE CHECK -->
+<div class="screen" id="screenDevice">
+  <div class="device-card ok" id="deviceOk" style="display:none">
+    <div class="device-icon">✅</div>
+    <div class="device-title">Tudo certo!</div>
+    <div class="device-desc">Seu Android com Chrome suporta gravação NFC.<br/>Vamos ativar suas placas aqui mesmo.</div>
+    <button class="btn-primary" onclick="show('screenWrite')">Começar gravação →</button>
+  </div>
+
+  <div class="device-card warn" id="deviceIphone" style="display:none">
+    <div class="device-icon">🍎</div>
+    <div class="device-title">iPhone detectado</div>
+    <div class="device-desc">O iPhone não grava NFC pelo navegador. Você vai precisar do app <strong style="color:#0f172a">NFC Tools</strong> (gratuito) pra gravar.</div>
+    <button class="btn-primary" onclick="show('screenWrite')">Entendi, continuar →</button>
+  </div>
+
+  <div class="device-card warn" id="deviceDesktop" style="display:none">
+    <div class="device-icon">💻</div>
+    <div class="device-title">Acesse pelo celular</div>
+    <div class="device-desc">A gravação do NFC precisa ser feita pelo celular Android com o Chrome. Escaneie o QR code abaixo:</div>
+    <div class="qr-box"><div id="qrcode"></div></div>
+    <div class="qr-sub" id="qrSub">reputazap.vercel.app/ativar-placa</div>
+  </div>
+</div>
+
+<!-- WRITE -->
+<div class="screen" id="screenWrite">
+  <button class="btn-back" onclick="show('screenDevice')">← Voltar</button>
+  <div style="text-align:center"><span class="tag-counter">Placa #<span id="tagCounter">1</span></span></div>
+  <h2>Grave a placa NFC</h2>
+  <p class="sub">Aproxime a placa virgem na traseira do celular.</p>
+
+  <div class="os-tabs">
+    <button class="os-tab active" onclick="switchOS('android')">📱 Android</button>
+    <button class="os-tab" onclick="switchOS('iphone')">🍎 iPhone</button>
+  </div>
+
+  <div id="androidSteps">
+    <div class="nfc-card">
+      <div class="nfc-step"><div class="nfc-n">1</div><div><h4>Clique no botão abaixo</h4><p>Vamos gravar o link específico do seu negócio.</p></div></div>
+      <div class="nfc-step"><div class="nfc-n">2</div><div><h4>Aproxime a placa NFC</h4><p>Encoste na parte traseira do celular quando o sistema pedir.</p></div></div>
+    </div>
+    <button class="btn-primary" onclick="writeNFC()" id="nfcBtn">📡 Gravar placa agora</button>
+    <p class="status-msg" id="nfcStatus"></p>
+  </div>
+
+  <div id="iphoneSteps" style="display:none">
+    <div class="nfc-card">
+      <div class="nfc-step"><div class="nfc-n">1</div><div><h4>Baixe o NFC Tools</h4><a class="app-link" href="https://apps.apple.com/br/app/nfc-tools/id1252962749" target="_blank" rel="noopener">📱 Baixar — App Store</a></div></div>
+      <div class="nfc-step"><div class="nfc-n">2</div><div><h4>No app: Write → Add record → URL</h4><p>Cole este link:</p><code id="nfcLinkDisplay">—</code></div></div>
+      <div class="nfc-step"><div class="nfc-n">3</div><div><h4>Toque em Write e aproxime a placa</h4><p>Quando aparecer "Done!", a placa está pronta.</p></div></div>
+    </div>
+    <button class="btn-primary" onclick="copyNFCLink()">📋 Copiar link</button>
+    <button class="btn-secondary" onclick="onIphoneWritten()">Já gravei essa placa</button>
+    <p class="status-msg" id="copyStatus"></p>
+  </div>
+</div>
+
+<!-- TAG SUCCESS -->
+<div class="screen" id="screenTagSuccess">
+  <div class="success-card">
+    <div class="success-card-icon">✅</div>
+    <div class="success-card-title">Placa #<span id="successCount">1</span> gravada</div>
+    <div class="success-card-sub">Tudo certo. Posicione a placa no negócio.</div>
+  </div>
+  <button class="btn-primary" onclick="recordAnother()">Gravar outra placa</button>
+  <button class="btn-secondary" onclick="finish()">Concluir e voltar ao dashboard</button>
+</div>
+
+<!-- DONE -->
+<div class="screen" id="screenDone">
+  <div class="success-card">
+    <div class="success-card-icon">🎉</div>
+    <div class="success-card-title"><span id="doneCount">1</span> placa(s) ativada(s)</div>
+    <div class="success-card-sub">Voltando ao dashboard…</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+let placeId = null;
+let bizName = null;
+let nfcLink = null;
+let tagCount = 0; // placas já gravadas com sucesso
+
+window.addEventListener("load", async () => {
+  const token = localStorage.getItem("rz_token");
+  if (!token) {
+    window.location.href = "/app";
+    return;
+  }
+  try {
+    const res = await fetch("/api/mybiz", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) {
+      window.location.href = "/app";
+      return;
+    }
+    const data = await res.json();
+    if (!data.business?.place_id) {
+      alert("Você precisa cadastrar um negócio antes de ativar uma placa.");
+      window.location.href = "/app";
+      return;
+    }
+    placeId = data.business.place_id;
+    bizName = data.business.name;
+    nfcLink = `${window.location.origin}/avaliar.html?place_id=${placeId}`;
+    document.getElementById("bizName").textContent = bizName;
+    document.getElementById("nfcLinkDisplay").textContent = nfcLink;
+    document.getElementById("bizHeader").style.display = "flex";
+    detectDevice();
+  } catch {
+    window.location.href = "/app";
+  }
+});
+
+function detectDevice() {
+  const ua = navigator.userAgent;
+  const isAndroid = /Android/i.test(ua);
+  const isIphone = /iPhone|iPad/i.test(ua);
+  const isChrome = /Chrome/i.test(ua) && !/Edg|OPR/i.test(ua);
+  show("screenDevice");
+  if (isAndroid && isChrome) {
+    document.getElementById("deviceOk").style.display = "block";
+  } else if (isIphone) {
+    document.getElementById("deviceIphone").style.display = "block";
+  } else {
+    document.getElementById("deviceDesktop").style.display = "block";
+    generateQR();
+  }
+}
+
+function generateQR() {
+  const url = `${window.location.origin}/ativar-placa.html`;
+  document.getElementById("qrSub").textContent = url.replace(/^https?:\/\//, "");
+  new QRCode(document.getElementById("qrcode"), {
+    text: url,
+    width: 140,
+    height: 140,
+    colorDark: "#0a0f1a",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+}
+
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  if (id === "screenWrite") {
+    document.getElementById("tagCounter").textContent = tagCount + 1;
+    // reset estado do botão
+    const btn = document.getElementById("nfcBtn");
+    btn.disabled = false;
+    btn.innerHTML = "📡 Gravar placa agora";
+    document.getElementById("nfcStatus").textContent = "";
+    document.getElementById("nfcStatus").className = "status-msg";
+    document.getElementById("copyStatus").textContent = "";
+    document.getElementById("copyStatus").className = "status-msg";
+  }
+  window.scrollTo(0, 0);
+}
+
+function switchOS(os) {
+  document.getElementById("androidSteps").style.display = os === "android" ? "block" : "none";
+  document.getElementById("iphoneSteps").style.display = os === "iphone" ? "block" : "none";
+  document.querySelectorAll(".os-tab").forEach((t, i) => t.classList.toggle("active", (os === "android" && i === 0) || (os === "iphone" && i === 1)));
+}
+
+async function writeNFC() {
+  const btn = document.getElementById("nfcBtn");
+  const status = document.getElementById("nfcStatus");
+  if (!("NDEFReader" in window)) {
+    status.textContent = "⚠️ Use o Chrome no Android para gravar a placa.";
+    status.className = "status-msg error";
+    return;
+  }
+  try {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner">⟳</span> Aproxime a placa NFC…';
+    status.textContent = "Aguardando placa…";
+    status.className = "status-msg loading";
+    const ndef = new NDEFReader();
+    await ndef.write({ records: [{ recordType: "url", data: nfcLink }] });
+    status.textContent = "✅ Gravado com sucesso!";
+    status.className = "status-msg success";
+    btn.innerHTML = "✅ Placa gravada!";
+    onTagWritten();
+  } catch (err) {
+    status.textContent = `Erro: ${err.message || "tente novamente"}`;
+    status.className = "status-msg error";
+    btn.disabled = false;
+    btn.innerHTML = "📡 Tentar novamente";
+  }
+}
+
+function copyNFCLink() {
+  navigator.clipboard.writeText(nfcLink).then(() => {
+    const status = document.getElementById("copyStatus");
+    status.textContent = "✅ Link copiado! Cole no NFC Tools.";
+    status.className = "status-msg success";
+  });
+}
+
+function onIphoneWritten() {
+  // iPhone confia no usuário ter gravado via NFC Tools
+  onTagWritten();
+}
+
+function onTagWritten() {
+  tagCount++;
+  document.getElementById("successCount").textContent = tagCount;
+  setTimeout(() => show("screenTagSuccess"), 800);
+}
+
+function recordAnother() {
+  show("screenWrite");
+}
+
+function finish() {
+  document.getElementById("doneCount").textContent = tagCount;
+  show("screenDone");
+  setTimeout(() => { window.location.href = "/app"; }, 1500);
+}
+</script>
+</body>
+</html>

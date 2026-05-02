@@ -725,8 +725,13 @@ export default function ReputaZap({ user, onLogout }) {
                 </div>
 
                 {/* Físicos (não implantados ainda) */}
-                <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
-                  <span style={{width:6,height:6,borderRadius:"50%",background:"#d1d5db"}}/> Inativos · exigem implantação física
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,flexWrap:"wrap",gap:8}}>
+                  <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{width:6,height:6,borderRadius:"50%",background:"#d1d5db"}}/> Inativos · exigem implantação física
+                  </div>
+                  <a href="/ativar-placa.html" style={{fontSize:12,fontWeight:600,color:"#1a73e8",textDecoration:"none",display:"inline-flex",alignItems:"center",gap:4}}>
+                    Já tenho placa? Ativar agora →
+                  </a>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14}}>
 

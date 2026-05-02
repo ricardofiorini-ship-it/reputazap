@@ -138,8 +138,8 @@
 <!-- STEP 4: NFC -->
 <div class="screen" id="screen4">
   <button class="back-btn" onclick="goToStep(2)">← Voltar</button>
-  <h2>Grave sua plaquinha</h2>
-  <p class="sub">Último passo — programe o cartão NFC</p>
+  <h2>Grave sua placa</h2>
+  <p class="sub">Placa #<span id="tagCounterLabel">1</span> — programe o NFC</p>
   <div class="os-tabs">
     <button class="os-tab active" onclick="switchOS('android')">📱 Android</button>
     <button class="os-tab" onclick="switchOS('iphone')">🍎 iPhone</button>
@@ -147,21 +147,33 @@
   <div id="androidSteps">
     <div class="nfc-card">
       <div class="nfc-step"><div class="nfc-n">1</div><div><h4>Clique no botão abaixo</h4><p>Grave o link direto pelo navegador Chrome.</p></div></div>
-      <div class="nfc-step"><div class="nfc-n">2</div><div><h4>Aproxime o cartão NFC</h4><p>Encoste na parte traseira do celular quando aparecer a mensagem.</p></div></div>
-      <div class="nfc-step"><div class="nfc-n">3</div><div><h4>Coloque no balcão</h4><p>Pronto! Já está ativo.</p></div></div>
+      <div class="nfc-step"><div class="nfc-n">2</div><div><h4>Aproxime a placa NFC</h4><p>Encoste na parte traseira do celular quando aparecer a mensagem.</p></div></div>
+      <div class="nfc-step"><div class="nfc-n">3</div><div><h4>Posicione no negócio</h4><p>Pronto! Já está ativa.</p></div></div>
     </div>
-    <button class="btn-primary" onclick="writeNFC()" id="nfcBtn">📡 Gravar cartão NFC agora</button>
+    <button class="btn-primary" onclick="writeNFC()" id="nfcBtn">📡 Gravar placa NFC agora</button>
     <p class="status-msg" id="nfcStatus"></p>
   </div>
   <div id="iphoneSteps" style="display:none">
     <div class="nfc-card">
-      <div class="nfc-step"><div class="nfc-n">1</div><div><h4>Baixe o NFC Tools</h4><a class="app-link" href="https://apps.apple.com/br/app/nfc-tools/id1252962749" target="_blank">📱 Baixar NFC Tools — App Store</a></div></div>
+      <div class="nfc-step"><div class="nfc-n">1</div><div><h4>Baixe o NFC Tools</h4><a class="app-link" href="https://apps.apple.com/br/app/nfc-tools/id1252962749" target="_blank" rel="noopener">📱 Baixar NFC Tools — App Store</a></div></div>
       <div class="nfc-step"><div class="nfc-n">2</div><div><h4>Abra → Write → Add record → URL</h4><p>Cole o link abaixo:</p><code id="nfcLinkDisplay">Carregando...</code></div></div>
-      <div class="nfc-step"><div class="nfc-n">3</div><div><h4>Grave e coloque no balcão</h4><p>Toque em Write e aproxime o cartão.</p></div></div>
+      <div class="nfc-step"><div class="nfc-n">3</div><div><h4>Grave e posicione no negócio</h4><p>Toque em Write e aproxime a placa.</p></div></div>
     </div>
     <button class="btn-primary" onclick="copyNFCLink()">📋 Copiar link</button>
+    <button class="btn-ghost" onclick="onIphoneWritten()" style="margin-top:10px">Já gravei essa placa</button>
     <p class="status-msg" id="copyStatus"></p>
   </div>
+</div>
+
+<!-- STEP 4b: PLACA GRAVADA — escolha continuar ou concluir -->
+<div class="screen" id="screen4b">
+  <div style="background:#ecfdf5;border:2px solid #a7f3d0;border-radius:16px;padding:28px 22px;text-align:center;margin-bottom:18px;">
+    <div style="font-size:48px;margin-bottom:8px">✅</div>
+    <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#065f46;margin-bottom:4px">Placa #<span id="screen4bCount">1</span> gravada</div>
+    <div style="font-size:13px;color:#059669">Posicione a placa no negócio.</div>
+  </div>
+  <button class="btn-primary" onclick="recordAnother()">Gravar outra placa</button>
+  <button class="btn-ghost" onclick="finishActivation()">Concluir e ir pro dashboard</button>
 </div>
 
 <!-- STEP 5: SUCESSO -->
@@ -182,7 +194,7 @@
 <script>
 const params = new URLSearchParams(window.location.search);
 const fromSource = params.get("from") === "web" ? "web" : "nfc";
-const state = { user:{}, business:null, plan:null, nfcLink:null, from:fromSource };
+const state = { user:{}, business:null, plan:null, nfcLink:null, from:fromSource, tagCount:0, bizSaved:false };
 
 // Detecta dispositivo ao carregar
 window.addEventListener("load", () => {
@@ -222,8 +234,8 @@ function generateQR() {
   });
 }
 
-// screen 1 = passo 1, screen 2 = passo 2, screen 4 = passo 3 (NFC)
-const screenToProgress = { 1:1, 2:2, 4:3 };
+// screen 1 = passo 1, screen 2 = passo 2, screen 4 = passo 3 (NFC), screen 4b idem (já gravada)
+const screenToProgress = { 1:1, 2:2, 4:3, "4b":3 };
 
 function goToStep(n) {
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
@@ -234,6 +246,16 @@ function goToStep(n) {
     updateProgress(progStep);
   } else {
     document.getElementById("progressBar").style.display = "none";
+  }
+  // Quando volta pro screen4 pra gravar mais uma placa, reseta estado do botão
+  if (n === 4) {
+    document.getElementById("tagCounterLabel").textContent = state.tagCount + 1;
+    const btn = document.getElementById("nfcBtn");
+    if (btn) { btn.disabled = false; btn.innerHTML = "📡 Gravar placa NFC agora"; }
+    const ns = document.getElementById("nfcStatus");
+    if (ns) { ns.textContent = ""; ns.className = "status-msg"; }
+    const cs = document.getElementById("copyStatus");
+    if (cs) { cs.textContent = ""; cs.className = "status-msg"; }
   }
   window.scrollTo(0,0);
 }
@@ -353,7 +375,7 @@ function goToStep3(){
   state.plan = "free";
   // NFC sempre aponta pra /avaliar.html — assim upgrade Free→Pro nao requer
   // re-gravar o cartao (a peneira liga/desliga via plan no DB)
-  state.nfcLink = `https://reputazap.vercel.app/avaliar.html?place=${state.business.place_id}`;
+  state.nfcLink = `https://reputazap.vercel.app/avaliar.html?place_id=${state.business.place_id}`;
   document.getElementById("nfcLinkDisplay").textContent = state.nfcLink;
   if (state.from === "web") {
     goToSuccess();
@@ -378,15 +400,15 @@ async function writeNFC(){
   }
   try{
     btn.disabled=true;
-    btn.innerHTML='<span class="spinner">⟳</span> Aproxime o cartão NFC...';
-    status.textContent="Aguardando cartão...";
+    btn.innerHTML='<span class="spinner">⟳</span> Aproxime a placa NFC...';
+    status.textContent="Aguardando placa...";
     status.className="status-msg loading";
     const ndef=new NDEFReader();
     await ndef.write({records:[{recordType:"url",data:state.nfcLink}]});
     status.textContent="✅ Gravado com sucesso!";
     status.className="status-msg success";
-    btn.innerHTML="✅ Cartão gravado!";
-    setTimeout(()=>goToSuccess(),1200);
+    btn.innerHTML="✅ Placa gravada!";
+    setTimeout(()=>onTagWritten(),900);
   }catch(err){
     status.textContent=`Erro: ${err.message}`;
     status.className="status-msg error";
@@ -399,31 +421,39 @@ function copyNFCLink(){
   navigator.clipboard.writeText(state.nfcLink).then(()=>{
     document.getElementById("copyStatus").textContent="✅ Link copiado! Cole no NFC Tools.";
     document.getElementById("copyStatus").className="status-msg success";
-    setTimeout(()=>goToSuccess(),2000);
   });
 }
 
-async function goToSuccess(){
-  document.getElementById("successBizName").textContent=state.business?.name||"Negócio";
-  document.getElementById("successPlan").textContent="Plano Gratuito";
-  goToStep(5);
+function onIphoneWritten(){
+  // iPhone confia que o usuário gravou via NFC Tools
+  onTagWritten();
+}
 
+function onTagWritten(){
+  state.tagCount++;
+  document.getElementById("screen4bCount").textContent = state.tagCount;
+  goToStep("4b");
+}
+
+function recordAnother(){
+  goToStep(4);
+}
+
+async function finishActivation(){
+  // Salva o negócio uma única vez (na primeira conclusão)
+  if (!state.bizSaved) {
+    await saveBiz();
+    state.bizSaved = true;
+  }
+  goToSuccess();
+}
+
+async function saveBiz(){
   const token=localStorage.getItem("rz_token");
-  console.log("Token:", token ? "existe" : "NÃO EXISTE");
-  console.log("Business:", state.business);
-
-  if(!token) {
-    console.error("Token não encontrado - negócio não será salvo");
-    setTimeout(()=>{ window.location.href="/app"; }, 3000);
+  if(!token || !state.business?.place_id) {
+    console.error("Token ou place_id ausente — negócio não será salvo");
     return;
   }
-
-  if(!state.business?.place_id) {
-    console.error("place_id não encontrado");
-    setTimeout(()=>{ window.location.href="/app"; }, 3000);
-    return;
-  }
-
   try {
     const r = await fetch("/api/savebiz",{
       method:"POST",
@@ -442,7 +472,17 @@ async function goToSuccess(){
   } catch(e){
     console.error("Erro ao salvar negócio:", e);
   }
+}
 
+async function goToSuccess(){
+  // Quando vem do fluxo web (sem NFC), salva o negócio agora antes de mostrar success
+  if (!state.bizSaved) {
+    await saveBiz();
+    state.bizSaved = true;
+  }
+  document.getElementById("successBizName").textContent=state.business?.name||"Negócio";
+  document.getElementById("successPlan").textContent="Plano Gratuito" + (state.tagCount > 0 ? ` · ${state.tagCount} placa(s) ativada(s)` : "");
+  goToStep(5);
   setTimeout(()=>{ window.location.href="/app"; }, 3000);
 }
 </script>
