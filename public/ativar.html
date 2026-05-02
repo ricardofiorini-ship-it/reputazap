@@ -102,7 +102,7 @@
     <div class="qr-box">
       <div id="qrcode"></div>
     </div>
-    <div class="qr-sub">reputazap.vercel.app/ativar.html</div>
+    <div class="qr-sub">reputazap.vercel.app/ativar</div>
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
       <div style="font-size:12px;color:#9ca3af;margin-bottom:10px;">Ou continue aqui e grave o NFC depois pelo celular</div>
       <button class="btn-ghost" onclick="goToStep(1)">Continuar assim mesmo</button>
@@ -223,7 +223,7 @@ window.addEventListener("load", () => {
 });
 
 function generateQR() {
-  const url = "https://reputazap.vercel.app/ativar.html";
+  const url = "https://reputazap.vercel.app/ativar";
   new QRCode(document.getElementById("qrcode"), {
     text: url,
     width: 140,
@@ -373,9 +373,9 @@ function selectBusiness(biz){
 // Decisao de plano e compra de hardware acontecem dentro do dashboard.
 function goToStep3(){
   state.plan = "free";
-  // NFC sempre aponta pra /avaliar.html — assim upgrade Free→Pro nao requer
+  // NFC sempre aponta pra /avaliar — assim upgrade Free→Pro nao requer
   // re-gravar o cartao (a peneira liga/desliga via plan no DB)
-  state.nfcLink = `https://reputazap.vercel.app/avaliar.html?place_id=${state.business.place_id}`;
+  state.nfcLink = `https://reputazap.vercel.app/avaliar?place_id=${state.business.place_id}`;
   document.getElementById("nfcLinkDisplay").textContent = state.nfcLink;
   if (state.from === "web") {
     goToSuccess();

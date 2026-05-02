@@ -107,7 +107,7 @@ function LoginScreen({ onLogin }) {
       </div>
 
       <div style={{marginTop:24,fontSize:12,color:"#d1d5db",animation:"fadeUp 0.6s ease"}}>
-        Não tem conta? <a href="/landing.html" style={{color:"#1a73e8",fontWeight:600}}>Comece grátis</a>
+        Não tem conta? <a href="/landing" style={{color:"#1a73e8",fontWeight:600}}>Comece grátis</a>
       </div>
     </div>
   );
@@ -520,7 +520,7 @@ export default function ReputaZap({ user, onLogout }) {
 
           {/* ─ DASHBOARD ─ */}
           {tab==="dashboard"&&(() => {
-            const directLink = bizInfo?.place_id ? `${window.location.origin}/avaliar.html?place_id=${bizInfo.place_id}` : "";
+            const directLink = bizInfo?.place_id ? `${window.location.origin}/avaliar?place_id=${bizInfo.place_id}` : "";
             const copyLink = () => {
               if (!directLink) return;
               navigator.clipboard.writeText(directLink);
@@ -729,7 +729,7 @@ export default function ReputaZap({ user, onLogout }) {
                   <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
                     <span style={{width:6,height:6,borderRadius:"50%",background:"#d1d5db"}}/> Inativos · exigem implantação física
                   </div>
-                  <a href="/ativar-placa.html" style={{fontSize:12,fontWeight:600,color:"#1a73e8",textDecoration:"none",display:"inline-flex",alignItems:"center",gap:4}}>
+                  <a href="/ativar-placa" style={{fontSize:12,fontWeight:600,color:"#1a73e8",textDecoration:"none",display:"inline-flex",alignItems:"center",gap:4}}>
                     Já tenho placa? Ativar agora →
                   </a>
                 </div>

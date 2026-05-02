@@ -188,7 +188,7 @@ window.addEventListener("load", async () => {
     }
     placeId = data.business.place_id;
     bizName = data.business.name;
-    nfcLink = `${window.location.origin}/avaliar.html?place_id=${placeId}`;
+    nfcLink = `${window.location.origin}/avaliar?place_id=${placeId}`;
     document.getElementById("bizName").textContent = bizName;
     document.getElementById("nfcLinkDisplay").textContent = nfcLink;
     document.getElementById("bizHeader").style.display = "flex";
@@ -215,7 +215,7 @@ function detectDevice() {
 }
 
 function generateQR() {
-  const url = `${window.location.origin}/ativar-placa.html`;
+  const url = `${window.location.origin}/ativar-placa`;
   document.getElementById("qrSub").textContent = url.replace(/^https?:\/\//, "");
   new QRCode(document.getElementById("qrcode"), {
     text: url,

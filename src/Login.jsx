@@ -139,7 +139,7 @@ export default function Login({ onLogin }) {
             </form>
 
             <div style={{marginTop:20,textAlign:"center",fontSize:13,color:"#6b7280"}}>
-              Não tem conta? <a href="/landing.html" style={{color:"#1a73e8",fontWeight:600,textDecoration:"none"}}>Comece grátis</a>
+              Não tem conta? <a href="/landing" style={{color:"#1a73e8",fontWeight:600,textDecoration:"none"}}>Comece grátis</a>
             </div>
           </>
         )}

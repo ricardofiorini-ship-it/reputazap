@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   if (!email) return res.status(400).json({ error: "Email obrigatório" });
 
   const origin = req.headers.origin || `https://${req.headers.host}`;
-  const redirectTo = `${origin}/reset.html`;
+  const redirectTo = `${origin}/reset`;
 
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
