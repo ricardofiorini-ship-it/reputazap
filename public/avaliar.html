@@ -68,8 +68,8 @@
   </div>
 
   <div class="body" id="bodyContent">
-    <!-- FEELING -->
-    <div id="stepFeeling">
+    <!-- FEELING (Pro: peneira positivo/negativo) -->
+    <div id="stepFeeling" style="display:none">
       <div class="question">Como foi sua experiência?</div>
       <div class="question-sub">Sua opinião nos ajuda a melhorar sempre</div>
       <div class="feelings">
@@ -79,18 +79,35 @@
       </div>
     </div>
 
-    <!-- POSITIVE -->
+    <!-- DIRECT (Free: vai direto pro Google, sem peneira) -->
+    <div id="stepDirect" style="display:none">
+      <div class="question" style="margin-bottom:6px">Avalie no Google</div>
+      <div class="question-sub" style="margin-bottom:20px">Sua opinião é importante. Leva menos de 30 segundos.</div>
+      <div class="google-box">
+        <div class="google-row">
+          <div class="google-logo"></div>
+          <div><div class="google-name js-google-biz">Carregando...</div><div class="google-sub">Google Meu Negócio</div></div>
+        </div>
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+      </div>
+      <a class="btn btn-google js-google-link" href="#" target="_blank" onclick="handleGoogleClick()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Avaliar no Google
+      </a>
+    </div>
+
+    <!-- POSITIVE (Pro: cliente feliz vai pro Google) -->
     <div id="stepPositive" style="display:none">
       <div class="question" style="margin-bottom:6px">Que ótimo!</div>
       <div class="question-sub" style="margin-bottom:20px">Deixa uma avaliação rápida no Google. Leva 30 segundos.</div>
       <div class="google-box">
         <div class="google-row">
           <div class="google-logo"></div>
-          <div><div class="google-name" id="googleBizName">Carregando...</div><div class="google-sub">Google Meu Negócio</div></div>
+          <div><div class="google-name js-google-biz">Carregando...</div><div class="google-sub">Google Meu Negócio</div></div>
         </div>
         <div class="stars">⭐⭐⭐⭐⭐</div>
       </div>
-      <a id="googleLink" href="#" class="btn btn-google" target="_blank" onclick="handleGoogleClick()">
+      <a class="btn btn-google js-google-link" href="#" target="_blank" onclick="handleGoogleClick()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         Avaliar no Google
       </a>
@@ -118,37 +135,11 @@
 </div>
 
 <script>
-// Pega o place_id da URL
+// Pega o place_id da URL (aceita ?place_id=... ou legado ?place=...)
 const params = new URLSearchParams(window.location.search);
-const placeId = params.get("place");
+const placeId = params.get("place_id") || params.get("place");
 let bizPlan = "free";
 let lastRating = null;
-
-// Carrega info do negócio
-async function loadBusiness() {
-  if (!placeId) {
-    document.getElementById("bizName").textContent = "Negócio não encontrado";
-    return;
-  }
-  try {
-    const res = await fetch(`/api/bizinfo?place_id=${placeId}`);
-    const data = await res.json();
-    if (data.name) {
-      document.getElementById("bizName").textContent = data.name;
-      document.getElementById("bizSub").textContent = `⭐ ${data.rating} · ${data.total} avaliações no Google`;
-      document.getElementById("googleBizName").textContent = data.name;
-    }
-    bizPlan = data.plan || "free";
-    // Link direto pro Google Reviews
-    document.getElementById("googleLink").href = `https://search.google.com/local/writereview?placeid=${placeId}`;
-
-    // Plano Free: pula o filtro, vai direto pro Google
-    if (bizPlan !== "pro") {
-      show("stepPositive");
-    }
-  } catch {}
-}
-loadBusiness();
 
 // Anti-dupla avaliação
 function checkDuplicate() {
@@ -164,6 +155,46 @@ function checkDuplicate() {
 function markReviewed() {
   localStorage.setItem(`rz_reviewed_${placeId}`, Date.now().toString());
 }
+
+// Carrega info do negócio
+async function loadBusiness() {
+  if (!placeId) {
+    document.getElementById("bizName").textContent = "Negócio não encontrado";
+    document.getElementById("bizSub").textContent = "Link inválido — peça um novo ao estabelecimento";
+    return;
+  }
+  try {
+    const res = await fetch(`/api/bizinfo?place_id=${placeId}`);
+    const data = await res.json();
+    if (data.name) {
+      document.getElementById("bizName").textContent = data.name;
+      document.getElementById("bizSub").textContent = `⭐ ${data.rating ?? "—"} · ${data.total ?? 0} avaliações no Google`;
+      document.querySelectorAll(".js-google-biz").forEach(el => el.textContent = data.name);
+    }
+    bizPlan = data.plan || "free";
+
+    // Link direto pro Google Reviews em ambas as steps que mostram o botão
+    const googleUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
+    document.querySelectorAll(".js-google-link").forEach(el => el.href = googleUrl);
+
+    // Anti-dupla: se já avaliou nos últimos 30 dias, mostra "Obrigado" sem fluxo
+    if (checkDuplicate()) {
+      show("stepThanks");
+      return;
+    }
+
+    // Roteamento por plano: Pro entra na peneira, Free vai direto
+    if (bizPlan === "pro") {
+      show("stepFeeling");
+    } else {
+      show("stepDirect");
+    }
+  } catch {
+    document.getElementById("bizName").textContent = "Erro ao carregar";
+    document.getElementById("bizSub").textContent = "Tente novamente em instantes";
+  }
+}
+loadBusiness();
 
 // Funções de navegação
 function goPositive() {
@@ -210,7 +241,7 @@ async function sendFeedback() {
 }
 
 function show(stepId) {
-  ["stepFeeling","stepPositive","stepNegative","stepThanks"].forEach(id => {
+  ["stepFeeling","stepDirect","stepPositive","stepNegative","stepThanks"].forEach(id => {
     document.getElementById(id).style.display = id===stepId ? "block" : "none";
   });
 }
