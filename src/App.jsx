@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Star, MessageSquare, TrendingUp, Bell, LayoutDashboard, Award, ChevronRight, X, Check, RefreshCw, AlertCircle, ThumbsUp, Clock, MapPin, Gift, Smartphone, Settings, ExternalLink, ChevronDown, Link2, ShieldCheck, Building2, ArrowRight, Zap, LogOut, Menu } from "lucide-react";
+import { Star, MessageSquare, TrendingUp, Bell, LayoutDashboard, Award, ChevronRight, X, Check, RefreshCw, AlertCircle, ThumbsUp, Clock, MapPin, Gift, Smartphone, Settings, ExternalLink, ChevronDown, Link2, ShieldCheck, Building2, ArrowRight, Zap, LogOut, Menu, Copy, CreditCard, Mail } from "lucide-react";
 
 // ── USUÁRIOS PERMITIDOS ───────────────────────────────────
 const USERS = [
@@ -267,6 +267,7 @@ export default function ReputaZap({ user, onLogout }) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchMode, setSearchMode] = useState(false);
   const [savingBiz, setSavingBiz] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   // Carrega o negócio do usuário logado e seus reviews
   useEffect(() => {
@@ -296,7 +297,8 @@ export default function ReputaZap({ user, onLogout }) {
                   name: reviewData.name || data.business.name,
                   rating: reviewData.rating ?? data.business.rating,
                   total: reviewData.total ?? data.business.total_reviews,
-                  plan: data.business.plan || "free"
+                  plan: data.business.plan || "free",
+                  place_id: data.business.place_id
                 });
               } else {
                 // Sem reviews ainda, mas mostra os dados do negócio
@@ -304,7 +306,8 @@ export default function ReputaZap({ user, onLogout }) {
                   name: data.business.name,
                   rating: data.business.rating,
                   total: data.business.total_reviews,
-                  plan: data.business.plan || "free"
+                  plan: data.business.plan || "free",
+                  place_id: data.business.place_id
                 });
               }
               setGoogleConnected(true);
@@ -524,77 +527,177 @@ export default function ReputaZap({ user, onLogout }) {
           </div>
 
           {/* ─ DASHBOARD ─ */}
-          {tab==="dashboard"&&(
+          {tab==="dashboard"&&(() => {
+            const directLink = bizInfo?.place_id ? `${window.location.origin}/avaliar.html?place_id=${bizInfo.place_id}` : "";
+            const copyLink = () => {
+              if (!directLink) return;
+              navigator.clipboard.writeText(directLink);
+              setCopiedLink(true);
+              setTimeout(()=>setCopiedLink(false),2000);
+            };
+            return (
             <div style={{animation:"fadeUp 0.4s ease"}}>
-              {!isPro&&bizInfo&&(
-                <div onClick={()=>setTab("plano")} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:14,background:"linear-gradient(135deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:14,padding:"14px 18px",marginBottom:20}}>
-                  <div style={{width:36,height:36,borderRadius:10,background:"#1a73e8",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Zap size={18} color="#fff"/></div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:2}}>Ative a peneira de avaliações</div>
-                    <div style={{fontSize:12,color:"#9ca3af",lineHeight:1.5}}>Filtre negativos antes de chegar no Google. Disponível no plano Pro.</div>
+
+              {/* ── ZONA 1: Status do negócio ── */}
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:"18px 22px",marginBottom:24,display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
+                <div style={{width:44,height:44,borderRadius:12,background:"linear-gradient(135deg,#ea4335 0%,#fbbc04 33%,#34a853 66%,#4285f4 100%)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <Building2 size={20} color="#fff"/>
+                </div>
+                <div style={{flex:1,minWidth:200}}>
+                  <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:3}}>Seu negócio no Google</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#0f172a",lineHeight:1.2}}>{biz}</div>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:18,flexWrap:"wrap"}}>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6,justifyContent:"flex-end"}}>
+                      <Star size={15} fill="#f59e0b" color="#f59e0b"/>
+                      <span style={{fontSize:18,fontWeight:700,color:"#0f172a"}}>{avgRating}</span>
+                    </div>
+                    <div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>{bizInfo?.total ?? 0} avaliações</div>
                   </div>
-                  <ArrowRight size={16} color="#1a73e8"/>
-                </div>
-              )}
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:16,marginBottom:24}}>
-                <Metric icon={Star} label="Nota Média" value={avgRating} sub={`${bizInfo?.total ?? reviews.length} avaliações no Google`} color="#f59e0b" bg="#fef3c7"/>
-                <Metric icon={MessageSquare} label="Sem Resposta" value={pending} sub="nas últimas 5" color="#ef4444" bg="#fef2f2"/>
-                <Metric icon={Gift} label="Via NFC" value={nfcCount} sub="nas últimas 5" color="#1a73e8" bg="#ecfdf5"/>
-                <Metric icon={AlertCircle} label="Negativas" value={negative} sub="nas últimas 5" color="#f97316" bg="#fffbeb"/>
-              </div>
-
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-                <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24}}>
-                  <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:18}}>Distribuição de Notas</div>
-                  {[5,4,3,2,1].map(s=>{
-                    const cnt=reviews.filter(r=>r.rating===s).length;
-                    const pct=Math.round(cnt/reviews.length*100);
-                    return (
-                      <div key={s} style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-                        <span style={{fontSize:12,color:"#9ca3af",fontWeight:600,width:16}}>{s}</span>
-                        <Star size={11} fill="#f59e0b" color="#f59e0b"/>
-                        <div style={{flex:1,height:8,background:"#e5e7eb",borderRadius:4,overflow:"hidden"}}>
-                          <div style={{height:"100%",width:`${pct}%`,background:rc(s),borderRadius:4}}/>
-                        </div>
-                        <span style={{fontSize:11,color:"#9ca3af",width:16,textAlign:"right"}}>{cnt}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div style={{background:"linear-gradient(145deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:16,padding:24}}>
-                  <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4}}>Plaquinha NFC</div>
-                  <div style={{fontSize:12,color:"#9ca3af",marginBottom:16}}>Reviews capturados este mês</div>
-                  <div style={{fontSize:48,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#1a73e8",lineHeight:1,marginBottom:18}}>{nfcCount}</div>
-                  <div style={{display:"flex",gap:8}}>
-                    <button onClick={()=>setTab("capturar")} className="bg" style={{background:"#1a73e8",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:5}}><Settings size={12}/> Detalhes</button>
-                    <button onClick={()=>setShowPreview(true)} className="bg" style={{background:"#e8f0fe",color:"#059669",border:"1px solid #a7f3d0",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:5}}><Smartphone size={12}/> Preview</button>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-                  <div style={{fontSize:14,fontWeight:600,color:"#0f172a"}}>Recentes sem resposta</div>
-                  <div onClick={()=>setTab("reviews")} style={{fontSize:12,color:"#1a73e8",cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>Ver todas<ChevronRight size={13}/></div>
-                </div>
-                {reviews.filter(r=>!r.replied).slice(0,3).map(r=>(
-                  <div key={r.id} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"12px 0",borderBottom:"1px solid #e5e7eb"}}>
-                    <Av initials={r.avatar}/>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
-                        <span style={{fontSize:13,fontWeight:600,color:"#0f172a"}}>{r.author}</span>
-                        <Stars rating={r.rating} size={11}/>
-                        {r.via==="nfc"&&<span style={{fontSize:10,background:"#e8f0fe",color:"#1a73e8",borderRadius:5,padding:"1px 6px",fontWeight:600}}>NFC</span>}
-                        <span style={{fontSize:11,color:"#9ca3af",marginLeft:"auto"}}>{r.date}</span>
-                      </div>
-                      <div style={{fontSize:12,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.text}</div>
+                  <div style={{height:32,width:1,background:"#e5e7eb"}}/>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.08em",borderRadius:6,padding:"3px 10px",background:isPro?"#1a73e8":"#fef3c7",color:isPro?"#fff":"#92400e",display:"inline-block"}}>
+                      {isPro?"PLANO PRO":"PLANO FREE"}
+                    </div>
+                    <div onClick={()=>setTab("plano")} style={{fontSize:11,color:"#1a73e8",fontWeight:600,marginTop:4,cursor:"pointer"}}>
+                      {isPro?"Gerenciar →":"Ver upgrade →"}
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
+
+              {/* ── ZONA 2: Como capturar avaliações (3 portas) ── */}
+              <div style={{marginBottom:28}}>
+                <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
+                  <div>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#0f172a",lineHeight:1.2}}>Como capturar avaliações</div>
+                    <div style={{fontSize:13,color:"#9ca3af",marginTop:3}}>3 formas de levar o cliente até o Google. Use as três e potencialize seus resultados.</div>
+                  </div>
+                </div>
+
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14}}>
+
+                  {/* Plaquinha de mesa */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:22,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
+                    <div style={{width:44,height:44,borderRadius:12,background:"#e8f0fe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🪧</div>
+                    <div>
+                      <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:4}}>Plaquinha de mesa</div>
+                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Acrílico cristal com QR. Coloque no balcão ou mesa — cliente toca o celular e avalia em segundos.</div>
+                    </div>
+                    <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
+                      style={{marginTop:"auto",textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                      Comprar no Mercado Livre <ExternalLink size={12}/>
+                    </a>
+                  </div>
+
+                  {/* Cartão NFC */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:22,display:"flex",flexDirection:"column",gap:10,position:"relative",opacity:0.85}}>
+                    <div style={{position:"absolute",top:14,right:14,fontSize:9,fontWeight:700,letterSpacing:"0.08em",background:"#fef3c7",color:"#92400e",borderRadius:5,padding:"3px 7px"}}>EM BREVE</div>
+                    <div style={{width:44,height:44,borderRadius:12,background:"#f5f3ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>💳</div>
+                    <div>
+                      <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:4}}>Cartão NFC</div>
+                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Tamanho de cartão de visita. Leve no bolso e mostre ao cliente — ele aproxima o celular e avalia.</div>
+                    </div>
+                    <button disabled
+                      style={{marginTop:"auto",background:"#f3f4f6",color:"#9ca3af",border:"1px dashed #d1d5db",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,cursor:"not-allowed"}}>
+                      Avise-me quando lançar
+                    </button>
+                  </div>
+
+                  {/* Link direto */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:22,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
+                    <div style={{width:44,height:44,borderRadius:12,background:"#ecfdf5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🔗</div>
+                    <div>
+                      <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:4}}>Link direto</div>
+                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Compartilhe no WhatsApp, redes sociais, recibo, email. O mesmo fluxo da plaquinha, sem hardware.</div>
+                    </div>
+                    {directLink ? (
+                      <>
+                        <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"8px 10px",fontSize:11,color:"#6b7280",fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                          {directLink}
+                        </div>
+                        <button onClick={copyLink} className="bg"
+                          style={{marginTop:"auto",background:copiedLink?"#059669":"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6,cursor:"pointer"}}>
+                          {copiedLink?<><Check size={13}/> Copiado!</>:<><Copy size={13}/> Copiar link</>}
+                        </button>
+                      </>
+                    ) : (
+                      <button onClick={()=>setTab("google")}
+                        style={{marginTop:"auto",background:"#fef3c7",color:"#92400e",border:"1px solid #fde68a",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,cursor:"pointer"}}>
+                        Conecte o Google primeiro
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* ── ZONA 3: Pro showcase (só Free) ── */}
+              {!isPro && (
+                <div style={{background:"linear-gradient(145deg,#0f172a 0%,#1e293b 100%)",borderRadius:18,padding:28,marginBottom:24,position:"relative",overflow:"hidden"}}>
+                  <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,background:"radial-gradient(circle,rgba(26,115,232,0.25),transparent 70%)",pointerEvents:"none"}}/>
+                  <div style={{position:"relative"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                      <Zap size={14} color="#fbbf24" fill="#fbbf24"/>
+                      <span style={{fontSize:11,fontWeight:700,color:"#fbbf24",letterSpacing:"0.1em",textTransform:"uppercase"}}>Plano Pro</span>
+                    </div>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#fff",lineHeight:1.2,marginBottom:6}}>Proteja sua nota no Google</div>
+                    <div style={{fontSize:14,color:"#cbd5e1",marginBottom:22,lineHeight:1.6,maxWidth:520}}>A peneira inteligente filtra clientes insatisfeitos antes deles avaliarem publicamente. Reclamação vai pro seu email — não pro Google.</div>
+
+                    {/* Visual da peneira */}
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12,marginBottom:22}}>
+                      <div style={{background:"rgba(16,185,129,0.12)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
+                        <div style={{fontSize:24}}>😊</div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:12,fontWeight:700,color:"#a7f3d0",marginBottom:2}}>Cliente feliz</div>
+                          <div style={{fontSize:11,color:"#6ee7b7",display:"flex",alignItems:"center",gap:5}}>vai pro Google <ArrowRight size={11}/> ⭐⭐⭐⭐⭐</div>
+                        </div>
+                      </div>
+                      <div style={{background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
+                        <div style={{fontSize:24}}>😞</div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:12,fontWeight:700,color:"#fca5a5",marginBottom:2}}>Cliente insatisfeito</div>
+                          <div style={{fontSize:11,color:"#fda4af",display:"flex",alignItems:"center",gap:5}}>vai pro seu email <Mail size={11}/></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+                      <a href="https://wa.me/5511982882662?text=Quero%20fazer%20upgrade%20do%20ReputaZap%20pro%20plano%20Pro" target="_blank" rel="noreferrer"
+                        style={{textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"13px 22px",fontSize:14,fontWeight:700,display:"flex",alignItems:"center",gap:8}}>
+                        Quero o Pro <ArrowRight size={15}/>
+                      </a>
+                      <div style={{fontSize:13,color:"#cbd5e1"}}><span style={{color:"#fff",fontWeight:700}}>R$79/mês</span> · 14 dias grátis · sem fidelidade</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── ZONA 4: Últimas avaliações ── */}
+              {reviews.length>0 && (
+                <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:22}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+                    <div style={{fontSize:14,fontWeight:600,color:"#0f172a"}}>Últimas avaliações no Google</div>
+                    <div onClick={()=>setTab("reviews")} style={{fontSize:12,color:"#1a73e8",cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>Ver todas<ChevronRight size={13}/></div>
+                  </div>
+                  {reviews.slice(0,3).map((r,i,arr)=>(
+                    <div key={r.id} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"12px 0",borderBottom:i<arr.length-1?"1px solid #f3f4f6":"none"}}>
+                      <Av initials={r.avatar}/>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
+                          <span style={{fontSize:13,fontWeight:600,color:"#0f172a"}}>{r.author}</span>
+                          <Stars rating={r.rating} size={11}/>
+                          <span style={{fontSize:11,color:"#9ca3af",marginLeft:"auto"}}>{r.date}</span>
+                        </div>
+                        <div style={{fontSize:12,color:"#6b7280",lineHeight:1.5,overflow:"hidden",textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{r.text}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+            );
+          })()}
 
           {/* ─ REVIEWS ─ */}
           {tab==="reviews"&&(
