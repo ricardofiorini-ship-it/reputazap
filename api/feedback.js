@@ -61,10 +61,10 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).end();
 
-  const { place_id, text, rating, id, decision, contact, would_have_reviewed_negative } = req.body;
+  const { place_id, text, rating, id, decision, contact, would_have_reviewed_negative, resolved } = req.body;
 
-  // UPDATE: registra a decisão do cliente (resolver / publicar) e/ou contato num feedback já criado
-  if (id && (decision || contact !== undefined || would_have_reviewed_negative !== undefined)) {
+  // UPDATE: registra a decisão do cliente (resolver / publicar), contato ou marca como resolvido pelo dono
+  if (id && (decision || contact !== undefined || would_have_reviewed_negative !== undefined || resolved !== undefined)) {
     if (decision && !["wait", "public"].includes(decision)) {
       return res.status(400).json({ error: "decision inválida" });
     }
@@ -72,6 +72,7 @@ export default async function handler(req, res) {
     if (decision) patch.decision = decision;
     if (contact !== undefined) patch.contact = contact || null;
     if (would_have_reviewed_negative !== undefined) patch.would_have_reviewed_negative = !!would_have_reviewed_negative;
+    if (resolved !== undefined) patch.resolved_at = resolved ? new Date().toISOString() : null;
     const { error: updError } = await supabase
       .from("feedbacks")
       .update(patch)

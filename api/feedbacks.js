@@ -34,12 +34,13 @@ export default async function handler(req, res) {
 
     if (!business?.place_id) return res.json({ feedbacks: [] });
 
-    // Busca feedbacks com decision='wait' (aguardando contato/resolução)
+    // Busca feedbacks com decision='wait' que ainda não foram marcados como resolvidos pelo dono
     const { data: feedbacks, error } = await supabase
       .from("feedbacks")
       .select("id, text, rating, contact, created_at")
       .eq("place_id", business.place_id)
       .eq("decision", "wait")
+      .is("resolved_at", null)
       .order("created_at", { ascending: false })
       .limit(20);
 
