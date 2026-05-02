@@ -535,6 +535,16 @@ export default function ReputaZap({ user, onLogout }) {
               setCopiedLink(true);
               setTimeout(()=>setCopiedLink(false),2000);
             };
+            const flowBadge = (
+              <div style={{display:"flex",alignItems:"center",gap:6,fontSize:11,fontWeight:600,padding:"6px 10px",borderRadius:8,lineHeight:1.4,
+                color:isPro?"#059669":"#1d4ed8",
+                background:isPro?"#ecfdf5":"#eff6ff",
+                border:`1px solid ${isPro?"#a7f3d0":"#bfdbfe"}`}}>
+                {isPro
+                  ? <><ShieldCheck size={11} style={{flexShrink:0}}/> Peneira: positivas → Google, negativas → seu email</>
+                  : <><ArrowRight size={11} style={{flexShrink:0}}/> Plano Free: vai direto pro Google</>}
+              </div>
+            );
             return (
             <div style={{animation:"fadeUp 0.4s ease"}}>
 
@@ -567,18 +577,18 @@ export default function ReputaZap({ user, onLogout }) {
                 </div>
               </div>
 
-              {/* ── ZONA 2: Como capturar avaliações (3 portas) ── */}
+              {/* ── ZONA 2: Como capturar avaliações ── */}
               <div style={{marginBottom:28}}>
                 <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
                   <div>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#0f172a",lineHeight:1.2}}>Como capturar avaliações</div>
-                    <div style={{fontSize:13,color:"#9ca3af",marginTop:3}}>Hardware físico pra colocar no seu negócio + canais digitais Pro pra compartilhar onde quiser.</div>
+                    <div style={{fontSize:13,color:"#9ca3af",marginTop:3}}>Todos os 6 produtos funcionam no seu plano. {isPro?"Com peneira ativa, só positivas vão pro Google.":"No Free, todas as avaliações vão direto pro Google."}</div>
                   </div>
                 </div>
 
                 {/* Hardware (4 produtos físicos) */}
-                <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10}}>Hardware NFC + QR</div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:14,marginBottom:22}}>
+                <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10}}>Hardware · compre e instale</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14,marginBottom:22}}>
 
                   {/* 1. Placa de balcão */}
                   <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:10}}>
@@ -587,6 +597,7 @@ export default function ReputaZap({ user, onLogout }) {
                       <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Placa de balcão</div>
                       <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Fica em pé no balcão ou caixa. Cliente vê na hora de pagar e avalia.</div>
                     </div>
+                    {flowBadge}
                     <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
                       style={{marginTop:"auto",textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
                       Comprar no Mercado Livre <ExternalLink size={11}/>
@@ -600,6 +611,7 @@ export default function ReputaZap({ user, onLogout }) {
                       <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Plaquinha de mesa</div>
                       <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Pequena, ideal para restaurantes. Cliente avalia enquanto espera o prato.</div>
                     </div>
+                    {flowBadge}
                     <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
                       style={{marginTop:"auto",textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
                       Comprar no Mercado Livre <ExternalLink size={11}/>
@@ -613,6 +625,7 @@ export default function ReputaZap({ user, onLogout }) {
                       <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Placa de parede</div>
                       <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Fixe na saída ou área de espera. Visibilidade máxima, todo mundo vê.</div>
                     </div>
+                    {flowBadge}
                     <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
                       style={{marginTop:"auto",textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
                       Comprar no Mercado Livre <ExternalLink size={11}/>
@@ -626,6 +639,7 @@ export default function ReputaZap({ user, onLogout }) {
                       <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Cartões NFC</div>
                       <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Tamanho de cartão de visita. Garçom mostra ao cliente ou cliente leva pra casa.</div>
                     </div>
+                    {flowBadge}
                     <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
                       style={{marginTop:"auto",textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
                       Comprar no Mercado Livre <ExternalLink size={11}/>
@@ -633,21 +647,18 @@ export default function ReputaZap({ user, onLogout }) {
                   </div>
                 </div>
 
-                {/* Digital (QR + Link, exclusivos Pro) */}
-                <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
-                  Digital · sem hardware
-                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.08em",background:"#1a73e8",color:"#fff",borderRadius:5,padding:"2px 6px",display:"flex",alignItems:"center",gap:3}}><Lock size={8}/> PRO</span>
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14}}>
+                {/* Digital (QR + Link, prontos pra usar) */}
+                <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10}}>Digital · pronto pra usar agora</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:14}}>
 
                   {/* 5. QR Code */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:10}}>
                     <div style={{display:"flex",alignItems:"flex-start",gap:14}}>
-                      {isPro && directLink ? (
+                      {directLink ? (
                         <img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(directLink)}`} alt="QR Code" style={{width:64,height:64,borderRadius:8,border:"1px solid #e5e7eb",flexShrink:0}}/>
                       ) : (
                         <div style={{width:64,height:64,borderRadius:8,background:"#f3f4f6",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"1px dashed #d1d5db"}}>
-                          <Lock size={20} color="#9ca3af"/>
+                          <AlertCircle size={20} color="#9ca3af"/>
                         </div>
                       )}
                       <div style={{flex:1,minWidth:0}}>
@@ -655,12 +666,8 @@ export default function ReputaZap({ user, onLogout }) {
                         <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Imprima e cole em cardápios, recibos, comandas ou suas próprias placas.</div>
                       </div>
                     </div>
-                    {!isPro ? (
-                      <button onClick={()=>setTab("plano")}
-                        style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-                        <Zap size={12}/> Desbloquear no Pro
-                      </button>
-                    ) : directLink ? (
+                    {flowBadge}
+                    {directLink ? (
                       <a href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(directLink)}`} target="_blank" rel="noreferrer"
                         style={{marginTop:"auto",textDecoration:"none",background:"#0f172a",color:"#fff",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
                         Baixar QR Code <ExternalLink size={11}/>
@@ -674,7 +681,7 @@ export default function ReputaZap({ user, onLogout }) {
                   </div>
 
                   {/* 6. Link direto */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:10}}>
                     <div style={{display:"flex",alignItems:"flex-start",gap:14}}>
                       <div style={{width:64,height:64,borderRadius:12,background:"#fef2f2",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,flexShrink:0}}>🔗</div>
                       <div style={{flex:1,minWidth:0}}>
@@ -682,12 +689,8 @@ export default function ReputaZap({ user, onLogout }) {
                         <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>URL pra compartilhar no WhatsApp, redes sociais, email, assinatura.</div>
                       </div>
                     </div>
-                    {!isPro ? (
-                      <button onClick={()=>setTab("plano")}
-                        style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-                        <Zap size={12}/> Desbloquear no Pro
-                      </button>
-                    ) : directLink ? (
+                    {flowBadge}
+                    {directLink ? (
                       <>
                         <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"8px 10px",fontSize:11,color:"#6b7280",fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                           {directLink}
