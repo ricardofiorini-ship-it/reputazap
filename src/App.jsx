@@ -692,8 +692,10 @@ export default function ReputaZap({ user, onLogout }) {
                   </div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14}}>
                   {/* Hoje no seu plano (Free) */}
-                  <div style={{background:"#0f172a",borderRadius:18,padding:"22px 22px 26px",position:"relative"}}>
-                    <div style={{position:"absolute",top:-8,right:14,fontSize:9,fontWeight:700,letterSpacing:"0.1em",background:"#475569",color:"#fff",borderRadius:5,padding:"3px 8px",textTransform:"uppercase"}}>Você está aqui</div>
+                  <div style={{background:"#0f172a",borderRadius:18,padding:"22px 22px 26px"}}>
+                    <div style={{display:"flex",justifyContent:"center",marginBottom:12}}>
+                      <span style={{fontSize:10,fontWeight:700,letterSpacing:"0.1em",background:"#475569",color:"#fff",borderRadius:999,padding:"4px 12px",textTransform:"uppercase"}}>Você está aqui</span>
+                    </div>
                     <div style={{fontSize:10,fontWeight:700,color:"#fca5a5",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Hoje no seu plano</div>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#fff",lineHeight:1.25,marginBottom:14}}>Tudo vai direto pro Google</div>
                     <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -714,7 +716,7 @@ export default function ReputaZap({ user, onLogout }) {
                     <div style={{fontSize:13,color:"#fca5a5",fontWeight:600,marginTop:14,lineHeight:1.4}}>Você descobre depois que já está público.</div>
                   </div>
                   {/* Com Pro */}
-                  <div style={{background:"#0a1f14",borderRadius:18,padding:"22px 22px 26px",border:"1.5px solid #1a73e8",boxShadow:"0 0 0 4px rgba(26,115,232,0.15), 0 12px 32px -8px rgba(26,115,232,0.35)"}}>
+                  <div style={{background:"#0a1f14",borderRadius:18,padding:"22px 22px 26px",border:"1.5px solid #10b981",boxShadow:"0 0 0 4px rgba(16,185,129,0.15), 0 12px 32px -8px rgba(16,185,129,0.35)"}}>
                     <div style={{fontSize:10,fontWeight:700,color:"#a7f3d0",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Com Pro</div>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#fff",lineHeight:1.25,marginBottom:14}}>Você ouve antes</div>
                     <div style={{display:"flex",flexDirection:"column",gap:8}}>
