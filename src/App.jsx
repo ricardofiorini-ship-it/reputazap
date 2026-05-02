@@ -646,7 +646,7 @@ export default function ReputaZap({ user, onLogout }) {
                   <div style={{marginTop:22,paddingTop:20,borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
                     <a href={upgradeUrl} target="_blank" rel="noreferrer"
                       style={{textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"13px 22px",fontSize:14,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8}}>
-                      <ShieldCheck size={16}/> Evitar avaliações negativas agora
+                      <ShieldCheck size={16}/> Resolver antes de virar pública
                     </a>
                     <div style={{fontSize:12,color:"#94a3b8"}}>R$79/mês · 14 dias grátis · sem fidelidade</div>
                   </div>

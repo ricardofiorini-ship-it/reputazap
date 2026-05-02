@@ -10,46 +10,58 @@
   body{background:#f8fafc;font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   @keyframes confettiFall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
-  @keyframes bounce{0%,100%{transform:translateY(0)}40%{transform:translateY(-16px)}70%{transform:translateY(-8px)}}
-  .card{width:100%;max-width:360px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.12);animation:fadeUp 0.4s ease;}
-  .header{background:#fff;padding:24px 24px 20px;text-align:center;border-bottom:1px solid #e5e7eb;}
-  .logo{display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  .card{width:100%;max-width:380px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.12);animation:fadeUp 0.4s ease;}
+  .header{background:#fff;padding:22px 24px 18px;text-align:center;border-bottom:1px solid #e5e7eb;}
+  .logo{display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
   .biz-name{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#0f172a;}
   .biz-sub{font-size:11px;color:#64748b;margin-top:3px;}
   .body{padding:28px 24px 32px;}
-  .question{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#0f172a;text-align:center;margin-bottom:6px;line-height:1.3;}
-  .question-sub{font-size:13px;color:#64748b;text-align:center;margin-bottom:28px;}
-  .feelings{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px;}
-  .feeling{border-radius:16px;padding:16px 8px;text-align:center;border:2px solid;cursor:pointer;transition:transform .1s;}
+
+  /* Step base */
+  .step{animation:fadeUp 0.35s ease;}
+  .step.hidden{display:none;}
+  .question{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:#0f172a;text-align:center;margin-bottom:6px;line-height:1.3;}
+  .question-sub{font-size:13px;color:#64748b;text-align:center;margin-bottom:24px;line-height:1.55;}
+  .icon-big{font-size:46px;text-align:center;display:block;margin-bottom:14px;}
+
+  /* Feelings (entry Pro) */
+  .feelings{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  .feeling{border-radius:16px;padding:16px 8px;text-align:center;border:2px solid;cursor:pointer;transition:transform .1s;background:#fff;}
   .feeling:active{transform:scale(0.95);}
   .feeling-g{background:#ecfdf5;border-color:#a7f3d0;}
   .feeling-y{background:#fffbeb;border-color:#fde68a;}
   .feeling-r{background:#fff1f2;border-color:#fecdd3;}
-  .feeling-emoji{font-size:28px;display:block;margin-bottom:6px;}
+  .feeling-emoji{font-size:30px;display:block;margin-bottom:6px;}
   .feeling-label{font-size:11px;font-weight:700;}
   .feeling-g .feeling-label{color:#059669;}
   .feeling-y .feeling-label{color:#d97706;}
   .feeling-r .feeling-label{color:#e11d48;}
 
-  /* Positive */
-  .google-box{background:#f8fafc;border-radius:14px;padding:14px 16px;margin-bottom:20px;border:1px solid #e2e8f0;}
+  /* Google card */
+  .google-box{background:#f8fafc;border-radius:14px;padding:14px 16px;margin-bottom:18px;border:1px solid #e2e8f0;}
   .google-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
   .google-logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#ea4335 0%,#fbbc04 33%,#34a853 66%,#4285f4 100%);}
   .google-name{font-size:13px;font-weight:700;color:#0f172a;}
   .google-sub{font-size:11px;color:#64748b;}
-  .stars{display:flex;gap:3px;}
-  .star{font-size:18px;color:#f59e0b;}
+  .stars-row{font-size:18px;letter-spacing:1px;}
+
+  /* Buttons */
   .btn{width:100%;padding:15px;border:none;border-radius:14px;font-size:15px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;text-decoration:none;}
+  .btn-primary{background:#0f172a;color:#fff;}
+  .btn-primary:hover{background:#1e293b;transform:translateY(-1px);}
   .btn-google{background:linear-gradient(135deg,#10b981,#0d9488);color:#fff;}
-  .btn-google:hover{opacity:.9;transform:translateY(-1px);}
-  .btn-back{background:none;border:none;color:#94a3b8;font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:10px;width:100%;text-align:center;}
+  .btn-google:hover{opacity:.92;transform:translateY(-1px);}
+  .btn-secondary{background:transparent;color:#475569;border:1.5px solid #e2e8f0;font-weight:600;font-size:14px;padding:13px;}
+  .btn-secondary:hover{border-color:#cbd5e1;background:#f8fafc;}
+  .btn-back{background:none;border:none;color:#94a3b8;font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:12px;width:100%;text-align:center;padding:8px;}
+  .btn-stack{display:flex;flex-direction:column;gap:10px;}
 
-  /* Negative */
-  textarea{width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 14px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;outline:none;resize:none;line-height:1.6;}
-  textarea:focus{border-color:#10b981;}
+  /* Resolver-first hint */
+  .resolver-tag{display:inline-flex;align-items:center;gap:6px;background:#ecfdf5;border:1px solid #a7f3d0;color:#059669;font-size:11px;font-weight:700;letter-spacing:0.05em;padding:4px 10px;border-radius:8px;margin-bottom:14px;text-transform:uppercase;}
 
-  /* Thanks */
-  .thanks{text-align:center;padding:8px 0;}
+  /* Textarea */
+  textarea{width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 14px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;outline:none;resize:none;line-height:1.6;margin-bottom:14px;}
+  textarea:focus{border-color:#0f172a;}
 
   /* Confetti */
   .confetti-piece{position:fixed;top:-20px;pointer-events:none;animation:confettiFall 1.2s ease-in forwards;}
@@ -66,19 +78,20 @@
   </div>
 
   <div class="body" id="bodyContent">
-    <!-- FEELING (Pro: peneira positivo/negativo) -->
-    <div id="stepFeeling" style="display:none">
-      <div class="question">Como foi sua experiência?</div>
+
+    <!-- ENTRY PRO: pergunta neutra -->
+    <div id="stepFeeling" class="step hidden">
+      <div class="question">Como foi sua experiência hoje?</div>
       <div class="question-sub">Sua opinião nos ajuda a melhorar sempre</div>
       <div class="feelings">
-        <div class="feeling feeling-g" onclick="goPositive()"><span class="feeling-emoji">😊</span><span class="feeling-label">Ótima!</span></div>
-        <div class="feeling feeling-y" onclick="goNegative(3)"><span class="feeling-emoji">😐</span><span class="feeling-label">Ok</span></div>
-        <div class="feeling feeling-r" onclick="goNegative(1)"><span class="feeling-emoji">😞</span><span class="feeling-label">Ruim</span></div>
+        <div class="feeling feeling-g" onclick="onFeeling('positive')"><span class="feeling-emoji">😊</span><span class="feeling-label">Ótima</span></div>
+        <div class="feeling feeling-y" onclick="onFeeling('neutral')"><span class="feeling-emoji">😐</span><span class="feeling-label">Ok</span></div>
+        <div class="feeling feeling-r" onclick="onFeeling('negative')"><span class="feeling-emoji">😞</span><span class="feeling-label">Ruim</span></div>
       </div>
     </div>
 
-    <!-- DIRECT (Free: vai direto pro Google, sem peneira) -->
-    <div id="stepDirect" style="display:none">
+    <!-- ENTRY FREE: vai direto pro Google sem peneira -->
+    <div id="stepDirect" class="step hidden">
       <div class="question" style="margin-bottom:6px">Avalie no Google</div>
       <div class="question-sub" style="margin-bottom:20px">Sua opinião é importante. Leva menos de 30 segundos.</div>
       <div class="google-box">
@@ -86,60 +99,94 @@
           <div class="google-logo"></div>
           <div><div class="google-name js-google-biz">Carregando...</div><div class="google-sub">Google Meu Negócio</div></div>
         </div>
-        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <div class="stars-row">⭐⭐⭐⭐⭐</div>
       </div>
-      <a class="btn btn-google js-google-link" href="#" target="_blank" onclick="handleGoogleClick()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      <a class="btn btn-google js-google-link" href="#" target="_blank" onclick="onGoogleClick()">
         Avaliar no Google
       </a>
     </div>
 
-    <!-- POSITIVE (Pro: cliente feliz vai pro Google) -->
-    <div id="stepPositive" style="display:none">
-      <div class="question" style="margin-bottom:6px">Que ótimo!</div>
-      <div class="question-sub" style="margin-bottom:20px">Deixa uma avaliação rápida no Google. Leva 30 segundos.</div>
+    <!-- POSITIVO (Pro Ótima): reforço + Google -->
+    <div id="stepPositive" class="step hidden">
+      <span class="icon-big">🎉</span>
+      <div class="question">Que ótimo ouvir isso!</div>
+      <div class="question-sub">Sua opinião pode ajudar outras pessoas a conhecerem o negócio.</div>
       <div class="google-box">
         <div class="google-row">
           <div class="google-logo"></div>
           <div><div class="google-name js-google-biz">Carregando...</div><div class="google-sub">Google Meu Negócio</div></div>
         </div>
-        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <div class="stars-row">⭐⭐⭐⭐⭐</div>
       </div>
-      <a class="btn btn-google js-google-link" href="#" target="_blank" onclick="handleGoogleClick()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      <a class="btn btn-google js-google-link" href="#" target="_blank" onclick="onGoogleClick()">
         Avaliar no Google
       </a>
-      <button class="btn-back" onclick="goBack()">Voltar</button>
+      <button class="btn-back" onclick="show('stepFeeling')">Voltar</button>
     </div>
 
-    <!-- NEGATIVE -->
-    <div id="stepNegative" style="display:none">
-      <div class="question" style="margin-bottom:6px">Nos conte o que aconteceu</div>
-      <div class="question-sub" style="margin-bottom:16px">Seu feedback vai direto para nossa equipe.</div>
-      <textarea id="feedbackText" rows="4" placeholder="O que poderia ter sido melhor?"></textarea>
-      <button class="btn btn-google" style="margin-top:14px" onclick="sendFeedback()">Enviar feedback</button>
-      <button class="btn-back" onclick="goBack()">Voltar</button>
+    <!-- NEUTRO: coleta feedback Ok -->
+    <div id="stepNeutralFeedback" class="step hidden">
+      <span class="icon-big">💬</span>
+      <div class="question">Queremos ouvir você primeiro</div>
+      <div class="question-sub">O que poderia ter sido melhor?</div>
+      <textarea id="neutralText" rows="4" placeholder="Conte pra gente o que aconteceu..."></textarea>
+      <button class="btn btn-primary" onclick="submitFeedback('neutral')">Enviar feedback</button>
+      <button class="btn-back" onclick="show('stepFeeling')">Voltar</button>
     </div>
 
-    <!-- THANKS -->
-    <div id="stepThanks" style="display:none">
-      <div class="thanks">
-        <div style="font-size:48px;margin-bottom:14px;">🙏</div>
-        <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#0f172a;margin-bottom:8px;">Obrigado!</div>
-        <div style="font-size:13px;color:#64748b;line-height:1.7;">Sua opinião nos ajuda a melhorar. Vamos analisar e entrar em contato em breve.</div>
+    <!-- NEUTRO: escolha pós-feedback -->
+    <div id="stepNeutralChoice" class="step hidden">
+      <span class="icon-big">✓</span>
+      <div class="resolver-tag" style="display:flex;justify-content:center;width:fit-content;margin:0 auto 14px">Caminho recomendado</div>
+      <div class="question">Recebemos seu feedback</div>
+      <div class="question-sub">O responsável vai analisar e entrar em contato. O que você prefere agora?</div>
+      <div class="btn-stack">
+        <button class="btn btn-primary" onclick="chooseDecision('wait')">Aguardar contato do negócio</button>
+        <a class="btn btn-secondary js-google-link" href="#" target="_blank" onclick="chooseDecision('public', true)">Avaliar publicamente no Google</a>
       </div>
     </div>
+
+    <!-- NEGATIVO: empatia + coleta -->
+    <div id="stepNegativeFeedback" class="step hidden">
+      <span class="icon-big">🤝</span>
+      <div class="question">Lamentamos sua experiência</div>
+      <div class="question-sub">Conta pra gente o que aconteceu pra podermos resolver. Sua mensagem vai direto pro responsável.</div>
+      <textarea id="negativeText" rows="5" placeholder="O que aconteceu? Quanto mais detalhe, mais rápido conseguimos resolver."></textarea>
+      <button class="btn btn-primary" onclick="submitFeedback('negative')">Enviar feedback</button>
+      <button class="btn-back" onclick="show('stepFeeling')">Voltar</button>
+    </div>
+
+    <!-- NEGATIVO: escolha pós-feedback -->
+    <div id="stepNegativeChoice" class="step hidden">
+      <span class="icon-big">✓</span>
+      <div class="resolver-tag" style="display:flex;justify-content:center;width:fit-content;margin:0 auto 14px">Caminho recomendado</div>
+      <div class="question">Recebemos seu feedback</div>
+      <div class="question-sub">O responsável vai entrar em contato com você pra resolver. O que você prefere?</div>
+      <div class="btn-stack">
+        <button class="btn btn-primary" onclick="chooseDecision('wait')">Aguardar resolução primeiro</button>
+        <a class="btn btn-secondary js-google-link" href="#" target="_blank" onclick="chooseDecision('public', true)">Avaliar publicamente agora</a>
+      </div>
+    </div>
+
+    <!-- FINAL -->
+    <div id="stepThanks" class="step hidden">
+      <div style="text-align:center;padding:16px 0">
+        <div style="font-size:52px;margin-bottom:14px;" id="thanksIcon">🙏</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#0f172a;margin-bottom:10px;" id="thanksTitle">Obrigado pelo feedback!</div>
+        <div style="font-size:14px;color:#64748b;line-height:1.7;" id="thanksText">Sua opinião nos ajuda a melhorar.</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <script>
-// Pega o place_id da URL (aceita ?place_id=... ou legado ?place=...)
 const params = new URLSearchParams(window.location.search);
 const placeId = params.get("place_id") || params.get("place");
 let bizPlan = "free";
-let lastRating = null;
+let lastFeedbackId = null;
+let lastFeedbackKind = null; // 'neutral' | 'negative'
 
-// Anti-dupla avaliação
 function checkDuplicate() {
   const key = `rz_reviewed_${placeId}`;
   const last = localStorage.getItem(key);
@@ -154,7 +201,6 @@ function markReviewed() {
   localStorage.setItem(`rz_reviewed_${placeId}`, Date.now().toString());
 }
 
-// Carrega info do negócio
 async function loadBusiness() {
   if (!placeId) {
     document.getElementById("bizName").textContent = "Negócio não encontrado";
@@ -171,17 +217,15 @@ async function loadBusiness() {
     }
     bizPlan = data.plan || "free";
 
-    // Link direto pro Google Reviews em ambas as steps que mostram o botão
     const googleUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
     document.querySelectorAll(".js-google-link").forEach(el => el.href = googleUrl);
 
-    // Anti-dupla: se já avaliou nos últimos 30 dias, mostra "Obrigado" sem fluxo
     if (checkDuplicate()) {
+      setThanks("avaliacao-registrada");
       show("stepThanks");
       return;
     }
 
-    // Roteamento por plano: Pro entra na peneira, Free vai direto
     if (bizPlan === "pro") {
       show("stepFeeling");
     } else {
@@ -194,21 +238,57 @@ async function loadBusiness() {
 }
 loadBusiness();
 
-// Funções de navegação
-function goPositive() {
-  if (checkDuplicate()) {
-    alert("Você já avaliou este negócio recentemente. Obrigado!");
-    return;
+function onFeeling(kind) {
+  if (kind === "positive") {
+    show("stepPositive");
+  } else if (kind === "neutral") {
+    show("stepNeutralFeedback");
+  } else {
+    show("stepNegativeFeedback");
   }
-  show("stepPositive");
 }
 
-function goNegative(rating) { lastRating = rating; show("stepNegative"); }
-function goBack() { show("stepFeeling"); }
+async function submitFeedback(kind) {
+  const text = document.getElementById(kind === "negative" ? "negativeText" : "neutralText").value.trim();
+  if (!text) { alert("Escreva seu feedback antes de enviar."); return; }
+  const rating = kind === "negative" ? 1 : 3;
+  try {
+    const res = await fetch("/api/feedback", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ place_id: placeId, text, rating })
+    });
+    const data = await res.json();
+    lastFeedbackId = data.id || null;
+    lastFeedbackKind = kind;
+  } catch {}
+  show(kind === "negative" ? "stepNegativeChoice" : "stepNeutralChoice");
+}
 
-function handleGoogleClick() {
+async function chooseDecision(decision, alsoOpenGoogle) {
+  if (lastFeedbackId) {
+    try {
+      await fetch("/api/feedback", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ id: lastFeedbackId, decision })
+      });
+    } catch {}
+  }
+  if (decision === "public") {
+    markReviewed();
+    setThanks("publicado");
+  } else {
+    setThanks("aguardando");
+  }
+  // Quando alsoOpenGoogle=true, o link <a> abre o Google na nova aba naturalmente.
+  // Aqui só atualizamos a tela do cliente.
+  setTimeout(() => show("stepThanks"), alsoOpenGoogle ? 250 : 0);
+}
+
+function onGoogleClick() {
   markReviewed();
-  // Confetti!
+  // Confetti
   for(let i=0;i<20;i++) {
     const el=document.createElement("div");
     el.className="confetti-piece";
@@ -222,25 +302,36 @@ function handleGoogleClick() {
     document.body.appendChild(el);
     setTimeout(()=>el.remove(), 2000);
   }
-  setTimeout(()=>show("stepThanks"), 1000);
+  setThanks("publicado");
+  setTimeout(()=>show("stepThanks"), 900);
 }
 
-async function sendFeedback() {
-  const text = document.getElementById("feedbackText").value.trim();
-  if (!text) { alert("Escreva seu feedback antes de enviar."); return; }
-  try {
-    await fetch("/api/feedback", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ place_id: placeId, text, rating: lastRating })
-    });
-  } catch {}
-  show("stepThanks");
+function setThanks(kind) {
+  const icon = document.getElementById("thanksIcon");
+  const title = document.getElementById("thanksTitle");
+  const text = document.getElementById("thanksText");
+  if (kind === "publicado") {
+    icon.textContent = "🙏";
+    title.textContent = "Obrigado pela avaliação!";
+    text.textContent = "Sua opinião foi enviada ao Google.";
+  } else if (kind === "aguardando") {
+    icon.textContent = "🤝";
+    title.textContent = "Obrigado por nos avisar";
+    text.textContent = "O responsável vai entrar em contato em breve. Sua mensagem foi registrada com sucesso.";
+  } else if (kind === "avaliacao-registrada") {
+    icon.textContent = "✓";
+    title.textContent = "Avaliação já registrada";
+    text.textContent = "Você já avaliou este negócio recentemente. Obrigado!";
+  } else {
+    icon.textContent = "🙏";
+    title.textContent = "Obrigado pelo feedback!";
+    text.textContent = "Sua opinião nos ajuda a melhorar.";
+  }
 }
 
 function show(stepId) {
-  ["stepFeeling","stepDirect","stepPositive","stepNegative","stepThanks"].forEach(id => {
-    document.getElementById(id).style.display = id===stepId ? "block" : "none";
+  ["stepFeeling","stepDirect","stepPositive","stepNeutralFeedback","stepNeutralChoice","stepNegativeFeedback","stepNegativeChoice","stepThanks"].forEach(id => {
+    document.getElementById(id).classList.toggle("hidden", id !== stepId);
   });
 }
 </script>

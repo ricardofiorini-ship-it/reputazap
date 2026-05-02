@@ -61,15 +61,32 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).end();
 
-  const { place_id, text, rating } = req.body;
+  const { place_id, text, rating, id, decision } = req.body;
+
+  // UPDATE: registra a decisão do cliente (resolver / publicar) num feedback já criado
+  if (id && decision) {
+    if (!["wait", "public"].includes(decision)) {
+      return res.status(400).json({ error: "decision inválida" });
+    }
+    const { error: updError } = await supabase
+      .from("feedbacks")
+      .update({ decision })
+      .eq("id", id);
+    if (updError) console.error("[feedback] Erro ao atualizar decision:", updError);
+    return res.json({ ok: true });
+  }
+
   if (!place_id || !text) return res.status(400).json({ error: "place_id e text obrigatórios" });
 
   try {
-    // 1. Salva feedback
-    const { error: insertError } = await supabase
+    // 1. Salva feedback (sempre antes de redirecionar — regra de negócio)
+    const { data: inserted, error: insertError } = await supabase
       .from("feedbacks")
-      .insert({ place_id, text, rating: rating ?? null });
+      .insert({ place_id, text, rating: rating ?? null })
+      .select("id")
+      .single();
     if (insertError) console.error("[feedback] Erro ao salvar:", insertError);
+    const feedbackId = inserted?.id ?? null;
 
     // 2. Busca o negócio + email do dono
     const { data: biz } = await supabase
@@ -80,7 +97,7 @@ export default async function handler(req, res) {
 
     if (!biz) {
       console.warn("[feedback] Negócio não encontrado para place_id:", place_id);
-      return res.json({ ok: true, emailSent: false });
+      return res.json({ ok: true, id: feedbackId, emailSent: false });
     }
 
     // 3. Resolve email do destinatário (manager_email > auth email do dono)
@@ -91,12 +108,12 @@ export default async function handler(req, res) {
     }
     if (!recipient) {
       console.warn("[feedback] Sem email do destinatário pra place_id:", place_id);
-      return res.json({ ok: true, emailSent: false });
+      return res.json({ ok: true, id: feedbackId, emailSent: false });
     }
 
     // 4. Envia email
     const result = await sendEmail({ to: recipient, bizName: biz.name, rating, text });
-    res.json({ ok: true, emailSent: !result.skipped && !result.error, result });
+    res.json({ ok: true, id: feedbackId, emailSent: !result.skipped && !result.error, result });
   } catch (err) {
     console.error("[feedback] Erro inesperado:", err);
     res.status(500).json({ error: err.message });
