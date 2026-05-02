@@ -180,14 +180,14 @@
 <div class="screen" id="screen5">
   <div style="font-size:56px;text-align:center;margin-bottom:16px;">🎉</div>
   <h2>Conta criada!</h2>
-  <p class="sub">Tudo certo. Vamos te levar pro seu dashboard.</p>
+  <p class="sub" id="successSub">Tudo certo. Vamos te orientar a começar.</p>
   <div style="background:#ecfdf5;border:2px solid #a7f3d0;border-radius:14px;padding:16px 20px;text-align:center;margin-bottom:20px;">
     <div style="font-size:13px;color:#059669;margin-bottom:4px;font-weight:600;">Negócio cadastrado</div>
     <div style="font-size:16px;font-weight:700;color:#0f172a;" id="successBizName"></div>
     <div style="font-size:12px;color:#6b7280;margin-top:4px;" id="successPlan"></div>
   </div>
-  <a href="/app" style="text-decoration:none;" class="btn-primary">Acessar meu Dashboard →</a>
-  <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:12px;">Redirecionando automaticamente em 3 segundos...</p>
+  <a href="/comece" id="successCta" style="text-decoration:none;" class="btn-primary">Continuar →</a>
+  <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:12px;" id="successRedirectMsg">Redirecionando automaticamente em 3 segundos...</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -482,9 +482,18 @@ async function goToSuccess(){
   }
   document.getElementById("successBizName").textContent=state.business?.name||"Negócio";
   document.getElementById("successPlan").textContent="Plano Gratuito" + (state.tagCount > 0 ? ` · ${state.tagCount} placa(s) ativada(s)` : "");
-  goToStep(5);
+
   // Web vai pra orientação /comece; NFC já gravou placa, vai direto pro dashboard
   const dest = state.from === "web" ? "/comece" : "/app";
+  const cta = document.getElementById("successCta");
+  cta.href = dest;
+  cta.textContent = state.from === "web" ? "Continuar →" : "Acessar meu dashboard →";
+  document.getElementById("successSub").textContent = state.from === "web"
+    ? "Tudo certo. Vamos te orientar a começar."
+    : "Tudo certo. Vamos te levar pro seu dashboard.";
+  document.getElementById("successRedirectMsg").textContent = "Redirecionando automaticamente em 3 segundos...";
+
+  goToStep(5);
   setTimeout(()=>{ window.location.href = dest; }, 3000);
 }
 </script>
