@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Star, MessageSquare, TrendingUp, Bell, LayoutDashboard, Award, ChevronRight, X, Check, RefreshCw, AlertCircle, ThumbsUp, Clock, MapPin, Gift, Smartphone, Settings, ExternalLink, ChevronDown, Link2, ShieldCheck, Building2, ArrowRight, Zap, LogOut, Menu, Copy, CreditCard, Mail } from "lucide-react";
+import { Star, MessageSquare, TrendingUp, Bell, LayoutDashboard, Award, ChevronRight, X, Check, RefreshCw, AlertCircle, ThumbsUp, Clock, MapPin, Gift, Smartphone, Settings, ExternalLink, ChevronDown, Link2, ShieldCheck, Building2, ArrowRight, Zap, LogOut, Menu, Copy, CreditCard, Mail, Lock } from "lucide-react";
 
 // ── USUÁRIOS PERMITIDOS ───────────────────────────────────
 const USERS = [
@@ -607,12 +607,22 @@ export default function ReputaZap({ user, onLogout }) {
 
                   {/* Link direto */}
                   <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:22,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
+                    {!isPro && (
+                      <div style={{position:"absolute",top:14,right:14,fontSize:9,fontWeight:700,letterSpacing:"0.08em",background:"#1a73e8",color:"#fff",borderRadius:5,padding:"3px 8px",display:"flex",alignItems:"center",gap:4}}>
+                        <Lock size={9}/> PRO
+                      </div>
+                    )}
                     <div style={{width:44,height:44,borderRadius:12,background:"#ecfdf5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🔗</div>
                     <div>
                       <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:4}}>Link direto</div>
                       <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Compartilhe no WhatsApp, redes sociais, recibo, email. O mesmo fluxo da plaquinha, sem hardware.</div>
                     </div>
-                    {directLink ? (
+                    {!isPro ? (
+                      <button onClick={()=>setTab("plano")}
+                        style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                        <Zap size={13}/> Desbloquear no Pro
+                      </button>
+                    ) : directLink ? (
                       <>
                         <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"8px 10px",fontSize:11,color:"#6b7280",fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                           {directLink}
