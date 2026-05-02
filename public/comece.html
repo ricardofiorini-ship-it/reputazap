@@ -110,10 +110,13 @@
         <div class="card-visual qr"><div id="qrMini"></div></div>
         <div style="flex:1;min-width:0">
           <div class="card-title">QR Code próprio</div>
-          <div class="card-desc">Imprima e cole no cardápio, recibo, comanda ou balcão.</div>
+          <div class="card-desc">Imprima e cole no cardápio e deixe o cliente avaliar sozinho.</div>
         </div>
       </div>
       <a class="btn btn-primary" id="qrBtn" target="_blank" rel="noopener" onclick="onQrClick()">⬇ Baixar QR Code</a>
+      <div class="microcopy" id="qrMicrocopy" style="display:none;font-size:12px;color:#059669;text-align:center;line-height:1.5;margin-top:2px">
+        Imprima e teste com seu celular — o cliente faz o resto
+      </div>
     </div>
 
     <!-- 3. Placas inteligentes -->
@@ -122,18 +125,21 @@
         <div class="card-visual placa">🪧</div>
         <div style="flex:1;min-width:0">
           <div class="card-title">Placas inteligentes</div>
-          <div class="card-desc">Use placas NFC para capturar feedback automaticamente no balcão, mesa ou atendimento.</div>
+          <div class="card-desc">Capture avaliações automaticamente no balcão, sem precisar pedir.</div>
         </div>
       </div>
       <button class="btn btn-primary" onclick="openPlacasModal()">Ver placas</button>
+      <div class="microcopy" style="font-size:12px;color:#9ca3af;text-align:center;line-height:1.5;margin-top:2px">
+        Ideal para quem quer automatizar e não depender da equipe
+      </div>
     </div>
 
     <div class="divider"></div>
 
     <div class="next">
-      <div class="next-label" id="nextLabel">Já deu o primeiro passo?</div>
-      <button class="btn-dashboard" id="dashboardBtn" onclick="goToDashboard()">Ir pro dashboard →</button>
-      <button class="skip" onclick="skipOrientation()">Pular orientação</button>
+      <div class="next-label" id="nextLabel">Já começou?</div>
+      <button class="btn-dashboard" id="dashboardBtn" onclick="goToDashboard()">Ir para o dashboard →</button>
+      <button class="skip" onclick="skipOrientation()">Pular por enquanto</button>
     </div>
   </div>
 </div>
@@ -227,7 +233,6 @@ function markAction(label) {
     actionTaken = true;
     const btn = document.getElementById("dashboardBtn");
     btn.classList.add("highlighted");
-    document.getElementById("nextLabel").textContent = "Pronto! Agora pode acessar o dashboard.";
   }
 }
 
@@ -253,6 +258,7 @@ function copyLink() {
 }
 
 function onQrClick() {
+  document.getElementById("qrMicrocopy").style.display = "block";
   markAction("qr");
 }
 
