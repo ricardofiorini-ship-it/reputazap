@@ -80,8 +80,8 @@
   </div>
 
   <div id="content" style="display:none">
-    <h1>Comece a capturar feedback hoje</h1>
-    <p class="sub">Você já pode usar o ReputaZap sem placa</p>
+    <h1>Comece a receber avaliações dos seus clientes hoje</h1>
+    <p class="sub">Escolha uma forma simples de começar agora — sem instalar nada e em poucos minutos</p>
 
     <div class="biz-bar">
       <div class="biz-google"></div>
@@ -91,17 +91,22 @@
       </div>
     </div>
 
+    <div style="font-size:13px;color:#475569;font-weight:600;margin-bottom:12px">Escolha uma forma de começar:</div>
+
     <!-- 1. Link direto -->
     <div class="card">
       <div class="card-header">
         <div class="card-visual link">🔗</div>
         <div style="flex:1;min-width:0">
           <div class="card-title">Link direto</div>
-          <div class="card-desc">Compartilhe pelo WhatsApp, redes ou email. Sem hardware.</div>
+          <div class="card-desc">Envie para o cliente logo após o atendimento e receba avaliações na hora.</div>
         </div>
       </div>
       <div class="link-preview" id="linkPreview">—</div>
-      <button class="btn btn-primary" id="copyBtn" onclick="copyLink()">📋 Copiar meu link</button>
+      <button class="btn btn-primary" id="copyBtn" onclick="copyLink()">Copiar meu link</button>
+      <div class="microcopy" id="linkMicrocopy" style="display:none;font-size:12px;color:#059669;text-align:center;line-height:1.5;margin-top:2px">
+        Agora é só colar no WhatsApp ou enviar para um cliente
+      </div>
     </div>
 
     <!-- 2. QR Code -->
@@ -110,7 +115,7 @@
         <div class="card-visual qr"><div id="qrMini"></div></div>
         <div style="flex:1;min-width:0">
           <div class="card-title">QR Code próprio</div>
-          <div class="card-desc">Imprima e cole no cardápio e deixe o cliente avaliar sozinho.</div>
+          <div class="card-desc">Coloque no balcão ou cardápio e deixe o cliente avaliar sozinho.</div>
         </div>
       </div>
       <a class="btn btn-primary" id="qrBtn" target="_blank" rel="noopener" onclick="onQrClick()">⬇ Baixar QR Code</a>
@@ -247,13 +252,9 @@ function copyLink() {
   navigator.clipboard.writeText(nfcLink).then(() => {
     const btn = document.getElementById("copyBtn");
     btn.classList.add("copied");
-    btn.innerHTML = "✓ Copiado!";
-    showToast("Link copiado!");
+    btn.innerHTML = "✓ Link copiado";
+    document.getElementById("linkMicrocopy").style.display = "block";
     markAction("link");
-    setTimeout(() => {
-      btn.classList.remove("copied");
-      btn.innerHTML = "📋 Copiar meu link";
-    }, 2200);
   });
 }
 
