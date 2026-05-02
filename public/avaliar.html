@@ -90,10 +90,11 @@
       </div>
     </div>
 
-    <!-- ENTRY FREE: vai direto pro Google sem peneira -->
+    <!-- ENTRY FREE: aviso intermediário antes do redirect -->
     <div id="stepDirect" class="step hidden">
-      <div class="question" style="margin-bottom:6px">Avalie no Google</div>
-      <div class="question-sub" style="margin-bottom:20px">Sua opinião é importante. Leva menos de 30 segundos.</div>
+      <span class="icon-big">⭐</span>
+      <div class="question">Você será direcionado para uma avaliação pública</div>
+      <div class="question-sub">Sua opinião vai direto pro Google e fica visível pra todo mundo.</div>
       <div class="google-box">
         <div class="google-row">
           <div class="google-logo"></div>
@@ -101,8 +102,8 @@
         </div>
         <div class="stars-row">⭐⭐⭐⭐⭐</div>
       </div>
-      <a class="btn btn-google js-google-link" href="#" target="_blank" onclick="onGoogleClick()">
-        Avaliar no Google
+      <a class="btn btn-google js-google-link" href="#" target="_blank" rel="noopener" onclick="onGoogleClick()">
+        Continuar
       </a>
     </div>
 
@@ -140,9 +141,12 @@
       <div class="resolver-tag" style="display:flex;justify-content:center;width:fit-content;margin:0 auto 14px">Caminho recomendado</div>
       <div class="question">Recebemos seu feedback</div>
       <div class="question-sub">O responsável vai analisar e entrar em contato. O que você prefere agora?</div>
+      <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#065f46;line-height:1.5;text-align:center;font-weight:600">
+        Podemos resolver isso rapidamente antes de virar uma avaliação pública
+      </div>
       <div class="btn-stack">
         <button class="btn btn-primary" onclick="chooseDecision('wait')">Aguardar contato do negócio</button>
-        <a class="btn btn-secondary js-google-link" href="#" target="_blank" onclick="chooseDecision('public', true)">Avaliar publicamente no Google</a>
+        <a class="btn btn-secondary js-google-link" href="#" target="_blank" rel="noopener" onclick="chooseDecision('public', true)">Avaliar publicamente no Google</a>
       </div>
     </div>
 
@@ -162,10 +166,25 @@
       <div class="resolver-tag" style="display:flex;justify-content:center;width:fit-content;margin:0 auto 14px">Caminho recomendado</div>
       <div class="question">Recebemos seu feedback</div>
       <div class="question-sub">O responsável vai entrar em contato com você pra resolver. O que você prefere?</div>
+      <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#065f46;line-height:1.5;text-align:center;font-weight:600">
+        Podemos resolver isso rapidamente antes de virar uma avaliação pública
+      </div>
       <div class="btn-stack">
         <button class="btn btn-primary" onclick="chooseDecision('wait')">Aguardar resolução primeiro</button>
-        <a class="btn btn-secondary js-google-link" href="#" target="_blank" onclick="chooseDecision('public', true)">Avaliar publicamente agora</a>
+        <a class="btn btn-secondary js-google-link" href="#" target="_blank" rel="noopener" onclick="chooseDecision('public', true)">Avaliar publicamente agora</a>
       </div>
+    </div>
+
+    <!-- CONTATO: captura opcional após "Aguardar" -->
+    <div id="stepContact" class="step hidden">
+      <span class="icon-big">📩</span>
+      <div class="question">Quer que a gente te avise quando resolvermos?</div>
+      <div class="question-sub">Deixa um contato (email ou WhatsApp). Opcional.</div>
+      <input id="contactInput" type="text" placeholder="seu@email.com ou (11) 99999-9999"
+        style="width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:13px 14px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;outline:none;margin-bottom:14px"
+        onfocus="this.style.borderColor='#0f172a'" onblur="this.style.borderColor='#e2e8f0'"/>
+      <button class="btn btn-primary" onclick="submitContact()">Receber retorno</button>
+      <button class="btn-back" onclick="skipContact()">Não, obrigado</button>
     </div>
 
     <!-- FINAL -->
@@ -268,22 +287,49 @@ async function submitFeedback(kind) {
 async function chooseDecision(decision, alsoOpenGoogle) {
   if (lastFeedbackId) {
     try {
+      const payload = { id: lastFeedbackId, decision };
+      // Quem escolhe aguardar daria avaliação ≤3★ — registra a intenção pra métricas do Pro
+      if (decision === "wait") payload.would_have_reviewed_negative = true;
       await fetch("/api/feedback", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ id: lastFeedbackId, decision })
+        body: JSON.stringify(payload)
       });
     } catch {}
   }
   if (decision === "public") {
     markReviewed();
     setThanks("publicado");
+    // O link <a target="_blank"> abre o Google em nova aba; aqui só trocamos a tela.
+    setTimeout(() => show("stepThanks"), alsoOpenGoogle ? 250 : 0);
   } else {
-    setThanks("aguardando");
+    // Antes de mostrar "Obrigado por nos avisar", oferece captura opcional de contato
+    show("stepContact");
   }
-  // Quando alsoOpenGoogle=true, o link <a> abre o Google na nova aba naturalmente.
-  // Aqui só atualizamos a tela do cliente.
-  setTimeout(() => show("stepThanks"), alsoOpenGoogle ? 250 : 0);
+}
+
+async function submitContact() {
+  const contact = document.getElementById("contactInput").value.trim();
+  if (!contact) {
+    alert("Deixe um email ou WhatsApp pra receber retorno, ou clique em \"Não, obrigado\".");
+    return;
+  }
+  if (lastFeedbackId) {
+    try {
+      await fetch("/api/feedback", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ id: lastFeedbackId, contact })
+      });
+    } catch {}
+  }
+  setThanks("aguardando-com-contato");
+  show("stepThanks");
+}
+
+function skipContact() {
+  setThanks("aguardando");
+  show("stepThanks");
 }
 
 function onGoogleClick() {
@@ -302,8 +348,9 @@ function onGoogleClick() {
     document.body.appendChild(el);
     setTimeout(()=>el.remove(), 2000);
   }
+  // O link <a target="_blank"> abre Google em nova aba; nossa tela continua e mostra o thanks
   setThanks("publicado");
-  setTimeout(()=>show("stepThanks"), 900);
+  setTimeout(()=>show("stepThanks"), 600);
 }
 
 function setThanks(kind) {
@@ -312,12 +359,16 @@ function setThanks(kind) {
   const text = document.getElementById("thanksText");
   if (kind === "publicado") {
     icon.textContent = "🙏";
-    title.textContent = "Obrigado pela avaliação!";
-    text.textContent = "Sua opinião foi enviada ao Google.";
+    title.textContent = "Obrigado por compartilhar sua experiência";
+    text.textContent = "Sua avaliação foi aberta no Google numa nova aba.";
   } else if (kind === "aguardando") {
     icon.textContent = "🤝";
     title.textContent = "Obrigado por nos avisar";
     text.textContent = "O responsável vai entrar em contato em breve. Sua mensagem foi registrada com sucesso.";
+  } else if (kind === "aguardando-com-contato") {
+    icon.textContent = "✉️";
+    title.textContent = "Vamos te avisar quando resolvermos";
+    text.textContent = "Anotamos seu contato. O responsável vai entrar em contato direto com você.";
   } else if (kind === "avaliacao-registrada") {
     icon.textContent = "✓";
     title.textContent = "Avaliação já registrada";
@@ -330,7 +381,7 @@ function setThanks(kind) {
 }
 
 function show(stepId) {
-  ["stepFeeling","stepDirect","stepPositive","stepNeutralFeedback","stepNeutralChoice","stepNegativeFeedback","stepNegativeChoice","stepThanks"].forEach(id => {
+  ["stepFeeling","stepDirect","stepPositive","stepNeutralFeedback","stepNeutralChoice","stepNegativeFeedback","stepNegativeChoice","stepContact","stepThanks"].forEach(id => {
     document.getElementById(id).classList.toggle("hidden", id !== stepId);
   });
 }

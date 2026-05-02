@@ -61,18 +61,22 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).end();
 
-  const { place_id, text, rating, id, decision } = req.body;
+  const { place_id, text, rating, id, decision, contact, would_have_reviewed_negative } = req.body;
 
-  // UPDATE: registra a decisão do cliente (resolver / publicar) num feedback já criado
-  if (id && decision) {
-    if (!["wait", "public"].includes(decision)) {
+  // UPDATE: registra a decisão do cliente (resolver / publicar) e/ou contato num feedback já criado
+  if (id && (decision || contact !== undefined || would_have_reviewed_negative !== undefined)) {
+    if (decision && !["wait", "public"].includes(decision)) {
       return res.status(400).json({ error: "decision inválida" });
     }
+    const patch = {};
+    if (decision) patch.decision = decision;
+    if (contact !== undefined) patch.contact = contact || null;
+    if (would_have_reviewed_negative !== undefined) patch.would_have_reviewed_negative = !!would_have_reviewed_negative;
     const { error: updError } = await supabase
       .from("feedbacks")
-      .update({ decision })
+      .update(patch)
       .eq("id", id);
-    if (updError) console.error("[feedback] Erro ao atualizar decision:", updError);
+    if (updError) console.error("[feedback] Erro ao atualizar:", updError);
     return res.json({ ok: true });
   }
 
