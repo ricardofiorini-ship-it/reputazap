@@ -572,55 +572,120 @@ export default function ReputaZap({ user, onLogout }) {
                 <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
                   <div>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#0f172a",lineHeight:1.2}}>Como capturar avaliações</div>
-                    <div style={{fontSize:13,color:"#9ca3af",marginTop:3}}>3 formas de levar o cliente até o Google. Use as três e potencialize seus resultados.</div>
+                    <div style={{fontSize:13,color:"#9ca3af",marginTop:3}}>Hardware físico pra colocar no seu negócio + canais digitais Pro pra compartilhar onde quiser.</div>
                   </div>
                 </div>
 
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14}}>
+                {/* Hardware (4 produtos físicos) */}
+                <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10}}>Hardware NFC + QR</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:14,marginBottom:22}}>
 
-                  {/* Plaquinha de mesa */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:22,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
-                    <div style={{width:44,height:44,borderRadius:12,background:"#e8f0fe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🪧</div>
+                  {/* 1. Placa de balcão */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:10}}>
+                    <div style={{width:44,height:44,borderRadius:12,background:"#e8f0fe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🏪</div>
                     <div>
-                      <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:4}}>Plaquinha de mesa</div>
-                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Acrílico cristal com QR. Coloque no balcão ou mesa — cliente toca o celular e avalia em segundos.</div>
+                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Placa de balcão</div>
+                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Fica em pé no balcão ou caixa. Cliente vê na hora de pagar e avalia.</div>
                     </div>
                     <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
-                      style={{marginTop:"auto",textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-                      Comprar no Mercado Livre <ExternalLink size={12}/>
+                      style={{marginTop:"auto",textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                      Comprar no Mercado Livre <ExternalLink size={11}/>
                     </a>
                   </div>
 
-                  {/* Cartão NFC */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:22,display:"flex",flexDirection:"column",gap:10,position:"relative",opacity:0.85}}>
-                    <div style={{position:"absolute",top:14,right:14,fontSize:9,fontWeight:700,letterSpacing:"0.08em",background:"#fef3c7",color:"#92400e",borderRadius:5,padding:"3px 7px"}}>EM BREVE</div>
-                    <div style={{width:44,height:44,borderRadius:12,background:"#f5f3ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>💳</div>
+                  {/* 2. Plaquinha de mesa */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:10}}>
+                    <div style={{width:44,height:44,borderRadius:12,background:"#fef3c7",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🍽️</div>
                     <div>
-                      <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:4}}>Cartão NFC</div>
-                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Tamanho de cartão de visita. Leve no bolso e mostre ao cliente — ele aproxima o celular e avalia.</div>
+                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Plaquinha de mesa</div>
+                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Pequena, ideal para restaurantes. Cliente avalia enquanto espera o prato.</div>
                     </div>
-                    <button disabled
-                      style={{marginTop:"auto",background:"#f3f4f6",color:"#9ca3af",border:"1px dashed #d1d5db",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,cursor:"not-allowed"}}>
-                      Avise-me quando lançar
-                    </button>
+                    <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
+                      style={{marginTop:"auto",textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                      Comprar no Mercado Livre <ExternalLink size={11}/>
+                    </a>
                   </div>
 
-                  {/* Link direto */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:22,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
-                    {!isPro && (
-                      <div style={{position:"absolute",top:14,right:14,fontSize:9,fontWeight:700,letterSpacing:"0.08em",background:"#1a73e8",color:"#fff",borderRadius:5,padding:"3px 8px",display:"flex",alignItems:"center",gap:4}}>
-                        <Lock size={9}/> PRO
-                      </div>
-                    )}
-                    <div style={{width:44,height:44,borderRadius:12,background:"#ecfdf5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🔗</div>
+                  {/* 3. Placa de parede */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:10}}>
+                    <div style={{width:44,height:44,borderRadius:12,background:"#f5f3ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🖼️</div>
                     <div>
-                      <div style={{fontSize:15,fontWeight:700,color:"#0f172a",marginBottom:4}}>Link direto</div>
-                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Compartilhe no WhatsApp, redes sociais, recibo, email. O mesmo fluxo da plaquinha, sem hardware.</div>
+                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Placa de parede</div>
+                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Fixe na saída ou área de espera. Visibilidade máxima, todo mundo vê.</div>
+                    </div>
+                    <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
+                      style={{marginTop:"auto",textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                      Comprar no Mercado Livre <ExternalLink size={11}/>
+                    </a>
+                  </div>
+
+                  {/* 4. Cartões */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:10}}>
+                    <div style={{width:44,height:44,borderRadius:12,background:"#ecfdf5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>💳</div>
+                    <div>
+                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Cartões NFC</div>
+                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Tamanho de cartão de visita. Garçom mostra ao cliente ou cliente leva pra casa.</div>
+                    </div>
+                    <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
+                      style={{marginTop:"auto",textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                      Comprar no Mercado Livre <ExternalLink size={11}/>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Digital (QR + Link, exclusivos Pro) */}
+                <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
+                  Digital · sem hardware
+                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.08em",background:"#1a73e8",color:"#fff",borderRadius:5,padding:"2px 6px",display:"flex",alignItems:"center",gap:3}}><Lock size={8}/> PRO</span>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14}}>
+
+                  {/* 5. QR Code */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
+                    <div style={{display:"flex",alignItems:"flex-start",gap:14}}>
+                      {isPro && directLink ? (
+                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(directLink)}`} alt="QR Code" style={{width:64,height:64,borderRadius:8,border:"1px solid #e5e7eb",flexShrink:0}}/>
+                      ) : (
+                        <div style={{width:64,height:64,borderRadius:8,background:"#f3f4f6",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"1px dashed #d1d5db"}}>
+                          <Lock size={20} color="#9ca3af"/>
+                        </div>
+                      )}
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>QR Code próprio</div>
+                        <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Imprima e cole em cardápios, recibos, comandas ou suas próprias placas.</div>
+                      </div>
                     </div>
                     {!isPro ? (
                       <button onClick={()=>setTab("plano")}
-                        style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-                        <Zap size={13}/> Desbloquear no Pro
+                        style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                        <Zap size={12}/> Desbloquear no Pro
+                      </button>
+                    ) : directLink ? (
+                      <a href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(directLink)}`} target="_blank" rel="noreferrer"
+                        style={{marginTop:"auto",textDecoration:"none",background:"#0f172a",color:"#fff",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                        Baixar QR Code <ExternalLink size={11}/>
+                      </a>
+                    ) : (
+                      <button onClick={()=>setTab("google")}
+                        style={{marginTop:"auto",background:"#fef3c7",color:"#92400e",border:"1px solid #fde68a",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
+                        Conecte o Google primeiro
+                      </button>
+                    )}
+                  </div>
+
+                  {/* 6. Link direto */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
+                    <div style={{display:"flex",alignItems:"flex-start",gap:14}}>
+                      <div style={{width:64,height:64,borderRadius:12,background:"#fef2f2",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,flexShrink:0}}>🔗</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Link direto</div>
+                        <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>URL pra compartilhar no WhatsApp, redes sociais, email, assinatura.</div>
+                      </div>
+                    </div>
+                    {!isPro ? (
+                      <button onClick={()=>setTab("plano")}
+                        style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                        <Zap size={12}/> Desbloquear no Pro
                       </button>
                     ) : directLink ? (
                       <>
@@ -628,13 +693,13 @@ export default function ReputaZap({ user, onLogout }) {
                           {directLink}
                         </div>
                         <button onClick={copyLink} className="bg"
-                          style={{marginTop:"auto",background:copiedLink?"#059669":"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6,cursor:"pointer"}}>
-                          {copiedLink?<><Check size={13}/> Copiado!</>:<><Copy size={13}/> Copiar link</>}
+                          style={{marginTop:"auto",background:copiedLink?"#059669":"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6,cursor:"pointer"}}>
+                          {copiedLink?<><Check size={12}/> Copiado!</>:<><Copy size={12}/> Copiar link</>}
                         </button>
                       </>
                     ) : (
                       <button onClick={()=>setTab("google")}
-                        style={{marginTop:"auto",background:"#fef3c7",color:"#92400e",border:"1px solid #fde68a",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,cursor:"pointer"}}>
+                        style={{marginTop:"auto",background:"#fef3c7",color:"#92400e",border:"1px solid #fde68a",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
                         Conecte o Google primeiro
                       </button>
                     )}
