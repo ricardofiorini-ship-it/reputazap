@@ -263,6 +263,18 @@ export default function ReputaZap({ user, onLogout }) {
   const [searchMode, setSearchMode] = useState(false);
   const [savingBiz, setSavingBiz] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [pendingFeedbacks, setPendingFeedbacks] = useState([]);
+  const [showPlacasModal, setShowPlacasModal] = useState(false);
+
+  // Carrega feedbacks com decision='wait' (clientes aguardando contato)
+  useEffect(() => {
+    const token = localStorage.getItem("rz_token");
+    if (!token) return;
+    fetch("/api/feedbacks", { headers: { Authorization: `Bearer ${token}` }})
+      .then(r => r.ok ? r.json() : { feedbacks: [] })
+      .then(data => setPendingFeedbacks(data.feedbacks || []))
+      .catch(() => setPendingFeedbacks([]));
+  }, [bizInfo?.place_id]);
 
   // Carrega o negócio do usuário logado e seus reviews
   useEffect(() => {
@@ -538,6 +550,26 @@ export default function ReputaZap({ user, onLogout }) {
             const estimatedNegative = Math.max(3, Math.round((bizInfo?.total ?? 30) * 0.12));
             const exposureRiskCount = hasRealNegativeData ? negativeRecent : estimatedNegative;
             const upgradeUrl = "https://wa.me/5511982882662?text=Quero%20proteger%20minha%20reputa%C3%A7%C3%A3o%20com%20o%20plano%20Pro";
+            const timeAgo = (dateStr) => {
+              const ms = Date.now() - new Date(dateStr).getTime();
+              const min = Math.floor(ms / 60000);
+              if (min < 1) return "agora";
+              if (min < 60) return `${min}min`;
+              const h = Math.floor(min / 60);
+              if (h < 24) return `${h}h`;
+              const d = Math.floor(h / 24);
+              if (d < 30) return `${d}d`;
+              return `${Math.floor(d/30)}mês`;
+            };
+            const feedbackInitials = (fb) => {
+              if (fb.contact) {
+                const c = fb.contact.trim();
+                if (c.includes("@")) return c.slice(0, 2).toUpperCase();
+                const digits = c.replace(/\D/g, "");
+                if (digits.length >= 4) return digits.slice(-2);
+              }
+              return "??";
+            };
             return (
             <div style={{animation:"fadeUp 0.4s ease"}}>
 
@@ -551,10 +583,10 @@ export default function ReputaZap({ user, onLogout }) {
                         <AlertCircle size={11}/> RISCO ATIVO
                       </div>
                       <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#fff",lineHeight:1.2,marginBottom:6}}>
-                        Você já está recebendo reclamações públicas sem saber antes
+                        Sua reputação está exposta
                       </div>
-                      <div style={{fontSize:16,color:"#fef2f2",fontWeight:600,lineHeight:1.35,marginBottom:14,maxWidth:560}}>
-                        Cada uma pode virar uma avaliação negativa permanente.
+                      <div style={{fontSize:15,color:"#fef2f2",fontWeight:600,lineHeight:1.4,marginBottom:14,maxWidth:560}}>
+                        Toda avaliação vai direto para o Google sem você ver antes.
                       </div>
                       <a href={upgradeUrl} target="_blank" rel="noreferrer"
                         style={{textDecoration:"none",background:"#fff",color:"#0f172a",borderRadius:12,padding:"13px 22px",fontSize:14,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8}}>
@@ -590,280 +622,231 @@ export default function ReputaZap({ user, onLogout }) {
                 </div>
               )}
 
-              {/* ── ZONA 2: Reputação atual ── */}
+              {/* ── Z2: Reputação compacta + sem resposta inline ── */}
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:14,padding:"14px 20px",marginBottom:18,display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
                 <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#ea4335 0%,#fbbc04 33%,#34a853 66%,#4285f4 100%)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
                   <Building2 size={16} color="#fff"/>
                 </div>
                 <div style={{flex:1,minWidth:180}}>
                   <div style={{fontSize:13,fontWeight:700,color:"#0f172a",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{biz}</div>
-                  <div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>Cada estrela perdida reduz cliques no Maps</div>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  <Star size={15} fill="#f59e0b" color="#f59e0b"/>
-                  <span style={{fontSize:18,fontWeight:700,color:"#0f172a"}}>{avgRating}</span>
-                  <span style={{fontSize:12,color:"#9ca3af",marginLeft:4}}>· {bizInfo?.total ?? 0} avaliações</span>
-                </div>
-              </div>
-
-              {/* ── ZONA 3: Fluxo das Rotas ── */}
-              <div style={{background:"#0f172a",borderRadius:18,padding:"28px 28px 32px",marginBottom:24,position:"relative",overflow:"hidden"}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-                  <span style={{fontSize:10,fontWeight:700,color:isPro?"#a7f3d0":"#fca5a5",letterSpacing:"0.12em",textTransform:"uppercase"}}>
-                    {isPro?"Triagem ativa":"Sem triagem"}
-                  </span>
-                </div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#fff",lineHeight:1.2,marginBottom:6}}>
-                  {isPro ? "Como suas avaliações estão protegidas" : "Como suas avaliações chegam ao público hoje"}
-                </div>
-                <div style={{fontSize:13,color:"#94a3b8",lineHeight:1.55,marginBottom:22,maxWidth:600}}>
-                  {isPro
-                    ? "Cliente avalia → você triagena → positivos vão pro Google, críticas vão pro seu email."
-                    : "Cliente insatisfeito vai direto ao Google. Você descobre quando já está público."}
-                </div>
-
-                {/* Trilho do fluxo */}
-                <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                  {[
-                    { emoji:"😊", label:"Cliente satisfeito", goesToEmail:false, color:"#10b981" },
-                    { emoji:"😐", label:"Cliente neutro", goesToEmail:isPro, color:isPro?"#3b82f6":"#ef4444" },
-                    { emoji:"😞", label:"Cliente insatisfeito", goesToEmail:isPro, color:isPro?"#3b82f6":"#ef4444" },
-                  ].map((row,i)=>(
-                    <div key={i} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(255,255,255,0.04)",border:`1px solid ${row.color}33`,borderRadius:12,padding:"12px 14px",flexWrap:"wrap"}}>
-                      <div style={{fontSize:26,flexShrink:0,width:36,textAlign:"center"}}>{row.emoji}</div>
-                      <div style={{fontSize:13,color:"#cbd5e1",fontWeight:600,minWidth:120,flex:1}}>{row.label}</div>
-                      <div style={{display:"flex",alignItems:"center",gap:8,color:row.color,fontSize:12,fontWeight:700}}>
-                        <ArrowRight size={14}/>
-                        {row.goesToEmail
-                          ? <><Mail size={13}/> Seu email <span style={{fontSize:10,color:"#a7f3d0",fontWeight:600,marginLeft:4}}>(contido)</span></>
-                          : <>⭐ Google <span style={{fontSize:10,color:row.color===("#ef4444")?"#fca5a5":"#a7f3d0",fontWeight:600,marginLeft:4}}>{row.color==="#ef4444"?"(exposto)":"(público)"}</span></>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{marginTop:18,fontSize:14,fontWeight:600,color:isPro?"#a7f3d0":"#fca5a5",lineHeight:1.5}}>
-                  {isPro ? "Você resolve antes de virar avaliação." : "Você só descobre depois que já está público."}
-                </div>
-
-                {!isPro && (
-                  <div style={{marginTop:22,paddingTop:20,borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-                    <a href={upgradeUrl} target="_blank" rel="noreferrer"
-                      style={{textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"13px 22px",fontSize:14,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8}}>
-                      <ShieldCheck size={16}/> Resolver antes de virar pública
-                    </a>
-                    <div style={{fontSize:12,color:"#94a3b8"}}>R$79/mês · 14 dias grátis · sem fidelidade</div>
-                  </div>
-                )}
-              </div>
-
-              {/* ── ZONA 4: Canais de Coleta ── */}
-              <div style={{marginBottom:24}}>
-                <div style={{marginBottom:14}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#0f172a",lineHeight:1.2}}>Canais de coleta</div>
-                  <div style={{fontSize:13,color:"#9ca3af",marginTop:3}}>Como o cliente acessa o fluxo. Canais digitais já estão ativos. Canais físicos exigem implantação.</div>
-                </div>
-
-                {/* Digitais (ativos por padrão) */}
-                <div style={{fontSize:11,fontWeight:700,color:"#059669",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
-                  <span style={{width:6,height:6,borderRadius:"50%",background:"#10b981"}}/> Ativos · funcionando agora
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:14,marginBottom:22}}>
-
-                  {/* QR Code */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:12,position:"relative"}}>
-                    <div style={{position:"absolute",top:14,right:14,fontSize:9,fontWeight:700,letterSpacing:"0.08em",background:"#ecfdf5",color:"#059669",border:"1px solid #a7f3d0",borderRadius:5,padding:"3px 8px"}}>ATIVO</div>
-                    <div style={{display:"flex",alignItems:"flex-start",gap:14}}>
-                      {directLink ? (
-                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(directLink)}`} alt="QR Code" style={{width:64,height:64,borderRadius:8,border:"1px solid #e5e7eb",flexShrink:0}}/>
-                      ) : (
-                        <div style={{width:64,height:64,borderRadius:8,background:"#f3f4f6",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"1px dashed #d1d5db"}}>
-                          <AlertCircle size={20} color="#9ca3af"/>
-                        </div>
-                      )}
-                      <div style={{flex:1,minWidth:0,paddingRight:60}}>
-                        <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>QR Code próprio</div>
-                        <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Imprima e cole em cardápios, recibos, comandas, balcões.</div>
-                      </div>
-                    </div>
-                    {directLink ? (
-                      <a href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(directLink)}`} target="_blank" rel="noreferrer"
-                        style={{marginTop:"auto",textDecoration:"none",background:"#0f172a",color:"#fff",borderRadius:10,padding:"10px 14px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-                        Baixar meu QR Code <ExternalLink size={11}/>
-                      </a>
-                    ) : (
-                      <button onClick={()=>setTab("google")}
-                        style={{marginTop:"auto",background:"#fef3c7",color:"#92400e",border:"1px solid #fde68a",borderRadius:10,padding:"10px 14px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
-                        Conectar Google primeiro
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Link direto */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:12,position:"relative"}}>
-                    <div style={{position:"absolute",top:14,right:14,fontSize:9,fontWeight:700,letterSpacing:"0.08em",background:"#ecfdf5",color:"#059669",border:"1px solid #a7f3d0",borderRadius:5,padding:"3px 8px"}}>ATIVO</div>
-                    <div style={{display:"flex",alignItems:"flex-start",gap:14}}>
-                      <div style={{width:64,height:64,borderRadius:12,background:"#fef2f2",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,flexShrink:0}}>🔗</div>
-                      <div style={{flex:1,minWidth:0,paddingRight:60}}>
-                        <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Link direto</div>
-                        <div style={{fontSize:12,color:"#6b7280",lineHeight:1.55}}>Use no WhatsApp, redes, email, assinatura digital.</div>
-                      </div>
-                    </div>
-                    {directLink ? (
+                  <div style={{fontSize:11,color:"#9ca3af",marginTop:3,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                    <span style={{display:"inline-flex",alignItems:"center",gap:4}}><Star size={11} fill="#f59e0b" color="#f59e0b"/> <strong style={{color:"#0f172a"}}>{avgRating}</strong></span>
+                    <span>·</span>
+                    <span>{bizInfo?.total ?? 0} avaliações</span>
+                    {pending > 0 && (
                       <>
-                        <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"8px 10px",fontSize:11,color:"#6b7280",fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                          {directLink}
-                        </div>
-                        <button onClick={copyLink} className="bg"
-                          style={{marginTop:"auto",background:copiedLink?"#059669":"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"10px 14px",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6,cursor:"pointer"}}>
-                          {copiedLink?<><Check size={12}/> Copiado!</>:<><Copy size={12}/> Copiar meu link</>}
-                        </button>
+                        <span>·</span>
+                        <span style={{color:"#dc2626",fontWeight:600}}>{pending} sem resposta</span>
                       </>
-                    ) : (
-                      <button onClick={()=>setTab("google")}
-                        style={{marginTop:"auto",background:"#fef3c7",color:"#92400e",border:"1px solid #fde68a",borderRadius:10,padding:"10px 14px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
-                        Conectar Google primeiro
-                      </button>
                     )}
-                  </div>
-                </div>
-
-                {/* Físicos (não implantados ainda) */}
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,flexWrap:"wrap",gap:8}}>
-                  <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
-                    <span style={{width:6,height:6,borderRadius:"50%",background:"#d1d5db"}}/> Inativos · exigem implantação física
-                  </div>
-                  <a href="/ativar-placa" style={{fontSize:12,fontWeight:600,color:"#1a73e8",textDecoration:"none",display:"inline-flex",alignItems:"center",gap:4}}>
-                    Já tenho placa? Ativar agora →
-                  </a>
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14}}>
-
-                  {/* Placa de balcão */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:18,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
-                    <div style={{position:"absolute",top:14,right:14,fontSize:9,fontWeight:700,letterSpacing:"0.08em",background:"#f3f4f6",color:"#6b7280",border:"1px solid #e5e7eb",borderRadius:5,padding:"3px 8px"}}>INATIVO</div>
-                    <div style={{width:40,height:40,borderRadius:10,background:"#e8f0fe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>🏪</div>
-                    <div>
-                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Placa de balcão</div>
-                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.5}}>No caixa ou recepção. Cliente vê na hora de pagar.</div>
-                    </div>
-                    <div style={{fontSize:11,color:"#b45309",background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"6px 9px",lineHeight:1.4}}>
-                      Sem isso, você depende do cliente tomar iniciativa.
-                    </div>
-                    <button onClick={()=>setTab("plano")}
-                      style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
-                      Implantar no meu negócio
-                    </button>
-                    <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
-                      style={{textAlign:"center",fontSize:10,color:"#9ca3af",textDecoration:"none"}}>
-                      Adquirir placa →
-                    </a>
-                  </div>
-
-                  {/* Plaquinha de mesa */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:18,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
-                    <div style={{position:"absolute",top:14,right:14,fontSize:9,fontWeight:700,letterSpacing:"0.08em",background:"#f3f4f6",color:"#6b7280",border:"1px solid #e5e7eb",borderRadius:5,padding:"3px 8px"}}>INATIVO</div>
-                    <div style={{width:40,height:40,borderRadius:10,background:"#fef3c7",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>🍽️</div>
-                    <div>
-                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Plaquinha de mesa</div>
-                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.5}}>Ideal pra restaurantes. Cliente avalia enquanto espera.</div>
-                    </div>
-                    <div style={{fontSize:11,color:"#b45309",background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"6px 9px",lineHeight:1.4}}>
-                      Sem isso, você depende do cliente tomar iniciativa.
-                    </div>
-                    <button onClick={()=>setTab("plano")}
-                      style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
-                      Implantar no meu negócio
-                    </button>
-                    <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
-                      style={{textAlign:"center",fontSize:10,color:"#9ca3af",textDecoration:"none"}}>
-                      Adquirir plaquinha →
-                    </a>
-                  </div>
-
-                  {/* Placa de parede */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:18,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
-                    <div style={{position:"absolute",top:14,right:14,fontSize:9,fontWeight:700,letterSpacing:"0.08em",background:"#f3f4f6",color:"#6b7280",border:"1px solid #e5e7eb",borderRadius:5,padding:"3px 8px"}}>INATIVO</div>
-                    <div style={{width:40,height:40,borderRadius:10,background:"#f5f3ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>🖼️</div>
-                    <div>
-                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Placa de parede</div>
-                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.5}}>Saída ou área de espera. Visibilidade máxima.</div>
-                    </div>
-                    <div style={{fontSize:11,color:"#b45309",background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"6px 9px",lineHeight:1.4}}>
-                      Sem isso, você depende do cliente tomar iniciativa.
-                    </div>
-                    <button onClick={()=>setTab("plano")}
-                      style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
-                      Implantar no meu negócio
-                    </button>
-                    <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
-                      style={{textAlign:"center",fontSize:10,color:"#9ca3af",textDecoration:"none"}}>
-                      Adquirir placa →
-                    </a>
-                  </div>
-
-                  {/* Cartões NFC */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:18,display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
-                    <div style={{position:"absolute",top:14,right:14,fontSize:9,fontWeight:700,letterSpacing:"0.08em",background:"#f3f4f6",color:"#6b7280",border:"1px solid #e5e7eb",borderRadius:5,padding:"3px 8px"}}>INATIVO</div>
-                    <div style={{width:40,height:40,borderRadius:10,background:"#ecfdf5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>💳</div>
-                    <div>
-                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Cartões NFC</div>
-                      <div style={{fontSize:12,color:"#6b7280",lineHeight:1.5}}>Garçom ou atendente apresenta. Cliente toca o celular.</div>
-                    </div>
-                    <div style={{fontSize:11,color:"#b45309",background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"6px 9px",lineHeight:1.4}}>
-                      Sem isso, você depende do cliente tomar iniciativa.
-                    </div>
-                    <button onClick={()=>setTab("plano")}
-                      style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
-                      Implantar no meu negócio
-                    </button>
-                    <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
-                      style={{textAlign:"center",fontSize:10,color:"#9ca3af",textDecoration:"none"}}>
-                      Adquirir cartões →
-                    </a>
                   </div>
                 </div>
               </div>
 
-              {/* ── ZONA 5: Bloco de Risco / Resultado ── */}
+              {/* ── Z3: Fluxo (Free side-by-side / Pro só Pro) ── */}
               {!isPro ? (
-                <div style={{background:"#fff",border:"1px solid #fecaca",borderRadius:16,padding:"22px 24px"}}>
-                  <div style={{display:"flex",alignItems:"flex-start",gap:18,flexWrap:"wrap"}}>
-                    <div style={{flex:1,minWidth:280}}>
-                      <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#dc2626",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10}}>
-                        <AlertCircle size={12}/> Risco operacional · últimos 30 dias
-                      </div>
-                      {hasRealNegativeData ? (
-                        <>
-                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#0f172a",lineHeight:1.25,marginBottom:6}}>
-                            <span style={{color:"#dc2626"}}>{exposureRiskCount}</span> avaliações ≤3★ chegaram ao seu Google sem passar por você
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14,marginBottom:24}}>
+                  {/* Hoje no seu plano (Free) */}
+                  <div style={{background:"#0f172a",borderRadius:18,padding:"22px 22px 26px"}}>
+                    <div style={{fontSize:10,fontWeight:700,color:"#fca5a5",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Hoje no seu plano</div>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#fff",lineHeight:1.25,marginBottom:14}}>Tudo vai direto pro Google</div>
+                    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                      {[
+                        { e:"😊", l:"Cliente satisfeito" },
+                        { e:"😐", l:"Cliente neutro" },
+                        { e:"😞", l:"Cliente insatisfeito" },
+                      ].map((row,i)=>(
+                        <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:10,padding:"10px 12px"}}>
+                          <div style={{fontSize:20,width:28,textAlign:"center",flexShrink:0}}>{row.e}</div>
+                          <div style={{fontSize:12,color:"#cbd5e1",fontWeight:600,flex:1,minWidth:0}}>{row.l}</div>
+                          <div style={{fontSize:11,color:"#fca5a5",fontWeight:700,display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
+                            <ArrowRight size={11}/> Google
                           </div>
-                          <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55}}>Cada uma delas pesa permanentemente na sua nota. Sem triagem, você só descobre depois.</div>
-                        </>
-                      ) : (
-                        <>
-                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#0f172a",lineHeight:1.25,marginBottom:6}}>
-                            Estimativa: <span style={{color:"#dc2626"}}>{exposureRiskCount}</span> clientes insatisfeitos por mês podem chegar ao Google
-                          </div>
-                          <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55}}>Em média, 1 em cada 8 clientes deixa crítica negativa quando tem chance de feedback público direto.</div>
-                        </>
-                      )}
+                        </div>
+                      ))}
                     </div>
-                    <a href={upgradeUrl} target="_blank" rel="noreferrer"
-                      style={{textDecoration:"none",background:"#0f172a",color:"#fff",borderRadius:12,padding:"13px 22px",fontSize:14,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}}>
-                      <ShieldCheck size={15}/> Proteger minha reputação
-                    </a>
+                    <div style={{fontSize:13,color:"#fca5a5",fontWeight:600,marginTop:14,lineHeight:1.4}}>Você descobre depois que já está público.</div>
+                  </div>
+                  {/* Com Pro */}
+                  <div style={{background:"#0a1f14",borderRadius:18,padding:"22px 22px 26px",border:"1px solid #10693e"}}>
+                    <div style={{fontSize:10,fontWeight:700,color:"#a7f3d0",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Com Pro</div>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#fff",lineHeight:1.25,marginBottom:14}}>Você ouve antes</div>
+                    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                      <div style={{display:"flex",alignItems:"center",gap:10,background:"rgba(16,185,129,0.12)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:10,padding:"10px 12px"}}>
+                        <div style={{fontSize:20,width:28,textAlign:"center",flexShrink:0}}>😊</div>
+                        <div style={{fontSize:12,color:"#cbd5e1",fontWeight:600,flex:1,minWidth:0}}>Cliente satisfeito</div>
+                        <div style={{fontSize:11,color:"#10b981",fontWeight:700,display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
+                          <ArrowRight size={11}/> Google
+                        </div>
+                      </div>
+                      {[{e:"😐",l:"Cliente neutro"},{e:"😞",l:"Cliente insatisfeito"}].map((row,i)=>(
+                        <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:10,padding:"10px 12px"}}>
+                          <div style={{fontSize:20,width:28,textAlign:"center",flexShrink:0}}>{row.e}</div>
+                          <div style={{fontSize:12,color:"#cbd5e1",fontWeight:600,flex:1,minWidth:0}}>{row.l}</div>
+                          <div style={{fontSize:11,color:"#60a5fa",fontWeight:700,display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
+                            <Mail size={11}/> Email
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{fontSize:13,color:"#a7f3d0",fontWeight:600,marginTop:14,lineHeight:1.4}}>Você resolve antes de virar avaliação.</div>
                   </div>
                 </div>
               ) : (
-                <div style={{background:"#fff",border:"1px solid #a7f3d0",borderRadius:16,padding:"22px 24px"}}>
-                  <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#059669",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10}}>
-                    <ShieldCheck size={12}/> Resultado · últimos 30 dias
+                <div style={{background:"#0a1f14",borderRadius:18,padding:"24px 26px 28px",marginBottom:24,border:"1px solid #10693e"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"#a7f3d0",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Triagem ativa</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#fff",lineHeight:1.25,marginBottom:14}}>Como suas avaliações estão protegidas</div>
+                  <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10,background:"rgba(16,185,129,0.12)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:10,padding:"10px 12px"}}>
+                      <div style={{fontSize:20,width:28,textAlign:"center",flexShrink:0}}>😊</div>
+                      <div style={{fontSize:12,color:"#cbd5e1",fontWeight:600,flex:1,minWidth:0}}>Cliente satisfeito</div>
+                      <div style={{fontSize:11,color:"#10b981",fontWeight:700,display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
+                        <ArrowRight size={11}/> Google
+                      </div>
+                    </div>
+                    {[{e:"😐",l:"Cliente neutro"},{e:"😞",l:"Cliente insatisfeito"}].map((row,i)=>(
+                      <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:10,padding:"10px 12px"}}>
+                        <div style={{fontSize:20,width:28,textAlign:"center",flexShrink:0}}>{row.e}</div>
+                        <div style={{fontSize:12,color:"#cbd5e1",fontWeight:600,flex:1,minWidth:0}}>{row.l}</div>
+                        <div style={{fontSize:11,color:"#60a5fa",fontWeight:700,display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
+                          <Mail size={11}/> Email
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#0f172a",lineHeight:1.25,marginBottom:6}}>
-                    Reclamações contidas internamente: <span style={{color:"#059669"}}>—</span>
+                  <div style={{fontSize:13,color:"#a7f3d0",fontWeight:600,marginTop:14,lineHeight:1.4}}>Você resolve antes de virar avaliação.</div>
+                </div>
+              )}
+
+              {/* ── Z4: Ações rápidas (3 botões em grid) ── */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:10,marginBottom:24}}>
+                <button onClick={copyLink} disabled={!directLink}
+                  style={{background:copiedLink?"#059669":"#fff",color:copiedLink?"#fff":"#0f172a",border:`1px solid ${copiedLink?"#059669":"#e5e7eb"}`,borderRadius:12,padding:"14px 16px",fontSize:13,fontWeight:600,cursor:directLink?"pointer":"not-allowed",opacity:directLink?1:0.5,display:"flex",alignItems:"center",justifyContent:"center",gap:8,fontFamily:"inherit"}}>
+                  {copiedLink ? <><Check size={14}/> Link copiado</> : <><Copy size={14}/> Copiar link</>}
+                </button>
+                <a href={directLink ? `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(directLink)}` : "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
+                  style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1px solid #e5e7eb",borderRadius:12,padding:"14px 16px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
+                  <ExternalLink size={14}/> Baixar QR
+                </a>
+                <a href={directLink || "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
+                  style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1px solid #e5e7eb",borderRadius:12,padding:"14px 16px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
+                  <Smartphone size={14}/> Ver simulação
+                </a>
+              </div>
+
+              {/* ── Z5: Feedbacks pendentes ── */}
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:"20px 22px",marginBottom:20}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
+                  <div>
+                    <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>Feedbacks aguardando contato</div>
+                    <div style={{fontSize:12,color:"#9ca3af",marginTop:2}}>Clientes que pediram resolução privada</div>
                   </div>
-                  <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55}}>Acompanhe os feedbacks recebidos no email do gerente cadastrado.</div>
+                  {pendingFeedbacks.length > 0 && (
+                    <div style={{fontSize:11,fontWeight:700,color:"#fff",background:"#dc2626",borderRadius:10,padding:"3px 10px"}}>
+                      {pendingFeedbacks.length}
+                    </div>
+                  )}
+                </div>
+                {pendingFeedbacks.length === 0 ? (
+                  <div style={{padding:"24px 16px",textAlign:"center",color:"#9ca3af",fontSize:13,lineHeight:1.55,background:"#f9fafb",borderRadius:12,border:"1px dashed #e5e7eb"}}>
+                    Nenhum cliente aguardando contato.<br/>
+                    Quando alguém pedir resolução privada, aparece aqui.
+                  </div>
+                ) : (
+                  <>
+                    {pendingFeedbacks.slice(0,3).map((fb,i,arr) => (
+                      <div key={fb.id} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"12px 0",borderBottom:i<arr.length-1?"1px solid #f3f4f6":"none"}}>
+                        <div style={{width:36,height:36,borderRadius:"50%",background:"#fef2f2",border:"1px solid #fecaca",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#dc2626",flexShrink:0}}>
+                          {feedbackInitials(fb)}
+                        </div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
+                            <span style={{fontSize:11,fontWeight:700,color:fb.rating===1?"#dc2626":"#d97706",background:fb.rating===1?"#fef2f2":"#fffbeb",borderRadius:5,padding:"2px 7px"}}>{fb.rating===1?"Insatisfeito":"Neutro"}</span>
+                            {fb.contact && <span style={{fontSize:11,color:"#1d4ed8",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:180}}>{fb.contact}</span>}
+                            <span style={{fontSize:11,color:"#9ca3af",marginLeft:"auto"}}>{timeAgo(fb.created_at)}</span>
+                          </div>
+                          <div style={{fontSize:12,color:"#475569",lineHeight:1.5,overflow:"hidden",textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{fb.text}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {pendingFeedbacks.length > 3 && (
+                      <div style={{textAlign:"center",fontSize:12,color:"#1a73e8",fontWeight:600,marginTop:10,paddingTop:10,borderTop:"1px solid #f3f4f6"}}>
+                        Ver todos {pendingFeedbacks.length} feedbacks →
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* ── Z6: Placas (bloco compacto) ── */}
+              <div onClick={()=>setShowPlacasModal(true)}
+                style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:"16px 20px",marginBottom:20,display:"flex",alignItems:"center",gap:14,cursor:"pointer",flexWrap:"wrap",transition:"border-color .15s"}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor="#1a73e8"} onMouseLeave={e=>e.currentTarget.style.borderColor="#e5e7eb"}>
+                <div style={{display:"flex",gap:6,fontSize:24,flexShrink:0}}>
+                  <span>🏪</span><span>🍽️</span><span>🖼️</span><span>💳</span>
+                </div>
+                <div style={{flex:1,minWidth:160}}>
+                  <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:2}}>Placas físicas pra automatizar a captura</div>
+                  <div style={{fontSize:12,color:"#6b7280"}}>Coloque no balcão, mesa, parede ou cartões</div>
+                </div>
+                <div style={{fontSize:13,fontWeight:600,color:"#1a73e8",display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
+                  Ver placas →
+                </div>
+              </div>
+
+              {/* ── Z7: CTA final (Free only) ── */}
+              {!isPro && (
+                <div style={{background:"linear-gradient(145deg,#0f172a 0%,#1e293b 100%)",borderRadius:18,padding:"26px 28px",position:"relative",overflow:"hidden"}}>
+                  <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,background:"radial-gradient(circle,rgba(26,115,232,0.25),transparent 70%)",pointerEvents:"none"}}/>
+                  <div style={{position:"relative"}}>
+                    <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#fbbf24",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>
+                      <Zap size={11} fill="#fbbf24"/> Plano Pro
+                    </div>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#fff",lineHeight:1.2,marginBottom:6}}>Pronto pra ter mais controle?</div>
+                    <div style={{fontSize:14,color:"#cbd5e1",lineHeight:1.55,marginBottom:18,maxWidth:520}}>No Pro, clientes insatisfeitos falam com você antes da avaliação pública. R$79/mês · 14 dias grátis · sem fidelidade.</div>
+                    <a href={upgradeUrl} target="_blank" rel="noreferrer"
+                      style={{textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"13px 22px",fontSize:14,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8}}>
+                      <ShieldCheck size={16}/> Conhecer o Pro
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Modal de placas (reaproveita estrutura do /comece) */}
+              {showPlacasModal && (
+                <div onClick={e=>{if(e.target===e.currentTarget)setShowPlacasModal(false);}}
+                  style={{position:"fixed",inset:0,background:"rgba(15,23,42,0.6)",display:"flex",alignItems:"flex-start",justifyContent:"center",padding:24,zIndex:200,overflowY:"auto"}}>
+                  <div style={{background:"#fff",borderRadius:18,maxWidth:560,width:"100%",padding:24,margin:"auto",animation:"fadeUp 0.3s ease"}}>
+                    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:6}}>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#0f172a"}}>Placas inteligentes</div>
+                      <button onClick={()=>setShowPlacasModal(false)} style={{background:"none",border:"none",fontSize:26,color:"#9ca3af",cursor:"pointer",lineHeight:1,padding:"4px 8px"}}>×</button>
+                    </div>
+                    <div style={{fontSize:13,color:"#6b7280",marginBottom:18,lineHeight:1.55}}>Modelos disponíveis pra implantar no seu negócio.</div>
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:10,marginBottom:18}}>
+                      {[
+                        {emoji:"🏪",title:"Placa de balcão",desc:"No caixa ou recepção."},
+                        {emoji:"🍽️",title:"Plaquinha de mesa",desc:"Ideal pra restaurantes."},
+                        {emoji:"🖼️",title:"Placa de parede",desc:"Saída ou área de espera."},
+                        {emoji:"💳",title:"Cartões NFC",desc:"Garçom apresenta ao cliente."},
+                      ].map((p,i)=>(
+                        <div key={i} style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:14,padding:14,display:"flex",flexDirection:"column",gap:8}}>
+                          <div style={{fontSize:24}}>{p.emoji}</div>
+                          <div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{p.title}</div>
+                          <div style={{fontSize:11,color:"#6b7280",lineHeight:1.5,flex:1}}>{p.desc}</div>
+                          <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
+                            style={{textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:9,padding:"8px 10px",fontSize:11,fontWeight:600,textAlign:"center"}}>
+                            Comprar
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{paddingTop:14,borderTop:"1px solid #e5e7eb",display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,flexWrap:"wrap"}}>
+                      <div style={{fontSize:12,color:"#6b7280"}}>Já tem uma placa em mãos?</div>
+                      <a href="/ativar-placa" style={{textDecoration:"none",background:"#0f172a",color:"#fff",borderRadius:10,padding:"9px 14px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6}}>
+                        Já tenho placa → Ativar
+                      </a>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
