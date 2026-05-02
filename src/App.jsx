@@ -546,15 +546,15 @@ export default function ReputaZap({ user, onLogout }) {
                       <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#fff",background:"#dc2626",letterSpacing:"0.1em",padding:"4px 10px",borderRadius:6,marginBottom:12}}>
                         <AlertCircle size={11}/> RISCO ATIVO
                       </div>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#fff",lineHeight:1.2,marginBottom:8}}>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#fff",lineHeight:1.2,marginBottom:6}}>
                         Você já está recebendo reclamações públicas sem saber antes
                       </div>
-                      <div style={{fontSize:14,color:"#fecaca",lineHeight:1.55,marginBottom:18,maxWidth:560}}>
-                        Hoje, toda crítica chega ao seu Google sem passar por você primeiro. Você só descobre depois que já está exposto.
+                      <div style={{fontSize:16,color:"#fef2f2",fontWeight:600,lineHeight:1.35,marginBottom:14,maxWidth:560}}>
+                        Cada uma pode virar uma avaliação negativa permanente.
                       </div>
                       <a href={upgradeUrl} target="_blank" rel="noreferrer"
                         style={{textDecoration:"none",background:"#fff",color:"#0f172a",borderRadius:12,padding:"13px 22px",fontSize:14,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8}}>
-                        <ShieldCheck size={16}/> Proteger minha reputação agora
+                        <ShieldCheck size={16}/> Ativar proteção agora
                       </a>
                     </div>
                     <div style={{textAlign:"center",flexShrink:0,padding:"0 8px"}}>
@@ -638,11 +638,15 @@ export default function ReputaZap({ user, onLogout }) {
                   ))}
                 </div>
 
+                <div style={{marginTop:18,fontSize:14,fontWeight:600,color:isPro?"#a7f3d0":"#fca5a5",lineHeight:1.5}}>
+                  {isPro ? "Você resolve antes de virar avaliação." : "Você só descobre depois que já está público."}
+                </div>
+
                 {!isPro && (
                   <div style={{marginTop:22,paddingTop:20,borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
                     <a href={upgradeUrl} target="_blank" rel="noreferrer"
                       style={{textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"13px 22px",fontSize:14,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8}}>
-                      <ShieldCheck size={16}/> Proteger minha reputação agora
+                      <ShieldCheck size={16}/> Evitar avaliações negativas agora
                     </a>
                     <div style={{fontSize:12,color:"#94a3b8"}}>R$79/mês · 14 dias grátis · sem fidelidade</div>
                   </div>
@@ -734,6 +738,9 @@ export default function ReputaZap({ user, onLogout }) {
                       <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Placa de balcão</div>
                       <div style={{fontSize:12,color:"#6b7280",lineHeight:1.5}}>No caixa ou recepção. Cliente vê na hora de pagar.</div>
                     </div>
+                    <div style={{fontSize:11,color:"#b45309",background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"6px 9px",lineHeight:1.4}}>
+                      Sem isso, você depende do cliente tomar iniciativa.
+                    </div>
                     <button onClick={()=>setTab("plano")}
                       style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
                       Implantar no meu negócio
@@ -751,6 +758,9 @@ export default function ReputaZap({ user, onLogout }) {
                     <div>
                       <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Plaquinha de mesa</div>
                       <div style={{fontSize:12,color:"#6b7280",lineHeight:1.5}}>Ideal pra restaurantes. Cliente avalia enquanto espera.</div>
+                    </div>
+                    <div style={{fontSize:11,color:"#b45309",background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"6px 9px",lineHeight:1.4}}>
+                      Sem isso, você depende do cliente tomar iniciativa.
                     </div>
                     <button onClick={()=>setTab("plano")}
                       style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
@@ -770,6 +780,9 @@ export default function ReputaZap({ user, onLogout }) {
                       <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Placa de parede</div>
                       <div style={{fontSize:12,color:"#6b7280",lineHeight:1.5}}>Saída ou área de espera. Visibilidade máxima.</div>
                     </div>
+                    <div style={{fontSize:11,color:"#b45309",background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"6px 9px",lineHeight:1.4}}>
+                      Sem isso, você depende do cliente tomar iniciativa.
+                    </div>
                     <button onClick={()=>setTab("plano")}
                       style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
                       Implantar no meu negócio
@@ -787,6 +800,9 @@ export default function ReputaZap({ user, onLogout }) {
                     <div>
                       <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4}}>Cartões NFC</div>
                       <div style={{fontSize:12,color:"#6b7280",lineHeight:1.5}}>Garçom ou atendente apresenta. Cliente toca o celular.</div>
+                    </div>
+                    <div style={{fontSize:11,color:"#b45309",background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"6px 9px",lineHeight:1.4}}>
+                      Sem isso, você depende do cliente tomar iniciativa.
                     </div>
                     <button onClick={()=>setTab("plano")}
                       style={{marginTop:"auto",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
@@ -1046,8 +1062,8 @@ export default function ReputaZap({ user, onLogout }) {
                 </div>
                 <div style={{fontSize:13,color:"#9ca3af",lineHeight:1.6}}>
                   {isPro
-                    ? "Você tem a peneira ativa: clientes neutros e negativos não chegam no Google, vão pro seu email."
-                    : "Você vê suas avaliações do Google. Sem peneira: cliente que escaneia o QR vai direto avaliar publicamente."}
+                    ? "Sua reputação está protegida: clientes neutros e insatisfeitos vão pro seu email antes de avaliar publicamente. Você resolve antes de virar avaliação."
+                    : "Sua reputação está exposta: toda avaliação do cliente vai direto pro Google. Você só descobre depois que já está público."}
                 </div>
               </div>
 
@@ -1063,9 +1079,9 @@ export default function ReputaZap({ user, onLogout }) {
                   </div>
                   <ul style={{listStyle:"none",padding:0,margin:"0 0 18px",display:"flex",flexDirection:"column",gap:8}}>
                     {[
-                      "Peneira: positivo vai pro Google, negativo vai pro seu email",
+                      "Triagem ativa: positivo vai pro Google, negativo vai pro seu email",
                       "Gerente recebe os feedbacks ruins direto na caixa de entrada",
-                      "Você responde antes do problema virar review pública",
+                      "Você resolve antes de virar avaliação pública",
                       "Cancele quando quiser — sem fidelidade",
                     ].map((f,i)=>(
                       <li key={i} style={{display:"flex",alignItems:"flex-start",gap:8,fontSize:13,color:"#d1d5db",lineHeight:1.5}}>
