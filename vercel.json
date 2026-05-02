@@ -1,11 +1,20 @@
 {
-  "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/", "destination": "/landing", "permanent": false },
+    { "source": "/landing.html", "destination": "/landing", "permanent": true },
+    { "source": "/ativar.html", "destination": "/ativar", "permanent": true },
+    { "source": "/ativar-placa.html", "destination": "/ativar-placa", "permanent": true },
+    { "source": "/avaliar.html", "destination": "/avaliar", "permanent": true },
+    { "source": "/reset.html", "destination": "/reset", "permanent": true }
+  ],
   "rewrites": [
+    { "source": "/landing", "destination": "/landing.html" },
+    { "source": "/ativar", "destination": "/ativar.html" },
+    { "source": "/ativar-placa", "destination": "/ativar-placa.html" },
+    { "source": "/avaliar", "destination": "/avaliar.html" },
+    { "source": "/reset", "destination": "/reset.html" },
     { "source": "/app", "destination": "/index.html" },
     { "source": "/app/(.*)", "destination": "/index.html" }
-  ],
-  "redirects": [
-    { "source": "/", "destination": "/landing", "permanent": false }
   ]
 }
