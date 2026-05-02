@@ -401,11 +401,6 @@ export default function ReputaZap({ user, onLogout }) {
 
   const nav=[
     {id:"dashboard",icon:LayoutDashboard,label:"Dashboard"},
-    {id:"reviews",icon:Star,label:"Avaliações"},
-    {id:"capturar",icon:Gift,label:"Capturar"},
-    {id:"wall",icon:Award,label:"Mural"},
-    {id:"google",icon:Link2,label:"Google"},
-    {id:"plano",icon:Zap,label:"Plano"},
   ];
 
   return (
@@ -455,14 +450,11 @@ export default function ReputaZap({ user, onLogout }) {
                 style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,background:tab===item.id?"#e8f0fe":"transparent",color:tab===item.id?"#1a73e8":"#6b7280"}}>
                 <item.icon size={17}/>
                 <span style={{fontSize:14,fontWeight:tab===item.id?600:400}}>{item.label}</span>
-                {item.id==="reviews"&&pending>0&&<div style={{marginLeft:"auto",background:"#dc2626",color:"#fff",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px"}}>{pending}</div>}
-                {item.id==="capturar"&&<div style={{marginLeft:"auto",background:"#e8f0fe",color:"#1a73e8",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px"}}>{nfcCount}</div>}
-                {item.id==="google"&&!googleConnected&&<div style={{marginLeft:"auto",background:"#fed7aa",color:"#f97316",fontSize:10,fontWeight:700,borderRadius:10,padding:"1px 6px"}}>!</div>}
               </div>
             ))}
-            <a href="/comece" className="ni" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,color:"#9ca3af",textDecoration:"none",marginTop:8,borderTop:"1px dashed #e5e7eb",paddingTop:14}}>
-              <Gift size={15}/>
-              <span style={{fontSize:13}}>Como começar</span>
+            <a href="/ativar-placa" className="ni" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,color:"#6b7280",textDecoration:"none"}}>
+              <Smartphone size={17}/>
+              <span style={{fontSize:14}}>Ativar placa</span>
             </a>
           </div>
           <div style={{borderTop:"1px solid #e5e7eb",paddingTop:16,display:"flex",flexDirection:"column",gap:10}}>
@@ -857,7 +849,7 @@ export default function ReputaZap({ user, onLogout }) {
                       </div>
                     ))}
                     {pendingFeedbacks.length > 3 && (
-                      <div style={{textAlign:"center",fontSize:12,color:"#1a73e8",fontWeight:600,marginTop:10,paddingTop:10,borderTop:"1px solid #f3f4f6"}}>
+                      <div onClick={()=>setTab("reviews")} style={{textAlign:"center",fontSize:12,color:"#1a73e8",fontWeight:600,marginTop:10,paddingTop:10,borderTop:"1px solid #f3f4f6",cursor:"pointer"}}>
                         Ver todos os {pendingFeedbacks.length} feedbacks →
                       </div>
                     )}
