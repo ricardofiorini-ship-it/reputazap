@@ -287,6 +287,44 @@ export default function ReputaZap({ user, onLogout }) {
   const rc = r=>r>=4?"#1a73e8":r===3?"#f59e0b":"#ef4444";
   const rb = r=>r>=4?"#a7f3d0":r===3?"#fed7aa":"#fee2e2";
 
+  async function goToCheckout() {
+    const token = localStorage.getItem("rz_token");
+    if (!token) { alert("Sessão expirada. Entre novamente."); return; }
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        alert(data.error || "Não foi possível abrir o checkout. Tente novamente.");
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      alert("Erro de conexão. Tente novamente.");
+    }
+  }
+
+  async function openBillingPortal() {
+    const token = localStorage.getItem("rz_token");
+    if (!token) return;
+    try {
+      const res = await fetch("/api/billing-portal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        alert(data.error || "Não foi possível abrir o portal.");
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      alert("Erro de conexão. Tente novamente.");
+    }
+  }
+
   const nav=[
     {id:"dashboard",icon:LayoutDashboard,label:"Painel"},
     {id:"feedbacks",icon:MessageSquare,label:"Feedbacks"},
@@ -449,7 +487,6 @@ export default function ReputaZap({ user, onLogout }) {
             // Estimativa quando não há dado real: ~12% dos clientes deixam crítica
             const estimatedNegative = Math.max(3, Math.round((bizInfo?.total ?? 30) * 0.12));
             const exposureRiskCount = hasRealNegativeData ? negativeRecent : estimatedNegative;
-            const upgradeUrl = "https://wa.me/5511982882662?text=Quero%20proteger%20minha%20reputa%C3%A7%C3%A3o%20com%20o%20plano%20Pro";
             const timeAgo = (dateStr) => {
               const ms = Date.now() - new Date(dateStr).getTime();
               const min = Math.floor(ms / 60000);
@@ -535,10 +572,10 @@ export default function ReputaZap({ user, onLogout }) {
                         Toda avaliação vai direto pro Google. Você só descobre depois que já está pública.
                       </div>
                     </div>
-                    <a href={upgradeUrl} target="_blank" rel="noreferrer"
-                      style={{textDecoration:"none",background:"linear-gradient(180deg,#fff 0%,#f1f5f9 100%)",color:"#0f172a",borderRadius:14,padding:"15px 24px",fontSize:14.5,fontWeight:700,display:"inline-flex",alignItems:"center",gap:9,flexShrink:0,boxShadow:"inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.10), 0 18px 40px -12px rgba(0,0,0,0.45)",letterSpacing:"-0.005em",transition:"transform .15s, box-shadow .15s"}}>
+                    <button onClick={goToCheckout}
+                      style={{cursor:"pointer",border:"none",fontFamily:"inherit",background:"linear-gradient(180deg,#fff 0%,#f1f5f9 100%)",color:"#0f172a",borderRadius:14,padding:"15px 24px",fontSize:14.5,fontWeight:700,display:"inline-flex",alignItems:"center",gap:9,flexShrink:0,boxShadow:"inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.10), 0 18px 40px -12px rgba(0,0,0,0.45)",letterSpacing:"-0.005em",transition:"transform .15s, box-shadow .15s"}}>
                       <ShieldCheck size={17}/> Proteger minha reputação
-                    </a>
+                    </button>
                   </div>
                 </div>
               ) : (
@@ -911,10 +948,10 @@ export default function ReputaZap({ user, onLogout }) {
                         </li>
                       ))}
                     </ul>
-                    <a href={upgradeUrl} target="_blank" rel="noreferrer"
-                      style={{textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"14px 26px",fontSize:15,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,marginBottom:12}}>
+                    <button onClick={goToCheckout}
+                      style={{cursor:"pointer",border:"none",fontFamily:"inherit",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"14px 26px",fontSize:15,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,marginBottom:12}}>
                       <ShieldCheck size={16}/> Ativar modo protegido
-                    </a>
+                    </button>
                     <div style={{fontSize:13,color:"#fff",fontWeight:700,lineHeight:1.4}}>Teste grátis por 14 dias</div>
                     <div style={{fontSize:12,color:"#94a3b8",fontWeight:500,marginTop:2}}>Depois R$79/mês · sem fidelidade</div>
                   </div>
@@ -1199,9 +1236,9 @@ export default function ReputaZap({ user, onLogout }) {
                       </li>
                     ))}
                   </ul>
-                  <a href="https://wa.me/5511982882662?text=Quero%20ativar%20o%20Modo%20Protegido%20do%20ReputaZap" target="_blank" rel="noreferrer" style={{textDecoration:"none",display:"block",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"13px 20px",fontSize:14,fontWeight:700,textAlign:"center"}}>
+                  <button onClick={goToCheckout} style={{cursor:"pointer",border:"none",fontFamily:"inherit",display:"block",width:"100%",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"13px 20px",fontSize:14,fontWeight:700,textAlign:"center"}}>
                     Quero ativar →
-                  </a>
+                  </button>
                 </div>
               )}
 
@@ -1296,10 +1333,10 @@ export default function ReputaZap({ user, onLogout }) {
                         : "Ative o Modo Protegido pra interceptar reclamações antes que virem reviews no Google."}
                     </div>
                     {!isPro && (
-                      <a href="https://wa.me/5511982882662?text=Quero%20ativar%20o%20Modo%20Protegido%20do%20ReputaZap" target="_blank" rel="noreferrer"
-                        style={{textDecoration:"none",background:"#0f172a",color:"#fff",borderRadius:12,padding:"12px 22px",fontSize:13,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,marginTop:22,boxShadow:"0 8px 20px -6px rgba(15,23,42,0.30)"}}>
+                      <button onClick={goToCheckout}
+                        style={{cursor:"pointer",border:"none",fontFamily:"inherit",background:"#0f172a",color:"#fff",borderRadius:12,padding:"12px 22px",fontSize:13,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,marginTop:22,boxShadow:"0 8px 20px -6px rgba(15,23,42,0.30)"}}>
                         <ShieldCheck size={15}/> Ativar Modo Protegido
-                      </a>
+                      </button>
                     )}
                   </div>
                 ) : (
@@ -1500,6 +1537,17 @@ export default function ReputaZap({ user, onLogout }) {
                     </span>
                   </div>
                 </div>
+                {isPro ? (
+                  <button onClick={openBillingPortal}
+                    style={{marginTop:14,background:"none",border:"1px solid #e5e7eb",color:"#475569",borderRadius:10,padding:"9px 16px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+                    Gerenciar assinatura
+                  </button>
+                ) : (
+                  <button onClick={goToCheckout}
+                    style={{marginTop:14,background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 16px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:6}}>
+                    <ShieldCheck size={13}/> Ativar Modo Protegido
+                  </button>
+                )}
               </div>
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24,marginBottom:16}}>
                 <div style={{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10}}>Negócio cadastrado</div>

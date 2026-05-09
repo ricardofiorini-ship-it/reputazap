@@ -12,11 +12,18 @@ SaaS de gestão de reputação para negócios locais brasileiros.
 
 ## Banco (Supabase)
 
-Tabelas: `profiles`, `businesses` (com `UNIQUE user_id`), `feedbacks`.
+Tabelas: `profiles`, `businesses` (com `UNIQUE user_id`, colunas `plan`, `stripe_customer_id`, `stripe_subscription_id`), `feedbacks`.
+
+SQL pra colunas Stripe (rodar uma vez):
+```sql
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;
+CREATE INDEX IF NOT EXISTS idx_businesses_stripe_customer ON businesses(stripe_customer_id);
+```
 
 ## Endpoints (`api/`)
 
-`register`, `login`, `forgot-password`, `reset-password`, `savebiz`, `mybiz`, `reviews` (aceita `?place_id=`), `searchbiz`, `bizinfo` (retorna `plan`), `feedback` (envia email via Resend se `RESEND_API_KEY` definida), `placeid`.
+`register`, `login`, `forgot-password`, `reset-password`, `savebiz`, `mybiz`, `reviews` (aceita `?place_id=`), `searchbiz`, `bizinfo` (retorna `plan`), `feedback` (envia email via Resend se `RESEND_API_KEY` definida), `placeid`, `checkout` (Stripe Checkout subscription), `billing-portal` (Stripe Customer Portal), `stripe-webhook` (sincroniza `businesses.plan`).
 
 ## Status atual
 
@@ -28,13 +35,21 @@ Fluxo end-to-end funcionando:
 ## Pendências
 
 1. Hardware NFC: os 4 cards do dashboard apontam pro mesmo SKU Mercado Livre placeholder. Trocar por links específicos quando tiver SKU por produto.
-2. Endpoint pra trocar plano Free↔Pro (hoje é manual no Supabase). Sem ele, não dá pra cliente real fazer upgrade pelo app.
-3. `RESEND_API_KEY` precisa ser setada na Vercel pro envio de email da peneira Pro funcionar (sem ela, feedback é salvo no Supabase mas email é skipado com log).
-4. Deploy backend no Railway (avaliar se ainda faz sentido com Vercel functions).
+2. `RESEND_API_KEY` precisa ser setada na Vercel pro envio de email da peneira Pro funcionar (sem ela, feedback é salvo no Supabase mas email é skipado com log).
+3. Deploy backend no Railway (avaliar se ainda faz sentido com Vercel functions).
+4. Setup Stripe (ver seção abaixo).
+
+## Setup Stripe
+
+1. Rodar o SQL acima no Supabase pra adicionar `stripe_customer_id` e `stripe_subscription_id`.
+2. Criar produto no Stripe Dashboard (Modo Protegido, R$79/mês recorrente). Copiar o **Price ID** (começa com `price_…`).
+3. Criar webhook em `https://reputazap.vercel.app/api/stripe-webhook` escutando `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copiar o **Signing secret** (começa com `whsec_…`).
+4. Setar envs no Vercel: `STRIPE_SECRET_KEY` (sk_live_…), `STRIPE_PRICE_ID` (price_…), `STRIPE_WEBHOOK_SECRET` (whsec_…).
+5. Deploy. O fluxo: cliente clica em "Proteger minha reputação" → POST `/api/checkout` cria session com trial 14d → redirect → após pagamento, webhook atualiza `businesses.plan = 'pro'`.
 
 ## Variáveis de ambiente (Vercel)
 
-`PLACES_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY` (opcional — sem ela, peneira Pro salva feedback mas não envia email).
+`PLACES_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY` (opcional), `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`.
 
 ## Links
 
