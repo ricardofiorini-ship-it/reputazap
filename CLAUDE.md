@@ -23,7 +23,7 @@ CREATE INDEX IF NOT EXISTS idx_businesses_stripe_customer ON businesses(stripe_c
 
 ## Endpoints (`api/`)
 
-`register`, `login`, `forgot-password`, `reset-password`, `savebiz`, `mybiz`, `reviews` (aceita `?place_id=`), `searchbiz`, `bizinfo` (retorna `plan`), `feedback` (envia email via Resend se `RESEND_API_KEY` definida), `placeid`, `checkout` (Stripe Checkout subscription), `billing-portal` (Stripe Customer Portal), `stripe-webhook` (sincroniza `businesses.plan`).
+12 functions (limite Hobby Vercel): `register`, `login`, `forgot-password`, `reset-password`, `savebiz`, `mybiz`, `reviews` (aceita `?place_id=`), `searchbiz`, `bizinfo` (retorna `plan`), `placeid`, `feedback` (GET lista pendentes / POST cria/atualiza, envia email via Resend), `billing` (Stripe — dispatcher por `?action=checkout|portal|webhook`).
 
 ## Status atual
 
@@ -43,9 +43,9 @@ Fluxo end-to-end funcionando:
 
 1. Rodar o SQL acima no Supabase pra adicionar `stripe_customer_id` e `stripe_subscription_id`.
 2. Criar produto no Stripe Dashboard (Modo Protegido, R$79/mês recorrente). Copiar o **Price ID** (começa com `price_…`).
-3. Criar webhook em `https://reputazap.vercel.app/api/stripe-webhook` escutando `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copiar o **Signing secret** (começa com `whsec_…`).
+3. Criar webhook em `https://reputazap.vercel.app/api/billing?action=webhook` escutando `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copiar o **Signing secret** (começa com `whsec_…`).
 4. Setar envs no Vercel: `STRIPE_SECRET_KEY` (sk_live_…), `STRIPE_PRICE_ID` (price_…), `STRIPE_WEBHOOK_SECRET` (whsec_…).
-5. Deploy. O fluxo: cliente clica em "Proteger minha reputação" → POST `/api/checkout` cria session com trial 14d → redirect → após pagamento, webhook atualiza `businesses.plan = 'pro'`.
+5. Deploy. O fluxo: cliente clica em "Proteger minha reputação" → POST `/api/billing?action=checkout` cria session com trial 14d → redirect → após pagamento, webhook em `/api/billing?action=webhook` atualiza `businesses.plan = 'pro'`.
 
 ## Variáveis de ambiente (Vercel)
 

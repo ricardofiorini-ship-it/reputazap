@@ -165,7 +165,7 @@ export default function ReputaZap({ user, onLogout }) {
   useEffect(() => {
     const token = localStorage.getItem("rz_token");
     if (!token) return;
-    fetch("/api/feedbacks", { headers: { Authorization: `Bearer ${token}` }})
+    fetch("/api/feedback", { headers: { Authorization: `Bearer ${token}` }})
       .then(r => r.ok ? r.json() : { feedbacks: [] })
       .then(data => setPendingFeedbacks(data.feedbacks || []))
       .catch(() => setPendingFeedbacks([]));
@@ -291,7 +291,7 @@ export default function ReputaZap({ user, onLogout }) {
     const token = localStorage.getItem("rz_token");
     if (!token) { alert("Sessão expirada. Entre novamente."); return; }
     try {
-      const res = await fetch("/api/checkout", {
+      const res = await fetch("/api/billing?action=checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
       });
@@ -310,7 +310,7 @@ export default function ReputaZap({ user, onLogout }) {
     const token = localStorage.getItem("rz_token");
     if (!token) return;
     try {
-      const res = await fetch("/api/billing-portal", {
+      const res = await fetch("/api/billing?action=portal", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
       });
