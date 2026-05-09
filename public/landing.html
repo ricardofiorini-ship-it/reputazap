@@ -32,14 +32,14 @@
   /* NAV */
   nav {
     position: sticky; top: 0; z-index: 100;
-    padding: 0 7%; height: 54px;
+    padding: 0 7%; height: 60px;
     display: flex; align-items: center; justify-content: space-between;
-    background: rgba(247, 247, 245, 0.65);
-    backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border-bottom: 1px solid rgba(229,231,235,0.5);
+    background: rgba(247, 247, 245, 0.6);
+    backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid rgba(229,231,235,0.4);
   }
-  @media (min-width: 720px) { nav { padding: 0 6%; } }
-  .logo img { height: 32px; width: auto; display: block; }
+  @media (min-width: 720px) { nav { padding: 0 6%; height: 64px; } }
+  .logo img { height: 36px; width: auto; display: block; }
   .nav-actions { display: flex; align-items: center; gap: 4px; }
   .nav-link { font-size: 13px; font-weight: 500; color: var(--muted); padding: 7px 11px; border-radius: 9px; transition: color .15s, background .15s; }
   .nav-link:hover { color: var(--text); background: rgba(11,16,32,0.04); }
@@ -142,13 +142,14 @@
     pointer-events: none;
   }
   .hero-sub {
-    font-size: clamp(16px, 2.2vw, 18px);
+    font-size: clamp(16px, 2.1vw, 18px);
     color: #4B5563;
     line-height: 1.55;
     margin-bottom: 28px;
-    max-width: 440px;
+    max-width: 400px;
     margin-left: auto; margin-right: auto;
     font-weight: 400;
+    text-wrap: balance;
   }
   .hero-bullets { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; list-style: none; }
   .hero-bullets li { font-size: 13px; color: var(--text); font-weight: 500; display: inline-flex; align-items: center; gap: 7px; }
@@ -158,11 +159,20 @@
   /* HERO MOCKUP */
   .hero-mockup {
     margin: 64px auto 0;
-    max-width: 440px;
+    max-width: 460px;
     position: relative;
     aspect-ratio: 5 / 4;
   }
   @media (min-width: 720px) { .hero-mockup { margin-top: 80px; } }
+  .hero-mockup::after {
+    content: ""; position: absolute;
+    left: 12%; right: 12%; bottom: -16px;
+    height: 36px;
+    background: radial-gradient(ellipse, rgba(11,16,32,0.10), transparent 70%);
+    filter: blur(14px);
+    z-index: 0;
+    pointer-events: none;
+  }
   @keyframes floatPlaque {
     0%, 100% { transform: rotate(-4deg) translateY(0); }
     50% { transform: rotate(-4deg) translateY(-6px); }
@@ -172,8 +182,9 @@
     50% { transform: rotate(2deg) translateY(4px); }
   }
   .mockup-plaque {
-    position: absolute; left: 0; bottom: 0;
-    width: 56%; aspect-ratio: 4 / 5;
+    position: absolute; left: 2%; bottom: 0;
+    width: 58%; aspect-ratio: 4 / 5;
+    z-index: 2;
     background:
       linear-gradient(160deg, #1F2738 0%, #0B1020 100%);
     border-radius: 20px;
@@ -223,8 +234,9 @@
   .mockup-nfc::after { inset: 11px; }
 
   .mockup-card {
-    position: absolute; right: 0; top: 0;
-    width: 62%;
+    position: absolute; right: 0; top: 4%;
+    width: 60%;
+    z-index: 1;
     background: #fff;
     border-radius: 18px;
     box-shadow:
@@ -423,17 +435,16 @@
 
   /* Cartão NFC (preto fosco) */
   .hw-card-nfc {
-    width: 78%; aspect-ratio: 1.586 / 1;
+    width: 76%; aspect-ratio: 1.586 / 1;
     background: linear-gradient(155deg, #1F2738 0%, #0B1020 100%);
     border-radius: 9px;
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.07),
       inset 0 -1px 0 rgba(0,0,0,0.2),
       0 1px 2px rgba(11,16,32,0.10),
-      0 16px 32px -10px rgba(11,16,32,0.40);
+      0 14px 28px -10px rgba(11,16,32,0.36);
     padding: 11px 13px;
     display: flex; flex-direction: column; justify-content: space-between;
-    transform: rotate(-4deg);
     position: relative;
     overflow: hidden;
   }
@@ -504,6 +515,151 @@
   .cta-final .micro { color: rgba(255,255,255,0.45); }
   .cta-box { max-width: 640px; margin: 0 auto; text-align: center; position: relative; z-index: 1; }
 
+  /* STATS BAR */
+  .stats-bar {
+    padding: 36px 7%;
+    background: #fff;
+    border-top: 1px solid #ECECEA;
+    border-bottom: 1px solid #ECECEA;
+  }
+  @media (min-width: 720px) { .stats-bar { padding: 56px 6%; } }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 920px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  @media (max-width: 540px) { .stats-grid { gap: 8px; } }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 4.5vw, 40px);
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.025em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .stat-label {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.45;
+    max-width: 180px;
+    margin: 0 auto;
+  }
+  @media (max-width: 540px) {
+    .stat-label { font-size: 11.5px; }
+    .stat-num { letter-spacing: -0.03em; }
+  }
+
+  /* MINI DASHBOARD */
+  .mini-dash-wrap {
+    max-width: 580px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .mini-dash {
+    background: #fff;
+    border: 1px solid #ECECEA;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow:
+      0 1px 2px rgba(11,16,32,0.04),
+      0 16px 40px -16px rgba(11,16,32,0.10),
+      0 32px 64px -32px rgba(11,16,32,0.08);
+  }
+  .mini-dash-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #F1F1EF;
+    background: #FAFAF9;
+  }
+  .mini-dash-title {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .mini-dash-title-eyebrow {
+    font-size: 10px; color: var(--muted); font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .mini-dash-title-name { font-size: 13.5px; font-weight: 600; color: var(--text); letter-spacing: -0.005em; }
+  .mini-dash-status {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--green-soft); border: 1px solid #DCFCE7;
+    border-radius: 999px; padding: 4px 10px;
+    font-size: 11px; font-weight: 600; color: #047857;
+  }
+  .mini-dash-dot { width: 6px; height: 6px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 0 0 rgba(34,197,94,0.45); animation: pulseDot 2.4s ease-out infinite; }
+  @keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.55); }
+    70% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+  }
+
+  .mini-dash-metrics {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid #F1F1EF;
+  }
+  .mini-dash-metric {
+    padding: 16px 12px; text-align: center;
+    border-right: 1px solid #F1F1EF;
+  }
+  .mini-dash-metric:last-child { border-right: none; }
+  .mini-dash-metric-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--text); letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .mini-dash-metric-num .star { color: #FBBC04; }
+  .mini-dash-metric-label {
+    font-size: 11px; color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .mini-dash-section {
+    padding: 16px 20px 18px;
+  }
+  .mini-dash-section-title {
+    font-size: 11.5px; font-weight: 600; color: var(--muted);
+    letter-spacing: 0.04em; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .mini-dash-feed { display: flex; flex-direction: column; gap: 10px; }
+  .mini-dash-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: #FAFAF9;
+    border-radius: 11px;
+    border: 1px solid #F1F1EF;
+  }
+  .mini-dash-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+  }
+  .mini-dash-avatar.av-a { background: #34A853; }
+  .mini-dash-avatar.av-b { background: #FBBC04; color: #422006; }
+  .mini-dash-avatar.av-c { background: #4285F4; }
+  .mini-dash-item-body { flex: 1; min-width: 0; }
+  .mini-dash-item-line1 {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    font-size: 12px; color: var(--text); font-weight: 600;
+  }
+  .mini-dash-item-tag {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.03em;
+    padding: 2px 6px; border-radius: 4px;
+  }
+  .mini-dash-item-tag.public { background: var(--green-soft); color: #047857; border: 1px solid #DCFCE7; }
+  .mini-dash-item-tag.private { background: #EFF6FF; color: #1D4ED8; border: 1px solid #DBEAFE; }
+  .mini-dash-item-line2 {
+    font-size: 10.5px; color: var(--muted);
+    margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .mini-dash-item-time { font-size: 10.5px; color: var(--muted); flex-shrink: 0; }
+
   /* FOOTER */
   footer { background: var(--bg); border-top: 1px solid var(--border); padding: 32px 5% 24px; }
   .footer-inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
@@ -556,6 +712,24 @@
       </div>
       <div class="mockup-card-stars">★★★★★</div>
       <div class="mockup-card-quote">"Atendimento incrível, voltarei sempre."</div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<section class="stats-bar">
+  <div class="stats-grid">
+    <div>
+      <div class="stat-num">1.284</div>
+      <div class="stat-label">Feedbacks capturados</div>
+    </div>
+    <div>
+      <div class="stat-num">73%</div>
+      <div class="stat-label">Resolvidos antes do Google</div>
+    </div>
+    <div>
+      <div class="stat-num">+214</div>
+      <div class="stat-label">Empresas usando</div>
     </div>
   </div>
 </section>
@@ -636,6 +810,83 @@
         </div>
         <h3>Sem fricção</h3>
         <p>Sem app, sem login e sem complicação para o cliente.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MINI DASHBOARD -->
+<section id="produto" style="background:#FAFAF9;">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-eyebrow">Painel</div>
+      <h2 class="section-title">Tudo num painel só</h2>
+      <p class="section-sub">Acompanhe avaliações, feedbacks privados e atividade do seu negócio em tempo real.</p>
+    </div>
+    <div class="mini-dash-wrap">
+      <div class="mini-dash">
+        <div class="mini-dash-head">
+          <div class="mini-dash-title">
+            <span class="mini-dash-title-eyebrow">Painel ReputaZap</span>
+            <span class="mini-dash-title-name">Café Bello Vista</span>
+          </div>
+          <div class="mini-dash-status">
+            <div class="mini-dash-dot"></div>
+            Conectado
+          </div>
+        </div>
+        <div class="mini-dash-metrics">
+          <div class="mini-dash-metric">
+            <div class="mini-dash-metric-num">4.7<span class="star"> ★</span></div>
+            <div class="mini-dash-metric-label">Nota no Google</div>
+          </div>
+          <div class="mini-dash-metric">
+            <div class="mini-dash-metric-num">124</div>
+            <div class="mini-dash-metric-label">Avaliações</div>
+          </div>
+          <div class="mini-dash-metric">
+            <div class="mini-dash-metric-num">3</div>
+            <div class="mini-dash-metric-label">Pendentes</div>
+          </div>
+        </div>
+        <div class="mini-dash-section">
+          <div class="mini-dash-section-title">Atividade recente</div>
+          <div class="mini-dash-feed">
+            <div class="mini-dash-item">
+              <div class="mini-dash-avatar av-a">M</div>
+              <div class="mini-dash-item-body">
+                <div class="mini-dash-item-line1">
+                  Maria · 5★
+                  <span class="mini-dash-item-tag public">Google</span>
+                </div>
+                <div class="mini-dash-item-line2">"Atendimento incrível, voltarei sempre."</div>
+              </div>
+              <div class="mini-dash-item-time">agora</div>
+            </div>
+            <div class="mini-dash-item">
+              <div class="mini-dash-avatar av-b">J</div>
+              <div class="mini-dash-item-body">
+                <div class="mini-dash-item-line1">
+                  João · feedback
+                  <span class="mini-dash-item-tag private">Privado</span>
+                </div>
+                <div class="mini-dash-item-line2">"Demoraram pra trazer o cardápio…"</div>
+              </div>
+              <div class="mini-dash-item-time">2 min</div>
+            </div>
+            <div class="mini-dash-item">
+              <div class="mini-dash-avatar av-c">A</div>
+              <div class="mini-dash-item-body">
+                <div class="mini-dash-item-line1">
+                  Ana · 5★
+                  <span class="mini-dash-item-tag public">Google</span>
+                </div>
+                <div class="mini-dash-item-line2">"Pedido perfeito e entrega rápida."</div>
+              </div>
+              <div class="mini-dash-item-time">8 min</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
