@@ -1245,9 +1245,10 @@ export default function ReputaZap({ user, onLogout }) {
             );
           })()}
 
-          {/* ─ MEU LINK ─ */}
+          {/* ─ MEU LINK / CENTRAL DE ATIVAÇÃO ─ */}
           {tab==="link"&&(() => {
             const directLink = bizInfo?.place_id ? `${window.location.origin}/avaliar?place_id=${bizInfo.place_id}` : "";
+            const qrUrl = directLink ? `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(directLink)}` : "#";
             const copyMyLink = () => {
               if (!directLink) return;
               navigator.clipboard.writeText(directLink);
@@ -1255,41 +1256,116 @@ export default function ReputaZap({ user, onLogout }) {
               setTimeout(()=>setCopiedLink(false),2000);
             };
             return (
-              <div style={{animation:"fadeUp 0.4s ease",maxWidth:560}}>
-                <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:18,padding:24,marginBottom:16}}>
-                  <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:18,paddingBottom:18,borderBottom:"1px solid #f1f5f9"}}>
-                    <div style={{width:32,height:32,borderRadius:9,background:"linear-gradient(135deg,#ea4335,#fbbc04 33%,#34a853 66%,#4285f4)",flexShrink:0}}/>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:10,color:"#9ca3af",fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:2}}>Seu negócio</div>
-                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{biz}</div>
-                    </div>
-                    <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"#ecfdf5",border:"1px solid #a7f3d0",borderRadius:999,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#059669"}}>
-                      <div style={{width:7,height:7,borderRadius:"50%",background:"#10b981"}}/>Ativo
+              <div style={{animation:"fadeUp 0.4s ease",maxWidth:880}}>
+
+                {/* HERO ATIVAÇÃO */}
+                <div style={{background:"linear-gradient(160deg,#fff 0%,#f9fafb 100%)",border:"1px solid #e5e7eb",borderRadius:20,padding:"28px 28px 24px",marginBottom:18}}>
+                  <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:18,flexWrap:"wrap",marginBottom:18}}>
+                    <div style={{flex:1,minWidth:240}}>
+                      <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"#ecfdf5",border:"1px solid #a7f3d0",borderRadius:999,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#059669",marginBottom:14}}>
+                        <div style={{width:7,height:7,borderRadius:"50%",background:"#10b981",animation:"pulseDot 2.4s ease-out infinite"}}/>
+                        Sistema ativo
+                      </div>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#0f172a",lineHeight:1.2,marginBottom:8,letterSpacing:"-0.01em"}}>
+                        Seu sistema já está ativo
+                      </div>
+                      <div style={{fontSize:14,color:"#475569",lineHeight:1.55,maxWidth:520}}>
+                        Clientes já podem avaliar sua empresa em segundos usando link, QR Code ou placas NFC.
+                      </div>
                     </div>
                   </div>
-                  <div style={{fontSize:11,color:"#9ca3af",fontWeight:700,letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:6}}>Link de avaliação</div>
-                  <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:11,padding:"11px 14px",fontSize:12,color:"#475569",fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:16}}>
-                    {directLink || "—"}
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:10,paddingTop:18,borderTop:"1px solid #f1f5f9"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{width:32,height:32,borderRadius:10,background:"#ecfdf5",border:"1px solid #a7f3d0",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:16}}>😊</div>
+                      <div style={{fontSize:13,color:"#475569",lineHeight:1.4}}>
+                        <span style={{fontWeight:600,color:"#0f172a"}}>Clientes satisfeitos</span><br/>
+                        <span style={{color:"#059669",fontWeight:600}}>→ Google</span>
+                      </div>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{width:32,height:32,borderRadius:10,background:"#fef2f2",border:"1px solid #fecaca",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:16}}>😞</div>
+                      <div style={{fontSize:13,color:"#475569",lineHeight:1.4}}>
+                        <span style={{fontWeight:600,color:"#0f172a"}}>Problemas</span><br/>
+                        <span style={{color:"#1d4ed8",fontWeight:600}}>→ privados para você</span>
+                      </div>
+                    </div>
                   </div>
-                  <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                </div>
+
+                {/* TÍTULO ESCOLHA */}
+                <div style={{marginBottom:14,marginTop:30}}>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#0f172a",letterSpacing:"-0.005em"}}>
+                    Escolha como seus clientes irão avaliar
+                  </div>
+                  <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
+                    Três formas de ativar — todas grátis, escolha quantas quiser.
+                  </div>
+                </div>
+
+                {/* 3 CARDS DE ATIVAÇÃO */}
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,marginBottom:18}}>
+
+                  {/* Card 1: Link direto */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:18,padding:22,display:"flex",flexDirection:"column",gap:14}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{width:40,height:40,borderRadius:11,background:"#eff6ff",border:"1px solid #bfdbfe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🔗</div>
+                      <div style={{fontSize:15,fontWeight:700,color:"#0f172a"}}>Link direto</div>
+                    </div>
+                    <div style={{fontSize:13,color:"#6b7280",lineHeight:1.5,flex:1}}>
+                      Compartilhe seu link em WhatsApp, Instagram ou qualquer canal.
+                    </div>
                     <button onClick={copyMyLink} disabled={!directLink}
-                      style={{background:copiedLink?"#059669":"#0f172a",color:"#fff",border:"none",borderRadius:12,padding:"13px 16px",fontSize:14,fontWeight:600,cursor:directLink?"pointer":"not-allowed",opacity:directLink?1:0.5,display:"flex",alignItems:"center",justifyContent:"center",gap:8,fontFamily:"inherit"}}>
-                      {copiedLink ? <><Check size={16}/> Link copiado</> : <><Copy size={16}/> Copiar meu link</>}
+                      style={{background:copiedLink?"#059669":"#0f172a",color:"#fff",border:"none",borderRadius:11,padding:"11px 14px",fontSize:13,fontWeight:600,cursor:directLink?"pointer":"not-allowed",opacity:directLink?1:0.5,display:"flex",alignItems:"center",justifyContent:"center",gap:8,fontFamily:"inherit"}}>
+                      {copiedLink ? <><Check size={14}/> Link copiado</> : <><Copy size={14}/> Copiar link</>}
                     </button>
-                    <a href={directLink ? `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(directLink)}` : "#"} target="_blank" rel="noopener"
-                      onClick={e=>{if(!directLink)e.preventDefault();}}
-                      style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1.5px solid #e5e7eb",borderRadius:12,padding:"13px 16px",fontSize:14,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
-                      <ExternalLink size={15}/> Baixar QR Code
+                  </div>
+
+                  {/* Card 2: QR Code */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:18,padding:22,display:"flex",flexDirection:"column",gap:14}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{width:40,height:40,borderRadius:11,background:"#fffbeb",border:"1px solid #fde68a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🖼️</div>
+                      <div style={{fontSize:15,fontWeight:700,color:"#0f172a"}}>QR Code</div>
+                    </div>
+                    <div style={{fontSize:13,color:"#6b7280",lineHeight:1.5,flex:1}}>
+                      Baixe um QR pronto para imprimir ou divulgar.
+                    </div>
+                    <a href={qrUrl} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
+                      style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1.5px solid #e5e7eb",borderRadius:11,padding:"11px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
+                      <ExternalLink size={14}/> Baixar QR
                     </a>
-                    <a href={directLink ? `${directLink}&preview=1` : "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
-                      style={{textDecoration:"none",background:"transparent",color:"#475569",borderRadius:12,padding:"10px 16px",fontSize:13,fontWeight:500,display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
-                      <Smartphone size={14}/> Ver simulação
+                  </div>
+
+                  {/* Card 3: NFC / Placas */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:18,padding:22,display:"flex",flexDirection:"column",gap:14}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{width:40,height:40,borderRadius:11,background:"#f5f3ff",border:"1px solid #ddd6fe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>📶</div>
+                      <div style={{fontSize:15,fontWeight:700,color:"#0f172a"}}>NFC / Placas</div>
+                    </div>
+                    <div style={{fontSize:13,color:"#6b7280",lineHeight:1.5,flex:1}}>
+                      Grave este link em uma placa ou cartão NFC.
+                    </div>
+                    <a href="/ativar-placa"
+                      style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1.5px solid #e5e7eb",borderRadius:11,padding:"11px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                      <Smartphone size={14}/> Gravar NFC
                     </a>
                   </div>
                 </div>
-                <div style={{display:"flex",alignItems:"flex-start",gap:10,background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:12,padding:"14px 16px",fontSize:13,color:"#1e40af",lineHeight:1.55}}>
-                  <span style={{flexShrink:0,fontSize:16}}>💡</span>
-                  <span>Compartilhe este link no WhatsApp, redes sociais ou no balcão da loja.</span>
+
+                {/* Link preview + simulação */}
+                <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:14,padding:"16px 18px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap",marginBottom:14}}>
+                  <div style={{flex:1,minWidth:200}}>
+                    <div style={{fontSize:10,color:"#9ca3af",fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:4}}>Seu link</div>
+                    <div style={{fontSize:12,color:"#475569",fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{directLink || "—"}</div>
+                  </div>
+                  <a href={directLink ? `${directLink}&preview=1` : "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
+                    style={{textDecoration:"none",background:"transparent",color:"#1a73e8",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none",border:"1px solid #bfdbfe",background:"#eff6ff",flexShrink:0}}>
+                    <Smartphone size={13}/> Testar experiência
+                  </a>
+                </div>
+
+                <div style={{display:"flex",alignItems:"flex-start",gap:10,fontSize:12,color:"#6b7280",lineHeight:1.55,padding:"4px 4px 0"}}>
+                  <span style={{flexShrink:0,fontSize:14,opacity:0.7}}>💡</span>
+                  <span>Compartilhe seu link no WhatsApp, redes sociais ou no balcão da loja. Quanto mais portas de entrada, mais avaliações.</span>
                 </div>
               </div>
             );
