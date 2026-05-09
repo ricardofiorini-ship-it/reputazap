@@ -92,13 +92,16 @@
   .btn-primary {
     background: var(--btn); color: #fff;
     border: none;
-    border-radius: 16px;
-    padding: 16px 36px;
-    font-size: 17px; font-weight: 700;
+    border-radius: 14px;
+    padding: 13px 28px;
+    font-size: 15px; font-weight: 700;
     font-family: inherit; cursor: pointer;
     display: inline-flex; align-items: center; gap: 8px;
     box-shadow: 0 14px 30px rgba(16,23,42,0.16);
     transition: transform .2s, background .2s, box-shadow .2s;
+  }
+  @media (min-width: 768px) {
+    .btn-primary { padding: 16px 36px; font-size: 17px; border-radius: 16px; }
   }
   .btn-primary:hover {
     background: var(--btn-hover);
@@ -192,7 +195,7 @@
   /* HERO */
   .hero {
     position: relative; overflow: hidden;
-    padding: 56px 20px 48px;
+    padding: 28px 20px 32px;
   }
   @media (min-width: 768px) { .hero { padding: 88px 32px 80px; } }
   .hero::before {
@@ -212,47 +215,52 @@
     position: relative;
   }
   .hero h1 {
-    font-size: clamp(44px, 9.5vw, 80px);
+    font-size: clamp(34px, 9vw, 80px);
     font-weight: 900;
-    line-height: 0.94;
-    letter-spacing: -0.05em;
+    line-height: 0.96;
+    letter-spacing: -0.045em;
     text-wrap: balance;
     margin: 0 auto;
     max-width: 920px;
   }
   .hero h1 .accent { color: var(--primary); }
   .hero-sub {
-    font-size: clamp(18px, 2.6vw, 26px);
+    font-size: clamp(15px, 2.4vw, 26px);
     color: var(--text-soft);
-    line-height: 1.5;
-    margin: 28px auto 0;
+    line-height: 1.45;
+    margin: 16px auto 0;
     max-width: 640px;
     text-wrap: balance;
     font-weight: 400;
   }
+  @media (min-width: 768px) { .hero-sub { margin-top: 28px; line-height: 1.5; } }
   .hero-pills {
-    margin-top: 28px;
+    margin-top: 18px;
     display: flex; align-items: center; justify-content: center;
     flex-wrap: wrap;
-    gap: 12px 24px;
+    gap: 8px 18px;
   }
+  @media (min-width: 768px) { .hero-pills { margin-top: 28px; gap: 12px 24px; } }
   .pill {
-    display: inline-flex; align-items: center; gap: 9px;
-    font-size: 15px; font-weight: 500; color: var(--text);
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 500; color: var(--text);
   }
-  @media (max-width: 540px) { .pill { font-size: 13.5px; gap: 7px; } .hero-pills { gap: 10px 18px; } }
+  @media (min-width: 768px) { .pill { font-size: 15px; gap: 9px; } }
   .pill-dot {
-    width: 7px; height: 7px;
+    width: 6px; height: 6px;
     border-radius: 50%;
     background: var(--primary);
   }
-  .hero-cta-block { margin-top: 36px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-  .hero-micro { font-size: 14px; color: var(--soft); font-weight: 400; }
+  @media (min-width: 768px) { .pill-dot { width: 7px; height: 7px; } }
+  .hero-cta-block { margin-top: 22px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  @media (min-width: 768px) { .hero-cta-block { margin-top: 36px; gap: 12px; } }
+  .hero-micro { font-size: 13px; color: var(--soft); font-weight: 400; }
+  @media (min-width: 768px) { .hero-micro { font-size: 14px; } }
 
   /* HERO MOCKUP */
   .hero-mockup {
     position: relative;
-    margin: 56px auto 0;
+    margin: 40px auto 0;
     max-width: 760px;
     display: flex;
     flex-direction: column;
