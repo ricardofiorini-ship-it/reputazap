@@ -67,14 +67,15 @@
   }
   @media (min-width: 768px) { .header-inner { padding: 18px 32px; } }
   .logo img { height: 38px; width: auto; display: block; }
-  .header-actions { display: flex; align-items: center; gap: 18px; }
+  @media (min-width: 768px) { .logo img { height: 50px; } }
+  .header-actions { display: flex; align-items: center; gap: 14px; }
+  @media (min-width: 768px) { .header-actions { gap: 18px; } }
   .header-link {
     font-size: 14px; font-weight: 500; color: var(--muted);
     transition: color .15s;
     white-space: nowrap;
   }
   .header-link:hover { color: var(--text); }
-  @media (max-width: 540px) { .header-link { display: none; } }
   .header-cta {
     background: var(--btn); color: #fff;
     border-radius: 14px;
@@ -196,13 +197,14 @@
   @media (min-width: 768px) { .hero { padding: 88px 32px 80px; } }
   .hero::before {
     content: ""; position: absolute;
-    left: 50%; top: 120px;
+    left: 50%; top: 80px;
     transform: translateX(-50%);
-    width: 320px; height: 320px;
-    background: rgba(59,91,219,0.08);
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(59,91,219,0.18), rgba(99,102,241,0.06) 50%, transparent 70%);
     border-radius: 50%;
-    filter: blur(80px);
+    filter: blur(60px);
     pointer-events: none;
+    z-index: 0;
   }
   .hero-inner {
     max-width: 1024px; margin: 0 auto;
@@ -252,9 +254,18 @@
     position: relative;
     margin: 56px auto 0;
     max-width: 760px;
-    height: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
   }
-  @media (min-width: 768px) { .hero-mockup { height: 460px; margin-top: 72px; } }
+  @media (min-width: 768px) {
+    .hero-mockup {
+      display: block;
+      height: 460px;
+      margin-top: 72px;
+    }
+  }
   .hero-mockup::before {
     content: ""; position: absolute;
     left: 50%; top: 24px;
@@ -263,18 +274,20 @@
     background: rgba(148,163,184,0.18);
     border-radius: 50%;
     filter: blur(80px);
+    z-index: 0;
   }
-  .hero-mockup::after {
-    content: ""; position: absolute;
-    left: 14%; right: 14%; bottom: -16px;
-    height: 36px;
-    background: radial-gradient(ellipse, rgba(15,23,42,0.16), transparent 70%);
-    filter: blur(14px);
-    pointer-events: none;
+  @media (min-width: 768px) {
+    .hero-mockup::after {
+      content: ""; position: absolute;
+      left: 14%; right: 14%; bottom: -16px;
+      height: 36px;
+      background: radial-gradient(ellipse, rgba(15,23,42,0.16), transparent 70%);
+      filter: blur(14px);
+      pointer-events: none;
+    }
   }
   .mockup-plaque {
-    position: absolute;
-    left: 6%; top: 56px;
+    position: relative;
     width: 232px; height: 296px;
     background: var(--text);
     border-radius: 28px;
@@ -282,9 +295,15 @@
     padding: 24px;
     display: flex; flex-direction: column;
     animation: floatPlaque 5.5s ease-in-out infinite;
-    z-index: 2;
+    z-index: 1;
   }
-  @media (min-width: 768px) { .mockup-plaque { left: 16%; top: 64px; width: 272px; height: 344px; } }
+  @media (min-width: 768px) {
+    .mockup-plaque {
+      position: absolute;
+      left: 16%; top: 64px;
+      width: 272px; height: 344px;
+    }
+  }
   .plaque-head { display: flex; align-items: center; gap: 8px; }
   .plaque-logo-mark {
     width: 22px; height: 22px;
@@ -320,18 +339,23 @@
   }
 
   .mockup-card {
-    position: absolute;
-    right: 4%; top: 12px;
-    width: 256px;
+    position: relative;
+    width: 280px;
     background: #fff;
     border: 1px solid var(--border);
     border-radius: 28px;
     box-shadow: 0 24px 50px rgba(15,23,42,0.14);
-    padding: 24px;
+    padding: 22px;
     animation: floatCard 6.5s ease-in-out infinite 0.6s;
-    z-index: 1;
+    z-index: 2;
   }
-  @media (min-width: 768px) { .mockup-card { right: 16%; top: 8px; width: 326px; padding: 28px; } }
+  @media (min-width: 768px) {
+    .mockup-card {
+      position: absolute;
+      right: 16%; top: 8px;
+      width: 326px; padding: 28px;
+    }
+  }
   .card-head { display: flex; align-items: center; gap: 14px; }
   .card-google {
     width: 48px; height: 48px;
@@ -392,6 +416,7 @@
     display: grid; grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin-top: 18px;
+    align-items: center;
   }
   .face {
     border: 1px solid #E2E8F0;
@@ -400,9 +425,39 @@
     padding: 14px 4px;
     text-align: center;
     font-size: 22px;
+    opacity: 0.32;
+    filter: grayscale(0.6);
+    transition: all .2s;
+    position: relative;
   }
-  .face.active.green { border-color: #6EE7B7; background: var(--green-soft); }
-  .face.active.red { border-color: #FCA5A5; background: var(--red-soft); }
+  .face.active {
+    opacity: 1;
+    filter: none;
+    font-size: 28px;
+    padding: 18px 4px;
+    transform: scale(1.06);
+  }
+  .face.active.green {
+    border: 2px solid var(--green);
+    background: var(--green-soft);
+    box-shadow: 0 0 0 4px rgba(34,197,94,0.16), 0 8px 18px -6px rgba(34,197,94,0.32);
+  }
+  .face.active.red {
+    border: 2px solid var(--red);
+    background: var(--red-soft);
+    box-shadow: 0 0 0 4px rgba(239,68,68,0.16), 0 8px 18px -6px rgba(239,68,68,0.32);
+  }
+  .face-label {
+    display: block;
+    margin-top: 6px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .face.active .face-label { opacity: 1; }
+  .face.active.green .face-label { color: #047857; }
+  .face.active.red .face-label { color: #B91C1C; }
   .exp-arrow { text-align: center; font-size: 20px; color: var(--soft); margin: 18px 0; line-height: 1; }
   .exp-result-good {
     border: 1px solid var(--green-border);
@@ -576,13 +631,13 @@
   }
   .benefit-icon {
     width: 56px; height: 56px;
-    border: 1px solid #F1F5F9;
-    background: #F8FAFC;
     border-radius: 16px;
     display: flex; align-items: center; justify-content: center;
-    color: var(--text);
   }
-  .benefit-icon svg { width: 22px; height: 22px; stroke-width: 1.7; }
+  .benefit-icon svg { width: 24px; height: 24px; stroke-width: 1.8; }
+  .benefit-icon.icon-amber { background: #FFFBEB; color: #D97706; border: 1px solid #FEF3C7; }
+  .benefit-icon.icon-blue { background: #EFF6FF; color: var(--primary); border: 1px solid #DBEAFE; }
+  .benefit-icon.icon-green { background: var(--green-soft); color: #059669; border: 1px solid #BBF7D0; }
   .benefit-card h3 {
     font-size: 26px; font-weight: 900;
     line-height: 1.1;
@@ -622,8 +677,8 @@
     display: flex; flex-direction: column;
   }
   .hw-photo {
-    height: 176px;
-    background: linear-gradient(180deg, #F8FAFC 0%, #ECECEA 100%);
+    height: 200px;
+    background: linear-gradient(180deg, #FAFAF7 0%, #EFEDE6 100%);
     display: flex; align-items: center; justify-content: center;
     padding: 20px;
     position: relative;
@@ -652,38 +707,37 @@
     line-height: 1.5;
   }
 
-  /* HW shapes */
+  /* HW shapes — todas mesma area visual ~120x120 (vitrine equalizada) */
   .hw-shape-white {
-    width: 88px; height: 116px;
+    width: 100px; height: 130px;
     background: #fff;
     border-radius: 14px;
-    box-shadow: 0 14px 28px -8px rgba(15,23,42,0.20), inset 0 1px 0 rgba(255,255,255,0.95);
+    box-shadow: 0 14px 28px -8px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.95);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 14px;
+    gap: 12px;
     border: 1px solid rgba(255,255,255,0.95);
   }
-  .hw-shape-white .qr { width: 40px; height: 40px; background: var(--text); border-radius: 8px; opacity: 0.92; }
+  .hw-shape-white .qr { width: 48px; height: 48px; background: var(--text); border-radius: 8px; opacity: 0.92; }
   .hw-shape-white .label { font-size: 11px; color: var(--muted); font-weight: 600; }
 
   .hw-shape-table {
-    width: 122px; height: 90px;
+    width: 130px; height: 100px;
     background: #fff;
     border-radius: 12px;
-    box-shadow: 0 14px 28px -8px rgba(15,23,42,0.20), inset 0 1px 0 rgba(255,255,255,0.95);
+    box-shadow: 0 14px 28px -8px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.95);
     display: flex; align-items: center; gap: 12px;
     padding: 12px;
     border: 1px solid rgba(255,255,255,0.95);
   }
-  .hw-shape-table .qr { width: 56px; height: 56px; background: var(--text); border-radius: 8px; opacity: 0.92; flex-shrink: 0; }
+  .hw-shape-table .qr { width: 60px; height: 60px; background: var(--text); border-radius: 8px; opacity: 0.92; flex-shrink: 0; }
   .hw-shape-table .info-eyebrow { font-size: 8px; font-weight: 700; color: var(--soft); letter-spacing: 0.12em; }
   .hw-shape-table .info-name { font-size: 11px; font-weight: 700; color: var(--text); margin-top: 4px; line-height: 1.1; }
 
   .hw-shape-card {
-    width: 144px; height: 92px;
+    width: 140px; height: 88px;
     background: var(--text);
-    border-radius: 14px;
-    box-shadow: 0 16px 32px -8px rgba(15,23,42,0.36), inset 0 1px 0 rgba(255,255,255,0.06);
-    transform: rotate(-4deg);
+    border-radius: 12px;
+    box-shadow: 0 16px 32px -8px rgba(15,23,42,0.32), inset 0 1px 0 rgba(255,255,255,0.06);
     padding: 12px 14px;
     display: flex; flex-direction: column; justify-content: space-between;
     position: relative;
@@ -708,10 +762,10 @@
   }
 
   .hw-shape-circle {
-    width: 116px; height: 116px;
+    width: 120px; height: 120px;
     background: var(--text);
     border-radius: 50%;
-    box-shadow: 0 16px 32px -8px rgba(15,23,42,0.36), inset 0 1px 0 rgba(255,255,255,0.06);
+    box-shadow: 0 16px 32px -8px rgba(15,23,42,0.32), inset 0 1px 0 rgba(255,255,255,0.06);
     display: flex; align-items: center; justify-content: center;
     position: relative;
     overflow: hidden;
@@ -876,7 +930,7 @@
         <div class="exp-divider"></div>
         <div class="exp-q">Como foi sua experiência hoje?</div>
         <div class="exp-faces">
-          <div class="face active green">😊</div>
+          <div class="face active green">😊<span class="face-label">Escolhida</span></div>
           <div class="face">😐</div>
           <div class="face">🙁</div>
         </div>
@@ -896,7 +950,7 @@
         <div class="exp-faces">
           <div class="face">😊</div>
           <div class="face">😐</div>
-          <div class="face active red">🙁</div>
+          <div class="face active red">🙁<span class="face-label">Escolhida</span></div>
         </div>
         <div class="exp-arrow">↓</div>
         <div class="exp-result-bad">
@@ -909,12 +963,8 @@
   </div>
 </section>
 
-<!-- SOFT DIVIDER -->
-<div class="soft-divider">
-  <div class="soft-divider-line"></div>
-  <span class="soft-divider-label">Produto vivo</span>
-  <div class="soft-divider-line right"></div>
-</div>
+<!-- DIVIDER -->
+<div class="divider"></div>
 
 <!-- LIVE PROOF -->
 <section id="produto">
@@ -922,7 +972,7 @@
     <div class="live-grid">
       <div class="live-text">
         <div class="section-eyebrow">Painel</div>
-        <h2 class="section-title">Tudo num painel só</h2>
+        <h2 class="section-title">Tudo em um só painel</h2>
         <p class="section-sub">Acompanhe avaliações, feedbacks privados e atividade do seu negócio em tempo real.</p>
       </div>
       <div class="dash">
@@ -973,12 +1023,8 @@
   </div>
 </section>
 
-<!-- SOFT DIVIDER -->
-<div class="soft-divider">
-  <div class="soft-divider-line"></div>
-  <span class="soft-divider-label">Reputação</span>
-  <div class="soft-divider-line right"></div>
-</div>
+<!-- DIVIDER -->
+<div class="divider"></div>
 
 <!-- BENEFITS -->
 <section id="beneficios">
@@ -989,21 +1035,21 @@
     </div>
     <div class="benefits-grid">
       <div class="benefit-card">
-        <div class="benefit-icon">
+        <div class="benefit-icon icon-amber">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
         <h3>Mais avaliações no Google</h3>
         <p>Facilite o caminho para clientes satisfeitos avaliarem sua empresa.</p>
       </div>
       <div class="benefit-card">
-        <div class="benefit-icon">
+        <div class="benefit-icon icon-blue">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
         <h3>Clientes falam com você primeiro</h3>
         <p>Ganhe a chance de resolver problemas antes da exposição pública.</p>
       </div>
       <div class="benefit-card">
-        <div class="benefit-icon">
+        <div class="benefit-icon icon-green">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <h3>Sem fricção</h3>
