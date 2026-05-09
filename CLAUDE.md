@@ -27,12 +27,10 @@ Fluxo end-to-end funcionando:
 
 ## Pendências
 
-1. Mobile sidebar quebrado, hambúrguer não aparece no celular.
-2. `LoginScreen` + array `USERS` (com "Café Bello Vista") em `App.jsx` é código morto — `main.jsx` usa `Login.jsx`. Limpar.
-3. Hardware NFC: os 4 cards do dashboard apontam pro mesmo SKU Mercado Livre placeholder. Trocar por links específicos quando tiver SKU por produto.
-4. Endpoint pra trocar plano Free↔Pro (hoje é manual no Supabase). Sem ele, não dá pra cliente real fazer upgrade pelo app.
-5. `RESEND_API_KEY` precisa ser setada na Vercel pro envio de email da peneira Pro funcionar (sem ela, feedback é salvo no Supabase mas email é skipado com log).
-6. Deploy backend no Railway (avaliar se ainda faz sentido com Vercel functions).
+1. Hardware NFC: os 4 cards do dashboard apontam pro mesmo SKU Mercado Livre placeholder. Trocar por links específicos quando tiver SKU por produto.
+2. Endpoint pra trocar plano Free↔Pro (hoje é manual no Supabase). Sem ele, não dá pra cliente real fazer upgrade pelo app.
+3. `RESEND_API_KEY` precisa ser setada na Vercel pro envio de email da peneira Pro funcionar (sem ela, feedback é salvo no Supabase mas email é skipado com log).
+4. Deploy backend no Railway (avaliar se ainda faz sentido com Vercel functions).
 
 ## Variáveis de ambiente (Vercel)
 
