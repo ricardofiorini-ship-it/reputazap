@@ -259,19 +259,15 @@
 
   /* HERO MOCKUP */
   .hero-mockup {
-    position: relative;
-    margin: 40px auto 0;
-    max-width: 760px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
+    display: none;
   }
   @media (min-width: 768px) {
     .hero-mockup {
       display: block;
+      position: relative;
+      margin: 72px auto 0;
+      max-width: 760px;
       height: 460px;
-      margin-top: 72px;
     }
   }
   .hero-mockup::before {
@@ -670,6 +666,18 @@
     padding: 48px 20px;
   }
   @media (min-width: 768px) { .stats-band { padding: 72px 32px; } }
+  .stats-band-head {
+    text-align: center;
+    margin: 0 auto 32px;
+  }
+  @media (min-width: 768px) { .stats-band-head { margin-bottom: 44px; } }
+  .stats-band-eyebrow {
+    display: inline-block;
+    font-size: 11px; font-weight: 700;
+    color: var(--soft);
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+  }
   .stats-band-grid {
     display: grid; grid-template-columns: repeat(2, 1fr);
     gap: 28px 16px;
@@ -1111,6 +1119,9 @@
 
 <!-- STATS BAND -->
 <section class="stats-band">
+  <div class="stats-band-head">
+    <span class="stats-band-eyebrow">ReputaZap em números</span>
+  </div>
   <div class="stats-band-grid">
     <div class="stats-band-item">
       <div class="stats-band-num">+12 mil</div>
