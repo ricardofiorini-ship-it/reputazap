@@ -3,67 +3,50 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Comece — ReputaZap</title>
+<title>Seu link já está pronto — ReputaZap</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:#f9fafb;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;min-height:100vh;padding:32px 20px 60px;}
+  body{background:#f9fafb;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;min-height:100vh;padding:40px 20px 60px;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-  @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(26,115,232,0.45)}50%{box-shadow:0 0 0 10px rgba(26,115,232,0)}}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(5,150,105,0.45)}50%{box-shadow:0 0 0 8px rgba(5,150,105,0)}}
   .container{max-width:520px;margin:0 auto;animation:fadeUp 0.4s ease;}
-  .logo{display:flex;justify-content:center;margin-bottom:28px;}
-  .biz-bar{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:12px 18px;margin-bottom:24px;display:flex;align-items:center;gap:12px;}
-  .biz-google{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#ea4335,#fbbc04 33%,#34a853 66%,#4285f4);flex-shrink:0;}
-  .biz-label{font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;display:block;margin-bottom:2px;}
-  .biz-name{font-size:13px;font-weight:700;color:#0f172a;line-height:1.2;}
-  h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;line-height:1.2;text-align:center;margin-bottom:8px;}
-  .sub{font-size:14px;color:#6b7280;text-align:center;margin-bottom:32px;line-height:1.55;}
-  .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:22px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;}
-  .card-header{display:flex;align-items:flex-start;gap:14px;}
-  .card-visual{width:54px;height:54px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:26px;}
-  .card-visual.link{background:#fef2f2;}
-  .card-visual.qr{background:#fff;border:1px solid #e5e7eb;padding:4px;}
-  .card-visual.placa{background:#e8f0fe;}
-  .card-visual.qr canvas, .card-visual.qr img{width:46px!important;height:46px!important;}
-  .card-title{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:4px;}
-  .card-desc{font-size:13px;color:#6b7280;line-height:1.55;}
-  .link-preview{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:9px 11px;font-size:11px;color:#6b7280;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .btn{padding:11px 14px;border:none;border-radius:11px;font-size:13px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;text-decoration:none;width:100%;}
+  .logo{display:flex;justify-content:center;margin-bottom:32px;}
+  h1{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;line-height:1.2;text-align:center;margin-bottom:10px;}
+  .sub{font-size:14px;color:#6b7280;text-align:center;margin-bottom:32px;line-height:1.55;max-width:440px;margin-left:auto;margin-right:auto;}
+
+  .main-card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;margin-bottom:20px;}
+  .biz-row{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #f1f5f9;}
+  .biz-google{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#ea4335,#fbbc04 33%,#34a853 66%,#4285f4);flex-shrink:0;}
+  .biz-info{flex:1;min-width:0;}
+  .biz-label{font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:2px;}
+  .biz-name{font-size:14px;font-weight:700;color:#0f172a;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .status-badge{display:inline-flex;align-items:center;gap:6px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;color:#059669;flex-shrink:0;}
+  .status-dot{width:7px;height:7px;border-radius:50%;background:#10b981;animation:pulse 2s ease-out infinite;}
+
+  .link-label{font-size:11px;color:#9ca3af;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;}
+  .link-preview{background:#f9fafb;border:1px solid #e5e7eb;border-radius:11px;padding:11px 14px;font-size:12px;color:#475569;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:16px;}
+
+  .btn{padding:13px 16px;border:none;border-radius:12px;font-size:14px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;text-decoration:none;width:100%;}
   .btn-primary{background:#0f172a;color:#fff;}
   .btn-primary:hover{background:#1e293b;transform:translateY(-1px);}
   .btn-primary.copied{background:#059669;}
-  .divider{height:1px;background:#e5e7eb;margin:28px 0 22px;}
-  .next{text-align:center;}
-  .next-label{font-size:13px;color:#6b7280;margin-bottom:12px;}
-  .btn-dashboard{width:100%;padding:15px;border:1.5px solid #e5e7eb;background:#fff;color:#475569;border-radius:14px;font-size:14px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;}
-  .btn-dashboard:hover{border-color:#cbd5e1;background:#f8fafc;}
-  .btn-dashboard.highlighted{background:#1a73e8;color:#fff;border-color:#1a73e8;animation:glow 2s ease-out;}
-  .btn-dashboard.highlighted:hover{background:#1557b0;}
-  .skip{display:block;text-align:center;margin-top:14px;color:#9ca3af;font-size:12px;cursor:pointer;background:none;border:none;font-family:'Plus Jakarta Sans',sans-serif;width:100%;padding:8px;}
-  .skip:hover{color:#6b7280;}
+  .btn-secondary{background:#fff;color:#0f172a;border:1.5px solid #e5e7eb;}
+  .btn-secondary:hover{border-color:#cbd5e1;background:#f8fafc;}
+  .btn-tertiary{background:transparent;color:#475569;font-size:13px;font-weight:500;padding:10px 16px;}
+  .btn-tertiary:hover{color:#0f172a;background:#f8fafc;}
+
+  .btn-stack{display:flex;flex-direction:column;gap:10px;}
+
+  .share-hint{display:flex;align-items:flex-start;gap:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:14px 16px;margin-bottom:24px;font-size:13px;color:#1e40af;line-height:1.55;}
+  .share-hint-icon{flex-shrink:0;font-size:16px;line-height:1.4;}
+
+  .next-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#1a73e8;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .15s;text-decoration:none;}
+  .next-btn:hover{background:#1557b0;}
+
   .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.15);animation:fadeUp 0.3s ease;z-index:200;}
   .spinner{display:inline-block;animation:spin 1s linear infinite;}
-
-  /* Modal placas */
-  .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.6);display:none;align-items:flex-start;justify-content:center;padding:24px;z-index:100;overflow-y:auto;}
-  .modal-overlay.open{display:flex;}
-  .modal{background:#fff;border-radius:18px;max-width:520px;width:100%;padding:24px;animation:fadeUp 0.3s ease;margin:auto;}
-  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
-  .modal-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#0f172a;}
-  .modal-close{background:none;border:none;font-size:26px;color:#9ca3af;cursor:pointer;line-height:1;padding:4px 8px;}
-  .modal-close:hover{color:#0f172a;}
-  .modal-sub{font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.55;}
-  .placas-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  @media(max-width:420px){.placas-grid{grid-template-columns:1fr;}}
-  .placa-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;}
-  .placa-emoji{font-size:24px;}
-  .placa-title{font-size:13px;font-weight:700;color:#0f172a;}
-  .placa-desc{font-size:11px;color:#6b7280;line-height:1.5;flex:1;}
-  .placa-cta{background:#1a73e8;color:#fff;border:none;border-radius:9px;padding:8px 10px;font-size:11px;font-weight:600;text-decoration:none;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;}
-  .placa-cta:hover{background:#1557b0;}
-
-  /* Loading */
   .loading{text-align:center;padding:48px 24px;color:#6b7280;}
 </style>
 </head>
@@ -80,121 +63,42 @@
   </div>
 
   <div id="content" style="display:none">
-    <h1>Comece a receber avaliações dos seus clientes hoje</h1>
-    <p class="sub">Escolha uma forma simples de começar agora — sem instalar nada e em poucos minutos</p>
-    <p style="font-size:13px;color:#475569;text-align:center;line-height:1.55;margin-bottom:32px;margin-top:-20px">
-      Comece simples. Depois você pode evoluir e ter ainda mais controle sobre suas avaliações
-    </p>
+    <h1>Seu link já está pronto</h1>
+    <p class="sub">Seu sistema de avaliação já está ativo. Você pode começar a receber avaliações agora mesmo.</p>
 
-    <div class="biz-bar" style="background:#eff6ff;border-color:#bfdbfe;border-width:1.5px">
-      <div class="biz-google"></div>
-      <div style="flex:1;min-width:0">
-        <span class="biz-label" style="color:#1d4ed8">Seu negócio</span>
-        <span class="biz-name" id="bizName">—</span>
-      </div>
-    </div>
-
-    <div style="font-size:13px;color:#475569;font-weight:600;margin-bottom:12px">Escolha uma forma de começar:</div>
-
-    <!-- 1. Link direto -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-visual link">🔗</div>
-        <div style="flex:1;min-width:0">
-          <div class="card-title">Link direto</div>
-          <div class="card-desc">Envie logo após o atendimento e receba avaliações na hora.</div>
+    <div class="main-card">
+      <div class="biz-row">
+        <div class="biz-google"></div>
+        <div class="biz-info">
+          <span class="biz-label">Seu negócio</span>
+          <span class="biz-name" id="bizName">—</span>
         </div>
+        <div class="status-badge"><div class="status-dot"></div>Ativo</div>
       </div>
+
+      <div class="link-label">Link de avaliação</div>
       <div class="link-preview" id="linkPreview">—</div>
-      <button class="btn btn-primary" id="copyBtn" onclick="copyLink()">Copiar meu link</button>
-      <div class="microcopy" id="linkMicrocopy" style="display:none;font-size:12px;color:#059669;text-align:center;line-height:1.5;margin-top:2px">
-        Agora é só colar no WhatsApp ou enviar para um cliente
+
+      <div class="btn-stack">
+        <button class="btn btn-primary" id="copyBtn" onclick="copyLink()">Copiar meu link</button>
+        <a class="btn btn-secondary" id="qrBtn" target="_blank" rel="noopener" onclick="onQrClick()">Baixar QR Code</a>
+        <a class="btn btn-tertiary" id="previewBtn" target="_blank" rel="noopener">Ver simulação</a>
       </div>
     </div>
 
-    <!-- 2. QR Code -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-visual qr"><div id="qrMini"></div></div>
-        <div style="flex:1;min-width:0">
-          <div class="card-title">QR Code próprio</div>
-          <div class="card-desc">Deixe no balcão ou cardápio e o cliente avalia sozinho.</div>
-        </div>
-      </div>
-      <a class="btn btn-primary" id="qrBtn" target="_blank" rel="noopener" onclick="onQrClick()">⬇ Baixar QR Code</a>
-      <div class="microcopy" id="qrMicrocopy" style="display:none;font-size:12px;color:#059669;text-align:center;line-height:1.5;margin-top:2px">
-        Imprima e teste com seu celular — o cliente faz o resto
-      </div>
+    <div class="share-hint">
+      <span class="share-hint-icon">💡</span>
+      <span>Comece compartilhando este link no WhatsApp, redes sociais ou no balcão da loja.</span>
     </div>
 
-    <!-- 3. Placas inteligentes -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-visual placa">🪧</div>
-        <div style="flex:1;min-width:0">
-          <div class="card-title">Placas inteligentes</div>
-          <div class="card-desc">Capture avaliações automaticamente no balcão, sem precisar pedir.</div>
-        </div>
-      </div>
-      <button class="btn btn-primary" onclick="openPlacasModal()">Ver placas</button>
-      <div class="microcopy" style="font-size:12px;color:#9ca3af;text-align:center;line-height:1.5;margin-top:2px">
-        Ideal para quem quer automatizar e não depender da equipe
-      </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="next">
-      <div class="next-label" id="nextLabel">Já começou?</div>
-      <button class="btn-dashboard" id="dashboardBtn" onclick="goToDashboard()">Ir para o dashboard →</button>
-      <button class="skip" onclick="skipOrientation()">Pular por enquanto</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal de placas -->
-<div class="modal-overlay" id="placasModal" onclick="if(event.target===this)closePlacasModal()">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title">Placas inteligentes</div>
-      <button class="modal-close" onclick="closePlacasModal()">×</button>
-    </div>
-    <div class="modal-sub">Modelos disponíveis pra implantar no seu negócio. Cada um cobre um lugar diferente do atendimento.</div>
-    <div class="placas-grid">
-      <div class="placa-card">
-        <div class="placa-emoji">🏪</div>
-        <div class="placa-title">Placa de balcão</div>
-        <div class="placa-desc">No caixa ou recepção. Cliente vê na hora de pagar.</div>
-        <a class="placa-cta" href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noopener">Comprar</a>
-      </div>
-      <div class="placa-card">
-        <div class="placa-emoji">🍽️</div>
-        <div class="placa-title">Plaquinha de mesa</div>
-        <div class="placa-desc">Ideal pra restaurantes. Cliente avalia enquanto espera.</div>
-        <a class="placa-cta" href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noopener">Comprar</a>
-      </div>
-      <div class="placa-card">
-        <div class="placa-emoji">🖼️</div>
-        <div class="placa-title">Placa de parede</div>
-        <div class="placa-desc">Saída ou área de espera. Visibilidade máxima.</div>
-        <a class="placa-cta" href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noopener">Comprar</a>
-      </div>
-      <div class="placa-card">
-        <div class="placa-emoji">💳</div>
-        <div class="placa-title">Cartões NFC</div>
-        <div class="placa-desc">Garçom ou atendente apresenta. Cliente toca o celular.</div>
-        <a class="placa-cta" href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noopener">Comprar</a>
-      </div>
-    </div>
+    <a class="next-btn" id="nextBtn" href="/app" onclick="goToPainel()">Ir para o painel →</a>
   </div>
 </div>
 
 <div id="toast" style="display:none" class="toast">Link copiado!</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-let placeId = null, bizName = null, nfcLink = null;
-let actionTaken = false;
+let placeId = null, bizName = null, reviewLink = null;
 
 async function init() {
   const token = localStorage.getItem("rz_token");
@@ -215,32 +119,17 @@ async function init() {
     }
     placeId = data.business.place_id;
     bizName = data.business.name;
-    nfcLink = `${window.location.origin}/avaliar?place_id=${placeId}`;
+    reviewLink = `${window.location.origin}/avaliar?place_id=${placeId}`;
 
     document.getElementById("bizName").textContent = bizName;
-    document.getElementById("linkPreview").textContent = nfcLink;
-    document.getElementById("qrBtn").href = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(nfcLink)}`;
-
-    new QRCode(document.getElementById("qrMini"), {
-      text: nfcLink,
-      width: 46, height: 46,
-      colorDark: "#0f172a",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.M
-    });
+    document.getElementById("linkPreview").textContent = reviewLink;
+    document.getElementById("qrBtn").href = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(reviewLink)}`;
+    document.getElementById("previewBtn").href = reviewLink;
 
     document.getElementById("loading").style.display = "none";
     document.getElementById("content").style.display = "block";
   } catch {
     window.location.href = "/landing";
-  }
-}
-
-function markAction(label) {
-  if (!actionTaken) {
-    actionTaken = true;
-    const btn = document.getElementById("dashboardBtn");
-    btn.classList.add("highlighted");
   }
 }
 
@@ -252,36 +141,20 @@ function showToast(text) {
 }
 
 function copyLink() {
-  navigator.clipboard.writeText(nfcLink).then(() => {
+  navigator.clipboard.writeText(reviewLink).then(() => {
     const btn = document.getElementById("copyBtn");
     btn.classList.add("copied");
     btn.innerHTML = "✓ Link copiado";
-    document.getElementById("linkMicrocopy").style.display = "block";
-    markAction("link");
+    showToast("Link copiado!");
   });
 }
 
 function onQrClick() {
-  document.getElementById("qrMicrocopy").style.display = "block";
-  markAction("qr");
+  showToast("QR Code aberto em nova aba");
 }
 
-function openPlacasModal() {
-  document.getElementById("placasModal").classList.add("open");
-}
-
-function closePlacasModal() {
-  document.getElementById("placasModal").classList.remove("open");
-}
-
-function goToDashboard() {
+function goToPainel() {
   localStorage.setItem("rz_comece_done", "1");
-  window.location.href = "/app";
-}
-
-function skipOrientation() {
-  localStorage.setItem("rz_comece_done", "1");
-  window.location.href = "/app";
 }
 
 window.addEventListener("load", init);
