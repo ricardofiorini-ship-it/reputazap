@@ -830,64 +830,33 @@
   footer {
     background: var(--bg);
     border-top: 1px solid var(--border);
-    padding: 36px 20px 24px;
+    padding: 32px 20px 24px;
   }
-  @media (min-width: 768px) { footer { padding: 48px 32px 28px; } }
-  .footer-top {
-    max-width: 1152px; margin: 0 auto;
+  @media (min-width: 768px) { footer { padding: 40px 32px 28px; } }
+  .footer-inner { max-width: 1152px; margin: 0 auto; }
+  .footer-row {
     display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 20px;
+    flex-wrap: wrap; gap: 18px;
   }
-  .footer-brand img { height: 36px; opacity: 0.9; }
+  .footer-brand img { height: 32px; opacity: 0.85; }
   .footer-links { display: flex; gap: 22px; flex-wrap: wrap; }
   .footer-links a { font-size: 13px; color: var(--muted); transition: color .15s; }
   .footer-links a:hover { color: var(--text); }
-
-  .footer-trust {
-    max-width: 1152px; margin: 28px auto 0;
-    padding: 18px 20px;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    flex-wrap: wrap; gap: 22px 28px;
-  }
-  @media (max-width: 540px) { .footer-trust { gap: 14px 20px; padding: 16px; } }
-  .trust-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 12.5px; font-weight: 600; color: #475569;
-    line-height: 1.3;
-  }
-  .trust-badge svg { width: 16px; height: 16px; flex-shrink: 0; }
-  .trust-badge.lock svg { color: var(--green); }
-  .trust-badge.shield svg { color: var(--primary); }
-  .trust-google {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 12.5px; font-weight: 600; color: #475569;
-  }
-  .trust-google-mark {
-    width: 16px; height: 16px; border-radius: 4px;
-    background: linear-gradient(135deg, #ea4335 0%, #fbbc04 33%, #34a853 66%, #4285f4 100%);
-    flex-shrink: 0;
-  }
-
-  .footer-bottom {
-    max-width: 1152px; margin: 24px auto 0;
-    padding-top: 20px;
+  .footer-meta {
+    margin-top: 22px;
+    padding-top: 18px;
     border-top: 1px solid var(--border-light);
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-wrap: wrap; gap: 6px 18px;
     font-size: 12px; color: var(--soft);
+    text-align: center;
   }
+  .footer-meta-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .footer-meta-item svg { width: 12px; height: 12px; opacity: 0.7; }
+  .footer-meta-sep { opacity: 0.45; }
   @media (max-width: 540px) {
-    .footer-bottom { flex-direction: column; text-align: center; gap: 8px; }
-  }
-  .footer-made {
-    display: inline-flex; align-items: center; gap: 6px;
-  }
-  .footer-flag {
-    display: inline-flex; align-items: center;
-    font-size: 14px;
+    .footer-meta { gap: 8px 14px; }
+    .footer-meta-sep { display: none; }
   }
 </style>
 </head>
@@ -1180,39 +1149,30 @@
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-top">
-    <div class="footer-brand">
-      <img src="/reputazap-logo.png" alt="Reputazap"/>
+  <div class="footer-inner">
+    <div class="footer-row">
+      <div class="footer-brand">
+        <img src="/reputazap-logo.png" alt="Reputazap"/>
+      </div>
+      <div class="footer-links">
+        <a href="#beneficios">Por que ReputaZap</a>
+        <a href="#hardware">Hardware</a>
+        <a href="https://wa.me/5511982882662" target="_blank" rel="noopener">Suporte</a>
+        <a href="/app">Entrar</a>
+      </div>
     </div>
-    <div class="footer-links">
-      <a href="#beneficios">Por que ReputaZap</a>
-      <a href="#hardware">Hardware</a>
-      <a href="https://wa.me/5511982882662" target="_blank" rel="noopener">Suporte</a>
-      <a href="/app">Entrar</a>
+    <div class="footer-meta">
+      <span class="footer-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        SSL · LGPD
+      </span>
+      <span class="footer-meta-sep">·</span>
+      <span class="footer-meta-item">Integra com Google Meu Negócio</span>
+      <span class="footer-meta-sep">·</span>
+      <span class="footer-meta-item">Feito no Brasil</span>
+      <span class="footer-meta-sep">·</span>
+      <span class="footer-meta-item">© 2026 ReputaZap</span>
     </div>
-  </div>
-
-  <div class="footer-trust">
-    <span class="trust-badge lock">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Conexão segura SSL
-    </span>
-    <span class="trust-badge shield">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V5l-8-3z"/><path d="m9 12 2 2 4-4"/></svg>
-      Dados protegidos · LGPD
-    </span>
-    <span class="trust-google">
-      <span class="trust-google-mark"></span>
-      Integra com Google Meu Negócio
-    </span>
-  </div>
-
-  <div class="footer-bottom">
-    <span class="footer-made">
-      Feito no Brasil
-      <span class="footer-flag" aria-hidden="true">🇧🇷</span>
-    </span>
-    <span>© 2026 ReputaZap. Todos os direitos reservados.</span>
   </div>
 </footer>
 
