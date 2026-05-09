@@ -290,9 +290,6 @@ export default function ReputaZap({ user, onLogout }) {
   const nav=[
     {id:"dashboard",icon:LayoutDashboard,label:"Painel"},
     {id:"feedbacks",icon:MessageSquare,label:"Feedbacks"},
-    {id:"link",icon:Link2,label:"Meu link"},
-    {id:"capturar",icon:Smartphone,label:"Placas inteligentes"},
-    {id:"settings",icon:Settings,label:"Configurações"},
   ];
 
   return (
@@ -348,17 +345,24 @@ export default function ReputaZap({ user, onLogout }) {
             ))}
           </div>
           <div style={{borderTop:"1px solid #e5e7eb",paddingTop:16,display:"flex",flexDirection:"column",gap:10}}>
-            {/* User + Logout */}
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 12px",background:"#f9fafb",borderRadius:10,border:"1px solid #e5e7eb"}}>
-              <div style={{minWidth:0}}>
-                <div style={{fontSize:12,color:"#0f172a",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.name?.split(" ")[0]}</div>
+            {/* User + Settings/Logout */}
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 12px",background:tab==="settings"?"#e8f0fe":"#f9fafb",borderRadius:10,border:`1px solid ${tab==="settings"?"#bfdbfe":"#e5e7eb"}`,transition:"background .15s, border-color .15s"}}>
+              <div onClick={()=>{setTab("settings");setSidebarOpen(false);}} style={{minWidth:0,flex:1,cursor:"pointer"}} title="Configurações">
+                <div style={{fontSize:12,color:tab==="settings"?"#1a73e8":"#0f172a",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.name?.split(" ")[0]}</div>
                 <div style={{fontSize:10,color:"#9ca3af",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.email}</div>
               </div>
-              <button onClick={onLogout} title="Sair"
-                style={{background:"none",border:"none",cursor:"pointer",color:"#9ca3af",display:"flex",padding:4,borderRadius:6,flexShrink:0}}
-                onMouseEnter={e=>e.currentTarget.style.color="#ef4444"} onMouseLeave={e=>e.currentTarget.style.color="#9ca3af"}>
-                <LogOut size={15}/>
-              </button>
+              <div style={{display:"flex",alignItems:"center",gap:2,flexShrink:0}}>
+                <button onClick={()=>{setTab("settings");setSidebarOpen(false);}} title="Configurações"
+                  style={{background:"none",border:"none",cursor:"pointer",color:tab==="settings"?"#1a73e8":"#9ca3af",display:"flex",padding:4,borderRadius:6}}
+                  onMouseEnter={e=>{if(tab!=="settings")e.currentTarget.style.color="#0f172a";}} onMouseLeave={e=>{if(tab!=="settings")e.currentTarget.style.color="#9ca3af";}}>
+                  <Settings size={15}/>
+                </button>
+                <button onClick={onLogout} title="Sair"
+                  style={{background:"none",border:"none",cursor:"pointer",color:"#9ca3af",display:"flex",padding:4,borderRadius:6}}
+                  onMouseEnter={e=>e.currentTarget.style.color="#ef4444"} onMouseLeave={e=>e.currentTarget.style.color="#9ca3af"}>
+                  <LogOut size={15}/>
+                </button>
+              </div>
             </div>
             {/* WhatsApp Support */}
             <a href="https://wa.me/5511982882662?text=Ol%C3%A1!%20Preciso%20de%20ajuda%20com%20o%20ReputaZap" target="_blank" rel="noreferrer"
@@ -419,8 +423,8 @@ export default function ReputaZap({ user, onLogout }) {
                 {tab==="settings"&&"Dados do seu negócio e da sua conta"}
               </div>
             </div>
-            {pending>0&&tab!=="reviews"&&(
-              <div onClick={()=>setTab("reviews")} style={{display:"flex",alignItems:"center",gap:8,background:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,padding:"8px 14px",cursor:"pointer"}}>
+            {pending>0&&tab!=="feedbacks"&&(
+              <div onClick={()=>setTab("feedbacks")} style={{display:"flex",alignItems:"center",gap:8,background:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,padding:"8px 14px",cursor:"pointer"}}>
                 <Bell size={14} color="#ef4444"/><span style={{fontSize:12,color:"#ef4444",fontWeight:600}}>{pending} sem resposta</span>
               </div>
             )}
@@ -632,31 +636,74 @@ export default function ReputaZap({ user, onLogout }) {
                 </div>
               )}
 
-              {/* ── Z4: Ações rápidas com hierarquia ── */}
+              {/* ── Z4: Central de ativação (link + QR + NFC) ── */}
               <div style={{marginBottom:32}}>
-                <div style={{fontSize:13,fontWeight:600,color:"#475569",marginBottom:10}}>Compartilhe seu link agora:</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
-                  <button onClick={copyLink} disabled={!directLink}
-                    style={{gridColumn:"1 / -1",background:copiedLink?"#059669":"#0f172a",color:"#fff",border:"none",borderRadius:14,padding:"16px 20px",fontSize:15,fontWeight:700,cursor:directLink?"pointer":"not-allowed",opacity:directLink?1:0.5,display:"flex",alignItems:"center",justifyContent:"center",gap:8,fontFamily:"inherit",transition:"background .15s,transform .1s"}}
-                    onMouseEnter={e=>{if(directLink&&!copiedLink)e.currentTarget.style.background="#1e293b";}} onMouseLeave={e=>{if(!copiedLink)e.currentTarget.style.background="#0f172a";}}>
-                    {copiedLink ? <><Check size={16}/> Link copiado</> : <><Copy size={16}/> Copiar meu link</>}
-                  </button>
-                  <a href={directLink ? `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(directLink)}` : "#"} target="_blank" rel="noopener"
-                    onClick={e=>{if(!directLink){e.preventDefault();return;}setActionTaken(true);}}
-                    style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1px solid #e5e7eb",borderRadius:12,padding:"12px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
-                    <ExternalLink size={13}/> Baixar QR
-                  </a>
+                <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:14}}>
+                  <div>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#0f172a",letterSpacing:"-0.005em"}}>
+                      Escolha como seus clientes irão avaliar
+                    </div>
+                    <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
+                      Três formas de ativar — todas grátis, escolha quantas quiser.
+                    </div>
+                  </div>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12,marginBottom:14}}>
+                  {/* Link direto */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:12}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{width:38,height:38,borderRadius:10,background:"#eff6ff",border:"1px solid #bfdbfe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>🔗</div>
+                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>Link direto</div>
+                    </div>
+                    <div style={{fontSize:13,color:"#6b7280",lineHeight:1.5,flex:1}}>
+                      Compartilhe em WhatsApp, Instagram ou qualquer canal.
+                    </div>
+                    <button onClick={copyLink} disabled={!directLink}
+                      style={{background:copiedLink?"#059669":"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,cursor:directLink?"pointer":"not-allowed",opacity:directLink?1:0.5,display:"flex",alignItems:"center",justifyContent:"center",gap:8,fontFamily:"inherit"}}>
+                      {copiedLink ? <><Check size={14}/> Link copiado</> : <><Copy size={14}/> Copiar link</>}
+                    </button>
+                  </div>
+                  {/* QR Code */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:12}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{width:38,height:38,borderRadius:10,background:"#fffbeb",border:"1px solid #fde68a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>🖼️</div>
+                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>QR Code</div>
+                    </div>
+                    <div style={{fontSize:13,color:"#6b7280",lineHeight:1.5,flex:1}}>
+                      Baixe um QR pronto para imprimir ou divulgar.
+                    </div>
+                    <a href={directLink ? `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(directLink)}` : "#"} target="_blank" rel="noopener"
+                      onClick={e=>{if(!directLink){e.preventDefault();return;}setActionTaken(true);}}
+                      style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1.5px solid #e5e7eb",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
+                      <ExternalLink size={14}/> Baixar QR
+                    </a>
+                  </div>
+                  {/* NFC */}
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:12}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{width:38,height:38,borderRadius:10,background:"#f5f3ff",border:"1px solid #ddd6fe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>📶</div>
+                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>NFC / Placas</div>
+                    </div>
+                    <div style={{fontSize:13,color:"#6b7280",lineHeight:1.5,flex:1}}>
+                      Grave este link em uma placa ou cartão NFC.
+                    </div>
+                    <a href="/ativar-placa"
+                      style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1.5px solid #e5e7eb",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                      <Smartphone size={14}/> Gravar NFC
+                    </a>
+                  </div>
+                </div>
+                {/* Link preview + testar */}
+                <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:"12px 14px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+                  <div style={{flex:1,minWidth:200}}>
+                    <div style={{fontSize:10,color:"#9ca3af",fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:3}}>Seu link</div>
+                    <div style={{fontSize:11.5,color:"#475569",fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{directLink || "—"}</div>
+                  </div>
                   <a href={directLink ? `${directLink}&preview=1` : "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
-                    style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1px solid #e5e7eb",borderRadius:12,padding:"12px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
-                    <Smartphone size={13}/> Ver simulação
+                    style={{textDecoration:"none",background:"#eff6ff",color:"#1a73e8",border:"1px solid #bfdbfe",borderRadius:9,padding:"7px 12px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none",flexShrink:0}}>
+                    <Smartphone size={12}/> Testar experiência
                   </a>
                 </div>
-                {actionTaken && (
-                  <div style={{background:"#ecfdf5",border:"1px solid #a7f3d0",borderRadius:12,padding:"12px 14px",marginTop:4}}>
-                    <div style={{fontSize:13,color:"#065f46",fontWeight:700,marginBottom:2}}>✓ Agora você já pode começar</div>
-                    <div style={{fontSize:12,color:"#059669",lineHeight:1.5}}>Envie para um cliente e veja funcionando.</div>
-                  </div>
-                )}
               </div>
 
               {/* ── Z5: Feedbacks pendentes com ações inline ── */}
