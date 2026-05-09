@@ -510,14 +510,19 @@ export default function ReputaZap({ user, onLogout }) {
                     <AlertCircle size={22} color="#dc2626"/>
                   </div>
                   <div style={{flex:1,minWidth:240,position:"relative"}}>
-                    <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#fff",background:"#dc2626",letterSpacing:"0.08em",padding:"3px 9px",borderRadius:5,marginBottom:8,textTransform:"uppercase"}}>
-                      Sua reputação está exposta
+                    <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginBottom:10}}>
+                      <span style={{display:"inline-flex",alignItems:"center",gap:5,fontSize:10,fontWeight:700,color:"#475569",background:"#fff",border:"1px solid #e5e7eb",letterSpacing:"0.08em",padding:"3px 9px",borderRadius:5,textTransform:"uppercase"}}>
+                        Plano grátis
+                      </span>
+                      <span style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#fff",background:"#dc2626",letterSpacing:"0.08em",padding:"3px 9px",borderRadius:5,textTransform:"uppercase"}}>
+                        Sem proteção
+                      </span>
                     </div>
                     <div style={{fontSize:15,fontWeight:600,color:"#0f172a",lineHeight:1.4,marginBottom:4}}>
-                      Toda avaliação vai direto para o Google.
+                      No plano grátis, sua reputação fica exposta.
                     </div>
                     <div style={{fontSize:13,color:"#475569",lineHeight:1.5}}>
-                      Você só descobre depois que já está público.
+                      Toda avaliação vai direto pro Google — você só descobre depois que já está pública.
                     </div>
                   </div>
                   <a href={upgradeUrl} target="_blank" rel="noreferrer"
@@ -587,9 +592,12 @@ export default function ReputaZap({ user, onLogout }) {
                     Compare como funciona hoje e como ficaria com o Modo Protegido.
                   </div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:14}}>
-                    {/* Card 1: Sem modo protegido */}
+                    {/* Card 1: Plano grátis (sem proteção) */}
                     <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:18,padding:"22px 22px 24px"}}>
-                      <div style={{fontSize:10,fontWeight:700,color:"#9ca3af",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Sem Modo Protegido</div>
+                      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8,flexWrap:"wrap"}}>
+                        <span style={{fontSize:10,fontWeight:700,color:"#475569",background:"#f1f5f9",border:"1px solid #e5e7eb",letterSpacing:"0.08em",padding:"2px 7px",borderRadius:4,textTransform:"uppercase"}}>Plano grátis</span>
+                        <span style={{fontSize:10,fontWeight:700,color:"#9ca3af",letterSpacing:"0.12em",textTransform:"uppercase"}}>Sem proteção</span>
+                      </div>
                       <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#0f172a",lineHeight:1.25,marginBottom:14}}>Tudo vai direto para o Google</div>
                       <div style={{display:"flex",flexDirection:"column",gap:8}}>
                         {[
