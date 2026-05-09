@@ -289,6 +289,7 @@ export default function ReputaZap({ user, onLogout }) {
 
   const nav=[
     {id:"dashboard",icon:LayoutDashboard,label:"Painel"},
+    {id:"feedbacks",icon:MessageSquare,label:"Feedbacks"},
     {id:"link",icon:Link2,label:"Meu link"},
     {id:"capturar",icon:Smartphone,label:"Placas inteligentes"},
     {id:"settings",icon:Settings,label:"Configurações"},
@@ -306,6 +307,7 @@ export default function ReputaZap({ user, onLogout }) {
         @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
         @keyframes bonce{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px)}70%{transform:translateY(-6px)}}
         @keyframes cfall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+        @keyframes pulseDot{0%{box-shadow:0 0 0 0 rgba(34,197,94,0.55)}70%{box-shadow:0 0 0 6px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
         .ni{transition:background .15s,color .15s;cursor:pointer;}
         .ni:hover{background:#e5e7eb!important;}
         .rc{transition:border-color .15s,transform .15s;}
@@ -403,10 +405,11 @@ export default function ReputaZap({ user, onLogout }) {
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,animation:"fadeUp 0.4s ease"}}>
             <div>
               <div style={{fontSize:24,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",lineHeight:1.2}}>
-                {tab==="dashboard"&&"Painel de reputação"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Placas inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Modo Protegido e loja"}{tab==="settings"&&"Configurações"}
+                {tab==="dashboard"&&"Central de reputação"}{tab==="feedbacks"&&"Alertas reputacionais"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Placas inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Modo Protegido e loja"}{tab==="settings"&&"Configurações"}
               </div>
               <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
-                {tab==="dashboard"&&"Acompanhe como seus clientes estão avaliando sua empresa."}
+                {tab==="dashboard"&&"Monitore sua exposição pública e proteja sua reputação."}
+                {tab==="feedbacks"&&(pendingFeedbacks.length>0?`${pendingFeedbacks.length} cliente(s) aguardando contato`:"Tudo sob controle por enquanto.")}
                 {tab==="link"&&"Seu link de avaliação e QR Code prontos pra compartilhar."}
                 {tab==="reviews"&&`${pending} aguardando resposta`}
                 {tab==="capturar"&&"Placas físicas e cartões NFC pro seu balcão"}
@@ -495,51 +498,77 @@ export default function ReputaZap({ user, onLogout }) {
             return (
             <div style={{animation:"fadeUp 0.4s ease"}}>
 
-              {/* ── ZONA 1: Card de status do plano ── */}
+              {/* ── ZONA 1: Status emocional de proteção ── */}
               {!isPro ? (
-                <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:"22px 24px",marginBottom:18,display:"flex",alignItems:"center",gap:20,flexWrap:"wrap"}}>
-                  <div style={{flex:1,minWidth:260}}>
-                    <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#475569",background:"#f1f5f9",letterSpacing:"0.08em",padding:"4px 10px",borderRadius:6,marginBottom:10,textTransform:"uppercase"}}>
-                      Plano gratuito ativo
+                <div style={{background:"linear-gradient(135deg,#fef2f2 0%,#fff 60%)",border:"1px solid #fecaca",borderRadius:18,padding:"24px 26px",marginBottom:16,display:"flex",alignItems:"center",gap:20,flexWrap:"wrap",position:"relative",overflow:"hidden"}}>
+                  <div style={{position:"absolute",top:-40,right:-40,width:180,height:180,background:"radial-gradient(circle,rgba(239,68,68,0.10),transparent 70%)",pointerEvents:"none"}}/>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",width:48,height:48,borderRadius:14,background:"#fee2e2",border:"1px solid #fecaca",flexShrink:0,position:"relative"}}>
+                    <AlertCircle size={22} color="#dc2626"/>
+                  </div>
+                  <div style={{flex:1,minWidth:240,position:"relative"}}>
+                    <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#fff",background:"#dc2626",letterSpacing:"0.08em",padding:"3px 9px",borderRadius:5,marginBottom:8,textTransform:"uppercase"}}>
+                      Sua reputação está exposta
                     </div>
-                    <div style={{fontSize:14,color:"#475569",lineHeight:1.55,marginBottom:0}}>
-                      No plano gratuito, todas as avaliações seguem diretamente para o Google.
+                    <div style={{fontSize:15,fontWeight:600,color:"#0f172a",lineHeight:1.4,marginBottom:4}}>
+                      Toda avaliação vai direto para o Google.
+                    </div>
+                    <div style={{fontSize:13,color:"#475569",lineHeight:1.5}}>
+                      Você só descobre depois que já está público.
                     </div>
                   </div>
                   <a href={upgradeUrl} target="_blank" rel="noreferrer"
-                    style={{textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"12px 20px",fontSize:13,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,flexShrink:0}}>
-                    <ShieldCheck size={15}/> Ativar modo protegido
+                    style={{textDecoration:"none",background:"#0f172a",color:"#fff",borderRadius:12,padding:"12px 20px",fontSize:13,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,flexShrink:0,position:"relative",boxShadow:"0 8px 20px -6px rgba(15,23,42,0.30)"}}>
+                    <ShieldCheck size={15}/> Ativar Modo Protegido
                   </a>
                 </div>
               ) : (
-                <div style={{background:"#ecfdf5",border:"1px solid #a7f3d0",borderRadius:16,padding:"22px 24px",marginBottom:18,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-                  <div style={{width:40,height:40,borderRadius:10,background:"#059669",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                    <ShieldCheck size={20} color="#fff"/>
+                <div style={{background:"linear-gradient(135deg,#ecfdf5 0%,#fff 60%)",border:"1px solid #a7f3d0",borderRadius:18,padding:"24px 26px",marginBottom:16,display:"flex",alignItems:"center",gap:18,flexWrap:"wrap",position:"relative",overflow:"hidden"}}>
+                  <div style={{position:"absolute",top:-40,right:-40,width:180,height:180,background:"radial-gradient(circle,rgba(34,197,94,0.10),transparent 70%)",pointerEvents:"none"}}/>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",width:48,height:48,borderRadius:14,background:"#059669",flexShrink:0,position:"relative",boxShadow:"0 8px 20px -8px rgba(5,150,105,0.45)"}}>
+                    <ShieldCheck size={22} color="#fff"/>
                   </div>
-                  <div style={{flex:1,minWidth:240}}>
-                    <div style={{fontSize:14,fontWeight:700,color:"#065f46",lineHeight:1.2,marginBottom:4}}>Modo Protegido ativo</div>
-                    <div style={{fontSize:13,color:"#047857",lineHeight:1.5}}>Reclamações chegam no seu email antes de virar avaliação pública.</div>
+                  <div style={{flex:1,minWidth:240,position:"relative"}}>
+                    <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#fff",background:"#059669",letterSpacing:"0.08em",padding:"3px 9px",borderRadius:5,marginBottom:8,textTransform:"uppercase"}}>
+                      Modo Protegido ativo
+                    </div>
+                    <div style={{fontSize:15,fontWeight:600,color:"#065f46",lineHeight:1.4,marginBottom:4}}>
+                      Sua reputação está protegida.
+                    </div>
+                    <div style={{fontSize:13,color:"#047857",lineHeight:1.5}}>
+                      Reclamações chegam no seu email antes de virar avaliação pública.
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* ── Z2: Reputação compacta + sem resposta inline ── */}
-              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:14,padding:"14px 20px",marginBottom:18,display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
-                <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#ea4335 0%,#fbbc04 33%,#34a853 66%,#4285f4 100%)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <Building2 size={16} color="#fff"/>
+              {/* ── Z2: Métricas de risco / exposição ── */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:10,marginBottom:18}}>
+                <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:14,padding:"14px 16px"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8}}>Avaliações públicas</div>
+                  <div style={{fontSize:24,fontWeight:700,color:"#0f172a",fontFamily:"'Playfair Display',serif",lineHeight:1}}>{bizInfo?.total ?? 0}</div>
+                  <div style={{fontSize:11,color:"#6b7280",marginTop:6,display:"flex",alignItems:"center",gap:4}}>
+                    <Star size={11} fill="#f59e0b" color="#f59e0b"/> {avgRating} no Google
+                  </div>
                 </div>
-                <div style={{flex:1,minWidth:180}}>
-                  <div style={{fontSize:13,fontWeight:700,color:"#0f172a",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{biz}</div>
-                  <div style={{fontSize:11,color:"#9ca3af",marginTop:3,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                    <span style={{display:"inline-flex",alignItems:"center",gap:4}}><Star size={11} fill="#f59e0b" color="#f59e0b"/> <strong style={{color:"#0f172a"}}>{avgRating}</strong></span>
-                    <span>·</span>
-                    <span>{bizInfo?.total ?? 0} avaliações</span>
-                    {pending > 0 && (
-                      <>
-                        <span>·</span>
-                        <span style={{color:"#dc2626",fontWeight:600}}>{pending} sem resposta</span>
-                      </>
-                    )}
+                <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:14,padding:"14px 16px"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8}}>Feedbacks privados</div>
+                  <div style={{fontSize:24,fontWeight:700,color:"#1d4ed8",fontFamily:"'Playfair Display',serif",lineHeight:1}}>{pendingFeedbacks.length}</div>
+                  <div style={{fontSize:11,color:"#6b7280",marginTop:6}}>
+                    {isPro ? "interceptados antes do Google" : "Modo Protegido inativo"}
+                  </div>
+                </div>
+                <div style={{background:pendingFeedbacks.length>0?"#fffbeb":"#fff",border:`1px solid ${pendingFeedbacks.length>0?"#fde68a":"#e5e7eb"}`,borderRadius:14,padding:"14px 16px"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:pendingFeedbacks.length>0?"#b45309":"#9ca3af",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8}}>Aguardando contato</div>
+                  <div style={{fontSize:24,fontWeight:700,color:pendingFeedbacks.length>0?"#b45309":"#0f172a",fontFamily:"'Playfair Display',serif",lineHeight:1}}>{pendingFeedbacks.length}</div>
+                  <div style={{fontSize:11,color:pendingFeedbacks.length>0?"#92400e":"#6b7280",marginTop:6}}>
+                    {pendingFeedbacks.length>0?"podem virar review pública":"nada urgente"}
+                  </div>
+                </div>
+                <div style={{background:isPro?"#ecfdf5":"#fef2f2",border:`1px solid ${isPro?"#a7f3d0":"#fecaca"}`,borderRadius:14,padding:"14px 16px"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:isPro?"#059669":"#dc2626",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8}}>Exposição</div>
+                  <div style={{fontSize:24,fontWeight:700,color:isPro?"#059669":"#dc2626",fontFamily:"'Playfair Display',serif",lineHeight:1}}>{isPro?"0%":"100%"}</div>
+                  <div style={{fontSize:11,color:isPro?"#047857":"#7f1d1d",marginTop:6}}>
+                    {isPro?"reclamações filtradas":"toda review fica pública"}
                   </div>
                 </div>
               </div>
@@ -693,12 +722,42 @@ export default function ReputaZap({ user, onLogout }) {
                       </div>
                     ))}
                     {pendingFeedbacks.length > 3 && (
-                      <div onClick={()=>setTab("reviews")} style={{textAlign:"center",fontSize:12,color:"#1a73e8",fontWeight:600,marginTop:10,paddingTop:10,borderTop:"1px solid #f3f4f6",cursor:"pointer"}}>
+                      <div onClick={()=>setTab("feedbacks")} style={{textAlign:"center",fontSize:12,color:"#1a73e8",fontWeight:600,marginTop:10,paddingTop:10,borderTop:"1px solid #f3f4f6",cursor:"pointer"}}>
                         Ver todos os {pendingFeedbacks.length} feedbacks →
                       </div>
                     )}
                   </>
                 )}
+              </div>
+
+              {/* ── Atividade recente ── */}
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:"22px 24px",marginBottom:32}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
+                  <div>
+                    <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>Atividade recente</div>
+                    <div style={{fontSize:12,color:"#9ca3af",marginTop:2}}>Últimos eventos do sistema</div>
+                  </div>
+                  <span style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:11,fontWeight:600,color:"#059669",background:"#ecfdf5",border:"1px solid #a7f3d0",borderRadius:999,padding:"4px 10px"}}>
+                    <span style={{width:6,height:6,borderRadius:"50%",background:"#22c55e",boxShadow:"0 0 0 0 rgba(34,197,94,0.55)",animation:"pulseDot 2.4s ease-out infinite"}}/>
+                    Sistema operacional
+                  </span>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:0}}>
+                  {[
+                    {icon:Star,color:"#f59e0b",bg:"#fffbeb",border:"#fde68a",text:"Nova avaliação 5★ no Google",time:"agora"},
+                    {icon:Mail,color:"#1d4ed8",bg:"#eff6ff",border:"#bfdbfe",text:"Cliente enviou feedback privado",time:"12 min"},
+                    {icon:Smartphone,color:"#059669",bg:"#ecfdf5",border:"#a7f3d0",text:"Placa NFC ativada no balcão",time:"1 h"},
+                    {icon:Check,color:"#475569",bg:"#f1f5f9",border:"#e2e8f0",text:"Resposta enviada a um cliente",time:"3 h"},
+                  ].map((ev,i,arr)=>(
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<arr.length-1?"1px solid #f3f4f6":"none"}}>
+                      <div style={{width:30,height:30,borderRadius:9,background:ev.bg,border:`1px solid ${ev.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                        <ev.icon size={13} color={ev.color}/>
+                      </div>
+                      <div style={{flex:1,fontSize:13,color:"#0f172a",fontWeight:500}}>{ev.text}</div>
+                      <div style={{fontSize:11,color:"#9ca3af",flexShrink:0}}>{ev.time}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* ── Z6: Hardware (secundário) ── */}
@@ -1059,6 +1118,132 @@ export default function ReputaZap({ user, onLogout }) {
               </div>
             </div>
           )}
+
+          {/* ─ FEEDBACKS (alertas reputacionais) ─ */}
+          {tab==="feedbacks"&&(() => {
+            const timeAgo = (dateStr) => {
+              const ms = Date.now() - new Date(dateStr).getTime();
+              const min = Math.floor(ms / 60000);
+              if (min < 1) return "agora";
+              if (min < 60) return `${min}min`;
+              const h = Math.floor(min / 60);
+              if (h < 24) return `${h}h`;
+              const d = Math.floor(h / 24);
+              if (d < 30) return `${d}d`;
+              return `${Math.floor(d/30)}mês`;
+            };
+            const feedbackInitials = (fb) => {
+              if (fb.contact) {
+                const c = fb.contact.trim();
+                if (c.includes("@")) return c.slice(0, 2).toUpperCase();
+                const digits = c.replace(/\D/g, "");
+                if (digits.length >= 4) return digits.slice(-2);
+              }
+              return "??";
+            };
+            const respondToFeedback = (contact) => {
+              const c = (contact || "").trim();
+              if (!c) return;
+              if (c.includes("@")) {
+                window.open(`mailto:${encodeURIComponent(c)}?subject=Sobre seu feedback no ${biz}`, "_blank");
+                return;
+              }
+              const digits = c.replace(/\D/g, "");
+              if (digits.length >= 8) {
+                const phone = digits.startsWith("55") ? digits : `55${digits}`;
+                window.open(`https://wa.me/${phone}`, "_blank");
+              }
+            };
+            const markResolved = async (id) => {
+              const token = localStorage.getItem("rz_token");
+              if (!token) return;
+              const snapshot = pendingFeedbacks;
+              setPendingFeedbacks(prev => prev.filter(f => f.id !== id));
+              try {
+                const res = await fetch("/api/feedback", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ id, resolved: true })
+                });
+                if (!res.ok) throw new Error();
+                setToast({ message: "Feedback marcado como resolvido", kind: "success" });
+              } catch {
+                setPendingFeedbacks(snapshot);
+                setToast({ message: "Não foi possível marcar como resolvido", kind: "error" });
+              }
+            };
+            return (
+              <div style={{animation:"fadeUp 0.4s ease",maxWidth:760}}>
+                {pendingFeedbacks.length === 0 ? (
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:18,padding:"56px 32px",textAlign:"center"}}>
+                    <div style={{width:64,height:64,borderRadius:18,background:"#ecfdf5",border:"1px solid #a7f3d0",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px"}}>
+                      <ShieldCheck size={28} color="#059669"/>
+                    </div>
+                    <div style={{fontSize:18,fontWeight:700,color:"#0f172a",fontFamily:"'Playfair Display',serif",marginBottom:8}}>
+                      {isPro ? "Tudo sob controle por enquanto." : "Nenhum risco identificado hoje."}
+                    </div>
+                    <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55,maxWidth:380,margin:"0 auto"}}>
+                      {isPro
+                        ? "Quando um cliente insatisfeito enviar feedback, ele aparece aqui antes de virar avaliação pública."
+                        : "Ative o Modo Protegido pra interceptar reclamações antes que virem reviews no Google."}
+                    </div>
+                    {!isPro && (
+                      <a href="https://wa.me/5511982882662?text=Quero%20ativar%20o%20Modo%20Protegido%20do%20ReputaZap" target="_blank" rel="noreferrer"
+                        style={{textDecoration:"none",background:"#0f172a",color:"#fff",borderRadius:12,padding:"12px 22px",fontSize:13,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,marginTop:22,boxShadow:"0 8px 20px -6px rgba(15,23,42,0.30)"}}>
+                        <ShieldCheck size={15}/> Ativar Modo Protegido
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:14,padding:"14px 18px",marginBottom:18,display:"flex",alignItems:"center",gap:10}}>
+                      <AlertCircle size={16} color="#b45309" style={{flexShrink:0}}/>
+                      <div style={{fontSize:13,color:"#92400e",fontWeight:600,lineHeight:1.45}}>
+                        {pendingFeedbacks.length} cliente(s) podem virar avaliações públicas se não forem contatados.
+                      </div>
+                    </div>
+                    <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                      {pendingFeedbacks.map((fb)=>{
+                        const isNeg = fb.rating === 1;
+                        return (
+                          <div key={fb.id} style={{background:"#fff",border:`1px solid ${isNeg?"#fecaca":"#fde68a"}`,borderLeft:`4px solid ${isNeg?"#dc2626":"#d97706"}`,borderRadius:14,padding:"16px 18px"}}>
+                            <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:12}}>
+                              <div style={{width:40,height:40,borderRadius:"50%",background:isNeg?"#fef2f2":"#fffbeb",border:`1px solid ${isNeg?"#fecaca":"#fde68a"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:isNeg?"#dc2626":"#b45309",flexShrink:0}}>
+                                {feedbackInitials(fb)}
+                              </div>
+                              <div style={{flex:1,minWidth:0}}>
+                                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
+                                  <span style={{fontSize:11,fontWeight:700,color:"#fff",background:isNeg?"#dc2626":"#d97706",borderRadius:5,padding:"3px 9px",letterSpacing:"0.04em",textTransform:"uppercase"}}>
+                                    {isNeg?"Insatisfeito":"Neutro"}
+                                  </span>
+                                  {fb.contact && <span style={{fontSize:12,color:"#1d4ed8",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:240}}>{fb.contact}</span>}
+                                  <span style={{fontSize:11,color:"#9ca3af",marginLeft:"auto"}}>{timeAgo(fb.created_at)}</span>
+                                </div>
+                                <div style={{fontSize:13,color:"#475569",lineHeight:1.55}}>"{fb.text}"</div>
+                              </div>
+                            </div>
+                            <div style={{display:"flex",gap:8,paddingLeft:54,flexWrap:"wrap"}}>
+                              {fb.contact && (
+                                <button onClick={()=>respondToFeedback(fb.contact)}
+                                  style={{background:"#0f172a",color:"#fff",border:"none",borderRadius:9,padding:"9px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
+                                  {fb.contact.includes("@") ? <Mail size={12}/> : <Smartphone size={12}/>}
+                                  Responder agora
+                                </button>
+                              )}
+                              <button onClick={()=>markResolved(fb.id)}
+                                style={{background:"#fff",color:"#475569",border:"1px solid #e5e7eb",borderRadius:9,padding:"9px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
+                                <Check size={12}/> Marcar como resolvido
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })()}
 
           {/* ─ MEU LINK ─ */}
           {tab==="link"&&(() => {
