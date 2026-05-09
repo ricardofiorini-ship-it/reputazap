@@ -5,133 +5,353 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ReputaZap — Proteja sua reputação no Google</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --primary: #1a73e8;
-    --primary-dark: #1557b0;
-    --primary-soft: #e8f0fe;
-    --bg: #ffffff;
-    --bg-soft: #f9fafb;
-    --border: #e5e7eb;
-    --text: #0f172a;
-    --muted: #6b7280;
-    --soft: #9ca3af;
+    --bg: #F7F7F5;
+    --surface: #FFFFFF;
+    --text: #0B1020;
+    --muted: #6B7280;
+    --border: #E5E7EB;
+    --primary: #2563EB;
+    --primary-dark: #1D4ED8;
+    --green: #22C55E;
+    --green-soft: #F0FDF4;
+    --red: #EF4444;
+    --red-soft: #FEF2F2;
   }
   html { scroll-behavior: smooth; }
-  body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   a { text-decoration: none; color: inherit; }
+  h1, h2 { font-family: 'Playfair Display', serif; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-up { animation: fadeUp 0.5s ease both; }
 
   /* NAV */
-  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 5%; height: 64px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
-  .logo img { height: 44px; width: auto; display: block; }
-  .nav-actions { display: flex; align-items: center; gap: 8px; }
-  .nav-link { font-size: 14px; font-weight: 500; color: var(--muted); padding: 8px 12px; border-radius: 9px; transition: color .15s; }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    padding: 0 5%; height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(247, 247, 245, 0.85);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo img { height: 38px; width: auto; display: block; }
+  .nav-actions { display: flex; align-items: center; gap: 6px; }
+  .nav-link { font-size: 13px; font-weight: 500; color: var(--muted); padding: 8px 12px; border-radius: 10px; transition: color .15s; }
   .nav-link:hover { color: var(--text); }
-  .nav-cta { background: var(--text); color: #fff; border: none; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: opacity .15s; }
-  .nav-cta:hover { opacity: 0.9; }
+  .nav-cta {
+    height: 40px; padding: 0 18px;
+    background: var(--text); color: #fff;
+    border: none; border-radius: 12px;
+    font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+    display: inline-flex; align-items: center;
+    transition: background .15s, transform .1s;
+  }
+  .nav-cta:hover { background: #1a2030; transform: translateY(-1px); }
 
-  /* SHARED BUTTONS */
-  .btn-primary { background: var(--text); color: #fff; border: none; border-radius: 14px; padding: 16px 32px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; transition: opacity .15s, transform .1s; display: inline-flex; align-items: center; gap: 8px; }
-  .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
-  .btn-ghost { background: transparent; color: var(--text); border: 1.5px solid var(--text); border-radius: 14px; padding: 14px 28px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background .15s; display: inline-flex; align-items: center; gap: 8px; }
-  .btn-ghost:hover { background: var(--text); color: #fff; }
-  .btn-light { background: #fff; color: var(--text); border: none; border-radius: 14px; padding: 16px 32px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; transition: transform .1s; display: inline-flex; align-items: center; gap: 8px; }
+  /* SHARED */
+  .btn-primary {
+    height: 52px; padding: 0 28px;
+    background: var(--text); color: #fff;
+    border: none; border-radius: 14px;
+    font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    box-shadow: 0 1px 2px rgba(11,16,32,0.06), 0 6px 16px -8px rgba(11,16,32,0.18);
+    transition: transform .12s, box-shadow .12s;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 1px 2px rgba(11,16,32,0.06), 0 10px 20px -8px rgba(11,16,32,0.22); }
+  .btn-light {
+    height: 52px; padding: 0 28px;
+    background: #fff; color: var(--text);
+    border: none; border-radius: 14px;
+    font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: transform .12s;
+  }
   .btn-light:hover { transform: translateY(-1px); }
-  .micro { font-size: 13px; color: var(--soft); margin-top: 12px; font-weight: 500; }
+  .btn-ghost {
+    height: 44px; padding: 0 18px;
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border); border-radius: 12px;
+    font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: border-color .15s, background .15s;
+  }
+  .btn-ghost:hover { border-color: var(--text); background: #fff; }
+  .micro { font-size: 13px; color: var(--muted); margin-top: 14px; font-weight: 400; }
+
+  /* SECTIONS */
+  section { padding: 64px 5%; }
+  @media (min-width: 720px) { section { padding: 88px 5%; } }
+  .section-inner { max-width: 1080px; margin: 0 auto; }
+  .section-head { text-align: center; max-width: 600px; margin: 0 auto 40px; }
+  .section-eyebrow { display: inline-block; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 14px; }
+  .section-title { font-size: clamp(28px, 4.8vw, 40px); font-weight: 700; line-height: 1.05; margin-bottom: 12px; letter-spacing: -0.025em; }
+  .section-sub { font-size: clamp(15px, 1.8vw, 17px); color: var(--muted); line-height: 1.55; max-width: 520px; margin: 0 auto; }
 
   /* HERO */
-  .hero { padding: 120px 5% 64px; max-width: 720px; margin: 0 auto; text-align: center; }
-  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(34px, 6vw, 56px); font-weight: 700; line-height: 1.08; margin-bottom: 22px; letter-spacing: -0.02em; }
+  .hero { padding: 56px 5% 48px; max-width: 760px; margin: 0 auto; text-align: center; }
+  @media (min-width: 720px) { .hero { padding: 80px 5% 56px; } }
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(40px, 9vw, 64px);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    margin-bottom: 22px;
+  }
   .hero h1 .accent { color: var(--primary); }
-  .hero-sub { font-size: clamp(16px, 2.2vw, 19px); color: var(--muted); line-height: 1.6; margin-bottom: 28px; max-width: 580px; margin-left: auto; margin-right: auto; }
-  .hero-bullets { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 36px; list-style: none; }
-  .hero-bullets li { font-size: 13px; color: var(--text); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-  .hero-bullets li::before { content: ""; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; }
-  @media (max-width: 540px) { .hero-bullets { gap: 16px; } }
+  .hero-sub {
+    font-size: clamp(16px, 2.2vw, 19px);
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 28px;
+    max-width: 480px;
+    margin-left: auto; margin-right: auto;
+  }
+  .hero-bullets { display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; list-style: none; }
+  .hero-bullets li { font-size: 13px; color: var(--text); font-weight: 500; display: inline-flex; align-items: center; gap: 7px; }
+  .hero-bullets li::before { content: ""; width: 5px; height: 5px; background: var(--primary); border-radius: 50%; }
+  @media (max-width: 540px) { .hero-bullets { gap: 14px; } .hero-bullets li { font-size: 12.5px; } }
 
-  /* SECTION */
-  section { padding: 80px 5%; }
-  @media (max-width: 720px) { section { padding: 64px 5%; } }
-  .section-inner { max-width: 1080px; margin: 0 auto; }
-  .section-head { text-align: center; max-width: 640px; margin: 0 auto 48px; }
-  .section-title { font-family: 'Playfair Display', serif; font-size: clamp(26px, 3.6vw, 38px); font-weight: 700; line-height: 1.18; margin-bottom: 12px; letter-spacing: -0.02em; }
-  .section-sub { font-size: clamp(15px, 1.8vw, 17px); color: var(--muted); line-height: 1.6; }
+  /* HERO MOCKUP */
+  .hero-mockup {
+    margin: 56px auto 0;
+    max-width: 420px;
+    position: relative;
+    aspect-ratio: 5 / 4;
+  }
+  .mockup-plaque {
+    position: absolute; left: 0; bottom: 0;
+    width: 56%; aspect-ratio: 4 / 5;
+    background: linear-gradient(160deg, #1a2030 0%, #0B1020 100%);
+    border-radius: 18px;
+    box-shadow: 0 1px 1px rgba(255,255,255,0.05) inset, 0 24px 48px -16px rgba(11,16,32,0.28);
+    padding: 18px 14px;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    transform: rotate(-4deg);
+  }
+  .mockup-plaque::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), transparent 40%);
+    border-radius: 18px; pointer-events: none;
+  }
+  .mockup-plaque-logo {
+    width: 100%; max-width: 80px; height: 22px;
+    background: rgba(255,255,255,0.92);
+    -webkit-mask: url('/reputazap-logo.png') center/contain no-repeat;
+    mask: url('/reputazap-logo.png') center/contain no-repeat;
+    margin-top: 4px;
+  }
+  .mockup-plaque-tag {
+    font-size: 9px; color: rgba(255,255,255,0.55);
+    font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+    position: relative;
+  }
+  .mockup-nfc {
+    position: relative;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(37,99,235,0.5);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mockup-nfc::before, .mockup-nfc::after {
+    content: ""; position: absolute; border: 1.5px solid rgba(37,99,235,0.32);
+    border-radius: 50%;
+  }
+  .mockup-nfc::before { inset: 5px; }
+  .mockup-nfc::after { inset: 11px; }
+
+  .mockup-card {
+    position: absolute; right: 0; top: 0;
+    width: 62%;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 1px 1px rgba(11,16,32,0.04), 0 24px 48px -20px rgba(11,16,32,0.24);
+    border: 1px solid var(--border);
+    padding: 16px 18px 18px;
+    transform: rotate(2deg);
+  }
+  .mockup-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .mockup-google { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, #ea4335 0%, #fbbc04 33%, #34a853 66%, #4285f4 100%); flex-shrink: 0; }
+  .mockup-card-info { flex: 1; min-width: 0; }
+  .mockup-card-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.2; }
+  .mockup-card-meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .mockup-card-stars { color: #fbbc04; font-size: 18px; letter-spacing: 2px; line-height: 1; }
+  .mockup-card-quote { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 8px; }
 
   /* FLUXO VISUAL */
-  .flow { background: var(--bg-soft); }
-  .flow-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; max-width: 760px; margin: 0 auto; }
-  @media (max-width: 540px) { .flow-cards { grid-template-columns: 1fr; gap: 14px; } }
-  .flow-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 22px; box-shadow: 0 12px 32px -16px rgba(15,23,42,0.08); display: flex; flex-direction: column; gap: 14px; }
-  .flow-head { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-  .flow-google { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, #ea4335 0%, #fbbc04 33%, #34a853 66%, #4285f4 100%); flex-shrink: 0; }
-  .flow-biz-name { font-size: 13px; font-weight: 700; color: var(--text); }
-  .flow-q { font-size: 13px; color: var(--text); font-weight: 600; line-height: 1.4; }
-  .flow-emojis { display: flex; gap: 8px; }
-  .flow-emoji { flex: 1; padding: 10px 4px; border-radius: 11px; background: var(--bg-soft); border: 1.5px solid var(--border); text-align: center; font-size: 20px; }
-  .flow-emoji.selected.good { background: #ecfdf5; border-color: #10b981; }
-  .flow-emoji.selected.bad { background: #fef2f2; border-color: #ef4444; }
-  .flow-arrow { text-align: center; color: var(--soft); font-size: 14px; line-height: 0.5; }
-  .flow-result { padding: 12px 14px; border-radius: 13px; font-size: 12px; line-height: 1.5; }
-  .flow-result.positive { background: #ecfdf5; border: 1px solid #a7f3d0; }
-  .flow-result.private { background: #fef2f2; border: 1px solid #fecaca; }
-  .flow-result-title { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-  .flow-result-stars { color: #fbbc04; font-size: 14px; letter-spacing: 1px; }
-  .flow-input-fake { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; font-size: 11px; color: var(--soft); margin-bottom: 6px; }
-  .flow-private-btn { display: block; background: var(--text); color: #fff; border-radius: 9px; padding: 7px; font-size: 11px; font-weight: 700; text-align: center; }
-
-  /* HOW IT WORKS */
-  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-  @media (max-width: 880px) { .how-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 20px; } }
-  @media (max-width: 480px) { .how-grid { grid-template-columns: 1fr; gap: 20px; } }
-  .how-step { text-align: center; padding: 0 4px; }
-  @media (max-width: 480px) { .how-step { display: flex; align-items: center; gap: 16px; text-align: left; padding: 0; } }
-  .how-num { width: 36px; height: 36px; border-radius: 50%; background: var(--text); color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; flex-shrink: 0; }
-  @media (max-width: 480px) { .how-num { margin: 0; } }
-  .how-step h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
-  .how-step p { font-size: 13px; color: var(--muted); line-height: 1.55; max-width: 200px; margin: 0 auto; }
-  @media (max-width: 480px) { .how-step p { max-width: none; } .how-step > div { flex: 1; } }
+  .flow { background: #fff; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .flow-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 720px; margin: 0 auto; }
+  @media (max-width: 540px) { .flow-cards { grid-template-columns: 1fr; } }
+  .flow-card { background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .flow-head { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .flow-google { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, #ea4335 0%, #fbbc04 33%, #34a853 66%, #4285f4 100%); flex-shrink: 0; }
+  .flow-biz-name { font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .flow-q { font-size: 12.5px; color: var(--text); font-weight: 500; line-height: 1.4; }
+  .flow-emojis { display: flex; gap: 6px; }
+  .flow-emoji { flex: 1; padding: 8px 4px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); text-align: center; font-size: 18px; }
+  .flow-emoji.selected.good { background: var(--green-soft); border-color: var(--green); }
+  .flow-emoji.selected.bad { background: var(--red-soft); border-color: var(--red); }
+  .flow-arrow { text-align: center; color: var(--muted); font-size: 12px; line-height: 0.5; }
+  .flow-result { padding: 10px 12px; border-radius: 11px; font-size: 11px; line-height: 1.5; }
+  .flow-result.positive { background: var(--green-soft); border: 1px solid #bbf7d0; }
+  .flow-result.private { background: var(--red-soft); border: 1px solid #fecaca; }
+  .flow-result-title { font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+  .flow-result-stars { color: #fbbc04; font-size: 13px; letter-spacing: 1px; }
+  .flow-input-fake { background: #fff; border: 1px solid var(--border); border-radius: 7px; padding: 6px 8px; font-size: 10px; color: var(--muted); margin-bottom: 5px; }
+  .flow-private-btn { display: block; background: var(--text); color: #fff; border-radius: 8px; padding: 6px; font-size: 10px; font-weight: 600; text-align: center; }
 
   /* BENEFITS */
-  .benefits-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  @media (max-width: 880px) { .benefits-grid { grid-template-columns: 1fr; gap: 14px; max-width: 480px; margin: 0 auto; } }
-  .benefit-card { background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: 28px 24px; transition: border-color .15s, transform .15s; }
-  .benefit-card:hover { border-color: var(--text); transform: translateY(-2px); }
-  .benefit-card h3 { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; margin-bottom: 8px; line-height: 1.25; }
-  .benefit-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .benefits-grid { display: grid; grid-template-columns: 1fr; gap: 14px; max-width: 520px; margin: 0 auto; }
+  @media (min-width: 880px) { .benefits-grid { grid-template-columns: repeat(3, 1fr); max-width: 1040px; gap: 16px; } }
+  .benefit-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px 28px;
+    transition: border-color .15s, transform .15s;
+  }
+  .benefit-card:hover { border-color: #d1d5db; transform: translateY(-2px); }
+  .benefit-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text);
+    margin-bottom: 18px;
+  }
+  .benefit-icon svg { width: 18px; height: 18px; }
+  .benefit-card h3 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; line-height: 1.2; margin-bottom: 8px; letter-spacing: -0.01em; }
+  .benefit-card p { font-size: 14.5px; color: var(--muted); line-height: 1.55; }
 
   /* HARDWARE */
-  .hardware { background: #0f172a; color: #fff; }
-  .hardware .section-title { color: #fff; }
-  .hardware .section-sub { color: #94a3b8; }
-  .hw-mockups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 760px; margin: 0 auto 40px; }
-  @media (max-width: 720px) { .hw-mockups { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 460px) { .hw-mockups { grid-template-columns: 1fr 1fr; } }
-  .hw-card { aspect-ratio: 3 / 4; background: linear-gradient(155deg, #1e293b, #0f172a); border-radius: 16px; padding: 18px 14px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; border: 1px solid #1e293b; box-shadow: 0 24px 48px -16px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
-  .hw-card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at top right, rgba(26,115,232,0.18), transparent 60%); pointer-events: none; }
-  .hw-card-body { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; justify-content: center; }
-  .hw-qr { width: 56px; height: 56px; border-radius: 8px; background: #fff; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); padding: 5px; gap: 1px; }
-  .hw-qr div { background: #0f172a; border-radius: 1px; }
-  .hw-qr div.off { background: transparent; }
-  .hw-card-name { font-size: 11px; color: #94a3b8; font-weight: 600; line-height: 1.3; letter-spacing: 0.02em; margin-top: 6px; position: relative; }
-  .hw-card-tag { font-size: 9px; color: #475569; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; position: relative; }
-  .hw-cta-row { text-align: center; }
+  .hardware { background: var(--bg); }
+  .hw-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    max-width: 760px;
+    margin: 0 auto 36px;
+  }
+  @media (min-width: 720px) { .hw-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; } }
+  .hw-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: transform .15s, border-color .15s;
+  }
+  .hw-card:hover { transform: translateY(-3px); border-color: #d1d5db; }
+  .hw-photo {
+    aspect-ratio: 1 / 1;
+    background: linear-gradient(170deg, #f3f4f6 0%, #e5e7eb 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hw-photo::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.6), transparent 50%);
+    pointer-events: none;
+  }
+  .hw-product { position: relative; z-index: 1; }
+  .hw-text { padding: 14px 14px 16px; text-align: center; }
+  .hw-text h4 { font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.3; }
+  .hw-text p { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
 
-  /* CTA FINAL */
-  .cta-final { padding: 80px 5%; background: var(--bg-soft); }
-  .cta-box { max-width: 720px; margin: 0 auto; text-align: center; }
-  .cta-box h2 { font-family: 'Playfair Display', serif; font-size: clamp(28px, 4vw, 42px); font-weight: 700; line-height: 1.2; margin-bottom: 14px; letter-spacing: -0.02em; }
-  .cta-box p { color: var(--muted); font-size: clamp(15px, 1.8vw, 17px); margin-bottom: 32px; max-width: 540px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+  /* Acrílico estilo plaquinha (vertical, balcão) */
+  .hw-plaque-balcao {
+    width: 58%; aspect-ratio: 3 / 4;
+    background: linear-gradient(155deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.45) 100%);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 8px;
+    box-shadow: 0 12px 24px -8px rgba(11,16,32,0.18), inset 0 1px 0 rgba(255,255,255,0.9);
+    padding: 14px 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    backdrop-filter: blur(2px);
+  }
+  .hw-plaque-balcao .plaque-logo { width: 70%; height: 14px; background: var(--text); -webkit-mask: url('/reputazap-logo.png') center/contain no-repeat; mask: url('/reputazap-logo.png') center/contain no-repeat; }
+  .hw-plaque-balcao .plaque-text { font-size: 8px; color: var(--text); font-weight: 600; text-align: center; line-height: 1.3; opacity: 0.7; }
+  .hw-plaque-balcao .plaque-qr { width: 40%; aspect-ratio: 1; background: var(--text); border-radius: 4px; opacity: 0.85; }
+
+  /* Plaquinha mesa (cubinho) */
+  .hw-plaque-mesa {
+    width: 70%; aspect-ratio: 4 / 3;
+    background: linear-gradient(165deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.55) 100%);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 6px;
+    box-shadow: 0 10px 22px -6px rgba(11,16,32,0.18), inset 0 1px 0 rgba(255,255,255,0.9);
+    padding: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hw-plaque-mesa .plaque-qr { width: 36%; aspect-ratio: 1; background: var(--text); border-radius: 3px; opacity: 0.85; flex-shrink: 0; }
+  .hw-plaque-mesa .plaque-info { flex: 1; min-width: 0; }
+  .hw-plaque-mesa .plaque-info-line1 { font-size: 7px; color: var(--text); font-weight: 700; opacity: 0.55; letter-spacing: 0.04em; }
+  .hw-plaque-mesa .plaque-info-line2 { font-size: 9px; color: var(--text); font-weight: 700; line-height: 1.1; margin-top: 2px; }
+
+  /* Cartão NFC (preto fosco) */
+  .hw-card-nfc {
+    width: 78%; aspect-ratio: 1.586 / 1;
+    background: linear-gradient(155deg, #1a2030 0%, #0B1020 100%);
+    border-radius: 8px;
+    box-shadow: 0 12px 24px -8px rgba(11,16,32,0.32);
+    padding: 10px 12px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    transform: rotate(-4deg);
+    position: relative;
+    overflow: hidden;
+  }
+  .hw-card-nfc::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent 40%);
+    border-radius: 8px;
+  }
+  .hw-card-nfc .nfc-logo { width: 50%; height: 12px; background: rgba(255,255,255,0.88); -webkit-mask: url('/reputazap-logo.png') center/contain no-repeat; mask: url('/reputazap-logo.png') center/contain no-repeat; position: relative; }
+  .hw-card-nfc .nfc-icon { font-size: 9px; color: rgba(255,255,255,0.55); font-weight: 600; letter-spacing: 0.18em; position: relative; align-self: flex-end; }
+
+  /* Adesivo NFC (circular) */
+  .hw-sticker {
+    width: 64%; aspect-ratio: 1;
+    background: linear-gradient(155deg, #1a2030 0%, #0B1020 100%);
+    border-radius: 50%;
+    box-shadow: 0 12px 24px -6px rgba(11,16,32,0.32);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hw-sticker::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.1), transparent 50%);
+  }
+  .hw-sticker .sticker-logo { width: 50%; height: 11px; background: rgba(255,255,255,0.88); -webkit-mask: url('/reputazap-logo.png') center/contain no-repeat; mask: url('/reputazap-logo.png') center/contain no-repeat; position: relative; }
+  .hw-sticker .sticker-tag { font-size: 7.5px; color: rgba(255,255,255,0.5); font-weight: 600; letter-spacing: 0.18em; position: relative; }
+
+  .hw-cta { text-align: center; }
+
+  /* CTA FINAL DARK */
+  .cta-final {
+    background: var(--text);
+    color: #fff;
+    padding: 80px 5%;
+  }
+  .cta-final .section-title { color: #fff; font-size: clamp(28px, 5vw, 44px); }
+  .cta-final .section-sub { color: rgba(255,255,255,0.7); }
+  .cta-stars { font-size: 16px; color: #fbbc04; letter-spacing: 2px; margin-bottom: 10px; }
+  .cta-quote { font-size: 14px; color: rgba(255,255,255,0.65); max-width: 440px; margin: 0 auto 32px; line-height: 1.55; font-style: italic; }
+  .cta-final .micro { color: rgba(255,255,255,0.5); }
+  .cta-box { max-width: 640px; margin: 0 auto; text-align: center; }
 
   /* FOOTER */
-  footer { background: var(--bg-soft); border-top: 1px solid var(--border); padding: 40px 5% 28px; }
-  .footer-inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px; }
-  .footer-brand img { height: 36px; width: auto; }
-  .footer-links { display: flex; gap: 22px; }
-  .footer-links a { font-size: 13px; color: var(--muted); transition: color .15s; }
+  footer { background: var(--bg); border-top: 1px solid var(--border); padding: 32px 5% 24px; }
+  .footer-inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .footer-brand img { height: 30px; width: auto; opacity: 0.8; }
+  .footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+  .footer-links a { font-size: 12.5px; color: var(--muted); transition: color .15s; }
   .footer-links a:hover { color: var(--text); }
-  .footer-copy { font-size: 12px; color: var(--soft); width: 100%; text-align: center; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .footer-copy { font-size: 11.5px; color: var(--muted); width: 100%; text-align: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); opacity: 0.7; }
 </style>
 </head>
 <body>
@@ -148,22 +368,43 @@
 </nav>
 
 <!-- HERO -->
-<section class="hero">
+<section class="hero fade-up">
   <h1>Evite avaliações negativas <span class="accent">antes que elas aconteçam</span></h1>
-  <p class="hero-sub">Quando algo não vai bem, seu cliente pode falar com você antes de publicar uma avaliação no Google.</p>
+  <p class="hero-sub">Quando algo não vai bem, seu cliente fala com você antes de publicar no Google.</p>
   <ul class="hero-bullets">
     <li>Sem aplicativo</li>
-    <li>Sem complicação</li>
     <li>Funciona em segundos</li>
+    <li>Sem complicação</li>
   </ul>
   <a class="btn-primary" href="/ativar?from=web">Começar grátis</a>
   <p class="micro">Leva menos de 1 minuto</p>
+
+  <!-- MINI MOCKUP -->
+  <div class="hero-mockup">
+    <div class="mockup-plaque">
+      <div class="mockup-plaque-logo"></div>
+      <div class="mockup-nfc"></div>
+      <div class="mockup-plaque-tag">Toque pra avaliar</div>
+    </div>
+    <div class="mockup-card">
+      <div class="mockup-card-head">
+        <div class="mockup-google"></div>
+        <div class="mockup-card-info">
+          <div class="mockup-card-name">Café Bello Vista</div>
+          <div class="mockup-card-meta">Google · 2 min atrás</div>
+        </div>
+      </div>
+      <div class="mockup-card-stars">★★★★★</div>
+      <div class="mockup-card-quote">"Atendimento incrível, voltarei sempre."</div>
+    </div>
+  </div>
 </section>
 
 <!-- FLUXO VISUAL -->
 <section class="flow">
   <div class="section-inner">
     <div class="section-head">
+      <div class="section-eyebrow">Na prática</div>
       <h2 class="section-title">Como funciona na prática</h2>
       <p class="section-sub">Clientes satisfeitos seguem para o Google. Problemas chegam primeiro para você.</p>
     </div>
@@ -207,62 +448,32 @@
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section id="como-funciona">
-  <div class="section-inner">
-    <div class="section-head">
-      <h2 class="section-title">Em 4 passos simples</h2>
-      <p class="section-sub">Do toque do cliente até a avaliação no Google.</p>
-    </div>
-    <div class="how-grid">
-      <div class="how-step">
-        <div class="how-num">1</div>
-        <div>
-          <h3>Cliente avalia em segundos</h3>
-          <p>Um toque na plaquinha NFC ou QR Code abre a tela.</p>
-        </div>
-      </div>
-      <div class="how-step">
-        <div class="how-num">2</div>
-        <div>
-          <h3>Cliente escolhe como foi a experiência</h3>
-          <p>Em três opções: ótima, ok ou ruim.</p>
-        </div>
-      </div>
-      <div class="how-step">
-        <div class="how-num">3</div>
-        <div>
-          <h3>Você ouve antes</h3>
-          <p>Quando algo não vai bem, o feedback chega primeiro pra você resolver.</p>
-        </div>
-      </div>
-      <div class="how-step">
-        <div class="how-num">4</div>
-        <div>
-          <h3>Boas experiências viram avaliação</h3>
-          <p>Clientes satisfeitos seguem direto pro Google.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- BENEFITS -->
-<section id="beneficios" style="background:var(--bg-soft);">
+<section id="beneficios">
   <div class="section-inner">
     <div class="section-head">
-      <h2 class="section-title">Por que ReputaZap</h2>
+      <div class="section-eyebrow">Por que ReputaZap</div>
+      <h2 class="section-title">Reputação sob controle</h2>
     </div>
     <div class="benefits-grid">
       <div class="benefit-card">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
         <h3>Mais avaliações no Google</h3>
         <p>Facilite o caminho para clientes satisfeitos avaliarem sua empresa.</p>
       </div>
       <div class="benefit-card">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
         <h3>Clientes falam com você primeiro</h3>
         <p>Ganhe a chance de resolver problemas antes da exposição pública.</p>
       </div>
       <div class="benefit-card">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
         <h3>Sem fricção</h3>
         <p>Sem app, sem login e sem complicação para o cliente.</p>
       </div>
@@ -271,65 +482,81 @@
 </section>
 
 <!-- HARDWARE -->
-<section class="hardware">
+<section class="hardware" id="hardware">
   <div class="section-inner">
     <div class="section-head">
+      <div class="section-eyebrow">Hardware</div>
       <h2 class="section-title">Quer automatizar no balcão?</h2>
       <p class="section-sub">Use placas inteligentes para transformar clientes satisfeitos em avaliações no Google.</p>
     </div>
-    <div class="hw-mockups">
+    <div class="hw-grid">
       <div class="hw-card">
-        <div class="hw-card-body">
-          <div class="hw-qr">
-            <div></div><div class="off"></div><div></div><div></div><div></div>
-            <div></div><div></div><div class="off"></div><div></div><div class="off"></div>
-            <div class="off"></div><div></div><div></div><div class="off"></div><div></div>
-            <div></div><div class="off"></div><div></div><div></div><div></div>
-            <div></div><div></div><div class="off"></div><div></div><div></div>
+        <div class="hw-photo">
+          <div class="hw-product hw-plaque-balcao">
+            <div class="plaque-logo"></div>
+            <div class="plaque-qr"></div>
+            <div class="plaque-text">Avalie aqui</div>
           </div>
-          <div class="hw-card-name">Placa de balcão</div>
         </div>
-        <div class="hw-card-tag">NFC + QR</div>
+        <div class="hw-text">
+          <h4>Plaquinha de balcão</h4>
+          <p>Acrílico elegante no caixa.</p>
+        </div>
       </div>
       <div class="hw-card">
-        <div class="hw-card-body">
-          <div class="hw-qr">
-            <div></div><div></div><div class="off"></div><div></div><div></div>
-            <div class="off"></div><div></div><div></div><div class="off"></div><div></div>
-            <div></div><div></div><div></div><div></div><div class="off"></div>
-            <div></div><div class="off"></div><div></div><div class="off"></div><div></div>
-            <div></div><div></div><div></div><div></div><div></div>
+        <div class="hw-photo">
+          <div class="hw-product hw-plaque-mesa">
+            <div class="plaque-qr"></div>
+            <div class="plaque-info">
+              <div class="plaque-info-line1">AVALIE</div>
+              <div class="plaque-info-line2">Bello Vista</div>
+            </div>
           </div>
-          <div class="hw-card-name">Plaquinha de mesa</div>
         </div>
-        <div class="hw-card-tag">Acrílico</div>
+        <div class="hw-text">
+          <h4>Plaquinha de mesa</h4>
+          <p>Ideal para restaurantes.</p>
+        </div>
       </div>
       <div class="hw-card">
-        <div class="hw-card-body">
-          <div class="hw-qr">
-            <div></div><div></div><div></div><div class="off"></div><div></div>
-            <div></div><div class="off"></div><div></div><div></div><div></div>
-            <div></div><div></div><div class="off"></div><div></div><div></div>
-            <div class="off"></div><div></div><div></div><div></div><div class="off"></div>
-            <div></div><div></div><div></div><div></div><div></div>
+        <div class="hw-photo">
+          <div class="hw-product hw-card-nfc">
+            <div class="nfc-logo"></div>
+            <div class="nfc-icon">NFC</div>
           </div>
-          <div class="hw-card-name">Cartão NFC</div>
         </div>
-        <div class="hw-card-tag">PVC fosco</div>
+        <div class="hw-text">
+          <h4>Cartão NFC</h4>
+          <p>PVC fosco premium.</p>
+        </div>
+      </div>
+      <div class="hw-card">
+        <div class="hw-photo">
+          <div class="hw-product hw-sticker">
+            <div class="sticker-logo"></div>
+            <div class="sticker-tag">NFC</div>
+          </div>
+        </div>
+        <div class="hw-text">
+          <h4>Adesivo NFC</h4>
+          <p>Cole em qualquer superfície.</p>
+        </div>
       </div>
     </div>
-    <div class="hw-cta-row">
-      <a class="btn-light" href="/ativar?from=web">Conhecer modelos</a>
+    <div class="hw-cta">
+      <a class="btn-ghost" href="/ativar?from=web">Conhecer modelos →</a>
     </div>
   </div>
 </section>
 
-<!-- CTA FINAL -->
+<!-- CTA FINAL DARK -->
 <section class="cta-final">
   <div class="cta-box">
-    <h2>Sua reputação começa antes da avaliação pública.</h2>
-    <p>Descubra o que seus clientes realmente pensam antes do Google.</p>
-    <a class="btn-primary" href="/ativar?from=web">Começar grátis</a>
+    <div class="cta-stars">★★★★★</div>
+    <p class="cta-quote">"Negócios locais já usam ReputaZap para capturar feedback antes do Google."</p>
+    <h2 class="section-title">Sua reputação começa antes da avaliação pública.</h2>
+    <p class="section-sub" style="margin-bottom:32px">Descubra o que seus clientes realmente pensam antes do Google.</p>
+    <a class="btn-light" href="/ativar?from=web">Começar grátis</a>
     <p class="micro">Sem cartão de crédito</p>
   </div>
 </section>
@@ -341,8 +568,8 @@
       <img src="/reputazap-logo.png" alt="Reputazap"/>
     </div>
     <div class="footer-links">
-      <a href="#como-funciona">Como funciona</a>
-      <a href="#beneficios">Benefícios</a>
+      <a href="#beneficios">Por que ReputaZap</a>
+      <a href="#hardware">Hardware</a>
       <a href="https://wa.me/5511982882662" target="_blank" rel="noopener">Suporte</a>
       <a href="/app">Entrar</a>
     </div>
