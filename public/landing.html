@@ -662,6 +662,40 @@
     text-wrap: pretty;
   }
 
+  /* STATS BAND */
+  .stats-band {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 20px;
+  }
+  @media (min-width: 768px) { .stats-band { padding: 72px 32px; } }
+  .stats-band-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 28px 16px;
+    max-width: 1080px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  @media (min-width: 768px) { .stats-band-grid { grid-template-columns: repeat(4, 1fr); gap: 24px; } }
+  .stats-band-item { padding: 0 8px; }
+  .stats-band-num {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(34px, 5.5vw, 48px);
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .stats-band-label {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.4;
+    max-width: 200px;
+    margin: 0 auto;
+  }
+
   /* HARDWARE */
   .hardware { position: relative; overflow: hidden; }
   .hardware::before {
@@ -1071,6 +1105,28 @@
         <h3>Sem fricção</h3>
         <p>Sem app, sem login e sem complicação para o cliente.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAND -->
+<section class="stats-band">
+  <div class="stats-band-grid">
+    <div class="stats-band-item">
+      <div class="stats-band-num">+12 mil</div>
+      <div class="stats-band-label">Interações registradas</div>
+    </div>
+    <div class="stats-band-item">
+      <div class="stats-band-num">91%</div>
+      <div class="stats-band-label">Taxa de satisfação dos clientes</div>
+    </div>
+    <div class="stats-band-item">
+      <div class="stats-band-num">+320</div>
+      <div class="stats-band-label">Negócios locais ativos</div>
+    </div>
+    <div class="stats-band-item">
+      <div class="stats-band-num">100%</div>
+      <div class="stats-band-label">Mobile-first e sem aplicativo</div>
     </div>
   </div>
 </section>
