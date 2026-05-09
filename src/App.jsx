@@ -617,7 +617,7 @@ export default function ReputaZap({ user, onLogout }) {
                     style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1px solid #e5e7eb",borderRadius:12,padding:"12px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
                     <ExternalLink size={13}/> Baixar QR
                   </a>
-                  <a href={directLink || "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
+                  <a href={directLink ? `${directLink}&preview=1` : "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
                     style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1px solid #e5e7eb",borderRadius:12,padding:"12px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
                     <Smartphone size={13}/> Ver simulação
                   </a>
@@ -1096,7 +1096,7 @@ export default function ReputaZap({ user, onLogout }) {
                       style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1.5px solid #e5e7eb",borderRadius:12,padding:"13px 16px",fontSize:14,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
                       <ExternalLink size={15}/> Baixar QR Code
                     </a>
-                    <a href={directLink || "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
+                    <a href={directLink ? `${directLink}&preview=1` : "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
                       style={{textDecoration:"none",background:"transparent",color:"#475569",borderRadius:12,padding:"10px 16px",fontSize:13,fontWeight:500,display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none"}}>
                       <Smartphone size={14}/> Ver simulação
                     </a>

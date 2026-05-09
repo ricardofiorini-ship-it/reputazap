@@ -65,6 +65,11 @@
 
   /* Confetti */
   .confetti-piece{position:fixed;top:-20px;pointer-events:none;animation:confettiFall 1.2s ease-in forwards;}
+
+  /* Preview banner */
+  .preview-banner{position:fixed;top:0;left:0;right:0;background:#1a73e8;color:#fff;padding:8px 16px;text-align:center;font-size:12px;font-weight:600;z-index:100;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .preview-banner span{font-weight:400;opacity:0.85;}
+  body.has-preview{padding-top:56px;}
 </style>
 </head>
 <body>
@@ -202,11 +207,13 @@
 <script>
 const params = new URLSearchParams(window.location.search);
 const placeId = params.get("place_id") || params.get("place");
+const isPreview = params.get("preview") === "1";
 let bizPlan = "free";
 let lastFeedbackId = null;
 let lastFeedbackKind = null; // 'neutral' | 'negative'
 
 function checkDuplicate() {
+  if (isPreview) return false;
   const key = `rz_reviewed_${placeId}`;
   const last = localStorage.getItem(key);
   if (last) {
@@ -217,10 +224,18 @@ function checkDuplicate() {
 }
 
 function markReviewed() {
+  if (isPreview) return;
   localStorage.setItem(`rz_reviewed_${placeId}`, Date.now().toString());
 }
 
 async function loadBusiness() {
+  if (isPreview) {
+    document.body.classList.add("has-preview");
+    const banner = document.createElement("div");
+    banner.className = "preview-banner";
+    banner.innerHTML = "🔍 Modo simulação <span>— nenhuma avaliação será enviada</span>";
+    document.body.prepend(banner);
+  }
   if (!placeId) {
     document.getElementById("bizName").textContent = "Negócio não encontrado";
     document.getElementById("bizSub").textContent = "Link inválido — peça um novo ao estabelecimento";
@@ -245,7 +260,7 @@ async function loadBusiness() {
       return;
     }
 
-    if (bizPlan === "pro") {
+    if (isPreview || bizPlan === "pro") {
       show("stepFeeling");
     } else {
       show("stepDirect");
@@ -271,24 +286,25 @@ async function submitFeedback(kind) {
   const text = document.getElementById(kind === "negative" ? "negativeText" : "neutralText").value.trim();
   if (!text) { alert("Escreva seu feedback antes de enviar."); return; }
   const rating = kind === "negative" ? 1 : 3;
-  try {
-    const res = await fetch("/api/feedback", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ place_id: placeId, text, rating })
-    });
-    const data = await res.json();
-    lastFeedbackId = data.id || null;
-    lastFeedbackKind = kind;
-  } catch {}
+  if (!isPreview) {
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ place_id: placeId, text, rating })
+      });
+      const data = await res.json();
+      lastFeedbackId = data.id || null;
+      lastFeedbackKind = kind;
+    } catch {}
+  }
   show(kind === "negative" ? "stepNegativeChoice" : "stepNeutralChoice");
 }
 
 async function chooseDecision(decision, alsoOpenGoogle) {
-  if (lastFeedbackId) {
+  if (!isPreview && lastFeedbackId) {
     try {
       const payload = { id: lastFeedbackId, decision };
-      // Quem escolhe aguardar daria avaliação ≤3★ — registra a intenção pra métricas do Pro
       if (decision === "wait") payload.would_have_reviewed_negative = true;
       await fetch("/api/feedback", {
         method: "POST",
@@ -300,10 +316,8 @@ async function chooseDecision(decision, alsoOpenGoogle) {
   if (decision === "public") {
     markReviewed();
     setThanks("publicado");
-    // O link <a target="_blank"> abre o Google em nova aba; aqui só trocamos a tela.
     setTimeout(() => show("stepThanks"), alsoOpenGoogle ? 250 : 0);
   } else {
-    // Antes de mostrar "Obrigado por nos avisar", oferece captura opcional de contato
     show("stepContact");
   }
 }
@@ -314,7 +328,7 @@ async function submitContact() {
     alert("Deixe um email ou WhatsApp pra receber retorno, ou clique em \"Não, obrigado\".");
     return;
   }
-  if (lastFeedbackId) {
+  if (!isPreview && lastFeedbackId) {
     try {
       await fetch("/api/feedback", {
         method: "POST",

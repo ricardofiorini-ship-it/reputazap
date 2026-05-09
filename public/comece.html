@@ -124,7 +124,7 @@ async function init() {
     document.getElementById("bizName").textContent = bizName;
     document.getElementById("linkPreview").textContent = reviewLink;
     document.getElementById("qrBtn").href = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(reviewLink)}`;
-    document.getElementById("previewBtn").href = reviewLink;
+    document.getElementById("previewBtn").href = `${reviewLink}&preview=1`;
 
     document.getElementById("loading").style.display = "none";
     document.getElementById("content").style.display = "block";
