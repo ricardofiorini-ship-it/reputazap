@@ -421,14 +421,15 @@ export default function ReputaZap({ user, onLogout }) {
         .rc:hover{border-color:#d1d5db!important;transform:translateY(-1px);}
         .bg{transition:opacity .15s,transform .1s;cursor:pointer;}
         .bg:hover{opacity:.9;transform:translateY(-1px);}
+        .sidebar{width:220px;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;padding:28px 16px;position:sticky;top:0;height:100vh;flex-shrink:0;}
         .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:40;}
         .sidebar-overlay.open{display:block;}
         .mobile-header{display:none;align-items:center;justify-content:space-between;padding:14px 20px;background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:30;}
         @media(max-width:768px){
-          .sidebar{position:fixed!important;left:-240px!important;top:0!important;height:100vh!important;z-index:50!important;transition:left .25s ease!important;overflow-y:auto!important;}
-          .sidebar.open{left:0!important;}
-          .mobile-header{display:flex!important;}
-          .main-pad{padding:20px 16px!important;}
+          .sidebar{position:fixed;left:-240px;top:0;height:100vh;z-index:50;transition:left .25s ease;overflow-y:auto;}
+          .sidebar.open{left:0;}
+          .mobile-header{display:flex;}
+          .main-pad{padding:20px 16px;}
         }
       `}</style>
       <div style={{display:"flex",minHeight:"100vh",background:"#f9fafb",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
@@ -439,7 +440,7 @@ export default function ReputaZap({ user, onLogout }) {
         <div className={`sidebar-overlay${sidebarOpen?" open":""}`} onClick={()=>setSidebarOpen(false)}/>
 
         {/* Sidebar */}
-        <div className={`sidebar${sidebarOpen?" open":""}`} style={{width:220,background:"#fff",borderRight:"1px solid #e5e7eb",display:"flex",flexDirection:"column",padding:"28px 16px",position:"sticky",top:0,height:"100vh",flexShrink:0}}>
+        <div className={`sidebar${sidebarOpen?" open":""}`}>
           <div style={{padding:"0 8px 24px",borderBottom:"1px solid #e5e7eb",display:"flex",flexDirection:"column",alignItems:"flex-start",gap:4}}>
             <img src="/reputazap-logo.png" alt="Reputazap" style={{height:46,width:"auto"}}/>
             <div style={{fontSize:10,color:"#9ca3af",paddingLeft:2}}>Reputação com IA</div>
