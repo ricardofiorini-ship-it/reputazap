@@ -362,6 +362,20 @@ export default function ReputaZap({ user, onLogout }) {
         @keyframes bonce{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px)}70%{transform:translateY(-6px)}}
         @keyframes cfall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
         @keyframes pulseDot{0%{box-shadow:0 0 0 0 rgba(34,197,94,0.55)}70%{box-shadow:0 0 0 6px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+        .hero-status{padding:32px 36px;}
+        .hero-status .hero-status-row{display:flex;align-items:center;gap:24px;flex-wrap:wrap;position:relative;}
+        .hero-status .hero-status-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;line-height:1.15;letter-spacing:-0.015em;}
+        .hero-status .hero-status-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .hero-status .hero-status-cta{padding:15px 24px;font-size:14.5px;}
+        @media(max-width:640px){
+          .hero-status{padding:22px 18px;border-radius:16px;}
+          .hero-status .hero-status-row{gap:14px;}
+          .hero-status .hero-status-title{font-size:19px;}
+          .hero-status .hero-status-icon{width:44px;height:44px;border-radius:12px;}
+          .hero-status .hero-status-icon svg{width:20px;height:20px;}
+          .hero-status .hero-status-cta{width:100%;justify-content:center;padding:13px 20px;font-size:14px;}
+          .hero-status .hero-status-text{min-width:0!important;width:100%;}
+        }
         .ni{transition:background .15s,color .15s;cursor:pointer;}
         .ni:hover{background:#e5e7eb!important;}
         .rc{transition:border-color .15s,transform .15s;}
@@ -563,19 +577,16 @@ export default function ReputaZap({ user, onLogout }) {
 
               {/* ── ZONA 1: Hero status emocional ── */}
               {!isPro ? (
-                <div style={{background:"linear-gradient(135deg,#0f172a 0%,#1a1a2e 50%,#1e1b3a 100%)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:20,padding:"32px 36px",marginBottom:18,position:"relative",overflow:"hidden",boxShadow:"0 1px 2px rgba(0,0,0,0.10), 0 24px 48px -16px rgba(15,23,42,0.32)"}}>
-                  {/* Glow vermelho lado esquerdo */}
+                <div className="hero-status" style={{background:"linear-gradient(135deg,#0f172a 0%,#1a1a2e 50%,#1e1b3a 100%)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:20,marginBottom:18,position:"relative",overflow:"hidden",boxShadow:"0 1px 2px rgba(0,0,0,0.10), 0 24px 48px -16px rgba(15,23,42,0.32)"}}>
                   <div style={{position:"absolute",top:-80,left:-80,width:340,height:340,background:"radial-gradient(circle,rgba(239,68,68,0.22),transparent 65%)",pointerEvents:"none"}}/>
-                  {/* Glow azul/violeta lado direito */}
                   <div style={{position:"absolute",bottom:-80,right:-80,width:340,height:340,background:"radial-gradient(circle,rgba(99,102,241,0.18),transparent 65%)",pointerEvents:"none"}}/>
-                  {/* Hairline brilhante topo */}
                   <div style={{position:"absolute",top:0,left:"15%",right:"15%",height:1,background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)",pointerEvents:"none"}}/>
 
-                  <div style={{position:"relative",display:"flex",alignItems:"center",gap:24,flexWrap:"wrap"}}>
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"center",width:56,height:56,borderRadius:16,background:"rgba(239,68,68,0.18)",border:"1px solid rgba(239,68,68,0.32)",flexShrink:0,boxShadow:"inset 0 1px 0 rgba(255,255,255,0.06)"}}>
+                  <div className="hero-status-row">
+                    <div className="hero-status-icon" style={{background:"rgba(239,68,68,0.18)",border:"1px solid rgba(239,68,68,0.32)",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.06)"}}>
                       <AlertCircle size={26} color="#fca5a5"/>
                     </div>
-                    <div style={{flex:1,minWidth:260}}>
+                    <div className="hero-status-text" style={{flex:1,minWidth:200}}>
                       <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginBottom:12}}>
                         <span style={{display:"inline-flex",alignItems:"center",gap:5,fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.7)",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.10)",letterSpacing:"0.10em",padding:"4px 10px",borderRadius:5,textTransform:"uppercase"}}>
                           Plano grátis
@@ -584,33 +595,33 @@ export default function ReputaZap({ user, onLogout }) {
                           Sem proteção
                         </span>
                       </div>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#fff",lineHeight:1.15,marginBottom:8,letterSpacing:"-0.015em"}}>
+                      <div className="hero-status-title" style={{color:"#fff",marginBottom:8}}>
                         Sua reputação está exposta
                       </div>
                       <div style={{fontSize:14,color:"rgba(255,255,255,0.66)",lineHeight:1.55,maxWidth:520}}>
                         Toda avaliação vai direto pro Google. Você só descobre depois que já está pública.
                       </div>
                     </div>
-                    <button onClick={goToCheckout}
-                      style={{cursor:"pointer",border:"none",fontFamily:"inherit",background:"linear-gradient(180deg,#fff 0%,#f1f5f9 100%)",color:"#0f172a",borderRadius:14,padding:"15px 24px",fontSize:14.5,fontWeight:700,display:"inline-flex",alignItems:"center",gap:9,flexShrink:0,boxShadow:"inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.10), 0 18px 40px -12px rgba(0,0,0,0.45)",letterSpacing:"-0.005em",transition:"transform .15s, box-shadow .15s"}}>
+                    <button className="hero-status-cta" onClick={goToCheckout}
+                      style={{cursor:"pointer",border:"none",fontFamily:"inherit",background:"linear-gradient(180deg,#fff 0%,#f1f5f9 100%)",color:"#0f172a",borderRadius:14,fontWeight:700,display:"inline-flex",alignItems:"center",gap:9,flexShrink:0,boxShadow:"inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.10), 0 18px 40px -12px rgba(0,0,0,0.45)",letterSpacing:"-0.005em",transition:"transform .15s, box-shadow .15s"}}>
                       <ShieldCheck size={17}/> Proteger minha reputação
                     </button>
                   </div>
                 </div>
               ) : (
-                <div style={{background:"linear-gradient(135deg,#0a1f14 0%,#0f3a26 60%,#10693e 100%)",border:"1px solid rgba(167,243,208,0.16)",borderRadius:20,padding:"32px 36px",marginBottom:18,position:"relative",overflow:"hidden",boxShadow:"0 1px 2px rgba(0,0,0,0.10), 0 24px 48px -16px rgba(5,150,105,0.36)"}}>
+                <div className="hero-status" style={{background:"linear-gradient(135deg,#0a1f14 0%,#0f3a26 60%,#10693e 100%)",border:"1px solid rgba(167,243,208,0.16)",borderRadius:20,marginBottom:18,position:"relative",overflow:"hidden",boxShadow:"0 1px 2px rgba(0,0,0,0.10), 0 24px 48px -16px rgba(5,150,105,0.36)"}}>
                   <div style={{position:"absolute",top:-80,left:-60,width:340,height:340,background:"radial-gradient(circle,rgba(34,197,94,0.20),transparent 65%)",pointerEvents:"none"}}/>
                   <div style={{position:"absolute",bottom:-80,right:-80,width:340,height:340,background:"radial-gradient(circle,rgba(16,185,129,0.16),transparent 65%)",pointerEvents:"none"}}/>
                   <div style={{position:"absolute",top:0,left:"15%",right:"15%",height:1,background:"linear-gradient(90deg,transparent,rgba(167,243,208,0.30),transparent)",pointerEvents:"none"}}/>
-                  <div style={{position:"relative",display:"flex",alignItems:"center",gap:22,flexWrap:"wrap"}}>
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"center",width:56,height:56,borderRadius:16,background:"#059669",flexShrink:0,boxShadow:"inset 0 1px 0 rgba(255,255,255,0.18), 0 12px 24px -8px rgba(5,150,105,0.55)"}}>
+                  <div className="hero-status-row">
+                    <div className="hero-status-icon" style={{background:"#059669",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.18), 0 12px 24px -8px rgba(5,150,105,0.55)"}}>
                       <ShieldCheck size={26} color="#fff"/>
                     </div>
-                    <div style={{flex:1,minWidth:260}}>
+                    <div className="hero-status-text" style={{flex:1,minWidth:200}}>
                       <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#fff",background:"#059669",letterSpacing:"0.10em",padding:"4px 10px",borderRadius:5,marginBottom:12,textTransform:"uppercase",boxShadow:"0 4px 12px -4px rgba(5,150,105,0.50)"}}>
                         Modo Protegido ativo
                       </div>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#fff",lineHeight:1.15,marginBottom:8,letterSpacing:"-0.015em"}}>
+                      <div className="hero-status-title" style={{color:"#fff",marginBottom:8}}>
                         Sua reputação está protegida
                       </div>
                       <div style={{fontSize:14,color:"rgba(167,243,208,0.85)",lineHeight:1.55,maxWidth:520}}>
