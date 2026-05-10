@@ -986,7 +986,7 @@ export default function ReputaZap({ user, onLogout }) {
                       <ShieldCheck size={16}/> Ativar modo protegido
                     </button>
                     <div style={{fontSize:13,color:"#fff",fontWeight:700,lineHeight:1.4}}>Teste grátis por 14 dias</div>
-                    <div style={{fontSize:12,color:"#94a3b8",fontWeight:500,marginTop:2}}>Depois R$79/mês · sem fidelidade</div>
+                    <div style={{fontSize:12,color:"#94a3b8",fontWeight:500,marginTop:2}}>Depois R$49/mês · sem fidelidade</div>
                   </div>
                 </div>
               )}
@@ -1253,7 +1253,7 @@ export default function ReputaZap({ user, onLogout }) {
                     <div style={{width:40,height:40,borderRadius:10,background:"#059669",display:"flex",alignItems:"center",justifyContent:"center"}}><ShieldCheck size={20} color="#fff"/></div>
                     <div>
                       <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#0f172a"}}>Ativar Modo Protegido</div>
-                      <div style={{fontSize:13,color:"#059669",fontWeight:600}}>R$79/mês · 14 dias grátis</div>
+                      <div style={{fontSize:13,color:"#059669",fontWeight:600}}>R$49/mês · 14 dias grátis</div>
                     </div>
                   </div>
                   <ul style={{listStyle:"none",padding:0,margin:"0 0 18px",display:"flex",flexDirection:"column",gap:8}}>
