@@ -613,7 +613,7 @@ export default function ReputaZap({ user, onLogout }) {
                         Sua reputação está protegida
                       </div>
                       <div style={{fontSize:14,color:"rgba(167,243,208,0.85)",lineHeight:1.55,maxWidth:520}}>
-                        Reclamações chegam no seu email antes de virar avaliação pública.
+                        Reclamações chegarão no seu email antes de virar avaliação pública.
                       </div>
                       {bizInfo?.current_period_end && (
                         <div style={{fontSize:12,color:bizInfo.cancel_at_period_end?"#fca5a5":"rgba(167,243,208,0.65)",marginTop:10,fontWeight:500,display:"inline-flex",alignItems:"center",gap:6}}>
