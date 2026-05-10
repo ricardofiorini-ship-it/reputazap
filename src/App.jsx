@@ -289,7 +289,6 @@ export default function ReputaZap({ user, onLogout }) {
   const [savingBiz, setSavingBiz] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [pendingFeedbacks, setPendingFeedbacks] = useState([]);
-  const [showPlacasModal, setShowPlacasModal] = useState(false);
   const [actionTaken, setActionTaken] = useState(false);
   const [toast, setToast] = useState(null); // { message, kind: 'success'|'error' }
   useEffect(() => {
@@ -983,57 +982,39 @@ export default function ReputaZap({ user, onLogout }) {
                 </div>
               </div>
 
-              {/* ── Z6: Hardware showcase premium ── */}
+              {/* ── Z6: Hardware vitrine de produtos ── */}
               <div style={{marginBottom:32}}>
-                <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:14}}>
-                  <div>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#0f172a",marginBottom:4,letterSpacing:"-0.005em"}}>Quer automatizar no balcão?</div>
-                    <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55}}>Placas, QR Codes ou cartões NFC pros clientes avaliarem sem depender da equipe.</div>
-                  </div>
+                <div style={{marginBottom:18}}>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#0f172a",marginBottom:4,letterSpacing:"-0.005em"}}>Quer automatizar no balcão?</div>
+                  <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55}}>Placas, QR Codes ou cartões NFC pros clientes avaliarem sem depender da equipe.</div>
                 </div>
-                <div style={{background:"linear-gradient(180deg,#fafaf7 0%,#efede6 100%)",border:"1px solid #e5e7eb",borderRadius:12,padding:"28px 24px",position:"relative",overflow:"hidden",boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
-                  <div style={{position:"absolute",top:0,left:"15%",right:"15%",height:1,background:"linear-gradient(90deg,transparent,rgba(15,23,42,0.10),transparent)",pointerEvents:"none"}}/>
-                  <div style={{position:"absolute",top:-50,left:"30%",width:280,height:280,background:"radial-gradient(ellipse,rgba(255,255,255,0.6),transparent 60%)",pointerEvents:"none"}}/>
-                  <div style={{position:"relative",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:12,marginBottom:20}}>
-                    {/* Plaquinha balcão */}
-                    <div style={{aspectRatio:"3 / 4",background:"linear-gradient(155deg,rgba(255,255,255,0.95) 0%,rgba(255,255,255,0.55) 60%,rgba(255,255,255,0.78) 100%)",border:"1px solid rgba(255,255,255,0.95)",borderRadius:12,boxShadow:"inset 0 1px 0 rgba(255,255,255,0.95), 0 14px 28px -10px rgba(15,23,42,0.20)",padding:"14px 8px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"space-between"}}>
-                      <div style={{fontSize:18}}>🏪</div>
-                      <div style={{width:"60%",aspectRatio:"1",background:"#0f172a",borderRadius:5,opacity:0.86}}/>
-                      <div style={{fontSize:8.5,fontWeight:700,color:"#475569",letterSpacing:"0.05em"}}>AVALIE</div>
-                    </div>
-                    {/* Plaquinha mesa */}
-                    <div style={{aspectRatio:"3 / 4",background:"linear-gradient(155deg,rgba(255,255,255,0.95) 0%,rgba(255,255,255,0.55) 60%,rgba(255,255,255,0.78) 100%)",border:"1px solid rgba(255,255,255,0.95)",borderRadius:12,boxShadow:"inset 0 1px 0 rgba(255,255,255,0.95), 0 14px 28px -10px rgba(15,23,42,0.20)",padding:"14px 8px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"space-between"}}>
-                      <div style={{fontSize:18}}>🍽️</div>
-                      <div style={{width:"60%",aspectRatio:"1",background:"#0f172a",borderRadius:5,opacity:0.86}}/>
-                      <div style={{fontSize:8.5,fontWeight:700,color:"#475569",letterSpacing:"0.05em"}}>MESA</div>
-                    </div>
-                    {/* Cartão NFC */}
-                    <div style={{aspectRatio:"3 / 4",background:"linear-gradient(155deg,#1F2738 0%,#0B1020 100%)",borderRadius:12,boxShadow:"inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -1px 0 rgba(0,0,0,0.20), 0 16px 32px -10px rgba(15,23,42,0.42)",padding:"14px 12px",display:"flex",flexDirection:"column",justifyContent:"space-between",position:"relative",overflow:"hidden"}}>
-                      <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(255,255,255,0.07),transparent 40%)"}}/>
-                      <div style={{position:"relative",fontSize:13,color:"rgba(255,255,255,0.85)",fontWeight:600,letterSpacing:"-0.005em"}}>NFC</div>
-                      <div style={{position:"relative",alignSelf:"flex-end",fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",letterSpacing:"0.3em"}}>CARD</div>
-                    </div>
-                    {/* Adesivo */}
-                    <div style={{aspectRatio:"3 / 4",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <div style={{width:"86%",aspectRatio:"1",background:"linear-gradient(155deg,#1F2738 0%,#0B1020 100%)",borderRadius:"50%",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.07), 0 14px 28px -8px rgba(15,23,42,0.40)",display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden"}}>
-                        <div style={{position:"absolute",inset:0,background:"radial-gradient(circle at 30% 25%,rgba(255,255,255,0.10),transparent 55%)"}}/>
-                        <div style={{position:"relative",fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.55)",letterSpacing:"0.25em"}}>NFC</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14}}>
+                  {[
+                    {img:"/hardware/placa-balcao.png",title:"Placa para balcão",desc:"Acrílico elegante no caixa.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
+                    {emoji:"🍽️",title:"Plaquinha de mesa",desc:"Ideal pra restaurantes.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
+                    {emoji:"💳",title:"Cartão NFC",desc:"PVC fosco premium.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
+                    {emoji:"⭕",title:"Adesivo NFC",desc:"Cole em qualquer superfície.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
+                  ].map((p,i)=>(
+                    <div key={i} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
+                      <div style={{fontSize:10.5,fontWeight:700,color:"#1A73E8",letterSpacing:"0.14em",textTransform:"uppercase",textAlign:"center",padding:"14px 10px 8px"}}>{p.title}</div>
+                      <div style={{height:200,background:p.img?"#fff":"#f8f9fa",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",borderTop:"1px solid #f1f3f4",borderBottom:"1px solid #f1f3f4"}}>
+                        {p.img ? (
+                          <img src={p.img} alt={p.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+                        ) : (
+                          <div style={{fontSize:60}}>{p.emoji}</div>
+                        )}
+                      </div>
+                      <div style={{padding:"14px 16px 16px",display:"flex",flexDirection:"column",gap:10,flex:1}}>
+                        <div style={{fontSize:12.5,color:"#5F6368",lineHeight:1.5,flex:1}}>{p.desc}</div>
+                        <a href={p.buy} target="_blank" rel="noreferrer"
+                          style={{textDecoration:"none",background:"#1A73E8",color:"#fff",borderRadius:8,padding:"10px 14px",fontSize:13,fontWeight:600,textAlign:"center",boxShadow:"0 1px 2px rgba(26,115,232,0.20)"}}>
+                          Comprar
+                        </a>
                       </div>
                     </div>
-                  </div>
-                  <div style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"space-between",gap:14,flexWrap:"wrap"}}>
-                    <div style={{flex:1,minWidth:240}}>
-                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a",marginBottom:4,letterSpacing:"-0.005em"}}>Placas inteligentes em acrílico e cartões NFC</div>
-                      <div style={{fontSize:12.5,color:"#6b7280",lineHeight:1.5}}>Premium, prontos para o balcão. Cliente toca, avalia, vai pro Google.</div>
-                    </div>
-                    <button onClick={()=>setShowPlacasModal(true)}
-                      style={{background:"#0f172a",color:"#fff",border:"none",borderRadius:11,padding:"11px 20px",fontSize:13,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:7,fontFamily:"inherit",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 18px -6px rgba(15,23,42,0.32)"}}>
-                      Ver modelos <ArrowRight size={14}/>
-                    </button>
-                  </div>
+                  ))}
                 </div>
               </div>
-
               {/* ── Z3 (movido pra perto do CTA Pro): Comparação Sem × Com Modo Protegido ── */}
               {!isPro && (
                 <div style={{marginBottom:18}}>
@@ -1137,51 +1118,6 @@ export default function ReputaZap({ user, onLogout }) {
                 </div>
               )}
 
-              {/* Modal de placas (reaproveita estrutura do /comece) */}
-              {showPlacasModal && (
-                <div onClick={e=>{if(e.target===e.currentTarget)setShowPlacasModal(false);}}
-                  style={{position:"fixed",inset:0,background:"rgba(15,23,42,0.6)",display:"flex",alignItems:"flex-start",justifyContent:"center",padding:24,zIndex:200,overflowY:"auto"}}>
-                  <div style={{background:"#fff",borderRadius:18,maxWidth:560,width:"100%",padding:24,margin:"auto",animation:"fadeUp 0.3s ease"}}>
-                    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:6}}>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#0f172a"}}>Placas inteligentes</div>
-                      <button onClick={()=>setShowPlacasModal(false)} style={{background:"none",border:"none",fontSize:26,color:"#9ca3af",cursor:"pointer",lineHeight:1,padding:"4px 8px"}}>×</button>
-                    </div>
-                    <div style={{fontSize:13,color:"#6b7280",marginBottom:18,lineHeight:1.55}}>Modelos disponíveis pra implantar no seu negócio.</div>
-                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12,marginBottom:18}}>
-                      {[
-                        {img:"/hardware/placa-balcao.png",title:"Placa para balcão",desc:"Acrílico elegante no caixa.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
-                        {emoji:"🍽️",title:"Plaquinha de mesa",desc:"Ideal pra restaurantes.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
-                        {emoji:"🖼️",title:"Placa de parede",desc:"Saída ou área de espera.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
-                        {emoji:"💳",title:"Cartões NFC",desc:"Garçom apresenta ao cliente.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
-                      ].map((p,i)=>(
-                        <div key={i} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
-                          <div style={{fontSize:10,fontWeight:700,color:"#1A73E8",letterSpacing:"0.12em",textTransform:"uppercase",textAlign:"center",padding:"12px 10px 6px"}}>{p.title}</div>
-                          <div style={{height:160,background:p.img?"#fff":"#f9fafb",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
-                            {p.img ? (
-                              <img src={p.img} alt={p.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
-                            ) : (
-                              <div style={{fontSize:48}}>{p.emoji}</div>
-                            )}
-                          </div>
-                          <div style={{padding:"12px 14px 14px",display:"flex",flexDirection:"column",gap:8,flex:1}}>
-                            <div style={{fontSize:11.5,color:"#5F6368",lineHeight:1.45,flex:1}}>{p.desc}</div>
-                            <a href={p.buy} target="_blank" rel="noreferrer"
-                              style={{textDecoration:"none",background:"#1A73E8",color:"#fff",borderRadius:8,padding:"9px 12px",fontSize:12,fontWeight:600,textAlign:"center",boxShadow:"0 1px 2px rgba(26,115,232,0.20)"}}>
-                              Comprar
-                            </a>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{paddingTop:14,borderTop:"1px solid #e5e7eb",display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,flexWrap:"wrap"}}>
-                      <div style={{fontSize:12,color:"#6b7280"}}>Já tem uma placa em mãos?</div>
-                      <a href="/ativar-placa" style={{textDecoration:"none",background:"#0f172a",color:"#fff",borderRadius:10,padding:"9px 14px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6}}>
-                        Já tenho placa → Ativar
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
             );
           })()}
