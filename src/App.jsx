@@ -169,7 +169,7 @@ function NotificationsBlock({ bizInfo, user }) {
     <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:24,marginBottom:16,boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
       <div style={{fontSize:11,fontWeight:700,color:"#5F6368",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Notificações</div>
       <div style={{fontSize:13,color:"#5F6368",lineHeight:1.5,marginBottom:14}}>
-        Onde quer receber alertas de feedbacks privados dos clientes?
+        Onde quer receber novas mensagens privadas dos seus clientes?
       </div>
       <div style={{position:"relative"}}>
         <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
@@ -484,7 +484,8 @@ export default function ReputaZap({ user, onLogout }) {
 
   const nav=[
     {id:"dashboard",icon:LayoutDashboard,label:"Painel"},
-    {id:"feedbacks",icon:MessageSquare,label:"Feedbacks"},
+    {id:"feedbacks",icon:MessageSquare,label:"Mensagens"},
+    {id:"settings",icon:Settings,label:"Configurações"},
   ];
 
   return (
@@ -621,11 +622,11 @@ export default function ReputaZap({ user, onLogout }) {
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,animation:"fadeUp 0.4s ease"}}>
             <div>
               <div style={{fontSize:24,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",lineHeight:1.2}}>
-                {tab==="dashboard"&&"Central de reputação"}{tab==="feedbacks"&&"Alertas reputacionais"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Placas inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Modo Protegido e loja"}{tab==="settings"&&"Configurações"}
+                {tab==="dashboard"&&"Central de reputação"}{tab==="feedbacks"&&"Mensagens de clientes"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Placas inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Modo Protegido e loja"}{tab==="settings"&&"Configurações"}
               </div>
               <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
                 {tab==="dashboard"&&"Monitore sua exposição pública e proteja sua reputação."}
-                {tab==="feedbacks"&&(pendingFeedbacks.length>0?`${pendingFeedbacks.length} cliente(s) aguardando contato`:"Tudo sob controle por enquanto.")}
+                {tab==="feedbacks"&&(pendingFeedbacks.length>0?`${pendingFeedbacks.length} mensagem(ns) aguardando resposta`:"Tudo sob controle por enquanto.")}
                 {tab==="link"&&"Seu link de avaliação e QR Code prontos pra compartilhar."}
                 {tab==="reviews"&&`${pending} aguardando resposta`}
                 {tab==="capturar"&&"Placas físicas e cartões NFC pro seu balcão"}
@@ -945,7 +946,7 @@ export default function ReputaZap({ user, onLogout }) {
                     })}
                     {pendingFeedbacks.length > 3 && (
                       <div onClick={()=>setTab("feedbacks")} style={{textAlign:"center",fontSize:12,color:"#1a73e8",fontWeight:600,marginTop:10,paddingTop:10,borderTop:"1px solid #f3f4f6",cursor:"pointer"}}>
-                        Ver todos os {pendingFeedbacks.length} feedbacks →
+                        Ver todas as {pendingFeedbacks.length} mensagens →
                       </div>
                     )}
                   </>
