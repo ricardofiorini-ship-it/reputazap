@@ -193,6 +193,10 @@ export default function ReputaZap({ user, onLogout }) {
               const reviewRes = await fetch(`/api/reviews?place_id=${data.business.place_id}`);
               const reviewData = await reviewRes.json();
 
+              const billing = {
+                current_period_end: data.business.stripe_current_period_end || null,
+                cancel_at_period_end: !!data.business.stripe_cancel_at_period_end
+              };
               if (reviewData.reviews?.length) {
                 setReviews(reviewData.reviews);
                 setBizInfo({
@@ -200,7 +204,8 @@ export default function ReputaZap({ user, onLogout }) {
                   rating: reviewData.rating ?? data.business.rating,
                   total: reviewData.total ?? data.business.total_reviews,
                   plan: data.business.plan || "free",
-                  place_id: data.business.place_id
+                  place_id: data.business.place_id,
+                  ...billing
                 });
               } else {
                 // Sem reviews ainda, mas mostra os dados do negócio
@@ -209,7 +214,8 @@ export default function ReputaZap({ user, onLogout }) {
                   rating: data.business.rating,
                   total: data.business.total_reviews,
                   plan: data.business.plan || "free",
-                  place_id: data.business.place_id
+                  place_id: data.business.place_id,
+                  ...billing
                 });
               }
               setGoogleConnected(true);
@@ -609,6 +615,14 @@ export default function ReputaZap({ user, onLogout }) {
                       <div style={{fontSize:14,color:"rgba(167,243,208,0.85)",lineHeight:1.55,maxWidth:520}}>
                         Reclamações chegam no seu email antes de virar avaliação pública.
                       </div>
+                      {bizInfo?.current_period_end && (
+                        <div style={{fontSize:12,color:bizInfo.cancel_at_period_end?"#fca5a5":"rgba(167,243,208,0.65)",marginTop:10,fontWeight:500,display:"inline-flex",alignItems:"center",gap:6}}>
+                          <Clock size={12}/>
+                          {bizInfo.cancel_at_period_end
+                            ? `Cancela em ${new Date(bizInfo.current_period_end).toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"})}`
+                            : `Renova em ${new Date(bizInfo.current_period_end).toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"})}`}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1542,12 +1556,20 @@ export default function ReputaZap({ user, onLogout }) {
                     <span style={{fontSize:13,color:"#6b7280"}}>Email</span>
                     <span style={{fontSize:13,color:"#0f172a",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:240}}>{user?.email || "—"}</span>
                   </div>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:isPro&&bizInfo?.current_period_end?"1px solid #f1f5f9":"none"}}>
                     <span style={{fontSize:13,color:"#6b7280"}}>Plano</span>
                     <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.05em",borderRadius:6,padding:"3px 8px",background:isPro?"#059669":"#e5e7eb",color:isPro?"#fff":"#6b7280"}}>
                       {isPro?"PROTEGIDO":"GRÁTIS"}
                     </span>
                   </div>
+                  {isPro && bizInfo?.current_period_end && (
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0"}}>
+                      <span style={{fontSize:13,color:"#6b7280"}}>{bizInfo.cancel_at_period_end?"Cancela em":"Próxima cobrança"}</span>
+                      <span style={{fontSize:13,color:bizInfo.cancel_at_period_end?"#dc2626":"#0f172a",fontWeight:600}}>
+                        {new Date(bizInfo.current_period_end).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"})}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {isPro ? (
                   <button onClick={openBillingPortal}

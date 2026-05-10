@@ -128,36 +128,56 @@ async function handleWebhook(req, res) {
   }
 
   try {
+    const stripe = getStripe();
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
         const userId = session.client_reference_id || session.metadata?.user_id;
         if (!userId) { console.warn("[billing/webhook] session sem user_id:", session.id); break; }
+
+        // Busca a subscription completa pra pegar current_period_end
+        let periodEnd = null;
+        let cancelAtEnd = false;
+        if (session.subscription) {
+          try {
+            const sub = await stripe.subscriptions.retrieve(session.subscription);
+            periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
+            cancelAtEnd = !!sub.cancel_at_period_end;
+          } catch (e) {
+            console.error("[billing/webhook] erro ao buscar subscription:", e);
+          }
+        }
+
         const { error } = await supabase
           .from("businesses")
           .update({
             plan: "pro",
             stripe_customer_id: session.customer,
-            stripe_subscription_id: session.subscription
+            stripe_subscription_id: session.subscription,
+            stripe_current_period_end: periodEnd,
+            stripe_cancel_at_period_end: cancelAtEnd
           })
           .eq("user_id", userId);
         if (error) console.error("[billing/webhook] erro ao ativar pro:", error);
-        else console.log("[billing/webhook] pro ativado pra user", userId);
+        else console.log("[billing/webhook] pro ativado pra user", userId, "renova em", periodEnd);
         break;
       }
       case "customer.subscription.deleted":
       case "customer.subscription.updated": {
         const sub = event.data.object;
         const shouldBePro = ["active", "trialing", "past_due"].includes(sub.status);
+        const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
         const { error } = await supabase
           .from("businesses")
           .update({
             plan: shouldBePro ? "pro" : "free",
-            stripe_subscription_id: shouldBePro ? sub.id : null
+            stripe_subscription_id: shouldBePro ? sub.id : null,
+            stripe_current_period_end: shouldBePro ? periodEnd : null,
+            stripe_cancel_at_period_end: shouldBePro ? !!sub.cancel_at_period_end : false
           })
           .eq("stripe_customer_id", sub.customer);
         if (error) console.error("[billing/webhook] erro ao sincronizar:", error);
-        else console.log(`[billing/webhook] plano -> ${shouldBePro ? "pro" : "free"} pra ${sub.customer}`);
+        else console.log(`[billing/webhook] plano -> ${shouldBePro ? "pro" : "free"} pra ${sub.customer} (cancela=${sub.cancel_at_period_end})`);
         break;
       }
       default: break;

@@ -18,6 +18,8 @@ SQL pra colunas Stripe (rodar uma vez):
 ```sql
 ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
 ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_current_period_end TIMESTAMPTZ;
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_cancel_at_period_end BOOLEAN DEFAULT false;
 CREATE INDEX IF NOT EXISTS idx_businesses_stripe_customer ON businesses(stripe_customer_id);
 ```
 
