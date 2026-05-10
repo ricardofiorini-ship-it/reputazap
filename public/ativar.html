@@ -16,6 +16,55 @@
   .logo-text{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;color:#0f172a;}
   .screen{display:none;max-width:480px;margin:0 auto;animation:fadeUp 0.4s ease;}
   .screen.active{display:block;}
+  /* Screen com layout 2-col estilo Google (busca de empresa) */
+  .screen-wide.active{display:block;}
+  @media(min-width:880px){
+    .screen-wide.active{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;max-width:1040px;}
+  }
+  .search-illustration{display:none;}
+  @media(min-width:880px){.search-illustration{display:flex;align-items:center;justify-content:center;}}
+  .search-illustration .phone{
+    width:260px;height:480px;background:#fff;border:1.5px solid #e5e7eb;border-radius:36px;
+    box-shadow:0 24px 60px -16px rgba(60,64,67,0.20);
+    padding:18px 14px;display:flex;flex-direction:column;gap:14px;position:relative;
+  }
+  .search-illustration .phone::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:60px;height:5px;background:#e5e7eb;border-radius:999px;}
+  .phone-google-logo{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:20px;text-align:center;margin-top:14px;letter-spacing:-0.01em;}
+  .phone-google-logo .g1{color:#4285f4;} .phone-google-logo .g2{color:#ea4335;} .phone-google-logo .g3{color:#fbbc04;} .phone-google-logo .g4{color:#4285f4;} .phone-google-logo .g5{color:#34a853;} .phone-google-logo .g6{color:#ea4335;}
+  .phone-search{background:#f1f3f4;border-radius:999px;padding:10px 16px;font-size:11px;color:#9aa0a6;display:flex;align-items:center;gap:8px;}
+  .phone-result{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;display:flex;gap:10px;box-shadow:0 4px 12px -2px rgba(60,64,67,0.10);margin-top:6px;}
+  .phone-result-img{width:52px;height:52px;border-radius:8px;background:linear-gradient(135deg,#fbbc04,#ea4335);flex-shrink:0;}
+  .phone-result-info{flex:1;min-width:0;}
+  .phone-result-name{font-size:11px;font-weight:600;color:#202124;line-height:1.3;}
+  .phone-result-meta{font-size:9px;color:#5f6368;margin-top:2px;}
+  .phone-result-stars{color:#fbbc04;font-size:11px;letter-spacing:1px;line-height:1;margin-top:4px;}
+  .phone-line{height:1px;background:#e5e7eb;margin:4px 0;}
+  .phone-icons-row{display:flex;justify-content:space-around;padding:8px 0;}
+  .phone-icon-btn{width:32px;height:32px;border-radius:50%;background:#f1f3f4;display:flex;align-items:center;justify-content:center;color:#5f6368;font-size:12px;}
+  .phone-info-line{height:6px;background:#e5e7eb;border-radius:3px;width:80%;}
+  .phone-info-line.short{width:60%;}
+  /* legal text below inputs (estilo Google) */
+  .legal-text{font-size:11.5px;color:#5f6368;line-height:1.55;margin:8px 0 18px;}
+  .legal-text a{color:#1a73e8;text-decoration:none;}
+  /* Card resumo do negocio selecionado (screen1 web flow) */
+  .biz-summary-card{
+    background:#e8f0fe;border:1px solid #d2e3fc;border-radius:12px;
+    padding:14px 16px;margin-bottom:24px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .biz-summary-card .biz-icon{
+    width:36px;height:36px;border-radius:10px;
+    background:linear-gradient(135deg,#ea4335,#fbbc04 33%,#34a853 66%,#4285f4);
+    flex-shrink:0;
+  }
+  .biz-summary-card .biz-info{flex:1;min-width:0;}
+  .biz-summary-card .biz-info-eyebrow{font-size:10px;color:#5f6368;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;}
+  .biz-summary-card .biz-info-name{font-size:14px;font-weight:600;color:#202124;line-height:1.2;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .biz-summary-card .biz-change{
+    font-size:12px;color:#1a73e8;font-weight:600;text-decoration:none;
+    background:none;border:none;cursor:pointer;font-family:inherit;flex-shrink:0;padding:6px 8px;
+  }
+  .biz-summary-card .biz-change:hover{text-decoration:underline;}
   /* DEVICE WARNING */
   .device-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px;margin-bottom:16px;text-align:center;box-shadow:0 4px 12px rgba(15,23,42,0.04);}
   .device-card.warn{border-color:#fed7aa;background:#fffbeb;}
@@ -111,9 +160,18 @@
 </div>
 
 <!-- STEP 1: CADASTRO -->
-<div class="screen active" id="screen1">
-  <h2>Crie sua conta</h2>
-  <p class="sub">Primeiro, precisamos de alguns dados seus</p>
+<div class="screen" id="screen1">
+  <button class="back-btn" id="screen1Back" onclick="goToStep(2)" style="display:none">← Voltar</button>
+  <div class="biz-summary-card" id="bizSummary" style="display:none">
+    <div class="biz-icon"></div>
+    <div class="biz-info">
+      <div class="biz-info-eyebrow">Negócio selecionado</div>
+      <div class="biz-info-name" id="bizSummaryName">—</div>
+    </div>
+    <button class="biz-change" type="button" onclick="goToStep(2)">Trocar</button>
+  </div>
+  <h2 id="screen1Title">Crie sua conta</h2>
+  <p class="sub" id="screen1Sub">Falta pouco pra ativar seu sistema</p>
   <div class="form-group"><label>Seu nome</label><input type="text" id="userName" placeholder="João Silva"/></div>
   <div class="form-group"><label>Email</label><input type="email" id="userEmail" placeholder="joao@email.com"/></div>
   <div class="form-group"><label>WhatsApp</label><input type="tel" id="userPhone" placeholder="(11) 99999-9999"/></div>
@@ -122,16 +180,44 @@
   <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:16px;">Já tem conta? <a href="/app" style="color:#1a73e8;font-weight:600">Entrar</a></p>
 </div>
 
-<!-- STEP 2: BUSCA -->
-<div class="screen" id="screen2">
-  <button class="back-btn" onclick="goToStep(1)">← Voltar</button>
-  <h2>Seu negócio</h2>
-  <p class="sub">Encontraremos seu negócio no Google Maps</p>
-  <div class="form-group"><label>Nome do negócio</label><input type="text" id="bizSearch" placeholder="Ex: Restaurante do João" oninput="clearResults()"/></div>
-  <div class="form-group"><label>Cidade</label><input type="text" id="bizCity" placeholder="Ex: São Paulo, SP"/></div>
-  <button class="btn-primary" onclick="searchBusiness()" id="searchBtn">🔍 Buscar no Google Maps</button>
-  <p class="status-msg" id="searchStatus"></p>
-  <div id="searchResults" style="margin-top:16px;"></div>
+<!-- STEP 2: BUSCA — layout 2-col estilo Google -->
+<div class="screen screen-wide active" id="screen2">
+  <div class="search-illustration">
+    <div class="phone">
+      <div class="phone-google-logo">
+        <span class="g1">G</span><span class="g2">o</span><span class="g3">o</span><span class="g4">g</span><span class="g5">l</span><span class="g6">e</span>
+      </div>
+      <div class="phone-search">🔍 Seu negócio</div>
+      <div class="phone-line"></div>
+      <div class="phone-result">
+        <div class="phone-result-img"></div>
+        <div class="phone-result-info">
+          <div class="phone-result-name">Café Bello Vista</div>
+          <div class="phone-result-meta">Cafeteria · Aberto agora</div>
+          <div class="phone-result-stars">★★★★★</div>
+        </div>
+      </div>
+      <div class="phone-icons-row">
+        <div class="phone-icon-btn">📍</div>
+        <div class="phone-icon-btn">📞</div>
+        <div class="phone-icon-btn">🔖</div>
+        <div class="phone-icon-btn">↗</div>
+      </div>
+      <div class="phone-info-line"></div>
+      <div class="phone-info-line short"></div>
+      <div class="phone-info-line"></div>
+    </div>
+  </div>
+  <div class="search-form">
+    <h2 style="text-align:left;font-size:28px;line-height:1.2;">Comece encontrando seu negócio no Google</h2>
+    <p class="sub" style="text-align:left;margin-bottom:24px;">Selecione sua empresa pra começar a proteger sua reputação.</p>
+    <div class="form-group"><label>Nome do negócio</label><input type="text" id="bizSearch" placeholder="Ex: Café Bello Vista" oninput="clearResults()"/></div>
+    <div class="form-group"><label>Cidade</label><input type="text" id="bizCity" placeholder="Ex: São Paulo, SP"/></div>
+    <p class="legal-text">Ao continuar, você concorda com os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>.</p>
+    <button class="btn-primary" onclick="searchBusiness()" id="searchBtn">Buscar empresa</button>
+    <p class="status-msg" id="searchStatus"></p>
+    <div id="searchResults" style="margin-top:16px;"></div>
+  </div>
 </div>
 
 
@@ -198,9 +284,10 @@ const state = { user:{}, business:null, plan:null, nfcLink:null, from:fromSource
 
 // Detecta dispositivo ao carregar
 window.addEventListener("load", () => {
-  // Cliente que veio direto da web (sem plaquinha NFC) pula a deteccao e o passo de NFC
+  // Web flow: invertido — busca empresa primeiro, cadastro depois
   if (state.from === "web") {
-    goToStep(1);
+    document.getElementById("progressBar").style.display = "none";
+    goToStep(2);
     return;
   }
 
@@ -310,6 +397,16 @@ async function goToStep2(){
     }
 
     state.user={name,email,phone,pass};
+    // Web flow: ja tem biz selecionado — salva e vai pro success
+    if (state.from === "web" && state.business) {
+      state.plan = "free";
+      state.nfcLink = `https://reputazap.vercel.app/avaliar?place_id=${state.business.place_id}`;
+      await saveBiz();
+      state.bizSaved = true;
+      goToSuccess();
+      return;
+    }
+    // NFC flow: cadastro -> busca
     goToStep(2);
   } catch {
     alert("Erro de conexão. Tente novamente.");
@@ -366,6 +463,16 @@ function selectBusiness(biz){
   document.getElementById("searchResults").innerHTML="";
   document.getElementById("searchStatus").textContent=`✅ "${biz.name}" selecionado!`;
   document.getElementById("searchStatus").className="status-msg success";
+  if (state.from === "web") {
+    // Preenche resumo do negocio na tela de cadastro
+    document.getElementById("bizSummaryName").textContent = biz.name;
+    document.getElementById("bizSummary").style.display = "flex";
+    document.getElementById("screen1Back").style.display = "flex";
+    document.getElementById("screen1Title").textContent = "Quase lá! Crie sua conta";
+    document.getElementById("screen1Sub").textContent = "Pra ativar seu link, precisamos de alguns dados.";
+    setTimeout(()=>goToStep(1),700);
+    return;
+  }
   setTimeout(()=>goToStep3(),700);
 }
 
