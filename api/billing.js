@@ -135,14 +135,16 @@ async function handleWebhook(req, res) {
         const userId = session.client_reference_id || session.metadata?.user_id;
         if (!userId) { console.warn("[billing/webhook] session sem user_id:", session.id); break; }
 
-        // Busca a subscription completa pra pegar current_period_end
+        // Busca a subscription completa pra pegar current_period_end + status
         let periodEnd = null;
         let cancelAtEnd = false;
+        let status = null;
         if (session.subscription) {
           try {
             const sub = await stripe.subscriptions.retrieve(session.subscription);
             periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
             cancelAtEnd = !!sub.cancel_at_period_end;
+            status = sub.status;
           } catch (e) {
             console.error("[billing/webhook] erro ao buscar subscription:", e);
           }
@@ -155,11 +157,12 @@ async function handleWebhook(req, res) {
             stripe_customer_id: session.customer,
             stripe_subscription_id: session.subscription,
             stripe_current_period_end: periodEnd,
-            stripe_cancel_at_period_end: cancelAtEnd
+            stripe_cancel_at_period_end: cancelAtEnd,
+            stripe_subscription_status: status
           })
           .eq("user_id", userId);
         if (error) console.error("[billing/webhook] erro ao ativar pro:", error);
-        else console.log("[billing/webhook] pro ativado pra user", userId, "renova em", periodEnd);
+        else console.log("[billing/webhook] pro ativado pra user", userId, "status", status, "renova em", periodEnd);
         break;
       }
       case "customer.subscription.deleted":
@@ -173,11 +176,12 @@ async function handleWebhook(req, res) {
             plan: shouldBePro ? "pro" : "free",
             stripe_subscription_id: shouldBePro ? sub.id : null,
             stripe_current_period_end: shouldBePro ? periodEnd : null,
-            stripe_cancel_at_period_end: shouldBePro ? !!sub.cancel_at_period_end : false
+            stripe_cancel_at_period_end: shouldBePro ? !!sub.cancel_at_period_end : false,
+            stripe_subscription_status: shouldBePro ? sub.status : null
           })
           .eq("stripe_customer_id", sub.customer);
         if (error) console.error("[billing/webhook] erro ao sincronizar:", error);
-        else console.log(`[billing/webhook] plano -> ${shouldBePro ? "pro" : "free"} pra ${sub.customer} (cancela=${sub.cancel_at_period_end})`);
+        else console.log(`[billing/webhook] plano -> ${shouldBePro ? "pro" : "free"} pra ${sub.customer} (status=${sub.status} cancela=${sub.cancel_at_period_end})`);
         break;
       }
       default: break;

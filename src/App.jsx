@@ -195,7 +195,8 @@ export default function ReputaZap({ user, onLogout }) {
 
               const billing = {
                 current_period_end: data.business.stripe_current_period_end || null,
-                cancel_at_period_end: !!data.business.stripe_cancel_at_period_end
+                cancel_at_period_end: !!data.business.stripe_cancel_at_period_end,
+                subscription_status: data.business.stripe_subscription_status || null
               };
               if (reviewData.reviews?.length) {
                 setReviews(reviewData.reviews);
@@ -615,14 +616,20 @@ export default function ReputaZap({ user, onLogout }) {
                       <div style={{fontSize:14,color:"rgba(167,243,208,0.85)",lineHeight:1.55,maxWidth:520}}>
                         Reclamações chegarão no seu email antes de virar avaliação pública.
                       </div>
-                      {bizInfo?.current_period_end && (
-                        <div style={{fontSize:12,color:bizInfo.cancel_at_period_end?"#fca5a5":"rgba(167,243,208,0.65)",marginTop:10,fontWeight:500,display:"inline-flex",alignItems:"center",gap:6}}>
-                          <Clock size={12}/>
-                          {bizInfo.cancel_at_period_end
-                            ? `Cancela em ${new Date(bizInfo.current_period_end).toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"})}`
-                            : `Renova em ${new Date(bizInfo.current_period_end).toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"})}`}
-                        </div>
-                      )}
+                      {bizInfo?.current_period_end && (() => {
+                        const isTrial = bizInfo.subscription_status === "trialing";
+                        const dateStr = new Date(bizInfo.current_period_end).toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});
+                        const label = bizInfo.cancel_at_period_end
+                          ? `Cancela em ${dateStr}`
+                          : isTrial
+                            ? `Trial grátis · primeira cobrança em ${dateStr}`
+                            : `Renova em ${dateStr}`;
+                        return (
+                          <div style={{fontSize:12,color:bizInfo.cancel_at_period_end?"#fca5a5":"rgba(167,243,208,0.65)",marginTop:10,fontWeight:500,display:"inline-flex",alignItems:"center",gap:6}}>
+                            <Clock size={12}/>{label}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -1562,12 +1569,26 @@ export default function ReputaZap({ user, onLogout }) {
                       {isPro?"PROTEGIDO":"GRÁTIS"}
                     </span>
                   </div>
-                  {isPro && bizInfo?.current_period_end && (
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0"}}>
-                      <span style={{fontSize:13,color:"#6b7280"}}>{bizInfo.cancel_at_period_end?"Cancela em":"Próxima cobrança"}</span>
-                      <span style={{fontSize:13,color:bizInfo.cancel_at_period_end?"#dc2626":"#0f172a",fontWeight:600}}>
-                        {new Date(bizInfo.current_period_end).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"})}
-                      </span>
+                  {isPro && bizInfo?.current_period_end && (() => {
+                    const isTrial = bizInfo.subscription_status === "trialing";
+                    const label = bizInfo.cancel_at_period_end
+                      ? "Cancela em"
+                      : isTrial
+                        ? "Primeira cobrança"
+                        : "Próxima cobrança";
+                    return (
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0"}}>
+                        <span style={{fontSize:13,color:"#6b7280"}}>{label}</span>
+                        <span style={{fontSize:13,color:bizInfo.cancel_at_period_end?"#dc2626":"#0f172a",fontWeight:600}}>
+                          {new Date(bizInfo.current_period_end).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"})}
+                        </span>
+                      </div>
+                    );
+                  })()}
+                  {isPro && bizInfo?.subscription_status === "trialing" && (
+                    <div style={{display:"flex",alignItems:"flex-start",gap:8,padding:"10px 12px",background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:10,marginTop:10,fontSize:12,color:"#1e40af",lineHeight:1.5}}>
+                      <span style={{flexShrink:0}}>🎁</span>
+                      <span>Você está no trial grátis. Cancele a qualquer momento antes da primeira cobrança e não paga nada.</span>
                     </div>
                   )}
                 </div>
