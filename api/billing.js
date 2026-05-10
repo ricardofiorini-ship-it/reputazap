@@ -7,7 +7,16 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+// Lazy init pra que falta de env retorne JSON amigavel em vez de FUNCTION_INVOCATION_FAILED
+let _stripe;
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY não configurada no Vercel. Vá em Project → Settings → Environment Variables.");
+  }
+  if (!_stripe) _stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  return _stripe;
+}
 
 async function getRawBody(req) {
   const chunks = [];
@@ -32,7 +41,12 @@ async function handleCheckout(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
 
+  if (!process.env.STRIPE_PRICE_ID) {
+    return res.status(500).json({ error: "STRIPE_PRICE_ID não configurada no Vercel" });
+  }
+
   try {
+    const stripe = getStripe();
     const { data: biz } = await supabase
       .from("businesses")
       .select("stripe_customer_id, name, plan")
@@ -75,6 +89,7 @@ async function handlePortal(req, res) {
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
 
   try {
+    const stripe = getStripe();
     const { data: biz } = await supabase
       .from("businesses")
       .select("stripe_customer_id")
@@ -98,8 +113,12 @@ async function handlePortal(req, res) {
 }
 
 async function handleWebhook(req, res) {
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    return res.status(500).json({ error: "STRIPE_WEBHOOK_SECRET não configurada" });
+  }
   let event;
   try {
+    const stripe = getStripe();
     const rawBody = await getRawBody(req);
     const sig = req.headers["stripe-signature"];
     event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
@@ -157,11 +176,16 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const action = req.query.action || req.query.a;
-
-  if (action === "webhook") return handleWebhook(req, res);
-  if (action === "checkout") return handleCheckout(req, res);
-  if (action === "portal") return handlePortal(req, res);
-
-  return res.status(400).json({ error: "Unknown action. Use ?action=checkout|portal|webhook" });
+  try {
+    const action = req.query.action || req.query.a;
+    if (action === "webhook") return await handleWebhook(req, res);
+    if (action === "checkout") return await handleCheckout(req, res);
+    if (action === "portal") return await handlePortal(req, res);
+    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|portal|webhook" });
+  } catch (err) {
+    console.error("[billing] erro nao tratado:", err);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: err?.message || "Erro interno", stack: err?.stack });
+    }
+  }
 }
