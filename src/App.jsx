@@ -288,40 +288,52 @@ export default function ReputaZap({ user, onLogout }) {
   const rb = r=>r>=4?"#a7f3d0":r===3?"#fed7aa":"#fee2e2";
 
   async function goToCheckout() {
+    console.log("[checkout] iniciando");
     const token = localStorage.getItem("rz_token");
-    if (!token) { alert("Sessão expirada. Entre novamente."); return; }
+    console.log("[checkout] token presente:", !!token);
+    if (!token) { setToast({ message: "Sessão expirada. Entre novamente.", kind: "error" }); return; }
+    setToast({ message: "Abrindo checkout...", kind: "success" });
     try {
       const res = await fetch("/api/billing?action=checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
       });
-      const data = await res.json();
+      console.log("[checkout] status:", res.status);
+      const text = await res.text();
+      console.log("[checkout] body:", text);
+      let data;
+      try { data = JSON.parse(text); } catch { data = { error: text || "Resposta inválida" }; }
       if (!res.ok || !data.url) {
-        alert(data.error || "Não foi possível abrir o checkout. Tente novamente.");
+        const msg = data.error || `Erro ${res.status}: configure as variáveis Stripe no Vercel.`;
+        setToast({ message: msg, kind: "error" });
         return;
       }
       window.location.href = data.url;
-    } catch {
-      alert("Erro de conexão. Tente novamente.");
+    } catch (err) {
+      console.error("[checkout] erro:", err);
+      setToast({ message: "Erro de conexão: " + (err?.message || "tente novamente"), kind: "error" });
     }
   }
 
   async function openBillingPortal() {
     const token = localStorage.getItem("rz_token");
     if (!token) return;
+    setToast({ message: "Abrindo portal...", kind: "success" });
     try {
       const res = await fetch("/api/billing?action=portal", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { error: text }; }
       if (!res.ok || !data.url) {
-        alert(data.error || "Não foi possível abrir o portal.");
+        setToast({ message: data.error || "Não foi possível abrir o portal.", kind: "error" });
         return;
       }
       window.location.href = data.url;
-    } catch {
-      alert("Erro de conexão. Tente novamente.");
+    } catch (err) {
+      setToast({ message: "Erro de conexão: " + (err?.message || "tente novamente"), kind: "error" });
     }
   }
 
