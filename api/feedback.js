@@ -100,7 +100,65 @@ export default async function handler(req, res) {
 
   if (req.method !== "POST") return res.status(405).end();
 
-  const { place_id, text, rating, id, decision, contact, would_have_reviewed_negative, resolved } = req.body;
+  const { place_id, text, rating, id, decision, contact, would_have_reviewed_negative, resolved, reply_text } = req.body;
+
+  // RESPONDER AO CLIENTE (in-app reply): id + reply_text
+  if (id && reply_text) {
+    const cleanReply = (reply_text || "").trim();
+    if (!cleanReply) return res.status(400).json({ error: "reply_text vazio" });
+    try {
+      // Busca o feedback pra pegar contato e place_id
+      const { data: fb, error: fbErr } = await supabase
+        .from("feedbacks").select("contact, place_id, text, rating").eq("id", id).single();
+      if (fbErr || !fb) return res.status(404).json({ error: "Feedback não encontrado" });
+      if (!fb.contact || !fb.contact.includes("@")) {
+        return res.status(400).json({ error: "Cliente não deixou email — use o botão de WhatsApp" });
+      }
+
+      // Busca biz pro nome
+      const { data: biz } = await supabase
+        .from("businesses").select("name").eq("place_id", fb.place_id).maybeSingle();
+      const bizName = biz?.name || "Seu negócio";
+
+      // Envia email pro cliente
+      const apiKey = process.env.RESEND_API_KEY;
+      if (!apiKey) {
+        console.log("[feedback/reply] RESEND_API_KEY ausente — pulando envio. Cliente:", fb.contact);
+      } else {
+        const html = `
+          <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#202124;">
+            <h2 style="color:#1A73E8;margin-bottom:8px;">Resposta de ${bizName}</h2>
+            <p style="color:#5F6368;font-size:14px;margin-top:0;">Obrigado por nos enviar seu feedback. Veja a resposta do estabelecimento:</p>
+            <div style="background:#F8F9FA;border-left:4px solid #1A73E8;border-radius:8px;padding:18px 22px;margin:20px 0;font-size:15px;line-height:1.6;color:#202124;white-space:pre-wrap;">${cleanReply.replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]))}</div>
+            <p style="font-size:12px;color:#80868B;line-height:1.6;">Esta é uma resposta privada. Se quiser conversar mais, basta responder este email.</p>
+          </div>
+        `;
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from: "ReputaZap <onboarding@resend.dev>",
+            to: [fb.contact],
+            reply_to: fb.contact,
+            subject: `Resposta de ${bizName}`,
+            html
+          })
+        });
+      }
+
+      // Salva resposta + marca como resolvido
+      const { error: updErr } = await supabase
+        .from("feedbacks")
+        .update({ reply_text: cleanReply, replied_at: new Date().toISOString(), resolved_at: new Date().toISOString() })
+        .eq("id", id);
+      if (updErr) console.error("[feedback/reply] erro ao salvar resposta:", updErr);
+
+      return res.json({ ok: true });
+    } catch (err) {
+      console.error("[feedback/reply] erro inesperado:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
 
   // UPDATE: registra a decisão do cliente (resolver / publicar), contato ou marca como resolvido pelo dono
   if (id && (decision || contact !== undefined || would_have_reviewed_negative !== undefined || resolved !== undefined)) {

@@ -16,14 +16,7 @@ export default async function handler(req, res) {
   const token = req.headers.authorization?.replace("Bearer ", "");
   if (!token) return res.status(401).json({ error: "Token obrigatório" });
 
-  const { place_id, name, address, rating, total, plan } = req.body;
-
-  console.log("[savebiz] Payload recebido:", req.body);
-
-  if (!place_id || !name) {
-    console.error("[savebiz] Campos obrigatórios faltando:", { place_id, name });
-    return res.status(400).json({ error: "place_id e name obrigatórios" });
-  }
+  const { place_id, name, address, rating, total, plan, manager_email } = req.body;
 
   try {
     const { data: userData, error: authError } = await supabase.auth.getUser(token);
@@ -31,8 +24,27 @@ export default async function handler(req, res) {
       console.error("[savebiz] Erro de autenticação:", authError);
       return res.status(401).json({ error: "Token inválido" });
     }
-
     const user_id = userData.user.id;
+
+    // Update parcial: apenas manager_email (Settings → Notificações)
+    if (manager_email !== undefined && !place_id) {
+      const cleanEmail = (manager_email || "").trim() || null;
+      const { error: updErr } = await supabase
+        .from("businesses")
+        .update({ manager_email: cleanEmail })
+        .eq("user_id", user_id);
+      if (updErr) {
+        console.error("[savebiz] erro ao atualizar manager_email:", updErr);
+        return res.status(400).json({ error: updErr.message });
+      }
+      return res.json({ ok: true, manager_email: cleanEmail });
+    }
+
+    console.log("[savebiz] Payload recebido:", req.body);
+    if (!place_id || !name) {
+      console.error("[savebiz] Campos obrigatórios faltando:", { place_id, name });
+      return res.status(400).json({ error: "place_id e name obrigatórios" });
+    }
     console.log("[savebiz] user_id autenticado:", user_id);
 
     // Garante que existe profile (FK businesses.user_id pode apontar pra profiles)

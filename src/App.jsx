@@ -135,6 +135,143 @@ function CustomerPage({ onClose, biz }) {
   );
 }
 
+// ── NOTIFICAÇÕES BLOCK ─────────────────────────────────────
+function NotificationsBlock({ bizInfo, user }) {
+  const [email, setEmail] = useState(bizInfo?.manager_email || "");
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState("");
+  useEffect(() => {
+    setEmail(bizInfo?.manager_email || "");
+  }, [bizInfo?.manager_email]);
+
+  const cadastroEmail = user?.email;
+  const isUsingCadastro = !bizInfo?.manager_email;
+
+  async function save() {
+    const token = localStorage.getItem("rz_token");
+    if (!token) return;
+    setSaving(true); setStatus("");
+    try {
+      const res = await fetch("/api/savebiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ manager_email: email.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok) { setStatus(data.error || "Erro ao salvar"); setSaving(false); return; }
+      setStatus("✓ Email atualizado");
+      setTimeout(() => setStatus(""), 2500);
+    } catch { setStatus("Erro de conexão"); }
+    setSaving(false);
+  }
+
+  return (
+    <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:24,marginBottom:16,boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
+      <div style={{fontSize:11,fontWeight:700,color:"#5F6368",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>Notificações</div>
+      <div style={{fontSize:13,color:"#5F6368",lineHeight:1.5,marginBottom:14}}>
+        Onde quer receber alertas de feedbacks privados dos clientes?
+      </div>
+      <div style={{position:"relative"}}>
+        <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+          placeholder={cadastroEmail || "seu@email.com"}
+          style={{width:"100%",border:"1.5px solid #e5e7eb",borderRadius:10,padding:"11px 14px",fontSize:14,color:"#202124",outline:"none",fontFamily:"inherit"}}
+          onFocus={e=>e.target.style.borderColor="#1A73E8"} onBlur={e=>e.target.style.borderColor="#e5e7eb"}/>
+      </div>
+      {isUsingCadastro && (
+        <div style={{fontSize:11.5,color:"#80868B",marginTop:6}}>
+          Usando email do cadastro: <span style={{color:"#202124"}}>{cadastroEmail}</span>
+        </div>
+      )}
+      <div style={{display:"flex",alignItems:"center",gap:12,marginTop:14}}>
+        <button onClick={save} disabled={saving||email.trim()===(bizInfo?.manager_email||"")}
+          style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:8,padding:"9px 18px",fontSize:13,fontWeight:600,cursor:saving?"wait":"pointer",opacity:saving||email.trim()===(bizInfo?.manager_email||"")?0.5:1,fontFamily:"inherit"}}>
+          {saving?"Salvando...":"Salvar"}
+        </button>
+        {status && <span style={{fontSize:12,color:status.startsWith("✓")?"#34A853":"#EA4335"}}>{status}</span>}
+      </div>
+    </div>
+  );
+}
+
+// ── FEEDBACK ACTIONS (inbox híbrido) ───────────────────────
+function FeedbackActions({ fb, onReplied, onResolved, onContactExternal, compact }) {
+  const isEmail = fb.contact && fb.contact.includes("@");
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+
+  const padLeft = compact ? 48 : 56;
+
+  async function send() {
+    if (!text.trim()) { setError("Escreva uma resposta antes de enviar."); return; }
+    setSending(true); setError("");
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: fb.id, reply_text: text.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Não foi possível enviar."); setSending(false); return; }
+      onReplied?.(fb.id);
+    } catch { setError("Erro de conexão. Tente novamente."); setSending(false); }
+  }
+
+  // Email: form de resposta in-app
+  if (isEmail) {
+    if (!open) {
+      return (
+        <div style={{display:"flex",gap:8,paddingLeft:padLeft,flexWrap:"wrap"}}>
+          <button onClick={()=>setOpen(true)}
+            style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:8,padding:compact?"7px 12px":"9px 14px",fontSize:compact?11:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
+            <Mail size={compact?11:12}/> Responder cliente
+          </button>
+          <button onClick={()=>onResolved?.(fb.id)}
+            style={{background:"#fff",color:"#475569",border:"1px solid #e5e7eb",borderRadius:8,padding:compact?"7px 12px":"9px 14px",fontSize:compact?11:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
+            <Check size={compact?11:12}/> Já resolvi
+          </button>
+        </div>
+      );
+    }
+    return (
+      <div style={{paddingLeft:padLeft}}>
+        <div style={{fontSize:11,color:"#5F6368",marginBottom:6}}>Resposta vai por email pra <strong style={{color:"#202124"}}>{fb.contact}</strong></div>
+        <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Sua resposta…" rows={4}
+          style={{width:"100%",border:"1.5px solid #e5e7eb",borderRadius:10,padding:"10px 12px",fontSize:13,color:"#202124",outline:"none",fontFamily:"inherit",resize:"vertical",marginBottom:8}}
+          onFocus={e=>e.target.style.borderColor="#1A73E8"} onBlur={e=>e.target.style.borderColor="#e5e7eb"}/>
+        {error && <div style={{fontSize:11,color:"#EA4335",marginBottom:6}}>{error}</div>}
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <button onClick={send} disabled={sending}
+            style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:8,padding:"9px 16px",fontSize:12,fontWeight:600,cursor:sending?"wait":"pointer",opacity:sending?0.6:1,fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:6}}>
+            {sending ? "Enviando..." : <><Mail size={12}/> Enviar resposta</>}
+          </button>
+          <button onClick={()=>{setOpen(false);setText("");setError("");}}
+            style={{background:"#fff",color:"#475569",border:"1px solid #e5e7eb",borderRadius:8,padding:"9px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // WhatsApp / sem contato
+  return (
+    <div style={{display:"flex",gap:8,paddingLeft:padLeft,flexWrap:"wrap"}}>
+      {fb.contact && (
+        <button onClick={()=>onContactExternal?.(fb.contact)}
+          style={{background:"#0f172a",color:"#fff",border:"none",borderRadius:8,padding:compact?"7px 12px":"9px 14px",fontSize:compact?11:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
+          <Smartphone size={compact?11:12}/> Falar no WhatsApp
+        </button>
+      )}
+      <button onClick={()=>onResolved?.(fb.id)}
+        style={{background:"#fff",color:"#475569",border:"1px solid #e5e7eb",borderRadius:8,padding:compact?"7px 12px":"9px 14px",fontSize:compact?11:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
+        <Check size={compact?11:12}/> Já resolvi
+      </button>
+    </div>
+  );
+}
+
 // ── MAIN ──────────────────────────────────────────────────
 export default function ReputaZap({ user, onLogout }) {
   const [tab, setTab] = useState("dashboard");
@@ -196,7 +333,8 @@ export default function ReputaZap({ user, onLogout }) {
               const billing = {
                 current_period_end: data.business.stripe_current_period_end || null,
                 cancel_at_period_end: !!data.business.stripe_cancel_at_period_end,
-                subscription_status: data.business.stripe_subscription_status || null
+                subscription_status: data.business.stripe_subscription_status || null,
+                manager_email: data.business.manager_email || null
               };
               if (reviewData.reviews?.length) {
                 setReviews(reviewData.reviews);
@@ -795,19 +933,13 @@ export default function ReputaZap({ user, onLogout }) {
                               )}
                             </div>
                           </div>
-                          <div style={{display:"flex",gap:8,paddingLeft:56,flexWrap:"wrap"}}>
-                            {fb.contact && (
-                              <button onClick={()=>respondToFeedback(fb.contact)}
-                                style={{background:"#0f172a",color:"#fff",border:"none",borderRadius:9,padding:"9px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
-                                {fb.contact.includes("@") ? <Mail size={12}/> : <Smartphone size={12}/>}
-                                Falar com cliente
-                              </button>
-                            )}
-                            <button onClick={()=>markResolved(fb.id)}
-                              style={{background:"#fff",color:"#475569",border:"1px solid #e5e7eb",borderRadius:9,padding:"9px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
-                              <Check size={12}/> Já resolvi
-                            </button>
-                          </div>
+                          <FeedbackActions fb={fb}
+                            onReplied={(id)=>{
+                              setPendingFeedbacks(prev=>prev.filter(f=>f.id!==id));
+                              setToast({ message:"Resposta enviada ao cliente", kind:"success" });
+                            }}
+                            onResolved={(id)=>markResolved(id)}
+                            onContactExternal={(c)=>respondToFeedback(c)}/>
                         </div>
                       );
                     })}
@@ -1405,19 +1537,13 @@ export default function ReputaZap({ user, onLogout }) {
                                 <div style={{fontSize:13,color:"#475569",lineHeight:1.55}}>"{fb.text}"</div>
                               </div>
                             </div>
-                            <div style={{display:"flex",gap:8,paddingLeft:54,flexWrap:"wrap"}}>
-                              {fb.contact && (
-                                <button onClick={()=>respondToFeedback(fb.contact)}
-                                  style={{background:"#0f172a",color:"#fff",border:"none",borderRadius:9,padding:"9px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
-                                  {fb.contact.includes("@") ? <Mail size={12}/> : <Smartphone size={12}/>}
-                                  Responder agora
-                                </button>
-                              )}
-                              <button onClick={()=>markResolved(fb.id)}
-                                style={{background:"#fff",color:"#475569",border:"1px solid #e5e7eb",borderRadius:9,padding:"9px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
-                                <Check size={12}/> Marcar como resolvido
-                              </button>
-                            </div>
+                            <FeedbackActions fb={fb}
+                              onReplied={(id)=>{
+                                setPendingFeedbacks(prev=>prev.filter(f=>f.id!==id));
+                                setToast({ message:"Resposta enviada ao cliente", kind:"success" });
+                              }}
+                              onResolved={(id)=>markResolved(id)}
+                              onContactExternal={(c)=>respondToFeedback(c)}/>
                           </div>
                         );
                       })}
@@ -1609,7 +1735,8 @@ export default function ReputaZap({ user, onLogout }) {
                   </button>
                 )}
               </div>
-              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24,marginBottom:16}}>
+              <NotificationsBlock bizInfo={bizInfo} user={user}/>
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:24,marginBottom:16,boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
                 <div style={{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10}}>Negócio cadastrado</div>
                 {bizInfo ? (
                   <>
