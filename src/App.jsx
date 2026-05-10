@@ -354,7 +354,7 @@ export default function ReputaZap({ user, onLogout }) {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
-        body{background:#F7F7F4;font-family:'Plus Jakarta Sans',sans-serif;}
+        body{background:#F8F9FA;font-family:'Plus Jakarta Sans',sans-serif;color:#202124;}
         textarea,input{font-family:'Plus Jakarta Sans',sans-serif;}
         ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:2px;}
         @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -393,7 +393,7 @@ export default function ReputaZap({ user, onLogout }) {
           .main-pad{padding:20px 16px;}
         }
       `}</style>
-      <div style={{display:"flex",minHeight:"100vh",background:"#F7F7F4",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+      <div style={{display:"flex",minHeight:"100vh",background:"#F8F9FA",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
 
         {showPreview&&<CustomerPage biz={biz} onClose={()=>setShowPreview(false)}/>}
 
@@ -648,7 +648,7 @@ export default function ReputaZap({ user, onLogout }) {
 
               {/* ── Banner: clientes precisando de atenção ── */}
               {pendingFeedbacks.length > 0 && (
-                <div onClick={()=>setTab("feedbacks")} style={{cursor:"pointer",background:"linear-gradient(135deg,#fffbeb 0%,#fff 100%)",border:"1px solid #fde68a",borderRadius:16,padding:"18px 22px",marginBottom:18,display:"flex",alignItems:"center",gap:16,flexWrap:"wrap",boxShadow:"0 1px 2px rgba(180,83,9,0.04), 0 12px 28px -12px rgba(180,83,9,0.12)"}}>
+                <div onClick={()=>setTab("feedbacks")} style={{cursor:"pointer",background:"#FEF7E0",border:"1px solid #FDE293",borderRadius:12,padding:"18px 22px",marginBottom:18,display:"flex",alignItems:"center",gap:16,flexWrap:"wrap",boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"center",width:44,height:44,borderRadius:12,background:"#fef3c7",border:"1px solid #fde68a",flexShrink:0}}>
                     <AlertCircle size={22} color="#b45309"/>
                   </div>
@@ -680,7 +680,7 @@ export default function ReputaZap({ user, onLogout }) {
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12,marginBottom:14}}>
                   {/* Link direto */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:12}}>
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:20,display:"flex",flexDirection:"column",gap:12,boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
                       <div style={{width:38,height:38,borderRadius:10,background:"#eff6ff",border:"1px solid #bfdbfe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>🔗</div>
                       <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>Link direto</div>
@@ -694,7 +694,7 @@ export default function ReputaZap({ user, onLogout }) {
                     </button>
                   </div>
                   {/* QR Code */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:12}}>
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:20,display:"flex",flexDirection:"column",gap:12,boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
                       <div style={{width:38,height:38,borderRadius:10,background:"#fffbeb",border:"1px solid #fde68a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>🖼️</div>
                       <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>QR Code</div>
@@ -709,7 +709,7 @@ export default function ReputaZap({ user, onLogout }) {
                     </a>
                   </div>
                   {/* NFC */}
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,display:"flex",flexDirection:"column",gap:12}}>
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:20,display:"flex",flexDirection:"column",gap:12,boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
                       <div style={{width:38,height:38,borderRadius:10,background:"#f5f3ff",border:"1px solid #ddd6fe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>📶</div>
                       <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>NFC / Placas</div>
@@ -737,7 +737,7 @@ export default function ReputaZap({ user, onLogout }) {
               </div>
 
               {/* ── Z5: Clientes precisando da sua atenção (visual de conversa) ── */}
-              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:"22px 24px",marginBottom:32}}>
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:"22px 24px",marginBottom:32,boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
                   <div>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#0f172a",letterSpacing:"-0.005em"}}>Clientes precisando da sua atenção</div>
@@ -821,7 +821,7 @@ export default function ReputaZap({ user, onLogout }) {
               </div>
 
               {/* ── Atividade recente ── */}
-              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:"22px 24px",marginBottom:32}}>
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:"22px 24px",marginBottom:32,boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
                   <div>
                     <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>Atividade recente</div>
@@ -858,7 +858,7 @@ export default function ReputaZap({ user, onLogout }) {
                     <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55}}>Placas, QR Codes ou cartões NFC pros clientes avaliarem sem depender da equipe.</div>
                   </div>
                 </div>
-                <div style={{background:"linear-gradient(180deg,#fafaf7 0%,#efede6 100%)",border:"1px solid #e5e7eb",borderRadius:18,padding:"28px 24px",position:"relative",overflow:"hidden",boxShadow:"0 1px 2px rgba(15,23,42,0.04), 0 18px 40px -16px rgba(15,23,42,0.10)"}}>
+                <div style={{background:"linear-gradient(180deg,#fafaf7 0%,#efede6 100%)",border:"1px solid #e5e7eb",borderRadius:12,padding:"28px 24px",position:"relative",overflow:"hidden",boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
                   <div style={{position:"absolute",top:0,left:"15%",right:"15%",height:1,background:"linear-gradient(90deg,transparent,rgba(15,23,42,0.10),transparent)",pointerEvents:"none"}}/>
                   <div style={{position:"absolute",top:-50,left:"30%",width:280,height:280,background:"radial-gradient(ellipse,rgba(255,255,255,0.6),transparent 60%)",pointerEvents:"none"}}/>
                   <div style={{position:"relative",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:12,marginBottom:20}}>
@@ -912,9 +912,8 @@ export default function ReputaZap({ user, onLogout }) {
                   </div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:14}}>
                     {/* Card 1: Plano grátis (sem proteção) */}
-                    <div style={{background:"linear-gradient(165deg,#fff8f8 0%,#fff 60%)",border:"1px solid #fecaca",borderRadius:18,padding:"22px 22px 24px",boxShadow:"0 1px 2px rgba(220,38,38,0.04), 0 18px 40px -16px rgba(220,38,38,0.10)",position:"relative",overflow:"hidden"}}>
-                      <div style={{position:"absolute",top:-40,right:-40,width:180,height:180,background:"radial-gradient(circle,rgba(239,68,68,0.08),transparent 70%)",pointerEvents:"none"}}/>
-                      <div style={{position:"relative"}}>
+                    <div style={{background:"#fff",border:"1px solid #FAD2CF",borderRadius:12,padding:"22px 22px 24px",boxShadow:"0 1px 2px rgba(60,64,67,0.06)",position:"relative",overflow:"hidden"}}>
+                      <div>
                       <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8,flexWrap:"wrap"}}>
                         <span style={{fontSize:10,fontWeight:700,color:"#475569",background:"#f1f5f9",border:"1px solid #e5e7eb",letterSpacing:"0.08em",padding:"2px 7px",borderRadius:4,textTransform:"uppercase"}}>Plano grátis</span>
                         <span style={{fontSize:10,fontWeight:700,color:"#9ca3af",letterSpacing:"0.12em",textTransform:"uppercase"}}>Sem proteção</span>
@@ -935,11 +934,9 @@ export default function ReputaZap({ user, onLogout }) {
                       </div>
                     </div>
                     {/* Card 2: Com modo protegido */}
-                    <div style={{background:"linear-gradient(165deg,#ecfdf5 0%,#fff 70%)",borderRadius:18,padding:"22px 22px 24px",border:"1.5px solid #10b981",boxShadow:"0 0 0 4px rgba(16,185,129,0.10), 0 1px 2px rgba(16,185,129,0.06), 0 24px 48px -16px rgba(16,185,129,0.22)",position:"relative",overflow:"hidden"}}>
-                      <div style={{position:"absolute",top:-50,right:-50,width:220,height:220,background:"radial-gradient(circle,rgba(16,185,129,0.18),transparent 65%)",pointerEvents:"none"}}/>
-                      <div style={{position:"absolute",top:0,left:"15%",right:"15%",height:1,background:"linear-gradient(90deg,transparent,rgba(16,185,129,0.30),transparent)",pointerEvents:"none"}}/>
-                      <div style={{position:"relative"}}>
-                      <div style={{fontSize:10,fontWeight:700,color:"#059669",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Com Modo Protegido</div>
+                    <div style={{background:"#fff",borderRadius:12,padding:"22px 22px 24px",border:"1.5px solid #34A853",boxShadow:"0 1px 2px rgba(52,168,83,0.10), 0 4px 12px -4px rgba(52,168,83,0.18)",position:"relative",overflow:"hidden"}}>
+                      <div>
+                      <div style={{fontSize:10,fontWeight:700,color:"#34A853",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Com Modo Protegido</div>
                       <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#065f46",lineHeight:1.25,marginBottom:14}}>Você ouve antes</div>
                       <div style={{display:"flex",flexDirection:"column",gap:8}}>
                         <div style={{display:"flex",alignItems:"center",gap:10,background:"#fff",border:"1px solid #a7f3d0",borderRadius:10,padding:"10px 12px"}}>
