@@ -1147,21 +1147,29 @@ export default function ReputaZap({ user, onLogout }) {
                       <button onClick={()=>setShowPlacasModal(false)} style={{background:"none",border:"none",fontSize:26,color:"#9ca3af",cursor:"pointer",lineHeight:1,padding:"4px 8px"}}>×</button>
                     </div>
                     <div style={{fontSize:13,color:"#6b7280",marginBottom:18,lineHeight:1.55}}>Modelos disponíveis pra implantar no seu negócio.</div>
-                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:10,marginBottom:18}}>
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12,marginBottom:18}}>
                       {[
-                        {emoji:"🏪",title:"Placa de balcão",desc:"No caixa ou recepção."},
-                        {emoji:"🍽️",title:"Plaquinha de mesa",desc:"Ideal pra restaurantes."},
-                        {emoji:"🖼️",title:"Placa de parede",desc:"Saída ou área de espera."},
-                        {emoji:"💳",title:"Cartões NFC",desc:"Garçom apresenta ao cliente."},
+                        {img:"/hardware/placa-balcao.png",title:"Placa para balcão",desc:"Acrílico elegante no caixa.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
+                        {emoji:"🍽️",title:"Plaquinha de mesa",desc:"Ideal pra restaurantes.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
+                        {emoji:"🖼️",title:"Placa de parede",desc:"Saída ou área de espera.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
+                        {emoji:"💳",title:"Cartões NFC",desc:"Garçom apresenta ao cliente.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
                       ].map((p,i)=>(
-                        <div key={i} style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:14,padding:14,display:"flex",flexDirection:"column",gap:8}}>
-                          <div style={{fontSize:24}}>{p.emoji}</div>
-                          <div style={{fontSize:13,fontWeight:700,color:"#0f172a"}}>{p.title}</div>
-                          <div style={{fontSize:11,color:"#6b7280",lineHeight:1.5,flex:1}}>{p.desc}</div>
-                          <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer"
-                            style={{textDecoration:"none",background:"#1a73e8",color:"#fff",borderRadius:9,padding:"8px 10px",fontSize:11,fontWeight:600,textAlign:"center"}}>
-                            Comprar
-                          </a>
+                        <div key={i} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
+                          <div style={{fontSize:10,fontWeight:700,color:"#1A73E8",letterSpacing:"0.12em",textTransform:"uppercase",textAlign:"center",padding:"12px 10px 6px"}}>{p.title}</div>
+                          <div style={{height:160,background:p.img?"#fff":"#f9fafb",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+                            {p.img ? (
+                              <img src={p.img} alt={p.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+                            ) : (
+                              <div style={{fontSize:48}}>{p.emoji}</div>
+                            )}
+                          </div>
+                          <div style={{padding:"12px 14px 14px",display:"flex",flexDirection:"column",gap:8,flex:1}}>
+                            <div style={{fontSize:11.5,color:"#5F6368",lineHeight:1.45,flex:1}}>{p.desc}</div>
+                            <a href={p.buy} target="_blank" rel="noreferrer"
+                              style={{textDecoration:"none",background:"#1A73E8",color:"#fff",borderRadius:8,padding:"9px 12px",fontSize:12,fontWeight:600,textAlign:"center",boxShadow:"0 1px 2px rgba(26,115,232,0.20)"}}>
+                              Comprar
+                            </a>
+                          </div>
                         </div>
                       ))}
                     </div>
