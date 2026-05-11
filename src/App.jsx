@@ -992,7 +992,7 @@ export default function ReputaZap({ user, onLogout }) {
                   {[
                     {img:"/hardware/placa-balcao.png",title:"Placa para balcão",desc:"Acrílico elegante no caixa.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
                     {emoji:"🍽️",title:"Plaquinha de mesa",desc:"Ideal pra restaurantes.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
-                    {emoji:"💳",title:"Cartão NFC",desc:"PVC fosco premium.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
+                    {img:"/hardware/cartao-nfc.png",title:"Cartão NFC",desc:"PVC fosco premium com cordão.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
                     {emoji:"⭕",title:"Adesivo NFC",desc:"Cole em qualquer superfície.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
                   ].map((p,i)=>(
                     <div key={i} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
