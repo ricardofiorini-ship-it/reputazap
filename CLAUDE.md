@@ -23,6 +23,8 @@ ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_cancel_at_period_end BOOL
 ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_subscription_status TEXT;
 ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS reply_text TEXT;
 ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS replied_at TIMESTAMPTZ;
+ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS category TEXT;
+ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS sender_name TEXT;
 CREATE INDEX IF NOT EXISTS idx_businesses_stripe_customer ON businesses(stripe_customer_id);
 ```
 

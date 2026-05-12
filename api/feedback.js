@@ -5,26 +5,45 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-async function sendEmail({ to, bizName, rating, text }) {
+const CATEGORY_LABEL = {
+  elogio:     { name: "Elogio",     emoji: "😊", color: "#34A853" },
+  sugestao:   { name: "Sugestão",   emoji: "💡", color: "#FBBC04" },
+  reclamacao: { name: "Reclamação", emoji: "⚠️", color: "#EA4335" },
+  duvida:     { name: "Dúvida",     emoji: "❓", color: "#1A73E8" }
+};
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
+}
+
+async function sendEmail({ to, bizName, category, text, sender_name, contact }) {
   const apiKey = process.env.RESEND_API_KEY;
-  const subject = `[ReputaZap] Feedback ${rating === 1 ? "negativo" : "neutro"} de ${bizName}`;
-  const ratingLabel = rating === 1 ? "Ruim 😞" : rating === 3 ? "Ok 😐" : "Não informado";
+  const cat = CATEGORY_LABEL[category] || { name: "Mensagem", emoji: "💬", color: "#5F6368" };
+  const subject = `[ReputaZap] ${cat.name} recebida em ${bizName}`;
+
+  const textHtml = text
+    ? `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px;"><div style="font-size:12px;color:#5F6368;margin-bottom:6px;">Mensagem do cliente</div><div style="font-size:14px;line-height:1.6;white-space:pre-wrap;color:#202124;">${escapeHtml(text)}</div></div>`
+    : `<div style="background:#fff;border:1px dashed #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px;font-size:13px;color:#80868B;text-align:center;">Cliente não escreveu mensagem.</div>`;
+
+  const contactHtml = contact
+    ? `<div style="font-size:12px;color:#5F6368;margin-bottom:4px;">Contato deixado</div><div style="font-size:14px;font-weight:600;color:#202124;">${escapeHtml(contact)}</div>`
+    : `<div style="font-size:12px;color:#80868B;">Sem contato — esse cliente é anônimo.</div>`;
+
+  const nameHtml = sender_name
+    ? `<div style="font-size:12px;color:#5F6368;margin-bottom:4px;">Nome</div><div style="font-size:14px;font-weight:600;color:#202124;margin-bottom:14px;">${escapeHtml(sender_name)}</div>`
+    : "";
+
   const htmlBody = `
-    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a;">
-      <h2 style="color:#10b981;margin-bottom:8px;">Você recebeu um feedback</h2>
-      <p style="color:#64748b;font-size:14px;margin-top:0;">${bizName}</p>
-      <div style="background:#f8fafc;border-radius:12px;padding:16px;margin:20px 0;">
-        <div style="font-size:12px;color:#64748b;margin-bottom:6px;">Avaliação do cliente</div>
-        <div style="font-size:18px;font-weight:700;">${ratingLabel}</div>
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#202124;background:#F8F9FA;">
+      <div style="display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${cat.color};margin-bottom:6px;">${cat.emoji} ${cat.name}</div>
+      <h2 style="margin:0 0 4px;color:#202124;">Nova mensagem em ${escapeHtml(bizName)}</h2>
+      <p style="color:#5F6368;font-size:13px;margin-top:0;margin-bottom:20px;">Um cliente acabou de enviar uma mensagem direta pela sua página de avaliação.</p>
+      ${textHtml}
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px;">
+        ${nameHtml}
+        ${contactHtml}
       </div>
-      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:20px;">
-        <div style="font-size:12px;color:#64748b;margin-bottom:6px;">O que o cliente escreveu</div>
-        <div style="font-size:14px;line-height:1.6;white-space:pre-wrap;">${text.replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]))}</div>
-      </div>
-      <p style="font-size:12px;color:#94a3b8;line-height:1.6;">
-        Esse feedback foi interceptado antes de virar uma avaliação pública.
-        Aproveite pra entrar em contato com o cliente e resolver a situação.
-      </p>
+      <p style="font-size:11.5px;color:#80868B;line-height:1.6;">Você recebeu essa mensagem porque seu negócio usa o ReputaZap. Pra responder ou marcar como resolvido, abra o painel.</p>
     </div>
   `;
 
@@ -100,7 +119,7 @@ export default async function handler(req, res) {
 
   if (req.method !== "POST") return res.status(405).end();
 
-  const { place_id, text, rating, id, decision, contact, would_have_reviewed_negative, resolved, reply_text } = req.body;
+  const { place_id, text, rating, id, decision, contact, would_have_reviewed_negative, resolved, reply_text, category, sender_name } = req.body;
 
   // RESPONDER AO CLIENTE (in-app reply): id + reply_text
   if (id && reply_text) {
@@ -178,13 +197,25 @@ export default async function handler(req, res) {
     return res.json({ ok: true });
   }
 
-  if (!place_id || !text) return res.status(400).json({ error: "place_id e text obrigatórios" });
+  if (!place_id) return res.status(400).json({ error: "place_id obrigatório" });
+
+  // Mensagem nova (fluxo público compliant): aceita category opcional + texto opcional
+  const validCategories = ["elogio", "sugestao", "reclamacao", "duvida"];
+  const cleanCategory = category && validCategories.includes(category) ? category : null;
 
   try {
-    // 1. Salva feedback (sempre antes de redirecionar — regra de negócio)
+    // 1. Salva feedback (sempre — mesmo sem texto, é registro de intenção)
+    const insertPayload = {
+      place_id,
+      text: (text || "").trim() || null,
+      rating: rating ?? null,
+      category: cleanCategory,
+      sender_name: sender_name || null,
+      contact: contact || null
+    };
     const { data: inserted, error: insertError } = await supabase
       .from("feedbacks")
-      .insert({ place_id, text, rating: rating ?? null })
+      .insert(insertPayload)
       .select("id")
       .single();
     if (insertError) console.error("[feedback] Erro ao salvar:", insertError);
@@ -214,7 +245,7 @@ export default async function handler(req, res) {
     }
 
     // 4. Envia email
-    const result = await sendEmail({ to: recipient, bizName: biz.name, rating, text });
+    const result = await sendEmail({ to: recipient, bizName: biz.name, category: cleanCategory, text, sender_name, contact });
     res.json({ ok: true, id: feedbackId, emailSent: !result.skipped && !result.error, result });
   } catch (err) {
     console.error("[feedback] Erro inesperado:", err);
