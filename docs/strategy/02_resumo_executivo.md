@@ -185,10 +185,11 @@ Refator do fluxo público pra compliance Google (remoção do review gating, 2 b
 - Mostrar arquitetura preparada pra módulos futuros
 - Wireframe primeiro, código depois
 
-### Bloco 3 — Refator painel (pendente)
-- Remover Z3 (comparação Free × Pro que descreve gating)
-- Renomear "Modo Protegido" pra "Plano Pro" com features reais
-- Atualizar copy "Reclamações chegam no seu email antes de virar pública" (era gating)
+### Bloco 3 ✅ CONCLUÍDO — Refator painel (limpeza de gating)
+- Bloco Z3 (comparação Free × Pro que descrevia gating) removido
+- "Modo Protegido" renomeado pra "Plano Pro" com features reais (alerta WhatsApp, IA, relatórios)
+- Copy "Reclamações chegam no seu email antes de virar pública" → "Mensagens privadas dos seus clientes chegam direto pra você"
+- Hero landing: "Evite avaliações negativas..." → "Plataforma multi-funcional pra negócios locais"
 
 ### Bloco 4 — Plano Free vs Pago (decisão estratégica pendente)
 - Definir o que entra no Free (precisa cobrir caso de uso AvaliaCard)

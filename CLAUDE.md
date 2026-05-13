@@ -49,10 +49,10 @@ Fluxo end-to-end funcionando:
 ## Setup Stripe
 
 1. Rodar o SQL acima no Supabase pra adicionar `stripe_customer_id` e `stripe_subscription_id`.
-2. Criar produto no Stripe Dashboard (Modo Protegido, R$79/mês recorrente). Copiar o **Price ID** (começa com `price_…`).
+2. Criar produto no Stripe Dashboard (Plano Pro, R$49/mês recorrente). Copiar o **Price ID** (começa com `price_…`).
 3. Criar webhook em `https://startouch.vercel.app/api/billing?action=webhook` escutando `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copiar o **Signing secret** (começa com `whsec_…`).
 4. Setar envs no Vercel: `STRIPE_SECRET_KEY` (sk_live_…), `STRIPE_PRICE_ID` (price_…), `STRIPE_WEBHOOK_SECRET` (whsec_…).
-5. Deploy. O fluxo: cliente clica em "Proteger minha reputação" → POST `/api/billing?action=checkout` cria session com trial 14d → redirect → após pagamento, webhook em `/api/billing?action=webhook` atualiza `businesses.plan = 'pro'`.
+5. Deploy. O fluxo: cliente clica em "Ativar Plano Pro" → POST `/api/billing?action=checkout` cria session com trial 14d → redirect → após pagamento, webhook em `/api/billing?action=webhook` atualiza `businesses.plan = 'pro'`.
 
 ## Variáveis de ambiente (Vercel)
 

@@ -54,7 +54,7 @@ async function handleCheckout(req, res) {
       .maybeSingle();
 
     if (biz?.plan === "pro") {
-      return res.status(400).json({ error: "Modo Protegido já está ativo" });
+      return res.status(400).json({ error: "Plano Pro já está ativo" });
     }
 
     const origin = req.headers.origin || `https://${req.headers.host}`;

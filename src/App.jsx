@@ -601,7 +601,7 @@ export default function StarTouch({ user, onLogout }) {
                 <div style={{fontSize:12,color:"#9ca3af",fontWeight:500,flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{biz}</div>
                 {bizInfo&&(
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.05em",borderRadius:4,padding:"2px 6px",background:isPro?"#059669":"#e5e7eb",color:isPro?"#fff":"#9ca3af"}}>
-                    {isPro?"PROTEGIDO":"GRÁTIS"}
+                    {isPro?"PRO":"GRÁTIS"}
                   </span>
                 )}
               </div>
@@ -621,7 +621,7 @@ export default function StarTouch({ user, onLogout }) {
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,animation:"fadeUp 0.4s ease"}}>
             <div>
               <div style={{fontSize:24,fontWeight:700,fontFamily:"'General Sans',sans-serif",color:"#0f172a",lineHeight:1.2}}>
-                {tab==="dashboard"&&"Central de reputação"}{tab==="feedbacks"&&"Mensagens de clientes"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Placas inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Modo Protegido e loja"}{tab==="settings"&&"Configurações"}
+                {tab==="dashboard"&&"Central de reputação"}{tab==="feedbacks"&&"Mensagens de clientes"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Placas inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Plano Pro e loja"}{tab==="settings"&&"Configurações"}
               </div>
               <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
                 {tab==="dashboard"&&"Monitore sua exposição pública e proteja sua reputação."}
@@ -631,7 +631,7 @@ export default function StarTouch({ user, onLogout }) {
                 {tab==="capturar"&&"Placas físicas e cartões NFC pro seu balcão"}
                 {tab==="wall"&&"Suas melhores avaliações"}
                 {tab==="google"&&(googleConnected?"Sincronização ativa":"Configure sua conta Google")}
-                {tab==="plano"&&"Ative o Modo Protegido ou peça sua plaquinha"}
+                {tab==="plano"&&"Conheça o Plano Pro ou peça sua plaquinha"}
                 {tab==="settings"&&"Dados do seu negócio e da sua conta"}
               </div>
             </div>
@@ -757,13 +757,13 @@ export default function StarTouch({ user, onLogout }) {
                     </div>
                     <div className="hero-status-text" style={{flex:1,minWidth:200}}>
                       <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#fff",background:"#059669",letterSpacing:"0.10em",padding:"4px 10px",borderRadius:5,marginBottom:12,textTransform:"uppercase",boxShadow:"0 4px 12px -4px rgba(5,150,105,0.50)"}}>
-                        Modo Protegido ativo
+                        Plano Pro ativo
                       </div>
                       <div className="hero-status-title" style={{color:"#fff",marginBottom:8}}>
-                        Sua reputação está protegida
+                        Plataforma StarTouch ativa
                       </div>
                       <div style={{fontSize:14,color:"rgba(167,243,208,0.85)",lineHeight:1.55,maxWidth:520}}>
-                        Reclamações chegarão no seu email antes de virar avaliação pública.
+                        Mensagens privadas dos seus clientes chegam direto pra você.
                       </div>
                       {bizInfo?.current_period_end && (() => {
                         const isTrial = bizInfo.subscription_status === "trialing";
@@ -795,7 +795,7 @@ export default function StarTouch({ user, onLogout }) {
                       {pendingFeedbacks.length} cliente{pendingFeedbacks.length>1?"s":""} precisa{pendingFeedbacks.length>1?"m":""} da sua atenção
                     </div>
                     <div style={{fontSize:13,color:"#92400e",lineHeight:1.4}}>
-                      Pode virar avaliação pública se você não responder.
+                      Responda rápido pra manter o relacionamento com seu cliente.
                     </div>
                   </div>
                   <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"#0f172a",color:"#fff",borderRadius:10,padding:"10px 16px",fontSize:13,fontWeight:600,flexShrink:0}}>
@@ -879,7 +879,7 @@ export default function StarTouch({ user, onLogout }) {
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
                   <div>
                     <div style={{fontFamily:"'General Sans',sans-serif",fontSize:18,fontWeight:700,color:"#0f172a",letterSpacing:"-0.005em"}}>Clientes precisando da sua atenção</div>
-                    <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>Conversas que ainda não viraram review pública.</div>
+                    <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>Mensagens privadas recebidas pelo seu link único.</div>
                   </div>
                   {pendingFeedbacks.length > 0 && (
                     <div style={{fontSize:11,fontWeight:700,color:"#fff",background:"#dc2626",borderRadius:10,padding:"3px 10px"}}>
@@ -890,7 +890,7 @@ export default function StarTouch({ user, onLogout }) {
                 {pendingFeedbacks.length > 0 && (
                   <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:10,padding:"9px 12px",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>
                     <AlertCircle size={14} color="#b45309" style={{flexShrink:0}}/>
-                    <div style={{fontSize:12,color:"#92400e",fontWeight:600,lineHeight:1.4}}>Esses clientes podem virar avaliações públicas</div>
+                    <div style={{fontSize:12,color:"#92400e",fontWeight:600,lineHeight:1.4}}>Esses clientes estão aguardando uma resposta sua</div>
                   </div>
                 )}
                 {pendingFeedbacks.length === 0 ? (
@@ -900,12 +900,12 @@ export default function StarTouch({ user, onLogout }) {
                         <ShieldCheck size={22} color="#059669"/>
                       </div>
                       <div style={{fontFamily:"'General Sans',sans-serif",fontSize:16,fontWeight:700,color:"#065f46",marginBottom:6}}>Tudo tranquilo por aqui</div>
-                      <div style={{fontSize:13,color:"#047857",lineHeight:1.55,maxWidth:340,margin:"0 auto"}}>Nenhum cliente reclamando hoje. Quando alguém precisar da sua atenção, aparece aqui antes de virar review pública.</div>
+                      <div style={{fontSize:13,color:"#047857",lineHeight:1.55,maxWidth:340,margin:"0 auto"}}>Nenhum cliente esperando hoje. Quando alguém precisar da sua atenção, aparece aqui.</div>
                     </div>
                   ) : (
                     <div style={{padding:"32px 20px",textAlign:"center",background:"#f9fafb",borderRadius:14,border:"1px dashed #e5e7eb"}}>
                       <div style={{fontSize:13,color:"#475569",lineHeight:1.55,maxWidth:360,margin:"0 auto"}}>
-                        Com o <strong style={{color:"#0f172a"}}>Modo Protegido</strong>, clientes insatisfeitos falam com você primeiro — antes de virar avaliação pública no Google.
+                        Com o <strong style={{color:"#0f172a"}}>Plano Pro</strong>, você ativa alertas WhatsApp em tempo real, IA pra responder reviews e relatórios mensais.
                       </div>
                     </div>
                   )
@@ -1013,82 +1013,20 @@ export default function StarTouch({ user, onLogout }) {
                   ))}
                 </div>
               </div>
-              {/* ── Z3 (movido pra perto do CTA Pro): Comparação Sem × Com Modo Protegido ── */}
-              {!isPro && (
-                <div style={{marginBottom:18}}>
-                  <div style={{textAlign:"center",fontFamily:"'General Sans',sans-serif",fontSize:20,fontWeight:700,color:"#0f172a",marginBottom:6,letterSpacing:"-0.01em"}}>
-                    Como suas avaliações chegam ao Google
-                  </div>
-                  <div style={{textAlign:"center",fontSize:13,color:"#6b7280",marginBottom:18}}>
-                    Compare como funciona hoje e como ficaria com o Modo Protegido.
-                  </div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:14}}>
-                    {/* Card 1: Plano grátis (sem proteção) */}
-                    <div style={{background:"#fff",border:"1px solid #FAD2CF",borderRadius:12,padding:"22px 22px 24px",boxShadow:"0 1px 2px rgba(60,64,67,0.06)",position:"relative",overflow:"hidden"}}>
-                      <div>
-                      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8,flexWrap:"wrap"}}>
-                        <span style={{fontSize:10,fontWeight:700,color:"#475569",background:"#f1f5f9",border:"1px solid #e5e7eb",letterSpacing:"0.08em",padding:"2px 7px",borderRadius:4,textTransform:"uppercase"}}>Plano grátis</span>
-                        <span style={{fontSize:10,fontWeight:700,color:"#9ca3af",letterSpacing:"0.12em",textTransform:"uppercase"}}>Sem proteção</span>
-                      </div>
-                      <div style={{fontFamily:"'General Sans',sans-serif",fontSize:18,fontWeight:700,color:"#0f172a",lineHeight:1.25,marginBottom:14}}>Tudo vai direto para o Google</div>
-                      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                        {[{e:"😊",l:"Cliente satisfeito"},{e:"😐",l:"Cliente neutro"},{e:"😞",l:"Cliente insatisfeito"}].map((row,i)=>(
-                          <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,padding:"10px 12px"}}>
-                            <div style={{fontSize:20,width:28,textAlign:"center",flexShrink:0}}>{row.e}</div>
-                            <div style={{fontSize:12,color:"#475569",fontWeight:600,flex:1,minWidth:0}}>{row.l}</div>
-                            <div style={{fontSize:11,color:"#dc2626",fontWeight:700,display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
-                              <ArrowRight size={11}/> Google
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div style={{fontSize:13,color:"#dc2626",fontWeight:600,marginTop:14,lineHeight:1.45}}>Você só descobre depois que a avaliação já ficou pública.</div>
-                      </div>
-                    </div>
-                    {/* Card 2: Com modo protegido */}
-                    <div style={{background:"#fff",borderRadius:12,padding:"22px 22px 24px",border:"1.5px solid #34A853",boxShadow:"0 1px 2px rgba(52,168,83,0.10), 0 4px 12px -4px rgba(52,168,83,0.18)",position:"relative",overflow:"hidden"}}>
-                      <div>
-                      <div style={{fontSize:10,fontWeight:700,color:"#34A853",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Com Modo Protegido</div>
-                      <div style={{fontFamily:"'General Sans',sans-serif",fontSize:18,fontWeight:700,color:"#065f46",lineHeight:1.25,marginBottom:14}}>Você ouve antes</div>
-                      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                        <div style={{display:"flex",alignItems:"center",gap:10,background:"#fff",border:"1px solid #a7f3d0",borderRadius:10,padding:"10px 12px"}}>
-                          <div style={{fontSize:20,width:28,textAlign:"center",flexShrink:0}}>😊</div>
-                          <div style={{fontSize:12,color:"#475569",fontWeight:600,flex:1,minWidth:0}}>Cliente satisfeito</div>
-                          <div style={{fontSize:11,color:"#059669",fontWeight:700,display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
-                            <ArrowRight size={11}/> Google
-                          </div>
-                        </div>
-                        {[{e:"😐",l:"Cliente neutro"},{e:"😞",l:"Cliente insatisfeito"}].map((row,i)=>(
-                          <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"#fff",border:"1px solid #bfdbfe",borderRadius:10,padding:"10px 12px"}}>
-                            <div style={{fontSize:20,width:28,textAlign:"center",flexShrink:0}}>{row.e}</div>
-                            <div style={{fontSize:12,color:"#475569",fontWeight:600,flex:1,minWidth:0}}>{row.l}</div>
-                            <div style={{fontSize:11,color:"#1d4ed8",fontWeight:700,display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
-                              <Mail size={11}/> Feedback privado
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div style={{fontSize:13,color:"#059669",fontWeight:600,marginTop:14,lineHeight:1.45}}>Você tem a chance de resolver antes que o problema vire reputação negativa.</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── Z7: CTA final (Free only) ── */}
+              {/* ── Z7: CTA final (Free only) — Plano Pro com features reais ── */}
               {!isPro && (
                 <div style={{background:"linear-gradient(145deg,#0f172a 0%,#1e293b 100%)",borderRadius:18,padding:"28px 30px",position:"relative",overflow:"hidden"}}>
-                  <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,background:"radial-gradient(circle,rgba(26,115,232,0.25),transparent 70%)",pointerEvents:"none"}}/>
+                  <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,background:"radial-gradient(circle,rgba(0,196,154,0.25),transparent 70%)",pointerEvents:"none"}}/>
                   <div style={{position:"relative"}}>
                     <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#fbbf24",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>
-                      <Zap size={11} fill="#fbbf24"/> Modo Protegido
+                      <Zap size={11} fill="#fbbf24"/> Plano Pro
                     </div>
-                    <div style={{fontFamily:"'General Sans',sans-serif",fontSize:24,fontWeight:700,color:"#fff",lineHeight:1.2,marginBottom:18}}>Proteja sua reputação antes que vire problema</div>
+                    <div style={{fontFamily:"'General Sans',sans-serif",fontSize:24,fontWeight:700,color:"#fff",lineHeight:1.2,marginBottom:18}}>Tudo o que sua reputação precisa, em um sistema só</div>
                     <ul style={{listStyle:"none",padding:0,margin:"0 0 22px",display:"flex",flexDirection:"column",gap:10}}>
                       {[
-                        "Cliente insatisfeito fala com você primeiro",
-                        "Resolva antes de virar avaliação pública",
-                        "Feedback privado chega direto no seu email",
+                        "Alerta WhatsApp em tempo real quando chegar review nova",
+                        "IA pra sugerir resposta a cada review",
+                        "Relatórios mensais em PDF com insights",
                       ].map((b,i)=>(
                         <li key={i} style={{display:"flex",alignItems:"flex-start",gap:10,fontSize:14,color:"#e2e8f0",lineHeight:1.5}}>
                           <div style={{width:20,height:20,borderRadius:"50%",background:"rgba(16,185,129,0.2)",border:"1px solid rgba(16,185,129,0.4)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
@@ -1100,7 +1038,7 @@ export default function StarTouch({ user, onLogout }) {
                     </ul>
                     <button onClick={goToCheckout}
                       style={{cursor:"pointer",border:"none",fontFamily:"inherit",background:"#00C49A",color:"#fff",borderRadius:12,padding:"14px 26px",fontSize:15,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,marginBottom:12}}>
-                      <ShieldCheck size={16}/> Ativar modo protegido
+                      <ShieldCheck size={16}/> Ativar Plano Pro
                     </button>
                     <div style={{fontSize:13,color:"#fff",fontWeight:700,lineHeight:1.4}}>Teste grátis por 14 dias</div>
                     <div style={{fontSize:12,color:"#94a3b8",fontWeight:500,marginTop:2}}>Depois R$49/mês · sem fidelidade</div>
@@ -1314,33 +1252,33 @@ export default function StarTouch({ user, onLogout }) {
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24,marginBottom:16}}>
                 <div style={{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Seu plano atual</div>
                 <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
-                  <span style={{fontFamily:"'General Sans',sans-serif",fontSize:28,fontWeight:700,color:"#0f172a"}}>{isPro?"Modo Protegido":"Plano gratuito"}</span>
+                  <span style={{fontFamily:"'General Sans',sans-serif",fontSize:28,fontWeight:700,color:"#0f172a"}}>{isPro?"Plano Pro":"Plano gratuito"}</span>
                   <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.05em",borderRadius:6,padding:"3px 8px",background:isPro?"#059669":"#e5e7eb",color:isPro?"#fff":"#9ca3af"}}>
-                    {isPro?"PROTEGIDO":"GRÁTIS"}
+                    {isPro?"PRO":"GRÁTIS"}
                   </span>
                 </div>
                 <div style={{fontSize:13,color:"#475569",lineHeight:1.6}}>
                   {isPro
-                    ? "Cliente insatisfeito fala com você primeiro. Você resolve antes de virar avaliação pública."
-                    : "No plano gratuito, todas as avaliações seguem diretamente para o Google. Você só descobre depois que já está público."}
+                    ? "Caixa de mensagens privadas + alertas WhatsApp em tempo real + IA pra sugerir respostas."
+                    : "No plano gratuito, você tem link único, QR Code e caixa de mensagens privadas. Avaliações públicas seguem direto pro Google."}
                 </div>
               </div>
 
-              {/* Ativar Modo Protegido (só para Free) */}
+              {/* Ativar Plano Pro (só para Free) */}
               {!isPro&&(
                 <div style={{background:"linear-gradient(145deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:16,padding:24,marginBottom:16}}>
                   <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
                     <div style={{width:40,height:40,borderRadius:10,background:"#059669",display:"flex",alignItems:"center",justifyContent:"center"}}><ShieldCheck size={20} color="#fff"/></div>
                     <div>
-                      <div style={{fontFamily:"'General Sans',sans-serif",fontSize:20,fontWeight:700,color:"#0f172a"}}>Ativar Modo Protegido</div>
+                      <div style={{fontFamily:"'General Sans',sans-serif",fontSize:20,fontWeight:700,color:"#0f172a"}}>Ativar Plano Pro</div>
                       <div style={{fontSize:13,color:"#059669",fontWeight:600}}>R$49/mês · 14 dias grátis</div>
                     </div>
                   </div>
                   <ul style={{listStyle:"none",padding:0,margin:"0 0 18px",display:"flex",flexDirection:"column",gap:8}}>
                     {[
-                      "Cliente satisfeito vai direto pro Google",
-                      "Cliente insatisfeito fala com você primeiro, em privado",
-                      "Você resolve antes de virar avaliação pública",
+                      "Alerta WhatsApp em tempo real quando chegar review nova",
+                      "IA pra sugerir resposta a cada review",
+                      "Relatórios mensais em PDF com insights",
                       "Cancele quando quiser — sem fidelidade",
                     ].map((f,i)=>(
                       <li key={i} style={{display:"flex",alignItems:"flex-start",gap:8,fontSize:13,color:"#475569",lineHeight:1.5}}>
@@ -1442,13 +1380,13 @@ export default function StarTouch({ user, onLogout }) {
                     </div>
                     <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55,maxWidth:380,margin:"0 auto"}}>
                       {isPro
-                        ? "Quando um cliente insatisfeito enviar feedback, ele aparece aqui antes de virar avaliação pública."
-                        : "Ative o Modo Protegido pra interceptar reclamações antes que virem reviews no Google."}
+                        ? "Quando um cliente enviar uma mensagem privada, ela aparece aqui."
+                        : "Ative o Plano Pro pra alertas WhatsApp, IA pra responder reviews e relatórios mensais."}
                     </div>
                     {!isPro && (
                       <button onClick={goToCheckout}
                         style={{cursor:"pointer",border:"none",fontFamily:"inherit",background:"#0f172a",color:"#fff",borderRadius:12,padding:"12px 22px",fontSize:13,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,marginTop:22,boxShadow:"0 8px 20px -6px rgba(15,23,42,0.30)"}}>
-                        <ShieldCheck size={15}/> Ativar Modo Protegido
+                        <ShieldCheck size={15}/> Ativar Plano Pro
                       </button>
                     )}
                   </div>
@@ -1457,7 +1395,7 @@ export default function StarTouch({ user, onLogout }) {
                     <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:14,padding:"14px 18px",marginBottom:18,display:"flex",alignItems:"center",gap:10}}>
                       <AlertCircle size={16} color="#b45309" style={{flexShrink:0}}/>
                       <div style={{fontSize:13,color:"#92400e",fontWeight:600,lineHeight:1.45}}>
-                        {pendingFeedbacks.length} cliente(s) podem virar avaliações públicas se não forem contatados.
+                        {pendingFeedbacks.length} cliente(s) aguardando uma resposta sua.
                       </div>
                     </div>
                     <div style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -1640,7 +1578,7 @@ export default function StarTouch({ user, onLogout }) {
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:isPro&&bizInfo?.current_period_end?"1px solid #f1f5f9":"none"}}>
                     <span style={{fontSize:13,color:"#6b7280"}}>Plano</span>
                     <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.05em",borderRadius:6,padding:"3px 8px",background:isPro?"#059669":"#e5e7eb",color:isPro?"#fff":"#6b7280"}}>
-                      {isPro?"PROTEGIDO":"GRÁTIS"}
+                      {isPro?"PRO":"GRÁTIS"}
                     </span>
                   </div>
                   {isPro && bizInfo?.current_period_end && (() => {
@@ -1674,7 +1612,7 @@ export default function StarTouch({ user, onLogout }) {
                 ) : (
                   <button onClick={goToCheckout}
                     style={{marginTop:14,background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 16px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:6}}>
-                    <ShieldCheck size={13}/> Ativar Modo Protegido
+                    <ShieldCheck size={13}/> Ativar Plano Pro
                   </button>
                 )}
               </div>
