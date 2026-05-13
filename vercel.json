@@ -1,6 +1,11 @@
 {
   "trailingSlash": false,
   "redirects": [
+    { "source": "/(.*)", "has": [{ "type": "host", "value": "reputazap.com" }], "destination": "https://startouch.com.br/$1", "permanent": true },
+    { "source": "/(.*)", "has": [{ "type": "host", "value": "www.reputazap.com" }], "destination": "https://startouch.com.br/$1", "permanent": true },
+    { "source": "/(.*)", "has": [{ "type": "host", "value": "reputazap.com.br" }], "destination": "https://startouch.com.br/$1", "permanent": true },
+    { "source": "/(.*)", "has": [{ "type": "host", "value": "www.reputazap.com.br" }], "destination": "https://startouch.com.br/$1", "permanent": true },
+    { "source": "/(.*)", "has": [{ "type": "host", "value": "www.startouch.com.br" }], "destination": "https://startouch.com.br/$1", "permanent": true },
     { "source": "/", "destination": "/landing", "permanent": false },
     { "source": "/landing.html", "destination": "/landing", "permanent": true },
     { "source": "/ativar.html", "destination": "/ativar", "permanent": true },

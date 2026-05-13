@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /ativar
+Allow: /comece
+Disallow: /app
+Disallow: /reset
+Disallow: /ativar-placa
+Disallow: /avaliar
+
+Sitemap: https://startouch.com.br/sitemap.xml
