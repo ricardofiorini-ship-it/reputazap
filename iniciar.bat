@@ -1,6 +1,6 @@
 @echo off
 echo ====================================
-echo   ReputaZap - Iniciando...
+echo   StarTouch - Iniciando...
 echo ====================================
 echo.
 
@@ -20,6 +20,6 @@ echo.
 echo Pressione CTRL+C para parar
 echo ====================================
 
-start "ReputaZap Backend" cmd /k "node server.js"
+start "StarTouch Backend" cmd /k "node server.js"
 timeout /t 2 /nobreak >nul
 npm run dev

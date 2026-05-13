@@ -95,7 +95,7 @@ export default function Login({ onLogin }) {
 
       {/* Logo */}
       <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,marginBottom:40,animation:"fadeUp 0.4s ease"}}>
-        <img src="/reputazap-logo.png" alt="Reputazap" style={{height:72,width:"auto"}}/>
+        <img src="/startouch-logo.png" alt="StarTouch" style={{height:72,width:"auto"}}/>
         <div style={{fontSize:11,color:"#9ca3af"}}>Reputação no piloto automático</div>
       </div>
 

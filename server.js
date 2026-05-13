@@ -243,6 +243,6 @@ app.post("/auth/logout", (req, res) => {
 });
 
 app.listen(3001, () => {
-  console.log("✅ ReputaZap backend rodando em http://localhost:3001");
+  console.log("✅ StarTouch backend rodando em http://localhost:3001");
   console.log("👉 Acesse http://localhost:3001/auth/google para conectar o Google");
 });

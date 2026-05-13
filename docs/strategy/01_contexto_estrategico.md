@@ -1,4 +1,4 @@
-# MUDANÇA DE DIREÇÃO ESTRATÉGICA — REPUTAZAP
+# MUDANÇA DE DIREÇÃO ESTRATÉGICA — STARTOUCH
 
 ## POR QUE ESTAMOS MUDANDO
 
@@ -187,7 +187,7 @@ MOCKUP pra eu validar a estrutura antes de virar código.
 ## SOBRE O NOME DA MARCA
 
 Ainda estou decidindo nome final. Por enquanto:
-- MANTÉM "ReputaZap" no código existente (não troca ainda).
+- MANTÉM "StarTouch" no código existente (não troca ainda).
 - USA "[Nome da Plataforma]" como placeholder na nova landing.
 - Quando decidir o nome novo, fazemos refactor coordenado de
   uma vez (todos os arquivos no mesmo PR).

@@ -19,7 +19,7 @@ function escapeHtml(s) {
 async function sendEmail({ to, bizName, category, text, sender_name, contact }) {
   const apiKey = process.env.RESEND_API_KEY;
   const cat = CATEGORY_LABEL[category] || { name: "Mensagem", emoji: "💬", color: "#5F6368" };
-  const subject = `[ReputaZap] ${cat.name} recebida em ${bizName}`;
+  const subject = `[StarTouch] ${cat.name} recebida em ${bizName}`;
 
   const textHtml = text
     ? `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px;"><div style="font-size:12px;color:#5F6368;margin-bottom:6px;">Mensagem do cliente</div><div style="font-size:14px;line-height:1.6;white-space:pre-wrap;color:#202124;">${escapeHtml(text)}</div></div>`
@@ -43,7 +43,7 @@ async function sendEmail({ to, bizName, category, text, sender_name, contact }) 
         ${nameHtml}
         ${contactHtml}
       </div>
-      <p style="font-size:11.5px;color:#80868B;line-height:1.6;">Você recebeu essa mensagem porque seu negócio usa o ReputaZap. Pra responder ou marcar como resolvido, abra o painel.</p>
+      <p style="font-size:11.5px;color:#80868B;line-height:1.6;">Você recebeu essa mensagem porque seu negócio usa o StarTouch. Pra responder ou marcar como resolvido, abra o painel.</p>
     </div>
   `;
 
@@ -59,7 +59,7 @@ async function sendEmail({ to, bizName, category, text, sender_name, contact }) 
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      from: "ReputaZap <onboarding@resend.dev>",
+      from: "StarTouch <onboarding@resend.dev>",
       to: [to],
       subject,
       html: htmlBody
@@ -156,7 +156,7 @@ export default async function handler(req, res) {
           method: "POST",
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            from: "ReputaZap <onboarding@resend.dev>",
+            from: "StarTouch <onboarding@resend.dev>",
             to: [fb.contact],
             reply_to: fb.contact,
             subject: `Resposta de ${bizName}`,

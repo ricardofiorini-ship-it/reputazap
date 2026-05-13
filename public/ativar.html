@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Ativar Plaquinha — ReputaZap</title>
+<title>Ativar Plaquinha — StarTouch</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -119,7 +119,7 @@
 <body>
 
 <div class="logo">
-  <img src="/reputazap-logo.png" alt="Reputazap" style="height:52px;width:auto;display:block"/>
+  <img src="/startouch-logo.png" alt="StarTouch" style="height:52px;width:auto;display:block"/>
 </div>
 
 <div class="progress" id="progressBar">
@@ -151,7 +151,7 @@
     <div class="qr-box">
       <div id="qrcode"></div>
     </div>
-    <div class="qr-sub">reputazap.vercel.app/ativar</div>
+    <div class="qr-sub">startouch.vercel.app/ativar</div>
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
       <div style="font-size:12px;color:#9ca3af;margin-bottom:10px;">Ou continue aqui e grave o NFC depois pelo celular</div>
       <button class="btn-ghost" onclick="goToStep(1)">Continuar assim mesmo</button>
@@ -310,7 +310,7 @@ window.addEventListener("load", () => {
 });
 
 function generateQR() {
-  const url = "https://reputazap.vercel.app/ativar";
+  const url = "https://startouch.vercel.app/ativar";
   new QRCode(document.getElementById("qrcode"), {
     text: url,
     width: 140,
@@ -400,7 +400,7 @@ async function goToStep2(){
     // Web flow: ja tem biz selecionado — salva e vai pro success
     if (state.from === "web" && state.business) {
       state.plan = "free";
-      state.nfcLink = `https://reputazap.vercel.app/avaliar?place_id=${state.business.place_id}`;
+      state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
       await saveBiz();
       state.bizSaved = true;
       goToSuccess();
@@ -482,7 +482,7 @@ function goToStep3(){
   state.plan = "free";
   // NFC sempre aponta pra /avaliar — assim upgrade Free→Pro nao requer
   // re-gravar o cartao (a peneira liga/desliga via plan no DB)
-  state.nfcLink = `https://reputazap.vercel.app/avaliar?place_id=${state.business.place_id}`;
+  state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
   document.getElementById("nfcLinkDisplay").textContent = state.nfcLink;
   if (state.from === "web") {
     goToSuccess();
