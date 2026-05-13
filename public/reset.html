@@ -4,26 +4,34 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Nova senha — StarTouch</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/startouch-logo.png"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="StarTouch"/>
+<meta property="og:description" content="Plataforma de relacionamento local pra negócios brasileiros."/>
+<meta property="og:image" content="/og-image.png"/>
+<meta name="twitter:card" content="summary_large_image"/>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:#f9fafb;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  body{background:#f9fafb;font-family:'General Sans',sans-serif;color:#0f172a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
   .card{width:100%;max-width:400px;background:#fff;border:1px solid #e5e7eb;border-radius:24px;padding:36px;box-shadow:0 12px 32px rgba(15,23,42,0.06);}
   .logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;justify-content:center;}
-  .logo-icon{width:40px;height:40px;background:#1a73e8;border-radius:12px;display:flex;align-items:center;justify-content:center;}
-  .logo-text{font-family:'Playfair Display',serif;font-weight:700;font-size:22px;color:#0f172a;}
-  h1{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#0f172a;margin-bottom:6px;text-align:center;}
+  .logo-icon{width:40px;height:40px;background:#00C49A;border-radius:12px;display:flex;align-items:center;justify-content:center;}
+  .logo-text{font-family:'General Sans',sans-serif;font-weight:700;font-size:22px;color:#0f172a;}
+  h1{font-family:'General Sans',sans-serif;font-size:24px;font-weight:700;color:#0f172a;margin-bottom:6px;text-align:center;}
   .sub{font-size:13px;color:#6b7280;text-align:center;margin-bottom:24px;line-height:1.6;}
   label{font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;}
-  input{width:100%;background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;padding:12px 16px;color:#0f172a;font-size:14px;outline:none;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:16px;transition:border-color .15s;}
-  input:focus{border-color:#1a73e8;}
-  button{width:100%;background:#1a73e8;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .15s;}
+  input{width:100%;background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;padding:12px 16px;color:#0f172a;font-size:14px;outline:none;font-family:'General Sans',sans-serif;margin-bottom:16px;transition:border-color .15s;}
+  input:focus{border-color:#00C49A;}
+  button{width:100%;background:#00C49A;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;font-family:'General Sans',sans-serif;cursor:pointer;transition:background .15s;}
   button:hover:not(:disabled){background:#1557b0;}
   button:disabled{opacity:0.7;cursor:not-allowed;}
   .msg{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;}
   .msg.error{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;}
   .msg.success{background:#ecfdf5;border:1px solid #a7f3d0;color:#059669;}
-  a{color:#1a73e8;text-decoration:none;font-weight:600;}
+  a{color:#00C49A;text-decoration:none;font-weight:600;}
 </style>
 </head>
 <body>
@@ -49,7 +57,7 @@
     <div style="font-size:48px;margin-bottom:14px;">✅</div>
     <h1>Senha atualizada!</h1>
     <p class="sub" style="margin-bottom:20px;">Vá pro login com a nova senha.</p>
-    <a href="/app" style="display:block;background:#1a73e8;color:#fff;border-radius:12px;padding:14px;font-size:15px;font-weight:700;">Ir para o login →</a>
+    <a href="/app" style="display:block;background:#00C49A;color:#fff;border-radius:12px;padding:14px;font-size:15px;font-weight:700;">Ir para o login →</a>
   </div>
 
   <div id="invalid" style="display:none;text-align:center;">

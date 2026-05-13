@@ -9,7 +9,7 @@ const CATEGORY_LABEL = {
   elogio:     { name: "Elogio",     emoji: "😊", color: "#34A853" },
   sugestao:   { name: "Sugestão",   emoji: "💡", color: "#FBBC04" },
   reclamacao: { name: "Reclamação", emoji: "⚠️", color: "#EA4335" },
-  duvida:     { name: "Dúvida",     emoji: "❓", color: "#1A73E8" }
+  duvida:     { name: "Dúvida",     emoji: "❓", color: "#00C49A" }
 };
 
 function escapeHtml(s) {
@@ -146,9 +146,9 @@ export default async function handler(req, res) {
       } else {
         const html = `
           <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#202124;">
-            <h2 style="color:#1A73E8;margin-bottom:8px;">Resposta de ${bizName}</h2>
+            <h2 style="color:#00C49A;margin-bottom:8px;">Resposta de ${bizName}</h2>
             <p style="color:#5F6368;font-size:14px;margin-top:0;">Obrigado por nos enviar seu feedback. Veja a resposta do estabelecimento:</p>
-            <div style="background:#F8F9FA;border-left:4px solid #1A73E8;border-radius:8px;padding:18px 22px;margin:20px 0;font-size:15px;line-height:1.6;color:#202124;white-space:pre-wrap;">${cleanReply.replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]))}</div>
+            <div style="background:#F8F9FA;border-left:4px solid #00C49A;border-radius:8px;padding:18px 22px;margin:20px 0;font-size:15px;line-height:1.6;color:#202124;white-space:pre-wrap;">${cleanReply.replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]))}</div>
             <p style="font-size:12px;color:#80868B;line-height:1.6;">Esta é uma resposta privada. Se quiser conversar mais, basta responder este email.</p>
           </div>
         `;

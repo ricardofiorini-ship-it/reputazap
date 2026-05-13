@@ -4,16 +4,24 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Ativar Plaquinha — StarTouch</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/startouch-logo.png"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="StarTouch"/>
+<meta property="og:description" content="Plataforma de relacionamento local pra negócios brasileiros."/>
+<meta property="og:image" content="/og-image.png"/>
+<meta name="twitter:card" content="summary_large_image"/>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:#f9fafb;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;min-height:100vh;padding:32px 20px 60px;}
+  body{background:#f9fafb;font-family:'General Sans',sans-serif;color:#0f172a;min-height:100vh;padding:32px 20px 60px;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
   .logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:32px;}
-  .logo-icon{width:36px;height:36px;background:#1a73e8;border-radius:10px;display:flex;align-items:center;justify-content:center;}
-  .logo-text{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;color:#0f172a;}
+  .logo-icon{width:36px;height:36px;background:#00C49A;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+  .logo-text{font-family:'General Sans',sans-serif;font-weight:700;font-size:20px;color:#0f172a;}
   .screen{display:none;max-width:480px;margin:0 auto;animation:fadeUp 0.4s ease;}
   .screen.active{display:block;}
   /* Screen com layout 2-col estilo Google (busca de empresa) */
@@ -29,7 +37,7 @@
     padding:18px 14px;display:flex;flex-direction:column;gap:14px;position:relative;
   }
   .search-illustration .phone::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:60px;height:5px;background:#e5e7eb;border-radius:999px;}
-  .phone-google-logo{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:20px;text-align:center;margin-top:14px;letter-spacing:-0.01em;}
+  .phone-google-logo{font-family:'General Sans',sans-serif;font-weight:700;font-size:20px;text-align:center;margin-top:14px;letter-spacing:-0.01em;}
   .phone-google-logo .g1{color:#4285f4;} .phone-google-logo .g2{color:#ea4335;} .phone-google-logo .g3{color:#fbbc04;} .phone-google-logo .g4{color:#4285f4;} .phone-google-logo .g5{color:#34a853;} .phone-google-logo .g6{color:#ea4335;}
   .phone-search{background:#f1f3f4;border-radius:999px;padding:10px 16px;font-size:11px;color:#9aa0a6;display:flex;align-items:center;gap:8px;}
   .phone-result{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;display:flex;gap:10px;box-shadow:0 4px 12px -2px rgba(60,64,67,0.10);margin-top:6px;}
@@ -45,7 +53,7 @@
   .phone-info-line.short{width:60%;}
   /* legal text below inputs (estilo Google) */
   .legal-text{font-size:11.5px;color:#5f6368;line-height:1.55;margin:8px 0 18px;}
-  .legal-text a{color:#1a73e8;text-decoration:none;}
+  .legal-text a{color:#00C49A;text-decoration:none;}
   /* Card resumo do negocio selecionado (screen1 web flow) */
   .biz-summary-card{
     background:#e8f0fe;border:1px solid #d2e3fc;border-radius:12px;
@@ -61,7 +69,7 @@
   .biz-summary-card .biz-info-eyebrow{font-size:10px;color:#5f6368;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;}
   .biz-summary-card .biz-info-name{font-size:14px;font-weight:600;color:#202124;line-height:1.2;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .biz-summary-card .biz-change{
-    font-size:12px;color:#1a73e8;font-weight:600;text-decoration:none;
+    font-size:12px;color:#00C49A;font-weight:600;text-decoration:none;
     background:none;border:none;cursor:pointer;font-family:inherit;flex-shrink:0;padding:6px 8px;
   }
   .biz-summary-card .biz-change:hover{text-decoration:underline;}
@@ -70,48 +78,48 @@
   .device-card.warn{border-color:#fed7aa;background:#fffbeb;}
   .device-card.ok{border-color:#a7f3d0;background:#ecfdf5;}
   .device-icon{font-size:48px;margin-bottom:12px;}
-  .device-title{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px;color:#0f172a;}
+  .device-title{font-family:'General Sans',sans-serif;font-size:18px;margin-bottom:8px;color:#0f172a;}
   .device-desc{font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:16px;}
   .qr-box{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;display:inline-block;margin-bottom:8px;}
   .qr-sub{font-size:11px;color:#9ca3af;}
-  h2{font-family:'Playfair Display',serif;font-size:26px;text-align:center;margin-bottom:8px;color:#0f172a;}
+  h2{font-family:'General Sans',sans-serif;font-size:26px;text-align:center;margin-bottom:8px;color:#0f172a;}
   .sub{text-align:center;color:#6b7280;font-size:14px;margin-bottom:28px;line-height:1.6;}
   .progress{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:32px;}
   .prog-step{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid #e5e7eb;color:#9ca3af;background:#fff;transition:all .3s;}
-  .prog-step.done{background:#1a73e8;border-color:#1a73e8;color:#fff;}
-  .prog-step.active{border-color:#1a73e8;color:#1a73e8;}
+  .prog-step.done{background:#00C49A;border-color:#00C49A;color:#fff;}
+  .prog-step.active{border-color:#00C49A;color:#00C49A;}
   .prog-line{width:32px;height:2px;background:#e5e7eb;border-radius:2px;}
-  .prog-line.done{background:#1a73e8;}
+  .prog-line.done{background:#00C49A;}
   .form-group{margin-bottom:16px;}
   label{font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;}
-  input{width:100%;background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;padding:13px 16px;color:#0f172a;font-size:14px;outline:none;font-family:'Plus Jakarta Sans',sans-serif;transition:border-color .15s;}
-  input:focus{border-color:#1a73e8;}
+  input{width:100%;background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;padding:13px 16px;color:#0f172a;font-size:14px;outline:none;font-family:'General Sans',sans-serif;transition:border-color .15s;}
+  input:focus{border-color:#00C49A;}
   input::placeholder{color:#9ca3af;}
-  .btn-primary{width:100%;padding:14px;background:#1a73e8;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn-primary{width:100%;padding:14px;background:#00C49A;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'General Sans',sans-serif;cursor:pointer;transition:background .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;}
   .btn-primary:hover:not(:disabled){background:#1557b0;transform:translateY(-1px);}
   .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
-  .btn-ghost{width:100%;padding:13px;background:transparent;border:1.5px solid #e5e7eb;color:#6b7280;border-radius:12px;font-size:14px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .15s;margin-top:10px;}
+  .btn-ghost{width:100%;padding:13px;background:transparent;border:1.5px solid #e5e7eb;color:#6b7280;border-radius:12px;font-size:14px;font-weight:600;font-family:'General Sans',sans-serif;cursor:pointer;transition:all .15s;margin-top:10px;}
   .btn-ghost:hover{border-color:#9ca3af;color:#0f172a;}
   .result-item{background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .15s;margin-bottom:8px;}
-  .result-item:hover{border-color:#1a73e8;background:#e8f0fe;}
+  .result-item:hover{border-color:#00C49A;background:#e8f0fe;}
   .result-name{font-size:14px;font-weight:600;color:#0f172a;margin-bottom:3px;}
   .result-addr{font-size:12px;color:#9ca3af;}
   .os-tabs{display:flex;gap:6px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:4px;margin-bottom:16px;}
-  .os-tab{flex:1;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;background:transparent;color:#6b7280;transition:all .15s;}
-  .os-tab.active{background:#1a73e8;color:#fff;}
+  .os-tab{flex:1;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:'General Sans',sans-serif;cursor:pointer;background:transparent;color:#6b7280;transition:all .15s;}
+  .os-tab.active{background:#00C49A;color:#fff;}
   .nfc-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px 20px;margin-bottom:16px;}
   .nfc-step{display:flex;gap:12px;margin-bottom:14px;}
-  .nfc-n{width:22px;height:22px;background:#e8f0fe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#1a73e8;flex-shrink:0;margin-top:2px;}
+  .nfc-n{width:22px;height:22px;background:#e8f0fe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#00C49A;flex-shrink:0;margin-top:2px;}
   .nfc-step h4{font-size:13px;font-weight:600;color:#0f172a;margin-bottom:3px;}
   .nfc-step p{font-size:12px;color:#6b7280;line-height:1.5;}
-  .nfc-step code{background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:3px 8px;font-size:11px;color:#1a73e8;font-family:monospace;display:block;margin-top:6px;word-break:break-all;}
+  .nfc-step code{background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:3px 8px;font-size:11px;color:#00C49A;font-family:monospace;display:block;margin-top:6px;word-break:break-all;}
   .app-link{display:flex;align-items:center;gap:8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;text-decoration:none;color:#6b7280;font-size:12px;font-weight:600;margin-top:8px;transition:border-color .15s;}
   .app-link:hover{border-color:#9ca3af;}
   .status-msg{text-align:center;font-size:13px;min-height:20px;margin-top:10px;}
   .status-msg.success{color:#059669;}
   .status-msg.error{color:#dc2626;}
   .status-msg.loading{color:#6b7280;animation:pulse 1.5s infinite;}
-  .back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:#9ca3af;font-size:13px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;padding:0;margin-bottom:20px;}
+  .back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:#9ca3af;font-size:13px;cursor:pointer;font-family:'General Sans',sans-serif;padding:0;margin-bottom:20px;}
   .biz-confirm{background:#ecfdf5;border:2px solid #a7f3d0;border-radius:14px;padding:14px 18px;margin-bottom:20px;}
   .spinner{display:inline-block;animation:spin 1s linear infinite;}
 </style>
@@ -177,7 +185,7 @@
   <div class="form-group"><label>WhatsApp</label><input type="tel" id="userPhone" placeholder="(11) 99999-9999"/></div>
   <div class="form-group"><label>Senha</label><input type="password" id="userPass" placeholder="••••••••"/></div>
   <button class="btn-primary" onclick="goToStep2()">Continuar →</button>
-  <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:16px;">Já tem conta? <a href="/app" style="color:#1a73e8;font-weight:600">Entrar</a></p>
+  <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:16px;">Já tem conta? <a href="/app" style="color:#00C49A;font-weight:600">Entrar</a></p>
 </div>
 
 <!-- STEP 2: BUSCA — layout 2-col estilo Google -->
@@ -255,7 +263,7 @@
 <div class="screen" id="screen4b">
   <div style="background:#ecfdf5;border:2px solid #a7f3d0;border-radius:16px;padding:28px 22px;text-align:center;margin-bottom:18px;">
     <div style="font-size:48px;margin-bottom:8px">✅</div>
-    <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#065f46;margin-bottom:4px">Placa #<span id="screen4bCount">1</span> gravada</div>
+    <div style="font-family:'General Sans',sans-serif;font-size:20px;font-weight:700;color:#065f46;margin-bottom:4px">Placa #<span id="screen4bCount">1</span> gravada</div>
     <div style="font-size:13px;color:#059669">Posicione a placa no negócio.</div>
   </div>
   <button class="btn-primary" onclick="recordAnother()">Gravar outra placa</button>

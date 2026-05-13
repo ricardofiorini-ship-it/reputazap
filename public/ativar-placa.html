@@ -4,10 +4,18 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Ativar nova placa — StarTouch</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/startouch-logo.png"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="StarTouch"/>
+<meta property="og:description" content="Plataforma de relacionamento local pra negócios brasileiros."/>
+<meta property="og:image" content="/og-image.png"/>
+<meta name="twitter:card" content="summary_large_image"/>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:#f9fafb;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;min-height:100vh;padding:32px 20px 60px;}
+  body{background:#f9fafb;font-family:'General Sans',sans-serif;color:#0f172a;min-height:100vh;padding:32px 20px 60px;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
@@ -22,29 +30,29 @@
   .device-card.warn{border-color:#fed7aa;background:#fffbeb;}
   .device-card.ok{border-color:#a7f3d0;background:#ecfdf5;}
   .device-icon{font-size:48px;margin-bottom:12px;}
-  .device-title{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px;color:#0f172a;}
+  .device-title{font-family:'General Sans',sans-serif;font-size:18px;margin-bottom:8px;color:#0f172a;}
   .device-desc{font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:16px;}
   .qr-box{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;display:inline-block;margin-bottom:8px;}
   .qr-sub{font-size:11px;color:#9ca3af;}
-  h2{font-family:'Playfair Display',serif;font-size:24px;text-align:center;margin-bottom:8px;color:#0f172a;}
+  h2{font-family:'General Sans',sans-serif;font-size:24px;text-align:center;margin-bottom:8px;color:#0f172a;}
   .sub{text-align:center;color:#6b7280;font-size:13px;margin-bottom:24px;line-height:1.6;}
-  .tag-counter{display:inline-block;background:#e8f0fe;color:#1a73e8;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:4px 12px;border-radius:8px;margin-bottom:14px;}
-  .btn-primary{width:100%;padding:14px;background:#1a73e8;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .tag-counter{display:inline-block;background:#e8f0fe;color:#00C49A;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:4px 12px;border-radius:8px;margin-bottom:14px;}
+  .btn-primary{width:100%;padding:14px;background:#00C49A;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'General Sans',sans-serif;cursor:pointer;transition:background .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;}
   .btn-primary:hover:not(:disabled){background:#1557b0;transform:translateY(-1px);}
   .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
-  .btn-secondary{width:100%;padding:13px;background:transparent;border:1.5px solid #e5e7eb;color:#475569;border-radius:12px;font-size:14px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .15s;margin-top:10px;}
+  .btn-secondary{width:100%;padding:13px;background:transparent;border:1.5px solid #e5e7eb;color:#475569;border-radius:12px;font-size:14px;font-weight:600;font-family:'General Sans',sans-serif;cursor:pointer;transition:all .15s;margin-top:10px;}
   .btn-secondary:hover{border-color:#9ca3af;background:#f8fafc;}
-  .btn-back{display:flex;align-items:center;gap:6px;background:none;border:none;color:#9ca3af;font-size:13px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;padding:0;margin-bottom:20px;}
+  .btn-back{display:flex;align-items:center;gap:6px;background:none;border:none;color:#9ca3af;font-size:13px;cursor:pointer;font-family:'General Sans',sans-serif;padding:0;margin-bottom:20px;}
   .os-tabs{display:flex;gap:6px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:4px;margin-bottom:16px;}
-  .os-tab{flex:1;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;background:transparent;color:#6b7280;transition:all .15s;}
-  .os-tab.active{background:#1a73e8;color:#fff;}
+  .os-tab{flex:1;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:'General Sans',sans-serif;cursor:pointer;background:transparent;color:#6b7280;transition:all .15s;}
+  .os-tab.active{background:#00C49A;color:#fff;}
   .nfc-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px 20px;margin-bottom:16px;}
   .nfc-step{display:flex;gap:12px;margin-bottom:14px;}
   .nfc-step:last-child{margin-bottom:0;}
-  .nfc-n{width:22px;height:22px;background:#e8f0fe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#1a73e8;flex-shrink:0;margin-top:2px;}
+  .nfc-n{width:22px;height:22px;background:#e8f0fe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#00C49A;flex-shrink:0;margin-top:2px;}
   .nfc-step h4{font-size:13px;font-weight:600;color:#0f172a;margin-bottom:3px;}
   .nfc-step p{font-size:12px;color:#6b7280;line-height:1.5;}
-  .nfc-step code{background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:3px 8px;font-size:11px;color:#1a73e8;font-family:monospace;display:block;margin-top:6px;word-break:break-all;}
+  .nfc-step code{background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:3px 8px;font-size:11px;color:#00C49A;font-family:monospace;display:block;margin-top:6px;word-break:break-all;}
   .app-link{display:flex;align-items:center;gap:8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;text-decoration:none;color:#6b7280;font-size:12px;font-weight:600;margin-top:8px;transition:border-color .15s;}
   .app-link:hover{border-color:#9ca3af;}
   .status-msg{text-align:center;font-size:13px;min-height:20px;margin-top:10px;}
@@ -53,7 +61,7 @@
   .status-msg.loading{color:#6b7280;animation:pulse 1.5s infinite;}
   .success-card{background:#ecfdf5;border:2px solid #a7f3d0;border-radius:16px;padding:28px 22px;text-align:center;margin-bottom:18px;}
   .success-card-icon{font-size:48px;margin-bottom:8px;}
-  .success-card-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#065f46;margin-bottom:4px;}
+  .success-card-title{font-family:'General Sans',sans-serif;font-size:20px;font-weight:700;color:#065f46;margin-bottom:4px;}
   .success-card-sub{font-size:13px;color:#059669;}
   .spinner{display:inline-block;animation:spin 1s linear infinite;}
 </style>

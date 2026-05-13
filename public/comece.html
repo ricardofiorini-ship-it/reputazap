@@ -4,16 +4,24 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Seu link já está pronto — StarTouch</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/startouch-logo.png"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="StarTouch"/>
+<meta property="og:description" content="Plataforma de relacionamento local pra negócios brasileiros."/>
+<meta property="og:image" content="/og-image.png"/>
+<meta name="twitter:card" content="summary_large_image"/>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:#f9fafb;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;min-height:100vh;padding:40px 20px 60px;}
+  body{background:#f9fafb;font-family:'General Sans',sans-serif;color:#0f172a;min-height:100vh;padding:40px 20px 60px;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(5,150,105,0.45)}50%{box-shadow:0 0 0 8px rgba(5,150,105,0)}}
   .container{max-width:520px;margin:0 auto;animation:fadeUp 0.4s ease;}
   .logo{display:flex;justify-content:center;margin-bottom:32px;}
-  h1{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;line-height:1.2;text-align:center;margin-bottom:10px;}
+  h1{font-family:'General Sans',sans-serif;font-size:30px;font-weight:700;line-height:1.2;text-align:center;margin-bottom:10px;}
   .sub{font-size:14px;color:#6b7280;text-align:center;margin-bottom:32px;line-height:1.55;max-width:440px;margin-left:auto;margin-right:auto;}
 
   .main-card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;margin-bottom:20px;}
@@ -28,7 +36,7 @@
   .link-label{font-size:11px;color:#9ca3af;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;}
   .link-preview{background:#f9fafb;border:1px solid #e5e7eb;border-radius:11px;padding:11px 14px;font-size:12px;color:#475569;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:16px;}
 
-  .btn{padding:13px 16px;border:none;border-radius:12px;font-size:14px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;text-decoration:none;width:100%;}
+  .btn{padding:13px 16px;border:none;border-radius:12px;font-size:14px;font-weight:600;font-family:'General Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;text-decoration:none;width:100%;}
   .btn-primary{background:#0f172a;color:#fff;}
   .btn-primary:hover{background:#1e293b;transform:translateY(-1px);}
   .btn-primary.copied{background:#059669;}
@@ -42,7 +50,7 @@
   .share-hint{display:flex;align-items:flex-start;gap:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:14px 16px;margin-bottom:24px;font-size:13px;color:#1e40af;line-height:1.55;}
   .share-hint-icon{flex-shrink:0;font-size:16px;line-height:1.4;}
 
-  .next-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#1a73e8;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .15s;text-decoration:none;}
+  .next-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#00C49A;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:'General Sans',sans-serif;cursor:pointer;transition:background .15s;text-decoration:none;}
   .next-btn:hover{background:#1557b0;}
 
   .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.15);animation:fadeUp 0.3s ease;z-index:200;}

@@ -156,7 +156,7 @@ Compra pelo Mercado Livre (link externo). Margem mínima — é canal de aquisi�
 - ✅ Activity feed (eventos recentes)
 - ✅ Mini dashboard com métricas (avaliações Google, mensagens privadas, pendentes)
 - ✅ Tab Settings com gestão de plano + email + biz
-- ✅ Visual padronizado Google-style (paleta #1A73E8, sombras Material, radius 12)
+- ✅ Visual padronizado StarTouch (paleta verde #00C49A + dourado #F5C518, fonte General Sans, radius 12)
 
 ### Billing
 - ✅ Stripe Checkout integrado

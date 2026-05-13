@@ -25,7 +25,7 @@ function Metric({ icon:Icon, label, value, sub, color, bg }) {
         <span style={{fontSize:13,color:"#6b7280"}}>{label}</span>
         <div style={{width:36,height:36,borderRadius:10,background:bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Icon size={18} color={color}/></div>
       </div>
-      <div style={{fontSize:32,fontWeight:700,color:"#0f172a",fontFamily:"'Playfair Display',serif",lineHeight:1}}>{value}</div>
+      <div style={{fontSize:32,fontWeight:700,color:"#0f172a",fontFamily:"'General Sans',sans-serif",lineHeight:1}}>{value}</div>
       {sub&&<div style={{fontSize:12,color:"#9ca3af"}}>{sub}</div>}
     </div>
   );
@@ -39,7 +39,7 @@ function CustomerPage({ onClose, biz }) {
 
   const pieces = Array.from({length:20},(_,i)=>({
     id:i, x:10+Math.random()*80,
-    color:["#1a73e8","#f59e0b","#3b82f6","#ec4899","#8b5cf6"][i%5],
+    color:["#00C49A","#f59e0b","#3b82f6","#ec4899","#8b5cf6"][i%5],
     delay:Math.random()*0.4, size:5+Math.random()*7, dur:1+Math.random()*0.8
   }));
 
@@ -65,9 +65,9 @@ function CustomerPage({ onClose, biz }) {
         {/* FEELING */}
         {step==="feeling"&&(
           <div style={{padding:"28px 24px 36px",textAlign:"center",animation:"fadeUp 0.4s ease"}}>
-            <div style={{width:60,height:60,background:"linear-gradient(135deg,#1a73e8,#1557b0)",borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px"}}><Star size={26} fill="#fff" color="#fff"/></div>
-            <div style={{fontSize:11,fontWeight:700,color:"#1a73e8",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>{biz}</div>
-            <div style={{fontSize:21,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",lineHeight:1.2,marginBottom:6}}>Como foi sua experiência hoje?</div>
+            <div style={{width:60,height:60,background:"linear-gradient(135deg,#00C49A,#1557b0)",borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px"}}><Star size={26} fill="#fff" color="#fff"/></div>
+            <div style={{fontSize:11,fontWeight:700,color:"#00C49A",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6}}>{biz}</div>
+            <div style={{fontSize:21,fontWeight:700,fontFamily:"'General Sans',sans-serif",color:"#0f172a",lineHeight:1.2,marginBottom:6}}>Como foi sua experiência hoje?</div>
             <div style={{fontSize:13,color:"#64748b",marginBottom:28,lineHeight:1.6}}>Sua opinião nos ajuda a melhorar sempre</div>
             <div style={{display:"flex",gap:10}}>
               {[
@@ -89,7 +89,7 @@ function CustomerPage({ onClose, biz }) {
         {step==="positive"&&(
           <div style={{padding:"28px 24px 36px",textAlign:"center",animation:"fadeUp 0.35s ease"}}>
             <div style={{fontSize:44,marginBottom:14}}>🎉</div>
-            <div style={{fontSize:21,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",marginBottom:8}}>Que ótimo ouvir isso!</div>
+            <div style={{fontSize:21,fontWeight:700,fontFamily:"'General Sans',sans-serif",color:"#0f172a",marginBottom:8}}>Que ótimo ouvir isso!</div>
             <div style={{fontSize:13,color:"#64748b",marginBottom:24,lineHeight:1.6}}>Deixa uma avaliação rápida no Google.<br/>Leva menos de 30 segundos.</div>
             <div style={{background:"#f8fafc",borderRadius:16,padding:"14px 18px",marginBottom:20,border:"1px solid #e2e8f0",textAlign:"left"}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
@@ -99,7 +99,7 @@ function CustomerPage({ onClose, biz }) {
               <div style={{display:"flex",gap:2}}>{[1,2,3,4,5].map(i=><Star key={i} size={17} fill="#f59e0b" color="#f59e0b"/>)}</div>
             </div>
             <button onClick={onGoogleClick}
-              style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#1a73e8,#1557b0)",color:"#fff",border:"none",borderRadius:14,fontSize:14,fontWeight:700,fontFamily:"'Playfair Display',serif",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:10}}>
+              style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#00C49A,#1557b0)",color:"#fff",border:"none",borderRadius:14,fontSize:14,fontWeight:700,fontFamily:"'General Sans',sans-serif",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:10}}>
               <ExternalLink size={15}/> Avaliar no Google
             </button>
             <button onClick={()=>setStep("feeling")} style={{background:"none",border:"none",color:"#94a3b8",fontSize:12,cursor:"pointer"}}>Voltar</button>
@@ -110,12 +110,12 @@ function CustomerPage({ onClose, biz }) {
         {step==="negative"&&(
           <div style={{padding:"28px 24px 36px",animation:"fadeUp 0.35s ease"}}>
             <div style={{fontSize:38,textAlign:"center",marginBottom:14}}>💬</div>
-            <div style={{fontSize:20,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",textAlign:"center",marginBottom:6}}>Nos conte o que aconteceu</div>
+            <div style={{fontSize:20,fontWeight:700,fontFamily:"'General Sans',sans-serif",color:"#0f172a",textAlign:"center",marginBottom:6}}>Nos conte o que aconteceu</div>
             <div style={{fontSize:13,color:"#64748b",textAlign:"center",marginBottom:18,lineHeight:1.6}}>Seu feedback vai direto pra nossa equipe. Prometemos melhorar.</div>
             <textarea value={feedback} onChange={e=>setFeedback(e.target.value)} placeholder="O que poderia ter sido melhor?" rows={4}
               style={{width:"100%",padding:"12px 14px",background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:14,fontSize:13,color:"#0f172a",outline:"none",resize:"none",lineHeight:1.6}}/>
             <button onClick={onSendFeedback} disabled={!feedback.trim()}
-              style={{width:"100%",marginTop:14,padding:"14px",background:feedback.trim()?"#0f172a":"#e2e8f0",color:feedback.trim()?"#fff":"#94a3b8",border:"none",borderRadius:14,fontSize:14,fontWeight:700,fontFamily:"'Playfair Display',serif",cursor:feedback.trim()?"pointer":"default"}}>
+              style={{width:"100%",marginTop:14,padding:"14px",background:feedback.trim()?"#0f172a":"#e2e8f0",color:feedback.trim()?"#fff":"#94a3b8",border:"none",borderRadius:14,fontSize:14,fontWeight:700,fontFamily:"'General Sans',sans-serif",cursor:feedback.trim()?"pointer":"default"}}>
               Enviar Feedback
             </button>
             <button onClick={()=>setStep("feeling")} style={{display:"block",width:"100%",marginTop:10,background:"none",border:"none",color:"#94a3b8",fontSize:12,cursor:"pointer",textAlign:"center"}}>Voltar</button>
@@ -126,7 +126,7 @@ function CustomerPage({ onClose, biz }) {
         {step==="thanks"&&(
           <div style={{padding:"48px 24px",textAlign:"center",animation:"fadeUp 0.4s ease"}}>
             <div style={{fontSize:52,marginBottom:16}}>🙏</div>
-            <div style={{fontSize:22,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",marginBottom:10}}>Obrigado pelo feedback!</div>
+            <div style={{fontSize:22,fontWeight:700,fontFamily:"'General Sans',sans-serif",color:"#0f172a",marginBottom:10}}>Obrigado pelo feedback!</div>
             <div style={{fontSize:14,color:"#64748b",lineHeight:1.7}}>Nossa equipe vai analisar e entrar em contato em breve. Sua opinião nos ajuda muito a melhorar.</div>
           </div>
         )}
@@ -175,7 +175,7 @@ function NotificationsBlock({ bizInfo, user }) {
         <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
           placeholder={cadastroEmail || "seu@email.com"}
           style={{width:"100%",border:"1.5px solid #e5e7eb",borderRadius:10,padding:"11px 14px",fontSize:14,color:"#202124",outline:"none",fontFamily:"inherit"}}
-          onFocus={e=>e.target.style.borderColor="#1A73E8"} onBlur={e=>e.target.style.borderColor="#e5e7eb"}/>
+          onFocus={e=>e.target.style.borderColor="#00C49A"} onBlur={e=>e.target.style.borderColor="#e5e7eb"}/>
       </div>
       {isUsingCadastro && (
         <div style={{fontSize:11.5,color:"#80868B",marginTop:6}}>
@@ -184,7 +184,7 @@ function NotificationsBlock({ bizInfo, user }) {
       )}
       <div style={{display:"flex",alignItems:"center",gap:12,marginTop:14}}>
         <button onClick={save} disabled={saving||email.trim()===(bizInfo?.manager_email||"")}
-          style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:8,padding:"9px 18px",fontSize:13,fontWeight:600,cursor:saving?"wait":"pointer",opacity:saving||email.trim()===(bizInfo?.manager_email||"")?0.5:1,fontFamily:"inherit"}}>
+          style={{background:"#00C49A",color:"#fff",border:"none",borderRadius:8,padding:"9px 18px",fontSize:13,fontWeight:600,cursor:saving?"wait":"pointer",opacity:saving||email.trim()===(bizInfo?.manager_email||"")?0.5:1,fontFamily:"inherit"}}>
           {saving?"Salvando...":"Salvar"}
         </button>
         {status && <span style={{fontSize:12,color:status.startsWith("✓")?"#34A853":"#EA4335"}}>{status}</span>}
@@ -224,7 +224,7 @@ function FeedbackActions({ fb, onReplied, onResolved, onContactExternal, compact
       return (
         <div style={{display:"flex",gap:8,paddingLeft:padLeft,flexWrap:"wrap"}}>
           <button onClick={()=>setOpen(true)}
-            style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:8,padding:compact?"7px 12px":"9px 14px",fontSize:compact?11:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
+            style={{background:"#00C49A",color:"#fff",border:"none",borderRadius:8,padding:compact?"7px 12px":"9px 14px",fontSize:compact?11:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
             <Mail size={compact?11:12}/> Responder cliente
           </button>
           <button onClick={()=>onResolved?.(fb.id)}
@@ -239,11 +239,11 @@ function FeedbackActions({ fb, onReplied, onResolved, onContactExternal, compact
         <div style={{fontSize:11,color:"#5F6368",marginBottom:6}}>Resposta vai por email pra <strong style={{color:"#202124"}}>{fb.contact}</strong></div>
         <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Sua resposta…" rows={4}
           style={{width:"100%",border:"1.5px solid #e5e7eb",borderRadius:10,padding:"10px 12px",fontSize:13,color:"#202124",outline:"none",fontFamily:"inherit",resize:"vertical",marginBottom:8}}
-          onFocus={e=>e.target.style.borderColor="#1A73E8"} onBlur={e=>e.target.style.borderColor="#e5e7eb"}/>
+          onFocus={e=>e.target.style.borderColor="#00C49A"} onBlur={e=>e.target.style.borderColor="#e5e7eb"}/>
         {error && <div style={{fontSize:11,color:"#EA4335",marginBottom:6}}>{error}</div>}
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
           <button onClick={send} disabled={sending}
-            style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:8,padding:"9px 16px",fontSize:12,fontWeight:600,cursor:sending?"wait":"pointer",opacity:sending?0.6:1,fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:6}}>
+            style={{background:"#00C49A",color:"#fff",border:"none",borderRadius:8,padding:"9px 16px",fontSize:12,fontWeight:600,cursor:sending?"wait":"pointer",opacity:sending?0.6:1,fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:6}}>
             {sending ? "Enviando..." : <><Mail size={12}/> Enviar resposta</>}
           </button>
           <button onClick={()=>{setOpen(false);setText("");setError("");}}
@@ -428,7 +428,7 @@ export default function StarTouch({ user, onLogout }) {
     }
   }
 
-  const rc = r=>r>=4?"#1a73e8":r===3?"#f59e0b":"#ef4444";
+  const rc = r=>r>=4?"#00C49A":r===3?"#f59e0b":"#ef4444";
   const rb = r=>r>=4?"#a7f3d0":r===3?"#fed7aa":"#fee2e2";
 
   async function goToCheckout() {
@@ -490,10 +490,10 @@ export default function StarTouch({ user, onLogout }) {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
-        body{background:#F8F9FA;font-family:'Plus Jakarta Sans',sans-serif;color:#202124;}
-        textarea,input{font-family:'Plus Jakarta Sans',sans-serif;}
+        body{background:#F8F9FA;font-family:'General Sans',sans-serif;color:#202124;}
+        textarea,input{font-family:'General Sans',sans-serif;}
         ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:2px;}
         @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
@@ -502,7 +502,7 @@ export default function StarTouch({ user, onLogout }) {
         @keyframes pulseDot{0%{box-shadow:0 0 0 0 rgba(34,197,94,0.55)}70%{box-shadow:0 0 0 6px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
         .hero-status{padding:32px 36px;}
         .hero-status .hero-status-row{display:flex;align-items:center;gap:24px;flex-wrap:wrap;position:relative;}
-        .hero-status .hero-status-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;line-height:1.15;letter-spacing:-0.015em;}
+        .hero-status .hero-status-title{font-family:'General Sans',sans-serif;font-size:24px;font-weight:700;line-height:1.15;letter-spacing:-0.015em;}
         .hero-status .hero-status-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .hero-status .hero-status-cta{padding:15px 24px;font-size:14.5px;}
         @media(max-width:640px){
@@ -531,7 +531,7 @@ export default function StarTouch({ user, onLogout }) {
           .main-pad{padding:20px 16px;}
         }
       `}</style>
-      <div style={{display:"flex",minHeight:"100vh",background:"#F8F9FA",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+      <div style={{display:"flex",minHeight:"100vh",background:"#F8F9FA",fontFamily:"'General Sans',sans-serif"}}>
 
         {showPreview&&<CustomerPage biz={biz} onClose={()=>setShowPreview(false)}/>}
 
@@ -549,7 +549,7 @@ export default function StarTouch({ user, onLogout }) {
               const active = tab===item.id;
               return (
                 <div key={item.id} className="ni" onClick={()=>{setTab(item.id);setSidebarOpen(false);}}
-                  style={{display:"flex",alignItems:"center",gap:11,padding:"11px 13px",borderRadius:12,background:active?"linear-gradient(180deg,rgba(232,240,254,0.95) 0%,rgba(232,240,254,0.6) 100%)":"transparent",color:active?"#1a73e8":"#475569",border:active?"1px solid rgba(26,115,232,0.18)":"1px solid transparent",boxShadow:active?"0 1px 2px rgba(26,115,232,0.08), inset 0 1px 0 rgba(255,255,255,0.6)":"none",transition:"background .2s, border-color .2s"}}>
+                  style={{display:"flex",alignItems:"center",gap:11,padding:"11px 13px",borderRadius:12,background:active?"linear-gradient(180deg,rgba(232,240,254,0.95) 0%,rgba(232,240,254,0.6) 100%)":"transparent",color:active?"#00C49A":"#475569",border:active?"1px solid rgba(26,115,232,0.18)":"1px solid transparent",boxShadow:active?"0 1px 2px rgba(26,115,232,0.08), inset 0 1px 0 rgba(255,255,255,0.6)":"none",transition:"background .2s, border-color .2s"}}>
                   <item.icon size={17} strokeWidth={active?2.4:2}/>
                   <span style={{fontSize:14,fontWeight:active?600:500,letterSpacing:active?"-0.005em":0}}>{item.label}</span>
                 </div>
@@ -560,12 +560,12 @@ export default function StarTouch({ user, onLogout }) {
             {/* User + Settings/Logout */}
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 12px",background:tab==="settings"?"#e8f0fe":"#f9fafb",borderRadius:10,border:`1px solid ${tab==="settings"?"#bfdbfe":"#e5e7eb"}`,transition:"background .15s, border-color .15s"}}>
               <div onClick={()=>{setTab("settings");setSidebarOpen(false);}} style={{minWidth:0,flex:1,cursor:"pointer"}} title="Configurações">
-                <div style={{fontSize:12,color:tab==="settings"?"#1a73e8":"#0f172a",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.name?.split(" ")[0]}</div>
+                <div style={{fontSize:12,color:tab==="settings"?"#00C49A":"#0f172a",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.name?.split(" ")[0]}</div>
                 <div style={{fontSize:10,color:"#9ca3af",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.email}</div>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:2,flexShrink:0}}>
                 <button onClick={()=>{setTab("settings");setSidebarOpen(false);}} title="Configurações"
-                  style={{background:"none",border:"none",cursor:"pointer",color:tab==="settings"?"#1a73e8":"#9ca3af",display:"flex",padding:4,borderRadius:6}}
+                  style={{background:"none",border:"none",cursor:"pointer",color:tab==="settings"?"#00C49A":"#9ca3af",display:"flex",padding:4,borderRadius:6}}
                   onMouseEnter={e=>{if(tab!=="settings")e.currentTarget.style.color="#0f172a";}} onMouseLeave={e=>{if(tab!=="settings")e.currentTarget.style.color="#9ca3af";}}>
                   <Settings size={15}/>
                 </button>
@@ -592,8 +592,8 @@ export default function StarTouch({ user, onLogout }) {
             {/* Google status */}
             <div onClick={()=>setTab("google")} style={{padding:"10px 12px",background:googleConnected?"#ecfdf5":"#1a0c04",borderRadius:10,cursor:"pointer",border:`1px solid ${googleConnected?"#a7f3d0":"#fed7aa"}`}}>
               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-                <div style={{width:7,height:7,borderRadius:"50%",background:googleConnected?"#1a73e8":loadingReviews?"#f59e0b":"#f97316"}}/>
-                <span style={{fontSize:11,color:googleConnected?"#1a73e8":loadingReviews?"#f59e0b":"#f97316",fontWeight:600}}>
+                <div style={{width:7,height:7,borderRadius:"50%",background:googleConnected?"#00C49A":loadingReviews?"#f59e0b":"#f97316"}}/>
+                <span style={{fontSize:11,color:googleConnected?"#00C49A":loadingReviews?"#f59e0b":"#f97316",fontWeight:600}}>
                   {loadingReviews?"Carregando...":googleConnected?"Conectado":"Não conectado"}
                 </span>
               </div>
@@ -620,7 +620,7 @@ export default function StarTouch({ user, onLogout }) {
           {/* Header */}
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,animation:"fadeUp 0.4s ease"}}>
             <div>
-              <div style={{fontSize:24,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",lineHeight:1.2}}>
+              <div style={{fontSize:24,fontWeight:700,fontFamily:"'General Sans',sans-serif",color:"#0f172a",lineHeight:1.2}}>
                 {tab==="dashboard"&&"Central de reputação"}{tab==="feedbacks"&&"Mensagens de clientes"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Placas inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Modo Protegido e loja"}{tab==="settings"&&"Configurações"}
               </div>
               <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
@@ -791,7 +791,7 @@ export default function StarTouch({ user, onLogout }) {
                     <AlertCircle size={22} color="#b45309"/>
                   </div>
                   <div style={{flex:1,minWidth:200}}>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#0f172a",lineHeight:1.2,marginBottom:4,letterSpacing:"-0.01em"}}>
+                    <div style={{fontFamily:"'General Sans',sans-serif",fontSize:18,fontWeight:700,color:"#0f172a",lineHeight:1.2,marginBottom:4,letterSpacing:"-0.01em"}}>
                       {pendingFeedbacks.length} cliente{pendingFeedbacks.length>1?"s":""} precisa{pendingFeedbacks.length>1?"m":""} da sua atenção
                     </div>
                     <div style={{fontSize:13,color:"#92400e",lineHeight:1.4}}>
@@ -808,7 +808,7 @@ export default function StarTouch({ user, onLogout }) {
               <div style={{marginBottom:32}}>
                 <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:14}}>
                   <div>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#0f172a",letterSpacing:"-0.005em"}}>
+                    <div style={{fontFamily:"'General Sans',sans-serif",fontSize:18,fontWeight:700,color:"#0f172a",letterSpacing:"-0.005em"}}>
                       Comece a receber avaliações agora
                     </div>
                     <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
@@ -868,7 +868,7 @@ export default function StarTouch({ user, onLogout }) {
                     <div style={{fontSize:11.5,color:"#475569",fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{directLink || "—"}</div>
                   </div>
                   <a href={directLink ? `${directLink}&preview=1` : "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
-                    style={{textDecoration:"none",background:"#eff6ff",color:"#1a73e8",border:"1px solid #bfdbfe",borderRadius:9,padding:"7px 12px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none",flexShrink:0}}>
+                    style={{textDecoration:"none",background:"#eff6ff",color:"#00C49A",border:"1px solid #bfdbfe",borderRadius:9,padding:"7px 12px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none",flexShrink:0}}>
                     <Smartphone size={12}/> Testar experiência
                   </a>
                 </div>
@@ -878,7 +878,7 @@ export default function StarTouch({ user, onLogout }) {
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:"22px 24px",marginBottom:32,boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
                   <div>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#0f172a",letterSpacing:"-0.005em"}}>Clientes precisando da sua atenção</div>
+                    <div style={{fontFamily:"'General Sans',sans-serif",fontSize:18,fontWeight:700,color:"#0f172a",letterSpacing:"-0.005em"}}>Clientes precisando da sua atenção</div>
                     <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>Conversas que ainda não viraram review pública.</div>
                   </div>
                   {pendingFeedbacks.length > 0 && (
@@ -899,7 +899,7 @@ export default function StarTouch({ user, onLogout }) {
                       <div style={{width:48,height:48,borderRadius:14,background:"#fff",border:"1px solid #a7f3d0",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}>
                         <ShieldCheck size={22} color="#059669"/>
                       </div>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#065f46",marginBottom:6}}>Tudo tranquilo por aqui</div>
+                      <div style={{fontFamily:"'General Sans',sans-serif",fontSize:16,fontWeight:700,color:"#065f46",marginBottom:6}}>Tudo tranquilo por aqui</div>
                       <div style={{fontSize:13,color:"#047857",lineHeight:1.55,maxWidth:340,margin:"0 auto"}}>Nenhum cliente reclamando hoje. Quando alguém precisar da sua atenção, aparece aqui antes de virar review pública.</div>
                     </div>
                   ) : (
@@ -944,7 +944,7 @@ export default function StarTouch({ user, onLogout }) {
                       );
                     })}
                     {pendingFeedbacks.length > 3 && (
-                      <div onClick={()=>setTab("feedbacks")} style={{textAlign:"center",fontSize:12,color:"#1a73e8",fontWeight:600,marginTop:10,paddingTop:10,borderTop:"1px solid #f3f4f6",cursor:"pointer"}}>
+                      <div onClick={()=>setTab("feedbacks")} style={{textAlign:"center",fontSize:12,color:"#00C49A",fontWeight:600,marginTop:10,paddingTop:10,borderTop:"1px solid #f3f4f6",cursor:"pointer"}}>
                         Ver todas as {pendingFeedbacks.length} mensagens →
                       </div>
                     )}
@@ -985,7 +985,7 @@ export default function StarTouch({ user, onLogout }) {
               {/* ── Z6: Hardware vitrine de produtos ── */}
               <div style={{marginBottom:32}}>
                 <div style={{marginBottom:18}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#0f172a",marginBottom:4,letterSpacing:"-0.005em"}}>Quer automatizar no balcão?</div>
+                  <div style={{fontFamily:"'General Sans',sans-serif",fontSize:20,fontWeight:700,color:"#0f172a",marginBottom:4,letterSpacing:"-0.005em"}}>Quer automatizar no balcão?</div>
                   <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55}}>Placas, QR Codes ou cartões NFC pros clientes avaliarem sem depender da equipe.</div>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14}}>
@@ -994,7 +994,7 @@ export default function StarTouch({ user, onLogout }) {
                     {img:"/hardware/cartao-nfc.png",title:"Cartão NFC",desc:"PVC fosco premium com cordão.",buy:"https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527"},
                   ].map((p,i)=>(
                     <div key={i} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
-                      <div style={{fontSize:10.5,fontWeight:700,color:"#1A73E8",letterSpacing:"0.14em",textTransform:"uppercase",textAlign:"center",padding:"14px 10px 8px"}}>{p.title}</div>
+                      <div style={{fontSize:10.5,fontWeight:700,color:"#00C49A",letterSpacing:"0.14em",textTransform:"uppercase",textAlign:"center",padding:"14px 10px 8px"}}>{p.title}</div>
                       <div style={{height:200,background:p.img?"#fff":"#f8f9fa",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",borderTop:"1px solid #f1f3f4",borderBottom:"1px solid #f1f3f4"}}>
                         {p.img ? (
                           <img src={p.img} alt={p.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
@@ -1005,7 +1005,7 @@ export default function StarTouch({ user, onLogout }) {
                       <div style={{padding:"14px 16px 16px",display:"flex",flexDirection:"column",gap:10,flex:1}}>
                         <div style={{fontSize:12.5,color:"#5F6368",lineHeight:1.5,flex:1}}>{p.desc}</div>
                         <a href={p.buy} target="_blank" rel="noreferrer"
-                          style={{textDecoration:"none",background:"#1A73E8",color:"#fff",borderRadius:8,padding:"10px 14px",fontSize:13,fontWeight:600,textAlign:"center",boxShadow:"0 1px 2px rgba(26,115,232,0.20)"}}>
+                          style={{textDecoration:"none",background:"#00C49A",color:"#fff",borderRadius:8,padding:"10px 14px",fontSize:13,fontWeight:600,textAlign:"center",boxShadow:"0 1px 2px rgba(26,115,232,0.20)"}}>
                           Comprar
                         </a>
                       </div>
@@ -1016,7 +1016,7 @@ export default function StarTouch({ user, onLogout }) {
               {/* ── Z3 (movido pra perto do CTA Pro): Comparação Sem × Com Modo Protegido ── */}
               {!isPro && (
                 <div style={{marginBottom:18}}>
-                  <div style={{textAlign:"center",fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#0f172a",marginBottom:6,letterSpacing:"-0.01em"}}>
+                  <div style={{textAlign:"center",fontFamily:"'General Sans',sans-serif",fontSize:20,fontWeight:700,color:"#0f172a",marginBottom:6,letterSpacing:"-0.01em"}}>
                     Como suas avaliações chegam ao Google
                   </div>
                   <div style={{textAlign:"center",fontSize:13,color:"#6b7280",marginBottom:18}}>
@@ -1030,7 +1030,7 @@ export default function StarTouch({ user, onLogout }) {
                         <span style={{fontSize:10,fontWeight:700,color:"#475569",background:"#f1f5f9",border:"1px solid #e5e7eb",letterSpacing:"0.08em",padding:"2px 7px",borderRadius:4,textTransform:"uppercase"}}>Plano grátis</span>
                         <span style={{fontSize:10,fontWeight:700,color:"#9ca3af",letterSpacing:"0.12em",textTransform:"uppercase"}}>Sem proteção</span>
                       </div>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#0f172a",lineHeight:1.25,marginBottom:14}}>Tudo vai direto para o Google</div>
+                      <div style={{fontFamily:"'General Sans',sans-serif",fontSize:18,fontWeight:700,color:"#0f172a",lineHeight:1.25,marginBottom:14}}>Tudo vai direto para o Google</div>
                       <div style={{display:"flex",flexDirection:"column",gap:8}}>
                         {[{e:"😊",l:"Cliente satisfeito"},{e:"😐",l:"Cliente neutro"},{e:"😞",l:"Cliente insatisfeito"}].map((row,i)=>(
                           <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,padding:"10px 12px"}}>
@@ -1049,7 +1049,7 @@ export default function StarTouch({ user, onLogout }) {
                     <div style={{background:"#fff",borderRadius:12,padding:"22px 22px 24px",border:"1.5px solid #34A853",boxShadow:"0 1px 2px rgba(52,168,83,0.10), 0 4px 12px -4px rgba(52,168,83,0.18)",position:"relative",overflow:"hidden"}}>
                       <div>
                       <div style={{fontSize:10,fontWeight:700,color:"#34A853",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Com Modo Protegido</div>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#065f46",lineHeight:1.25,marginBottom:14}}>Você ouve antes</div>
+                      <div style={{fontFamily:"'General Sans',sans-serif",fontSize:18,fontWeight:700,color:"#065f46",lineHeight:1.25,marginBottom:14}}>Você ouve antes</div>
                       <div style={{display:"flex",flexDirection:"column",gap:8}}>
                         <div style={{display:"flex",alignItems:"center",gap:10,background:"#fff",border:"1px solid #a7f3d0",borderRadius:10,padding:"10px 12px"}}>
                           <div style={{fontSize:20,width:28,textAlign:"center",flexShrink:0}}>😊</div>
@@ -1083,7 +1083,7 @@ export default function StarTouch({ user, onLogout }) {
                     <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:700,color:"#fbbf24",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>
                       <Zap size={11} fill="#fbbf24"/> Modo Protegido
                     </div>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#fff",lineHeight:1.2,marginBottom:18}}>Proteja sua reputação antes que vire problema</div>
+                    <div style={{fontFamily:"'General Sans',sans-serif",fontSize:24,fontWeight:700,color:"#fff",lineHeight:1.2,marginBottom:18}}>Proteja sua reputação antes que vire problema</div>
                     <ul style={{listStyle:"none",padding:0,margin:"0 0 22px",display:"flex",flexDirection:"column",gap:10}}>
                       {[
                         "Cliente insatisfeito fala com você primeiro",
@@ -1099,7 +1099,7 @@ export default function StarTouch({ user, onLogout }) {
                       ))}
                     </ul>
                     <button onClick={goToCheckout}
-                      style={{cursor:"pointer",border:"none",fontFamily:"inherit",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"14px 26px",fontSize:15,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,marginBottom:12}}>
+                      style={{cursor:"pointer",border:"none",fontFamily:"inherit",background:"#00C49A",color:"#fff",borderRadius:12,padding:"14px 26px",fontSize:15,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,marginBottom:12}}>
                       <ShieldCheck size={16}/> Ativar modo protegido
                     </button>
                     <div style={{fontSize:13,color:"#fff",fontWeight:700,lineHeight:1.4}}>Teste grátis por 14 dias</div>
@@ -1134,13 +1134,13 @@ export default function StarTouch({ user, onLogout }) {
                         <div style={{padding:"2px 8px",borderRadius:6,background:rb(rev.rating),color:rc(rev.rating),fontSize:11,fontWeight:700}}>
                           {rev.rating>=4?"Positiva":rev.rating===3?"Neutra":"Negativa"}
                         </div>
-                        {rev.via==="nfc"&&<div style={{padding:"2px 8px",borderRadius:6,background:"#e8f0fe",color:"#1a73e8",fontSize:11,fontWeight:700,display:"flex",alignItems:"center",gap:3}}><Smartphone size={10}/> NFC</div>}
+                        {rev.via==="nfc"&&<div style={{padding:"2px 8px",borderRadius:6,background:"#e8f0fe",color:"#00C49A",fontSize:11,fontWeight:700,display:"flex",alignItems:"center",gap:3}}><Smartphone size={10}/> NFC</div>}
                         <span style={{marginLeft:"auto",fontSize:11,color:"#9ca3af",display:"flex",alignItems:"center",gap:3}}><Clock size={11}/>{rev.date}</span>
                       </div>
                       <p style={{fontSize:13,color:"#9ca3af",lineHeight:1.6,marginBottom:12}}>{rev.text}</p>
                       {rev.replied&&(
                         <div style={{background:"#ecfdf5",border:"1px solid #a7f3d0",borderRadius:10,padding:"10px 14px",marginBottom:12}}>
-                          <div style={{fontSize:11,color:"#1a73e8",fontWeight:600,marginBottom:4,display:"flex",alignItems:"center",gap:5}}><Check size={11}/> Resposta enviada</div>
+                          <div style={{fontSize:11,color:"#00C49A",fontWeight:600,marginBottom:4,display:"flex",alignItems:"center",gap:5}}><Check size={11}/> Resposta enviada</div>
                           <p style={{fontSize:12,color:"#059669"}}>{rev.reply}</p>
                         </div>
                       )}
@@ -1155,7 +1155,7 @@ export default function StarTouch({ user, onLogout }) {
           {tab==="capturar"&&(
             <div style={{animation:"fadeUp 0.4s ease"}}>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:16,marginBottom:24}}>
-                <Metric icon={Gift} label="Via NFC este mês" value={nfcCount} sub="reviews capturados" color="#1a73e8" bg="#ecfdf5"/>
+                <Metric icon={Gift} label="Via NFC este mês" value={nfcCount} sub="reviews capturados" color="#00C49A" bg="#ecfdf5"/>
                 <Metric icon={TrendingUp} label="Taxa conversão" value="73%" sub="quem toca, avalia" color="#8b5cf6" bg="#f5f3ff"/>
                 <Metric icon={Star} label="Nota média NFC" value="4.8" sub="vs 3.9 orgânico" color="#f59e0b" bg="#fef3c7"/>
               </div>
@@ -1175,7 +1175,7 @@ export default function StarTouch({ user, onLogout }) {
                     </div>
                     <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                       {["Plaquinha de mesa","Adesivo de parede","Cartão de visita"].map((f,i)=>(
-                        <div key={f} style={{background:i===0?"#e8f0fe":"#f9fafb",border:`1px solid ${i===0?"#a7f3d0":"#e5e7eb"}`,borderRadius:8,padding:"6px 12px",fontSize:12,color:i===0?"#1a73e8":"#9ca3af"}}>{f}</div>
+                        <div key={f} style={{background:i===0?"#e8f0fe":"#f9fafb",border:`1px solid ${i===0?"#a7f3d0":"#e5e7eb"}`,borderRadius:8,padding:"6px 12px",fontSize:12,color:i===0?"#00C49A":"#9ca3af"}}>{f}</div>
                       ))}
                     </div>
                   </div>
@@ -1191,7 +1191,7 @@ export default function StarTouch({ user, onLogout }) {
                   <div style={{background:"#fef2f2",borderRadius:10,padding:"8px 14px",fontSize:12,color:"#fca5a5",display:"flex",alignItems:"center",gap:6}}><Check size={12}/> 😞 Ruim → Formulário privado</div>
                 </div>
                 <button onClick={()=>setShowPreview(true)} className="bg"
-                  style={{background:"linear-gradient(135deg,#1a73e8,#1557b0)",color:"#fff",border:"none",borderRadius:12,padding:"12px 24px",fontSize:13,fontWeight:700,display:"flex",alignItems:"center",gap:8}}>
+                  style={{background:"linear-gradient(135deg,#00C49A,#1557b0)",color:"#fff",border:"none",borderRadius:12,padding:"12px 24px",fontSize:13,fontWeight:700,display:"flex",alignItems:"center",gap:8}}>
                   <Smartphone size={15}/> Simular experiência do cliente
                 </button>
               </div>
@@ -1203,12 +1203,12 @@ export default function StarTouch({ user, onLogout }) {
             <div style={{animation:"fadeUp 0.4s ease"}}>
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,marginBottom:20}}>
                 <div style={{fontSize:13,color:"#6b7280",marginBottom:8}}>Cole no seu site</div>
-                <div style={{background:"#f9fafb",borderRadius:10,padding:12,fontFamily:"monospace",fontSize:11,color:"#1a73e8",border:"1px solid #e5e7eb"}}>{`<script src="https://startouch.com.br/widget.js" data-id="seu-negocio"></script>`}</div>
+                <div style={{background:"#f9fafb",borderRadius:10,padding:12,fontFamily:"monospace",fontSize:11,color:"#00C49A",border:"1px solid #e5e7eb"}}>{`<script src="https://startouch.com.br/widget.js" data-id="seu-negocio"></script>`}</div>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
                 {reviews.filter(r=>r.rating>=4).map((rev,i)=>(
                   <div key={rev.id} style={{background:"linear-gradient(145deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:16,padding:20,animation:"fadeUp 0.4s ease both",animationDelay:`${i*.06}s`,position:"relative",overflow:"hidden"}}>
-                    {rev.via==="nfc"&&<div style={{position:"absolute",top:12,right:12,background:"#e8f0fe",color:"#1a73e8",fontSize:9,fontWeight:700,borderRadius:5,padding:"2px 6px",display:"flex",alignItems:"center",gap:3}}><Smartphone size={9}/> NFC</div>}
+                    {rev.via==="nfc"&&<div style={{position:"absolute",top:12,right:12,background:"#e8f0fe",color:"#00C49A",fontSize:9,fontWeight:700,borderRadius:5,padding:"2px 6px",display:"flex",alignItems:"center",gap:3}}><Smartphone size={9}/> NFC</div>}
                     <div style={{marginBottom:12}}><Stars rating={rev.rating} size={14}/></div>
                     <p style={{fontSize:13,color:"#9ca3af",lineHeight:1.7,marginBottom:14,fontStyle:"italic"}}>"{rev.text}"</p>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -1233,7 +1233,7 @@ export default function StarTouch({ user, onLogout }) {
                     <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#ea4335,#fbbc04,#34a853,#4285f4)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                       <Building2 size={18} color="#fff"/>
                     </div>
-                    <div style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a"}}>
+                    <div style={{fontSize:18,fontWeight:700,fontFamily:"'General Sans',sans-serif",color:"#0f172a"}}>
                       {bizInfo ? "Trocar negócio" : "Conectar negócio"}
                     </div>
                   </div>
@@ -1246,17 +1246,17 @@ export default function StarTouch({ user, onLogout }) {
                       <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}
                         onKeyDown={e=>e.key==="Enter"&&doSearch()}
                         placeholder="ex: Pão de Açúcar"
-                        style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif"}}/>
+                        style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none",fontFamily:"'General Sans',sans-serif"}}/>
                     </div>
                     <div>
                       <label style={{fontSize:11,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:4}}>Cidade <span style={{color:"#9ca3af",fontWeight:400}}>(recomendado)</span></label>
                       <input value={searchCity} onChange={e=>setSearchCity(e.target.value)}
                         onKeyDown={e=>e.key==="Enter"&&doSearch()}
                         placeholder="ex: São Paulo, SP"
-                        style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none",fontFamily:"'Plus Jakarta Sans',sans-serif"}}/>
+                        style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none",fontFamily:"'General Sans',sans-serif"}}/>
                     </div>
                     <button onClick={doSearch} disabled={searchLoading||!searchQuery.trim()} className="bg"
-                      style={{background:"#1a73e8",color:"#fff",border:"none",borderRadius:10,padding:"11px 20px",fontSize:13,fontWeight:600,cursor:searchLoading?"wait":"pointer",opacity:searchLoading||!searchQuery.trim()?0.6:1}}>
+                      style={{background:"#00C49A",color:"#fff",border:"none",borderRadius:10,padding:"11px 20px",fontSize:13,fontWeight:600,cursor:searchLoading?"wait":"pointer",opacity:searchLoading||!searchQuery.trim()?0.6:1}}>
                       {searchLoading?"Buscando...":"Buscar no Google"}
                     </button>
                   </div>
@@ -1265,7 +1265,7 @@ export default function StarTouch({ user, onLogout }) {
                       {searchResults.map(r=>(
                         <div key={r.place_id} onClick={()=>!savingBiz&&selectAndSave(r)}
                           style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"12px 14px",cursor:savingBiz?"wait":"pointer",opacity:savingBiz?0.5:1,transition:"border-color .15s"}}
-                          onMouseEnter={e=>!savingBiz&&(e.currentTarget.style.borderColor="#1a73e8")} onMouseLeave={e=>e.currentTarget.style.borderColor="#e5e7eb"}>
+                          onMouseEnter={e=>!savingBiz&&(e.currentTarget.style.borderColor="#00C49A")} onMouseLeave={e=>e.currentTarget.style.borderColor="#e5e7eb"}>
                           <div style={{fontSize:13,fontWeight:600,color:"#0f172a",marginBottom:4}}>{r.name}</div>
                           <div style={{fontSize:11,color:"#6b7280",marginBottom:6}}>{r.address}</div>
                           <div style={{display:"flex",alignItems:"center",gap:10,fontSize:11,color:"#9ca3af"}}>
@@ -1294,7 +1294,7 @@ export default function StarTouch({ user, onLogout }) {
               ) : (
                 <div style={{background:"linear-gradient(145deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:16,padding:32,textAlign:"center"}}>
                   <div style={{fontSize:36,marginBottom:12}}>✅</div>
-                  <div style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#0f172a",marginBottom:8}}>{bizInfo.name}</div>
+                  <div style={{fontSize:18,fontWeight:700,fontFamily:"'General Sans',sans-serif",color:"#0f172a",marginBottom:8}}>{bizInfo.name}</div>
                   <div style={{fontSize:13,color:"#059669",marginBottom:6}}>{user?.email}</div>
                   <div style={{fontSize:12,color:"#9ca3af",marginBottom:24}}>
                     ⭐ {bizInfo.rating?bizInfo.rating.toFixed(1):"—"} · {bizInfo.total||0} avaliações no Google
@@ -1314,7 +1314,7 @@ export default function StarTouch({ user, onLogout }) {
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24,marginBottom:16}}>
                 <div style={{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Seu plano atual</div>
                 <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
-                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:700,color:"#0f172a"}}>{isPro?"Modo Protegido":"Plano gratuito"}</span>
+                  <span style={{fontFamily:"'General Sans',sans-serif",fontSize:28,fontWeight:700,color:"#0f172a"}}>{isPro?"Modo Protegido":"Plano gratuito"}</span>
                   <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.05em",borderRadius:6,padding:"3px 8px",background:isPro?"#059669":"#e5e7eb",color:isPro?"#fff":"#9ca3af"}}>
                     {isPro?"PROTEGIDO":"GRÁTIS"}
                   </span>
@@ -1332,7 +1332,7 @@ export default function StarTouch({ user, onLogout }) {
                   <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
                     <div style={{width:40,height:40,borderRadius:10,background:"#059669",display:"flex",alignItems:"center",justifyContent:"center"}}><ShieldCheck size={20} color="#fff"/></div>
                     <div>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#0f172a"}}>Ativar Modo Protegido</div>
+                      <div style={{fontFamily:"'General Sans',sans-serif",fontSize:20,fontWeight:700,color:"#0f172a"}}>Ativar Modo Protegido</div>
                       <div style={{fontSize:13,color:"#059669",fontWeight:600}}>R$49/mês · 14 dias grátis</div>
                     </div>
                   </div>
@@ -1349,7 +1349,7 @@ export default function StarTouch({ user, onLogout }) {
                       </li>
                     ))}
                   </ul>
-                  <button onClick={goToCheckout} style={{cursor:"pointer",border:"none",fontFamily:"inherit",display:"block",width:"100%",background:"#1a73e8",color:"#fff",borderRadius:12,padding:"13px 20px",fontSize:14,fontWeight:700,textAlign:"center"}}>
+                  <button onClick={goToCheckout} style={{cursor:"pointer",border:"none",fontFamily:"inherit",display:"block",width:"100%",background:"#00C49A",color:"#fff",borderRadius:12,padding:"13px 20px",fontSize:14,fontWeight:700,textAlign:"center"}}>
                     Quero ativar →
                   </button>
                 </div>
@@ -1365,7 +1365,7 @@ export default function StarTouch({ user, onLogout }) {
                     <div style={{fontSize:24}}>🪧</div>
                     <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>Plaquinha de mesa</div>
                     <div style={{fontSize:12,color:"#6b7280",lineHeight:1.5}}>Acrílico cristal com QR code do seu negócio.</div>
-                    <div style={{fontSize:12,color:"#1a73e8",fontWeight:700,marginTop:6,display:"flex",alignItems:"center",gap:5}}>Comprar no Mercado Livre <ExternalLink size={11}/></div>
+                    <div style={{fontSize:12,color:"#00C49A",fontWeight:700,marginTop:6,display:"flex",alignItems:"center",gap:5}}>Comprar no Mercado Livre <ExternalLink size={11}/></div>
                   </a>
                   <div style={{background:"#f9fafb",border:"1px dashed #e5e7eb",borderRadius:12,padding:18,display:"flex",flexDirection:"column",gap:6}}>
                     <div style={{fontSize:24,opacity:0.5}}>💳</div>
@@ -1437,7 +1437,7 @@ export default function StarTouch({ user, onLogout }) {
                     <div style={{width:64,height:64,borderRadius:18,background:"#ecfdf5",border:"1px solid #a7f3d0",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px"}}>
                       <ShieldCheck size={28} color="#059669"/>
                     </div>
-                    <div style={{fontSize:18,fontWeight:700,color:"#0f172a",fontFamily:"'Playfair Display',serif",marginBottom:8}}>
+                    <div style={{fontSize:18,fontWeight:700,color:"#0f172a",fontFamily:"'General Sans',sans-serif",marginBottom:8}}>
                       {isPro ? "Tudo sob controle por enquanto." : "Nenhum risco identificado hoje."}
                     </div>
                     <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55,maxWidth:380,margin:"0 auto"}}>
@@ -1518,7 +1518,7 @@ export default function StarTouch({ user, onLogout }) {
                         <div style={{width:7,height:7,borderRadius:"50%",background:"#10b981",animation:"pulseDot 2.4s ease-out infinite"}}/>
                         Sistema ativo
                       </div>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#0f172a",lineHeight:1.2,marginBottom:8,letterSpacing:"-0.01em"}}>
+                      <div style={{fontFamily:"'General Sans',sans-serif",fontSize:24,fontWeight:700,color:"#0f172a",lineHeight:1.2,marginBottom:8,letterSpacing:"-0.01em"}}>
                         Seu sistema já está ativo
                       </div>
                       <div style={{fontSize:14,color:"#475569",lineHeight:1.55,maxWidth:520}}>
@@ -1546,7 +1546,7 @@ export default function StarTouch({ user, onLogout }) {
 
                 {/* TÍTULO ESCOLHA */}
                 <div style={{marginBottom:14,marginTop:30}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#0f172a",letterSpacing:"-0.005em"}}>
+                  <div style={{fontFamily:"'General Sans',sans-serif",fontSize:18,fontWeight:700,color:"#0f172a",letterSpacing:"-0.005em"}}>
                     Escolha como seus clientes irão avaliar
                   </div>
                   <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
@@ -1610,7 +1610,7 @@ export default function StarTouch({ user, onLogout }) {
                     <div style={{fontSize:12,color:"#475569",fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{directLink || "—"}</div>
                   </div>
                   <a href={directLink ? `${directLink}&preview=1` : "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
-                    style={{textDecoration:"none",background:"transparent",color:"#1a73e8",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none",border:"1px solid #bfdbfe",background:"#eff6ff",flexShrink:0}}>
+                    style={{textDecoration:"none",background:"transparent",color:"#00C49A",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none",border:"1px solid #bfdbfe",background:"#eff6ff",flexShrink:0}}>
                     <Smartphone size={13}/> Testar experiência
                   </a>
                 </div>
