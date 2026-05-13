@@ -76,10 +76,7 @@ Domínio antigo (`reputazap.com`) já foi verificado no Resend. Adicionar `start
 - Copiar records TXT/MX/DKIM
 - Adicionar no DNS do Registro.br
 
-Após verificação:
-- Trocar `from: "StarTouch <onboarding@resend.dev>"` em `api/feedback.js` por `from: "StarTouch <feedback@startouch.com.br>"`
-
-(Esse passo faz parte do Bloco 1.5.)
+Após verificação, setar env var `RESEND_FROM` no Vercel (ver `docs/setup/04_resend_email.md` pra checklist completo).
 
 ### 6. Atualizar Google Search Console
 

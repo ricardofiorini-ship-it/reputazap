@@ -230,7 +230,7 @@ Refator do fluxo público pra compliance Google (remoção do review gating, 2 b
 | Stripe Checkout | ✅ Test mode (`sk_test_`) |
 | Stripe Live mode | ⏳ Aguardando aprovação Stripe + decisão do usuário |
 | Resend domínio | ⏳ DNS adicionado, aguardando verificação |
-| Email transacional ativo | ⚠️ Funciona mas envia de `onboarding@resend.dev` (genérico) |
+| Email transacional ativo | ⚠️ Funciona (fallback `onboarding@resend.dev`). `RESEND_FROM` env var pronta — basta verificar domínio no Resend |
 | ImprovMX (receber contato@startouch.com.br) | ⏳ Não configurado |
 | Gmail "Send As" | ⏳ Não configurado |
 | Webhook Stripe configurado | ✅ Test mode |

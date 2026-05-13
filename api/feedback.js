@@ -5,12 +5,23 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
+// Fallback pra resend.dev (compartilhado, funciona enquanto domínio próprio
+// não estiver verificado). Quando setar RESEND_FROM no Vercel pra
+// "StarTouch <feedback@startouch.com.br>", troca automático.
+const EMAIL_FROM = process.env.RESEND_FROM || "StarTouch <onboarding@resend.dev>";
+
 const CATEGORY_LABEL = {
   elogio:     { name: "Elogio",     emoji: "😊", color: "#34A853" },
   sugestao:   { name: "Sugestão",   emoji: "💡", color: "#FBBC04" },
   reclamacao: { name: "Reclamação", emoji: "⚠️", color: "#EA4335" },
   duvida:     { name: "Dúvida",     emoji: "❓", color: "#00C49A" }
 };
+
+const EMAIL_FOOTER = `
+<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#80868B;line-height:1.6;text-align:center;">
+  <strong style="color:#00C49A;">StarTouch</strong> — Plataforma de relacionamento local<br/>
+  <a href="https://startouch.com.br/app" style="color:#00C49A;text-decoration:none;">Abrir painel</a> &middot; <a href="https://startouch.com.br" style="color:#00C49A;text-decoration:none;">startouch.com.br</a>
+</div>`;
 
 function escapeHtml(s) {
   return String(s || "").replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
@@ -44,6 +55,7 @@ async function sendEmail({ to, bizName, category, text, sender_name, contact }) 
         ${contactHtml}
       </div>
       <p style="font-size:11.5px;color:#80868B;line-height:1.6;">Você recebeu essa mensagem porque seu negócio usa o StarTouch. Pra responder ou marcar como resolvido, abra o painel.</p>
+      ${EMAIL_FOOTER}
     </div>
   `;
 
@@ -52,6 +64,9 @@ async function sendEmail({ to, bizName, category, text, sender_name, contact }) 
     return { skipped: true };
   }
 
+  // Se cliente deixou email, permite ao dono responder direto via reply
+  const customerEmail = contact && contact.includes("@") ? contact : null;
+
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -59,8 +74,9 @@ async function sendEmail({ to, bizName, category, text, sender_name, contact }) 
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      from: "StarTouch <onboarding@resend.dev>",
+      from: EMAIL_FROM,
       to: [to],
+      ...(customerEmail && { reply_to: customerEmail }),
       subject,
       html: htmlBody
     })
@@ -150,13 +166,14 @@ export default async function handler(req, res) {
             <p style="color:#5F6368;font-size:14px;margin-top:0;">Obrigado por nos enviar seu feedback. Veja a resposta do estabelecimento:</p>
             <div style="background:#F8F9FA;border-left:4px solid #00C49A;border-radius:8px;padding:18px 22px;margin:20px 0;font-size:15px;line-height:1.6;color:#202124;white-space:pre-wrap;">${cleanReply.replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]))}</div>
             <p style="font-size:12px;color:#80868B;line-height:1.6;">Esta é uma resposta privada. Se quiser conversar mais, basta responder este email.</p>
+            ${EMAIL_FOOTER}
           </div>
         `;
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            from: "StarTouch <onboarding@resend.dev>",
+            from: EMAIL_FROM,
             to: [fb.contact],
             reply_to: fb.contact,
             subject: `Resposta de ${bizName}`,
