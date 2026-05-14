@@ -1094,47 +1094,103 @@
     color: #9FFFC0;
   }
 
-  /* SOCIAL PROOF SECTION — dark "Empresas que confiam" */
+  /* SOCIAL PROOF SECTION — dark stats expandido + carrossel testimonials */
   .social-proof {
     background: #0A0F0D;
     color: #FFFFFF;
     padding: 56px 24px 80px;
     position: relative;
+    overflow: hidden;
   }
   @media (min-width: 1024px) { .social-proof { padding: 80px 32px 96px; } }
-  .social-proof-inner {
-    max-width: 1152px;
-    margin: 0 auto;
-    text-align: center;
+  .social-proof::before {
+    content: ""; position: absolute;
+    left: 50%; top: 0;
+    transform: translateX(-50%);
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(159,255,192,0.18), transparent);
+    pointer-events: none;
   }
-  .social-proof-title {
+  .social-proof-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .social-proof-head {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 36px;
+    align-items: center;
+    margin-bottom: 48px;
+  }
+  @media (min-width: 1024px) { .social-proof-head { grid-template-columns: 1fr 1.2fr; gap: 56px; } }
+  .social-proof-text { text-align: left; }
+  .social-proof-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
     font-family: 'General Sans', sans-serif;
     font-size: 11px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.45);
+    font-weight: 600;
+    color: #9FFFC0;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    margin-bottom: 32px;
+    margin-bottom: 18px;
+    padding: 8px 18px;
+    background: rgba(159,255,192,0.08);
+    border: 1px solid rgba(159,255,192,0.18);
+    border-radius: 999px;
   }
-  @media (min-width: 1024px) { .social-proof-title { font-size: 12px; margin-bottom: 44px; } }
+  @media (min-width: 768px) { .social-proof-eyebrow { font-size: 12px; } }
+  .social-proof-h2 {
+    font-family: 'General Sans', sans-serif;
+    font-size: clamp(28px, 4.5vw, 44px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+  .social-proof-h2 .accent { color: #9FFFC0; }
+  .social-proof-intro {
+    font-family: 'General Sans', sans-serif;
+    font-size: 15px;
+    color: rgba(255,255,255,0.62);
+    line-height: 1.55;
+    margin: 0;
+    max-width: 480px;
+    text-wrap: balance;
+  }
+  @media (min-width: 1024px) { .social-proof-intro { font-size: 16px; } }
+
+  /* 4 stats com ícones */
   .social-proof-stats {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-    margin-bottom: 48px;
-    padding: 32px 24px;
-    background: linear-gradient(180deg, rgba(159,255,192,0.04), rgba(159,255,192,0));
+    gap: 12px;
+  }
+  @media (min-width: 1024px) { .social-proof-stats { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
+  .stat-card {
+    background: #131A17;
     border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 20px;
+    border-radius: 16px;
+    padding: 18px 16px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+    text-align: left;
+    transition: border-color .2s;
   }
-  @media (min-width: 1024px) { .social-proof-stats { grid-template-columns: repeat(4, 1fr); gap: 32px; padding: 40px 32px; } }
-  .stat-item {
-    display: flex; flex-direction: column; gap: 6px;
-    text-align: center;
+  .stat-card:hover { border-color: rgba(159,255,192,0.25); }
+  .stat-card-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: rgba(159,255,192,0.12);
+    border: 1px solid rgba(159,255,192,0.22);
+    display: inline-flex; align-items: center; justify-content: center;
   }
+  .stat-card-icon svg { width: 18px; height: 18px; color: #9FFFC0; }
   .stat-num {
     font-family: 'General Sans', sans-serif;
-    font-size: clamp(28px, 4.5vw, 40px);
+    font-size: clamp(22px, 3vw, 28px);
     font-weight: 700;
     color: #9FFFC0;
     letter-spacing: -0.02em;
@@ -1143,85 +1199,151 @@
   .stat-label {
     font-family: 'General Sans', sans-serif;
     font-size: 12px;
-    color: rgba(255,255,255,0.55);
+    color: rgba(255,255,255,0.62);
     line-height: 1.4;
   }
-  @media (min-width: 1024px) { .stat-label { font-size: 13px; } }
-  .social-proof-companies {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 24px;
+  @media (min-width: 1024px) { .stat-label { font-size: 12.5px; } }
+
+  /* Carrossel testimonials */
+  .testimonials-wrap {
+    position: relative;
   }
-  @media (min-width: 768px) { .social-proof-companies { grid-template-columns: repeat(4, 1fr); gap: 16px; } }
-  .company-card {
+  .testimonials-track {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .testimonials-track::-webkit-scrollbar { height: 6px; }
+  .testimonials-track::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 3px; }
+  .testimonial-card {
+    flex: 0 0 280px;
     background: #131A17;
     border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    padding: 18px 16px;
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    text-align: center;
+    border-radius: 18px;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex; flex-direction: column;
+    transition: border-color .2s, transform .2s;
   }
-  .company-name {
-    font-family: 'General Sans', sans-serif;
-    font-size: 13.5px;
-    font-weight: 700;
-    color: #FFFFFF;
-    letter-spacing: -0.005em;
+  @media (min-width: 640px) { .testimonial-card { flex: 0 0 320px; } }
+  @media (min-width: 1024px) { .testimonial-card { flex: 1 1 0; min-width: 0; } }
+  .testimonial-card:hover { border-color: rgba(159,255,192,0.25); }
+  .testimonial-photo {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    background: linear-gradient(135deg, #1A2420 0%, #0A0F0D 70%);
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
   }
-  .company-rating {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-family: 'General Sans', sans-serif;
-    font-size: 12px;
-    color: rgba(255,255,255,0.55);
+  .testimonial-photo::before {
+    content: ""; position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 140px; height: 140px;
+    background: radial-gradient(circle, rgba(159,255,192,0.10), transparent 65%);
+    pointer-events: none;
   }
-  .company-rating-star { color: #FBBF24; font-size: 12px; }
-  .social-proof-microcopy {
-    font-family: 'General Sans', sans-serif;
-    font-size: 12px;
-    color: rgba(255,255,255,0.40);
-    margin-bottom: 40px;
-  }
-  @media (min-width: 1024px) { .social-proof-microcopy { font-size: 13px; margin-bottom: 56px; } }
-
-  .social-proof-badges {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-    padding-top: 32px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    text-align: left;
-  }
-  @media (min-width: 640px) { .social-proof-badges { grid-template-columns: repeat(2, 1fr); gap: 18px; } }
-  @media (min-width: 1024px) { .social-proof-badges { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
-  .sp-badge {
-    display: flex; align-items: flex-start; gap: 10px;
-  }
-  .sp-badge-icon {
-    flex-shrink: 0;
-    width: 24px; height: 24px;
-    border-radius: 50%;
-    background: rgba(159,255,192,0.12);
+  .testimonial-cat {
+    position: absolute;
+    top: 14px; left: 14px;
+    background: rgba(10,15,13,0.75);
+    backdrop-filter: blur(6px);
     border: 1px solid rgba(159,255,192,0.25);
-    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
     color: #9FFFC0;
-    margin-top: 2px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
   }
-  .sp-badge-icon svg { width: 12px; height: 12px; }
-  .sp-badge-text { display: flex; flex-direction: column; gap: 2px; }
-  .sp-badge-title {
+  .testimonial-phone {
+    position: relative;
+    width: 70px; height: 130px;
+    background: linear-gradient(180deg, #131A17 0%, #050807 100%);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 12px;
+    padding: 8px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    z-index: 1;
+  }
+  .testimonial-phone-pill {
+    background: #9FFFC0;
+    color: #0A0F0D;
+    font-size: 7px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+  }
+  .testimonial-phone-stars { color: #FBBF24; font-size: 9px; letter-spacing: 0.5px; }
+  .testimonial-phone-line {
+    width: 36px; height: 2px;
+    background: rgba(255,255,255,0.10);
+    border-radius: 2px;
+  }
+  .testimonial-body {
+    padding: 18px 18px 20px;
+    display: flex; flex-direction: column; gap: 12px;
+    flex: 1;
+  }
+  .testimonial-stars {
+    color: #FBBF24;
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+  .testimonial-quote {
+    font-family: 'General Sans', sans-serif;
+    font-size: 14px;
+    color: #FFFFFF;
+    line-height: 1.5;
+    margin: 0;
+    flex: 1;
+  }
+  .testimonial-author {
+    display: flex; flex-direction: column; gap: 2px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .testimonial-author-name {
     font-family: 'General Sans', sans-serif;
     font-size: 13px;
     font-weight: 700;
     color: #FFFFFF;
     letter-spacing: -0.005em;
   }
-  .sp-badge-sub {
+  .testimonial-author-meta {
     font-family: 'General Sans', sans-serif;
-    font-size: 12px;
+    font-size: 11.5px;
     color: rgba(255,255,255,0.50);
-    line-height: 1.4;
   }
+
+  /* Setas do carrossel */
+  .testimonial-nav {
+    position: absolute;
+    top: 90px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(10,15,13,0.8);
+    border: 1px solid rgba(255,255,255,0.10);
+    display: none;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+    color: #FFFFFF;
+    transition: background .2s, border-color .2s;
+    z-index: 5;
+  }
+  @media (min-width: 768px) { .testimonial-nav { display: inline-flex; } }
+  .testimonial-nav:hover { background: rgba(159,255,192,0.15); border-color: rgba(159,255,192,0.30); color: #9FFFC0; }
+  .testimonial-nav svg { width: 18px; height: 18px; }
+  .testimonial-nav-prev { left: -8px; }
+  .testimonial-nav-next { right: -8px; }
 
   /* PRICING SECTION — dark "Escolha o plano" */
   .pricing-section {
@@ -2082,7 +2204,7 @@
   }
   .final-social-stars { color: #FBBF24; font-size: 13px; letter-spacing: 0.5px; }
 
-  /* FAQ SECTION — dark "Perguntas frequentes" */
+  /* FAQ SECTION — dark "Perguntas Frequentes" full-width */
   .faq-section {
     background: #0A0F0D;
     color: #FFFFFF;
@@ -2100,19 +2222,12 @@
     pointer-events: none;
   }
   .faq-inner {
-    max-width: 1200px;
+    max-width: 880px;
     margin: 0 auto;
     position: relative;
     z-index: 1;
+    text-align: center;
   }
-  .faq-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 48px;
-    align-items: start;
-  }
-  @media (min-width: 1024px) { .faq-grid { grid-template-columns: 1.4fr 1fr; gap: 64px; } }
-  .faq-left { text-align: left; }
   .faq-eyebrow {
     display: inline-flex; align-items: center; gap: 8px;
     font-family: 'General Sans', sans-serif;
@@ -2128,9 +2243,10 @@
     border-radius: 999px;
   }
   @media (min-width: 768px) { .faq-eyebrow { font-size: 12px; } }
+  .faq-eyebrow svg { width: 13px; height: 13px; flex-shrink: 0; }
   .faq-h2 {
     font-family: 'General Sans', sans-serif;
-    font-size: clamp(30px, 5vw, 48px);
+    font-size: clamp(32px, 5.5vw, 52px);
     font-weight: 700;
     line-height: 1.08;
     letter-spacing: -0.02em;
@@ -2139,19 +2255,22 @@
     text-wrap: balance;
   }
   .faq-h2 .accent { color: #9FFFC0; }
-  .faq-h2 .accent-dot { color: #9FFFC0; }
   .faq-intro {
     font-family: 'General Sans', sans-serif;
     font-size: 15.5px;
     color: rgba(255,255,255,0.62);
     line-height: 1.55;
-    margin: 0 0 36px;
-    max-width: 540px;
+    margin: 0 auto 48px;
+    max-width: 600px;
     text-wrap: balance;
   }
   @media (min-width: 1024px) { .faq-intro { font-size: 16.5px; } }
 
-  .faq-list { display: flex; flex-direction: column; gap: 10px; }
+  .faq-list {
+    display: flex; flex-direction: column;
+    gap: 10px;
+    text-align: left;
+  }
   .faq-item {
     background: #131A17;
     border: 1px solid rgba(255,255,255,0.06);
@@ -2161,9 +2280,8 @@
   }
   .faq-item[open] { border-color: rgba(159,255,192,0.30); }
   .faq-item summary {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px;
-    padding: 16px 20px;
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 22px;
     cursor: pointer;
     list-style: none;
     font-family: 'General Sans', sans-serif;
@@ -2172,134 +2290,124 @@
     color: #FFFFFF;
     letter-spacing: -0.005em;
   }
+  @media (min-width: 768px) { .faq-item summary { font-size: 15.5px; padding: 20px 24px; } }
   .faq-item summary::-webkit-details-marker { display: none; }
-  .faq-item summary::after {
-    content: "+";
+  .faq-num {
+    flex-shrink: 0;
     width: 28px; height: 28px;
     border-radius: 50%;
     background: rgba(159,255,192,0.12);
-    border: 1px solid rgba(159,255,192,0.25);
+    border: 1px solid rgba(159,255,192,0.30);
     color: #9FFFC0;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 18px; font-weight: 600;
+    font-family: 'General Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
     line-height: 1;
-    flex-shrink: 0;
-    transition: transform .2s;
   }
-  .faq-item[open] summary::after { content: "−"; transform: rotate(0deg); }
+  .faq-item[open] .faq-num {
+    background: #9FFFC0;
+    color: #0A0F0D;
+    border-color: #9FFFC0;
+  }
+  .faq-q { flex: 1; }
+  .faq-arrow {
+    flex-shrink: 0;
+    color: rgba(255,255,255,0.55);
+    transition: transform .2s, color .2s;
+    display: inline-flex;
+  }
+  .faq-arrow svg { width: 18px; height: 18px; }
+  .faq-item[open] .faq-arrow {
+    transform: rotate(180deg);
+    color: #9FFFC0;
+  }
   .faq-answer {
-    padding: 0 20px 16px;
+    padding: 0 22px 20px 64px;
     font-family: 'General Sans', sans-serif;
     font-size: 13.5px;
     color: rgba(255,255,255,0.65);
     line-height: 1.6;
   }
+  @media (min-width: 768px) { .faq-answer { padding: 0 24px 22px 66px; } }
 
-  /* FAQ visual à direita */
-  .faq-right { display: flex; align-items: flex-start; justify-content: center; }
-  .faq-visual {
-    background: linear-gradient(180deg, #131A17 0%, #0A0F0D 100%);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 24px;
-    padding: 32px 24px;
-    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5);
-    width: 100%;
-    max-width: 380px;
-    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  /* Item rich (item 1) com grid de ícones */
+  .faq-answer-rich p {
+    margin: 0 0 18px;
   }
-  .faq-vplaque {
-    width: 100%;
-    background: linear-gradient(180deg, #1A2420 0%, #0F1816 100%);
-    border: 1px solid rgba(159,255,192,0.25);
-    border-radius: 16px;
-    padding: 24px 16px;
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  .faq-features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
   }
-  .faq-vpill {
-    background: #9FFFC0;
-    color: #0A0F0D;
-    font-family: 'General Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 6px 14px;
-    border-radius: 6px;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
-  }
-  .faq-vsub {
-    font-family: 'General Sans', sans-serif;
-    font-size: 11px;
-    color: rgba(255,255,255,0.55);
-    letter-spacing: 0.04em;
-  }
-  .faq-vnfc {
-    width: 64px; height: 64px;
-    border: 1.5px solid rgba(159,255,192,0.30);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-    margin: 8px 0;
-  }
-  .faq-vnfc::before, .faq-vnfc::after {
-    content: ""; position: absolute;
-    border: 1.5px solid rgba(159,255,192,0.18);
-    border-radius: 50%;
-  }
-  .faq-vnfc::before { inset: 8px; }
-  .faq-vnfc::after { inset: 18px; border-color: rgba(159,255,192,0.35); }
-  .faq-vnfc svg { width: 16px; height: 16px; color: #9FFFC0; }
-  .faq-vphone {
-    width: 100%;
-    background: linear-gradient(180deg, #1A2420 0%, #0F1816 100%);
-    border: 1px solid rgba(255,255,255,0.10);
-    border-radius: 14px;
-    padding: 14px 12px;
-    display: flex; flex-direction: column; gap: 8px;
-  }
-  .faq-vphone-row {
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px 10px;
+  @media (min-width: 640px) { .faq-features-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 1024px) { .faq-features-grid { grid-template-columns: repeat(5, 1fr); } }
+  .faq-feature {
     background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 9px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 14px 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    text-align: center;
   }
-  .faq-vphone-icon {
-    width: 22px; height: 22px;
-    flex-shrink: 0;
-    color: #9FFFC0;
-  }
-  .faq-vphone-icon svg { width: 100%; height: 100%; }
-  .faq-vphone-meta {
-    display: flex; flex-direction: column; gap: 2px;
-    flex: 1; min-width: 0;
-  }
-  .faq-vphone-name {
-    font-family: 'General Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    color: #FFFFFF;
-  }
-  .faq-vphone-sub {
-    font-family: 'General Sans', sans-serif;
-    font-size: 9.5px;
-    color: rgba(255,255,255,0.5);
-  }
-  .faq-vphone-stars {
-    color: #FBBF24;
-    font-size: 10px;
-    letter-spacing: 0.5px;
-  }
-  .faq-vbadge {
-    background: rgba(159,255,192,0.08);
-    border: 1px solid rgba(159,255,192,0.18);
+  .faq-feature-icon {
+    width: 32px; height: 32px;
     border-radius: 8px;
+    background: rgba(159,255,192,0.10);
+    border: 1px solid rgba(159,255,192,0.20);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .faq-feature-icon svg { width: 16px; height: 16px; color: #9FFFC0; }
+  .faq-feature-label {
+    font-family: 'General Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.3;
+  }
+  .faq-highlight {
+    background: rgba(159,255,192,0.06);
+    border: 1px solid rgba(159,255,192,0.20);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.80);
+    line-height: 1.5;
+  }
+  .faq-highlight strong { color: #9FFFC0; }
+
+  /* Item 7 com produtos NFC inline */
+  .faq-summary-products {
+    display: none;
+    align-items: center; gap: 6px;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+  @media (min-width: 768px) { .faq-summary-products { display: inline-flex; } }
+  .faq-product-chip {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
     padding: 4px 10px;
-    font-size: 9px;
-    font-weight: 700;
+    font-family: 'General Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .faq-products-detail {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-top: 12px;
+  }
+  .faq-products-detail .faq-product-chip {
+    padding: 6px 14px;
+    font-size: 12px;
+    background: rgba(159,255,192,0.08);
+    border-color: rgba(159,255,192,0.20);
     color: #9FFFC0;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
   }
 
   /* FOOTER — dark */
@@ -3354,100 +3462,176 @@
   </div>
 </section>
 
-<!-- SOCIAL PROOF — Empresas que confiam na StarTouch (dark) -->
+<!-- SOCIAL PROOF — Stats + carrossel testimonials (dark) -->
 <section class="social-proof">
   <div class="social-proof-inner">
-    <div class="social-proof-title">Empresas que confiam na StarTouch</div>
+    <div class="social-proof-head">
+      <div class="social-proof-text">
+        <div class="social-proof-eyebrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Prova social
+        </div>
+        <h2 class="social-proof-h2">Mais de 2.500 negócios já confiam na <span class="accent">StarTouch</span></h2>
+        <p class="social-proof-intro">Empresários de todo o Brasil estão transformando a experiência dos seus clientes todos os dias.</p>
+      </div>
 
-    <div class="social-proof-stats">
-      <div class="stat-item">
-        <span class="stat-num">2.500+</span>
-        <span class="stat-label">Lojas atendidas</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num">120k+</span>
-        <span class="stat-label">Avaliações geradas</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num">+36%</span>
-        <span class="stat-label">Aumento médio nas avaliações</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num">98%</span>
-        <span class="stat-label">Satisfação dos clientes</span>
+      <div class="social-proof-stats">
+        <div class="stat-card">
+          <span class="stat-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </span>
+          <span class="stat-num">2.500+</span>
+          <span class="stat-label">Negócios ativos em todo o Brasil</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+              <line x1="9" y1="9" x2="9.01" y2="9"/>
+              <line x1="15" y1="9" x2="15.01" y2="9"/>
+            </svg>
+          </span>
+          <span class="stat-num">98%</span>
+          <span class="stat-label">Satisfação dos clientes</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+              <polyline points="17 6 23 6 23 12"/>
+            </svg>
+          </span>
+          <span class="stat-num">+200%</span>
+          <span class="stat-label">Aumento médio em avaliações</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+              <path d="M21 19a2 2 0 0 1-2 2h-1v-6h3z"/>
+              <path d="M3 19a2 2 0 0 0 2 2h1v-6H3z"/>
+            </svg>
+          </span>
+          <span class="stat-num">24h</span>
+          <span class="stat-label">Suporte humano sempre disponível</span>
+        </div>
       </div>
     </div>
 
-    <div class="social-proof-companies">
-      <div class="company-card">
-        <span class="company-name">Café Bello</span>
-        <span class="company-rating"><span class="company-rating-star">★</span>5.0</span>
-      </div>
-      <div class="company-card">
-        <span class="company-name">Studio Fit</span>
-        <span class="company-rating"><span class="company-rating-star">★</span>4.9</span>
-      </div>
-      <div class="company-card">
-        <span class="company-name">Dra. Carla Lima</span>
-        <span class="company-rating"><span class="company-rating-star">★</span>5.0</span>
-      </div>
-      <div class="company-card">
-        <span class="company-name">Auto Prime</span>
-        <span class="company-rating"><span class="company-rating-star">★</span>4.9</span>
-      </div>
-    </div>
+    <div class="testimonials-wrap">
+      <button class="testimonial-nav testimonial-nav-prev" type="button" aria-label="Anterior" id="tNavPrev">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="testimonial-nav testimonial-nav-next" type="button" aria-label="Próximo" id="tNavNext">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
 
-    <p class="social-proof-microcopy">+ de 2.500 lojas geram impacto real para seus negócios</p>
+      <div class="testimonials-track" id="tTrack">
+        <div class="testimonial-card">
+          <div class="testimonial-photo">
+            <span class="testimonial-cat">Restaurante</span>
+            <div class="testimonial-phone">
+              <span class="testimonial-phone-pill">TOQUE</span>
+              <span class="testimonial-phone-stars">★★★★★</span>
+              <span class="testimonial-phone-line"></span>
+              <span class="testimonial-phone-line"></span>
+            </div>
+          </div>
+          <div class="testimonial-body">
+            <span class="testimonial-stars">★★★★★</span>
+            <p class="testimonial-quote">"Aumento de 180% nas avaliações em menos de 30 dias."</p>
+            <div class="testimonial-author">
+              <span class="testimonial-author-name">Lucas Ferreira</span>
+              <span class="testimonial-author-meta">Proprietário · São Paulo, SP</span>
+            </div>
+          </div>
+        </div>
 
-    <div class="social-proof-badges">
-      <div class="sp-badge">
-        <span class="sp-badge-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <div class="sp-badge-text">
-          <span class="sp-badge-title">Em conformidade com a LGPD</span>
-          <span class="sp-badge-sub">Dados protegidos</span>
+        <div class="testimonial-card">
+          <div class="testimonial-photo">
+            <span class="testimonial-cat">Academia</span>
+            <div class="testimonial-phone">
+              <span class="testimonial-phone-pill">TOQUE</span>
+              <span class="testimonial-phone-stars">★★★★★</span>
+              <span class="testimonial-phone-line"></span>
+              <span class="testimonial-phone-line"></span>
+            </div>
+          </div>
+          <div class="testimonial-body">
+            <span class="testimonial-stars">★★★★★</span>
+            <p class="testimonial-quote">"Check-in automático, mais organização e clientes muito mais engajados."</p>
+            <div class="testimonial-author">
+              <span class="testimonial-author-name">Rafael Souza</span>
+              <span class="testimonial-author-meta">CEO · Rio de Janeiro, RJ</span>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="sp-badge">
-        <span class="sp-badge-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <div class="sp-badge-text">
-          <span class="sp-badge-title">Sem instalação de aplicativos</span>
-          <span class="sp-badge-sub">Tudo pronto pra usar</span>
+
+        <div class="testimonial-card">
+          <div class="testimonial-photo">
+            <span class="testimonial-cat">Clínica</span>
+            <div class="testimonial-phone">
+              <span class="testimonial-phone-pill">TOQUE</span>
+              <span class="testimonial-phone-stars">★★★★★</span>
+              <span class="testimonial-phone-line"></span>
+              <span class="testimonial-phone-line"></span>
+            </div>
+          </div>
+          <div class="testimonial-body">
+            <span class="testimonial-stars">★★★★★</span>
+            <p class="testimonial-quote">"Reduzimos faltas e melhoramos o relacionamento com nossos pacientes."</p>
+            <div class="testimonial-author">
+              <span class="testimonial-author-name">Dra. Carolina Mendes</span>
+              <span class="testimonial-author-meta">Diretora · Belo Horizonte, MG</span>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="sp-badge">
-        <span class="sp-badge-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <div class="sp-badge-text">
-          <span class="sp-badge-title">Ativação imediata</span>
-          <span class="sp-badge-sub">Em minutos no ar</span>
-        </div>
-      </div>
-      <div class="sp-badge">
-        <span class="sp-badge-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <div class="sp-badge-text">
-          <span class="sp-badge-title">Suporte humano</span>
-          <span class="sp-badge-sub">Resposta rápida</span>
+
+        <div class="testimonial-card">
+          <div class="testimonial-photo">
+            <span class="testimonial-cat">Eventos</span>
+            <div class="testimonial-phone">
+              <span class="testimonial-phone-pill">TOQUE</span>
+              <span class="testimonial-phone-stars">★★★★★</span>
+              <span class="testimonial-phone-line"></span>
+              <span class="testimonial-phone-line"></span>
+            </div>
+          </div>
+          <div class="testimonial-body">
+            <span class="testimonial-stars">★★★★★</span>
+            <p class="testimonial-quote">"Networking inteligente e conexões que realmente geram negócios."</p>
+            <div class="testimonial-author">
+              <span class="testimonial-author-name">Lucas Martins</span>
+              <span class="testimonial-author-meta">Organizador de eventos · Curitiba, PR</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
-
+<script>
+  (function() {
+    var track = document.getElementById('tTrack');
+    var prev = document.getElementById('tNavPrev');
+    var next = document.getElementById('tNavNext');
+    if (!track || !prev || !next) return;
+    var step = function() {
+      var card = track.querySelector('.testimonial-card');
+      return card ? card.offsetWidth + 16 : 320;
+    };
+    prev.addEventListener('click', function() { track.scrollBy({ left: -step(), behavior: 'smooth' }); });
+    next.addEventListener('click', function() { track.scrollBy({ left: step(), behavior: 'smooth' }); });
+  })();
+</script>
 <!-- PRICING — Escolha o plano ideal (dark) -->
 <section class="pricing-section" id="precos">
   <div class="pricing-inner">
@@ -4029,99 +4213,154 @@
   })();
 </script>
 
-<!-- FAQ — Perguntas frequentes (dark) -->
+<!-- FAQ — Perguntas Frequentes (dark, full-width) -->
 <section class="faq-section">
   <div class="faq-inner">
-    <div class="faq-grid">
-      <div class="faq-left">
-        <div class="faq-eyebrow">Dúvidas frequentes</div>
-        <h2 class="faq-h2">Perguntas <span class="accent">frequentes<span class="accent-dot">.</span></span></h2>
-        <p class="faq-intro">Respostas para as dúvidas mais comuns sobre a StarTouch.</p>
+    <div class="faq-eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Dúvidas frequentes
+    </div>
+    <h2 class="faq-h2">Perguntas <span class="accent">Frequentes</span></h2>
+    <p class="faq-intro">Tire suas dúvidas e descubra por que a <strong style="color:#9FFFC0;font-weight:600">StarTouch</strong> é a escolha certa para o seu negócio.</p>
 
-        <div class="faq-list">
-          <details class="faq-item">
-            <summary>Como funciona a tecnologia NFC?</summary>
-            <div class="faq-answer">Basta encostar o celular do cliente na placa NFC da StarTouch para abrir automaticamente uma experiência de avaliação ou conexão com a sua empresa no Google. Funciona em qualquer iPhone ou Android moderno (sem app).</div>
-          </details>
-          <details class="faq-item">
-            <summary>Precisa de aplicativo para usar?</summary>
-            <div class="faq-answer">Não. A StarTouch funciona direto pelo navegador do celular. Nem você nem o cliente precisam baixar nada — basta tocar.</div>
-          </details>
-          <details class="faq-item">
-            <summary>É seguro?</summary>
-            <div class="faq-answer">Sim. Não coletamos dados sensíveis, somos compatíveis com a LGPD e usamos conexão SSL em todas as páginas. Os dados ficam protegidos no nosso painel.</div>
-          </details>
-          <details class="faq-item">
-            <summary>Como ativar minha empresa?</summary>
-            <div class="faq-answer">Após receber o kit, é só seguir 3 passos no app: buscar sua empresa no Google, conectar o WhatsApp e ativar a placa. Em minutos sua experiência está no ar.</div>
-          </details>
-          <details class="faq-item">
-            <summary>Como funciona o pagamento?</summary>
-            <div class="faq-answer">Você pode pagar via PIX (à vista) ou cartão de crédito (em até 12x). Tudo 100% seguro. Sem fidelidade. Sem mensalidade obrigatória.</div>
-          </details>
-          <details class="faq-item">
-            <summary>Quais dispositivos são compatíveis?</summary>
-            <div class="faq-answer">Todos os smartphones com NFC (a partir de iPhone 7 e quase todos os Android). Também funciona via QR Code de fallback nos celulares mais antigos.</div>
-          </details>
-          <details class="faq-item">
-            <summary>Como funciona a entrega?</summary>
-            <div class="faq-answer">Frete grátis para todo o Brasil. Você recebe seu kit em até 7 dias úteis pelos Correios ou transportadora parceira, com código de rastreio por WhatsApp.</div>
-          </details>
-          <details class="faq-item">
-            <summary>Como funciona o suporte?</summary>
-            <div class="faq-answer">Suporte humanizado em horário comercial pelo WhatsApp e email. Planos Pro e Business têm suporte prioritário com resposta em até 1h útil.</div>
-          </details>
-        </div>
-      </div>
-
-      <div class="faq-right">
-        <div class="faq-visual" aria-hidden="true">
-          <div class="faq-vplaque">
-            <span class="faq-vpill">Toque aqui</span>
-            <span class="faq-vsub">e avalie no Google</span>
-            <div class="faq-vnfc">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
-                <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-                <line x1="12" y1="20" x2="12.01" y2="20"/>
-              </svg>
+    <div class="faq-list">
+      <details class="faq-item" open>
+        <summary>
+          <span class="faq-num">1</span>
+          <span class="faq-q">O que diferencia a StarTouch de soluções NFC comuns?</span>
+          <span class="faq-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-answer faq-answer-rich">
+          <p>A <strong style="color:#9FFFC0">StarTouch</strong> é uma das únicas soluções NFC que une avaliação no Google, atendimento por WhatsApp e gestão de relacionamento no mesmo toque. Não é só um cartão — é um ecossistema completo pronto pra escalar com o seu negócio.</p>
+          <div class="faq-features-grid">
+            <div class="faq-feature">
+              <span class="faq-feature-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </span>
+              <span class="faq-feature-label">Google Reviews</span>
             </div>
-            <span class="faq-vsub" style="color:#FBBF24;font-size:13px;letter-spacing:1px">★★★★★</span>
-          </div>
-
-          <div class="faq-vphone">
-            <div class="faq-vphone-row">
-              <span class="faq-vphone-icon">
-                <svg viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
-                  <path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.4.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.7.4-.3.3-1 1-1 2.4 0 1.5 1 2.9 1.2 3.1.2.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2z"/>
+            <div class="faq-feature">
+              <span class="faq-feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20.5 3.5a11.7 11.7 0 0 0-17 16L2 22l2.6-1.4a11.7 11.7 0 0 0 16-17z"/>
                 </svg>
               </span>
-              <div class="faq-vphone-meta">
-                <span class="faq-vphone-name">WhatsApp</span>
-                <span class="faq-vphone-sub">Cliente respondendo</span>
-              </div>
-              <span class="faq-vbadge">Ativo</span>
+              <span class="faq-feature-label">WhatsApp</span>
             </div>
-            <div class="faq-vphone-row">
-              <span class="faq-vphone-icon">
-                <svg viewBox="0 0 24 24" fill="#FBBF24" aria-hidden="true">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            <div class="faq-feature">
+              <span class="faq-feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
                 </svg>
               </span>
-              <div class="faq-vphone-meta">
-                <span class="faq-vphone-name">Avaliação no Google</span>
-                <span class="faq-vphone-sub">Café Bello Vista</span>
-              </div>
-              <span class="faq-vphone-stars">★★★★★</span>
+              <span class="faq-feature-label">Cartões NFC</span>
+            </div>
+            <div class="faq-feature">
+              <span class="faq-feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="6"/><path d="M12 6V2m0 20v-4"/>
+                </svg>
+              </span>
+              <span class="faq-feature-label">Pulseira NFC</span>
+            </div>
+            <div class="faq-feature">
+              <span class="faq-feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </span>
+              <span class="faq-feature-label">Automação inteligente</span>
             </div>
           </div>
+          <div class="faq-highlight">Tudo em um só lugar, <strong>simples e compatível com as políticas do Google</strong>.</div>
         </div>
-      </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          <span class="faq-num">2</span>
+          <span class="faq-q">Precisa instalar aplicativo para usar?</span>
+          <span class="faq-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-answer">Não. A StarTouch funciona direto pelo navegador do celular. Nem você nem o cliente precisam baixar nada — basta tocar.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          <span class="faq-num">3</span>
+          <span class="faq-q">Funciona em iPhone e Android?</span>
+          <span class="faq-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-answer">Sim. Funciona em todos os smartphones com NFC (a partir de iPhone 7 e praticamente qualquer Android moderno). Também temos QR Code de fallback para celulares antigos.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          <span class="faq-num">4</span>
+          <span class="faq-q">Posso alterar os links depois que a StarTouch estiver ativa?</span>
+          <span class="faq-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-answer">Sim, quando quiser. Pelo painel você troca o destino do seu link, perfil do Google ou número do WhatsApp em segundos — sem precisar trocar o cartão ou a placa.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          <span class="faq-num">5</span>
+          <span class="faq-q">A StarTouch é compatível com as políticas do Google?</span>
+          <span class="faq-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-answer">100%. Não fazemos review gating, filtros artificiais nem qualquer prática proibida. Avaliações reais, de clientes reais, sem manipulação — exatamente como o Google pede.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          <span class="faq-num">6</span>
+          <span class="faq-q">Preciso de conhecimento técnico para ativar?</span>
+          <span class="faq-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-answer">Não. A ativação é guiada passo a passo: busca da sua empresa no Google, conexão do WhatsApp e ativação da placa. Leva minutos e nosso suporte humanizado acompanha sempre que precisar.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          <span class="faq-num">7</span>
+          <span class="faq-q">Quais produtos NFC posso usar com a StarTouch?</span>
+          <span class="faq-summary-products">
+            <span class="faq-product-chip">Placa</span>
+            <span class="faq-product-chip">Cartão</span>
+            <span class="faq-product-chip">Pulseira</span>
+            <span class="faq-product-chip">Adesivo</span>
+          </span>
+          <span class="faq-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-answer">Você pode usar qualquer combinação dos nossos produtos: Placa NFC (balcão), Cartão NFC (carteira), Pulseira NFC (eventos) e Adesivo NFC (versátil). Todos funcionam com a mesma plataforma e podem ser gerenciados no mesmo painel.
+          <div class="faq-products-detail">
+            <span class="faq-product-chip">Placa NFC</span>
+            <span class="faq-product-chip">Cartão NFC</span>
+            <span class="faq-product-chip">Pulseira NFC</span>
+            <span class="faq-product-chip">Adesivo NFC</span>
+          </div>
+        </div>
+      </details>
     </div>
   </div>
 </section>
-
 <!-- FOOTER — dark -->
 <footer class="footer-dark">
   <div class="footer-dark-inner">
