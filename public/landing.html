@@ -304,6 +304,20 @@
   }
   @media (min-width: 1024px) { .hero-sub { font-size: 18px; } }
 
+  /* Hero banner (imagem visual após CTAs) */
+  .hero-banner {
+    display: block;
+    width: 100%;
+    max-width: 720px;
+    height: auto;
+    margin: 36px auto 0;
+    border-radius: 16px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.40);
+  }
+  @media (min-width: 1024px) {
+    .hero-banner { max-width: 900px; margin-top: 48px; border-radius: 20px; }
+  }
+
   /* CTA — 2 botões (Receber kit + Ativar agora) */
   .hero-ctas {
     display: flex;
@@ -3176,6 +3190,10 @@
         Já tenho meu kit, ativar agora
       </a>
     </div>
+
+    <img class="hero-banner" src="/hero-experiencias.png" alt="Kit StarTouch com placa, cartão e pulseira NFC" loading="lazy"/>
+  </div>
+</section>
 
 <!-- FEATURES — Muito além das avaliações (dark) -->
 <section class="features-section">
