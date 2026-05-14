@@ -1223,6 +1223,289 @@
     line-height: 1.4;
   }
 
+  /* PRICING SECTION — dark "Escolha o plano" */
+  .pricing-section {
+    background: #0A0F0D;
+    color: #FFFFFF;
+    padding: 64px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  @media (min-width: 1024px) { .pricing-section { padding: 96px 32px; } }
+  .pricing-section::before {
+    content: ""; position: absolute;
+    left: 50%; top: 0;
+    transform: translateX(-50%);
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(159,255,192,0.18), transparent);
+    pointer-events: none;
+  }
+  .pricing-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .pricing-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #9FFFC0;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    padding: 8px 18px;
+    background: rgba(159,255,192,0.08);
+    border: 1px solid rgba(159,255,192,0.18);
+    border-radius: 999px;
+  }
+  @media (min-width: 768px) { .pricing-eyebrow { font-size: 12px; } }
+  .pricing-h2 {
+    font-family: 'General Sans', sans-serif;
+    font-size: clamp(32px, 5.5vw, 52px);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  .pricing-h2 .accent { color: #9FFFC0; }
+  .pricing-h2 .accent-dot { color: #9FFFC0; }
+  .pricing-sub {
+    font-family: 'General Sans', sans-serif;
+    font-size: 16px;
+    color: rgba(255,255,255,0.62);
+    line-height: 1.55;
+    margin: 0 auto 18px;
+    max-width: 560px;
+    text-wrap: balance;
+  }
+  @media (min-width: 1024px) { .pricing-sub { font-size: 17px; } }
+  .pricing-mini-badges {
+    display: flex; flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 20px;
+    margin-bottom: 48px;
+  }
+  .pricing-mini-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+  }
+  .pricing-mini-badge svg { width: 13px; height: 13px; color: #9FFFC0; }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 56px;
+  }
+  @media (min-width: 768px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch; } }
+  @media (min-width: 1024px) { .pricing-grid { gap: 20px; } }
+
+  .price-card {
+    background: #131A17;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 28px 24px;
+    text-align: left;
+    display: flex; flex-direction: column;
+    position: relative;
+    transition: border-color .2s, transform .2s;
+  }
+  .price-card:hover { border-color: rgba(159,255,192,0.30); transform: translateY(-2px); }
+  .price-card-highlight {
+    border: 1.5px solid rgba(159,255,192,0.45);
+    background: linear-gradient(180deg, rgba(159,255,192,0.06), #131A17 30%);
+    box-shadow: 0 20px 60px -20px rgba(159,255,192,0.18);
+  }
+  .price-card-tag {
+    position: absolute;
+    top: -10px; left: 50%;
+    transform: translateX(-50%);
+    background: #9FFFC0;
+    color: #0A0F0D;
+    font-family: 'General Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .price-name {
+    font-family: 'General Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .price-card-highlight .price-name { color: #9FFFC0; }
+  .price-tagline {
+    font-family: 'General Sans', sans-serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    margin: 0 0 24px;
+  }
+  .price-amount {
+    display: flex; align-items: baseline; gap: 4px;
+    margin-bottom: 4px;
+  }
+  .price-currency {
+    font-family: 'General Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+  }
+  .price-value {
+    font-family: 'General Sans', sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .price-card-highlight .price-value { color: #9FFFC0; }
+  .price-period {
+    font-family: 'General Sans', sans-serif;
+    font-size: 14px;
+    color: rgba(255,255,255,0.50);
+    font-weight: 500;
+  }
+  .price-installment {
+    font-family: 'General Sans', sans-serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 24px;
+  }
+  .price-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 28px;
+    display: flex; flex-direction: column;
+    gap: 10px;
+    flex: 1;
+  }
+  .price-features li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.78);
+    line-height: 1.45;
+  }
+  .price-features svg {
+    width: 16px; height: 16px;
+    color: #9FFFC0;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .price-cta {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 13px 18px;
+    background: rgba(255,255,255,0.06);
+    color: #FFFFFF;
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 12px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background .2s, border-color .2s;
+  }
+  .price-cta:hover { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.20); }
+  .price-card-highlight .price-cta {
+    background: #9FFFC0;
+    color: #0A0F0D;
+    border-color: #9FFFC0;
+  }
+  .price-card-highlight .price-cta:hover { background: #B9FFD2; }
+
+  /* Footer da seção pricing */
+  .pricing-footer {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  @media (min-width: 768px) { .pricing-footer { grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: center; } }
+  .pf-item {
+    background: #131A17;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .pf-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: rgba(159,255,192,0.10);
+    border: 1px solid rgba(159,255,192,0.20);
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pf-icon svg { width: 20px; height: 20px; color: #9FFFC0; }
+  .pf-text { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .pf-title {
+    font-family: 'General Sans', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: -0.005em;
+  }
+  .pf-sub {
+    font-family: 'General Sans', sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.50);
+    line-height: 1.4;
+  }
+  .pf-kit {
+    background: linear-gradient(180deg, rgba(159,255,192,0.08), rgba(159,255,192,0));
+    border: 1px solid rgba(159,255,192,0.20);
+    border-radius: 16px;
+    padding: 18px;
+    display: flex; align-items: center; gap: 14px;
+    justify-content: center;
+  }
+  .pf-kit-box {
+    width: 64px; height: 48px;
+    background: linear-gradient(180deg, #1A2420 0%, #0F1816 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .pf-kit-box::after {
+    content: "";
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 28px; height: 8px;
+    background: rgba(159,255,192,0.40);
+    border-radius: 3px;
+  }
+  .pf-kit-text { display: flex; flex-direction: column; gap: 2px; }
+  .pf-kit-title {
+    font-family: 'General Sans', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #FFFFFF;
+  }
+  .pf-kit-sub {
+    font-family: 'General Sans', sans-serif;
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.50);
+  }
+
   /* HOW IT WORKS */
   .how-grid {
     display: grid; grid-template-columns: 1fr;
@@ -2259,6 +2542,133 @@
         <div class="sp-badge-text">
           <span class="sp-badge-title">Suporte humano</span>
           <span class="sp-badge-sub">Resposta rápida</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING — Escolha o plano ideal (dark) -->
+<section class="pricing-section" id="precos">
+  <div class="pricing-inner">
+    <div class="pricing-eyebrow">Planos simples e transparentes</div>
+    <h2 class="pricing-h2">Escolha o plano ideal para o <span class="accent">seu negócio<span class="accent-dot">.</span></span></h2>
+    <p class="pricing-sub">Um kit completo. Sem fidelidade. Sem assinatura. Suporte humanizado.</p>
+
+    <div class="pricing-mini-badges">
+      <span class="pricing-mini-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        Sem fidelidade
+      </span>
+      <span class="pricing-mini-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        Sem assinatura
+      </span>
+      <span class="pricing-mini-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        Suporte humanizado
+      </span>
+    </div>
+
+    <div class="pricing-grid">
+      <!-- STARTER -->
+      <div class="price-card">
+        <h3 class="price-name">Starter</h3>
+        <p class="price-tagline">Perfeito para começar</p>
+        <div class="price-amount">
+          <span class="price-currency">R$</span>
+          <span class="price-value">59,90</span>
+          <span class="price-period">/mês</span>
+        </div>
+        <div class="price-installment">ou 12x de R$ 5,90</div>
+        <ul class="price-features">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>1 unidade NFC inclusa</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Perfil no Google integrado</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>WhatsApp com 1 linha</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Relatórios básicos</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Suporte humano</li>
+        </ul>
+        <a class="price-cta" href="/ativar?from=web&plan=starter">Receber meu kit</a>
+      </div>
+
+      <!-- PRO — destacado -->
+      <div class="price-card price-card-highlight">
+        <span class="price-card-tag">Mais escolhido</span>
+        <h3 class="price-name">Pro</h3>
+        <p class="price-tagline">Para negócios que crescem</p>
+        <div class="price-amount">
+          <span class="price-currency">R$</span>
+          <span class="price-value">99,90</span>
+          <span class="price-period">/mês</span>
+        </div>
+        <div class="price-installment">ou 12x de R$ 9,90</div>
+        <ul class="price-features">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>3 unidades NFC inclusas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Perfil no Google integrado</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>WhatsApp com 2 linhas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Atendimento inteligente com IA</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Relatórios avançados</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Suporte humanizado</li>
+        </ul>
+        <a class="price-cta" href="/ativar?from=web&plan=pro">Receber meu kit</a>
+      </div>
+
+      <!-- BUSINESS -->
+      <div class="price-card">
+        <h3 class="price-name">Business</h3>
+        <p class="price-tagline">Para negócios em expansão</p>
+        <div class="price-amount">
+          <span class="price-currency">R$</span>
+          <span class="price-value">199,90</span>
+          <span class="price-period">/mês</span>
+        </div>
+        <div class="price-installment">ou 12x de R$ 19,90</div>
+        <ul class="price-features">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>10 unidades NFC inclusas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Perfil no Google integrado</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>WhatsApp com 4 linhas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Múltiplas contas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Relatórios e painéis avançados</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Gestão de equipe e permissões</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Suporte prioritário</li>
+        </ul>
+        <a class="price-cta" href="/ativar?from=web&plan=business">Receber meu kit</a>
+      </div>
+    </div>
+
+    <div class="pricing-footer">
+      <div class="pf-item">
+        <span class="pf-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="1" y="3" width="15" height="13"/>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+            <circle cx="5.5" cy="18.5" r="2.5"/>
+            <circle cx="18.5" cy="18.5" r="2.5"/>
+          </svg>
+        </span>
+        <div class="pf-text">
+          <span class="pf-title">Frete grátis para todo o Brasil</span>
+          <span class="pf-sub">Receba seu kit em até 7 dias úteis em todo território nacional.</span>
+        </div>
+      </div>
+
+      <div class="pf-kit">
+        <div class="pf-kit-box"></div>
+        <div class="pf-kit-text">
+          <span class="pf-kit-title">Kit StarTouch</span>
+          <span class="pf-kit-sub">Pronto pra usar</span>
+        </div>
+      </div>
+
+      <div class="pf-item">
+        <span class="pf-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </span>
+        <div class="pf-text">
+          <span class="pf-title">Pague no PIX ou cartão</span>
+          <span class="pf-sub">Pagamento 100% seguro e protegido.</span>
         </div>
       </div>
     </div>
