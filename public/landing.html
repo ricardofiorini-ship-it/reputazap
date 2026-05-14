@@ -1774,6 +1774,314 @@
     line-height: 1.4;
   }
 
+  /* FINAL CTA SECTION — dark "Transforme seu negócio" */
+  .final-cta-section {
+    background: #0A0F0D;
+    color: #FFFFFF;
+    padding: 64px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  @media (min-width: 1024px) { .final-cta-section { padding: 96px 32px; } }
+  .final-cta-section::before {
+    content: ""; position: absolute;
+    left: 50%; top: 0;
+    transform: translateX(-50%);
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(159,255,192,0.18), transparent);
+    pointer-events: none;
+  }
+  .final-cta-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .final-eyebrows {
+    display: flex; flex-wrap: wrap;
+    align-items: center; justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+  .final-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #9FFFC0;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    background: rgba(159,255,192,0.08);
+    border: 1px solid rgba(159,255,192,0.18);
+    border-radius: 999px;
+  }
+  @media (min-width: 768px) { .final-eyebrow { font-size: 12px; } }
+  .final-eyebrow svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+  .final-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 48px;
+    align-items: center;
+    margin-bottom: 56px;
+  }
+  @media (min-width: 1024px) { .final-grid { grid-template-columns: 1.05fr 1fr; gap: 64px; } }
+
+  .final-h2 {
+    font-family: 'General Sans', sans-serif;
+    font-size: clamp(30px, 5vw, 48px);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+    margin: 0 0 16px;
+    text-wrap: balance;
+  }
+  .final-h2 .accent { color: #9FFFC0; }
+  .final-h2 .accent-dot { color: #9FFFC0; }
+  .final-sub {
+    font-family: 'General Sans', sans-serif;
+    font-size: 15.5px;
+    color: rgba(255,255,255,0.62);
+    line-height: 1.55;
+    margin: 0 0 28px;
+    max-width: 520px;
+    text-wrap: balance;
+  }
+  @media (min-width: 1024px) { .final-sub { font-size: 16.5px; } }
+
+  .final-list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .final-list li {
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .final-list-icon {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(159,255,192,0.15);
+    border: 1px solid rgba(159,255,192,0.30);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #9FFFC0;
+    margin-top: 2px;
+  }
+  .final-list-icon svg { width: 11px; height: 11px; }
+  .final-list-text {
+    font-family: 'General Sans', sans-serif;
+    font-size: 14px;
+    color: rgba(255,255,255,0.78);
+    line-height: 1.45;
+  }
+
+  /* Coluna direita — kit visual */
+  .kit-card {
+    background: linear-gradient(180deg, #131A17 0%, #0A0F0D 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    padding: 32px 24px 24px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5);
+  }
+  .kit-visual {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .kit-piece {
+    background: linear-gradient(180deg, #1A2420 0%, #0A0F0D 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 14px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-width: 92px;
+  }
+  .kit-piece-icon {
+    width: 28px; height: 28px;
+    color: #9FFFC0;
+  }
+  .kit-piece-icon svg { width: 100%; height: 100%; }
+  .kit-piece-tag {
+    font-family: 'General Sans', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .kit-piece-pill {
+    background: #9FFFC0;
+    color: #0A0F0D;
+    font-size: 7px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+  }
+  .kit-badges {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  @media (min-width: 480px) { .kit-badges { grid-template-columns: repeat(4, 1fr); } }
+  .kit-badge {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 10px 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    text-align: center;
+  }
+  .kit-badge-icon { color: #9FFFC0; }
+  .kit-badge-icon svg { width: 16px; height: 16px; }
+  .kit-badge-text {
+    font-family: 'General Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+  }
+
+  /* Card urgência + countdown */
+  .urgency-card {
+    background: linear-gradient(180deg, rgba(159,255,192,0.08), rgba(159,255,192,0.02));
+    border: 1.5px solid rgba(159,255,192,0.35);
+    border-radius: 20px;
+    padding: 28px 24px;
+    text-align: center;
+    box-shadow: 0 20px 60px -20px rgba(159,255,192,0.15);
+  }
+  @media (min-width: 768px) { .urgency-card { padding: 36px 40px; } }
+  .urgency-tag {
+    display: inline-block;
+    background: #9FFFC0;
+    color: #0A0F0D;
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  .urgency-h3 {
+    font-family: 'General Sans', sans-serif;
+    font-size: clamp(22px, 3.5vw, 32px);
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0 0 24px;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+  .urgency-h3 .accent { color: #9FFFC0; }
+  .countdown {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  @media (min-width: 768px) { .countdown { gap: 12px; } }
+  .cd-box {
+    background: rgba(10,15,13,0.6);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 12px;
+    padding: 14px 16px;
+    min-width: 64px;
+    text-align: center;
+  }
+  @media (min-width: 768px) { .cd-box { padding: 16px 20px; min-width: 80px; } }
+  .cd-num {
+    font-family: 'General Sans', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #9FFFC0;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  @media (min-width: 768px) { .cd-num { font-size: 36px; } }
+  .cd-label {
+    font-family: 'General Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  @media (min-width: 768px) { .cd-label { font-size: 11px; } }
+  .cd-sep {
+    font-family: 'General Sans', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.20);
+    line-height: 1;
+    align-self: center;
+    margin-top: -16px;
+  }
+  .urgency-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #9FFFC0;
+    color: #0A0F0D;
+    font-family: 'General Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 14px 28px;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background .2s, transform .1s;
+    margin-bottom: 12px;
+  }
+  .urgency-cta:hover { background: #B9FFD2; }
+  .urgency-cta:active { transform: scale(0.98); }
+  .urgency-secure {
+    font-family: 'General Sans', sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.50);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .urgency-secure svg { width: 12px; height: 12px; color: #9FFFC0; }
+
+  /* Rodapé social do CTA */
+  .final-social {
+    margin-top: 32px;
+    display: flex; flex-wrap: wrap;
+    align-items: center; justify-content: center;
+    gap: 14px 32px;
+  }
+  .final-social-text {
+    font-family: 'General Sans', sans-serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.4;
+  }
+  .final-social-text strong { color: #FFFFFF; }
+  .final-social-avatars {
+    display: inline-flex; align-items: center;
+  }
+  .fs-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid #0A0F0D;
+    margin-left: -8px;
+    background: linear-gradient(135deg, #F59E0B, #EF4444);
+  }
+  .fs-avatar:first-child { margin-left: 0; }
+  .fs-avatar:nth-child(2) { background: linear-gradient(135deg, #10B981, #3B82F6); }
+  .fs-avatar:nth-child(3) { background: linear-gradient(135deg, #8B5CF6, #EC4899); }
+  .fs-avatar:nth-child(4) { background: linear-gradient(135deg, #FBBF24, #EF4444); }
+  .final-social-rating {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+  }
+  .final-social-stars { color: #FBBF24; font-size: 13px; letter-spacing: 0.5px; }
+
   /* HOW IT WORKS */
   .how-grid {
     display: grid; grid-template-columns: 1fr;
@@ -3183,6 +3491,219 @@
     </div>
   </div>
 </section>
+
+<!-- FINAL CTA — Transforme seu negócio em uma experiência moderna (dark) -->
+<section class="final-cta-section">
+  <div class="final-cta-inner">
+    <div class="final-eyebrows">
+      <span class="final-eyebrow">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+        Comece agora
+      </span>
+      <span class="final-eyebrow">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        Receba seu kit completo StarTouch
+      </span>
+    </div>
+
+    <div class="final-grid">
+      <div class="final-left">
+        <h2 class="final-h2">Transforme seu negócio em uma experiência <span class="accent">moderna<span class="accent-dot">.</span></span></h2>
+        <p class="final-sub">Mais avaliações, mais clientes e mais autoridade com um toque.</p>
+        <ul class="final-list">
+          <li>
+            <span class="final-list-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="final-list-text">Mais avaliações e clientes em todo canto</span>
+          </li>
+          <li>
+            <span class="final-list-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="final-list-text">Conexão instantânea</span>
+          </li>
+          <li>
+            <span class="final-list-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="final-list-text">Instalação rápida e sem complicações</span>
+          </li>
+          <li>
+            <span class="final-list-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="final-list-text">Compatível com Google e WhatsApp</span>
+          </li>
+          <li>
+            <span class="final-list-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="final-list-text">Suporte premium</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="final-right">
+        <div class="kit-card">
+          <div class="kit-visual" aria-hidden="true">
+            <div class="kit-piece">
+              <span class="kit-piece-pill">TOQUE AQUI</span>
+              <svg class="kit-piece-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                <line x1="12" y1="20" x2="12.01" y2="20"/>
+              </svg>
+              <span class="kit-piece-tag">Placa NFC</span>
+            </div>
+            <div class="kit-piece">
+              <svg class="kit-piece-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+              </svg>
+              <span class="kit-piece-tag">Caixa StarTouch</span>
+            </div>
+            <div class="kit-piece">
+              <svg class="kit-piece-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+              <span class="kit-piece-tag">Obrigado pela confiança</span>
+            </div>
+          </div>
+
+          <div class="kit-badges">
+            <div class="kit-badge">
+              <span class="kit-badge-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="1" y="3" width="15" height="13"/>
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                  <circle cx="5.5" cy="18.5" r="2.5"/>
+                  <circle cx="18.5" cy="18.5" r="2.5"/>
+                </svg>
+              </span>
+              <span class="kit-badge-text">Frete grátis</span>
+            </div>
+            <div class="kit-badge">
+              <span class="kit-badge-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </span>
+              <span class="kit-badge-text">Garantia 12 meses</span>
+            </div>
+            <div class="kit-badge">
+              <span class="kit-badge-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                  <line x1="1" y1="10" x2="23" y2="10"/>
+                </svg>
+              </span>
+              <span class="kit-badge-text">Pagamento 100%</span>
+            </div>
+            <div class="kit-badge">
+              <span class="kit-badge-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                  <line x1="9" y1="9" x2="9.01" y2="9"/>
+                  <line x1="15" y1="9" x2="15.01" y2="9"/>
+                </svg>
+              </span>
+              <span class="kit-badge-text">Satisfação garantida</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card de urgência com countdown -->
+    <div class="urgency-card">
+      <span class="urgency-tag">Oferta por tempo limitado</span>
+      <h3 class="urgency-h3">Seu kit StarTouch com <span class="accent">condições especiais</span>.</h3>
+      <div class="countdown" id="countdown" aria-live="polite">
+        <div class="cd-box">
+          <div class="cd-num" id="cd-d">02</div>
+          <div class="cd-label">Dias</div>
+        </div>
+        <span class="cd-sep">:</span>
+        <div class="cd-box">
+          <div class="cd-num" id="cd-h">14</div>
+          <div class="cd-label">Horas</div>
+        </div>
+        <span class="cd-sep">:</span>
+        <div class="cd-box">
+          <div class="cd-num" id="cd-m">37</div>
+          <div class="cd-label">Min</div>
+        </div>
+        <span class="cd-sep">:</span>
+        <div class="cd-box">
+          <div class="cd-num" id="cd-s">58</div>
+          <div class="cd-label">Seg</div>
+        </div>
+      </div>
+      <a class="urgency-cta" href="/ativar?from=web&promo=1">
+        Quero meu kit
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="18" height="18">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </a>
+      <div class="urgency-secure">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Pagamento 100% seguro
+      </div>
+    </div>
+
+    <div class="final-social">
+      <span class="final-social-text"><strong>Simples. Rápido. Efeito imediato.</strong></span>
+      <span class="final-social-text">+ de <strong>2.500 lojas</strong> já confiam na StarTouch.</span>
+      <span class="final-social-avatars" aria-hidden="true">
+        <span class="fs-avatar"></span>
+        <span class="fs-avatar"></span>
+        <span class="fs-avatar"></span>
+        <span class="fs-avatar"></span>
+      </span>
+      <span class="final-social-rating">
+        <span class="final-social-stars">★★★★★</span>
+        <strong>4.9</strong> de 5 (2.500+ avaliações)
+      </span>
+    </div>
+  </div>
+</section>
+<script>
+  (function() {
+    var target = new Date();
+    target.setTime(target.getTime() + (2 * 86400 + 14 * 3600 + 37 * 60 + 58) * 1000);
+    var d = document.getElementById('cd-d');
+    var h = document.getElementById('cd-h');
+    var m = document.getElementById('cd-m');
+    var s = document.getElementById('cd-s');
+    if (!d || !h || !m || !s) return;
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function tick() {
+      var diff = Math.max(0, Math.floor((target - new Date()) / 1000));
+      var days = Math.floor(diff / 86400);
+      var hours = Math.floor((diff % 86400) / 3600);
+      var mins = Math.floor((diff % 3600) / 60);
+      var secs = diff % 60;
+      d.textContent = pad(days);
+      h.textContent = pad(hours);
+      m.textContent = pad(mins);
+      s.textContent = pad(secs);
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
 
 <!-- DIVIDER simples -->
 <div class="divider"></div>
