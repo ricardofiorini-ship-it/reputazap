@@ -12,7 +12,8 @@
     { "source": "/ativar-placa.html", "destination": "/ativar-placa", "permanent": true },
     { "source": "/avaliar.html", "destination": "/avaliar", "permanent": true },
     { "source": "/reset.html", "destination": "/reset", "permanent": true },
-    { "source": "/comece.html", "destination": "/comece", "permanent": true }
+    { "source": "/comece.html", "destination": "/comece", "permanent": true },
+    { "source": "/diagnostico.html", "destination": "/diagnostico", "permanent": true }
   ],
   "rewrites": [
     { "source": "/landing", "destination": "/landing.html" },
@@ -21,6 +22,7 @@
     { "source": "/avaliar", "destination": "/avaliar.html" },
     { "source": "/reset", "destination": "/reset.html" },
     { "source": "/comece", "destination": "/comece.html" },
+    { "source": "/diagnostico", "destination": "/diagnostico.html" },
     { "source": "/app", "destination": "/index.html" },
     { "source": "/app/(.*)", "destination": "/index.html" }
   ]

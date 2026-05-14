@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Diagnóstico — StarTouch</title>
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/startouch-logo.png"/>
+<meta name="robots" content="noindex,nofollow"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="StarTouch — Diagnóstico"/>
+<meta property="og:description" content="Análise gratuita da posição do seu negócio no Google."/>
+<meta property="og:image" content="/og-image.png"/>
+<meta property="og:url" content="https://startouch.com.br/diagnostico"/>
+<link rel="canonical" href="https://startouch.com.br/diagnostico"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { font-family: 'General Sans', sans-serif; background: #F8F9FA; color: #0F0F0F; min-height: 100vh; }
+  a { text-decoration: none; color: inherit; }
+
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(247,247,244,0.82);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(32,33,36,0.08);
+  }
+  .header-inner {
+    max-width: 1152px; margin: 0 auto;
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  @media (min-width: 768px) { .header-inner { padding: 18px 32px; } }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo img { height: 40px; width: auto; display: block; }
+  @media (min-width: 768px) { .logo img { height: 48px; } }
+  .logo-text {
+    font-family: 'General Sans', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: #0F0F0F;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  @media (min-width: 768px) { .logo-text { font-size: 24px; } }
+  @media (max-width: 360px) { .logo-text { display: none; } }
+  .header-cta {
+    background: #00C49A;
+    color: #fff;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 13.5px; font-weight: 600;
+    white-space: nowrap;
+    transition: background .15s;
+  }
+  .header-cta:hover { background: #0EA47A; }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 80px 24px 64px;
+    text-align: center;
+  }
+  @media (min-width: 768px) { .wrap { padding: 120px 32px 80px; } }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    background: rgba(0,196,154,0.10);
+    border: 1px solid rgba(0,196,154,0.25);
+    border-radius: 999px;
+    font-size: 12px; font-weight: 600;
+    color: #00C49A;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .badge-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #00C49A;
+    box-shadow: 0 0 0 0 rgba(0,196,154,0.6);
+    animation: pulseDot 2s infinite;
+  }
+  @keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 rgba(0,196,154,0.55); }
+    70% { box-shadow: 0 0 0 8px rgba(0,196,154,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,196,154,0); }
+  }
+
+  h1 {
+    font-family: 'General Sans', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: #0F0F0F;
+    margin-bottom: 16px;
+    text-wrap: balance;
+  }
+  @media (min-width: 768px) { h1 { font-size: 44px; } }
+  .term { color: #00C49A; font-style: italic; }
+
+  .sub {
+    font-size: 16px;
+    color: #6B7280;
+    line-height: 1.6;
+    max-width: 520px;
+    margin: 0 auto 32px;
+    text-wrap: balance;
+  }
+  @media (min-width: 768px) { .sub { font-size: 18px; } }
+
+  .card {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin: 0 auto 32px;
+    max-width: 480px;
+    text-align: left;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 700;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+  .card-list {
+    display: flex; flex-direction: column; gap: 12px;
+    list-style: none;
+  }
+  .card-list li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 14px;
+    color: #0F0F0F;
+    line-height: 1.5;
+  }
+  .card-list li::before {
+    content: "•"; color: #00C49A; font-weight: 700; flex-shrink: 0;
+  }
+
+  .actions {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background .15s, transform .1s;
+  }
+  .btn-primary { background: #00C49A; color: #fff; }
+  .btn-primary:hover { background: #0EA47A; }
+  .btn-ghost {
+    background: #fff;
+    color: #0F0F0F;
+    border: 1px solid #E5E7EB;
+  }
+  .btn-ghost:hover { background: #F5F7F9; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a class="logo" href="/landing">
+      <img src="/startouch-logo.png" alt="" width="40" height="40"/>
+      <span class="logo-text">StarTouch</span>
+    </a>
+    <a class="header-cta" href="/ativar?from=web">Começar grátis</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="badge"><span class="badge-dot"></span>Preparando seu diagnóstico</div>
+  <h1>Buscando <span class="term" id="term">seu negócio</span>...</h1>
+  <p class="sub">
+    Estamos preparando seu diagnóstico. Esta página está em desenvolvimento — em breve você verá a posição do seu negócio no Google e como subir no ranking.
+  </p>
+
+  <div class="card">
+    <div class="card-title">No diagnóstico completo você vai ver</div>
+    <ul class="card-list">
+      <li>Sua posição atual entre concorrentes da mesma categoria</li>
+      <li>Nota média e total de avaliações</li>
+      <li>Top 3 concorrentes à sua frente</li>
+      <li>Quantas avaliações faltam pra subir uma posição</li>
+    </ul>
+  </div>
+
+  <div class="actions">
+    <a class="btn btn-primary" href="/ativar?from=web">Criar minha conta agora</a>
+    <a class="btn btn-ghost" href="/landing">← Voltar pra home</a>
+  </div>
+</main>
+
+<script>
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    var q = (params.get('q') || '').trim();
+    if (q && q.length > 0 && q.length <= 80) {
+      var el = document.getElementById('term');
+      if (el) {
+        el.textContent = '"' + q + '"';
+      }
+    }
+  })();
+</script>
+
+</body>
+</html>
