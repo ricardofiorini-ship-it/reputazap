@@ -2082,6 +2082,330 @@
   }
   .final-social-stars { color: #FBBF24; font-size: 13px; letter-spacing: 0.5px; }
 
+  /* FAQ SECTION — dark "Perguntas frequentes" */
+  .faq-section {
+    background: #0A0F0D;
+    color: #FFFFFF;
+    padding: 64px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  @media (min-width: 1024px) { .faq-section { padding: 96px 32px; } }
+  .faq-section::before {
+    content: ""; position: absolute;
+    left: 50%; top: 0;
+    transform: translateX(-50%);
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(159,255,192,0.18), transparent);
+    pointer-events: none;
+  }
+  .faq-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .faq-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+  @media (min-width: 1024px) { .faq-grid { grid-template-columns: 1.4fr 1fr; gap: 64px; } }
+  .faq-left { text-align: left; }
+  .faq-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #9FFFC0;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding: 8px 18px;
+    background: rgba(159,255,192,0.08);
+    border: 1px solid rgba(159,255,192,0.18);
+    border-radius: 999px;
+  }
+  @media (min-width: 768px) { .faq-eyebrow { font-size: 12px; } }
+  .faq-h2 {
+    font-family: 'General Sans', sans-serif;
+    font-size: clamp(30px, 5vw, 48px);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+    margin: 0 0 16px;
+    text-wrap: balance;
+  }
+  .faq-h2 .accent { color: #9FFFC0; }
+  .faq-h2 .accent-dot { color: #9FFFC0; }
+  .faq-intro {
+    font-family: 'General Sans', sans-serif;
+    font-size: 15.5px;
+    color: rgba(255,255,255,0.62);
+    line-height: 1.55;
+    margin: 0 0 36px;
+    max-width: 540px;
+    text-wrap: balance;
+  }
+  @media (min-width: 1024px) { .faq-intro { font-size: 16.5px; } }
+
+  .faq-list { display: flex; flex-direction: column; gap: 10px; }
+  .faq-item {
+    background: #131A17;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .faq-item[open] { border-color: rgba(159,255,192,0.30); }
+  .faq-item summary {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    cursor: pointer;
+    list-style: none;
+    font-family: 'General Sans', sans-serif;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #FFFFFF;
+    letter-spacing: -0.005em;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: "+";
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(159,255,192,0.12);
+    border: 1px solid rgba(159,255,192,0.25);
+    color: #9FFFC0;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 600;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: transform .2s;
+  }
+  .faq-item[open] summary::after { content: "−"; transform: rotate(0deg); }
+  .faq-answer {
+    padding: 0 20px 16px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.6;
+  }
+
+  /* FAQ visual à direita */
+  .faq-right { display: flex; align-items: flex-start; justify-content: center; }
+  .faq-visual {
+    background: linear-gradient(180deg, #131A17 0%, #0A0F0D 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    padding: 32px 24px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5);
+    width: 100%;
+    max-width: 380px;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  }
+  .faq-vplaque {
+    width: 100%;
+    background: linear-gradient(180deg, #1A2420 0%, #0F1816 100%);
+    border: 1px solid rgba(159,255,192,0.25);
+    border-radius: 16px;
+    padding: 24px 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .faq-vpill {
+    background: #9FFFC0;
+    color: #0A0F0D;
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 6px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+  }
+  .faq-vsub {
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.04em;
+  }
+  .faq-vnfc {
+    width: 64px; height: 64px;
+    border: 1.5px solid rgba(159,255,192,0.30);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    margin: 8px 0;
+  }
+  .faq-vnfc::before, .faq-vnfc::after {
+    content: ""; position: absolute;
+    border: 1.5px solid rgba(159,255,192,0.18);
+    border-radius: 50%;
+  }
+  .faq-vnfc::before { inset: 8px; }
+  .faq-vnfc::after { inset: 18px; border-color: rgba(159,255,192,0.35); }
+  .faq-vnfc svg { width: 16px; height: 16px; color: #9FFFC0; }
+  .faq-vphone {
+    width: 100%;
+    background: linear-gradient(180deg, #1A2420 0%, #0F1816 100%);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 14px;
+    padding: 14px 12px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .faq-vphone-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 9px;
+  }
+  .faq-vphone-icon {
+    width: 22px; height: 22px;
+    flex-shrink: 0;
+    color: #9FFFC0;
+  }
+  .faq-vphone-icon svg { width: 100%; height: 100%; }
+  .faq-vphone-meta {
+    display: flex; flex-direction: column; gap: 2px;
+    flex: 1; min-width: 0;
+  }
+  .faq-vphone-name {
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #FFFFFF;
+  }
+  .faq-vphone-sub {
+    font-family: 'General Sans', sans-serif;
+    font-size: 9.5px;
+    color: rgba(255,255,255,0.5);
+  }
+  .faq-vphone-stars {
+    color: #FBBF24;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+  .faq-vbadge {
+    background: rgba(159,255,192,0.08);
+    border: 1px solid rgba(159,255,192,0.18);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #9FFFC0;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* FOOTER — dark */
+  .footer-dark {
+    background: #0A0F0D;
+    color: rgba(255,255,255,0.65);
+    padding: 56px 24px 28px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  @media (min-width: 1024px) { .footer-dark { padding: 72px 32px 32px; } }
+  .footer-dark-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .footer-dark-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 36px;
+    margin-bottom: 40px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  @media (min-width: 640px) { .footer-dark-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; } }
+  @media (min-width: 1024px) { .footer-dark-grid { grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr; } }
+
+  .footer-dark-brand .footer-logo {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+    text-decoration: none;
+  }
+  .footer-dark-brand .logo-mark {
+    width: 32px; height: 32px;
+    background: #9FFFC0;
+    color: #0A0F0D;
+    border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 1;
+  }
+  .footer-dark-brand .logo-text {
+    font-family: 'General Sans', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: #FFFFFF;
+    letter-spacing: -0.01em;
+  }
+  .footer-tagline {
+    font-family: 'General Sans', sans-serif;
+    font-size: 14px;
+    color: rgba(255,255,255,0.55);
+    margin: 0 0 18px;
+    line-height: 1.5;
+  }
+  .footer-socials { display: flex; gap: 10px; }
+  .footer-social {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.6);
+    transition: background .2s, color .2s, border-color .2s;
+  }
+  .footer-social:hover { background: rgba(159,255,192,0.10); border-color: rgba(159,255,192,0.25); color: #9FFFC0; }
+  .footer-social svg { width: 16px; height: 16px; }
+
+  .footer-col h4 {
+    font-family: 'General Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0 0 16px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+  }
+  .footer-col ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col a {
+    font-family: 'General Sans', sans-serif;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    transition: color .15s;
+  }
+  .footer-col a:hover { color: #FFFFFF; }
+  .footer-contact {
+    display: flex; flex-direction: column; gap: 10px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.55);
+  }
+  .footer-contact-item { display: flex; align-items: center; gap: 8px; }
+  .footer-contact-item svg { width: 14px; height: 14px; color: #9FFFC0; flex-shrink: 0; }
+  .footer-contact a { color: rgba(255,255,255,0.55); text-decoration: none; }
+  .footer-contact a:hover { color: #FFFFFF; }
+
+  .footer-dark-bottom {
+    display: flex; flex-wrap: wrap;
+    align-items: center; justify-content: space-between;
+    gap: 14px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.40);
+  }
+  .footer-dark-bottom .heart { color: #9FFFC0; }
+
   /* HOW IT WORKS */
   .how-grid {
     display: grid; grid-template-columns: 1fr;
@@ -3705,6 +4029,99 @@
   })();
 </script>
 
+<!-- FAQ — Perguntas frequentes (dark) -->
+<section class="faq-section">
+  <div class="faq-inner">
+    <div class="faq-grid">
+      <div class="faq-left">
+        <div class="faq-eyebrow">Dúvidas frequentes</div>
+        <h2 class="faq-h2">Perguntas <span class="accent">frequentes<span class="accent-dot">.</span></span></h2>
+        <p class="faq-intro">Respostas para as dúvidas mais comuns sobre a StarTouch.</p>
+
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary>Como funciona a tecnologia NFC?</summary>
+            <div class="faq-answer">Basta encostar o celular do cliente na placa NFC da StarTouch para abrir automaticamente uma experiência de avaliação ou conexão com a sua empresa no Google. Funciona em qualquer iPhone ou Android moderno (sem app).</div>
+          </details>
+          <details class="faq-item">
+            <summary>Precisa de aplicativo para usar?</summary>
+            <div class="faq-answer">Não. A StarTouch funciona direto pelo navegador do celular. Nem você nem o cliente precisam baixar nada — basta tocar.</div>
+          </details>
+          <details class="faq-item">
+            <summary>É seguro?</summary>
+            <div class="faq-answer">Sim. Não coletamos dados sensíveis, somos compatíveis com a LGPD e usamos conexão SSL em todas as páginas. Os dados ficam protegidos no nosso painel.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Como ativar minha empresa?</summary>
+            <div class="faq-answer">Após receber o kit, é só seguir 3 passos no app: buscar sua empresa no Google, conectar o WhatsApp e ativar a placa. Em minutos sua experiência está no ar.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Como funciona o pagamento?</summary>
+            <div class="faq-answer">Você pode pagar via PIX (à vista) ou cartão de crédito (em até 12x). Tudo 100% seguro. Sem fidelidade. Sem mensalidade obrigatória.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Quais dispositivos são compatíveis?</summary>
+            <div class="faq-answer">Todos os smartphones com NFC (a partir de iPhone 7 e quase todos os Android). Também funciona via QR Code de fallback nos celulares mais antigos.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Como funciona a entrega?</summary>
+            <div class="faq-answer">Frete grátis para todo o Brasil. Você recebe seu kit em até 7 dias úteis pelos Correios ou transportadora parceira, com código de rastreio por WhatsApp.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Como funciona o suporte?</summary>
+            <div class="faq-answer">Suporte humanizado em horário comercial pelo WhatsApp e email. Planos Pro e Business têm suporte prioritário com resposta em até 1h útil.</div>
+          </details>
+        </div>
+      </div>
+
+      <div class="faq-right">
+        <div class="faq-visual" aria-hidden="true">
+          <div class="faq-vplaque">
+            <span class="faq-vpill">Toque aqui</span>
+            <span class="faq-vsub">e avalie no Google</span>
+            <div class="faq-vnfc">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                <line x1="12" y1="20" x2="12.01" y2="20"/>
+              </svg>
+            </div>
+            <span class="faq-vsub" style="color:#FBBF24;font-size:13px;letter-spacing:1px">★★★★★</span>
+          </div>
+
+          <div class="faq-vphone">
+            <div class="faq-vphone-row">
+              <span class="faq-vphone-icon">
+                <svg viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+                  <path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.4.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.7.4-.3.3-1 1-1 2.4 0 1.5 1 2.9 1.2 3.1.2.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2z"/>
+                </svg>
+              </span>
+              <div class="faq-vphone-meta">
+                <span class="faq-vphone-name">WhatsApp</span>
+                <span class="faq-vphone-sub">Cliente respondendo</span>
+              </div>
+              <span class="faq-vbadge">Ativo</span>
+            </div>
+            <div class="faq-vphone-row">
+              <span class="faq-vphone-icon">
+                <svg viewBox="0 0 24 24" fill="#FBBF24" aria-hidden="true">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              </span>
+              <div class="faq-vphone-meta">
+                <span class="faq-vphone-name">Avaliação no Google</span>
+                <span class="faq-vphone-sub">Café Bello Vista</span>
+              </div>
+              <span class="faq-vphone-stars">★★★★★</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- DIVIDER simples -->
 <div class="divider"></div>
 
@@ -3933,31 +4350,106 @@
   </div>
 </section>
 
-<!-- FOOTER -->
-<footer>
-  <div class="footer-inner">
-    <div class="footer-row">
-      <div class="footer-brand">
-        <img src="/startouch-logo.png" alt="StarTouch"/>
+<!-- FOOTER — dark -->
+<footer class="footer-dark">
+  <div class="footer-dark-inner">
+    <div class="footer-dark-grid">
+      <div class="footer-dark-brand">
+        <a class="footer-logo" href="/landing">
+          <span class="logo-mark">+</span>
+          <span class="logo-text">StarTouch</span>
+        </a>
+        <p class="footer-tagline">Conecte. Avalie. Cresça.</p>
+        <div class="footer-socials">
+          <a class="footer-social" href="https://instagram.com/" target="_blank" rel="noopener" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="2" width="20" height="20" rx="5"/>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            </svg>
+          </a>
+          <a class="footer-social" href="https://linkedin.com/" target="_blank" rel="noopener" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/>
+              <rect x="2" y="9" width="4" height="12"/>
+              <circle cx="4" cy="4" r="2"/>
+            </svg>
+          </a>
+          <a class="footer-social" href="https://twitter.com/" target="_blank" rel="noopener" aria-label="Twitter">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+            </svg>
+          </a>
+          <a class="footer-social" href="https://youtube.com/" target="_blank" rel="noopener" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.43z"/>
+              <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>
+            </svg>
+          </a>
+        </div>
       </div>
-      <div class="footer-links">
-        <a href="#beneficios">Por que StarTouch</a>
-        <a href="#hardware">Hardware</a>
-        <a href="https://wa.me/5511982882662" target="_blank" rel="noopener">Suporte</a>
-        <a href="/app">Entrar</a>
+
+      <div class="footer-col">
+        <h4>Soluções</h4>
+        <ul>
+          <li><a href="#como-funciona">Como funciona</a></li>
+          <li><a href="#precos">Preços</a></li>
+          <li><a href="/diagnostico">Diagnóstico</a></li>
+          <li><a href="/app">Acesso ao painel</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Produtos</h4>
+        <ul>
+          <li><a href="/ativar?from=web&kit=placa">Placa NFC</a></li>
+          <li><a href="/ativar?from=web&kit=cartao">Cartão NFC</a></li>
+          <li><a href="/ativar?from=web&kit=pulseira">Pulseira NFC</a></li>
+          <li><a href="/ativar?from=web&kit=adesivo">Adesivo NFC</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Empresa</h4>
+        <ul>
+          <li><a href="#">Sobre</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Política de privacidade</a></li>
+          <li><a href="#">Termos de uso</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Fale conosco</h4>
+        <div class="footer-contact">
+          <span class="footer-contact-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+            <a href="tel:+5511990078980">(11) 99007-8980</a>
+          </span>
+          <span class="footer-contact-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <a href="mailto:contato@startouch.com.br">contato@startouch.com.br</a>
+          </span>
+          <span class="footer-contact-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            <a href="https://startouch.com.br" target="_blank" rel="noopener">startouch.com.br</a>
+          </span>
+        </div>
       </div>
     </div>
-    <div class="footer-meta">
-      <span class="footer-meta-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        SSL · LGPD
-      </span>
-      <span class="footer-meta-sep">·</span>
-      <span class="footer-meta-item">Integra com Google Meu Negócio</span>
-      <span class="footer-meta-sep">·</span>
-      <span class="footer-meta-item">Feito no Brasil</span>
-      <span class="footer-meta-sep">·</span>
-      <span class="footer-meta-item">© 2026 StarTouch</span>
+
+    <div class="footer-dark-bottom">
+      <span>© 2026 StarTouch. Todos os direitos reservados.</span>
+      <span>Feito com <span class="heart">💚</span> para experiências modernas.</span>
     </div>
   </div>
 </footer>
