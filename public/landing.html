@@ -922,6 +922,307 @@
     line-height: 1.4;
   }
 
+  /* TRUST SECTION — dark "100% compatível com o Google" */
+  .trust-section {
+    background: #0A0F0D;
+    color: #FFFFFF;
+    padding: 64px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  @media (min-width: 1024px) { .trust-section { padding: 96px 32px; } }
+  .trust-section::before {
+    content: ""; position: absolute;
+    left: 50%; top: 0;
+    transform: translateX(-50%);
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(159,255,192,0.18), transparent);
+    pointer-events: none;
+  }
+  .trust-inner {
+    max-width: 1152px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .trust-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  @media (min-width: 1024px) { .trust-grid { grid-template-columns: 1.1fr 1fr; gap: 72px; } }
+  .trust-left { text-align: left; }
+  .trust-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #9FFFC0;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding: 8px 18px;
+    background: rgba(159,255,192,0.08);
+    border: 1px solid rgba(159,255,192,0.18);
+    border-radius: 999px;
+  }
+  @media (min-width: 768px) { .trust-eyebrow { font-size: 12px; } }
+  .trust-h2 {
+    font-family: 'General Sans', sans-serif;
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  .trust-h2 .accent { color: #9FFFC0; }
+  .trust-h2 .accent-dot { color: #9FFFC0; }
+  .trust-sub {
+    font-family: 'General Sans', sans-serif;
+    font-size: 15.5px;
+    color: rgba(255,255,255,0.62);
+    line-height: 1.55;
+    margin: 0 0 36px;
+    max-width: 540px;
+    text-wrap: balance;
+  }
+  @media (min-width: 1024px) { .trust-sub { font-size: 17px; } }
+  .trust-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .trust-list li {
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .trust-list-icon {
+    flex-shrink: 0;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(159,255,192,0.15);
+    border: 1px solid rgba(159,255,192,0.30);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #9FFFC0;
+    margin-top: 2px;
+  }
+  .trust-list-icon svg { width: 12px; height: 12px; }
+  .trust-list-text { display: flex; flex-direction: column; gap: 4px; }
+  .trust-list-title {
+    font-family: 'General Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: -0.005em;
+  }
+  .trust-list-desc {
+    font-family: 'General Sans', sans-serif;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+  }
+
+  /* Mockup direito */
+  .trust-mock {
+    background: linear-gradient(180deg, #131A17 0%, #0A0F0D 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    padding: 24px 22px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5);
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+  .trust-mock-head {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(159,255,192,0.10);
+    border: 1px solid rgba(159,255,192,0.25);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+  .trust-mock-pill {
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #9FFFC0;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+  }
+  .trust-mock-head svg { width: 18px; height: 18px; color: #9FFFC0; }
+  .trust-mock-reviews { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .trust-mock-review {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+  .trust-mock-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #F59E0B 0%, #10B981 50%, #3B82F6 100%);
+    flex-shrink: 0;
+  }
+  .trust-mock-info { flex: 1; min-width: 0; }
+  .trust-mock-name {
+    font-family: 'General Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 2px;
+  }
+  .trust-mock-stars { color: #FBBF24; font-size: 11px; letter-spacing: 0.5px; }
+  .trust-mock-badge {
+    background: rgba(159,255,192,0.08);
+    border: 1px solid rgba(159,255,192,0.20);
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.75);
+  }
+  .trust-mock-badge-icon {
+    width: 14px; height: 14px;
+    color: #9FFFC0;
+  }
+
+  /* SOCIAL PROOF SECTION — dark "Empresas que confiam" */
+  .social-proof {
+    background: #0A0F0D;
+    color: #FFFFFF;
+    padding: 56px 24px 80px;
+    position: relative;
+  }
+  @media (min-width: 1024px) { .social-proof { padding: 80px 32px 96px; } }
+  .social-proof-inner {
+    max-width: 1152px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .social-proof-title {
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  @media (min-width: 1024px) { .social-proof-title { font-size: 12px; margin-bottom: 44px; } }
+  .social-proof-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-bottom: 48px;
+    padding: 32px 24px;
+    background: linear-gradient(180deg, rgba(159,255,192,0.04), rgba(159,255,192,0));
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+  }
+  @media (min-width: 1024px) { .social-proof-stats { grid-template-columns: repeat(4, 1fr); gap: 32px; padding: 40px 32px; } }
+  .stat-item {
+    display: flex; flex-direction: column; gap: 6px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'General Sans', sans-serif;
+    font-size: clamp(28px, 4.5vw, 40px);
+    font-weight: 700;
+    color: #9FFFC0;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .stat-label {
+    font-family: 'General Sans', sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.4;
+  }
+  @media (min-width: 1024px) { .stat-label { font-size: 13px; } }
+  .social-proof-companies {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  @media (min-width: 768px) { .social-proof-companies { grid-template-columns: repeat(4, 1fr); gap: 16px; } }
+  .company-card {
+    background: #131A17;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 18px 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    text-align: center;
+  }
+  .company-name {
+    font-family: 'General Sans', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: -0.005em;
+  }
+  .company-rating {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+  }
+  .company-rating-star { color: #FBBF24; font-size: 12px; }
+  .social-proof-microcopy {
+    font-family: 'General Sans', sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.40);
+    margin-bottom: 40px;
+  }
+  @media (min-width: 1024px) { .social-proof-microcopy { font-size: 13px; margin-bottom: 56px; } }
+
+  .social-proof-badges {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    text-align: left;
+  }
+  @media (min-width: 640px) { .social-proof-badges { grid-template-columns: repeat(2, 1fr); gap: 18px; } }
+  @media (min-width: 1024px) { .social-proof-badges { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
+  .sp-badge {
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .sp-badge-icon {
+    flex-shrink: 0;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(159,255,192,0.12);
+    border: 1px solid rgba(159,255,192,0.25);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #9FFFC0;
+    margin-top: 2px;
+  }
+  .sp-badge-icon svg { width: 12px; height: 12px; }
+  .sp-badge-text { display: flex; flex-direction: column; gap: 2px; }
+  .sp-badge-title {
+    font-family: 'General Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: -0.005em;
+  }
+  .sp-badge-sub {
+    font-family: 'General Sans', sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.50);
+    line-height: 1.4;
+  }
+
   /* HOW IT WORKS */
   .how-grid {
     display: grid; grid-template-columns: 1fr;
@@ -1774,6 +2075,190 @@
         <div class="step-badge-text">
           <span class="step-badge-title">Seguro &amp; confiável</span>
           <span class="step-badge-sub">Dados protegidos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST — 100% compatível com o Google (dark) -->
+<section class="trust-section">
+  <div class="trust-inner">
+    <div class="trust-grid">
+      <div class="trust-left">
+        <div class="trust-eyebrow">Confiança e transparência</div>
+        <h2 class="trust-h2">100% compatível<br/>com o <span class="accent">Google<span class="accent-dot">.</span></span></h2>
+        <p class="trust-sub">Seguimos todas as políticas do Google. Sem atalhos. Sem riscos. Apenas resultados reais e sustentáveis para seu negócio.</p>
+        <ul class="trust-list">
+          <li>
+            <span class="trust-list-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </span>
+            <div class="trust-list-text">
+              <span class="trust-list-title">Conforme com Google</span>
+              <span class="trust-list-desc">Nada de práticas proibidas como review gating ou bloqueios artificiais.</span>
+            </div>
+          </li>
+          <li>
+            <span class="trust-list-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </span>
+            <div class="trust-list-text">
+              <span class="trust-list-title">Privacidade &amp; segurança</span>
+              <span class="trust-list-desc">Dados protegidos e armazenados com segurança.</span>
+            </div>
+          </li>
+          <li>
+            <span class="trust-list-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </span>
+            <div class="trust-list-text">
+              <span class="trust-list-title">Transparência que gera confiança</span>
+              <span class="trust-list-desc">Avaliações reais, de clientes reais, sem manipulações.</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="trust-right">
+        <div class="trust-mock" aria-hidden="true">
+          <div class="trust-mock-head">
+            <span class="trust-mock-pill">Toque aqui</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+              <line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
+          </div>
+          <div class="trust-mock-reviews">
+            <div class="trust-mock-review">
+              <div class="trust-mock-avatar"></div>
+              <div class="trust-mock-info">
+                <div class="trust-mock-name">Ana M.</div>
+                <div class="trust-mock-stars">★★★★★</div>
+              </div>
+            </div>
+            <div class="trust-mock-review">
+              <div class="trust-mock-avatar" style="background:linear-gradient(135deg,#10B981,#3B82F6);"></div>
+              <div class="trust-mock-info">
+                <div class="trust-mock-name">Carlos R.</div>
+                <div class="trust-mock-stars">★★★★★</div>
+              </div>
+            </div>
+            <div class="trust-mock-review">
+              <div class="trust-mock-avatar" style="background:linear-gradient(135deg,#F59E0B,#EF4444);"></div>
+              <div class="trust-mock-info">
+                <div class="trust-mock-name">Júlia S.</div>
+                <div class="trust-mock-stars">★★★★★</div>
+              </div>
+            </div>
+          </div>
+          <div class="trust-mock-badge">
+            <svg class="trust-mock-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Compatível com Google
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF — Empresas que confiam na StarTouch (dark) -->
+<section class="social-proof">
+  <div class="social-proof-inner">
+    <div class="social-proof-title">Empresas que confiam na StarTouch</div>
+
+    <div class="social-proof-stats">
+      <div class="stat-item">
+        <span class="stat-num">2.500+</span>
+        <span class="stat-label">Lojas atendidas</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">120k+</span>
+        <span class="stat-label">Avaliações geradas</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">+36%</span>
+        <span class="stat-label">Aumento médio nas avaliações</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">98%</span>
+        <span class="stat-label">Satisfação dos clientes</span>
+      </div>
+    </div>
+
+    <div class="social-proof-companies">
+      <div class="company-card">
+        <span class="company-name">Café Bello</span>
+        <span class="company-rating"><span class="company-rating-star">★</span>5.0</span>
+      </div>
+      <div class="company-card">
+        <span class="company-name">Studio Fit</span>
+        <span class="company-rating"><span class="company-rating-star">★</span>4.9</span>
+      </div>
+      <div class="company-card">
+        <span class="company-name">Dra. Carla Lima</span>
+        <span class="company-rating"><span class="company-rating-star">★</span>5.0</span>
+      </div>
+      <div class="company-card">
+        <span class="company-name">Auto Prime</span>
+        <span class="company-rating"><span class="company-rating-star">★</span>4.9</span>
+      </div>
+    </div>
+
+    <p class="social-proof-microcopy">+ de 2.500 lojas geram impacto real para seus negócios</p>
+
+    <div class="social-proof-badges">
+      <div class="sp-badge">
+        <span class="sp-badge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <div class="sp-badge-text">
+          <span class="sp-badge-title">Em conformidade com a LGPD</span>
+          <span class="sp-badge-sub">Dados protegidos</span>
+        </div>
+      </div>
+      <div class="sp-badge">
+        <span class="sp-badge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <div class="sp-badge-text">
+          <span class="sp-badge-title">Sem instalação de aplicativos</span>
+          <span class="sp-badge-sub">Tudo pronto pra usar</span>
+        </div>
+      </div>
+      <div class="sp-badge">
+        <span class="sp-badge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <div class="sp-badge-text">
+          <span class="sp-badge-title">Ativação imediata</span>
+          <span class="sp-badge-sub">Em minutos no ar</span>
+        </div>
+      </div>
+      <div class="sp-badge">
+        <span class="sp-badge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <div class="sp-badge-text">
+          <span class="sp-badge-title">Suporte humano</span>
+          <span class="sp-badge-sub">Resposta rápida</span>
         </div>
       </div>
     </div>
