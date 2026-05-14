@@ -1506,6 +1506,274 @@
     color: rgba(255,255,255,0.50);
   }
 
+  /* SEGMENTS SECTION — dark "Feito para negócios locais modernos" */
+  .segments-section {
+    background: #0A0F0D;
+    color: #FFFFFF;
+    padding: 64px 24px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  @media (min-width: 1024px) { .segments-section { padding: 96px 32px 64px; } }
+  .segments-section::before {
+    content: ""; position: absolute;
+    left: 50%; top: 0;
+    transform: translateX(-50%);
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(159,255,192,0.18), transparent);
+    pointer-events: none;
+  }
+  .segments-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .segments-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #9FFFC0;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    padding: 8px 18px;
+    background: rgba(159,255,192,0.08);
+    border: 1px solid rgba(159,255,192,0.18);
+    border-radius: 999px;
+  }
+  @media (min-width: 768px) { .segments-eyebrow { font-size: 12px; } }
+  .segments-h2 {
+    font-family: 'General Sans', sans-serif;
+    font-size: clamp(30px, 5vw, 48px);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  .segments-h2 .accent { color: #9FFFC0; }
+  .segments-h2 .accent-dot { color: #9FFFC0; }
+  .segments-sub {
+    font-family: 'General Sans', sans-serif;
+    font-size: 15.5px;
+    color: rgba(255,255,255,0.62);
+    line-height: 1.55;
+    margin: 0 auto 48px;
+    max-width: 680px;
+    text-wrap: balance;
+  }
+  @media (min-width: 1024px) { .segments-sub { font-size: 17px; margin-bottom: 56px; } }
+  .segments-sub .accent { color: #9FFFC0; font-weight: 600; }
+
+  .segments-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  @media (min-width: 640px) { .segments-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .segments-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; } }
+  .segment-card {
+    background: #131A17;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 18px;
+    text-align: left;
+    display: flex; flex-direction: column;
+    transition: border-color .2s, transform .2s;
+  }
+  .segment-card:hover { border-color: rgba(159,255,192,0.30); transform: translateY(-2px); }
+  .segment-cat {
+    font-family: 'General Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #9FFFC0;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .segment-desc {
+    font-family: 'General Sans', sans-serif;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.5;
+    margin: 0 0 14px;
+    min-height: 40px;
+  }
+  .segment-visual {
+    background: linear-gradient(180deg, #1A2420 0%, #0A0F0D 100%);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    height: 130px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .segment-visual::before {
+    content: ""; position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px; height: 80px;
+    background: radial-gradient(circle, rgba(159,255,192,0.12), transparent 60%);
+    pointer-events: none;
+  }
+  .segment-phone {
+    position: relative;
+    width: 50px; height: 88px;
+    background: linear-gradient(180deg, #0F1816 0%, #050807 100%);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 9px;
+    padding: 6px 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    z-index: 1;
+  }
+  .segment-phone-pill {
+    background: #9FFFC0;
+    color: #0A0F0D;
+    font-size: 6px;
+    font-weight: 700;
+    padding: 2px 4px;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+  }
+  .segment-phone-stars { color: #FBBF24; font-size: 7px; letter-spacing: 0.5px; }
+  .segment-phone-line {
+    width: 24px; height: 2px;
+    background: rgba(255,255,255,0.10);
+    border-radius: 2px;
+  }
+  .segment-footer {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: auto;
+  }
+  .segment-footer-icon {
+    color: #9FFFC0;
+    flex-shrink: 0;
+  }
+  .segment-footer-icon svg { width: 12px; height: 12px; }
+  .segment-footer-text {
+    font-family: 'General Sans', sans-serif;
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.3;
+  }
+
+  /* ECOSYSTEM SECTION — dark "Ecossistema NFC" */
+  .ecosystem-section {
+    background: #0A0F0D;
+    color: #FFFFFF;
+    padding: 48px 24px 80px;
+    position: relative;
+  }
+  @media (min-width: 1024px) { .ecosystem-section { padding: 64px 32px 96px; } }
+  .ecosystem-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .ecosystem-card {
+    background: linear-gradient(180deg, rgba(159,255,192,0.04), rgba(159,255,192,0));
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 28px 24px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    align-items: center;
+  }
+  @media (min-width: 1024px) { .ecosystem-card { grid-template-columns: 1.3fr 2fr 0.8fr; padding: 36px 32px; gap: 32px; } }
+  .ecosystem-intro {
+    text-align: left;
+  }
+  .ecosystem-title {
+    font-family: 'General Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  @media (min-width: 1024px) { .ecosystem-title { font-size: 24px; } }
+  .ecosystem-title .accent { color: #9FFFC0; }
+  .ecosystem-intro-sub {
+    font-family: 'General Sans', sans-serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .ecosystem-products {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  @media (min-width: 768px) { .ecosystem-products { grid-template-columns: repeat(4, 1fr); } }
+  .eco-product {
+    background: #131A17;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 16px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    text-align: center;
+    transition: border-color .2s;
+  }
+  .eco-product:hover { border-color: rgba(159,255,192,0.30); }
+  .eco-product-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: rgba(159,255,192,0.10);
+    border: 1px solid rgba(159,255,192,0.20);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .eco-product-icon svg { width: 20px; height: 20px; color: #9FFFC0; }
+  .eco-product-title {
+    font-family: 'General Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .eco-product-desc {
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    color: rgba(255,255,255,0.50);
+    line-height: 1.4;
+  }
+  .ecosystem-bullets {
+    display: flex; flex-direction: column;
+    gap: 12px;
+  }
+  .eco-bullet {
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .eco-bullet-icon {
+    flex-shrink: 0;
+    color: #9FFFC0;
+    margin-top: 2px;
+  }
+  .eco-bullet-icon svg { width: 14px; height: 14px; }
+  .eco-bullet-text { display: flex; flex-direction: column; gap: 1px; }
+  .eco-bullet-title {
+    font-family: 'General Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: -0.005em;
+  }
+  .eco-bullet-sub {
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.4;
+  }
+
   /* HOW IT WORKS */
   .how-grid {
     display: grid; grid-template-columns: 1fr;
@@ -2669,6 +2937,247 @@
         <div class="pf-text">
           <span class="pf-title">Pague no PIX ou cartão</span>
           <span class="pf-sub">Pagamento 100% seguro e protegido.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEGMENTS — Feito para negócios locais modernos (dark) -->
+<section class="segments-section">
+  <div class="segments-inner">
+    <div class="segments-eyebrow">Usado em negócios modernos</div>
+    <h2 class="segments-h2">Feito para negócios locais <span class="accent">modernos<span class="accent-dot">.</span></span></h2>
+    <p class="segments-sub">Restaurantes, clínicas, academias, cafés, oficinas, salões e eventos estão transformando a experiência dos seus clientes com a <span class="accent">StarTouch</span>.</p>
+
+    <div class="segments-grid">
+      <div class="segment-card">
+        <span class="segment-cat">Restaurantes</span>
+        <p class="segment-desc">Avaliações reais direto da mesa do cliente.</p>
+        <div class="segment-visual">
+          <div class="segment-phone">
+            <span class="segment-phone-pill">TOQUE</span>
+            <span class="segment-phone-stars">★★★★★</span>
+            <span class="segment-phone-line"></span>
+            <span class="segment-phone-line"></span>
+          </div>
+        </div>
+        <div class="segment-footer">
+          <span class="segment-footer-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="segment-footer-text">Mais avaliações e clientes felizes</span>
+        </div>
+      </div>
+
+      <div class="segment-card">
+        <span class="segment-cat">Clínicas</span>
+        <p class="segment-desc">Conecte seus pacientes com mais confiança.</p>
+        <div class="segment-visual">
+          <div class="segment-phone">
+            <span class="segment-phone-pill">TOQUE</span>
+            <span class="segment-phone-stars">★★★★★</span>
+            <span class="segment-phone-line"></span>
+            <span class="segment-phone-line"></span>
+          </div>
+        </div>
+        <div class="segment-footer">
+          <span class="segment-footer-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="segment-footer-text">Relacionamento que gera confiança</span>
+        </div>
+      </div>
+
+      <div class="segment-card">
+        <span class="segment-cat">Academias</span>
+        <p class="segment-desc">Check-in, avaliações e ofertas exclusivas na palma da mão.</p>
+        <div class="segment-visual">
+          <div class="segment-phone">
+            <span class="segment-phone-pill">TOQUE</span>
+            <span class="segment-phone-stars">★★★★★</span>
+            <span class="segment-phone-line"></span>
+            <span class="segment-phone-line"></span>
+          </div>
+        </div>
+        <div class="segment-footer">
+          <span class="segment-footer-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="segment-footer-text">Mais engajamento e retenção</span>
+        </div>
+      </div>
+
+      <div class="segment-card">
+        <span class="segment-cat">Cafés</span>
+        <p class="segment-desc">Mais avaliações em poucos segundos.</p>
+        <div class="segment-visual">
+          <div class="segment-phone">
+            <span class="segment-phone-pill">TOQUE</span>
+            <span class="segment-phone-stars">★★★★★</span>
+            <span class="segment-phone-line"></span>
+            <span class="segment-phone-line"></span>
+          </div>
+        </div>
+        <div class="segment-footer">
+          <span class="segment-footer-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="segment-footer-text">Experiências que viram recomendações</span>
+        </div>
+      </div>
+
+      <div class="segment-card">
+        <span class="segment-cat">Oficinas</span>
+        <p class="segment-desc">Atendimento que gera confiança e indicações.</p>
+        <div class="segment-visual">
+          <div class="segment-phone">
+            <span class="segment-phone-pill">TOQUE</span>
+            <span class="segment-phone-stars">★★★★★</span>
+            <span class="segment-phone-line"></span>
+            <span class="segment-phone-line"></span>
+          </div>
+        </div>
+        <div class="segment-footer">
+          <span class="segment-footer-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="segment-footer-text">Mais avaliações, mais negócios</span>
+        </div>
+      </div>
+
+      <div class="segment-card">
+        <span class="segment-cat">Salões &amp; Estética</span>
+        <p class="segment-desc">Experiências que encantam e fidelizam clientes.</p>
+        <div class="segment-visual">
+          <div class="segment-phone">
+            <span class="segment-phone-pill">TOQUE</span>
+            <span class="segment-phone-stars">★★★★★</span>
+            <span class="segment-phone-line"></span>
+            <span class="segment-phone-line"></span>
+          </div>
+        </div>
+        <div class="segment-footer">
+          <span class="segment-footer-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="segment-footer-text">Clientes fiéis e agenda cheia</span>
+        </div>
+      </div>
+
+      <div class="segment-card">
+        <span class="segment-cat">Eventos &amp; Experiências</span>
+        <p class="segment-desc">Conecte pessoas, compartilhe e crie memórias.</p>
+        <div class="segment-visual">
+          <div class="segment-phone">
+            <span class="segment-phone-pill">TOQUE</span>
+            <span class="segment-phone-stars">★★★★★</span>
+            <span class="segment-phone-line"></span>
+            <span class="segment-phone-line"></span>
+          </div>
+        </div>
+        <div class="segment-footer">
+          <span class="segment-footer-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="segment-footer-text">Mais conexões, mais oportunidades</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ECOSYSTEM — Ecossistema completo de interação NFC (dark) -->
+<section class="ecosystem-section">
+  <div class="ecosystem-inner">
+    <div class="ecosystem-card">
+      <div class="ecosystem-intro">
+        <h3 class="ecosystem-title">Um ecossistema <span class="accent">completo</span> de interação NFC</h3>
+        <p class="ecosystem-intro-sub">Escolha o formato ideal para cada ponto de contato com o seu cliente.</p>
+      </div>
+
+      <div class="ecosystem-products">
+        <div class="eco-product">
+          <span class="eco-product-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="14" rx="2"/>
+              <line x1="3" y1="18" x2="21" y2="22"/>
+            </svg>
+          </span>
+          <span class="eco-product-title">Placa NFC</span>
+          <span class="eco-product-desc">Ideal para mesas, balcões e recepções.</span>
+        </div>
+
+        <div class="eco-product">
+          <span class="eco-product-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="5" width="20" height="14" rx="2"/>
+              <line x1="2" y1="10" x2="22" y2="10"/>
+            </svg>
+          </span>
+          <span class="eco-product-title">Cartão NFC</span>
+          <span class="eco-product-desc">Perfeito para networking, fidelidade e acesso.</span>
+        </div>
+
+        <div class="eco-product">
+          <span class="eco-product-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="6"/>
+              <path d="M12 6V2m0 20v-4"/>
+            </svg>
+          </span>
+          <span class="eco-product-title">Pulseira NFC</span>
+          <span class="eco-product-desc">Para eventos, academias e experiências.</span>
+        </div>
+
+        <div class="eco-product">
+          <span class="eco-product-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="4"/>
+            </svg>
+          </span>
+          <span class="eco-product-title">Adesivo NFC</span>
+          <span class="eco-product-desc">Discreto, versátil e fácil de aplicar.</span>
+        </div>
+      </div>
+
+      <div class="ecosystem-bullets">
+        <div class="eco-bullet">
+          <span class="eco-bullet-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="eco-bullet-text">
+            <span class="eco-bullet-title">Mais conexão</span>
+            <span class="eco-bullet-sub">Cria relacionamentos</span>
+          </span>
+        </div>
+        <div class="eco-bullet">
+          <span class="eco-bullet-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="eco-bullet-text">
+            <span class="eco-bullet-title">Mais visibilidade</span>
+            <span class="eco-bullet-sub">Aumenta sua reputação online</span>
+          </span>
+        </div>
+        <div class="eco-bullet">
+          <span class="eco-bullet-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="eco-bullet-text">
+            <span class="eco-bullet-title">Mais clientes</span>
+            <span class="eco-bullet-sub">Transforma experiência em vendas</span>
+          </span>
+        </div>
+        <div class="eco-bullet">
+          <span class="eco-bullet-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="eco-bullet-text">
+            <span class="eco-bullet-title">Mais modernidade</span>
+            <span class="eco-bullet-sub">Seu negócio sai à frente</span>
+          </span>
         </div>
       </div>
     </div>
