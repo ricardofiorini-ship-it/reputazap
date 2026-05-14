@@ -304,6 +304,54 @@
   }
   @media (min-width: 1024px) { .hero-sub { font-size: 18px; } }
 
+  /* CTA — 2 botões (Receber kit + Ativar agora) */
+  .hero-ctas {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 540px;
+    margin-top: 0;
+  }
+  @media (min-width: 640px) {
+    .hero-ctas { flex-direction: row; gap: 14px; }
+  }
+  .hero-cta-primary, .hero-cta-secondary {
+    flex: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 10px;
+    padding: 16px 24px;
+    border-radius: 999px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 14.5px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background .2s, transform .1s, border-color .2s, color .2s;
+    white-space: nowrap;
+    line-height: 1;
+  }
+  @media (min-width: 1024px) { .hero-cta-primary, .hero-cta-secondary { font-size: 15px; padding: 18px 28px; } }
+  .hero-cta-primary {
+    background: #9FFFC0;
+    color: #0A0F0D;
+    border: 1px solid #9FFFC0;
+    box-shadow: 0 8px 24px -8px rgba(159,255,192,0.40);
+  }
+  .hero-cta-primary:hover { background: #B9FFD2; }
+  .hero-cta-primary:active { transform: scale(0.98); }
+  .hero-cta-primary svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .hero-cta-secondary {
+    background: rgba(255,255,255,0.04);
+    color: #FFFFFF;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .hero-cta-secondary:hover {
+    background: rgba(159,255,192,0.06);
+    border-color: rgba(159,255,192,0.45);
+    color: #9FFFC0;
+  }
+  .hero-cta-secondary svg { width: 18px; height: 18px; flex-shrink: 0; color: #9FFFC0; }
+
   /* CTA — barra de busca arredondada */
   .hero-search {
     display: flex; align-items: center;
@@ -3105,99 +3153,29 @@
     <h1>Transforme avaliações<br/>em <span class="accent">relacionamento<span class="accent-dot">.</span></span></h1>
     <p class="hero-sub">Google, WhatsApp e atendimento inteligente em uma única experiência para seu cliente.</p>
 
-    <form class="hero-search" id="heroSearchForm" action="/diagnostico" method="get" novalidate>
-      <svg class="hero-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="11" cy="11" r="8"/>
-        <path d="m21 21-4.3-4.3"/>
-      </svg>
-      <input class="hero-search-input" type="text" name="q" id="heroSearchInput" placeholder="Pesquise sua empresa no Google" autocomplete="off" minlength="3" required/>
-      <button class="hero-search-btn" type="submit" aria-label="Buscar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <div class="hero-ctas">
+      <a class="hero-cta-primary" href="/ativar?from=web">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        Receber meu kit
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="16" height="16">
           <line x1="5" y1="12" x2="19" y2="12"/>
           <polyline points="12 5 19 12 12 19"/>
         </svg>
-      </button>
-    </form>
-    <div class="hero-search-error" id="heroSearchError" hidden>Digite o nome do seu negócio</div>
-
-    <div class="hero-features">
-      <span class="hero-feature">
-        <svg class="hero-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="20 6 9 17 4 12"/>
+      </a>
+      <a class="hero-cta-secondary" href="/ativar-placa">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+          <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+          <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+          <line x1="12" y1="20" x2="12.01" y2="20"/>
         </svg>
-        Conecte seu perfil ao Google
-      </span>
-      <span class="hero-feature">
-        <svg class="hero-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M3 5a2 2 0 0 1 2-2h3.28a1 1 0 0 1 .95.68l1.5 4.5a1 1 0 0 1-.5 1.21l-2.26 1.13a11 11 0 0 0 5 5l1.13-2.26a1 1 0 0 1 1.21-.5l4.5 1.5a1 1 0 0 1 .68.95V19a2 2 0 0 1-2 2A18 18 0 0 1 3 5z"/>
-        </svg>
-        Atenda no WhatsApp
-      </span>
-      <span class="hero-feature">
-        <svg class="hero-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-        </svg>
-        Instalação rápida
-      </span>
+        Já tenho meu kit, ativar agora
+      </a>
     </div>
-
-    <div class="hero-mockups">
-      <div class="hero-phone hero-phone-1" aria-hidden="true">
-        <div class="hero-phone-1-pill">TOQUE AQUI</div>
-        <div class="hero-phone-1-nfc">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
-            <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-            <line x1="12" y1="20" x2="12.01" y2="20"/>
-          </svg>
-        </div>
-        <div class="hero-phone-1-label">NFC</div>
-      </div>
-      <div class="hero-phone hero-phone-2" aria-hidden="true">
-        <div class="hero-phone-2-biz">
-          <div class="hero-phone-2-avatar"></div>
-          <div>
-            <div class="hero-phone-2-name">Café Bello Vista</div>
-            <div class="hero-phone-2-meta">São Paulo · SP</div>
-          </div>
-        </div>
-        <div class="hero-phone-2-stars">★★★★★</div>
-        <div class="hero-phone-2-quote">"Atendimento incrível, voltarei sempre."</div>
-        <div class="hero-phone-2-cta">Avaliar no Google →</div>
-      </div>
-    </div>
-
-    <div class="hero-badges">
-      <span class="hero-badge">★ Seja o nº 1 da sua região</span>
-      <span class="hero-badge">🔒 Conexão LGPD</span>
-      <span class="hero-badge">🏢 Empresas que confiam</span>
-    </div>
-  </div>
-</section>
-<script>
-  (function() {
-    var form = document.getElementById('heroSearchForm');
-    var input = document.getElementById('heroSearchInput');
-    var error = document.getElementById('heroSearchError');
-    if (!form || !input || !error) return;
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      var q = (input.value || '').trim();
-      if (q.length < 3) {
-        error.textContent = q.length === 0 ? 'Digite o nome do seu negócio' : 'Digite pelo menos 3 caracteres';
-        error.hidden = false;
-        input.focus();
-        return;
-      }
-      error.hidden = true;
-      window.location.href = '/diagnostico?q=' + encodeURIComponent(q);
-    });
-    input.addEventListener('input', function() {
-      if (!error.hidden) error.hidden = true;
-    });
-  })();
-</script>
 
 <!-- FEATURES — Muito além das avaliações (dark) -->
 <section class="features-section">
