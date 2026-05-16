@@ -84,10 +84,10 @@
   }
   .logo img {
     display: block;
-    height: 32px;
+    height: 48px;
     width: auto;
   }
-  @media (min-width: 768px) { .logo img { height: 36px; } }
+  @media (min-width: 768px) { .logo img { height: 54px; } }
   .logo-mark {
     width: 32px; height: 32px;
     background: #9FFFC0;
@@ -829,6 +829,18 @@
   .step-card {
     text-align: left;
     display: flex; flex-direction: column;
+  }
+  /* Step card que e so imagem (PNG ja contem numero+titulo+desc+visual) */
+  .step-card-image {
+    padding: 0;
+    background: transparent;
+    border: none;
+  }
+  .step-card-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
   }
   .step-number {
     display: inline-flex; align-items: center; justify-content: center;
@@ -2549,7 +2561,7 @@
   }
   .footer-dark-brand .footer-logo img {
     display: block;
-    height: 36px;
+    height: 54px;
     width: auto;
   }
   .footer-dark-brand .logo-mark {
@@ -3291,27 +3303,8 @@
 
     <div class="steps-grid">
       <!-- Passo 1 -->
-      <div class="step-card">
-        <div class="step-number">1</div>
-        <h3 class="step-title">Receba seu kit</h3>
-        <p class="step-desc">Tudo pronto para uso no seu negócio.</p>
-        <div class="step-visual step-visual-1">
-          <div class="sv1-box">
-            <svg width="44" height="32" viewBox="0 0 24 16" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.2" aria-hidden="true">
-              <rect x="0.5" y="0.5" width="23" height="15" rx="1.5"/>
-              <line x1="0" y1="4" x2="24" y2="4"/>
-            </svg>
-          </div>
-          <div class="sv1-card">
-            <span class="sv1-card-pill">TOQUE AQUI</span>
-            <svg class="sv1-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
-              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-              <line x1="12" y1="20" x2="12.01" y2="20"/>
-            </svg>
-          </div>
-        </div>
+      <div class="step-card step-card-image">
+        <img src="/step-card-1.png" alt="Passo 1 — Receba seu kit: tudo pronto para uso no seu negócio (kit completo, tecnologia NFC, fácil de usar)" loading="lazy"/>
       </div>
 
       <!-- Passo 2 -->
