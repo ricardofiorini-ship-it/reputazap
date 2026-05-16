@@ -676,22 +676,23 @@
     border-color: rgba(159,255,192,0.30);
     transform: translateY(-2px);
   }
-  /* Card que é só imagem (substitui ícone+título+descrição por <img>) */
+  /* Card que é só imagem (PNG já vem com card "renderizado" + fundo transparente) */
   .feature-card-image {
     padding: 0;
-    overflow: hidden;
+    overflow: visible;
     background: transparent;
-    border: 1px solid rgba(255,255,255,0.06);
+    border: none;
     display: flex;
+    align-items: stretch;
+    justify-content: center;
   }
-  .feature-card-image:hover { border-color: rgba(159,255,192,0.30); }
+  .feature-card-image:hover { transform: translateY(-2px); }
   .feature-card-image img {
     width: 100%;
     height: 100%;
     display: block;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center;
-    border-radius: 19px;
   }
   .feature-icon {
     width: 56px; height: 56px;
