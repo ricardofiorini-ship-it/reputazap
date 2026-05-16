@@ -305,16 +305,32 @@
   @media (min-width: 1024px) { .hero-sub { font-size: 18px; } }
 
   /* Hero banner (imagem dos produtos após CTAs) */
+  .hero-banner-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin: 40px auto 0;
+  }
+  @media (min-width: 1024px) {
+    .hero-banner-wrap { max-width: 900px; margin-top: 56px; }
+  }
+  .hero-banner-wrap::before {
+    content: "";
+    position: absolute;
+    inset: 8% 4%;
+    background: radial-gradient(ellipse at center, rgba(159,255,192,0.22), rgba(159,255,192,0.08) 45%, transparent 75%);
+    filter: blur(50px);
+    pointer-events: none;
+    z-index: 0;
+  }
   .hero-banner {
     display: block;
     width: 100%;
-    max-width: 560px;
     height: auto;
-    margin: 40px auto 0;
+    position: relative;
+    z-index: 1;
+    aspect-ratio: 3 / 2;
     object-fit: contain;
-  }
-  @media (min-width: 1024px) {
-    .hero-banner { max-width: 720px; margin-top: 56px; }
   }
 
   /* CTA — 2 botões (Receber kit + Ativar agora) */
@@ -3190,7 +3206,9 @@
       </a>
     </div>
 
-    <img class="hero-banner" src="/hero-experiencias.png" alt="Produtos StarTouch — placa, cartão NFC, pulseira e dashboard" loading="lazy"/>
+    <div class="hero-banner-wrap">
+      <img class="hero-banner" src="/hero-experiencias.png" alt="Produtos StarTouch — placa de balcão, celular, cartão e pulseira NFC" width="960" height="640" fetchpriority="high"/>
+    </div>
   </div>
 </section>
 
