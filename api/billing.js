@@ -84,6 +84,81 @@ async function handleCheckout(req, res) {
   }
 }
 
+// Catalogo do kit — fonte de verdade pra preços. Deve refletir public/kit.html.
+// Preços em centavos.
+const KIT_CATALOG = {
+  "placa-balcao": { name: "Placa de Balcão NFC",      price_cents: 7990  },
+  "placa-mesa":   { name: "Placa de Mesa NFC",         price_cents: 4990  },
+  "pulseira":     { name: "Pulseira NFC",              price_cents: 10990 },
+  "adesivo":      { name: "Adesivos NFC (kit com 3)",  price_cents: 2990  }
+};
+
+async function handleCheckoutKit(req, res) {
+  const auth = await authUser(req);
+  if (auth.error) return res.status(auth.status).json({ error: auth.error });
+
+  try {
+    const rawBody = await getRawBody(req);
+    const { items = [], biz_name = "" } = parseJson(rawBody);
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "Carrinho vazio" });
+    }
+
+    const line_items = [];
+    let totalCents = 0;
+    for (const item of items) {
+      const product = KIT_CATALOG[item?.id];
+      if (!product) return res.status(400).json({ error: `Produto desconhecido: ${item?.id}` });
+      const qty = parseInt(item.qty, 10);
+      if (!Number.isFinite(qty) || qty < 1 || qty > 99) {
+        return res.status(400).json({ error: `Quantidade inválida pra ${product.name}` });
+      }
+      line_items.push({
+        price_data: {
+          currency: "brl",
+          product_data: { name: product.name },
+          unit_amount: product.price_cents
+        },
+        quantity: qty
+      });
+      totalCents += product.price_cents * qty;
+    }
+
+    if (totalCents === 0) return res.status(400).json({ error: "Total zerado" });
+
+    const stripe = getStripe();
+    const origin = req.headers.origin || `https://${req.headers.host}`;
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items,
+      shipping_address_collection: { allowed_countries: ["BR"] },
+      phone_number_collection: { enabled: true },
+      customer_email: auth.user.email,
+      client_reference_id: auth.user.id,
+      metadata: {
+        user_id: auth.user.id,
+        biz_name,
+        kit_total_cents: String(totalCents),
+        order_type: "kit"
+      },
+      payment_intent_data: {
+        metadata: { user_id: auth.user.id, biz_name, order_type: "kit" }
+      },
+      allow_promotion_codes: true,
+      locale: "pt-BR",
+      success_url: `${origin}/app?kit=success&session={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/kit?biz=${encodeURIComponent(biz_name)}&cancelled=1`
+    });
+
+    return res.json({ url: session.url });
+  } catch (err) {
+    console.error("[billing/checkout-kit] erro:", err);
+    return res.status(500).json({ error: err.message || "Erro ao criar checkout do kit" });
+  }
+}
+
 async function handlePortal(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
@@ -134,6 +209,15 @@ async function handleWebhook(req, res) {
         const session = event.data.object;
         const userId = session.client_reference_id || session.metadata?.user_id;
         if (!userId) { console.warn("[billing/webhook] session sem user_id:", session.id); break; }
+
+        // Pedidos de kit (mode=payment) sao logados pra acompanhamento — nao mexem no plano.
+        // O envio fisico do hardware e feito a partir do Stripe Dashboard.
+        if (session.mode === "payment") {
+          const totalCents = session.amount_total ?? session.metadata?.kit_total_cents ?? "?";
+          const bizName = session.metadata?.biz_name || "(sem biz)";
+          console.log(`[billing/webhook] pedido de kit pago — user=${userId} biz=${bizName} total_cents=${totalCents} session=${session.id}`);
+          break;
+        }
 
         // Busca a subscription completa pra pegar current_period_end + status
         let periodEnd = null;
@@ -204,8 +288,9 @@ export default async function handler(req, res) {
     const action = req.query.action || req.query.a;
     if (action === "webhook") return await handleWebhook(req, res);
     if (action === "checkout") return await handleCheckout(req, res);
+    if (action === "checkout-kit") return await handleCheckoutKit(req, res);
     if (action === "portal") return await handlePortal(req, res);
-    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|portal|webhook" });
+    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|portal|webhook" });
   } catch (err) {
     console.error("[billing] erro nao tratado:", err);
     if (!res.headersSent) {

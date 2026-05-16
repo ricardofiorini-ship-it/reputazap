@@ -236,18 +236,53 @@ function renderCart() {
   document.getElementById("checkoutBtnMobile").disabled = disabled;
 }
 
-function handleCheckout() {
-  const items = Object.keys(cart).map(id => {
-    const p = PRODUCTS.find(x => x.id === id);
-    return { id, name: p.name, price: p.price, qty: cart[id] };
-  });
+async function handleCheckout() {
+  const items = Object.keys(cart).map(id => ({ id, qty: cart[id] }));
   if (items.length === 0) return;
 
-  // Phase 1: ainda sem integração Stripe. Mostra resumo no console e alerta.
-  console.log("[StarTouch] Checkout pendente — itens:", items, "biz:", bizName, "place_id:", placeId);
-  alert("Em breve: pagamento via Stripe.\n\nResumo do seu kit:\n" +
-    items.map(i => `• ${i.qty}× ${i.name} — ${fmt(i.price * i.qty)}`).join("\n") +
-    `\n\nTotal: ${fmt(items.reduce((s, i) => s + i.price * i.qty, 0))}`);
+  const token = localStorage.getItem("rz_token");
+  if (!token) {
+    alert("Sua sessão expirou. Vamos te levar pro cadastro novamente.");
+    window.location.href = "/ativar?from=web";
+    return;
+  }
+
+  const btn = document.getElementById("checkoutBtn");
+  const btnMobile = document.getElementById("checkoutBtnMobile");
+  const origLabel = btn.textContent;
+  const origLabelMobile = btnMobile.textContent;
+  btn.disabled = true;
+  btnMobile.disabled = true;
+  btn.textContent = "Carregando…";
+  btnMobile.textContent = "…";
+
+  try {
+    const res = await fetch("/api/billing?action=checkout-kit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ items, biz_name: bizName || "" })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.url) {
+      alert(data.error || "Erro ao iniciar o checkout. Tente novamente.");
+      btn.disabled = false;
+      btnMobile.disabled = false;
+      btn.textContent = origLabel;
+      btnMobile.textContent = origLabelMobile;
+      return;
+    }
+    window.location.href = data.url;
+  } catch (err) {
+    console.error("[checkout-kit] erro:", err);
+    alert("Erro de conexão. Tente novamente.");
+    btn.disabled = false;
+    btnMobile.disabled = false;
+    btn.textContent = origLabel;
+    btnMobile.textContent = origLabelMobile;
+  }
 }
 
 document.getElementById("checkoutBtn").addEventListener("click", handleCheckout);
