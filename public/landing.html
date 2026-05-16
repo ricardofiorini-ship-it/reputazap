@@ -82,6 +82,12 @@
     text-decoration: none;
     flex-shrink: 0;
   }
+  .logo img {
+    display: block;
+    height: 32px;
+    width: auto;
+  }
+  @media (min-width: 768px) { .logo img { height: 36px; } }
   .logo-mark {
     width: 32px; height: 32px;
     background: #9FFFC0;
@@ -2541,6 +2547,11 @@
     margin-bottom: 14px;
     text-decoration: none;
   }
+  .footer-dark-brand .footer-logo img {
+    display: block;
+    height: 36px;
+    width: auto;
+  }
   .footer-dark-brand .logo-mark {
     width: 32px; height: 32px;
     background: #9FFFC0;
@@ -3189,8 +3200,7 @@
 <header>
   <div class="header-inner">
     <a class="logo" href="/landing">
-      <span class="logo-mark">+</span>
-      <span class="logo-text">StarTouch</span>
+      <img src="/startouch-logo.png" alt="StarTouch" width="1536" height="600"/>
     </a>
     <nav class="header-nav">
       <a href="#como-funciona">Como funciona</a>
@@ -4378,8 +4388,7 @@
     <div class="footer-dark-grid">
       <div class="footer-dark-brand">
         <a class="footer-logo" href="/landing">
-          <span class="logo-mark">+</span>
-          <span class="logo-text">StarTouch</span>
+          <img src="/startouch-logo.png" alt="StarTouch" width="1536" height="600"/>
         </a>
         <p class="footer-tagline">Conecte. Avalie. Cresça.</p>
         <div class="footer-socials">
