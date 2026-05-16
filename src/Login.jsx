@@ -89,7 +89,7 @@ export default function Login({ onLogin }) {
         .login-input{width:100%;background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;padding:12px 16px;color:#0f172a;font-size:14px;outline:none;font-family:'General Sans',sans-serif;transition:border-color .15s;}
         .login-input:focus{border-color:#00C49A;}
         .login-btn{width:100%;background:#00C49A;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;font-family:'General Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s;}
-        .login-btn:hover:not(:disabled){background:#1557b0;}
+        .login-btn:hover:not(:disabled){background:#0EA47A;}
         .login-btn:disabled{opacity:0.7;cursor:not-allowed;}
       `}</style>
 
