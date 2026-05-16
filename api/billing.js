@@ -137,6 +137,9 @@ async function handleCheckoutKit(req, res) {
       phone_number_collection: { enabled: true },
       customer_email: auth.user.email,
       client_reference_id: auth.user.id,
+      payment_method_options: {
+        card: { installments: { enabled: true } }
+      },
       metadata: {
         user_id: auth.user.id,
         biz_name,
