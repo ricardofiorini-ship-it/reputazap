@@ -840,7 +840,12 @@
     display: block;
     width: 100%;
     height: auto;
+    aspect-ratio: 815 / 1086;
     object-fit: contain;
+    /* Paliativo enquanto PNGs não vêm com fundo transparente:
+       blend faz o fundo dark da imagem fundir no dark do site.
+       Remover quando PNGs forem refeitos com alpha channel. */
+    mix-blend-mode: lighten;
   }
   .step-number {
     display: inline-flex; align-items: center; justify-content: center;
@@ -3361,22 +3366,8 @@
       </div>
 
       <!-- Passo 3 -->
-      <div class="step-card">
-        <div class="step-number">3</div>
-        <h3 class="step-title">Comece a receber avaliações &amp; clientes</h3>
-        <p class="step-desc">Transforme interações físicas em relacionamento digital.</p>
-        <div class="step-visual step-visual-3">
-          <div class="sv3-phone">
-            <div class="sv3-phone-stars">★★★★★</div>
-            <div class="sv3-phone-line"></div>
-            <div class="sv3-phone-line"></div>
-            <div class="sv3-phone-line" style="width:20px"></div>
-          </div>
-          <div class="sv3-counter">
-            <span class="sv3-counter-num">+248</span>
-            <span class="sv3-counter-label">avaliações</span>
-          </div>
-        </div>
+      <div class="step-card step-card-image">
+        <img src="/step-card-3.png" alt="Passo 3 — Comece a receber avaliações e clientes: transforme interações físicas em relacionamento digital" loading="lazy"/>
       </div>
     </div>
 
