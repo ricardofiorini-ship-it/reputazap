@@ -1905,118 +1905,166 @@
     line-height: 1.3;
   }
 
-  /* ECOSYSTEM SECTION — dark "Ecossistema NFC" */
+  /* ECOSYSTEM SECTION — vitrine vertical de gadgets */
   .ecosystem-section {
     background: #0A0F0D;
     color: #FFFFFF;
-    padding: 48px 24px 80px;
+    padding: 64px 24px 80px;
     position: relative;
+    overflow: hidden;
   }
-  @media (min-width: 1024px) { .ecosystem-section { padding: 64px 32px 96px; } }
+  @media (min-width: 1024px) { .ecosystem-section { padding: 96px 32px; } }
+  .ecosystem-section::before {
+    content: ""; position: absolute;
+    left: 50%; top: 0;
+    transform: translateX(-50%);
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(159,255,192,0.18), transparent);
+    pointer-events: none;
+  }
   .ecosystem-inner {
-    max-width: 1280px;
+    max-width: 920px;
     margin: 0 auto;
     position: relative;
     z-index: 1;
   }
-  .ecosystem-card {
-    background: linear-gradient(180deg, rgba(159,255,192,0.04), rgba(159,255,192,0));
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 20px;
-    padding: 28px 24px;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 24px;
-    align-items: center;
-  }
-  @media (min-width: 1024px) { .ecosystem-card { grid-template-columns: 1.3fr 2fr 0.8fr; padding: 36px 32px; gap: 32px; } }
-  .ecosystem-intro {
-    text-align: left;
-  }
-  .ecosystem-title {
+  .eco-header { text-align: center; margin-bottom: 48px; }
+  @media (min-width: 1024px) { .eco-header { margin-bottom: 64px; } }
+  .eco-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
     font-family: 'General Sans', sans-serif;
-    font-size: 22px;
+    font-size: 11px; font-weight: 600;
+    color: #9FFFC0;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding: 8px 18px;
+    background: rgba(159,255,192,0.08);
+    border: 1px solid rgba(159,255,192,0.18);
+    border-radius: 999px;
+  }
+  @media (min-width: 768px) { .eco-eyebrow { font-size: 12px; } }
+  .eco-h2 {
+    font-family: 'General Sans', sans-serif;
+    font-size: clamp(28px, 5vw, 44px);
     font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
     color: #FFFFFF;
-    margin: 0 0 6px;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
+    margin: 0 0 16px;
+    text-wrap: balance;
   }
-  @media (min-width: 1024px) { .ecosystem-title { font-size: 24px; } }
-  .ecosystem-title .accent { color: #9FFFC0; }
-  .ecosystem-intro-sub {
+  .eco-h2 .accent { color: #9FFFC0; }
+  .eco-sub {
     font-family: 'General Sans', sans-serif;
-    font-size: 13px;
-    color: rgba(255,255,255,0.55);
-    line-height: 1.5;
-    margin: 0;
+    font-size: 15.5px;
+    color: rgba(255,255,255,0.62);
+    line-height: 1.55;
+    margin: 0 auto;
+    max-width: 560px;
+    text-wrap: balance;
   }
-  .ecosystem-products {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+  @media (min-width: 1024px) { .eco-sub { font-size: 17px; } }
+  .eco-vitrine {
+    display: flex; flex-direction: column;
+    gap: 20px;
   }
-  @media (min-width: 768px) { .ecosystem-products { grid-template-columns: repeat(4, 1fr); } }
-  .eco-product {
+  @media (min-width: 1024px) { .eco-vitrine { gap: 24px; } }
+  .eco-vitrine-card {
     background: #131A17;
     border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    padding: 16px 12px;
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-    text-align: center;
-    transition: border-color .2s;
+    border-radius: 20px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr;
+    transition: border-color .2s, transform .2s;
   }
-  .eco-product:hover { border-color: rgba(159,255,192,0.30); }
-  .eco-product-icon {
-    width: 40px; height: 40px;
-    border-radius: 10px;
+  @media (min-width: 768px) { .eco-vitrine-card { grid-template-columns: 1fr 1.2fr; } }
+  .eco-vitrine-card:hover { border-color: rgba(159,255,192,0.30); transform: translateY(-2px); }
+  .eco-vitrine-image {
+    position: relative;
+    min-height: 240px;
+    background: linear-gradient(180deg, #1A2420 0%, #0F1816 100%);
+    display: flex; align-items: center; justify-content: center;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  @media (min-width: 768px) {
+    .eco-vitrine-image {
+      min-height: 280px;
+      border-bottom: none;
+      border-right: 1px solid rgba(255,255,255,0.04);
+    }
+  }
+  .eco-vitrine-image::before {
+    content: ""; position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%; height: 60%;
+    background: radial-gradient(circle, rgba(159,255,192,0.10), transparent 70%);
+    pointer-events: none;
+  }
+  .eco-vitrine-image img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+  }
+  .eco-vitrine-placeholder {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 96px; height: 96px;
+    border-radius: 24px;
     background: rgba(159,255,192,0.10);
-    border: 1px solid rgba(159,255,192,0.20);
-    display: inline-flex; align-items: center; justify-content: center;
+    border: 1.5px solid rgba(159,255,192,0.25);
+    z-index: 1;
   }
-  .eco-product-icon svg { width: 20px; height: 20px; color: #9FFFC0; }
-  .eco-product-title {
-    font-family: 'General Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    color: #FFFFFF;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-  .eco-product-desc {
-    font-family: 'General Sans', sans-serif;
-    font-size: 11px;
-    color: rgba(255,255,255,0.50);
-    line-height: 1.4;
-  }
-  .ecosystem-bullets {
+  .eco-vitrine-placeholder svg { width: 40px; height: 40px; color: #9FFFC0; }
+  .eco-vitrine-body {
+    padding: 28px 24px;
     display: flex; flex-direction: column;
+    justify-content: center;
     gap: 12px;
   }
-  .eco-bullet {
-    display: flex; align-items: flex-start; gap: 8px;
-  }
-  .eco-bullet-icon {
-    flex-shrink: 0;
+  @media (min-width: 1024px) { .eco-vitrine-body { padding: 36px 32px; } }
+  .eco-vitrine-tag {
+    display: inline-block;
+    font-family: 'General Sans', sans-serif;
+    font-size: 11px; font-weight: 700;
     color: #9FFFC0;
-    margin-top: 2px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
   }
-  .eco-bullet-icon svg { width: 14px; height: 14px; }
-  .eco-bullet-text { display: flex; flex-direction: column; gap: 1px; }
-  .eco-bullet-title {
+  .eco-vitrine-title {
+    font-family: 'General Sans', sans-serif;
+    font-size: 22px; font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    margin: 0;
+  }
+  @media (min-width: 1024px) { .eco-vitrine-title { font-size: 26px; } }
+  .eco-vitrine-desc {
+    font-family: 'General Sans', sans-serif;
+    font-size: 14px;
+    color: rgba(255,255,255,0.62);
+    line-height: 1.6;
+    margin: 0;
+  }
+  @media (min-width: 1024px) { .eco-vitrine-desc { font-size: 15px; } }
+  .eco-vitrine-features {
+    display: flex; flex-wrap: wrap;
+    gap: 8px; margin-top: 6px;
+  }
+  .eco-vitrine-feature {
+    display: inline-flex; align-items: center; gap: 6px;
     font-family: 'General Sans', sans-serif;
     font-size: 12px;
-    font-weight: 700;
-    color: #FFFFFF;
-    letter-spacing: -0.005em;
+    color: rgba(255,255,255,0.70);
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 999px;
   }
-  .eco-bullet-sub {
-    font-family: 'General Sans', sans-serif;
-    font-size: 11px;
-    color: rgba(255,255,255,0.45);
-    line-height: 1.4;
-  }
-
   /* FINAL CTA SECTION — dark "Transforme seu negócio" */
   .final-cta-section {
     background: #0A0F0D;
@@ -3365,6 +3413,90 @@
   </div>
 </section>
 
+<!-- ECOSYSTEM — vitrine vertical de gadgets (dark) -->
+<section class="ecosystem-section">
+  <div class="ecosystem-inner">
+    <div class="eco-header">
+      <div class="eco-eyebrow">Ecossistema completo</div>
+      <h2 class="eco-h2">Um ecossistema <span class="accent">completo</span> de interação NFC</h2>
+      <p class="eco-sub">Escolha o formato ideal para cada ponto de contato com o seu cliente.</p>
+    </div>
+
+    <div class="eco-vitrine">
+      <div class="eco-vitrine-card">
+        <div class="eco-vitrine-image" aria-hidden="true">
+          <div class="eco-vitrine-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><line x1="3" y1="18" x2="21" y2="22"/></svg>
+          </div>
+        </div>
+        <div class="eco-vitrine-body">
+          <span class="eco-vitrine-tag">Placa NFC</span>
+          <h3 class="eco-vitrine-title">Ideal para mesas, balcões e recepções</h3>
+          <p class="eco-vitrine-desc">Acrílico premium com NFC integrado. Coloque no balcão ou na mesa do cliente e ative com um toque.</p>
+          <div class="eco-vitrine-features">
+            <span class="eco-vitrine-feature">Acrílico premium</span>
+            <span class="eco-vitrine-feature">Base estável</span>
+            <span class="eco-vitrine-feature">Cabe em qualquer balcão</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="eco-vitrine-card">
+        <div class="eco-vitrine-image" aria-hidden="true">
+          <div class="eco-vitrine-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </div>
+        </div>
+        <div class="eco-vitrine-body">
+          <span class="eco-vitrine-tag">Cartão NFC</span>
+          <h3 class="eco-vitrine-title">Perfeito para networking, fidelidade e acesso</h3>
+          <p class="eco-vitrine-desc">PVC fosco do tamanho de um cartão de crédito. Entregue no atendimento ou use como cartão de visitas.</p>
+          <div class="eco-vitrine-features">
+            <span class="eco-vitrine-feature">PVC fosco</span>
+            <span class="eco-vitrine-feature">Tamanho carteira</span>
+            <span class="eco-vitrine-feature">Distribuição fácil</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="eco-vitrine-card">
+        <div class="eco-vitrine-image" aria-hidden="true">
+          <div class="eco-vitrine-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><path d="M12 6V2m0 20v-4"/></svg>
+          </div>
+        </div>
+        <div class="eco-vitrine-body">
+          <span class="eco-vitrine-tag">Pulseira NFC</span>
+          <h3 class="eco-vitrine-title">Para eventos, academias e experiências</h3>
+          <p class="eco-vitrine-desc">Silicone leve e resistente. Ideal pra atendentes, alunos de academia e participantes de eventos.</p>
+          <div class="eco-vitrine-features">
+            <span class="eco-vitrine-feature">Silicone resistente</span>
+            <span class="eco-vitrine-feature">À prova d'água</span>
+            <span class="eco-vitrine-feature">Ajuste universal</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="eco-vitrine-card">
+        <div class="eco-vitrine-image" aria-hidden="true">
+          <div class="eco-vitrine-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+          </div>
+        </div>
+        <div class="eco-vitrine-body">
+          <span class="eco-vitrine-tag">Adesivo NFC</span>
+          <h3 class="eco-vitrine-title">Discreto, versátil e fácil de aplicar</h3>
+          <p class="eco-vitrine-desc">Cole em qualquer superfície lisa: vitrine, embalagem, máquina de cartão. Customização total.</p>
+          <div class="eco-vitrine-features">
+            <span class="eco-vitrine-feature">Adesivo forte</span>
+            <span class="eco-vitrine-feature">Personalizável</span>
+            <span class="eco-vitrine-feature">Cola em qualquer lugar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 <!-- TRUST — 100% compatível com o Google (dark) -->
 <section class="trust-section">
   <div class="trust-inner">
@@ -3890,103 +4022,6 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
           </span>
           <span class="segment-footer-text">Mais conexões, mais oportunidades</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ECOSYSTEM — Ecossistema completo de interação NFC (dark) -->
-<section class="ecosystem-section">
-  <div class="ecosystem-inner">
-    <div class="ecosystem-card">
-      <div class="ecosystem-intro">
-        <h3 class="ecosystem-title">Um ecossistema <span class="accent">completo</span> de interação NFC</h3>
-        <p class="ecosystem-intro-sub">Escolha o formato ideal para cada ponto de contato com o seu cliente.</p>
-      </div>
-
-      <div class="ecosystem-products">
-        <div class="eco-product">
-          <span class="eco-product-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="3" y="4" width="18" height="14" rx="2"/>
-              <line x1="3" y1="18" x2="21" y2="22"/>
-            </svg>
-          </span>
-          <span class="eco-product-title">Placa NFC</span>
-          <span class="eco-product-desc">Ideal para mesas, balcões e recepções.</span>
-        </div>
-
-        <div class="eco-product">
-          <span class="eco-product-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="2" y="5" width="20" height="14" rx="2"/>
-              <line x1="2" y1="10" x2="22" y2="10"/>
-            </svg>
-          </span>
-          <span class="eco-product-title">Cartão NFC</span>
-          <span class="eco-product-desc">Perfeito para networking, fidelidade e acesso.</span>
-        </div>
-
-        <div class="eco-product">
-          <span class="eco-product-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="6"/>
-              <path d="M12 6V2m0 20v-4"/>
-            </svg>
-          </span>
-          <span class="eco-product-title">Pulseira NFC</span>
-          <span class="eco-product-desc">Para eventos, academias e experiências.</span>
-        </div>
-
-        <div class="eco-product">
-          <span class="eco-product-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"/>
-              <circle cx="12" cy="12" r="4"/>
-            </svg>
-          </span>
-          <span class="eco-product-title">Adesivo NFC</span>
-          <span class="eco-product-desc">Discreto, versátil e fácil de aplicar.</span>
-        </div>
-      </div>
-
-      <div class="ecosystem-bullets">
-        <div class="eco-bullet">
-          <span class="eco-bullet-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <span class="eco-bullet-text">
-            <span class="eco-bullet-title">Mais conexão</span>
-            <span class="eco-bullet-sub">Cria relacionamentos</span>
-          </span>
-        </div>
-        <div class="eco-bullet">
-          <span class="eco-bullet-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <span class="eco-bullet-text">
-            <span class="eco-bullet-title">Mais visibilidade</span>
-            <span class="eco-bullet-sub">Aumenta sua reputação online</span>
-          </span>
-        </div>
-        <div class="eco-bullet">
-          <span class="eco-bullet-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <span class="eco-bullet-text">
-            <span class="eco-bullet-title">Mais clientes</span>
-            <span class="eco-bullet-sub">Transforma experiência em vendas</span>
-          </span>
-        </div>
-        <div class="eco-bullet">
-          <span class="eco-bullet-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <span class="eco-bullet-text">
-            <span class="eco-bullet-title">Mais modernidade</span>
-            <span class="eco-bullet-sub">Seu negócio sai à frente</span>
-          </span>
         </div>
       </div>
     </div>
