@@ -315,10 +315,10 @@
     position: relative;
     width: 100%;
     max-width: 640px;
-    margin: 32px auto 0;
+    margin: 0 auto 32px;
   }
   @media (min-width: 1024px) {
-    .hero-banner-wrap { max-width: 920px; margin-top: 48px; }
+    .hero-banner-wrap { max-width: 920px; margin-bottom: 48px; }
   }
   .hero-banner-wrap::before {
     content: "";
@@ -3292,6 +3292,10 @@
 <!-- HERO — dark mode -->
 <section class="hero">
   <div class="hero-inner">
+    <div class="hero-banner-wrap">
+      <img class="hero-banner" src="/hero-experiencias.png" alt="Produtos StarTouch — placa de balcão, celular, cartão e pulseira NFC" width="1152" height="768" fetchpriority="high"/>
+    </div>
+
     <div class="hero-eyebrow">Plataforma inteligente de relacionamento local</div>
     <h1>Transforme avaliações<br/>em <span class="accent">relacionamento<span class="accent-dot">.</span></span></h1>
     <p class="hero-sub">Google, WhatsApp e atendimento inteligente em uma única experiência para seu cliente.</p>
@@ -3318,10 +3322,6 @@
         </svg>
         Já tenho meu kit, ativar agora
       </a>
-    </div>
-
-    <div class="hero-banner-wrap">
-      <img class="hero-banner" src="/hero-experiencias.png" alt="Produtos StarTouch — placa de balcão, celular, cartão e pulseira NFC" width="1152" height="768" fetchpriority="high"/>
     </div>
   </div>
 </section>
