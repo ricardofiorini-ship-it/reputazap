@@ -676,6 +676,23 @@
     border-color: rgba(159,255,192,0.30);
     transform: translateY(-2px);
   }
+  /* Card que é só imagem (substitui ícone+título+descrição por <img>) */
+  .feature-card-image {
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+  }
+  .feature-card-image:hover { border-color: rgba(159,255,192,0.30); }
+  .feature-card-image img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 19px;
+  }
   .feature-icon {
     width: 56px; height: 56px;
     margin: 0 auto 20px;
@@ -3225,14 +3242,8 @@
     <h2 class="features-h2">Muito além das <span class="accent">avaliações<span class="accent-dot">.</span></span></h2>
     <p class="features-sub">Transforme cada toque em uma nova oportunidade de relacionamento com seu cliente.</p>
     <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-        </div>
-        <h3 class="feature-title">Google Reviews</h3>
-        <p class="feature-desc">Receba avaliações reais de forma transparente e compatível com as políticas do Google.</p>
+      <div class="feature-card feature-card-image">
+        <img src="/card-google-reviews.png" alt="Google Reviews — avaliações reais transparentes e compatíveis com as políticas do Google" loading="lazy"/>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
