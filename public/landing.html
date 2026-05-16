@@ -304,22 +304,22 @@
   }
   @media (min-width: 1024px) { .hero-sub { font-size: 18px; } }
 
-  /* Hero banner (imagem dos produtos após CTAs) */
+  /* Hero banner (imagem dos produtos após CTAs) — funde no fundo dark via mask */
   .hero-banner-wrap {
     position: relative;
     width: 100%;
-    max-width: 600px;
-    margin: 40px auto 0;
+    max-width: 640px;
+    margin: 32px auto 0;
   }
   @media (min-width: 1024px) {
-    .hero-banner-wrap { max-width: 900px; margin-top: 56px; }
+    .hero-banner-wrap { max-width: 920px; margin-top: 48px; }
   }
   .hero-banner-wrap::before {
     content: "";
     position: absolute;
-    inset: 8% 4%;
-    background: radial-gradient(ellipse at center, rgba(159,255,192,0.22), rgba(159,255,192,0.08) 45%, transparent 75%);
-    filter: blur(50px);
+    inset: 12% 8%;
+    background: radial-gradient(ellipse at center, rgba(159,255,192,0.16), rgba(159,255,192,0.04) 45%, transparent 75%);
+    filter: blur(60px);
     pointer-events: none;
     z-index: 0;
   }
@@ -329,8 +329,11 @@
     height: auto;
     position: relative;
     z-index: 1;
-    aspect-ratio: 3 / 2;
+    aspect-ratio: 1402 / 1122;
     object-fit: contain;
+    /* Fade nas bordas pra "soldar" no fundo dark sem moldura visível */
+    -webkit-mask-image: radial-gradient(ellipse 88% 92% at center, #000 60%, transparent 100%);
+    mask-image: radial-gradient(ellipse 88% 92% at center, #000 60%, transparent 100%);
   }
 
   /* CTA — 2 botões (Receber kit + Ativar agora) */
@@ -3225,7 +3228,7 @@
     </div>
 
     <div class="hero-banner-wrap">
-      <img class="hero-banner" src="/hero-experiencias.png" alt="Produtos StarTouch — placa de balcão, celular, cartão e pulseira NFC" width="960" height="640" fetchpriority="high"/>
+      <img class="hero-banner" src="/hero-experiencias.png" alt="Produtos StarTouch — placa de balcão, celular, cartão e pulseira NFC" width="1402" height="1122" fetchpriority="high"/>
     </div>
   </div>
 </section>
