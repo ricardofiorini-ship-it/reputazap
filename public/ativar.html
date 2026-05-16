@@ -407,13 +407,14 @@ async function goToStep2(){
     }
 
     state.user={name,email,phone,pass};
-    // Web flow: ja tem biz selecionado — salva e vai pro success
+    // Web flow: ja tem biz selecionado — salva e segue pra vitrine /kit
     if (state.from === "web" && state.business) {
       state.plan = "free";
       state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
       await saveBiz();
       state.bizSaved = true;
-      goToSuccess();
+      const qs = new URLSearchParams({ biz: state.business.name, place_id: state.business.place_id });
+      window.location.href = `/kit?${qs.toString()}`;
       return;
     }
     // NFC flow: cadastro -> busca
@@ -474,12 +475,14 @@ function selectBusiness(biz){
   document.getElementById("searchStatus").textContent=`✅ "${biz.name}" selecionado!`;
   document.getElementById("searchStatus").className="status-msg success";
   if (state.from === "web") {
-    // Web flow: após selecionar negócio, vai pra vitrine de produtos (/kit).
-    // Cadastro fica pra depois do checkout.
-    setTimeout(()=>{
-      const qs = new URLSearchParams({ biz: biz.name, place_id: biz.place_id });
-      window.location.href = `/kit?${qs.toString()}`;
-    }, 700);
+    // Web flow: após selecionar negócio, mostra o cadastro (screen1).
+    // Após cadastro, o goToStep2() redireciona pra /kit (vitrine).
+    document.getElementById("bizSummaryName").textContent = biz.name;
+    document.getElementById("bizSummary").style.display = "flex";
+    document.getElementById("screen1Back").style.display = "flex";
+    document.getElementById("screen1Title").textContent = "Quase lá — crie sua conta";
+    document.getElementById("screen1Sub").textContent = "Em seguida você monta o kit do seu negócio.";
+    setTimeout(()=>goToStep(1),700);
     return;
   }
   setTimeout(()=>goToStep3(),700);
