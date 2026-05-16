@@ -824,37 +824,6 @@
     text-wrap: balance;
   }
   @media (min-width: 1024px) { .steps-sub { font-size: 17px; margin-bottom: 72px; } }
-
-  /* Steps banner — imagem horizontal substituindo os 3 cards CSS */
-  .steps-banner-wrap {
-    position: relative;
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto 48px;
-  }
-  @media (min-width: 1024px) { .steps-banner-wrap { margin-bottom: 64px; } }
-  .steps-banner-wrap::before {
-    content: "";
-    position: absolute;
-    inset: 12% 8%;
-    background: radial-gradient(ellipse at center, rgba(159,255,192,0.10), transparent 70%);
-    filter: blur(60px);
-    pointer-events: none;
-    z-index: 0;
-  }
-  .steps-banner {
-    display: block;
-    width: 100%;
-    height: auto;
-    position: relative;
-    z-index: 1;
-    aspect-ratio: 1536 / 550;
-    object-fit: contain;
-    mix-blend-mode: lighten;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
-    mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
-  }
-
   .steps-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -3321,9 +3290,77 @@
     <h2 class="steps-h2">Comece em <span class="accent">minutos<span class="accent-dot">.</span></span></h2>
     <p class="steps-sub">Receba seu kit, conecte sua empresa e transforme cada toque em relacionamento.</p>
 
-    <div class="steps-banner-wrap">
-      <img class="steps-banner" src="/steps-banner.png" alt="3 passos para começar com StarTouch: receba seu kit, conecte Google e WhatsApp, comece a receber avaliações e clientes" loading="lazy" width="1536" height="550"/>
+    <div class="steps-grid">
+      <!-- Passo 1 -->
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3 class="step-title">Receba seu kit</h3>
+        <p class="step-desc">Tudo pronto para uso no seu negócio.</p>
+        <div class="step-visual step-visual-1">
+          <div class="sv1-box">
+            <svg width="44" height="32" viewBox="0 0 24 16" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.2" aria-hidden="true">
+              <rect x="0.5" y="0.5" width="23" height="15" rx="1.5"/>
+              <line x1="0" y1="4" x2="24" y2="4"/>
+            </svg>
+          </div>
+          <div class="sv1-card">
+            <span class="sv1-card-pill">TOQUE AQUI</span>
+            <svg class="sv1-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+              <line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Passo 2 -->
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3 class="step-title">Conecte seu Google &amp; WhatsApp</h3>
+        <p class="step-desc">Configure em minutos sem conhecimento técnico.</p>
+        <div class="step-visual step-visual-2">
+          <div class="sv2-title">Conecte sua empresa</div>
+          <div class="sv2-search">🔍 Pesquise sua empresa no Google</div>
+          <div class="sv2-row">
+            <div class="sv2-card">
+              <svg class="sv2-card-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M21.35 11.1H12v2.9h5.45c-.5 2.4-2.6 3.6-5.45 3.6a6 6 0 0 1 0-12c1.45 0 2.75.55 3.75 1.45L18 4.55A9 9 0 1 0 12 21a8.6 8.6 0 0 0 9-9c0-.6-.05-1.2-.15-1.9z"/>
+              </svg>
+              <span class="sv2-card-label">Perfil do Google</span>
+            </div>
+            <div class="sv2-card">
+              <svg class="sv2-card-icon" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+                <path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.4.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.7.4-.3.3-1 1-1 2.4 0 1.5 1 2.9 1.2 3.1.2.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2z"/>
+              </svg>
+              <span class="sv2-card-label">WhatsApp</span>
+            </div>
+          </div>
+          <div class="sv2-cta">Ativação concluída ✓</div>
+        </div>
+      </div>
+
+      <!-- Passo 3 -->
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3 class="step-title">Comece a receber avaliações &amp; clientes</h3>
+        <p class="step-desc">Transforme interações físicas em relacionamento digital.</p>
+        <div class="step-visual step-visual-3">
+          <div class="sv3-phone">
+            <div class="sv3-phone-stars">★★★★★</div>
+            <div class="sv3-phone-line"></div>
+            <div class="sv3-phone-line"></div>
+            <div class="sv3-phone-line" style="width:20px"></div>
+          </div>
+          <div class="sv3-counter">
+            <span class="sv3-counter-num">+248</span>
+            <span class="sv3-counter-label">avaliações</span>
+          </div>
+        </div>
+      </div>
     </div>
+
     <div class="steps-badges">
       <div class="step-badge">
         <span class="step-badge-check">✓</span>
