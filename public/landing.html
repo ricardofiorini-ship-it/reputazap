@@ -3282,7 +3282,7 @@
     </a>
     <nav class="header-nav">
       <a href="#como-funciona">Como funciona</a>
-      <a href="#precos">Preços</a>
+      <!-- <a href="#precos">Preços</a> — desativado junto com a seção PRICING até segunda ordem -->
       <a href="/app">Login</a>
     </nav>
     <a class="header-cta" href="/ativar?from=web">Receber meu kit</a>
@@ -3583,7 +3583,8 @@
   </div>
 </section>
 
-<!-- SOCIAL PROOF — Stats + carrossel testimonials (dark) -->
+<!-- SOCIAL PROOF — desativado no front; conteúdo preservado em <template> até segunda ordem -->
+<template data-disabled="social-proof">
 <section class="social-proof">
   <div class="social-proof-inner">
     <div class="social-proof-head">
@@ -3753,7 +3754,9 @@
     next.addEventListener('click', function() { track.scrollBy({ left: step(), behavior: 'smooth' }); });
   })();
 </script>
-<!-- PRICING — Escolha o plano ideal (dark) -->
+</template>
+<!-- PRICING — desativado no front; conteúdo preservado em <template> até segunda ordem -->
+<template data-disabled="pricing">
 <section class="pricing-section" id="precos">
   <div class="pricing-inner">
     <div class="pricing-eyebrow">Planos simples e transparentes</div>
@@ -3879,6 +3882,7 @@
     </div>
   </div>
 </section>
+</template>
 
 <!-- SEGMENTS — Feito para negócios locais modernos (dark) -->
 <section class="segments-section">
@@ -4136,7 +4140,8 @@
       </div>
     </div>
 
-    <!-- Card de urgência com countdown -->
+    <!-- Card de urgência com countdown — desativado no front; preservado em <template> até segunda ordem -->
+    <template data-disabled="urgency">
     <div class="urgency-card">
       <span class="urgency-tag">Oferta por tempo limitado</span>
       <h3 class="urgency-h3">Seu kit StarTouch com <span class="accent">condições especiais</span>.</h3>
@@ -4176,6 +4181,7 @@
         Pagamento 100% seguro
       </div>
     </div>
+    </template>
 
     <div class="final-social">
       <span class="final-social-text"><strong>Simples. Rápido. Efeito imediato.</strong></span>
