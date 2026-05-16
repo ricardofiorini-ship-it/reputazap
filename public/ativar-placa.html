@@ -21,7 +21,9 @@
   @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-  .logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:24px;}
+  .logo{display:flex;align-items:center;justify-content:center;margin-bottom:32px;text-decoration:none;}
+  .logo img{display:block;height:48px;width:auto;}
+  @media(min-width:768px){.logo img{height:54px;}}
   .biz-header{max-width:480px;margin:0 auto 28px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;}
   .biz-header-google{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#ea4335,#fbbc04 33%,#34a853 66%,#4285f4);flex-shrink:0;}
   .biz-header-label{font-size:11px;color:#9ca3af;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:2px;}
@@ -70,9 +72,9 @@
 </head>
 <body>
 
-<div class="logo">
-  <img src="/startouch-logo.png" alt="StarTouch" style="height:46px;width:auto;display:block"/>
-</div>
+<a class="logo" href="/landing" aria-label="StarTouch — voltar pro início">
+  <img src="/startouch-logo.png" alt="StarTouch"/>
+</a>
 
 <div class="biz-header" id="bizHeader" style="display:none">
   <div class="biz-header-google"></div>

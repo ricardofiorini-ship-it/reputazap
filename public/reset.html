@@ -19,7 +19,9 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:#f9fafb;font-family:'General Sans',sans-serif;color:#0f172a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
   .card{width:100%;max-width:400px;background:#fff;border:1px solid #e5e7eb;border-radius:24px;padding:36px;box-shadow:0 12px 32px rgba(15,23,42,0.06);}
-  .logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;justify-content:center;}
+  .logo{display:flex;align-items:center;justify-content:center;margin-bottom:32px;text-decoration:none;}
+  .logo img{display:block;height:48px;width:auto;}
+  @media(min-width:768px){.logo img{height:54px;}}
   .logo-icon{width:40px;height:40px;background:#00C49A;border-radius:12px;display:flex;align-items:center;justify-content:center;}
   .logo-text{font-family:'General Sans',sans-serif;font-weight:700;font-size:22px;color:#0f172a;}
   h1{font-family:'General Sans',sans-serif;font-size:24px;font-weight:700;color:#0f172a;margin-bottom:6px;text-align:center;}
@@ -38,9 +40,9 @@
 </head>
 <body>
 <div class="card">
-  <div class="logo">
-    <img src="/startouch-logo.png" alt="StarTouch" style="height:56px;width:auto;display:block"/>
-  </div>
+  <a class="logo" href="/landing" aria-label="StarTouch — voltar pro início">
+    <img src="/startouch-logo.png" alt="StarTouch"/>
+  </a>
 
   <div id="loading" style="text-align:center;color:#6b7280;font-size:13px;">Validando link...</div>
 

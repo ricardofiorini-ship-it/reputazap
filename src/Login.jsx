@@ -94,10 +94,10 @@ export default function Login({ onLogin }) {
       `}</style>
 
       {/* Logo */}
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,marginBottom:40,animation:"fadeUp 0.4s ease"}}>
-        <img src="/startouch-logo.png" alt="StarTouch" style={{height:72,width:"auto"}}/>
+      <a href="/landing" aria-label="StarTouch — voltar pro início" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,marginBottom:40,animation:"fadeUp 0.4s ease",textDecoration:"none"}}>
+        <img src="/startouch-logo.png" alt="StarTouch" className="login-logo-img" style={{height:54,width:"auto"}}/>
         <div style={{fontSize:11,color:"#9ca3af"}}>Reputação no piloto automático</div>
-      </div>
+      </a>
 
       {/* Card */}
       <div style={{width:"100%",maxWidth:400,background:"#fff",border:"1px solid #e5e7eb",borderRadius:24,padding:36,boxShadow:"0 12px 32px rgba(15,23,42,0.06)",animation:"fadeUp 0.5s ease"}}>
