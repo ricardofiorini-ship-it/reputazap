@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Monte seu kit — StarTouch</title>
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/startouch-logo.png"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Monte seu kit StarTouch"/>
+<meta property="og:description" content="Escolha os equipamentos pra coletar mais avaliações no Google."/>
+<meta property="og:image" content="/og-image.png"/>
+<meta property="og:url" content="https://startouch.com.br/kit"/>
+<link rel="canonical" href="https://startouch.com.br/kit"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#f9fafb;font-family:'General Sans',sans-serif;color:#0f172a;min-height:100vh;padding:32px 20px 140px;}
+  @media(min-width:880px){body{padding:40px 32px 60px;}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+
+  .logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:28px;}
+  .logo img{height:48px;width:auto;display:block;}
+
+  .kit-wrap{max-width:1100px;margin:0 auto;animation:fadeUp 0.4s ease;}
+
+  .kit-head{text-align:center;margin-bottom:36px;}
+  .kit-head h1{font-family:'General Sans',sans-serif;font-size:clamp(26px,4.5vw,38px);font-weight:700;line-height:1.15;letter-spacing:-0.02em;margin-bottom:10px;color:#0f172a;}
+  .kit-head .kit-sub{font-size:16px;color:#6b7280;line-height:1.55;max-width:560px;margin:0 auto 18px;}
+  .kit-head .kit-sub strong{color:#0f172a;font-weight:600;}
+  .kit-info{display:inline-flex;gap:18px;flex-wrap:wrap;justify-content:center;font-size:13px;color:#475569;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:8px 18px;}
+  .kit-info span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+  @media(max-width:520px){.kit-info{border-radius:14px;padding:12px 16px;flex-direction:column;gap:8px;align-items:flex-start;}}
+
+  .kit-layout{display:grid;grid-template-columns:1fr;gap:24px;}
+  @media(min-width:960px){.kit-layout{grid-template-columns:1fr 340px;gap:32px;align-items:flex-start;}}
+
+  .products-grid{display:grid;grid-template-columns:1fr;gap:16px;}
+  @media(min-width:560px){.products-grid{grid-template-columns:1fr 1fr;}}
+
+  .product-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:18px;padding:18px;display:flex;flex-direction:column;transition:border-color .15s,transform .15s,box-shadow .15s;}
+  .product-card.selected{border-color:#00C49A;box-shadow:0 8px 24px -8px rgba(0,196,154,0.25);}
+  .product-image{background:linear-gradient(135deg,#f5f7f9,#eef2f6);border-radius:14px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:16px;margin-bottom:14px;overflow:hidden;}
+  .product-image img{max-width:100%;max-height:100%;object-fit:contain;display:block;}
+  .product-image.small img{max-width:50%;max-height:50%;}
+  .product-name{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:4px;}
+  .product-desc{font-size:13px;color:#6b7280;line-height:1.5;margin-bottom:14px;flex:1;}
+  .product-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .product-price{font-size:18px;font-weight:700;color:#0f172a;letter-spacing:-0.01em;}
+  .product-price small{display:block;font-size:11px;color:#9ca3af;font-weight:500;letter-spacing:0;margin-top:1px;}
+
+  .qty{display:inline-flex;align-items:center;background:#f5f7f9;border:1px solid #e5e7eb;border-radius:999px;padding:3px;}
+  .qty-btn{width:30px;height:30px;border:none;background:transparent;color:#0f172a;font-size:18px;font-weight:700;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s;padding:0;line-height:1;}
+  .qty-btn:hover:not(:disabled){background:#fff;}
+  .qty-btn:disabled{opacity:.35;cursor:not-allowed;}
+  .qty-val{min-width:28px;text-align:center;font-size:14px;font-weight:700;color:#0f172a;}
+
+  .cart-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:18px;padding:22px;box-shadow:0 8px 24px -12px rgba(15,23,42,0.08);}
+  @media(min-width:960px){.cart-card{position:sticky;top:24px;}}
+  .cart-title{font-size:14px;font-weight:700;color:#0f172a;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;}
+  .cart-lines{margin-bottom:14px;min-height:60px;}
+  .cart-empty{font-size:13px;color:#9ca3af;text-align:center;padding:18px 0;}
+  .cart-line{display:flex;justify-content:space-between;align-items:flex-start;font-size:14px;padding:10px 0;border-bottom:1px solid #f1f5f9;gap:10px;}
+  .cart-line:last-child{border-bottom:none;}
+  .cart-line-name{color:#334155;font-weight:500;flex:1;line-height:1.4;}
+  .cart-line-qty{color:#94a3b8;font-size:12px;display:block;margin-top:2px;}
+  .cart-line-amount{color:#0f172a;font-weight:600;white-space:nowrap;}
+  .cart-divider{height:1px;background:#e5e7eb;margin:6px 0 14px;}
+  .cart-summary{display:flex;justify-content:space-between;font-size:13px;color:#6b7280;margin-bottom:6px;}
+  .cart-total{display:flex;justify-content:space-between;align-items:center;font-size:18px;color:#0f172a;margin-bottom:16px;}
+  .cart-total strong{font-size:22px;font-weight:700;letter-spacing:-0.01em;}
+  .btn-checkout{width:100%;padding:14px;background:#00C49A;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'General Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,transform .1s;}
+  .btn-checkout:hover:not(:disabled){background:#0EA47A;transform:translateY(-1px);}
+  .btn-checkout:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+  .cart-secure{text-align:center;font-size:11.5px;color:#94a3b8;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:5px;}
+
+  /* Sticky bottom bar (mobile) */
+  .cart-mobile{display:none;}
+  @media(max-width:959px){
+    .cart-card{display:none;}
+    .cart-mobile{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e7eb;padding:14px 18px;box-shadow:0 -8px 24px -8px rgba(15,23,42,0.10);z-index:50;gap:14px;align-items:center;}
+    .cart-mobile-info{flex:1;min-width:0;}
+    .cart-mobile-label{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.06em;}
+    .cart-mobile-total{font-size:20px;font-weight:700;color:#0f172a;letter-spacing:-0.01em;}
+    .cart-mobile-items{font-size:12px;color:#6b7280;}
+    .btn-checkout-mobile{padding:13px 20px;background:#00C49A;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:'General Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+    .btn-checkout-mobile:disabled{opacity:.45;cursor:not-allowed;background:#94a3b8;}
+  }
+
+  .pop{animation:pop 0.25s ease;}
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <img src="/startouch-logo.png" alt="StarTouch"/>
+</div>
+
+<div class="kit-wrap">
+  <header class="kit-head">
+    <h1>Monte o kit do seu negócio</h1>
+    <p class="kit-sub">Equipamentos pra <strong id="bizName">seu negócio</strong> coletar mais avaliações</p>
+    <div class="kit-info">
+      <span>🚚 Frete grátis pra todo Brasil</span>
+      <span>✓ Pagamento seguro via Stripe</span>
+    </div>
+  </header>
+
+  <div class="kit-layout">
+    <div class="products-grid" id="productsGrid">
+      <!-- cards renderizados via JS -->
+    </div>
+
+    <aside class="cart-card" aria-label="Carrinho">
+      <div class="cart-title">Seu kit</div>
+      <div class="cart-lines" id="cartLines">
+        <p class="cart-empty">Nenhum item selecionado.<br/>Escolha os equipamentos ao lado.</p>
+      </div>
+      <div class="cart-divider"></div>
+      <div class="cart-summary"><span>Frete</span><span style="color:#00C49A;font-weight:600">Grátis</span></div>
+      <div class="cart-total"><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div>
+      <button class="btn-checkout" id="checkoutBtn" type="button" disabled>Finalizar compra →</button>
+      <p class="cart-secure">🔒 Pagamento seguro via Stripe</p>
+    </aside>
+  </div>
+</div>
+
+<!-- Barra fixa mobile -->
+<div class="cart-mobile">
+  <div class="cart-mobile-info">
+    <div class="cart-mobile-label">Total</div>
+    <div class="cart-mobile-total" id="cartTotalMobile">R$ 0,00</div>
+    <div class="cart-mobile-items" id="cartItemsMobile">0 itens</div>
+  </div>
+  <button class="btn-checkout-mobile" id="checkoutBtnMobile" type="button" disabled>Finalizar →</button>
+</div>
+
+<script>
+const PRODUCTS = [
+  { id: "placa-balcao", name: "Placa de Balcão", desc: "Acrílico premium com NFC. Ideal pro balcão de atendimento.", price: 79.90, image: "/gadget-placa.png", small: false },
+  { id: "placa-mesa",   name: "Placa de Mesa",   desc: "Compacta, perfeita pra cima da mesa do cliente.",           price: 49.90, image: "/gadget-placa.png", small: true  },
+  { id: "pulseira",     name: "Pulseira NFC",    desc: "Usada pelo atendente, ativa o Google com um toque no celular do cliente.", price: 109.90, image: "/gadget-pulseira.png", small: false },
+  { id: "adesivo",      name: "Adesivos NFC (kit com 3)", desc: "Versáteis e discretos. Cole onde quiser. Vem em kit de 3.", price: 29.90, image: "/gadget-adesivo.png", small: false }
+];
+
+const params = new URLSearchParams(window.location.search);
+const bizName = params.get("biz");
+const placeId = params.get("place_id");
+if (bizName) {
+  document.getElementById("bizName").textContent = bizName;
+}
+
+const cart = {}; // { productId: qty }
+
+function fmt(v) {
+  return "R$ " + v.toFixed(2).replace(".", ",");
+}
+
+function renderProducts() {
+  const grid = document.getElementById("productsGrid");
+  grid.innerHTML = PRODUCTS.map(p => `
+    <article class="product-card" id="card-${p.id}">
+      <div class="product-image${p.small ? ' small' : ''}">
+        <img src="${p.image}" alt="${p.name}" loading="lazy"/>
+      </div>
+      <div class="product-name">${p.name}</div>
+      <div class="product-desc">${p.desc}</div>
+      <div class="product-bottom">
+        <div class="product-price">${fmt(p.price)}<small>${p.id === "adesivo" ? "kit com 3" : "unidade"}</small></div>
+        <div class="qty">
+          <button class="qty-btn" type="button" data-action="dec" data-id="${p.id}" aria-label="Diminuir">−</button>
+          <span class="qty-val" id="qty-${p.id}">0</span>
+          <button class="qty-btn" type="button" data-action="inc" data-id="${p.id}" aria-label="Aumentar">+</button>
+        </div>
+      </div>
+    </article>
+  `).join("");
+
+  grid.querySelectorAll(".qty-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      const current = cart[id] || 0;
+      if (action === "inc") cart[id] = current + 1;
+      else if (action === "dec" && current > 0) cart[id] = current - 1;
+      if (cart[id] === 0) delete cart[id];
+      const qtyEl = document.getElementById(`qty-${id}`);
+      qtyEl.textContent = cart[id] || 0;
+      qtyEl.classList.remove("pop");
+      void qtyEl.offsetWidth;
+      qtyEl.classList.add("pop");
+      const card = document.getElementById(`card-${id}`);
+      card.classList.toggle("selected", !!cart[id]);
+      renderCart();
+    });
+  });
+}
+
+function renderCart() {
+  const linesEl = document.getElementById("cartLines");
+  const ids = Object.keys(cart);
+  let total = 0;
+  let itemCount = 0;
+
+  if (ids.length === 0) {
+    linesEl.innerHTML = '<p class="cart-empty">Nenhum item selecionado.<br/>Escolha os equipamentos ao lado.</p>';
+  } else {
+    linesEl.innerHTML = ids.map(id => {
+      const p = PRODUCTS.find(x => x.id === id);
+      const qty = cart[id];
+      const subtotal = p.price * qty;
+      total += subtotal;
+      itemCount += qty;
+      return `
+        <div class="cart-line">
+          <div class="cart-line-name">${p.name}<span class="cart-line-qty">${qty}× ${fmt(p.price)}</span></div>
+          <div class="cart-line-amount">${fmt(subtotal)}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  for (const id of Object.keys(cart)) total += 0; // noop guard
+  // recompute total cleanly
+  total = ids.reduce((sum, id) => sum + PRODUCTS.find(p => p.id === id).price * cart[id], 0);
+  itemCount = ids.reduce((sum, id) => sum + cart[id], 0);
+
+  document.getElementById("cartTotal").textContent = fmt(total);
+  document.getElementById("cartTotalMobile").textContent = fmt(total);
+  document.getElementById("cartItemsMobile").textContent = itemCount === 1 ? "1 item" : `${itemCount} itens`;
+
+  const disabled = itemCount === 0;
+  document.getElementById("checkoutBtn").disabled = disabled;
+  document.getElementById("checkoutBtnMobile").disabled = disabled;
+}
+
+function handleCheckout() {
+  const items = Object.keys(cart).map(id => {
+    const p = PRODUCTS.find(x => x.id === id);
+    return { id, name: p.name, price: p.price, qty: cart[id] };
+  });
+  if (items.length === 0) return;
+
+  // Phase 1: ainda sem integração Stripe. Mostra resumo no console e alerta.
+  console.log("[StarTouch] Checkout pendente — itens:", items, "biz:", bizName, "place_id:", placeId);
+  alert("Em breve: pagamento via Stripe.\n\nResumo do seu kit:\n" +
+    items.map(i => `• ${i.qty}× ${i.name} — ${fmt(i.price * i.qty)}`).join("\n") +
+    `\n\nTotal: ${fmt(items.reduce((s, i) => s + i.price * i.qty, 0))}`);
+}
+
+document.getElementById("checkoutBtn").addEventListener("click", handleCheckout);
+document.getElementById("checkoutBtnMobile").addEventListener("click", handleCheckout);
+
+renderProducts();
+renderCart();
+</script>
+
+</body>
+</html>

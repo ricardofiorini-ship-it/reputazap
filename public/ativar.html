@@ -219,7 +219,7 @@
     </div>
   </div>
   <div class="search-form">
-    <h2 style="text-align:left;font-size:28px;line-height:1.2;">Comece encontrando seu negócio no Google</h2>
+    <h2 style="text-align:left;font-size:28px;line-height:1.2;">Vamos começar — procure o seu negócio</h2>
     <p class="sub" style="text-align:left;margin-bottom:24px;">Selecione sua empresa pra começar a proteger sua reputação.</p>
     <div class="form-group"><label>Nome do negócio</label><input type="text" id="bizSearch" placeholder="Ex: Café Bello Vista" oninput="clearResults()"/></div>
     <div class="form-group"><label>Cidade</label><input type="text" id="bizCity" placeholder="Ex: São Paulo, SP"/></div>
@@ -474,13 +474,12 @@ function selectBusiness(biz){
   document.getElementById("searchStatus").textContent=`✅ "${biz.name}" selecionado!`;
   document.getElementById("searchStatus").className="status-msg success";
   if (state.from === "web") {
-    // Preenche resumo do negocio na tela de cadastro
-    document.getElementById("bizSummaryName").textContent = biz.name;
-    document.getElementById("bizSummary").style.display = "flex";
-    document.getElementById("screen1Back").style.display = "flex";
-    document.getElementById("screen1Title").textContent = "Quase lá! Crie sua conta";
-    document.getElementById("screen1Sub").textContent = "Pra ativar seu link, precisamos de alguns dados.";
-    setTimeout(()=>goToStep(1),700);
+    // Web flow: após selecionar negócio, vai pra vitrine de produtos (/kit).
+    // Cadastro fica pra depois do checkout.
+    setTimeout(()=>{
+      const qs = new URLSearchParams({ biz: biz.name, place_id: biz.place_id });
+      window.location.href = `/kit?${qs.toString()}`;
+    }, 700);
     return;
   }
   setTimeout(()=>goToStep3(),700);
