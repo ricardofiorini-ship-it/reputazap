@@ -1834,6 +1834,19 @@
     transition: border-color .2s, transform .2s;
   }
   .segment-card:hover { border-color: rgba(159,255,192,0.30); transform: translateY(-2px); }
+  /* Variante quando o card e basicamente uma imagem (PNG ja contem cat+desc+visual) */
+  .segment-card-image { padding: 0; overflow: hidden; }
+  .segment-card-image .segment-banner {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1555 / 1011;
+    object-fit: cover;
+  }
+  .segment-card-image .segment-footer {
+    padding: 14px 18px 16px;
+    margin-top: 0;
+  }
   .segment-cat {
     font-family: 'General Sans', sans-serif;
     font-size: 10.5px;
@@ -3877,17 +3890,8 @@
     <p class="segments-sub">Restaurantes, clínicas, academias, cafés, oficinas, salões e eventos estão transformando a experiência dos seus clientes com a <span class="accent">StarTouch</span>.</p>
 
     <div class="segments-grid">
-      <div class="segment-card">
-        <span class="segment-cat">Restaurantes</span>
-        <p class="segment-desc">Avaliações reais direto da mesa do cliente.</p>
-        <div class="segment-visual">
-          <div class="segment-phone">
-            <span class="segment-phone-pill">TOQUE</span>
-            <span class="segment-phone-stars">★★★★★</span>
-            <span class="segment-phone-line"></span>
-            <span class="segment-phone-line"></span>
-          </div>
-        </div>
+      <div class="segment-card segment-card-image">
+        <img class="segment-banner" src="/segment-restaurantes.png" alt="Restaurantes — avaliações reais direto da mesa do cliente. Placa StarTouch em mesa de restaurante." loading="lazy" width="1555" height="1011"/>
         <div class="segment-footer">
           <span class="segment-footer-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
