@@ -43,9 +43,23 @@
 
   .product-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:18px;padding:18px;display:flex;flex-direction:column;transition:border-color .15s,transform .15s,box-shadow .15s;}
   .product-card.selected{border-color:#00C49A;box-shadow:0 8px 24px -8px rgba(0,196,154,0.25);}
-  .product-image{background:linear-gradient(135deg,#f5f7f9,#eef2f6);border-radius:14px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:16px;margin-bottom:14px;overflow:hidden;}
+  .product-image{position:relative;background:linear-gradient(135deg,#f5f7f9,#eef2f6);border-radius:14px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:16px;margin-bottom:14px;overflow:hidden;}
   .product-image img{max-width:100%;max-height:100%;object-fit:contain;display:block;filter:drop-shadow(0 6px 20px rgba(124,255,183,0.30));}
   .product-image.small img{max-width:50%;max-height:50%;}
+  .product-badge-soldout{
+    position:absolute;top:14px;right:14px;
+    background:#0f172a;color:#fff;
+    font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;
+    padding:6px 12px;border-radius:6px;
+    box-shadow:0 4px 14px -2px rgba(15,23,42,0.40);
+    transform:rotate(4deg);
+    z-index:2;
+  }
+  .product-card.sold-out{opacity:0.78;}
+  .product-card.sold-out .product-image{position:relative;}
+  .product-card.sold-out .product-image img{filter:grayscale(0.35) drop-shadow(0 6px 20px rgba(124,255,183,0.18));}
+  .product-card.sold-out:hover{transform:none;border-color:#e5e7eb;box-shadow:none;}
+  .product-card.sold-out .product-price{color:#94a3b8;}
   .product-name{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:4px;}
   .product-desc{font-size:13px;color:#6b7280;line-height:1.5;margin-bottom:14px;flex:1;}
   .product-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;}
@@ -76,6 +90,24 @@
   .btn-checkout:hover:not(:disabled){background:#0EA47A;transform:translateY(-1px);}
   .btn-checkout:disabled{opacity:.45;cursor:not-allowed;transform:none;}
   .cart-secure{text-align:center;font-size:11.5px;color:#94a3b8;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:5px;}
+
+  /* Trust signals (entre cards e barra mobile/footer) */
+  .trust-signals{
+    margin-top:40px;
+    background:#F5F7F9;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:32px 24px;
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:24px 16px;
+  }
+  @media(min-width:768px){
+    .trust-signals{grid-template-columns:repeat(4, 1fr);padding:32px;gap:20px;}
+  }
+  .trust-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;}
+  .trust-icon{font-size:28px;line-height:1;}
+  .trust-label{font-size:13px;font-weight:600;color:#334155;line-height:1.4;max-width:160px;}
 
   /* Sticky bottom bar (mobile) */
   .cart-mobile{display:none;}
@@ -126,6 +158,25 @@
       <p class="cart-secure">🔒 Pagamento seguro via Stripe</p>
     </aside>
   </div>
+
+  <section class="trust-signals" aria-label="Garantias">
+    <div class="trust-item">
+      <span class="trust-icon">⚡</span>
+      <span class="trust-label">Entrega em 5-7 dias úteis</span>
+    </div>
+    <div class="trust-item">
+      <span class="trust-icon">🛡</span>
+      <span class="trust-label">30 dias de garantia</span>
+    </div>
+    <div class="trust-item">
+      <span class="trust-icon">📱</span>
+      <span class="trust-label">Ative em minutos</span>
+    </div>
+    <div class="trust-item">
+      <span class="trust-icon">🇧🇷</span>
+      <span class="trust-label">Suporte humano em português</span>
+    </div>
+  </section>
 </div>
 
 <!-- Barra fixa mobile -->
@@ -140,11 +191,21 @@
 
 <script>
 const PRODUCTS = [
-  { id: "placa-balcao", name: "Placa de Balcão", desc: "Acrílico premium com NFC. Ideal pro balcão de atendimento.", price: 79.90, image: "/gadget-placa.png", small: false },
-  { id: "placa-mesa",   name: "Placa de Mesa",   desc: "Compacta, perfeita pra cima da mesa do cliente.",           price: 49.90, image: "/gadget-placa.png", small: true  },
-  { id: "pulseira",     name: "Pulseira NFC",    desc: "Usada pelo atendente, ativa o Google com um toque no celular do cliente.", price: 109.90, image: "/gadget-pulseira.png", small: false },
-  { id: "adesivo",      name: "Adesivos NFC (kit com 3)", desc: "Versáteis e discretos. Cole onde quiser. Vem em kit de 3.", price: 29.90, image: "/gadget-adesivo.png", small: false }
+  { id: "placa-balcao", name: "Placa de Balcão",          descTemplate: "Para o balcão {biz}. Cliente toca e avalia em 30 segundos.",                       price: 79.90,  image: "/gadget-placa.png",    small: false },
+  { id: "placa-mesa",   name: "Placa de Mesa",            descTemplate: "Uma em cada mesa {biz}. Cliente termina o atendimento e avalia ali mesmo.",        price: 49.90,  image: "/gadget-placa.png",    small: true  },
+  { id: "pulseira",     name: "Pulseira NFC",             descTemplate: "Para os atendentes {biz}. Ranking por funcionário no painel.",                     price: 109.90, image: "/gadget-pulseira.png", small: false, soldOut: true },
+  { id: "adesivo",      name: "Adesivos NFC (kit com 3)", descTemplate: "Adesivos pra colar nos pontos de contato {biz}. Embalagens, vitrines, balcão.",   price: 29.90,  image: "/gadget-adesivo.png",  small: false }
 ];
+
+// Retorna "do/da/pra Nome do Negócio" — fallback pra "do seu negócio" se vazio.
+// Heurística: última letra do primeiro token. 'a/á/ã' => da, 'o/ó/õ' => do, resto => pra.
+function bizPhrase(name) {
+  if (!name) return "do seu negócio";
+  const firstWord = (name.trim().split(/\s+/)[0] || "").replace(/[^A-Za-zÀ-ÿ]/g, "");
+  const last = firstWord.slice(-1).toLowerCase();
+  const article = "aáã".includes(last) ? "da" : "oóõ".includes(last) ? "do" : "pra";
+  return `${article} ${name}`;
+}
 
 const params = new URLSearchParams(window.location.search);
 const bizName = params.get("biz");
@@ -161,19 +222,21 @@ function fmt(v) {
 
 function renderProducts() {
   const grid = document.getElementById("productsGrid");
+  const biz = bizPhrase(bizName);
   grid.innerHTML = PRODUCTS.map(p => `
-    <article class="product-card" id="card-${p.id}">
+    <article class="product-card${p.soldOut ? ' sold-out' : ''}" id="card-${p.id}">
       <div class="product-image${p.small ? ' small' : ''}">
         <img src="${p.image}" alt="${p.name}" loading="lazy"/>
+        ${p.soldOut ? '<span class="product-badge-soldout">ESGOTADO</span>' : ''}
       </div>
       <div class="product-name">${p.name}</div>
-      <div class="product-desc">${p.desc}</div>
+      <div class="product-desc">${p.descTemplate.replace("{biz}", biz)}</div>
       <div class="product-bottom">
         <div class="product-price">${fmt(p.price)}<small>${p.id === "adesivo" ? "kit com 3" : "unidade"}</small></div>
         <div class="qty">
-          <button class="qty-btn" type="button" data-action="dec" data-id="${p.id}" aria-label="Diminuir">−</button>
+          <button class="qty-btn" type="button" data-action="dec" data-id="${p.id}" aria-label="Diminuir" ${p.soldOut ? 'disabled' : ''}>−</button>
           <span class="qty-val" id="qty-${p.id}">0</span>
-          <button class="qty-btn" type="button" data-action="inc" data-id="${p.id}" aria-label="Aumentar">+</button>
+          <button class="qty-btn" type="button" data-action="inc" data-id="${p.id}" aria-label="Aumentar" ${p.soldOut ? 'disabled' : ''}>+</button>
         </div>
       </div>
     </article>
@@ -181,7 +244,10 @@ function renderProducts() {
 
   grid.querySelectorAll(".qty-btn").forEach(btn => {
     btn.addEventListener("click", () => {
+      if (btn.disabled) return;
       const id = btn.dataset.id;
+      const product = PRODUCTS.find(x => x.id === id);
+      if (product?.soldOut) return;
       const action = btn.dataset.action;
       const current = cart[id] || 0;
       if (action === "inc") cart[id] = current + 1;

@@ -85,12 +85,12 @@ async function handleCheckout(req, res) {
 }
 
 // Catalogo do kit — fonte de verdade pra preços. Deve refletir public/kit.html.
-// Preços em centavos.
+// Preços em centavos. soldOut: true bloqueia o item no checkout.
 const KIT_CATALOG = {
-  "placa-balcao": { name: "Placa de Balcão NFC",      price_cents: 7990  },
-  "placa-mesa":   { name: "Placa de Mesa NFC",         price_cents: 4990  },
-  "pulseira":     { name: "Pulseira NFC",              price_cents: 10990 },
-  "adesivo":      { name: "Adesivos NFC (kit com 3)",  price_cents: 2990  }
+  "placa-balcao": { name: "Placa de Balcão NFC",      price_cents: 7990,  soldOut: false },
+  "placa-mesa":   { name: "Placa de Mesa NFC",         price_cents: 4990,  soldOut: false },
+  "pulseira":     { name: "Pulseira NFC",              price_cents: 10990, soldOut: true  },
+  "adesivo":      { name: "Adesivos NFC (kit com 3)",  price_cents: 2990,  soldOut: false }
 };
 
 async function handleCheckoutKit(req, res) {
@@ -110,6 +110,7 @@ async function handleCheckoutKit(req, res) {
     for (const item of items) {
       const product = KIT_CATALOG[item?.id];
       if (!product) return res.status(400).json({ error: `Produto desconhecido: ${item?.id}` });
+      if (product.soldOut) return res.status(400).json({ error: `${product.name} está esgotado no momento.` });
       const qty = parseInt(item.qty, 10);
       if (!Number.isFinite(qty) || qty < 1 || qty > 99) {
         return res.status(400).json({ error: `Quantidade inválida pra ${product.name}` });
