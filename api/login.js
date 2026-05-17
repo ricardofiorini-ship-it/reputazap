@@ -12,27 +12,44 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: "Email e senha obrigatórios" });
+  const { email, password, id_token, action } = req.body;
 
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return res.status(401).json({ error: "Email ou senha incorretos" });
+    let data, error;
 
-    // Busca o negócio vinculado
+    if (action === "google" || id_token) {
+      // Login via Google Identity Services — recebe o id_token (JWT) do client.
+      // Supabase precisa ter Google provider habilitado em Authentication > Providers.
+      if (!id_token) return res.status(400).json({ error: "id_token obrigatório pra login Google" });
+      ({ data, error } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: id_token
+      }));
+      if (error) return res.status(401).json({ error: error.message || "Login Google falhou" });
+    } else {
+      // Login tradicional email/senha
+      if (!email || !password) return res.status(400).json({ error: "Email e senha obrigatórios" });
+      ({ data, error } = await supabase.auth.signInWithPassword({ email, password }));
+      if (error) return res.status(401).json({ error: "Email ou senha incorretos" });
+    }
+
+    // Busca o negócio vinculado (pode não existir pra usuários novos Google)
     const { data: biz } = await supabase
       .from("businesses")
       .select("*")
       .eq("user_id", data.user.id)
-      .single();
+      .maybeSingle();
 
+    const meta = data.user.user_metadata || {};
     res.json({
       ok: true,
       token: data.session.access_token,
       user: {
         id: data.user.id,
         email: data.user.email,
-        name: data.user.user_metadata?.name || "Usuário",
+        name: meta.full_name || meta.name || (data.user.email || "").split("@")[0] || "Usuário",
+        avatar_url: meta.avatar_url || meta.picture || null,
+        provider: data.user.app_metadata?.provider || "email"
       },
       business: biz || null
     });

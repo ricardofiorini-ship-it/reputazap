@@ -1,5 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Star, RefreshCw, Eye, EyeOff, AlertCircle } from "lucide-react";
+
+const GOOGLE_CLIENT_ID = "215106300952-pb5ucf4l8jd8ls9q6ff059b41mo26gkt.apps.googleusercontent.com";
+let gsiScriptLoaded = false;
+function loadGsiScript() {
+  return new Promise((resolve) => {
+    if (gsiScriptLoaded || window.google?.accounts?.id) { gsiScriptLoaded = true; return resolve(); }
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.async = true;
+    s.defer = true;
+    s.onload = () => { gsiScriptLoaded = true; resolve(); };
+    document.head.appendChild(s);
+  });
+}
 
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -10,6 +24,52 @@ export default function Login({ onLogin }) {
   const [mode, setMode] = useState("login"); // "login" | "forgot" | "forgot-sent"
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
+  const googleBtnRef = useRef(null);
+
+  async function handleGoogleCredential(response) {
+    const idToken = response?.credential;
+    if (!idToken) { setError("Falha no login Google."); return; }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "google", id_token: idToken })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error || "Erro no login com Google.");
+        setLoading(false);
+        return;
+      }
+      localStorage.setItem("rz_token", data.token);
+      localStorage.setItem("rz_user", JSON.stringify(data.user));
+      onLogin({ ...data.user, biz: data.business?.name || "Meu Negócio" });
+    } catch {
+      setError("Erro de conexão. Tente novamente.");
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (mode !== "login" || loading) return;
+    let cancelled = false;
+    loadGsiScript().then(() => {
+      if (cancelled || !googleBtnRef.current || !window.google?.accounts?.id) return;
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredential,
+        auto_select: false
+      });
+      googleBtnRef.current.innerHTML = "";
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: "outline", size: "large", text: "continue_with",
+        shape: "rectangular", logo_alignment: "left", width: 320, locale: "pt-BR"
+      });
+    });
+    return () => { cancelled = true; };
+  }, [mode, loading]);
 
   async function handleForgot(e) {
     e.preventDefault();
@@ -104,9 +164,14 @@ export default function Login({ onLogin }) {
 
         {mode==="login"&&(
           <>
-            <div style={{textAlign:"center",marginBottom:28}}>
+            <div style={{textAlign:"center",marginBottom:24}}>
               <div style={{fontFamily:"'General Sans',sans-serif",fontSize:24,fontWeight:700,color:"#0f172a",marginBottom:6}}>Bem-vindo de volta</div>
               <div style={{fontSize:13,color:"#6b7280"}}>Entre na sua conta para continuar</div>
+            </div>
+
+            <div ref={googleBtnRef} style={{display:"flex",justifyContent:"center",minHeight:40,marginBottom:16}}/>
+            <div style={{display:"flex",alignItems:"center",gap:12,color:"#9ca3af",fontSize:12,textTransform:"uppercase",letterSpacing:"0.08em",margin:"4px 0 16px"}}>
+              <div style={{flex:1,height:1,background:"#e5e7eb"}}/>ou<div style={{flex:1,height:1,background:"#e5e7eb"}}/>
             </div>
 
             <form onSubmit={handleLogin} style={{display:"flex",flexDirection:"column",gap:16}}>
