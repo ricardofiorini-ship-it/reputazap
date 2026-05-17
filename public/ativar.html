@@ -99,6 +99,13 @@
   input{width:100%;background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;padding:13px 16px;color:#0f172a;font-size:14px;outline:none;font-family:'General Sans',sans-serif;transition:border-color .15s;}
   input:focus{border-color:#00C49A;}
   input::placeholder{color:#9ca3af;}
+  .pass-wrap{position:relative;}
+  .pass-wrap input{padding-right:44px;}
+  .pass-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;padding:6px 8px;line-height:1;color:#9ca3af;opacity:0.75;transition:opacity .15s;}
+  .pass-toggle:hover{opacity:1;}
+  .pass-hint{font-size:11.5px;margin-top:6px;min-height:14px;line-height:1.3;}
+  .pass-hint.ok{color:#059669;}
+  .pass-hint.err{color:#dc2626;}
   .btn-primary{width:100%;padding:14px;background:#00C49A;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'General Sans',sans-serif;cursor:pointer;transition:background .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;}
   .btn-primary:hover:not(:disabled){background:#0EA47A;transform:translateY(-1px);}
   .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
@@ -186,8 +193,16 @@
   <p class="sub" id="screen1Sub">Falta pouco pra ativar seu sistema</p>
   <div class="form-group"><label>Seu nome</label><input type="text" id="userName" placeholder="João Silva"/></div>
   <div class="form-group"><label>Email</label><input type="email" id="userEmail" placeholder="joao@email.com"/></div>
-  <div class="form-group"><label>WhatsApp</label><input type="tel" id="userPhone" placeholder="(11) 99999-9999"/></div>
-  <div class="form-group"><label>Senha</label><input type="password" id="userPass" placeholder="••••••••"/></div>
+  <div class="form-group"><label>WhatsApp</label><input type="tel" id="userPhone" placeholder="(11) 99999-9999" inputmode="tel" autocomplete="tel-national" maxlength="15" oninput="maskPhone(this)"/></div>
+  <div class="form-group">
+    <label>Senha</label>
+    <div class="pass-wrap"><input type="password" id="userPass" placeholder="Mínimo 6 caracteres" minlength="6" autocomplete="new-password"/><button type="button" class="pass-toggle" onclick="togglePass('userPass', this)" aria-label="Mostrar senha">👁</button></div>
+  </div>
+  <div class="form-group">
+    <label>Confirmar senha</label>
+    <div class="pass-wrap"><input type="password" id="userPassConfirm" placeholder="Repita a senha" minlength="6" autocomplete="new-password" oninput="checkPassMatch()"/><button type="button" class="pass-toggle" onclick="togglePass('userPassConfirm', this)" aria-label="Mostrar senha">👁</button></div>
+    <p class="pass-hint" id="passHint"></p>
+  </div>
   <button class="btn-primary" onclick="goToStep2()">Continuar →</button>
   <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:16px;">Já tem conta? <a href="/app" style="color:#00C49A;font-weight:600">Entrar</a></p>
 </div>
@@ -359,6 +374,33 @@ function goToStep(n) {
   window.scrollTo(0,0);
 }
 
+// Mascara WhatsApp BR: (XX) XXXXX-XXXX (celular 11 digitos) ou (XX) XXXX-XXXX (fixo 10 digitos)
+function maskPhone(el) {
+  let d = el.value.replace(/\D/g, "").slice(0, 11);
+  if (d.length === 0) { el.value = ""; return; }
+  if (d.length <= 2) { el.value = "(" + d; return; }
+  if (d.length <= 6) { el.value = "(" + d.slice(0,2) + ") " + d.slice(2); return; }
+  if (d.length <= 10) { el.value = "(" + d.slice(0,2) + ") " + d.slice(2,6) + "-" + d.slice(6); return; }
+  el.value = "(" + d.slice(0,2) + ") " + d.slice(2,7) + "-" + d.slice(7);
+}
+
+function togglePass(id, btn) {
+  const input = document.getElementById(id);
+  const visible = input.type === "text";
+  input.type = visible ? "password" : "text";
+  btn.textContent = visible ? "👁" : "🙈";
+  btn.setAttribute("aria-label", visible ? "Mostrar senha" : "Ocultar senha");
+}
+
+function checkPassMatch() {
+  const a = document.getElementById("userPass").value;
+  const b = document.getElementById("userPassConfirm").value;
+  const hint = document.getElementById("passHint");
+  if (!b) { hint.textContent = ""; hint.className = "pass-hint"; return true; }
+  if (a === b) { hint.textContent = "✓ Senhas conferem"; hint.className = "pass-hint ok"; return true; }
+  hint.textContent = "As senhas não coincidem"; hint.className = "pass-hint err"; return false;
+}
+
 function updateProgress(step) {
   for(let i=1;i<=3;i++){
     const el=document.getElementById(`p${i}`);
@@ -375,7 +417,12 @@ async function goToStep2(){
   const email=document.getElementById("userEmail").value.trim();
   const phone=document.getElementById("userPhone").value.trim();
   const pass=document.getElementById("userPass").value;
-  if(!name||!email||!phone||!pass){alert("Preencha todos os campos!");return;}
+  const passConfirm=document.getElementById("userPassConfirm").value;
+  if(!name||!email||!phone||!pass||!passConfirm){alert("Preencha todos os campos!");return;}
+  const phoneDigits=phone.replace(/\D/g,"");
+  if(phoneDigits.length<10||phoneDigits.length>11){alert("WhatsApp inválido. Digite DDD + número (ex: 11 99999-9999).");return;}
+  if(pass.length<6){alert("Senha precisa de pelo menos 6 caracteres.");return;}
+  if(pass!==passConfirm){alert("As senhas não coincidem.");document.getElementById("userPassConfirm").focus();return;}
 
   const btn=document.querySelector("#screen1 .btn-primary");
   btn.disabled=true;
