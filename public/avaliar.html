@@ -152,6 +152,13 @@
   .thanks-icon{font-size:48px;text-align:center;margin-bottom:14px;}
   .thanks-text{font-size:14px;color:#5F6368;line-height:1.6;text-align:center;}
 
+  /* Estado de erro (link inválido, biz não encontrado) */
+  .error-icon{font-size:44px;text-align:center;margin:24px 0 4px;line-height:1;}
+  .loading-text{text-align:center;color:#80868B;font-size:13px;padding:32px 0;}
+
+  /* Esconde header quando body está em erro (header so faz sentido se ha biz) */
+  .card.is-error .header{display:none;}
+
   /* Preview banner */
   .preview-banner{position:fixed;top:0;left:0;right:0;background:#00C49A;color:#fff;padding:8px 16px;text-align:center;font-size:12px;font-weight:600;z-index:100;display:flex;align-items:center;justify-content:center;gap:8px;}
   .preview-banner span{font-weight:400;opacity:0.85;}
@@ -168,7 +175,7 @@
   <div class="body" id="bodyContent">
 
     <!-- STEP: 2 botões simétricos -->
-    <div id="stepChoice" class="step">
+    <div id="stepChoice" class="step hidden">
       <div class="biz-avatar" id="bizAvatar" aria-hidden="true"></div>
       <div class="headline" id="choiceHeadline">Compartilhe sua experiência</div>
       <div class="subline" id="choiceSubline">Sua opinião faz a diferença</div>
@@ -223,6 +230,21 @@
       <div class="headline" style="margin-bottom:10px;">Mensagem enviada</div>
       <div class="thanks-text">Sua mensagem chegou na equipe. Eles vão analisar e, se for o caso, entrar em contato.</div>
     </div>
+
+    <!-- STEP: erro (link inválido, biz não encontrado, falha API) — mutuamente exclusivo -->
+    <div id="stepError" class="step hidden">
+      <div class="error-icon" aria-hidden="true">⚠️</div>
+      <div class="headline" id="errorTitle" style="margin-top:8px;">Link inválido</div>
+      <div class="subline" id="errorMsg">Esse link não está mais ativo ou o negócio não foi encontrado.</div>
+      <a class="choice-btn choice-btn--primary" href="https://startouch.com.br" rel="noopener" style="margin-top:8px;text-align:center;align-items:center;">
+        <strong>Voltar pro StarTouch</strong>
+      </a>
+    </div>
+
+    <!-- STEP: loading inicial (placeholder enquanto API responde) -->
+    <div id="stepLoading" class="step">
+      <div class="loading-text">Carregando…</div>
+    </div>
   </div>
 
   <div class="footer-credit">
@@ -255,6 +277,13 @@ function markReviewed() {
   localStorage.setItem(`rz_reviewed_${placeId}`, Date.now().toString());
 }
 
+function showError(title, msg) {
+  document.getElementById("card").classList.add("is-error");
+  if (title) document.getElementById("errorTitle").textContent = title;
+  if (msg) document.getElementById("errorMsg").textContent = msg;
+  show("stepError");
+}
+
 async function loadBusiness() {
   if (isPreview) {
     document.body.classList.add("has-preview");
@@ -264,30 +293,32 @@ async function loadBusiness() {
     document.body.prepend(banner);
   }
   if (!placeId) {
-    document.getElementById("bizName").textContent = "Negócio não encontrado";
-    document.getElementById("bizSub").textContent = "Link inválido — peça um novo ao estabelecimento";
+    showError("Link inválido", "Esse link não tem identificação do negócio. Peça um novo ao estabelecimento.");
     return;
   }
   try {
     const res = await fetch(`/api/bizinfo?place_id=${placeId}`);
     const data = await res.json();
-    if (data.name) {
-      document.getElementById("bizName").textContent = data.name;
-      document.getElementById("bizSub").textContent = `⭐ ${data.rating ?? "—"} · ${data.total ?? 0} avaliações no Google`;
-      document.getElementById("choiceHeadline").textContent = `Compartilhe sua experiência com a ${data.name}`;
-      const avatarEl = document.getElementById("bizAvatar");
-      if (data.photoUrl) {
-        const img = document.createElement("img");
-        img.src = data.photoUrl;
-        img.alt = "";
-        img.loading = "lazy";
-        img.onerror = () => { avatarEl.textContent = data.name.trim().charAt(0); };
-        avatarEl.appendChild(img);
-      } else {
-        avatarEl.textContent = data.name.trim().charAt(0);
-      }
-      avatarEl.classList.add("is-ready");
+    if (!data?.name) {
+      showError("Negócio não encontrado", "Esse link não está mais ativo ou o negócio não foi encontrado no Google.");
+      return;
     }
+    document.getElementById("bizName").textContent = data.name;
+    document.getElementById("bizSub").textContent = `⭐ ${data.rating ?? "—"} · ${data.total ?? 0} avaliações no Google`;
+    document.getElementById("choiceHeadline").textContent = `Compartilhe sua experiência com a ${data.name}`;
+    const avatarEl = document.getElementById("bizAvatar");
+    if (data.photoUrl) {
+      const img = document.createElement("img");
+      img.src = data.photoUrl;
+      img.alt = "";
+      img.loading = "lazy";
+      img.onerror = () => { avatarEl.textContent = data.name.trim().charAt(0); };
+      avatarEl.appendChild(img);
+    } else {
+      avatarEl.textContent = data.name.trim().charAt(0);
+    }
+    avatarEl.classList.add("is-ready");
+
     const googleUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
     document.querySelectorAll(".js-google-link").forEach(el => el.href = googleUrl);
 
@@ -298,14 +329,13 @@ async function loadBusiness() {
 
     show("stepChoice");
   } catch {
-    document.getElementById("bizName").textContent = "Erro ao carregar";
-    document.getElementById("bizSub").textContent = "Tente novamente em instantes";
+    showError("Erro ao carregar", "Tente novamente em instantes ou peça um novo link ao estabelecimento.");
   }
 }
 loadBusiness();
 
 function show(stepId) {
-  ["stepChoice","stepPrivateForm","stepThanks"].forEach(id => {
+  ["stepLoading","stepChoice","stepPrivateForm","stepThanks","stepError"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle("hidden", id !== stepId);
   });
