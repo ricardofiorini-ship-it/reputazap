@@ -21,10 +21,24 @@
   @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   .card{width:100%;max-width:440px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 1px 2px rgba(60,64,67,0.06), 0 16px 40px -12px rgba(60,64,67,0.16);animation:fadeUp 0.4s ease;}
   .header{padding:24px 24px 18px;text-align:center;border-bottom:1px solid #f1f3f4;}
-  .logo{display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
   .biz-name{font-family:'General Sans',sans-serif;font-size:19px;font-weight:700;color:#202124;letter-spacing:-0.01em;}
   .biz-sub{font-size:12px;color:#5F6368;margin-top:4px;}
   .body{padding:28px 24px 32px;}
+
+  /* Powered by StarTouch — credito discreto (negocio domina visualmente) */
+  .footer-credit{
+    padding:24px 24px 28px;
+    text-align:center;
+    border-top:1px solid #f1f3f4;
+  }
+  .footer-credit a{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:12px;color:#9CA3AF;text-decoration:none;
+    transition:color .15s;
+    font-family:'General Sans',sans-serif;
+  }
+  .footer-credit a:hover{color:#6B7280;}
+  .footer-credit img{width:24px;height:24px;display:block;}
 
   /* Step base */
   .step{animation:fadeUp 0.35s ease;}
@@ -147,9 +161,6 @@
 <body>
 <div class="card" id="card">
   <div class="header">
-    <div class="logo">
-      <img src="/startouch-logo-dark.png" alt="StarTouch" style="height:38px;width:auto;display:block"/>
-    </div>
     <div class="biz-name" id="bizName">Carregando...</div>
     <div class="biz-sub" id="bizSub">—</div>
   </div>
@@ -212,6 +223,13 @@
       <div class="headline" style="margin-bottom:10px;">Mensagem enviada</div>
       <div class="thanks-text">Sua mensagem chegou na equipe. Eles vão analisar e, se for o caso, entrar em contato.</div>
     </div>
+  </div>
+
+  <div class="footer-credit">
+    <a href="https://startouch.com.br" target="_blank" rel="noopener" aria-label="StarTouch — site oficial">
+      <img src="/startouch-logo.svg" alt="" width="24" height="24"/>
+      <span>Powered by StarTouch</span>
+    </a>
   </div>
 </div>
 
