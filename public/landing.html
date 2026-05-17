@@ -323,8 +323,8 @@
   .hero-banner-wrap::before {
     content: "";
     position: absolute;
-    inset: 12% 8%;
-    background: radial-gradient(ellipse at center, rgba(159,255,192,0.14), rgba(159,255,192,0.04) 45%, transparent 70%);
+    inset: 10% 5%;
+    background: radial-gradient(ellipse at center, rgba(124,255,183,0.28), rgba(124,255,183,0.08) 50%, transparent 75%);
     filter: blur(60px);
     pointer-events: none;
     z-index: 0;
@@ -337,6 +337,7 @@
     z-index: 1;
     aspect-ratio: 1152 / 768;
     object-fit: contain;
+    filter: drop-shadow(0 8px 32px rgba(124,255,183,0.22));
   }
 
   /* CTA — 2 botões (Receber kit + Ativar agora) */
@@ -2026,6 +2027,7 @@
     object-fit: contain;
     position: relative;
     z-index: 1;
+    filter: drop-shadow(0 8px 28px rgba(124,255,183,0.25));
   }
   .eco-vitrine-placeholder {
     display: inline-flex;
