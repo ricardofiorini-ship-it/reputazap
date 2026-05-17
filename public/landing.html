@@ -264,7 +264,7 @@
     z-index: 0;
   }
   .hero-inner {
-    max-width: 960px; margin: 0 auto;
+    max-width: 1280px; margin: 0 auto;
     width: 100%;
     position: relative;
     z-index: 1;
@@ -314,11 +314,11 @@
   .hero-banner-wrap {
     position: relative;
     width: 100%;
-    max-width: 640px;
+    max-width: 832px;
     margin: 0 auto 32px;
   }
   @media (min-width: 1024px) {
-    .hero-banner-wrap { max-width: 920px; margin-bottom: 48px; }
+    .hero-banner-wrap { max-width: 1196px; margin-bottom: 48px; }
   }
   .hero-banner-wrap::before {
     content: "";
@@ -1823,7 +1823,7 @@
     gap: 14px;
   }
   @media (min-width: 640px) { .segments-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 1024px) { .segments-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; } }
+  @media (min-width: 1024px) { .segments-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
   .segment-card {
     background: #131A17;
     border: 1px solid rgba(255,255,255,0.06);
@@ -3889,7 +3889,7 @@
   <div class="segments-inner">
     <div class="segments-eyebrow">Usado em negócios modernos</div>
     <h2 class="segments-h2">Feito para negócios locais <span class="accent">modernos<span class="accent-dot">.</span></span></h2>
-    <p class="segments-sub">Restaurantes, clínicas, academias, cafés, oficinas, salões e eventos estão transformando a experiência dos seus clientes com a <span class="accent">StarTouch</span>.</p>
+    <p class="segments-sub">Restaurantes, clínicas, academias, cafés, oficinas e salões estão transformando a experiência dos seus clientes com a <span class="accent">StarTouch</span>.</p>
 
     <div class="segments-grid">
       <div class="segment-card segment-card-image">
@@ -3952,29 +3952,12 @@
         </div>
       </div>
 
-      <div class="segment-card">
-        <span class="segment-cat">Eventos &amp; Experiências</span>
-        <p class="segment-desc">Conecte pessoas, compartilhe e crie memórias.</p>
-        <div class="segment-visual">
-          <div class="segment-phone">
-            <span class="segment-phone-pill">TOQUE</span>
-            <span class="segment-phone-stars">★★★★★</span>
-            <span class="segment-phone-line"></span>
-            <span class="segment-phone-line"></span>
-          </div>
-        </div>
-        <div class="segment-footer">
-          <span class="segment-footer-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <span class="segment-footer-text">Mais conexões, mais oportunidades</span>
-        </div>
-      </div>
     </div>
   </div>
 </section>
 
-<!-- FINAL CTA — Transforme seu negócio em uma experiência moderna (dark) -->
+<!-- FINAL CTA — desativado no front; conteúdo preservado em <template> até segunda ordem -->
+<template data-disabled="final-cta">
 <section class="final-cta-section">
   <div class="final-cta-inner">
     <div class="final-eyebrows">
@@ -4163,6 +4146,8 @@
     </div>
   </div>
 </section>
+</template>
+<template data-disabled="final-cta-script">
 <script>
   (function() {
     var target = new Date();
@@ -4188,6 +4173,7 @@
     setInterval(tick, 1000);
   })();
 </script>
+</template>
 
 <!-- FAQ — Perguntas Frequentes (dark, full-width) -->
 <section class="faq-section">
