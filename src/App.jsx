@@ -541,7 +541,7 @@ export default function StarTouch({ user, onLogout }) {
         {/* Sidebar */}
         <div className={`sidebar${sidebarOpen?" open":""}`}>
           <div style={{padding:"0 8px 24px",borderBottom:"1px solid #e5e7eb",display:"flex",flexDirection:"column",alignItems:"flex-start",gap:4}}>
-            <img src="/startouch-logo.png" alt="StarTouch" style={{height:46,width:"auto"}}/>
+            <img src="/startouch-logo-dark.png" alt="StarTouch" style={{height:46,width:"auto"}}/>
             <div style={{fontSize:10,color:"#9ca3af",paddingLeft:2}}>Reputação com IA</div>
           </div>
           <div style={{marginTop:20,flex:1,display:"flex",flexDirection:"column",gap:4}}>
@@ -613,7 +613,7 @@ export default function StarTouch({ user, onLogout }) {
         {/* Content */}
         <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0,overflow:"auto"}}>
           <div className="mobile-header">
-            <img src="/startouch-logo.png" alt="StarTouch" style={{height:38,width:"auto"}}/>
+            <img src="/startouch-logo-dark.png" alt="StarTouch" style={{height:38,width:"auto"}}/>
             <button onClick={()=>setSidebarOpen(true)} aria-label="Abrir menu" style={{background:"none",border:"none",color:"#9ca3af",cursor:"pointer",padding:8,borderRadius:8,display:"flex"}}><Menu size={22}/></button>
           </div>
         <div className="main-pad" style={{padding:"32px 28px",minWidth:0,maxWidth:1280,margin:"0 auto",width:"100%"}}>

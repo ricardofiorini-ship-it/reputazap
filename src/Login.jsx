@@ -95,7 +95,7 @@ export default function Login({ onLogin }) {
 
       {/* Logo */}
       <a href="/landing" aria-label="StarTouch — voltar pro início" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,marginBottom:40,animation:"fadeUp 0.4s ease",textDecoration:"none"}}>
-        <img src="/startouch-logo.png" alt="StarTouch" className="login-logo-img" style={{height:54,width:"auto"}}/>
+        <img src="/startouch-logo-dark.png" alt="StarTouch" className="login-logo-img" style={{height:54,width:"auto"}}/>
         <div style={{fontSize:11,color:"#9ca3af"}}>Reputação no piloto automático</div>
       </a>
 
