@@ -741,22 +741,25 @@
   .features-badges {
     display: flex; flex-wrap: wrap;
     justify-content: center;
-    gap: 14px 28px;
-    padding-top: 32px;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    gap: 14px 32px;
+    padding-top: 36px;
+    border-top: 1px solid rgba(255,255,255,0.10);
   }
   .features-badge {
     font-family: 'General Sans', sans-serif;
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 600;
-    color: rgba(255,255,255,0.45);
-    display: inline-flex; align-items: center; gap: 6px;
+    color: rgba(255,255,255,0.82);
+    display: inline-flex; align-items: center; gap: 8px;
     white-space: nowrap;
+    letter-spacing: -0.005em;
   }
+  @media (min-width: 768px) { .features-badge { font-size: 16.5px; } }
   .features-badge-check {
     color: #9FFFC0;
-    font-size: 13px;
+    font-size: 18px;
     line-height: 1;
+    font-weight: 700;
   }
 
   /* STEPS SECTION — dark "Comece em minutos" */
