@@ -1,6 +1,33 @@
+/* Fontes — Inter (redesign Google Business) + General Sans (legacy, ainda usado em paginas nao migradas) */
 @import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
+  /* === NOVA paleta (redesign Google Business — usar em blocos novos) === */
+  --st-blue-primary: #1A73E8;        /* Interface, CTAs, links, focus */
+  --st-blue-dark:    #174EA6;        /* Headlines e elementos fortes */
+  --st-blue-soft:    #E8F0FE;        /* BG hover/selected (azul tint) */
+  --st-green-accent: #34A853;        /* Acento — NFC, conexao, WhatsApp, feedback positivo */
+  --st-green-soft:   #E6F4EA;        /* BG verde leve */
+
+  --st-bg-primary:   #F8F9FA;        /* Background principal das paginas */
+  --st-bg-secondary: #FFFFFF;        /* Cards, surfaces */
+  --st-gray-light:   #DADCE0;        /* Borders, divisores */
+  --st-gray-text:    #5F6368;        /* Texto secundario */
+  --st-black-strong: #202124;        /* Texto principal, elementos importantes, hardware */
+
+  --st-error: #D93025;
+  --st-warn:  #FBBC04;
+
+  /* Tipografia (redesign) */
+  --st-font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Sombras suaves (Material-ish) */
+  --st-shadow-sm: 0 1px 2px rgba(60, 64, 67, 0.06);
+  --st-shadow-md: 0 1px 3px rgba(60, 64, 67, 0.10), 0 4px 8px rgba(60, 64, 67, 0.06);
+  --st-shadow-lg: 0 1px 2px rgba(60, 64, 67, 0.10), 0 16px 40px -12px rgba(60, 64, 67, 0.16);
+
+  /* === LEGACY paleta (verde mint — manter ate todos os blocos migrarem) === */
   --st-green: #00C49A;
   --st-green-dark: #0EA47A;
   --st-gold: #F5C518;
@@ -12,7 +39,6 @@
   --st-gray-500: #6B7280;
 
   --st-success: #00C49A;
-  --st-error: #EF4444;
   --st-info: #3B82F6;
 }
 
