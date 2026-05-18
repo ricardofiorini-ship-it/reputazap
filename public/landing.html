@@ -707,294 +707,157 @@
   }
 
   /* STEPS SECTION — dark "Comece em minutos" */
+  /* === REDESIGN Google Business — STEPS (Como funciona) === */
   .steps-section {
-    background: #0A0F0D;
-    color: #FFFFFF;
-    padding: 64px 24px 80px;
+    background: var(--st-bg-primary);
+    color: var(--st-black-strong);
+    padding: 72px 24px 80px;
     position: relative;
-    overflow: hidden;
   }
-  @media (min-width: 1024px) { .steps-section { padding: 96px 32px; } }
-  .steps-section::before {
-    content: ""; position: absolute;
-    left: 50%; top: 0;
-    transform: translateX(-50%);
-    width: 100%; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(159,255,192,0.18), transparent);
-    pointer-events: none;
-  }
+  @media (min-width: 1024px) { .steps-section { padding: 96px 32px 104px; } }
   .steps-inner {
-    max-width: 1152px;
+    max-width: 1200px;
     margin: 0 auto;
-    text-align: center;
-    position: relative;
-    z-index: 1;
   }
-  .steps-eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-family: 'General Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    color: #9FFFC0;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    margin-bottom: 24px;
-    padding: 8px 18px;
-    background: rgba(159,255,192,0.08);
-    border: 1px solid rgba(159,255,192,0.18);
-    border-radius: 999px;
-  }
-  @media (min-width: 768px) { .steps-eyebrow { font-size: 12px; } }
   .steps-h2 {
-    font-family: 'General Sans', sans-serif;
-    font-size: clamp(32px, 5.5vw, 52px);
-    font-weight: 700;
-    line-height: 1.08;
+    font-family: var(--st-font-sans);
+    font-size: clamp(30px, 5vw, 44px);
+    font-weight: 800;
+    line-height: 1.12;
     letter-spacing: -0.02em;
-    color: #FFFFFF;
-    margin: 0 0 20px;
+    color: var(--st-black-strong);
+    margin: 0 0 56px;
     text-wrap: balance;
+    text-align: center;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
   }
-  .steps-h2 .accent { color: #9FFFC0; }
-  .steps-h2 .accent-dot { color: #9FFFC0; }
-  .steps-sub {
-    font-family: 'General Sans', sans-serif;
-    font-size: 16px;
-    color: rgba(255,255,255,0.62);
-    line-height: 1.55;
-    margin: 0 auto 56px;
-    max-width: 560px;
-    text-wrap: balance;
-  }
-  @media (min-width: 1024px) { .steps-sub { font-size: 17px; margin-bottom: 72px; } }
+  .steps-h2 .accent { color: var(--st-blue-primary); }
+  .steps-h2 .accent-dot { color: var(--st-blue-primary); }
+  @media (min-width: 1024px) { .steps-h2 { margin-bottom: 64px; } }
+
+  /* 2-col layout: 3 passos esquerda, imagem dark direita */
   .steps-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 24px;
-    margin-bottom: 56px;
+    gap: 40px;
+    align-items: center;
+    margin-bottom: 64px;
   }
-  @media (min-width: 768px) { .steps-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
-  .step-card {
-    text-align: left;
-    display: flex; flex-direction: column;
+  @media (min-width: 960px) {
+    .steps-grid { grid-template-columns: 1fr 1fr; gap: 64px; }
   }
-  /* Step card que e so imagem (PNG ja contem numero+titulo+desc+visual) */
-  .step-card-image {
-    padding: 0;
-    background: transparent;
-    border: none;
+
+  .steps-list { display: flex; flex-direction: column; gap: 24px; }
+  .step-item {
+    display: flex; align-items: flex-start; gap: 16px;
   }
-  .step-card-image img {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 815 / 1086;
-    object-fit: contain;
-    /* Paliativo enquanto PNGs não vêm com fundo transparente:
-       blend faz o fundo dark da imagem fundir no dark do site.
-       Remover quando PNGs forem refeitos com alpha channel. */
-    mix-blend-mode: lighten;
-  }
-  .step-number {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 32px; height: 32px;
+  .step-icon {
+    flex-shrink: 0;
+    width: 44px; height: 44px;
     border-radius: 50%;
-    background: rgba(159,255,192,0.12);
-    border: 1px solid rgba(159,255,192,0.30);
-    color: #9FFFC0;
-    font-family: 'General Sans', sans-serif;
-    font-size: 14px;
+    background: var(--st-blue-soft);
+    color: var(--st-blue-primary);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--st-font-sans);
+    font-size: 16px;
     font-weight: 700;
-    margin-bottom: 14px;
   }
+  .step-icon svg { width: 22px; height: 22px; }
+  .step-content { flex: 1; min-width: 0; }
   .step-title {
-    font-family: 'General Sans', sans-serif;
+    font-family: var(--st-font-sans);
     font-size: 18px;
     font-weight: 700;
-    color: #FFFFFF;
-    margin: 0 0 8px;
+    color: var(--st-black-strong);
+    margin: 0 0 6px;
     letter-spacing: -0.005em;
-    line-height: 1.25;
+    line-height: 1.3;
   }
-  @media (min-width: 1024px) { .step-title { font-size: 20px; } }
   .step-desc {
-    font-family: 'General Sans', sans-serif;
-    font-size: 13.5px;
-    color: rgba(255,255,255,0.55);
+    font-family: var(--st-font-sans);
+    font-size: 14.5px;
+    font-weight: 400;
+    color: var(--st-gray-text);
     line-height: 1.55;
-    margin: 0 0 20px;
-  }
-  @media (min-width: 1024px) { .step-desc { font-size: 14px; } }
-  .step-visual {
-    background: #131A17;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px;
-    padding: 22px;
-    height: 200px;
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-    overflow: hidden;
-  }
-  @media (min-width: 1024px) { .step-visual { height: 220px; } }
-
-  /* Step 1 visual — caixa com placa NFC */
-  .step-visual-1 {
-    background: linear-gradient(180deg, #131A17 0%, #0A0F0D 100%);
-    flex-direction: column;
-    gap: 10px;
-  }
-  .sv1-box {
-    width: 110px; height: 80px;
-    background: linear-gradient(180deg, #1A2420 0%, #0F1816 100%);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  }
-  .sv1-card {
-    background: #0F1816;
-    border: 1px solid rgba(159,255,192,0.25);
-    border-radius: 6px;
-    padding: 10px 14px;
-    display: inline-flex; flex-direction: column; align-items: center; gap: 4px;
-  }
-  .sv1-card-pill {
-    background: #9FFFC0;
-    color: #0A0F0D;
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    padding: 3px 7px;
-    border-radius: 4px;
-  }
-  .sv1-card-icon {
-    width: 18px; height: 18px;
-    color: #9FFFC0;
+    margin: 0;
   }
 
-  /* Step 2 visual — UI conexão */
-  .step-visual-2 {
-    padding: 16px;
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
-    justify-content: flex-start;
-  }
-  .sv2-title {
-    font-size: 11px; font-weight: 600;
-    color: rgba(255,255,255,0.55);
-    letter-spacing: 0.04em;
-    margin-bottom: 4px;
-  }
-  .sv2-search {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 8px;
-    padding: 8px 10px;
-    font-size: 10px;
-    color: rgba(255,255,255,0.45);
-    margin-bottom: 6px;
-  }
-  .sv2-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .sv2-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 8px;
-    padding: 8px;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-  }
-  .sv2-card-icon { width: 18px; height: 18px; }
-  .sv2-card-label {
-    font-size: 9px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.75);
-  }
-  .sv2-cta {
-    background: #9FFFC0;
-    color: #0A0F0D;
-    font-size: 9px;
-    font-weight: 700;
-    padding: 6px;
-    border-radius: 6px;
-    text-align: center;
-    margin-top: 4px;
-  }
-
-  /* Step 3 visual — celular + contagem */
-  .step-visual-3 {
-    flex-direction: row;
-    gap: 12px;
+  /* Coluna direita: composição dark com hardware */
+  .steps-image {
+    background: var(--st-black-strong);
+    border-radius: 24px;
+    padding: 36px 28px;
+    aspect-ratio: 4 / 3;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 20px;
     align-items: center;
-    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--st-shadow-lg);
   }
-  .sv3-phone {
-    width: 60px; height: 110px;
-    background: linear-gradient(180deg, #1A2420, #0A0F0D);
-    border: 1px solid rgba(255,255,255,0.10);
-    border-radius: 10px;
-    padding: 6px 4px;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  .steps-image-placa {
+    grid-row: 1 / 3;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    align-self: center;
+    justify-self: center;
   }
-  .sv3-phone-stars { color: #FBBF24; font-size: 8px; letter-spacing: 0.5px; }
-  .sv3-phone-line {
-    width: 30px; height: 2px;
-    background: rgba(255,255,255,0.10);
-    border-radius: 2px;
+  .steps-image-side {
+    display: flex; flex-direction: column;
+    gap: 16px; align-items: center; justify-content: center;
   }
-  .sv3-counter {
-    background: linear-gradient(180deg, rgba(159,255,192,0.10), rgba(159,255,192,0.02));
-    border: 1px solid rgba(159,255,192,0.25);
-    border-radius: 10px;
-    padding: 12px 14px;
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-  }
-  .sv3-counter-num {
-    font-family: 'General Sans', sans-serif;
-    font-size: 22px; font-weight: 700;
-    color: #9FFFC0;
-    letter-spacing: -0.01em;
-  }
-  .sv3-counter-label {
-    font-size: 9px;
-    color: rgba(255,255,255,0.55);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+  .steps-image-side img {
+    max-width: 100%;
+    max-height: 130px;
+    object-fit: contain;
   }
 
-  /* Badges com título + subtítulo */
-  .steps-badges {
+  /* Trust strip no rodape do bloco */
+  .steps-trust {
+    background: var(--st-bg-secondary);
+    border: 1px solid var(--st-gray-light);
+    border-radius: 16px;
+    padding: 28px 24px;
+  }
+  @media (min-width: 1024px) { .steps-trust { padding: 32px 40px; } }
+  .steps-trust-title {
+    font-family: var(--st-font-sans);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--st-black-strong);
+    margin: 0 0 18px;
+    text-align: center;
+    letter-spacing: -0.005em;
+  }
+  @media (min-width: 1024px) { .steps-trust-title { font-size: 20px; margin-bottom: 22px; } }
+  .steps-trust-list {
     display: grid;
     grid-template-columns: 1fr;
     gap: 14px;
-    padding-top: 32px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    text-align: left;
   }
-  @media (min-width: 640px) { .steps-badges { grid-template-columns: repeat(2, 1fr); gap: 18px; } }
-  @media (min-width: 1024px) { .steps-badges { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
-  .step-badge {
-    display: flex; align-items: flex-start; gap: 10px;
-  }
-  .step-badge-check {
-    color: #9FFFC0;
+  @media (min-width: 640px) { .steps-trust-list { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .steps-trust-list { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
+  .steps-trust-item {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--st-font-sans);
     font-size: 14px;
+    font-weight: 500;
+    color: var(--st-gray-text);
     line-height: 1.4;
+  }
+  .steps-trust-icon {
     flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--st-blue-soft);
+    color: var(--st-blue-primary);
+    display: inline-flex; align-items: center; justify-content: center;
   }
-  .step-badge-text { display: flex; flex-direction: column; gap: 2px; }
-  .step-badge-title {
-    font-family: 'General Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: #FFFFFF;
-    letter-spacing: -0.005em;
-  }
-  .step-badge-sub {
-    font-family: 'General Sans', sans-serif;
-    font-size: 12px;
-    color: rgba(255,255,255,0.50);
-    line-height: 1.4;
-  }
+  .steps-trust-icon svg { width: 16px; height: 16px; }
 
   /* TRUST SECTION — dark "100% compatível com o Google" */
   .trust-section {
@@ -3330,57 +3193,74 @@
   </div>
 </section>
 
-<!-- STEPS — Comece em minutos (dark) -->
+<!-- STEPS — Como funciona (light, Google Business redesign) -->
 <section class="steps-section" id="solucao">
   <div class="steps-inner">
-    <div class="steps-eyebrow">Simples, rápido e eficiente</div>
-    <h2 class="steps-h2">Comece em <span class="accent">minutos<span class="accent-dot">.</span></span></h2>
-    <p class="steps-sub">Receba seu kit, conecte sua empresa e transforme cada toque em relacionamento.</p>
+    <h2 class="steps-h2">Tecnologia simples que <span class="accent">gera resultados reais<span class="accent-dot">.</span></span></h2>
 
     <div class="steps-grid">
-      <!-- Passo 1 -->
-      <div class="step-card step-card-image">
-        <img src="/step-card-1.png" alt="Passo 1 — Receba seu kit: tudo pronto para uso no seu negócio (kit completo, tecnologia NFC, fácil de usar)" loading="lazy"/>
-      </div>
+      <!-- Lista de passos -->
+      <ol class="steps-list" aria-label="3 passos">
+        <li class="step-item">
+          <span class="step-icon" aria-hidden="true">1</span>
+          <div class="step-content">
+            <h3 class="step-title">Aproxime</h3>
+            <p class="step-desc">Seu cliente aproxima o celular do dispositivo NFC StarTouch — sem instalar nada.</p>
+          </div>
+        </li>
+        <li class="step-item">
+          <span class="step-icon" aria-hidden="true">2</span>
+          <div class="step-content">
+            <h3 class="step-title">Conecte-se</h3>
+            <p class="step-desc">Acesso instantâneo a Google, WhatsApp e canais de relacionamento.</p>
+          </div>
+        </li>
+        <li class="step-item">
+          <span class="step-icon" aria-hidden="true">3</span>
+          <div class="step-content">
+            <h3 class="step-title">Resultado</h3>
+            <p class="step-desc">Mais avaliações, contatos e oportunidades pro seu negócio.</p>
+          </div>
+        </li>
+      </ol>
 
-      <!-- Passo 2 -->
-      <div class="step-card step-card-image">
-        <img src="/step-card-2.png" alt="Passo 2 — Conecte seu Google e WhatsApp: configure em minutos sem conhecimento técnico" loading="lazy"/>
-      </div>
-
-      <!-- Passo 3 -->
-      <div class="step-card step-card-image">
-        <img src="/step-card-3.png" alt="Passo 3 — Comece a receber avaliações e clientes: transforme interações físicas em relacionamento digital" loading="lazy"/>
+      <!-- Composição dark com hardware -->
+      <div class="steps-image" aria-hidden="true">
+        <img class="steps-image-placa" src="/gadget-placa.png" alt=""/>
+        <div class="steps-image-side">
+          <img src="/gadget-cartao.png" alt=""/>
+          <img src="/gadget-pulseira.png" alt=""/>
+        </div>
       </div>
     </div>
 
-    <div class="steps-badges">
-      <div class="step-badge">
-        <span class="step-badge-check">✓</span>
-        <div class="step-badge-text">
-          <span class="step-badge-title">Compatível com Google</span>
-          <span class="step-badge-sub">100% em conformidade</span>
+    <!-- Trust strip -->
+    <div class="steps-trust">
+      <h3 class="steps-trust-title">Confiança que gera conexão. Resultados que crescem.</h3>
+      <div class="steps-trust-list">
+        <div class="steps-trust-item">
+          <span class="steps-trust-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          Solução intuitiva
         </div>
-      </div>
-      <div class="step-badge">
-        <span class="step-badge-check">✓</span>
-        <div class="step-badge-text">
-          <span class="step-badge-title">Sem review gating</span>
-          <span class="step-badge-sub">Política do Google é respeitada</span>
+        <div class="steps-trust-item">
+          <span class="steps-trust-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          Dados criptografados
         </div>
-      </div>
-      <div class="step-badge">
-        <span class="step-badge-check">✓</span>
-        <div class="step-badge-text">
-          <span class="step-badge-title">Sem instalação complexa</span>
-          <span class="step-badge-sub">Tudo pronto para usar</span>
+        <div class="steps-trust-item">
+          <span class="steps-trust-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </span>
+          Suporte humano em português
         </div>
-      </div>
-      <div class="step-badge">
-        <span class="step-badge-check">✓</span>
-        <div class="step-badge-text">
-          <span class="step-badge-title">Seguro &amp; confiável</span>
-          <span class="step-badge-sub">Dados protegidos</span>
+        <div class="steps-trust-item">
+          <span class="steps-trust-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </span>
+          Produtos certificados
         </div>
       </div>
     </div>
