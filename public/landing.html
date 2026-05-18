@@ -349,6 +349,15 @@
     font-size: 16px;
     line-height: 1;
   }
+  .hero-trust-score { color: var(--st-black-strong); font-weight: 700; font-size: 14px; }
+  .hero-trust-google {
+    display: inline-block;
+    height: 22px;
+    width: auto;
+    object-fit: contain;
+    vertical-align: middle;
+    margin: 0 -2px;
+  }
   .hero-trust-text strong { color: var(--st-black-strong); font-weight: 600; }
 
   /* Image column */
@@ -3299,7 +3308,9 @@
       </div>
       <div class="hero-trust">
         <span class="hero-trust-stars" aria-hidden="true">★★★★★</span>
-        <span class="hero-trust-text"><strong>5.0 no Google</strong> · +1.000 clientes</span>
+        <strong class="hero-trust-score">5.0</strong>
+        <img class="hero-trust-google" src="/google-g-logo.webp" alt="Google" width="40" height="20"/>
+        <span class="hero-trust-text"><strong>Google Reviews</strong> · +1.000 clientes</span>
       </div>
     </div>
     <div class="hero-image">
