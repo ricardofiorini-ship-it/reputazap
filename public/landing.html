@@ -922,69 +922,59 @@
     line-height: 1;
   }
 
-  /* TRUST SECTION — dark "100% compatível com o Google" */
+  /* === REDESIGN Google Business — TRUST (100% compativel com Google) === */
   .trust-section {
-    background: #0A0F0D;
-    color: #FFFFFF;
-    padding: 64px 24px 80px;
+    background: var(--st-bg-primary);
+    color: var(--st-black-strong);
+    padding: 72px 24px 80px;
     position: relative;
-    overflow: hidden;
   }
-  @media (min-width: 1024px) { .trust-section { padding: 96px 32px; } }
-  .trust-section::before {
-    content: ""; position: absolute;
-    left: 50%; top: 0;
-    transform: translateX(-50%);
-    width: 100%; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(159,255,192,0.18), transparent);
-    pointer-events: none;
-  }
+  @media (min-width: 1024px) { .trust-section { padding: 96px 32px 104px; } }
   .trust-inner {
-    max-width: 1152px;
+    max-width: 1200px;
     margin: 0 auto;
-    position: relative;
-    z-index: 1;
   }
   .trust-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 48px;
-    align-items: center;
+    gap: 40px;
+    align-items: start;
   }
-  @media (min-width: 1024px) { .trust-grid { grid-template-columns: 1.1fr 1fr; gap: 72px; } }
+  @media (min-width: 960px) { .trust-grid { grid-template-columns: 0.95fr 1.05fr; gap: 56px; } }
+  @media (min-width: 1200px) { .trust-grid { gap: 72px; } }
   .trust-left { text-align: left; }
   .trust-eyebrow {
     display: inline-flex; align-items: center; gap: 8px;
-    font-family: 'General Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    color: #9FFFC0;
-    letter-spacing: 0.16em;
+    font-family: var(--st-font-sans);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--st-blue-primary);
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     margin-bottom: 20px;
-    padding: 8px 18px;
-    background: rgba(159,255,192,0.08);
-    border: 1px solid rgba(159,255,192,0.18);
+    padding: 8px 16px;
+    background: var(--st-blue-soft);
     border-radius: 999px;
   }
-  @media (min-width: 768px) { .trust-eyebrow { font-size: 12px; } }
+  .trust-eyebrow svg { width: 14px; height: 14px; flex-shrink: 0; }
   .trust-h2 {
-    font-family: 'General Sans', sans-serif;
-    font-size: clamp(32px, 5vw, 48px);
-    font-weight: 700;
-    line-height: 1.08;
+    font-family: var(--st-font-sans);
+    font-size: clamp(32px, 5.5vw, 48px);
+    font-weight: 800;
+    line-height: 1.1;
     letter-spacing: -0.02em;
-    color: #FFFFFF;
+    color: var(--st-black-strong);
     margin: 0 0 18px;
     text-wrap: balance;
   }
-  .trust-h2 .accent { color: #9FFFC0; }
-  .trust-h2 .accent-dot { color: #9FFFC0; }
+  .trust-h2 .accent { color: var(--st-blue-primary); }
+  .trust-h2 .accent-dot { color: var(--st-blue-primary); }
   .trust-sub {
-    font-family: 'General Sans', sans-serif;
-    font-size: 15.5px;
-    color: rgba(255,255,255,0.62);
-    line-height: 1.55;
+    font-family: var(--st-font-sans);
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--st-gray-text);
+    line-height: 1.6;
     margin: 0 0 36px;
     max-width: 540px;
     text-wrap: balance;
@@ -996,103 +986,150 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 20px;
   }
   .trust-list li {
     display: flex; align-items: flex-start; gap: 14px;
   }
   .trust-list-icon {
     flex-shrink: 0;
-    width: 24px; height: 24px;
-    border-radius: 50%;
-    background: rgba(159,255,192,0.15);
-    border: 1px solid rgba(159,255,192,0.30);
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--st-blue-soft);
+    color: var(--st-blue-primary);
     display: inline-flex; align-items: center; justify-content: center;
-    color: #9FFFC0;
     margin-top: 2px;
   }
-  .trust-list-icon svg { width: 12px; height: 12px; }
+  .trust-list-icon svg { width: 18px; height: 18px; }
   .trust-list-text { display: flex; flex-direction: column; gap: 4px; }
   .trust-list-title {
-    font-family: 'General Sans', sans-serif;
-    font-size: 15px;
+    font-family: var(--st-font-sans);
+    font-size: 16px;
     font-weight: 700;
-    color: #FFFFFF;
+    color: var(--st-black-strong);
     letter-spacing: -0.005em;
   }
   .trust-list-desc {
-    font-family: 'General Sans', sans-serif;
-    font-size: 13.5px;
-    color: rgba(255,255,255,0.55);
-    line-height: 1.5;
+    font-family: var(--st-font-sans);
+    font-size: 14px;
+    color: var(--st-gray-text);
+    line-height: 1.55;
   }
 
-  /* Mockup direito */
-  .trust-mock {
-    background: linear-gradient(180deg, #131A17 0%, #0A0F0D 100%);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 24px;
+  /* Card visual direita (com fluxo + reviews + badge) */
+  .trust-card {
+    background: var(--st-bg-secondary);
+    border: 1px solid var(--st-gray-light);
+    border-radius: 18px;
     padding: 24px 22px;
-    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5);
+    box-shadow: var(--st-shadow-lg);
     width: 100%;
-    max-width: 380px;
+    max-width: 460px;
     margin: 0 auto;
+    display: flex; flex-direction: column;
+    gap: 20px;
   }
-  .trust-mock-head {
-    display: flex; align-items: center; justify-content: space-between;
-    background: rgba(159,255,192,0.10);
-    border: 1px solid rgba(159,255,192,0.25);
-    border-radius: 14px;
-    padding: 12px 16px;
-    margin-bottom: 16px;
+  @media (min-width: 1024px) { .trust-card { padding: 28px 26px; gap: 24px; } }
+
+  /* Lista de fluxo */
+  .trust-card-flow {
+    display: flex; flex-direction: column;
+    gap: 12px;
   }
-  .trust-mock-pill {
-    font-family: 'General Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    color: #9FFFC0;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
-  }
-  .trust-mock-head svg { width: 18px; height: 18px; color: #9FFFC0; }
-  .trust-mock-reviews { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
-  .trust-mock-review {
+  .trust-card-flow-item {
     display: flex; align-items: center; gap: 12px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
-    padding: 10px 12px;
   }
-  .trust-mock-avatar {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #F59E0B 0%, #10B981 50%, #3B82F6 100%);
+  .trust-card-flow-icon {
     flex-shrink: 0;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--st-bg-primary);
   }
-  .trust-mock-info { flex: 1; min-width: 0; }
-  .trust-mock-name {
-    font-family: 'General Sans', sans-serif;
-    font-size: 12px;
+  .trust-card-flow-icon img { width: 22px; height: 22px; object-fit: contain; }
+  .trust-card-flow-icon svg { width: 18px; height: 18px; }
+  .trust-card-flow-icon.is-check { background: var(--st-green-soft); color: var(--st-green-accent); }
+  .trust-card-flow-icon.is-whatsapp { background: var(--st-green-soft); color: var(--st-green-accent); }
+  .trust-card-flow-icon.is-blue { background: var(--st-blue-soft); color: var(--st-blue-primary); }
+  .trust-card-flow-text { flex: 1; min-width: 0; }
+  .trust-card-flow-title {
+    font-family: var(--st-font-sans);
+    font-size: 14px;
     font-weight: 700;
-    color: #FFFFFF;
+    color: var(--st-black-strong);
+    line-height: 1.3;
     margin-bottom: 2px;
   }
-  .trust-mock-stars { color: #FBBF24; font-size: 11px; letter-spacing: 0.5px; }
-  .trust-mock-badge {
-    background: rgba(159,255,192,0.08);
-    border: 1px solid rgba(159,255,192,0.20);
-    border-radius: 10px;
-    padding: 8px 12px;
-    display: flex; align-items: center; gap: 6px;
-    font-family: 'General Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.75);
+  .trust-card-flow-desc {
+    font-family: var(--st-font-sans);
+    font-size: 12.5px;
+    color: var(--st-gray-text);
+    line-height: 1.4;
   }
-  .trust-mock-badge-icon {
-    width: 14px; height: 14px;
-    color: #9FFFC0;
+  .trust-card-flow-status {
+    flex-shrink: 0;
+    color: var(--st-green-accent);
+    font-size: 18px;
+    font-weight: 700;
   }
+
+  /* Reviews mini cards */
+  .trust-card-reviews-title {
+    font-family: var(--st-font-sans);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--st-black-strong);
+    text-align: center;
+    margin: 0;
+    padding-top: 8px;
+    border-top: 1px solid var(--st-gray-light);
+  }
+  .trust-card-reviews {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .trust-card-review {
+    background: var(--st-bg-primary);
+    border-radius: 12px;
+    padding: 10px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    text-align: center;
+  }
+  .trust-card-review-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .trust-card-review-name {
+    font-family: var(--st-font-sans);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--st-black-strong);
+    line-height: 1.2;
+  }
+  .trust-card-review-stars { color: #FBBC04; font-size: 11px; letter-spacing: 1px; line-height: 1; }
+  .trust-card-review-source {
+    font-family: var(--st-font-sans);
+    font-size: 10px;
+    color: var(--st-gray-text);
+    line-height: 1;
+  }
+
+  /* Badge "100% compativel com Google" */
+  .trust-card-badge {
+    background: var(--st-bg-primary);
+    border: 1px solid var(--st-gray-light);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--st-font-sans);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--st-black-strong);
+    justify-content: center;
+  }
+  .trust-card-badge img { width: 18px; height: 18px; object-fit: contain; }
 
   /* SOCIAL PROOF SECTION — dark stats expandido + carrossel testimonials */
   .social-proof {
@@ -3384,20 +3421,21 @@
     </div>
   </div>
 </section>
-<!-- TRUST — 100% compatível com o Google (dark) -->
+<!-- TRUST — 100% compatível com o Google (light, Google Business redesign) -->
 <section class="trust-section">
   <div class="trust-inner">
     <div class="trust-grid">
       <div class="trust-left">
-        <div class="trust-eyebrow">Confiança e transparência</div>
-        <h2 class="trust-h2">100% compatível<br/>com o <span class="accent">Google<span class="accent-dot">.</span></span></h2>
+        <div class="trust-eyebrow">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.5 6L20 9.5l-6 1.5L12 17l-1.5-6L4 9.5l6.5-1.5z"/></svg>
+          Confiança e transparência
+        </div>
+        <h2 class="trust-h2">100% compatível com o <span class="accent">Google<span class="accent-dot">.</span></span></h2>
         <p class="trust-sub">Seguimos todas as políticas do Google. Sem atalhos. Sem riscos. Apenas resultados reais e sustentáveis para seu negócio.</p>
         <ul class="trust-list">
           <li>
             <span class="trust-list-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
             </span>
             <div class="trust-list-text">
               <span class="trust-list-title">Conforme com Google</span>
@@ -3406,9 +3444,7 @@
           </li>
           <li>
             <span class="trust-list-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </span>
             <div class="trust-list-text">
               <span class="trust-list-title">Privacidade &amp; segurança</span>
@@ -3417,9 +3453,7 @@
           </li>
           <li>
             <span class="trust-list-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </span>
             <div class="trust-list-text">
               <span class="trust-list-title">Transparência que gera confiança</span>
@@ -3428,45 +3462,79 @@
           </li>
         </ul>
       </div>
+
       <div class="trust-right">
-        <div class="trust-mock" aria-hidden="true">
-          <div class="trust-mock-head">
-            <span class="trust-mock-pill">Toque aqui</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
-              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-              <line x1="12" y1="20" x2="12.01" y2="20"/>
-            </svg>
+        <div class="trust-card" aria-hidden="true">
+          <!-- Fluxo (4 items) -->
+          <ul class="trust-card-flow" style="list-style:none;padding:0;margin:0;">
+            <li class="trust-card-flow-item">
+              <span class="trust-card-flow-icon is-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <div class="trust-card-flow-text">
+                <div class="trust-card-flow-title">Fluxo transparente</div>
+                <div class="trust-card-flow-desc">Interações reais em conformidade</div>
+              </div>
+              <span class="trust-card-flow-status">✓</span>
+            </li>
+            <li class="trust-card-flow-item">
+              <span class="trust-card-flow-icon">
+                <img src="/google-g-logo.webp" alt="" style="mix-blend-mode:multiply"/>
+              </span>
+              <div class="trust-card-flow-text">
+                <div class="trust-card-flow-title">Cliente avalia no Google</div>
+                <div class="trust-card-flow-desc">Avaliações públicas e verificadas.</div>
+              </div>
+            </li>
+            <li class="trust-card-flow-item">
+              <span class="trust-card-flow-icon is-whatsapp">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48a12.04 12.04 0 0 0-17.03 0 11.96 11.96 0 0 0-2.04 13.94L0 24l6.78-1.78A11.96 11.96 0 0 0 12 24c6.62 0 12-5.38 12-12 0-3.21-1.25-6.23-3.48-8.52zM12 21.81a9.83 9.83 0 0 1-5-1.37l-.36-.21-3.69.97.99-3.6-.23-.37A9.78 9.78 0 0 1 2.19 12 9.83 9.83 0 0 1 12 2.19c2.62 0 5.08 1.02 6.93 2.87A9.74 9.74 0 0 1 21.81 12 9.83 9.83 0 0 1 12 21.81z"/></svg>
+              </span>
+              <div class="trust-card-flow-text">
+                <div class="trust-card-flow-title">Ou via WhatsApp</div>
+                <div class="trust-card-flow-desc">Interação privada e segura.</div>
+              </div>
+            </li>
+            <li class="trust-card-flow-item">
+              <span class="trust-card-flow-icon is-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              </span>
+              <div class="trust-card-flow-text">
+                <div class="trust-card-flow-title">Interação registrada</div>
+                <div class="trust-card-flow-desc">Tudo documentado em conformidade.</div>
+              </div>
+            </li>
+          </ul>
+
+          <!-- Reviews -->
+          <div>
+            <p class="trust-card-reviews-title">Avaliações reais de clientes reais</p>
+            <div class="trust-card-reviews" style="margin-top:14px;">
+              <div class="trust-card-review">
+                <div class="trust-card-review-avatar" style="background:linear-gradient(135deg,#F59E0B,#EF4444);"></div>
+                <div class="trust-card-review-name">Ana M.</div>
+                <div class="trust-card-review-stars">★★★★★</div>
+                <div class="trust-card-review-source">Google</div>
+              </div>
+              <div class="trust-card-review">
+                <div class="trust-card-review-avatar" style="background:linear-gradient(135deg,#10B981,#3B82F6);"></div>
+                <div class="trust-card-review-name">Carlos R.</div>
+                <div class="trust-card-review-stars">★★★★★</div>
+                <div class="trust-card-review-source">Google</div>
+              </div>
+              <div class="trust-card-review">
+                <div class="trust-card-review-avatar" style="background:linear-gradient(135deg,#A855F7,#EC4899);"></div>
+                <div class="trust-card-review-name">Júlia S.</div>
+                <div class="trust-card-review-stars">★★★★★</div>
+                <div class="trust-card-review-source">Google</div>
+              </div>
+            </div>
           </div>
-          <div class="trust-mock-reviews">
-            <div class="trust-mock-review">
-              <div class="trust-mock-avatar"></div>
-              <div class="trust-mock-info">
-                <div class="trust-mock-name">Ana M.</div>
-                <div class="trust-mock-stars">★★★★★</div>
-              </div>
-            </div>
-            <div class="trust-mock-review">
-              <div class="trust-mock-avatar" style="background:linear-gradient(135deg,#10B981,#3B82F6);"></div>
-              <div class="trust-mock-info">
-                <div class="trust-mock-name">Carlos R.</div>
-                <div class="trust-mock-stars">★★★★★</div>
-              </div>
-            </div>
-            <div class="trust-mock-review">
-              <div class="trust-mock-avatar" style="background:linear-gradient(135deg,#F59E0B,#EF4444);"></div>
-              <div class="trust-mock-info">
-                <div class="trust-mock-name">Júlia S.</div>
-                <div class="trust-mock-stars">★★★★★</div>
-              </div>
-            </div>
-          </div>
-          <div class="trust-mock-badge">
-            <svg class="trust-mock-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            Compatível com Google
+
+          <!-- Badge -->
+          <div class="trust-card-badge">
+            <img src="/google-g-logo.webp" alt="" style="mix-blend-mode:multiply"/>
+            100% compatível com o Google
           </div>
         </div>
       </div>
