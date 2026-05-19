@@ -1675,172 +1675,154 @@
   }
 
   /* SEGMENTS SECTION — dark "Feito para negócios locais modernos" */
+  /* === REDESIGN Google Business — SEGMENTS === */
   .segments-section {
-    background: #0A0F0D;
-    color: #FFFFFF;
-    padding: 64px 24px 48px;
+    background: var(--st-bg-primary);
+    color: var(--st-black-strong);
+    padding: 72px 24px 64px;
     position: relative;
-    overflow: hidden;
   }
-  @media (min-width: 1024px) { .segments-section { padding: 96px 32px 64px; } }
-  .segments-section::before {
-    content: ""; position: absolute;
-    left: 50%; top: 0;
-    transform: translateX(-50%);
-    width: 100%; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(159,255,192,0.18), transparent);
-    pointer-events: none;
-  }
+  @media (min-width: 1024px) { .segments-section { padding: 96px 32px 88px; } }
   .segments-inner {
-    max-width: 1280px;
+    max-width: 1200px;
     margin: 0 auto;
     text-align: center;
-    position: relative;
-    z-index: 1;
   }
   .segments-eyebrow {
     display: inline-flex; align-items: center; gap: 8px;
-    font-family: 'General Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    color: #9FFFC0;
-    letter-spacing: 0.16em;
+    font-family: var(--st-font-sans);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--st-blue-primary);
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    margin-bottom: 24px;
-    padding: 8px 18px;
-    background: rgba(159,255,192,0.08);
-    border: 1px solid rgba(159,255,192,0.18);
+    margin-bottom: 20px;
+    padding: 8px 16px;
+    background: var(--st-blue-soft);
     border-radius: 999px;
   }
-  @media (min-width: 768px) { .segments-eyebrow { font-size: 12px; } }
+  .segments-eyebrow svg { width: 14px; height: 14px; flex-shrink: 0; }
   .segments-h2 {
-    font-family: 'General Sans', sans-serif;
-    font-size: clamp(30px, 5vw, 48px);
-    font-weight: 700;
-    line-height: 1.08;
+    font-family: var(--st-font-sans);
+    font-size: clamp(30px, 5.5vw, 48px);
+    font-weight: 800;
+    line-height: 1.1;
     letter-spacing: -0.02em;
-    color: #FFFFFF;
+    color: var(--st-black-strong);
     margin: 0 0 18px;
     text-wrap: balance;
   }
-  .segments-h2 .accent { color: #9FFFC0; }
-  .segments-h2 .accent-dot { color: #9FFFC0; }
+  .segments-h2 .accent { color: var(--st-blue-primary); }
+  .segments-h2 .accent-dot { color: var(--st-blue-primary); }
   .segments-sub {
-    font-family: 'General Sans', sans-serif;
-    font-size: 15.5px;
-    color: rgba(255,255,255,0.62);
-    line-height: 1.55;
+    font-family: var(--st-font-sans);
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--st-gray-text);
+    line-height: 1.6;
     margin: 0 auto 48px;
     max-width: 680px;
     text-wrap: balance;
   }
   @media (min-width: 1024px) { .segments-sub { font-size: 17px; margin-bottom: 56px; } }
-  .segments-sub .accent { color: #9FFFC0; font-weight: 600; }
+  .segments-sub .accent { color: var(--st-blue-primary); font-weight: 600; }
 
   .segments-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 14px;
-  }
-  @media (min-width: 640px) { .segments-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 1024px) { .segments-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
-  .segment-card {
-    background: #131A17;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 18px;
-    padding: 18px;
+    gap: 18px;
+    margin-bottom: 40px;
     text-align: left;
-    display: flex; flex-direction: column;
-    transition: border-color .2s, transform .2s;
   }
-  .segment-card:hover { border-color: rgba(159,255,192,0.30); transform: translateY(-2px); }
-  /* Variante quando o card e basicamente uma imagem (PNG ja contem cat+desc+visual) */
-  .segment-card-image { padding: 0; overflow: hidden; }
-  .segment-card-image .segment-banner {
+  @media (min-width: 640px) { .segments-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
+  @media (min-width: 1024px) { .segments-grid { grid-template-columns: repeat(4, 1fr); gap: 22px; margin-bottom: 56px; } }
+  .segment-card {
+    background: var(--st-bg-secondary);
+    border: 1px solid var(--st-gray-light);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: border-color .15s, box-shadow .15s, transform .15s;
+  }
+  .segment-card:hover {
+    border-color: var(--st-blue-primary);
+    box-shadow: var(--st-shadow-md);
+    transform: translateY(-2px);
+  }
+  .segment-banner {
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 1555 / 1011;
+    aspect-ratio: 4 / 3;
     object-fit: cover;
   }
-  .segment-card-image .segment-footer {
-    padding: 14px 18px 16px;
-    margin-top: 0;
+  .segment-body {
+    padding: 18px 18px 20px;
+    display: flex; flex-direction: column;
+    gap: 8px;
+    flex: 1;
   }
+  .segment-head { display: flex; align-items: center; gap: 8px; }
+  .segment-icon {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    color: var(--st-blue-primary);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .segment-icon svg { width: 100%; height: 100%; }
   .segment-cat {
-    font-family: 'General Sans', sans-serif;
-    font-size: 10.5px;
+    font-family: var(--st-font-sans);
+    font-size: 15px;
     font-weight: 700;
-    color: #9FFFC0;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
+    color: var(--st-black-strong);
+    letter-spacing: -0.005em;
   }
   .segment-desc {
-    font-family: 'General Sans', sans-serif;
+    font-family: var(--st-font-sans);
     font-size: 13.5px;
-    color: rgba(255,255,255,0.65);
+    color: var(--st-gray-text);
     line-height: 1.5;
-    margin: 0 0 14px;
-    min-height: 40px;
-  }
-  .segment-visual {
-    background: linear-gradient(180deg, #1A2420 0%, #0A0F0D 100%);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 12px;
-    height: 130px;
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 14px;
-    position: relative;
-    overflow: hidden;
-  }
-  .segment-visual::before {
-    content: ""; position: absolute;
-    left: 50%; top: 50%;
-    transform: translate(-50%, -50%);
-    width: 80px; height: 80px;
-    background: radial-gradient(circle, rgba(159,255,192,0.12), transparent 60%);
-    pointer-events: none;
-  }
-  .segment-phone {
-    position: relative;
-    width: 50px; height: 88px;
-    background: linear-gradient(180deg, #0F1816 0%, #050807 100%);
-    border: 1px solid rgba(255,255,255,0.10);
-    border-radius: 9px;
-    padding: 6px 4px;
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    z-index: 1;
-  }
-  .segment-phone-pill {
-    background: #9FFFC0;
-    color: #0A0F0D;
-    font-size: 6px;
-    font-weight: 700;
-    padding: 2px 4px;
-    border-radius: 3px;
-    letter-spacing: 0.05em;
-  }
-  .segment-phone-stars { color: #FBBF24; font-size: 7px; letter-spacing: 0.5px; }
-  .segment-phone-line {
-    width: 24px; height: 2px;
-    background: rgba(255,255,255,0.10);
-    border-radius: 2px;
+    margin: 0;
+    flex: 1;
   }
   .segment-footer {
     display: flex; align-items: center; gap: 6px;
-    margin-top: auto;
+    padding-top: 10px;
+    margin-top: 4px;
+    border-top: 1px solid var(--st-gray-light);
   }
   .segment-footer-icon {
-    color: #9FFFC0;
+    color: var(--st-blue-primary);
     flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
   }
-  .segment-footer-icon svg { width: 12px; height: 12px; }
+  .segment-footer-icon svg { width: 14px; height: 14px; }
   .segment-footer-text {
-    font-family: 'General Sans', sans-serif;
-    font-size: 11.5px;
-    color: rgba(255,255,255,0.55);
+    font-family: var(--st-font-sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--st-gray-text);
     line-height: 1.3;
+  }
+
+  /* Trust strip rodape */
+  .segments-trust-strip {
+    display: flex; flex-wrap: wrap;
+    justify-content: center; gap: 14px 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--st-gray-light);
+  }
+  .segments-trust-strip-item {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--st-font-sans);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--st-gray-text);
+  }
+  .segments-trust-strip-item .check {
+    color: var(--st-blue-primary);
+    font-size: 16px;
+    line-height: 1;
   }
 
   /* === REDESIGN Google Business — ECOSYSTEM (vitrine vertical) === */
@@ -3852,74 +3834,136 @@
 </section>
 </template>
 
-<!-- SEGMENTS — Feito para negócios locais modernos (dark) -->
+<!-- SEGMENTS — Feito para negócios locais modernos (light, Google Business redesign) -->
 <section class="segments-section">
   <div class="segments-inner">
-    <div class="segments-eyebrow">Usado em negócios modernos</div>
+    <div class="segments-eyebrow">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.5 6L20 9.5l-6 1.5L12 17l-1.5-6L4 9.5l6.5-1.5z"/></svg>
+      Usado em negócios modernos
+    </div>
     <h2 class="segments-h2">Feito para negócios locais <span class="accent">modernos<span class="accent-dot">.</span></span></h2>
     <p class="segments-sub">Restaurantes, clínicas, academias, cafés, oficinas e salões estão transformando a experiência dos seus clientes com a <span class="accent">StarTouch</span>.</p>
 
     <div class="segments-grid">
-      <div class="segment-card segment-card-image">
-        <img class="segment-banner" src="/segment-restaurantes.png" alt="Restaurantes — avaliações reais direto da mesa do cliente. Placa StarTouch em mesa de restaurante." loading="lazy" width="1555" height="1011"/>
-        <div class="segment-footer">
-          <span class="segment-footer-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <span class="segment-footer-text">Mais avaliações e clientes felizes</span>
+      <article class="segment-card">
+        <img class="segment-banner" src="/segment-restaurantes.png" alt="Restaurantes — avaliações reais direto da mesa do cliente." loading="lazy"/>
+        <div class="segment-body">
+          <div class="segment-head">
+            <span class="segment-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v8a3 3 0 0 0 3 3h0a3 3 0 0 0 3-3V2"/><line x1="6" y1="13" x2="6" y2="22"/><path d="M18 2v6a3 3 0 0 0 3 3v11"/></svg>
+            </span>
+            <span class="segment-cat">Restaurantes</span>
+          </div>
+          <p class="segment-desc">Avaliações reais direto da mesa do cliente, todos os dias.</p>
+          <div class="segment-footer">
+            <span class="segment-footer-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="segment-footer-text">Mais avaliações e clientes felizes</span>
+          </div>
         </div>
-      </div>
+      </article>
 
-      <div class="segment-card segment-card-image">
-        <img class="segment-banner" src="/segment-clinicas.png" alt="Clínicas — mais confiança e relacionamento com seus pacientes. Placa StarTouch em recepção de clínica." loading="lazy" width="1521" height="1034"/>
-        <div class="segment-footer">
-          <span class="segment-footer-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <span class="segment-footer-text">Relacionamento que gera confiança</span>
+      <article class="segment-card">
+        <img class="segment-banner" src="/segment-clinicas.png" alt="Clínicas — relacionamento que gera confiança." loading="lazy"/>
+        <div class="segment-body">
+          <div class="segment-head">
+            <span class="segment-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </span>
+            <span class="segment-cat">Clínicas</span>
+          </div>
+          <p class="segment-desc">Relacionamento que gera confiança e recomendações.</p>
+          <div class="segment-footer">
+            <span class="segment-footer-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="segment-footer-text">Relacionamento que gera confiança</span>
+          </div>
         </div>
-      </div>
+      </article>
 
-      <div class="segment-card segment-card-image">
-        <img class="segment-banner" src="/segment-academias.png" alt="Academias — conecte-se, receba avaliações e fidelize seus alunos. Placa StarTouch em academia." loading="lazy" width="600" height="400"/>
-        <div class="segment-footer">
-          <span class="segment-footer-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <span class="segment-footer-text">Mais engajamento e retenção</span>
+      <article class="segment-card">
+        <img class="segment-banner" src="/segment-academias.png" alt="Academias — credibilidade e retenção que constroem resultados." loading="lazy"/>
+        <div class="segment-body">
+          <div class="segment-head">
+            <span class="segment-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11"/><path d="M21 21l-1-1"/><path d="M3 3l1 1"/><path d="M18 22l4-4"/><path d="M2 6l4-4"/><path d="M3 10l7-7"/><path d="M14 21l7-7"/></svg>
+            </span>
+            <span class="segment-cat">Academias</span>
+          </div>
+          <p class="segment-desc">Credibilidade e retenção que constroem resultados.</p>
+          <div class="segment-footer">
+            <span class="segment-footer-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="segment-footer-text">Mais engajamento e retenção</span>
+          </div>
         </div>
-      </div>
+      </article>
 
-      <div class="segment-card segment-card-image">
-        <img class="segment-banner" src="/segment-cafes.png" alt="Cafés — transforme cada café em uma nova conexão. Placa StarTouch em mesa de cafeteria." loading="lazy" width="600" height="400"/>
-        <div class="segment-footer">
-          <span class="segment-footer-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <span class="segment-footer-text">Experiências que viram recomendações</span>
+      <article class="segment-card">
+        <img class="segment-banner" src="/segment-saloes.png" alt="Salões e Estética — experiências que encantam e fidelizam." loading="lazy"/>
+        <div class="segment-body">
+          <div class="segment-head">
+            <span class="segment-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+            </span>
+            <span class="segment-cat">Salões de Beleza</span>
+          </div>
+          <p class="segment-desc">Experiências únicas que encantam e fidelizam clientes.</p>
+          <div class="segment-footer">
+            <span class="segment-footer-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="segment-footer-text">Clientes fiéis e agenda cheia</span>
+          </div>
         </div>
-      </div>
+      </article>
 
-      <div class="segment-card segment-card-image">
-        <img class="segment-banner" src="/segment-oficinas.png" alt="Oficinas — atendimento que gera confiança e indicações. Placa StarTouch em ambiente de oficina." loading="lazy" width="600" height="400"/>
-        <div class="segment-footer">
-          <span class="segment-footer-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <span class="segment-footer-text">Mais avaliações, mais negócios</span>
+      <article class="segment-card">
+        <img class="segment-banner" src="/segment-cafes.png" alt="Cafés — cada café vira uma nova conexão." loading="lazy"/>
+        <div class="segment-body">
+          <div class="segment-head">
+            <span class="segment-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+            </span>
+            <span class="segment-cat">Cafés</span>
+          </div>
+          <p class="segment-desc">Cada café vira uma nova conexão com seu cliente.</p>
+          <div class="segment-footer">
+            <span class="segment-footer-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="segment-footer-text">Experiências que viram recomendações</span>
+          </div>
         </div>
-      </div>
+      </article>
 
-      <div class="segment-card segment-card-image">
-        <img class="segment-banner" src="/segment-saloes.png" alt="Salões e Estética — experiências que encantam e geram indicações. Placa StarTouch em salão de beleza." loading="lazy" width="600" height="400"/>
-        <div class="segment-footer">
-          <span class="segment-footer-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <span class="segment-footer-text">Clientes fiéis e agenda cheia</span>
+      <article class="segment-card">
+        <img class="segment-banner" src="/segment-oficinas.png" alt="Oficinas — atendimento que gera confiança e indicações." loading="lazy"/>
+        <div class="segment-body">
+          <div class="segment-head">
+            <span class="segment-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            </span>
+            <span class="segment-cat">Oficinas</span>
+          </div>
+          <p class="segment-desc">Atendimento que gera confiança e indicações.</p>
+          <div class="segment-footer">
+            <span class="segment-footer-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="segment-footer-text">Mais avaliações, mais negócios</span>
+          </div>
         </div>
-      </div>
+      </article>
+    </div>
 
+    <div class="segments-trust-strip">
+      <span class="segments-trust-strip-item"><span class="check">✓</span> 100% compatível com Google</span>
+      <span class="segments-trust-strip-item"><span class="check">✓</span> Seguro e em conformidade</span>
+      <span class="segments-trust-strip-item"><span class="check">✓</span> Usado por negócios reais</span>
     </div>
   </div>
 </section>
