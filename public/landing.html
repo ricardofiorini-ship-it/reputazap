@@ -1001,6 +1001,13 @@
     margin-top: 2px;
   }
   .trust-list-icon svg { width: 18px; height: 18px; }
+  /* Variante quando o icone ja vem com fundo no PNG */
+  .trust-list-icon.is-image {
+    background: transparent;
+    width: 40px; height: 40px;
+    padding: 0;
+  }
+  .trust-list-icon.is-image img { width: 100%; height: 100%; object-fit: contain; }
   .trust-list-text { display: flex; flex-direction: column; gap: 4px; }
   .trust-list-title {
     font-family: var(--st-font-sans);
@@ -3434,8 +3441,8 @@
         <p class="trust-sub">Seguimos todas as políticas do Google. Sem atalhos. Sem riscos. Apenas resultados reais e sustentáveis para seu negócio.</p>
         <ul class="trust-list">
           <li>
-            <span class="trust-list-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            <span class="trust-list-icon is-image">
+              <img src="/icon-conforme-google.png" alt="" loading="lazy"/>
             </span>
             <div class="trust-list-text">
               <span class="trust-list-title">Conforme com Google</span>
