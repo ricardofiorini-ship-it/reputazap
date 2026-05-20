@@ -89,8 +89,7 @@ async function handleCheckout(req, res) {
 const KIT_CATALOG = {
   "placa-balcao": { name: "Placa de Balcão NFC",      price_cents: 7990,  soldOut: false },
   "placa-mesa":   { name: "Placa de Mesa NFC",         price_cents: 4990,  soldOut: false },
-  "pulseira":     { name: "Pulseira NFC",              price_cents: 10990, soldOut: true  },
-  "adesivo":      { name: "Adesivos NFC (kit com 3)",  price_cents: 2990,  soldOut: false }
+  "pulseira":     { name: "Pulseira NFC",              price_cents: 10990, soldOut: true  }
 };
 
 async function handleCheckoutKit(req, res) {
