@@ -1897,9 +1897,13 @@
   .eco-vitrine-image {
     position: relative;
     min-height: 200px;
-    background: var(--st-black-strong);
+    background: var(--st-bg-primary);
+    border-right: 1px solid var(--st-gray-light);
     display: flex; align-items: center; justify-content: center;
     padding: 24px;
+  }
+  @media (max-width: 767px) {
+    .eco-vitrine-image { border-right: none; border-bottom: 1px solid var(--st-gray-light); }
   }
   @media (min-width: 768px) {
     .eco-vitrine-image { min-height: 220px; }
