@@ -250,9 +250,11 @@
   }
   @media (min-width: 960px) {
     .hero-inner {
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
       gap: 24px;
     }
+    /* Imagem na esquerda (placa "olha" pro texto na direita) */
+    .hero-image { order: -1; }
   }
   .hero-text {
     display: flex; flex-direction: column;
