@@ -1930,6 +1930,9 @@
     object-fit: contain;
     filter: drop-shadow(0 18px 28px rgba(60,64,67,0.22)) drop-shadow(0 6px 10px rgba(60,64,67,0.12));
   }
+  /* Tamanhos por produto (escala fisica relativa) */
+  .eco-vitrine-image img.eco-img-lg { max-width: 92%; max-height: 100%; }   /* Placa — maior */
+  .eco-vitrine-image img.eco-img-sm { max-width: 58%; max-height: 74%; }    /* Cartao — menor */
   .eco-vitrine-body {
     padding: 24px 24px;
     display: flex; flex-direction: column;
@@ -3427,7 +3430,7 @@
     <div class="eco-vitrine">
       <div class="eco-vitrine-card">
         <div class="eco-vitrine-image">
-          <img src="/gadget-placa.png" alt="Placa de balcão StarTouch — acrílico com chamada AVALIE AQUI" loading="lazy" width="750" height="768" style="max-width:80%;max-height:80%;width:auto;height:auto;"/>
+          <img class="eco-img-lg" src="/gadget-placa.png" alt="Placa de balcão StarTouch — acrílico com chamada AVALIE AQUI" loading="lazy" width="750" height="768"/>
         </div>
         <div class="eco-vitrine-body">
           <span class="eco-vitrine-tag">Placa NFC</span>
@@ -3443,7 +3446,7 @@
 
       <div class="eco-vitrine-card">
         <div class="eco-vitrine-image">
-          <img src="/gadget-cartao.png" alt="Cartão NFC StarTouch — PVC fosco com estrela dourada e ondas NFC" loading="lazy" width="960" height="640"/>
+          <img class="eco-img-sm" src="/gadget-cartao.png" alt="Cartão NFC StarTouch — PVC fosco com estrela dourada e ondas NFC" loading="lazy" width="960" height="640"/>
         </div>
         <div class="eco-vitrine-body">
           <span class="eco-vitrine-tag">Cartão NFC</span>
