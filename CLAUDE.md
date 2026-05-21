@@ -30,7 +30,10 @@ CREATE INDEX IF NOT EXISTS idx_businesses_stripe_customer ON businesses(stripe_c
 
 ## Endpoints (`api/`)
 
-12 functions (limite Hobby Vercel): `register`, `login`, `forgot-password`, `reset-password`, `savebiz`, `mybiz`, `reviews` (aceita `?place_id=`), `searchbiz`, `bizinfo` (retorna `plan`), `placeid`, `feedback` (GET lista pendentes / POST cria/atualiza, envia email via Resend), `billing` (Stripe — dispatcher por `?action=checkout|portal|webhook`).
+Vercel **Pro** (limite de funções já não é gargalo). Funções:
+`register`, `login` (aceita `?action=google`/`id_token` pro login Google), `forgot-password`, `reset-password`, `savebiz`, `mybiz`, `reviews` (aceita `?place_id=`), `searchbiz`, `bizinfo` (retorna `plan` + `photoUrl`), `placeid`, `feedback` (GET lista pendentes / POST cria/atualiza, envia email via Resend), `billing` (Stripe — dispatcher por `?action=checkout|checkout-kit|portal|webhook`), `plates` (dispatcher por `?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates`), `r/[code]` (redirect universal de placa).
+
+Helpers em `api/_lib/` (prefixo `_` = não vira function): `plates.js` (geração de códigos).
 
 ## Status atual
 
@@ -53,6 +56,26 @@ Fluxo end-to-end funcionando:
 3. Criar webhook em `https://startouch.vercel.app/api/billing?action=webhook` escutando `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copiar o **Signing secret** (começa com `whsec_…`).
 4. Setar envs no Vercel: `STRIPE_SECRET_KEY` (sk_live_…), `STRIPE_PRICE_ID` (price_…), `STRIPE_WEBHOOK_SECRET` (whsec_…).
 5. Deploy. O fluxo: cliente clica em "Ativar Plano Pro" → POST `/api/billing?action=checkout` cria session com trial 14d → redirect → após pagamento, webhook em `/api/billing?action=webhook` atualiza `businesses.plan = 'pro'`.
+
+## Sistema de Placas (códigos únicos pré-produzidos)
+
+Modelo "TrustHero adapted" — **FLUXO ÚNICO de ativação independente de canal**. Toda placa (site, ML, loja, parceiro) segue o mesmo fluxo; o canal é só metadado (`source`). Não existe caminho de código por canal.
+
+**Tabelas** (SQL em `supabase/schema-plates.sql`, rodar uma vez):
+- `production_batches` — lotes de produção (nome, tipo, qtd, fornecedor, custo, status).
+- `plates` — estoque. `code` único (`STAR-XXXXX`), `product_type` (`placa_balcao|placa_mesa|pulseira_nfc|adesivo_nfc`), `status` (`in_stock→assigned→sent→active→disabled`), `business_id` (vinculado só na ativação), `source` (metadado de canal), `total_taps`/`last_tapped_at`. RLS: cliente vê só placas dos próprios negócios; escrita/admin/ativação via SERVICE_KEY no backend. **Sem dependência de tabela `orders`** — vínculo placa↔negócio acontece na ativação pelo cliente, não na compra.
+
+**Fluxo:** placa produzida em lote → `in_stock` → cliente recebe → toca/escaneia `/r/CODE` → `api/r/[code]` decide pelo status: inexistente/disabled→`/ativar-codigo?error=`; não-ativa→`/ativar-codigo?code=` (onboarding novo/existente); ativa→incrementa taps + redireciona `/avaliar?place_id=&plate=`.
+
+**Telas:**
+- `/admin/producao` (`admin-producao.html`) — cria lote, gera N códigos, exporta CSV (`codigo,product_type,batch_name,nfc_url,qr_url`) pra gráfica.
+- `/admin/estoque` (`admin-estoque.html`) — resumo por tipo/status + lista filtrável.
+- `/ativar-codigo` (`ativar-codigo.html`) — onboarding único: "sou novo" (cadastro+savebiz+activate) ou "já tenho conta" (login→escolhe negócio→activate).
+- `/app/placas` (aba no `App.jsx`) — placas ativas do cliente + modal "ativar nova" + "comprar mais".
+
+**Admin gating:** email hardcoded `ricardo.fiorini@gmail.com` em `api/plates.js` (evoluir pra `is_admin` depois).
+
+**Produção física:** gráfica/fornecedor grava o NFC (chip NTAG213+, NDEF/URL) e imprime o QR a partir do CSV — ambos apontam pra mesma URL `/r/CODE`.
 
 ## Variáveis de ambiente (Vercel)
 
