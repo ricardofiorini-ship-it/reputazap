@@ -793,12 +793,23 @@ export default function StarTouch({ user, onLogout }) {
                           <div style={{display:"flex",flexDirection:"column",gap:2}}>
                             {ranking.top.map((c,i)=>(
                               <div key={c.place_id} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:9,background:c.is_me?"#E8F0FE":"transparent"}}>
-                                <span style={{fontSize:13,fontWeight:700,color:"#9AA0A6",width:18}}>{i+1}</span>
+                                <span style={{fontSize:13,fontWeight:700,color:"#9AA0A6",width:24}}>{i+1}º</span>
                                 <span style={{flex:1,minWidth:0,fontSize:13.5,fontWeight:c.is_me?700:500,color:"#202124",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}{c.is_me&&<span style={{color:"#1A73E8",fontWeight:700}}> · você</span>}</span>
                                 <span style={{fontSize:12.5,color:"#202124",fontWeight:600,display:"inline-flex",alignItems:"center",gap:3,flexShrink:0}}><Star size={12} color="#f59e0b" fill="#f59e0b"/>{c.rating.toFixed(1)}</span>
                                 <span style={{fontSize:12,color:"#5F6368",flexShrink:0,width:74,textAlign:"right"}}>{c.reviews} aval.</span>
                               </div>
                             ))}
+                            {!ranking.top.some(c=>c.is_me)&&ranking.me&&(
+                              <>
+                                <div style={{textAlign:"center",color:"#9AA0A6",fontSize:14,lineHeight:1,padding:"2px 0"}}>⋮</div>
+                                <div style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:9,background:"#E8F0FE"}}>
+                                  <span style={{fontSize:13,fontWeight:700,color:"#1A73E8",width:24}}>{ranking.rank_by_rating}º</span>
+                                  <span style={{flex:1,minWidth:0,fontSize:13.5,fontWeight:700,color:"#202124",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ranking.me.name}<span style={{color:"#1A73E8",fontWeight:700}}> · você</span></span>
+                                  <span style={{fontSize:12.5,color:"#202124",fontWeight:600,display:"inline-flex",alignItems:"center",gap:3,flexShrink:0}}><Star size={12} color="#f59e0b" fill="#f59e0b"/>{ranking.me.rating.toFixed(1)}</span>
+                                  <span style={{fontSize:12,color:"#5F6368",flexShrink:0,width:74,textAlign:"right"}}>{ranking.me.reviews} aval.</span>
+                                </div>
+                              </>
+                            )}
                           </div>
                         </>
                       )}
