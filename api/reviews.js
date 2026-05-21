@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     console.log("[reviews] Buscando reviews do place_id:", place_id);
 
     const detailRes = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,rating,user_ratings_total,reviews&language=pt-BR&key=${API_KEY}`
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,rating,user_ratings_total,reviews&reviews_sort=newest&language=pt-BR&key=${API_KEY}`
     );
     const detailData = await detailRes.json();
     const result = detailData.result;
