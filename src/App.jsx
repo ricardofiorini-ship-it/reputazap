@@ -854,9 +854,12 @@ export default function StarTouch({ user, onLogout }) {
 
               {/* Últimas avaliações */}
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,marginBottom:18}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
-                  <div style={{fontSize:15,fontWeight:700,color:"#202124"}}>Últimas avaliações no Google</div>
-                  {recentReviews.length>0&&<button onClick={()=>setTab("reviews")} style={{background:"none",border:"none",color:"#1A73E8",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:4}}>Ver todas <ArrowRight size={14}/></button>}
+                <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:14}}>
+                  <div>
+                    <div style={{fontSize:15,fontWeight:700,color:"#202124"}}>Últimas avaliações no Google</div>
+                    {recentReviews.length>0&&<div style={{fontSize:11.5,color:"#9AA0A6",marginTop:2}}>As {recentReviews.length} mais recentes (o Google disponibiliza no máximo 5)</div>}
+                  </div>
+                  {recentReviews.length>0&&<button onClick={()=>setTab("feedbacks")} style={{background:"none",border:"none",color:"#1A73E8",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:4,flexShrink:0}}>Ver todas <ArrowRight size={14}/></button>}
                 </div>
                 {recentReviews.length===0 ? (
                   <div style={{textAlign:"center",padding:"28px 16px"}}>
@@ -1810,6 +1813,11 @@ export default function StarTouch({ user, onLogout }) {
                     })}
 
                     {/* Avaliações do Google (públicas) */}
+                    {showGoogle && googleCount > 0 && (
+                      <div style={{fontSize:11.5,color:"#9AA0A6",padding:"2px 2px"}}>
+                        Mostrando as {googleCount} avaliações mais recentes do Google (o Google disponibiliza no máximo 5).
+                      </div>
+                    )}
                     {showGoogle && googleMsgs.map((rev)=>(
                       <div key={`g-${rev.id}`} style={{background:"#fff",border:"1px solid #e5e7eb",borderLeft:"4px solid #1A73E8",borderRadius:14,padding:"16px 18px"}}>
                         <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:12}}>
