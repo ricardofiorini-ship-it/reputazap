@@ -251,10 +251,12 @@
   @media (min-width: 960px) {
     .hero-inner {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-      gap: 24px;
+      gap: 8px;
     }
     /* Texto na esquerda, imagem na direita */
     .hero-text { order: -1; }
+    /* Imagem cola no texto (alinha à esquerda da coluna) */
+    .hero-image { justify-content: flex-start; }
   }
   .hero-text {
     display: flex; flex-direction: column;
