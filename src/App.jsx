@@ -274,9 +274,7 @@ function FeedbackActions({ fb, onReplied, onResolved, onContactExternal, compact
 
 // ── MAIN ──────────────────────────────────────────────────
 export default function StarTouch({ user, onLogout }) {
-  const [tab, setTab] = useState(() =>
-    (typeof location !== "undefined" && location.pathname.endsWith("/placas")) ? "placas" : "dashboard"
-  );
+  const [tab, setTab] = useState("placas"); // Minhas Placas = aba principal (até segunda ordem)
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Sistema de placas
   const [myPlates, setMyPlates] = useState([]);
@@ -534,8 +532,8 @@ export default function StarTouch({ user, onLogout }) {
   }
 
   const nav=[
-    {id:"dashboard",icon:LayoutDashboard,label:"Painel"},
     {id:"placas",icon:CreditCard,label:"Minhas Placas"},
+    {id:"dashboard",icon:LayoutDashboard,label:"Painel"},
     {id:"feedbacks",icon:MessageSquare,label:"Mensagens"},
     {id:"settings",icon:Settings,label:"Configurações"},
   ];
@@ -697,7 +695,14 @@ export default function StarTouch({ user, onLogout }) {
           </div>
 
           {/* ─ DASHBOARD ─ */}
-          {tab==="dashboard"&&(() => {
+          {tab==="dashboard"&&(
+            <div style={{animation:"fadeUp 0.4s ease",background:"#fff",border:"1px dashed #DADCE0",borderRadius:16,padding:"56px 24px",textAlign:"center"}}>
+              <div style={{fontSize:16,fontWeight:700,color:"#202124",marginBottom:6}}>Painel em reconstrução</div>
+              <div style={{fontSize:13.5,color:"#5F6368",lineHeight:1.5,maxWidth:380,margin:"0 auto"}}>Esta área será reconstruída em breve. Use <strong>Minhas Placas</strong> no menu pra gerenciar suas placas.</div>
+            </div>
+          )}
+          {/* PAINEL ANTIGO — gateado (false&&) ate reconstrucao. Preservado em git. */}
+          {false&&(() => {
             const directLink = bizInfo?.place_id ? `${window.location.origin}/avaliar?place_id=${bizInfo.place_id}` : "";
             const copyLink = () => {
               if (!directLink) return;
