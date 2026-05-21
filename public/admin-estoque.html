@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin · Estoque — StarTouch</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:#F8F9FA;color:#202124;min-height:100vh;padding:24px 16px 64px;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px;}
+  .topbar img{height:34px;width:auto;}
+  .topbar nav{display:flex;gap:8px;}
+  .topbar nav a{font-size:13px;font-weight:600;color:#5F6368;text-decoration:none;padding:8px 12px;border-radius:8px;}
+  .topbar nav a:hover{background:#E8F0FE;color:#1A73E8;}
+  .topbar nav a.active{background:#1A73E8;color:#fff;}
+  h1{font-size:24px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;}
+  .sub{font-size:14px;color:#5F6368;margin-bottom:24px;}
+  .alert{display:none;background:#FEF7E0;border:1px solid #FDD663;border-radius:10px;padding:12px 16px;font-size:13.5px;color:#7A5900;margin-bottom:20px;font-weight:500;}
+  .alert.show{display:block;}
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px;}
+  .sum-card{background:#fff;border:1px solid #DADCE0;border-radius:14px;padding:18px 20px;}
+  .sum-card h3{font-size:14px;font-weight:700;margin-bottom:14px;}
+  .sum-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;}
+  .sum-row .label{color:#5F6368;display:inline-flex;align-items:center;gap:7px;}
+  .sum-row .num{font-weight:700;font-variant-numeric:tabular-nums;}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .dot.stock{background:#1A73E8;} .dot.assigned{background:#FBBC04;} .dot.sent{background:#A142F4;} .dot.active{background:#34A853;} .dot.disabled{background:#9AA0A6;}
+  .card{background:#fff;border:1px solid #DADCE0;border-radius:14px;padding:20px;}
+  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .filters select{border:1.5px solid #DADCE0;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;background:#fff;outline:none;}
+  .filters select:focus{border-color:#1A73E8;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;color:#5F6368;font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:0.04em;padding:8px 10px;border-bottom:1px solid #DADCE0;}
+  td{padding:9px 10px;border-bottom:1px solid #F1F3F4;}
+  td.code{font-family:monospace;font-weight:600;}
+  .st-pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;}
+  .st-in_stock{background:#E8F0FE;color:#1A73E8;} .st-assigned{background:#FEF7E0;color:#7A5900;} .st-sent{background:#F3E8FD;color:#7627BB;} .st-active{background:#E6F4EA;color:#137333;} .st-disabled{background:#F1F3F4;color:#5F6368;}
+  .loading{text-align:center;color:#5F6368;font-size:14px;padding:32px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <img src="/startouch-logo-dark.png" alt="StarTouch"/>
+    <nav>
+      <a href="/admin/producao">Produção</a>
+      <a href="/admin/estoque" class="active">Estoque</a>
+    </nav>
+  </div>
+
+  <h1>Estoque de placas</h1>
+  <p class="sub">Visão geral do estoque por tipo e status.</p>
+
+  <div id="authGate" class="loading">Verificando acesso…</div>
+
+  <div id="content" style="display:none;">
+    <div class="alert" id="lowAlert"></div>
+    <div class="summary" id="summary"></div>
+
+    <div class="card">
+      <div class="filters">
+        <select id="filterStatus" onchange="applyFilters()">
+          <option value="">Todos os status</option>
+          <option value="in_stock">Em estoque</option>
+          <option value="assigned">Atribuídas</option>
+          <option value="sent">Enviadas</option>
+          <option value="active">Ativas</option>
+          <option value="disabled">Desabilitadas</option>
+        </select>
+        <select id="filterType" onchange="applyFilters()">
+          <option value="">Todos os tipos</option>
+          <option value="placa_balcao">Placa de Balcão</option>
+          <option value="placa_mesa">Placa de Mesa</option>
+          <option value="pulseira_nfc">Pulseira NFC</option>
+          <option value="adesivo_nfc">Adesivo NFC</option>
+        </select>
+        <select id="filterSource" onchange="applyFilters()">
+          <option value="">Todos os canais</option>
+          <option value="site">Site</option>
+          <option value="ml">Mercado Livre</option>
+          <option value="loja_fisica">Loja física</option>
+          <option value="parceiro">Parceiro</option>
+          <option value="demo">Demo</option>
+        </select>
+      </div>
+      <div id="tableArea" class="loading">Carregando…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem("rz_token");
+let allPlates = [];
+
+const TYPE_LABELS = {
+  placa_balcao: "Placa de Balcão", placa_mesa: "Placa de Mesa",
+  pulseira_nfc: "Pulseira NFC", adesivo_nfc: "Adesivo NFC"
+};
+const STATUS_LABELS = {
+  in_stock: "Em estoque", assigned: "Atribuída", sent: "Enviada",
+  active: "Ativa", disabled: "Desabilitada"
+};
+
+async function init() {
+  if (!token) {
+    document.getElementById("authGate").innerHTML =
+      'Você precisa estar logado como admin. <a href="/app" style="color:#1A73E8;font-weight:600">Entrar →</a>';
+    return;
+  }
+  try {
+    const res = await fetch("/api/plates?action=list-stock", { headers: { "Authorization": `Bearer ${token}` } });
+    if (res.status === 403) { document.getElementById("authGate").textContent = "Acesso restrito ao admin."; return; }
+    if (!res.ok) { document.getElementById("authGate").innerHTML = 'Sessão expirada. <a href="/app" style="color:#1A73E8;font-weight:600">Entrar →</a>'; return; }
+    const data = await res.json();
+    document.getElementById("authGate").style.display = "none";
+    document.getElementById("content").style.display = "block";
+    allPlates = data.plates || [];
+    renderSummary(data.summary || {});
+    renderTable(allPlates);
+    checkLowStock(data.summary || {});
+  } catch { document.getElementById("authGate").textContent = "Erro de conexão."; }
+}
+
+function renderSummary(summary) {
+  const types = Object.keys(summary);
+  if (!types.length) { document.getElementById("summary").innerHTML = '<p style="color:#5F6368;font-size:14px;">Nenhuma placa no estoque ainda. Crie um lote em Produção.</p>'; return; }
+  document.getElementById("summary").innerHTML = types.map(t => {
+    const s = summary[t];
+    return `<div class="sum-card">
+      <h3>${TYPE_LABELS[t] || t}</h3>
+      <div class="sum-row"><span class="label"><span class="dot stock"></span>Em estoque</span><span class="num">${s.in_stock}</span></div>
+      <div class="sum-row"><span class="label"><span class="dot assigned"></span>Atribuídas</span><span class="num">${s.assigned}</span></div>
+      <div class="sum-row"><span class="label"><span class="dot sent"></span>Enviadas</span><span class="num">${s.sent}</span></div>
+      <div class="sum-row"><span class="label"><span class="dot active"></span>Ativas</span><span class="num">${s.active}</span></div>
+    </div>`;
+  }).join("");
+}
+
+function checkLowStock(summary) {
+  const low = Object.keys(summary).filter(t => summary[t].in_stock > 0 && summary[t].in_stock < 20);
+  const empty = Object.keys(summary).filter(t => summary[t].in_stock === 0);
+  const parts = [];
+  if (empty.length) parts.push("Sem estoque: " + empty.map(t => TYPE_LABELS[t] || t).join(", "));
+  if (low.length) parts.push("Estoque baixo (<20): " + low.map(t => TYPE_LABELS[t] || t).join(", "));
+  const alert = document.getElementById("lowAlert");
+  if (parts.length) { alert.className = "alert show"; alert.textContent = "⚠️ " + parts.join(" · "); }
+}
+
+function applyFilters() {
+  const st = document.getElementById("filterStatus").value;
+  const ty = document.getElementById("filterType").value;
+  const so = document.getElementById("filterSource").value;
+  renderTable(allPlates.filter(p =>
+    (!st || p.status === st) && (!ty || p.product_type === ty) && (!so || p.source === so)
+  ));
+}
+
+function renderTable(plates) {
+  const area = document.getElementById("tableArea");
+  if (!plates.length) { area.innerHTML = '<p style="color:#5F6368;font-size:14px;padding:8px;">Nenhuma placa com esses filtros.</p>'; return; }
+  area.innerHTML = `
+    <table>
+      <thead><tr><th>Código</th><th>Tipo</th><th>Status</th><th>Canal</th><th>Apelido</th><th>Taps</th></tr></thead>
+      <tbody>
+        ${plates.slice(0, 500).map(p => `
+          <tr>
+            <td class="code">${p.code}</td>
+            <td>${TYPE_LABELS[p.product_type] || p.product_type}</td>
+            <td><span class="st-pill st-${p.status}">${STATUS_LABELS[p.status] || p.status}</span></td>
+            <td>${p.source || '—'}</td>
+            <td>${p.channel_name || '—'}</td>
+            <td>${p.total_taps || 0}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    ${plates.length > 500 ? `<p style="color:#5F6368;font-size:12px;margin-top:10px;">Mostrando 500 de ${plates.length}.</p>` : ''}`;
+}
+
+init();
+</script>
+</body>
+</html>
