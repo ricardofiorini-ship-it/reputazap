@@ -789,9 +789,9 @@ export default function StarTouch({ user, onLogout }) {
                           <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:5}}>
                             {rankBadge(ranking.rank_google)}<span style={{fontSize:14,color:"#5F6368"}}>de {ranking.total}</span>
                           </div>
-                          <div style={{fontSize:12.5,color:"#5F6368",marginBottom:14,display:"flex",alignItems:"center",gap:5}}><Award size={13} color="#1A73E8"/> posição estimada na busca do Google</div>
+                          <div style={{fontSize:12.5,color:"#5F6368",marginBottom:14,display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}><Award size={13} color="#1A73E8"/> posição estimada na busca do Google <span style={{fontSize:9.5,fontWeight:700,letterSpacing:"0.05em",color:"#5F6368",background:"#F1F3F4",borderRadius:5,padding:"2px 7px"}}>ESTIMATIVA</span></div>
                           <div style={{fontSize:11.5,color:"#5F6368",lineHeight:1.5,background:"#F8F9FA",borderRadius:9,padding:"9px 12px",marginBottom:16}}>
-                            💡 Estimativa baseada na lógica do Google: o <strong style={{color:"#202124"}}>volume de avaliações</strong> pesa mais (a nota modula). É o que define quem aparece primeiro no mapa — não a nota sozinha.
+                            💡 Estimativa baseada na lógica do Google: o <strong style={{color:"#202124"}}>volume de avaliações</strong> pesa mais (a nota modula) — é um dos fatores que mais ajudam você a aparecer no topo do mapa, não a nota sozinha.
                           </div>
                           <div style={{fontSize:11,fontWeight:700,color:"#5F6368",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>Classificação estimada no Google</div>
                           <div style={{display:"flex",flexDirection:"column",gap:2}}>
