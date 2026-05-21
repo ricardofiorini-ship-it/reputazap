@@ -285,6 +285,8 @@ export default function StarTouch({ user, onLogout }) {
   const [plateModalBiz, setPlateModalBiz] = useState("");
   const [plateModalMsg, setPlateModalMsg] = useState("");
   const [plateBusinesses, setPlateBusinesses] = useState([]);
+  const [linkModalPlate, setLinkModalPlate] = useState(null);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [reviews, setReviews] = useState(MOCK_REVIEWS);
   const [bizInfo, setBizInfo] = useState(null);
   const [loadingReviews, setLoadingReviews] = useState(true);
@@ -1153,9 +1155,12 @@ export default function StarTouch({ user, onLogout }) {
                       </div>
                       <div style={{fontSize:16,fontWeight:700,marginBottom:2}}>{p.channel_name||"Placa sem apelido"}</div>
                       <div style={{fontSize:12.5,color:"#5F6368",marginBottom:12}}>{({placa_balcao:"Placa de Balcão",placa_mesa:"Placa de Mesa",pulseira_nfc:"Pulseira NFC",adesivo_nfc:"Adesivo NFC"})[p.product_type]||p.product_type}</div>
-                      <div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#202124"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#202124",marginBottom:14}}>
                         <TrendingUp size={15} color="#1A73E8"/> <strong>{p.total_taps||0}</strong> <span style={{color:"#5F6368"}}>toques</span>
                       </div>
+                      <button onClick={()=>{setLinkModalPlate(p);setLinkCopied(false);}} style={{width:"100%",background:"#fff",color:"#1A73E8",border:"1.5px solid #DADCE0",borderRadius:9,padding:"9px 12px",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:7}}>
+                        <Link2 size={15}/> Ver link / QR
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -1186,6 +1191,40 @@ export default function StarTouch({ user, onLogout }) {
                   </div>
                 </div>
               )}
+              {/* Modal de link / QR — IDÊNTICO ao gravado no NFC e impresso no QR físico */}
+              {linkModalPlate && (() => {
+                const plateLink = `https://startouch.com.br/r/${linkModalPlate.code}`;
+                const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(plateLink)}`;
+                return (
+                <div onClick={()=>setLinkModalPlate(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",display:"flex",alignItems:"center",justifyContent:"center",padding:20,zIndex:200}}>
+                  <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,padding:24,width:"100%",maxWidth:400}}>
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+                      <strong style={{fontSize:17}}>Link e QR da placa</strong>
+                      <button onClick={()=>setLinkModalPlate(null)} style={{background:"none",border:"none",cursor:"pointer",color:"#9AA0A6"}}><X size={20}/></button>
+                    </div>
+                    <div style={{fontSize:13,color:"#5F6368",marginBottom:18}}>
+                      {linkModalPlate.channel_name||"Placa"} · <span style={{fontFamily:"monospace"}}>{linkModalPlate.code}</span>
+                    </div>
+                    <div style={{display:"flex",justifyContent:"center",marginBottom:16}}>
+                      <img src={qrImg} alt={`QR da placa ${linkModalPlate.code}`} width={200} height={200} style={{borderRadius:12,border:"1px solid #e5e7eb"}}/>
+                    </div>
+                    <label style={{fontSize:12,fontWeight:600,color:"#5F6368",display:"block",marginBottom:6}}>Link da placa</label>
+                    <div style={{display:"flex",gap:8,marginBottom:12}}>
+                      <input readOnly value={plateLink} onFocus={e=>e.target.select()} style={{flex:1,border:"1.5px solid #DADCE0",borderRadius:10,padding:"10px 12px",fontSize:12.5,fontFamily:"monospace",color:"#202124",outline:"none",background:"#f9fafb"}}/>
+                      <button onClick={()=>{navigator.clipboard?.writeText(plateLink);setLinkCopied(true);setTimeout(()=>setLinkCopied(false),2000);}} style={{background:linkCopied?"#E6F4EA":"#1A73E8",color:linkCopied?"#137333":"#fff",border:"none",borderRadius:10,padding:"0 14px",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:6,whiteSpace:"nowrap"}}>
+                        {linkCopied ? <><Check size={15}/>Copiado</> : <><Copy size={15}/>Copiar</>}
+                      </button>
+                    </div>
+                    <a href={plateLink} target="_blank" rel="noopener" style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:13,color:"#1A73E8",textDecoration:"none",fontWeight:600,marginBottom:14}}>
+                      <ExternalLink size={14}/> Abrir / testar
+                    </a>
+                    <div style={{fontSize:11.5,color:"#5F6368",lineHeight:1.5,background:"#E8F0FE",borderRadius:10,padding:"10px 12px"}}>
+                      Este é exatamente o endereço gravado no chip NFC e impresso no QR Code da sua placa física. Ele direciona automaticamente pra avaliação no Google.
+                    </div>
+                  </div>
+                </div>
+                );
+              })()}
             </div>
           )}
 
