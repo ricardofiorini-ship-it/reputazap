@@ -18,7 +18,14 @@ const API_KEY = process.env.PLACES_API_KEY;
 // Tipos genéricos do Google que não servem como "categoria" de busca
 const GENERIC_TYPES = new Set([
   "point_of_interest", "establishment", "premise", "geocode",
-  "political", "food", "store_storage"
+  "political", "store_storage"
+]);
+
+// Tipos amplos demais pra comparar (muitos ramos diferentes compartilham
+// "store"/"food" etc). Só servem de fallback quando não há tipo específico.
+const BROAD_TYPES = new Set([
+  "store", "food", "health", "finance", "general_contractor",
+  "home_goods_store", "shopping_mall"
 ]);
 
 async function authUser(req) {
@@ -70,22 +77,33 @@ export default async function handler(req, res) {
     }
     const { lat, lng } = me.geometry.location;
 
-    // Escolhe a categoria de busca (1º tipo não-genérico)
-    const searchType = (me.types || []).find(t => !GENERIC_TYPES.has(t)) || null;
+    // Escolhe a categoria de comparação: prioriza o tipo ESPECÍFICO do
+    // negócio (ex: "cafe", "bicycle_store"); só usa um tipo amplo ("store")
+    // como último recurso. Esse mesmo tipo é usado pra filtrar concorrentes.
+    const myTypes = me.types || [];
+    const specific = myTypes.filter(t => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t));
+    const broad = myTypes.filter(t => !GENERIC_TYPES.has(t) && BROAD_TYPES.has(t));
+    const matchType = specific[0] || broad[0] || null;
 
-    // 5. Nearby Search da mesma categoria por perto
+    // 5. Nearby Search por perto, restringindo pela categoria do negócio
     let nearbyUrl =
       `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&language=pt-BR&key=${API_KEY}`;
-    if (searchType) nearbyUrl += `&type=${searchType}`;
+    if (matchType) nearbyUrl += `&type=${matchType}`;
 
     const nearRes = await fetch(nearbyUrl);
     const near = await nearRes.json();
     const rawResults = near.results || [];
 
+    // Só compara quem REALMENTE compartilha a categoria específica do negócio.
+    // (o filtro `type` do Nearby é frouxo e mistura ramos; isto é o que evita
+    // comparar bicicletaria com café.)
+    const sameCategory = (p) => !matchType || (p.types || []).includes(matchType);
+
     // 6. Monta lista de concorrentes (com nota), incluindo o próprio negócio
     const byId = new Map();
     for (const p of rawResults) {
       if (typeof p.rating !== "number") continue; // sem nota não entra no ranking
+      if (!sameCategory(p)) continue;             // categoria diferente, ignora
       byId.set(p.place_id, {
         place_id: p.place_id,
         name: p.name,
@@ -108,7 +126,7 @@ export default async function handler(req, res) {
       return res.json({
         enough: false,
         total,
-        category: searchType,
+        category: matchType,
         radius,
         me: byId.get(biz.place_id)
       });

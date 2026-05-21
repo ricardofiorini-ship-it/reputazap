@@ -770,7 +770,7 @@ export default function StarTouch({ user, onLogout }) {
                         {isAdmin&&!isPro&&<span style={{fontSize:9,fontWeight:700,letterSpacing:"0.05em",background:"#E8F0FE",color:"#1A73E8",borderRadius:5,padding:"2px 7px"}}>ADMIN</span>}
                       </div>
                       <div style={{fontSize:12.5,color:"#5F6368",marginBottom:16}}>
-                        Negócios da mesma categoria{ranking?.radius?` num raio de ${(ranking.radius/1000).toFixed(0)} km`:" por perto"}.
+                        Negócios da mesma categoria{ranking?.category?<> (<span style={{fontFamily:"monospace"}}>{ranking.category}</span>)</>:""}{ranking?.radius?` num raio de ${(ranking.radius/1000).toFixed(0)} km`:" por perto"}.
                       </div>
                       {rankingLoading&&<div style={{fontSize:13,color:"#5F6368",padding:"12px 0"}}>Calculando sua posição…</div>}
                       {rankingError&&<div style={{fontSize:13,color:"#C5221F",padding:"12px 0"}}>Não foi possível carregar o ranking agora.</div>}
