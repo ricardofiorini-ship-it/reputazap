@@ -290,6 +290,9 @@ export default function StarTouch({ user, onLogout }) {
   const [reviews, setReviews] = useState(MOCK_REVIEWS);
   const [hasRealReviews, setHasRealReviews] = useState(false);
   const [bizInfo, setBizInfo] = useState(null);
+  const [ranking, setRanking] = useState(null);
+  const [rankingLoading, setRankingLoading] = useState(false);
+  const [rankingError, setRankingError] = useState(false);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
@@ -435,6 +438,21 @@ export default function StarTouch({ user, onLogout }) {
   const nfcCount = reviews.filter(r=>r.via==="nfc").length;
   const biz = bizInfo?.name || user?.biz || "Meu Negócio";
   const isPro = bizInfo?.plan === "pro";
+  const isAdmin = user?.email?.toLowerCase() === "ricardo.fiorini@gmail.com";
+  const canSeeRanking = isAdmin || isPro;
+
+  // Ranking competitivo (recurso Pro): carrega só pra quem pode ver, na aba Painel
+  useEffect(() => {
+    if (tab !== "dashboard" || !canSeeRanking || !bizInfo?.place_id || ranking || rankingLoading) return;
+    const token = localStorage.getItem("rz_token");
+    if (!token) return;
+    setRankingLoading(true);
+    setRankingError(false);
+    fetch("/api/competitors", { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : Promise.reject(r))
+      .then(d => { setRanking(d); setRankingLoading(false); })
+      .catch(() => { setRankingError(true); setRankingLoading(false); });
+  }, [tab, canSeeRanking, bizInfo?.place_id]);
 
   async function doSearch() {
     if (!searchQuery.trim()) return;
@@ -736,6 +754,81 @@ export default function StarTouch({ user, onLogout }) {
                 {statCard(<Star size={19} color="#f59e0b" fill="#f59e0b"/>, bizInfo?.rating ? Number(bizInfo.rating).toFixed(1) : "—", "Nota no Google", bizInfo?"sua reputação atual":"conecte seu negócio", {bg:"#FEF7E0"})}
                 {statCard(<MessageSquare size={19} color="#34A853"/>, bizInfo?.total ?? "—", "Avaliações no Google", "total recebidas", {bg:"#E6F4EA"})}
               </div>
+
+              {/* Ranking competitivo (Pro) */}
+              {(() => {
+                const rankBadge = (pos) => {
+                  const top3 = pos<=3;
+                  return <span style={{fontSize:30,fontWeight:800,color:top3?"#137333":"#1A73E8",fontFamily:"'General Sans',sans-serif",lineHeight:1}}>#{pos}</span>;
+                };
+                if (canSeeRanking) {
+                  return (
+                    <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,marginBottom:18}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                        <Award size={18} color="#1A73E8"/>
+                        <div style={{fontSize:15,fontWeight:700,color:"#202124"}}>Sua posição vs concorrentes</div>
+                        {isAdmin&&!isPro&&<span style={{fontSize:9,fontWeight:700,letterSpacing:"0.05em",background:"#E8F0FE",color:"#1A73E8",borderRadius:5,padding:"2px 7px"}}>ADMIN</span>}
+                      </div>
+                      <div style={{fontSize:12.5,color:"#5F6368",marginBottom:16}}>
+                        Negócios da mesma categoria{ranking?.radius?` num raio de ${(ranking.radius/1000).toFixed(0)} km`:" por perto"}.
+                      </div>
+                      {rankingLoading&&<div style={{fontSize:13,color:"#5F6368",padding:"12px 0"}}>Calculando sua posição…</div>}
+                      {rankingError&&<div style={{fontSize:13,color:"#C5221F",padding:"12px 0"}}>Não foi possível carregar o ranking agora.</div>}
+                      {ranking&&ranking.enough===false&&(
+                        <div style={{fontSize:13,color:"#5F6368",padding:"12px 0"}}>Poucos concorrentes da mesma categoria por perto pra montar um ranking.</div>
+                      )}
+                      {ranking&&ranking.enough&&(
+                        <>
+                          <div style={{display:"flex",gap:24,flexWrap:"wrap",marginBottom:18}}>
+                            <div>
+                              <div style={{display:"flex",alignItems:"baseline",gap:6}}>{rankBadge(ranking.rank_by_rating)}<span style={{fontSize:13,color:"#5F6368"}}>de {ranking.total}</span></div>
+                              <div style={{fontSize:12.5,color:"#5F6368",marginTop:3,display:"flex",alignItems:"center",gap:4}}><Star size={12} color="#f59e0b" fill="#f59e0b"/> em nota</div>
+                            </div>
+                            <div>
+                              <div style={{display:"flex",alignItems:"baseline",gap:6}}>{rankBadge(ranking.rank_by_reviews)}<span style={{fontSize:13,color:"#5F6368"}}>de {ranking.total}</span></div>
+                              <div style={{fontSize:12.5,color:"#5F6368",marginTop:3,display:"flex",alignItems:"center",gap:4}}><MessageSquare size={12} color="#34A853"/> em nº de avaliações</div>
+                            </div>
+                          </div>
+                          <div style={{fontSize:11,fontWeight:700,color:"#5F6368",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>Top por nota</div>
+                          <div style={{display:"flex",flexDirection:"column",gap:2}}>
+                            {ranking.top.map((c,i)=>(
+                              <div key={c.place_id} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:9,background:c.is_me?"#E8F0FE":"transparent"}}>
+                                <span style={{fontSize:13,fontWeight:700,color:"#9AA0A6",width:18}}>{i+1}</span>
+                                <span style={{flex:1,minWidth:0,fontSize:13.5,fontWeight:c.is_me?700:500,color:"#202124",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}{c.is_me&&<span style={{color:"#1A73E8",fontWeight:700}}> · você</span>}</span>
+                                <span style={{fontSize:12.5,color:"#202124",fontWeight:600,display:"inline-flex",alignItems:"center",gap:3,flexShrink:0}}><Star size={12} color="#f59e0b" fill="#f59e0b"/>{c.rating.toFixed(1)}</span>
+                                <span style={{fontSize:12,color:"#5F6368",flexShrink:0,width:74,textAlign:"right"}}>{c.reviews} aval.</span>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                }
+                // Teaser bloqueado (Free)
+                return (
+                  <div style={{position:"relative",background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,marginBottom:18,overflow:"hidden"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                      <Award size={18} color="#1A73E8"/>
+                      <div style={{fontSize:15,fontWeight:700,color:"#202124"}}>Sua posição vs concorrentes</div>
+                      <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.05em",background:"#E8F0FE",color:"#1A73E8",borderRadius:5,padding:"2px 7px"}}>PRO</span>
+                    </div>
+                    <div style={{fontSize:12.5,color:"#5F6368",marginBottom:16}}>Veja como você se compara aos negócios da mesma categoria por perto.</div>
+                    <div style={{filter:"blur(6px)",userSelect:"none",pointerEvents:"none",opacity:0.7}}>
+                      <div style={{display:"flex",gap:24,marginBottom:16}}>
+                        <div><span style={{fontSize:30,fontWeight:800,color:"#1A73E8",fontFamily:"'General Sans',sans-serif"}}>#3</span> <span style={{fontSize:13,color:"#5F6368"}}>de 14</span><div style={{fontSize:12.5,color:"#5F6368"}}>em nota</div></div>
+                        <div><span style={{fontSize:30,fontWeight:800,color:"#1A73E8",fontFamily:"'General Sans',sans-serif"}}>#7</span> <span style={{fontSize:13,color:"#5F6368"}}>de 14</span><div style={{fontSize:12.5,color:"#5F6368"}}>em avaliações</div></div>
+                      </div>
+                      {[1,2,3].map(i=><div key={i} style={{height:14,background:"#e5e7eb",borderRadius:6,margin:"10px 0"}}/>)}
+                    </div>
+                    <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",paddingBottom:22,background:"linear-gradient(to bottom,rgba(255,255,255,0) 40%,rgba(255,255,255,0.92) 75%)"}}>
+                      <div style={{width:40,height:40,borderRadius:"50%",background:"#E8F0FE",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10}}><ShieldCheck size={20} color="#1A73E8"/></div>
+                      <div style={{fontSize:14,fontWeight:700,color:"#202124",marginBottom:3}}>Disponível no Plano Pro</div>
+                      <div style={{fontSize:12.5,color:"#5F6368"}}>Em breve</div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Atalhos */}
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,marginBottom:18}}>
