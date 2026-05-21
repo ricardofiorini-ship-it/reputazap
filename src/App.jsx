@@ -288,6 +288,7 @@ export default function StarTouch({ user, onLogout }) {
   const [linkModalPlate, setLinkModalPlate] = useState(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [reviews, setReviews] = useState(MOCK_REVIEWS);
+  const [hasRealReviews, setHasRealReviews] = useState(false);
   const [bizInfo, setBizInfo] = useState(null);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
@@ -326,7 +327,7 @@ export default function StarTouch({ user, onLogout }) {
     } catch {}
     setPlatesLoading(false);
   }
-  useEffect(() => { if (tab === "placas") loadPlates(); }, [tab]);
+  useEffect(() => { if (tab === "placas" || tab === "dashboard") loadPlates(); }, [tab]);
 
   async function activatePlate() {
     const token = localStorage.getItem("rz_token");
@@ -389,6 +390,7 @@ export default function StarTouch({ user, onLogout }) {
               };
               if (reviewData.reviews?.length) {
                 setReviews(reviewData.reviews);
+                setHasRealReviews(true);
                 setBizInfo({
                   name: reviewData.name || data.business.name,
                   rating: reviewData.rating ?? data.business.rating,
@@ -677,7 +679,7 @@ export default function StarTouch({ user, onLogout }) {
                 {tab==="dashboard"&&"Central de reputação"}{tab==="placas"&&"Minhas Placas"}{tab==="feedbacks"&&"Mensagens de clientes"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Placas inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Plano Pro e loja"}{tab==="settings"&&"Configurações"}
               </div>
               <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
-                {tab==="dashboard"&&"Monitore sua exposição pública e proteja sua reputação."}
+                {tab==="dashboard"&&"Visão geral das suas placas e avaliações no Google."}
                 {tab==="placas"&&"Gerencie suas placas ativas e ative novas pelo código."}
                 {tab==="feedbacks"&&(pendingFeedbacks.length>0?`${pendingFeedbacks.length} mensagem(ns) aguardando resposta`:"Tudo sob controle por enquanto.")}
                 {tab==="link"&&"Seu link de avaliação e QR Code prontos pra compartilhar."}
@@ -696,13 +698,97 @@ export default function StarTouch({ user, onLogout }) {
             )}
           </div>
 
-          {/* ─ DASHBOARD ─ */}
-          {tab==="dashboard"&&(
-            <div style={{animation:"fadeUp 0.4s ease",background:"#fff",border:"1px dashed #DADCE0",borderRadius:16,padding:"56px 24px",textAlign:"center"}}>
-              <div style={{fontSize:16,fontWeight:700,color:"#202124",marginBottom:6}}>Painel em reconstrução</div>
-              <div style={{fontSize:13.5,color:"#5F6368",lineHeight:1.5,maxWidth:380,margin:"0 auto"}}>Esta área será reconstruída em breve. Use <strong>Minhas Placas</strong> no menu pra gerenciar suas placas.</div>
+          {/* ─ DASHBOARD (Painel — visão geral Free) ─ */}
+          {tab==="dashboard"&&(() => {
+            const totalTaps = myPlates.reduce((a,p)=>a+(p.total_taps||0),0);
+            const activePlates = myPlates.length;
+            const recentReviews = hasRealReviews ? reviews.slice(0,5) : [];
+            const statCard = (icon,value,label,sub,tint) => (
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:14,padding:18}}>
+                <div style={{width:38,height:38,borderRadius:10,background:tint.bg,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:12}}>{icon}</div>
+                <div style={{fontSize:26,fontWeight:800,color:"#202124",lineHeight:1.1,fontFamily:"'General Sans',sans-serif"}}>{value}</div>
+                <div style={{fontSize:13.5,fontWeight:600,color:"#202124",marginTop:4}}>{label}</div>
+                <div style={{fontSize:12,color:"#5F6368",marginTop:2}}>{sub}</div>
+              </div>
+            );
+            const action = (icon,label,desc,onClick,href) => {
+              const inner = (
+                <>
+                  <div style={{width:36,height:36,borderRadius:9,background:"#E8F0FE",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{icon}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:14,fontWeight:600,color:"#202124"}}>{label}</div>
+                    <div style={{fontSize:12,color:"#5F6368"}}>{desc}</div>
+                  </div>
+                  <ChevronRight size={18} color="#9AA0A6"/>
+                </>
+              );
+              const st = {display:"flex",alignItems:"center",gap:12,background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:"14px 16px",cursor:"pointer",textDecoration:"none",fontFamily:"inherit",textAlign:"left",width:"100%"};
+              return href
+                ? <a href={href} style={st}>{inner}</a>
+                : <button onClick={onClick} style={st}>{inner}</button>;
+            };
+            return (
+            <div style={{animation:"fadeUp 0.4s ease"}}>
+              {/* Métricas */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:14,marginBottom:18}}>
+                {statCard(<TrendingUp size={19} color="#1A73E8"/>, totalTaps, "Toques nas placas", "Total acumulado", {bg:"#E8F0FE"})}
+                {statCard(<CreditCard size={19} color="#1A73E8"/>, activePlates, activePlates===1?"Placa ativa":"Placas ativas", "Vinculadas ao seu negócio", {bg:"#E8F0FE"})}
+                {statCard(<Star size={19} color="#f59e0b" fill="#f59e0b"/>, bizInfo?.rating ? Number(bizInfo.rating).toFixed(1) : "—", "Nota no Google", bizInfo?"sua reputação atual":"conecte seu negócio", {bg:"#FEF7E0"})}
+                {statCard(<MessageSquare size={19} color="#34A853"/>, bizInfo?.total ?? "—", "Avaliações no Google", "total recebidas", {bg:"#E6F4EA"})}
+              </div>
+
+              {/* Atalhos */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,marginBottom:18}}>
+                {action(<Check size={17} color="#1A73E8"/>, "Ativar nova placa", "Recebeu uma placa? Ative pelo código", ()=>{setTab("placas");setPlateModalOpen(true);setPlateModalMsg("");})}
+                {action(<CreditCard size={17} color="#1A73E8"/>, "Comprar mais placas", "Amplie seus pontos de captura", null, "/kit")}
+                {action(<MessageSquare size={17} color="#1A73E8"/>, "Mensagens de clientes", pendingFeedbacks.length>0?`${pendingFeedbacks.length} aguardando resposta`:"Tudo sob controle", ()=>setTab("feedbacks"))}
+              </div>
+
+              {/* Últimas avaliações */}
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,marginBottom:18}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+                  <div style={{fontSize:15,fontWeight:700,color:"#202124"}}>Últimas avaliações no Google</div>
+                  {recentReviews.length>0&&<button onClick={()=>setTab("reviews")} style={{background:"none",border:"none",color:"#1A73E8",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:4}}>Ver todas <ArrowRight size={14}/></button>}
+                </div>
+                {recentReviews.length===0 ? (
+                  <div style={{textAlign:"center",padding:"28px 16px"}}>
+                    <div style={{width:48,height:48,borderRadius:"50%",background:"#E8F0FE",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}><Star size={22} color="#1A73E8"/></div>
+                    <div style={{fontSize:14,fontWeight:600,color:"#202124",marginBottom:4}}>Suas avaliações aparecerão aqui</div>
+                    <div style={{fontSize:12.5,color:"#5F6368",lineHeight:1.5,maxWidth:340,margin:"0 auto"}}>Conforme os clientes tocam suas placas e avaliam no Google, as avaliações mais recentes aparecem aqui.</div>
+                  </div>
+                ) : (
+                  <div style={{display:"flex",flexDirection:"column"}}>
+                    {recentReviews.map((rev,i)=>(
+                      <div key={rev.id??i} style={{display:"flex",gap:12,padding:"13px 0",borderTop:i>0?"1px solid #f1f3f4":"none"}}>
+                        <Av initials={rev.avatar}/>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:3}}>
+                            <span style={{fontSize:13.5,fontWeight:700,color:"#202124"}}>{rev.author}</span>
+                            <span style={{fontSize:11.5,color:"#9AA0A6",flexShrink:0}}>{rev.date}</span>
+                          </div>
+                          <div style={{marginBottom:5}}><Stars rating={rev.rating} size={13}/></div>
+                          <div style={{fontSize:13,color:"#5F6368",lineHeight:1.5,overflow:"hidden",textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{rev.text}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Upsell Pro */}
+              {!isPro&&(
+                <div style={{background:"linear-gradient(135deg,#1A73E8,#174EA6)",borderRadius:16,padding:"22px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:18,flexWrap:"wrap"}}>
+                  <div style={{minWidth:0}}>
+                    <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.18)",borderRadius:6,padding:"3px 9px",fontSize:11,fontWeight:700,color:"#fff",letterSpacing:"0.03em",marginBottom:8}}><Zap size={12}/> PLANO PRO</div>
+                    <div style={{fontSize:17,fontWeight:700,color:"#fff",marginBottom:4}}>Responda avaliações com ajuda da IA</div>
+                    <div style={{fontSize:13.5,color:"rgba(255,255,255,0.85)",lineHeight:1.5,maxWidth:460}}>Gere respostas prontas pra cada avaliação do Google e acompanhe insights dos toques das suas placas.</div>
+                  </div>
+                  <button onClick={goToCheckout} style={{background:"#fff",color:"#1A73E8",border:"none",borderRadius:10,padding:"12px 22px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0}}>Conhecer o Pro</button>
+                </div>
+              )}
             </div>
-          )}
+            );
+          })()}
           {/* PAINEL ANTIGO — gateado (false&&) ate reconstrucao. Preservado em git. */}
           {false&&(() => {
             const directLink = bizInfo?.place_id ? `${window.location.origin}/avaliar?place_id=${bizInfo.place_id}` : "";
