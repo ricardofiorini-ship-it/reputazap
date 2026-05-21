@@ -853,7 +853,7 @@ export default function StarTouch({ user, onLogout }) {
                 <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:14}}>
                   <div>
                     <div style={{fontSize:15,fontWeight:700,color:"#202124"}}>Últimas avaliações no Google</div>
-                    {recentReviews.length>0&&<div style={{fontSize:11.5,color:"#9AA0A6",marginTop:2}}>As {recentReviews.length} mais recentes (o Google disponibiliza no máximo 5)</div>}
+                    {recentReviews.length>0&&<div style={{fontSize:11.5,color:"#9AA0A6",marginTop:2}}>As últimas {recentReviews.length} avaliações que sua empresa recebeu no Google</div>}
                   </div>
                   {recentReviews.length>0&&<button onClick={()=>setTab("feedbacks")} style={{background:"none",border:"none",color:"#1A73E8",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:4,flexShrink:0}}>Ver todas <ArrowRight size={14}/></button>}
                 </div>
@@ -1829,7 +1829,7 @@ export default function StarTouch({ user, onLogout }) {
                     {/* Avaliações do Google (públicas) */}
                     {showGoogle && googleCount > 0 && (
                       <div style={{fontSize:11.5,color:"#9AA0A6",padding:"2px 2px"}}>
-                        Mostrando as {googleCount} avaliações mais recentes do Google (o Google disponibiliza no máximo 5).
+                        As últimas {googleCount} avaliações que sua empresa recebeu no Google.
                       </div>
                     )}
                     {showGoogle && googleMsgs.map((rev)=>(
