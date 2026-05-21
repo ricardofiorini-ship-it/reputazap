@@ -874,7 +874,7 @@ export default function StarTouch({ user, onLogout }) {
                       <span style={{display:"inline-flex",alignItems:"center",gap:5,fontSize:15,fontWeight:800,color:tc.fg,fontFamily:"'General Sans',sans-serif"}}>
                         <Star size={15} color="#f59e0b" fill="#f59e0b"/>{recentAvg.toFixed(1)}
                       </span>
-                      <span style={{fontSize:12.5,color:"#5F6368",fontWeight:600}}>média das últimas {recentReviews.length}</span>
+                      <span style={{fontSize:12.5,color:"#5F6368",fontWeight:600}}>média das últimas {recentReviews.length} avaliações</span>
                       {trend && overall!=null && (
                         <span style={{fontSize:12,color:tc.fg,fontWeight:600,marginLeft:"auto",display:"inline-flex",alignItems:"center",gap:4}}>
                           {trend==="down" && <>↓ abaixo da média geral ({overall.toFixed(1)}) — fique atento</>}
