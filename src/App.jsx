@@ -779,15 +779,18 @@ export default function StarTouch({ user, onLogout }) {
                       )}
                       {ranking&&ranking.enough&&(
                         <>
-                          <div style={{display:"flex",gap:24,flexWrap:"wrap",marginBottom:18}}>
+                          <div style={{display:"flex",gap:24,flexWrap:"wrap",marginBottom:12}}>
                             <div>
                               <div style={{display:"flex",alignItems:"baseline",gap:6}}>{rankBadge(ranking.rank_by_rating)}<span style={{fontSize:13,color:"#5F6368"}}>de {ranking.total}</span></div>
                               <div style={{fontSize:12.5,color:"#5F6368",marginTop:3,display:"flex",alignItems:"center",gap:4}}><Star size={12} color="#f59e0b" fill="#f59e0b"/> em nota</div>
                             </div>
-                            <div>
+                            <div style={{background:"#E6F4EA",borderRadius:10,padding:"8px 12px",margin:"-8px 0"}}>
                               <div style={{display:"flex",alignItems:"baseline",gap:6}}>{rankBadge(ranking.rank_by_reviews)}<span style={{fontSize:13,color:"#5F6368"}}>de {ranking.total}</span></div>
-                              <div style={{fontSize:12.5,color:"#5F6368",marginTop:3,display:"flex",alignItems:"center",gap:4}}><MessageSquare size={12} color="#34A853"/> em nº de avaliações</div>
+                              <div style={{fontSize:12.5,color:"#5F6368",marginTop:3,display:"flex",alignItems:"center",gap:4,flexWrap:"wrap"}}><MessageSquare size={12} color="#34A853"/> em nº de avaliações <span style={{fontSize:10,fontWeight:700,color:"#137333",background:"#CEEAD6",borderRadius:5,padding:"1px 6px",letterSpacing:"0.02em"}}>+ PESO NO GOOGLE</span></div>
                             </div>
+                          </div>
+                          <div style={{fontSize:11.5,color:"#5F6368",lineHeight:1.5,background:"#F8F9FA",borderRadius:9,padding:"9px 12px",marginBottom:16}}>
+                            💡 O Google valoriza mais o <strong style={{color:"#202124"}}>volume e a constância</strong> de avaliações pra te colocar no topo do mapa. A nota faz o cliente te escolher; o nº de avaliações faz ele te <strong style={{color:"#202124"}}>encontrar</strong>.
                           </div>
                           <div style={{fontSize:11,fontWeight:700,color:"#5F6368",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>Top por nota</div>
                           <div style={{display:"flex",flexDirection:"column",gap:2}}>
