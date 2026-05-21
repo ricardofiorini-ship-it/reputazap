@@ -722,6 +722,12 @@ export default function StarTouch({ user, onLogout }) {
             const totalTaps = myPlates.reduce((a,p)=>a+(p.total_taps||0),0);
             const activePlates = myPlates.length;
             const recentReviews = hasRealReviews ? reviews.slice(0,5) : [];
+            const recentAvg = recentReviews.length ? recentReviews.reduce((a,r)=>a+(r.rating||0),0)/recentReviews.length : null;
+            const overall = typeof bizInfo?.rating === "number" ? bizInfo.rating : null;
+            // tendência da média recente vs média geral do Google
+            const trend = (recentAvg!=null && overall!=null)
+              ? (recentAvg >= overall + 0.1 ? "up" : recentAvg <= overall - 0.2 ? "down" : "flat")
+              : null;
             const statCard = (icon,value,label,sub,tint) => (
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:14,padding:18}}>
                 <div style={{width:38,height:38,borderRadius:10,background:tint.bg,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:12}}>{icon}</div>
@@ -861,6 +867,24 @@ export default function StarTouch({ user, onLogout }) {
                   </div>
                   {recentReviews.length>0&&<button onClick={()=>setTab("feedbacks")} style={{background:"none",border:"none",color:"#1A73E8",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:4,flexShrink:0}}>Ver todas <ArrowRight size={14}/></button>}
                 </div>
+                {recentAvg!=null && (()=>{
+                  const tc = trend==="down" ? {bg:"#FCE8E6",fg:"#C5221F",bd:"#F6AEA9"} : trend==="up" ? {bg:"#E6F4EA",fg:"#137333",bd:"#CEEAD6"} : {bg:"#F8F9FA",fg:"#5F6368",bd:"#e5e7eb"};
+                  return (
+                    <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",background:tc.bg,border:`1px solid ${tc.bd}`,borderRadius:10,padding:"10px 14px",marginBottom:16}}>
+                      <span style={{display:"inline-flex",alignItems:"center",gap:5,fontSize:15,fontWeight:800,color:tc.fg,fontFamily:"'General Sans',sans-serif"}}>
+                        <Star size={15} color="#f59e0b" fill="#f59e0b"/>{recentAvg.toFixed(1)}
+                      </span>
+                      <span style={{fontSize:12.5,color:"#5F6368",fontWeight:600}}>média das últimas {recentReviews.length}</span>
+                      {trend && overall!=null && (
+                        <span style={{fontSize:12,color:tc.fg,fontWeight:600,marginLeft:"auto",display:"inline-flex",alignItems:"center",gap:4}}>
+                          {trend==="down" && <>↓ abaixo da média geral ({overall.toFixed(1)}) — fique atento</>}
+                          {trend==="up" && <>↑ acima da média geral ({overall.toFixed(1)})</>}
+                          {trend==="flat" && <>em linha com a média geral ({overall.toFixed(1)})</>}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
                 {recentReviews.length===0 ? (
                   <div style={{textAlign:"center",padding:"28px 16px"}}>
                     <div style={{width:48,height:48,borderRadius:"50%",background:"#E8F0FE",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}><Star size={22} color="#1A73E8"/></div>
