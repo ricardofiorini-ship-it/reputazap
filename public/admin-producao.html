@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin · Produção — StarTouch</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:#F8F9FA;color:#202124;min-height:100vh;padding:24px 16px 64px;}
+  .wrap{max-width:880px;margin:0 auto;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px;}
+  .topbar img{height:34px;width:auto;}
+  .topbar nav{display:flex;gap:8px;}
+  .topbar nav a{font-size:13px;font-weight:600;color:#5F6368;text-decoration:none;padding:8px 12px;border-radius:8px;}
+  .topbar nav a:hover{background:#E8F0FE;color:#1A73E8;}
+  .topbar nav a.active{background:#1A73E8;color:#fff;}
+  h1{font-size:24px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;}
+  .sub{font-size:14px;color:#5F6368;margin-bottom:24px;}
+  .card{background:#fff;border:1px solid #DADCE0;border-radius:14px;padding:24px;margin-bottom:20px;}
+  .card h2{font-size:16px;font-weight:700;margin-bottom:16px;}
+  label{display:block;font-size:13px;font-weight:600;color:#5F6368;margin-bottom:6px;}
+  input,select{width:100%;border:1.5px solid #DADCE0;border-radius:10px;padding:11px 14px;font-size:14px;font-family:inherit;color:#202124;outline:none;transition:border-color .15s;background:#fff;}
+  input:focus,select:focus{border-color:#1A73E8;}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  @media(max-width:560px){.row{grid-template-columns:1fr;}}
+  .field{margin-bottom:14px;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#1A73E8;color:#fff;border:none;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s;}
+  .btn:hover:not(:disabled){background:#174EA6;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-ghost{background:#fff;color:#1A73E8;border:1.5px solid #DADCE0;}
+  .btn-ghost:hover:not(:disabled){background:#E8F0FE;border-color:#1A73E8;}
+  .msg{font-size:13.5px;margin-top:14px;padding:12px 14px;border-radius:10px;display:none;}
+  .msg.error{display:block;background:#FCE8E6;color:#C5221F;border:1px solid #F6AEA9;}
+  .msg.success{display:block;background:#E6F4EA;color:#137333;border:1px solid #CEEAD6;}
+  .codes-box{margin-top:18px;display:none;}
+  .codes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;max-height:280px;overflow:auto;padding:14px;background:#F8F9FA;border:1px solid #DADCE0;border-radius:10px;margin:12px 0;}
+  .code-chip{font-family:monospace;font-size:12.5px;font-weight:600;color:#202124;background:#fff;border:1px solid #DADCE0;border-radius:6px;padding:6px 8px;text-align:center;}
+  .batches-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  .batches-table th{text-align:left;color:#5F6368;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;padding:8px 10px;border-bottom:1px solid #DADCE0;}
+  .batches-table td{padding:10px;border-bottom:1px solid #F1F3F4;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#E8F0FE;color:#1A73E8;}
+  .loading{text-align:center;color:#5F6368;font-size:14px;padding:32px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <img src="/startouch-logo-dark.png" alt="StarTouch"/>
+    <nav>
+      <a href="/admin/producao" class="active">Produção</a>
+      <a href="/admin/estoque">Estoque</a>
+    </nav>
+  </div>
+
+  <h1>Produção de placas</h1>
+  <p class="sub">Crie lotes de produção. Cada lote gera N códigos únicos prontos pra gravar no NFC + imprimir QR.</p>
+
+  <div id="authGate" class="loading">Verificando acesso…</div>
+
+  <div id="content" style="display:none;">
+    <!-- Form novo lote -->
+    <div class="card">
+      <h2>Novo lote</h2>
+      <div class="field">
+        <label>Nome do lote</label>
+        <input type="text" id="batchName" placeholder="Ex: Lote 001 — Junho"/>
+      </div>
+      <div class="row">
+        <div>
+          <label>Tipo de produto</label>
+          <select id="productType">
+            <option value="placa_balcao">Placa de Balcão</option>
+            <option value="placa_mesa">Placa de Mesa</option>
+            <option value="pulseira_nfc">Pulseira NFC</option>
+            <option value="adesivo_nfc">Adesivo NFC</option>
+          </select>
+        </div>
+        <div>
+          <label>Quantidade</label>
+          <input type="number" id="quantity" placeholder="100" min="1" max="5000"/>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Fornecedor / gráfica (opcional)</label>
+          <input type="text" id="supplier" placeholder="Ex: Gráfica XYZ"/>
+        </div>
+        <div>
+          <label>Custo unitário R$ (opcional)</label>
+          <input type="number" id="unitCost" placeholder="12.50" step="0.01" min="0"/>
+        </div>
+      </div>
+      <button class="btn" id="createBtn" onclick="createBatch()">Criar lote</button>
+      <div class="msg" id="formMsg"></div>
+
+      <!-- Códigos gerados -->
+      <div class="codes-box" id="codesBox">
+        <strong id="codesCount"></strong>
+        <div class="codes-grid" id="codesGrid"></div>
+        <button class="btn btn-ghost" onclick="exportCSV()">⬇ Exportar CSV (pra gráfica)</button>
+      </div>
+    </div>
+
+    <!-- Lista de lotes -->
+    <div class="card">
+      <h2>Lotes criados</h2>
+      <div id="batchesArea" class="loading">Carregando…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem("rz_token");
+let lastBatch = null;
+let lastCodes = [];
+
+const TYPE_LABELS = {
+  placa_balcao: "Placa de Balcão",
+  placa_mesa: "Placa de Mesa",
+  pulseira_nfc: "Pulseira NFC",
+  adesivo_nfc: "Adesivo NFC"
+};
+
+async function init() {
+  if (!token) {
+    document.getElementById("authGate").innerHTML =
+      'Você precisa estar logado como admin. <a href="/app" style="color:#1A73E8;font-weight:600">Entrar →</a>';
+    return;
+  }
+  // Testa acesso admin com list-batches
+  try {
+    const res = await fetch("/api/plates?action=list-batches", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (res.status === 403) {
+      document.getElementById("authGate").textContent = "Acesso restrito ao admin.";
+      return;
+    }
+    if (!res.ok) {
+      document.getElementById("authGate").innerHTML =
+        'Sessão expirada. <a href="/app" style="color:#1A73E8;font-weight:600">Entrar de novo →</a>';
+      return;
+    }
+    document.getElementById("authGate").style.display = "none";
+    document.getElementById("content").style.display = "block";
+    const data = await res.json();
+    renderBatches(data.batches || []);
+  } catch {
+    document.getElementById("authGate").textContent = "Erro de conexão.";
+  }
+}
+
+async function createBatch() {
+  const batch_name = document.getElementById("batchName").value.trim();
+  const product_type = document.getElementById("productType").value;
+  const quantity = document.getElementById("quantity").value;
+  const supplier = document.getElementById("supplier").value.trim();
+  const unit_cost = document.getElementById("unitCost").value;
+  const msg = document.getElementById("formMsg");
+  msg.className = "msg";
+
+  if (!batch_name || !quantity) {
+    msg.className = "msg error"; msg.textContent = "Preencha nome do lote e quantidade.";
+    return;
+  }
+
+  const btn = document.getElementById("createBtn");
+  btn.disabled = true; btn.textContent = "Gerando códigos…";
+
+  try {
+    const res = await fetch("/api/plates?action=create-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({ batch_name, product_type, quantity, supplier, unit_cost })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      msg.className = "msg error"; msg.textContent = data.error || "Erro ao criar lote.";
+      btn.disabled = false; btn.textContent = "Criar lote";
+      return;
+    }
+    msg.className = "msg success";
+    msg.textContent = `Lote "${data.batch.batch_name}" criado com ${data.codes.length} placas!`;
+    lastBatch = data.batch;
+    lastCodes = data.codes;
+    renderCodes(data.codes);
+    // recarrega lista
+    const lb = await fetch("/api/plates?action=list-batches", { headers: { "Authorization": `Bearer ${token}` } });
+    if (lb.ok) renderBatches((await lb.json()).batches || []);
+  } catch {
+    msg.className = "msg error"; msg.textContent = "Erro de conexão.";
+  }
+  btn.disabled = false; btn.textContent = "Criar lote";
+}
+
+function renderCodes(codes) {
+  document.getElementById("codesCount").textContent = `${codes.length} códigos gerados:`;
+  document.getElementById("codesGrid").innerHTML = codes.map(c => `<div class="code-chip">${c}</div>`).join("");
+  document.getElementById("codesBox").style.display = "block";
+}
+
+function exportCSV() {
+  if (!lastCodes.length || !lastBatch) return;
+  const base = "https://startouch.com.br/r/";
+  let csv = "codigo,product_type,batch_name,nfc_url,qr_url\n";
+  for (const code of lastCodes) {
+    const url = base + code;
+    csv += `${code},${lastBatch.product_type},"${lastBatch.batch_name}",${url},${url}\n`;
+  }
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `startouch-${lastBatch.batch_name.replace(/\s+/g,'-').toLowerCase()}.csv`;
+  a.click();
+}
+
+function renderBatches(batches) {
+  const area = document.getElementById("batchesArea");
+  if (!batches.length) { area.innerHTML = '<p style="color:#5F6368;font-size:14px;">Nenhum lote ainda.</p>'; return; }
+  area.innerHTML = `
+    <table class="batches-table">
+      <thead><tr><th>Lote</th><th>Tipo</th><th>Qtd</th><th>Status</th><th>Criado</th></tr></thead>
+      <tbody>
+        ${batches.map(b => `
+          <tr>
+            <td><strong>${b.batch_name}</strong></td>
+            <td>${TYPE_LABELS[b.product_type] || b.product_type}</td>
+            <td>${b.quantity_planned}</td>
+            <td><span class="pill">${b.status}</span></td>
+            <td>${new Date(b.created_at).toLocaleDateString('pt-BR')}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>`;
+}
+
+init();
+</script>
+</body>
+</html>
