@@ -774,18 +774,6 @@ export default function StarTouch({ user, onLogout }) {
                   </div>
                 )}
               </div>
-
-              {/* Upsell Pro */}
-              {!isPro&&(
-                <div style={{background:"linear-gradient(135deg,#1A73E8,#174EA6)",borderRadius:16,padding:"22px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:18,flexWrap:"wrap"}}>
-                  <div style={{minWidth:0}}>
-                    <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.18)",borderRadius:6,padding:"3px 9px",fontSize:11,fontWeight:700,color:"#fff",letterSpacing:"0.03em",marginBottom:8}}><Zap size={12}/> PLANO PRO</div>
-                    <div style={{fontSize:17,fontWeight:700,color:"#fff",marginBottom:4}}>Responda avaliações com ajuda da IA</div>
-                    <div style={{fontSize:13.5,color:"rgba(255,255,255,0.85)",lineHeight:1.5,maxWidth:460}}>Gere respostas prontas pra cada avaliação do Google e acompanhe insights dos toques das suas placas.</div>
-                  </div>
-                  <button onClick={goToCheckout} style={{background:"#fff",color:"#1A73E8",border:"none",borderRadius:10,padding:"12px 22px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0}}>Conhecer o Pro</button>
-                </div>
-              )}
             </div>
             );
           })()}
@@ -1860,15 +1848,10 @@ export default function StarTouch({ user, onLogout }) {
                     </div>
                   )}
                 </div>
-                {isPro ? (
+                {isPro && (
                   <button onClick={openBillingPortal}
                     style={{marginTop:14,background:"none",border:"1px solid #e5e7eb",color:"#475569",borderRadius:10,padding:"9px 16px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
                     Gerenciar assinatura
-                  </button>
-                ) : (
-                  <button onClick={goToCheckout}
-                    style={{marginTop:14,background:"#0f172a",color:"#fff",border:"none",borderRadius:10,padding:"9px 16px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:6}}>
-                    <ShieldCheck size={13}/> Ativar Plano Pro
                   </button>
                 )}
               </div>
