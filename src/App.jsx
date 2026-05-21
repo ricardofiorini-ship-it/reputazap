@@ -786,20 +786,14 @@ export default function StarTouch({ user, onLogout }) {
                       )}
                       {ranking&&ranking.enough&&(
                         <>
-                          <div style={{display:"flex",gap:24,flexWrap:"wrap",marginBottom:12}}>
-                            <div>
-                              <div style={{display:"flex",alignItems:"baseline",gap:6}}>{rankBadge(ranking.rank_by_rating)}<span style={{fontSize:13,color:"#5F6368"}}>de {ranking.total}</span></div>
-                              <div style={{fontSize:12.5,color:"#5F6368",marginTop:3,display:"flex",alignItems:"center",gap:4}}><Star size={12} color="#f59e0b" fill="#f59e0b"/> em nota</div>
-                            </div>
-                            <div style={{background:"#E6F4EA",borderRadius:10,padding:"8px 12px",margin:"-8px 0"}}>
-                              <div style={{display:"flex",alignItems:"baseline",gap:6}}>{rankBadge(ranking.rank_by_reviews)}<span style={{fontSize:13,color:"#5F6368"}}>de {ranking.total}</span></div>
-                              <div style={{fontSize:12.5,color:"#5F6368",marginTop:3,display:"flex",alignItems:"center",gap:4,flexWrap:"wrap"}}><MessageSquare size={12} color="#34A853"/> em nº de avaliações <span style={{fontSize:10,fontWeight:700,color:"#137333",background:"#CEEAD6",borderRadius:5,padding:"1px 6px",letterSpacing:"0.02em"}}>+ PESO NO GOOGLE</span></div>
-                            </div>
+                          <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:5}}>
+                            {rankBadge(ranking.rank_google)}<span style={{fontSize:14,color:"#5F6368"}}>de {ranking.total}</span>
                           </div>
+                          <div style={{fontSize:12.5,color:"#5F6368",marginBottom:14,display:"flex",alignItems:"center",gap:5}}><Award size={13} color="#1A73E8"/> posição estimada na busca do Google</div>
                           <div style={{fontSize:11.5,color:"#5F6368",lineHeight:1.5,background:"#F8F9FA",borderRadius:9,padding:"9px 12px",marginBottom:16}}>
-                            💡 O Google valoriza mais o <strong style={{color:"#202124"}}>volume e a constância</strong> de avaliações pra te colocar no topo do mapa. A nota faz o cliente te escolher; o nº de avaliações faz ele te <strong style={{color:"#202124"}}>encontrar</strong>.
+                            💡 Estimativa baseada na lógica do Google: o <strong style={{color:"#202124"}}>volume de avaliações</strong> pesa mais (a nota modula). É o que define quem aparece primeiro no mapa — não a nota sozinha.
                           </div>
-                          <div style={{fontSize:11,fontWeight:700,color:"#5F6368",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>Top por nota</div>
+                          <div style={{fontSize:11,fontWeight:700,color:"#5F6368",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>Classificação estimada no Google</div>
                           <div style={{display:"flex",flexDirection:"column",gap:2}}>
                             {ranking.top.map((c,i)=>(
                               <div key={c.place_id} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:9,background:c.is_me?"#E8F0FE":"transparent"}}>
@@ -813,7 +807,7 @@ export default function StarTouch({ user, onLogout }) {
                               <>
                                 <div style={{textAlign:"center",color:"#9AA0A6",fontSize:14,lineHeight:1,padding:"2px 0"}}>⋮</div>
                                 <div style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:9,background:"#E8F0FE"}}>
-                                  <span style={{fontSize:13,fontWeight:700,color:"#1A73E8",width:24}}>{ranking.rank_by_rating}º</span>
+                                  <span style={{fontSize:13,fontWeight:700,color:"#1A73E8",width:24}}>{ranking.rank_google}º</span>
                                   <span style={{flex:1,minWidth:0,fontSize:13.5,fontWeight:700,color:"#202124",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ranking.me.name}<span style={{color:"#1A73E8",fontWeight:700}}> · você</span></span>
                                   <span style={{fontSize:12.5,color:"#202124",fontWeight:600,display:"inline-flex",alignItems:"center",gap:3,flexShrink:0}}><Star size={12} color="#f59e0b" fill="#f59e0b"/>{ranking.me.rating.toFixed(1)}</span>
                                   <span style={{fontSize:12,color:"#5F6368",flexShrink:0,width:74,textAlign:"right"}}>{ranking.me.reviews} aval.</span>
@@ -836,9 +830,8 @@ export default function StarTouch({ user, onLogout }) {
                     </div>
                     <div style={{fontSize:12.5,color:"#5F6368",marginBottom:16}}>Veja como você se compara aos negócios da mesma categoria por perto.</div>
                     <div style={{filter:"blur(6px)",userSelect:"none",pointerEvents:"none",opacity:0.7}}>
-                      <div style={{display:"flex",gap:24,marginBottom:16}}>
-                        <div><span style={{fontSize:30,fontWeight:800,color:"#1A73E8",fontFamily:"'General Sans',sans-serif"}}>#3</span> <span style={{fontSize:13,color:"#5F6368"}}>de 14</span><div style={{fontSize:12.5,color:"#5F6368"}}>em nota</div></div>
-                        <div><span style={{fontSize:30,fontWeight:800,color:"#1A73E8",fontFamily:"'General Sans',sans-serif"}}>#7</span> <span style={{fontSize:13,color:"#5F6368"}}>de 14</span><div style={{fontSize:12.5,color:"#5F6368"}}>em avaliações</div></div>
+                      <div style={{marginBottom:16}}>
+                        <div><span style={{fontSize:30,fontWeight:800,color:"#1A73E8",fontFamily:"'General Sans',sans-serif"}}>#5</span> <span style={{fontSize:13,color:"#5F6368"}}>de 14</span><div style={{fontSize:12.5,color:"#5F6368"}}>posição estimada no Google</div></div>
                       </div>
                       {[1,2,3].map(i=><div key={i} style={{height:14,background:"#e5e7eb",borderRadius:6,margin:"10px 0"}}/>)}
                     </div>

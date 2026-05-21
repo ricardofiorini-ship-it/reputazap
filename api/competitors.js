@@ -132,15 +132,17 @@ export default async function handler(req, res) {
       });
     }
 
-    // 7. Rankings (1-indexed). Desempate: por avaliações na nota; por nota nas avaliações.
-    const byRating = [...list].sort((a, b) => b.rating - a.rating || b.reviews - a.reviews);
-    const byReviews = [...list].sort((a, b) => b.reviews - a.reviews || b.rating - a.rating);
+    // 7. Score que SIMULA a lógica de prominência do Google (estimativa):
+    // o volume de avaliações domina (com retorno decrescente via log) e a
+    // nota modula. Ex: nota 4.6 com 4623 aval supera nota 5.0 com 96 aval.
+    // (O Google usa mais sinais que a API não expõe — isto é aproximação.)
+    const gscore = (p) => (p.rating || 0) * Math.log10((p.reviews || 0) + 1);
+    const byGoogle = [...list].sort((a, b) => gscore(b) - gscore(a) || b.reviews - a.reviews);
 
-    const rankByRating = byRating.findIndex(p => p.place_id === biz.place_id) + 1;
-    const rankByReviews = byReviews.findIndex(p => p.place_id === biz.place_id) + 1;
+    const rankGoogle = byGoogle.findIndex(p => p.place_id === biz.place_id) + 1;
 
-    // 8. Top 5 por nota (pra exibir), marcando o próprio negócio
-    const top = byRating.slice(0, 5).map(p => ({
+    // 8. Top 5 na ordem estimada do Google, marcando o próprio negócio
+    const top = byGoogle.slice(0, 5).map(p => ({
       ...p,
       is_me: p.place_id === biz.place_id
     }));
@@ -151,8 +153,7 @@ export default async function handler(req, res) {
       category: matchType,
       radius,
       me: byId.get(biz.place_id),
-      rank_by_rating: rankByRating,
-      rank_by_reviews: rankByReviews,
+      rank_google: rankGoogle,
       top
     });
   } catch (err) {
