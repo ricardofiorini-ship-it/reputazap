@@ -148,7 +148,7 @@ export default async function handler(req, res) {
     return res.json({
       enough: true,
       total,
-      category: searchType,
+      category: matchType,
       radius,
       me: byId.get(biz.place_id),
       rank_by_rating: rankByRating,

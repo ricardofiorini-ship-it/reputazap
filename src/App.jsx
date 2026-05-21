@@ -449,9 +449,9 @@ export default function StarTouch({ user, onLogout }) {
     setRankingLoading(true);
     setRankingError(false);
     fetch("/api/competitors", { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : Promise.reject(r))
+      .then(async r => { if (r.ok) return r.json(); const e = await r.json().catch(()=>({})); throw new Error(e.error || `Erro ${r.status}`); })
       .then(d => { setRanking(d); setRankingLoading(false); })
-      .catch(() => { setRankingError(true); setRankingLoading(false); });
+      .catch(err => { setRankingError(err.message || true); setRankingLoading(false); });
   }, [tab, canSeeRanking, bizInfo?.place_id]);
 
   async function doSearch() {
@@ -773,7 +773,7 @@ export default function StarTouch({ user, onLogout }) {
                         Negócios da mesma categoria{ranking?.category?<> (<span style={{fontFamily:"monospace"}}>{ranking.category}</span>)</>:""}{ranking?.radius?` num raio de ${(ranking.radius/1000).toFixed(0)} km`:" por perto"}.
                       </div>
                       {rankingLoading&&<div style={{fontSize:13,color:"#5F6368",padding:"12px 0"}}>Calculando sua posição…</div>}
-                      {rankingError&&<div style={{fontSize:13,color:"#C5221F",padding:"12px 0"}}>Não foi possível carregar o ranking agora.</div>}
+                      {rankingError&&<div style={{fontSize:13,color:"#C5221F",padding:"12px 0"}}>Não foi possível carregar o ranking agora.{typeof rankingError==="string"?` (${rankingError})`:""}</div>}
                       {ranking&&ranking.enough===false&&(
                         <div style={{fontSize:13,color:"#5F6368",padding:"12px 0"}}>Poucos concorrentes da mesma categoria por perto pra montar um ranking.</div>
                       )}
