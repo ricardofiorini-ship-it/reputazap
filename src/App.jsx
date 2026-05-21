@@ -274,8 +274,19 @@ function FeedbackActions({ fb, onReplied, onResolved, onContactExternal, compact
 
 // ── MAIN ──────────────────────────────────────────────────
 export default function StarTouch({ user, onLogout }) {
-  const [tab, setTab] = useState("dashboard");
+  const [tab, setTab] = useState(() =>
+    (typeof location !== "undefined" && location.pathname.endsWith("/placas")) ? "placas" : "dashboard"
+  );
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Sistema de placas
+  const [myPlates, setMyPlates] = useState([]);
+  const [platesLoading, setPlatesLoading] = useState(false);
+  const [plateModalOpen, setPlateModalOpen] = useState(false);
+  const [plateModalCode, setPlateModalCode] = useState("");
+  const [plateModalNick, setPlateModalNick] = useState("");
+  const [plateModalBiz, setPlateModalBiz] = useState("");
+  const [plateModalMsg, setPlateModalMsg] = useState("");
+  const [plateBusinesses, setPlateBusinesses] = useState([]);
   const [reviews, setReviews] = useState(MOCK_REVIEWS);
   const [bizInfo, setBizInfo] = useState(null);
   const [loadingReviews, setLoadingReviews] = useState(true);
@@ -296,6 +307,47 @@ export default function StarTouch({ user, onLogout }) {
     const t = setTimeout(() => setToast(null), 3500);
     return () => clearTimeout(t);
   }, [toast]);
+
+  // Sistema de placas — carrega placas + negócios do usuário
+  async function loadPlates() {
+    const token = localStorage.getItem("rz_token");
+    if (!token) return;
+    setPlatesLoading(true);
+    try {
+      const [rp, rb] = await Promise.all([
+        fetch("/api/plates?action=my-plates", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/plates?action=my-businesses", { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+      const dp = rp.ok ? await rp.json() : { plates: [] };
+      const db = rb.ok ? await rb.json() : { businesses: [] };
+      setMyPlates(dp.plates || []);
+      setPlateBusinesses(db.businesses || []);
+      if ((db.businesses || []).length && !plateModalBiz) setPlateModalBiz(db.businesses[0].id);
+    } catch {}
+    setPlatesLoading(false);
+  }
+  useEffect(() => { if (tab === "placas") loadPlates(); }, [tab]);
+
+  async function activatePlate() {
+    const token = localStorage.getItem("rz_token");
+    const code = plateModalCode.trim().toUpperCase();
+    if (!code) { setPlateModalMsg("Digite o código da placa."); return; }
+    if (!plateModalBiz) { setPlateModalMsg("Selecione o negócio."); return; }
+    setPlateModalMsg("Ativando…");
+    try {
+      const res = await fetch("/api/plates?action=activate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ code, business_id: plateModalBiz, channel_name: plateModalNick.trim() || null })
+      });
+      const data = await res.json();
+      if (!res.ok) { setPlateModalMsg(data.error || "Erro ao ativar."); return; }
+      setPlateModalOpen(false);
+      setPlateModalCode(""); setPlateModalNick(""); setPlateModalMsg("");
+      setToast("Placa ativada!");
+      loadPlates();
+    } catch { setPlateModalMsg("Erro de conexão."); }
+  }
 
   // Carrega feedbacks com decision='wait' (clientes aguardando contato)
   useEffect(() => {
@@ -483,6 +535,7 @@ export default function StarTouch({ user, onLogout }) {
 
   const nav=[
     {id:"dashboard",icon:LayoutDashboard,label:"Painel"},
+    {id:"placas",icon:CreditCard,label:"Minhas Placas"},
     {id:"feedbacks",icon:MessageSquare,label:"Mensagens"},
     {id:"settings",icon:Settings,label:"Configurações"},
   ];
@@ -621,10 +674,11 @@ export default function StarTouch({ user, onLogout }) {
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,animation:"fadeUp 0.4s ease"}}>
             <div>
               <div style={{fontSize:24,fontWeight:700,fontFamily:"'General Sans',sans-serif",color:"#0f172a",lineHeight:1.2}}>
-                {tab==="dashboard"&&"Central de reputação"}{tab==="feedbacks"&&"Mensagens de clientes"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Placas inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Plano Pro e loja"}{tab==="settings"&&"Configurações"}
+                {tab==="dashboard"&&"Central de reputação"}{tab==="placas"&&"Minhas Placas"}{tab==="feedbacks"&&"Mensagens de clientes"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Placas inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Plano Pro e loja"}{tab==="settings"&&"Configurações"}
               </div>
               <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
                 {tab==="dashboard"&&"Monitore sua exposição pública e proteja sua reputação."}
+                {tab==="placas"&&"Gerencie suas placas ativas e ative novas pelo código."}
                 {tab==="feedbacks"&&(pendingFeedbacks.length>0?`${pendingFeedbacks.length} mensagem(ns) aguardando resposta`:"Tudo sob controle por enquanto.")}
                 {tab==="link"&&"Seu link de avaliação e QR Code prontos pra compartilhar."}
                 {tab==="reviews"&&`${pending} aguardando resposta`}
@@ -1057,6 +1111,78 @@ export default function StarTouch({ user, onLogout }) {
             </div>
             );
           })()}
+
+          {/* ─ MINHAS PLACAS ─ */}
+          {tab==="placas"&&(
+            <div style={{animation:"fadeUp 0.4s ease"}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap",marginBottom:18}}>
+                <div style={{fontSize:14,color:"#5F6368"}}>
+                  {platesLoading ? "Carregando…" : `${myPlates.length} placa(s) ativa(s)`}
+                </div>
+                <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                  <button onClick={()=>{setPlateModalOpen(true);setPlateModalMsg("");}} style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:7}}>
+                    <Check size={16}/> Ativar nova placa
+                  </button>
+                  <a href="/kit" style={{background:"#fff",color:"#1A73E8",border:"1.5px solid #DADCE0",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:600,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:7}}>
+                    <CreditCard size={16}/> Comprar mais
+                  </a>
+                </div>
+              </div>
+
+              {!platesLoading && myPlates.length===0 && (
+                <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:"40px 24px",textAlign:"center"}}>
+                  <div style={{width:56,height:56,borderRadius:"50%",background:"#E8F0FE",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}><CreditCard size={26} color="#1A73E8"/></div>
+                  <div style={{fontSize:16,fontWeight:700,marginBottom:6}}>Nenhuma placa ativa ainda</div>
+                  <div style={{fontSize:13.5,color:"#5F6368",lineHeight:1.5,maxWidth:360,margin:"0 auto 18px"}}>Recebeu sua placa? Ative pelo código impresso nela. Ou compre seu kit StarTouch.</div>
+                  <button onClick={()=>{setPlateModalOpen(true);setPlateModalMsg("");}} style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:10,padding:"11px 22px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Ativar pelo código</button>
+                </div>
+              )}
+
+              {myPlates.length>0 && (
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:14}}>
+                  {myPlates.map(p=>(
+                    <div key={p.id} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:14,padding:18}}>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                        <span style={{fontSize:11,fontWeight:700,color:"#137333",background:"#E6F4EA",padding:"3px 9px",borderRadius:6}}>● Ativa</span>
+                        <span style={{fontFamily:"monospace",fontSize:12,color:"#5F6368"}}>{p.code}</span>
+                      </div>
+                      <div style={{fontSize:16,fontWeight:700,marginBottom:2}}>{p.channel_name||"Placa sem apelido"}</div>
+                      <div style={{fontSize:12.5,color:"#5F6368",marginBottom:12}}>{({placa_balcao:"Placa de Balcão",placa_mesa:"Placa de Mesa",pulseira_nfc:"Pulseira NFC",adesivo_nfc:"Adesivo NFC"})[p.product_type]||p.product_type}</div>
+                      <div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#202124"}}>
+                        <TrendingUp size={15} color="#1A73E8"/> <strong>{p.total_taps||0}</strong> <span style={{color:"#5F6368"}}>toques</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Modal de ativação */}
+              {plateModalOpen && (
+                <div onClick={()=>setPlateModalOpen(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",display:"flex",alignItems:"center",justifyContent:"center",padding:20,zIndex:200}}>
+                  <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,padding:24,width:"100%",maxWidth:380}}>
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+                      <strong style={{fontSize:17}}>Ativar nova placa</strong>
+                      <button onClick={()=>setPlateModalOpen(false)} style={{background:"none",border:"none",cursor:"pointer",color:"#9AA0A6"}}><X size={20}/></button>
+                    </div>
+                    <label style={{fontSize:13,fontWeight:600,color:"#5F6368",display:"block",marginBottom:6}}>Código da placa</label>
+                    <input value={plateModalCode} onChange={e=>setPlateModalCode(e.target.value)} placeholder="STAR-XXXXX" style={{width:"100%",border:"1.5px solid #DADCE0",borderRadius:10,padding:"11px 14px",fontSize:14,fontFamily:"monospace",outline:"none",marginBottom:14,textTransform:"uppercase"}}/>
+                    {plateBusinesses.length>1 && (
+                      <>
+                        <label style={{fontSize:13,fontWeight:600,color:"#5F6368",display:"block",marginBottom:6}}>Negócio</label>
+                        <select value={plateModalBiz} onChange={e=>setPlateModalBiz(e.target.value)} style={{width:"100%",border:"1.5px solid #DADCE0",borderRadius:10,padding:"11px 14px",fontSize:14,outline:"none",marginBottom:14}}>
+                          {plateBusinesses.map(b=><option key={b.id} value={b.id}>{b.name}</option>)}
+                        </select>
+                      </>
+                    )}
+                    <label style={{fontSize:13,fontWeight:600,color:"#5F6368",display:"block",marginBottom:6}}>Apelido (opcional)</label>
+                    <input value={plateModalNick} onChange={e=>setPlateModalNick(e.target.value)} placeholder="Ex: Balcão Principal" style={{width:"100%",border:"1.5px solid #DADCE0",borderRadius:10,padding:"11px 14px",fontSize:14,outline:"none",marginBottom:14,fontFamily:"inherit"}}/>
+                    {plateModalMsg && <div style={{fontSize:13,color:plateModalMsg==="Ativando…"?"#5F6368":"#C5221F",marginBottom:12}}>{plateModalMsg}</div>}
+                    <button onClick={activatePlate} style={{width:"100%",background:"#1A73E8",color:"#fff",border:"none",borderRadius:10,padding:13,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Ativar placa</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ─ REVIEWS ─ */}
           {tab==="reviews"&&(
