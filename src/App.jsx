@@ -304,6 +304,7 @@ export default function StarTouch({ user, onLogout }) {
   const [savingBiz, setSavingBiz] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [pendingFeedbacks, setPendingFeedbacks] = useState([]);
+  const [msgFilter, setMsgFilter] = useState("all"); // all | google | internal
   const [actionTaken, setActionTaken] = useState(false);
   const [toast, setToast] = useState(null); // { message, kind: 'success'|'error' }
   useEffect(() => {
@@ -1719,68 +1720,118 @@ export default function StarTouch({ user, onLogout }) {
                 setToast({ message: "Não foi possível marcar como resolvido", kind: "error" });
               }
             };
+            // Origens unificadas: formulário interno (privadas) + Google
+            const googleMsgs = hasRealReviews ? reviews : [];
+            const internalCount = pendingFeedbacks.length;
+            const googleCount = googleMsgs.length;
+            const googleReviewLink = bizInfo?.place_id
+              ? `https://www.google.com/maps/place/?q=place_id:${bizInfo.place_id}`
+              : "https://business.google.com/reviews";
+            const showInternal = msgFilter === "all" || msgFilter === "internal";
+            const showGoogle = msgFilter === "all" || msgFilter === "google";
+            const totalShown = (showInternal?internalCount:0) + (showGoogle?googleCount:0);
+
+            const SourceTag = ({ kind }) => kind === "google" ? (
+              <span style={{display:"inline-flex",alignItems:"center",gap:5,fontSize:10.5,fontWeight:700,color:"#1A73E8",background:"#E8F0FE",borderRadius:5,padding:"3px 8px",letterSpacing:"0.02em"}}>
+                <img src="/google-g-logo.webp" alt="" width={11} height={11} style={{display:"block"}}/> Google Meu Negócio
+              </span>
+            ) : (
+              <span style={{display:"inline-flex",alignItems:"center",gap:5,fontSize:10.5,fontWeight:700,color:"#5F6368",background:"#F1F3F4",borderRadius:5,padding:"3px 8px",letterSpacing:"0.02em"}}>
+                <MessageSquare size={11}/> Mensagem privada
+              </span>
+            );
+
+            const filterBtn = (id,label,count) => (
+              <button onClick={()=>setMsgFilter(id)} style={{background:msgFilter===id?"#1A73E8":"#fff",color:msgFilter===id?"#fff":"#5F6368",border:`1px solid ${msgFilter===id?"#1A73E8":"#DADCE0"}`,borderRadius:9,padding:"7px 14px",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:6}}>
+                {label}<span style={{fontSize:11,fontWeight:700,background:msgFilter===id?"rgba(255,255,255,0.25)":"#F1F3F4",borderRadius:20,padding:"1px 7px"}}>{count}</span>
+              </button>
+            );
+
             return (
               <div style={{animation:"fadeUp 0.4s ease",maxWidth:760}}>
-                {pendingFeedbacks.length === 0 ? (
-                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:18,padding:"56px 32px",textAlign:"center"}}>
-                    <div style={{width:64,height:64,borderRadius:18,background:"#ecfdf5",border:"1px solid #a7f3d0",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px"}}>
-                      <ShieldCheck size={28} color="#059669"/>
+                {/* Filtro de origem */}
+                <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:18}}>
+                  {filterBtn("all","Todas",internalCount+googleCount)}
+                  {filterBtn("internal","Privadas",internalCount)}
+                  {filterBtn("google","Google",googleCount)}
+                </div>
+
+                {totalShown === 0 ? (
+                  <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:18,padding:"52px 32px",textAlign:"center"}}>
+                    <div style={{width:60,height:60,borderRadius:"50%",background:"#E8F0FE",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}>
+                      <MessageSquare size={26} color="#1A73E8"/>
                     </div>
-                    <div style={{fontSize:18,fontWeight:700,color:"#0f172a",fontFamily:"'General Sans',sans-serif",marginBottom:8}}>
-                      {isPro ? "Tudo sob controle por enquanto." : "Nenhum risco identificado hoje."}
+                    <div style={{fontSize:17,fontWeight:700,color:"#202124",fontFamily:"'General Sans',sans-serif",marginBottom:8}}>Nenhuma mensagem por aqui</div>
+                    <div style={{fontSize:13,color:"#5F6368",lineHeight:1.55,maxWidth:400,margin:"0 auto"}}>
+                      Mensagens privadas do seu formulário e avaliações do Google aparecem nesta caixa. Conforme os clientes interagem, elas chegam aqui.
                     </div>
-                    <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55,maxWidth:380,margin:"0 auto"}}>
-                      {isPro
-                        ? "Quando um cliente enviar uma mensagem privada, ela aparece aqui."
-                        : "Ative o Plano Pro pra alertas WhatsApp, IA pra responder reviews e relatórios mensais."}
-                    </div>
-                    {!isPro && (
-                      <button onClick={goToCheckout}
-                        style={{cursor:"pointer",border:"none",fontFamily:"inherit",background:"#0f172a",color:"#fff",borderRadius:12,padding:"12px 22px",fontSize:13,fontWeight:700,display:"inline-flex",alignItems:"center",gap:8,marginTop:22,boxShadow:"0 8px 20px -6px rgba(15,23,42,0.30)"}}>
-                        <ShieldCheck size={15}/> Ativar Plano Pro
-                      </button>
-                    )}
                   </div>
                 ) : (
-                  <>
-                    <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:14,padding:"14px 18px",marginBottom:18,display:"flex",alignItems:"center",gap:10}}>
-                      <AlertCircle size={16} color="#b45309" style={{flexShrink:0}}/>
-                      <div style={{fontSize:13,color:"#92400e",fontWeight:600,lineHeight:1.45}}>
-                        {pendingFeedbacks.length} cliente(s) aguardando uma resposta sua.
+                  <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                    {showInternal && internalCount > 0 && (
+                      <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:14,padding:"12px 16px",display:"flex",alignItems:"center",gap:10}}>
+                        <AlertCircle size={16} color="#b45309" style={{flexShrink:0}}/>
+                        <div style={{fontSize:13,color:"#92400e",fontWeight:600,lineHeight:1.45}}>
+                          {internalCount} mensagem(ns) privada(s) aguardando resposta sua.
+                        </div>
                       </div>
-                    </div>
-                    <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                      {pendingFeedbacks.map((fb)=>{
-                        const isNeg = fb.rating === 1;
-                        return (
-                          <div key={fb.id} style={{background:"#fff",border:`1px solid ${isNeg?"#fecaca":"#fde68a"}`,borderLeft:`4px solid ${isNeg?"#dc2626":"#d97706"}`,borderRadius:14,padding:"16px 18px"}}>
-                            <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:12}}>
-                              <div style={{width:40,height:40,borderRadius:"50%",background:isNeg?"#fef2f2":"#fffbeb",border:`1px solid ${isNeg?"#fecaca":"#fde68a"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:isNeg?"#dc2626":"#b45309",flexShrink:0}}>
-                                {feedbackInitials(fb)}
-                              </div>
-                              <div style={{flex:1,minWidth:0}}>
-                                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
-                                  <span style={{fontSize:11,fontWeight:700,color:"#fff",background:isNeg?"#dc2626":"#d97706",borderRadius:5,padding:"3px 9px",letterSpacing:"0.04em",textTransform:"uppercase"}}>
-                                    {isNeg?"Insatisfeito":"Neutro"}
-                                  </span>
-                                  {fb.contact && <span style={{fontSize:12,color:"#1d4ed8",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:240}}>{fb.contact}</span>}
-                                  <span style={{fontSize:11,color:"#9ca3af",marginLeft:"auto"}}>{timeAgo(fb.created_at)}</span>
-                                </div>
-                                <div style={{fontSize:13,color:"#475569",lineHeight:1.55}}>"{fb.text}"</div>
-                              </div>
+                    )}
+
+                    {/* Mensagens privadas (formulário interno) — acionáveis primeiro */}
+                    {showInternal && pendingFeedbacks.map((fb)=>{
+                      const isNeg = fb.rating === 1;
+                      return (
+                        <div key={`fb-${fb.id}`} style={{background:"#fff",border:`1px solid ${isNeg?"#fecaca":"#fde68a"}`,borderLeft:`4px solid ${isNeg?"#dc2626":"#d97706"}`,borderRadius:14,padding:"16px 18px"}}>
+                          <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:12}}>
+                            <div style={{width:40,height:40,borderRadius:"50%",background:isNeg?"#fef2f2":"#fffbeb",border:`1px solid ${isNeg?"#fecaca":"#fde68a"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:isNeg?"#dc2626":"#b45309",flexShrink:0}}>
+                              {feedbackInitials(fb)}
                             </div>
-                            <FeedbackActions fb={fb}
-                              onReplied={(id)=>{
-                                setPendingFeedbacks(prev=>prev.filter(f=>f.id!==id));
-                                setToast({ message:"Resposta enviada ao cliente", kind:"success" });
-                              }}
-                              onResolved={(id)=>markResolved(id)}
-                              onContactExternal={(c)=>respondToFeedback(c)}/>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
+                                <SourceTag kind="internal"/>
+                                <span style={{fontSize:11,fontWeight:700,color:"#fff",background:isNeg?"#dc2626":"#d97706",borderRadius:5,padding:"3px 9px",letterSpacing:"0.04em",textTransform:"uppercase"}}>
+                                  {isNeg?"Insatisfeito":"Neutro"}
+                                </span>
+                                {fb.contact && <span style={{fontSize:12,color:"#1d4ed8",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:200}}>{fb.contact}</span>}
+                                <span style={{fontSize:11,color:"#9ca3af",marginLeft:"auto"}}>{timeAgo(fb.created_at)}</span>
+                              </div>
+                              <div style={{fontSize:13,color:"#475569",lineHeight:1.55}}>"{fb.text}"</div>
+                            </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </>
+                          <FeedbackActions fb={fb}
+                            onReplied={(id)=>{
+                              setPendingFeedbacks(prev=>prev.filter(f=>f.id!==id));
+                              setToast({ message:"Resposta enviada ao cliente", kind:"success" });
+                            }}
+                            onResolved={(id)=>markResolved(id)}
+                            onContactExternal={(c)=>respondToFeedback(c)}/>
+                        </div>
+                      );
+                    })}
+
+                    {/* Avaliações do Google (públicas) */}
+                    {showGoogle && googleMsgs.map((rev)=>(
+                      <div key={`g-${rev.id}`} style={{background:"#fff",border:"1px solid #e5e7eb",borderLeft:"4px solid #1A73E8",borderRadius:14,padding:"16px 18px"}}>
+                        <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:12}}>
+                          <Av initials={rev.avatar}/>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
+                              <SourceTag kind="google"/>
+                              <span style={{fontSize:13,fontWeight:700,color:"#202124"}}>{rev.author}</span>
+                              <span style={{fontSize:11,color:"#9ca3af",marginLeft:"auto"}}>{rev.date}</span>
+                            </div>
+                            <div style={{marginBottom:6}}><Stars rating={rev.rating} size={13}/></div>
+                            <div style={{fontSize:13,color:"#475569",lineHeight:1.55}}>"{rev.text}"</div>
+                          </div>
+                        </div>
+                        <div style={{display:"flex",gap:8,paddingLeft:54,flexWrap:"wrap"}}>
+                          <a href={googleReviewLink} target="_blank" rel="noopener" style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:8,padding:"8px 14px",fontSize:12,fontWeight:600,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:6}}>
+                            <ExternalLink size={13}/> Responder no Google
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             );
