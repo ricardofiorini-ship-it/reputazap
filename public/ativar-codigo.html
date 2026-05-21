@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ativar placa — StarTouch</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:#F8F9FA;color:#202124;min-height:100vh;padding:32px 18px 60px;}
+  .wrap{max-width:440px;margin:0 auto;}
+  .logo{display:flex;justify-content:center;margin-bottom:24px;}
+  .logo img{height:46px;width:auto;}
+  .card{background:#fff;border:1px solid #DADCE0;border-radius:18px;padding:28px 24px;box-shadow:0 1px 2px rgba(60,64,67,0.06),0 8px 24px -12px rgba(60,64,67,0.12);}
+  h1{font-size:22px;font-weight:800;letter-spacing:-0.02em;text-align:center;margin-bottom:6px;}
+  .sub{font-size:14px;color:#5F6368;text-align:center;line-height:1.55;margin-bottom:22px;}
+  .code-badge{display:flex;align-items:center;justify-content:center;gap:8px;background:#E6F4EA;border:1px solid #CEEAD6;color:#137333;font-weight:700;font-size:14px;border-radius:10px;padding:10px;margin-bottom:22px;font-family:monospace;}
+  label{display:block;font-size:13px;font-weight:600;color:#5F6368;margin-bottom:6px;}
+  input,select{width:100%;border:1.5px solid #DADCE0;border-radius:10px;padding:12px 14px;font-size:14px;font-family:inherit;color:#202124;outline:none;transition:border-color .15s;background:#fff;margin-bottom:14px;}
+  input:focus,select:focus{border-color:#1A73E8;}
+  .btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,border-color .15s;}
+  .btn-primary{background:#1A73E8;color:#fff;}
+  .btn-primary:hover:not(:disabled){background:#174EA6;}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-outline{background:#fff;color:#1A73E8;border:1.5px solid #DADCE0;margin-top:12px;}
+  .btn-outline:hover{background:#E8F0FE;border-color:#1A73E8;}
+  .msg{font-size:13px;margin-top:6px;margin-bottom:12px;padding:10px 12px;border-radius:8px;display:none;}
+  .msg.error{display:block;background:#FCE8E6;color:#C5221F;}
+  .msg.success{display:block;background:#E6F4EA;color:#137333;}
+  .hidden{display:none;}
+  .result-item{border:1.5px solid #DADCE0;border-radius:10px;padding:12px 14px;cursor:pointer;margin-bottom:8px;transition:border-color .15s,background .15s;}
+  .result-item:hover{border-color:#1A73E8;background:#E8F0FE;}
+  .result-name{font-size:14px;font-weight:600;}
+  .result-addr{font-size:12px;color:#5F6368;margin-top:2px;}
+  .biz-confirm{background:#E8F0FE;border:1px solid #D2E3FC;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .biz-confirm .nm{font-size:14px;font-weight:600;}
+  .biz-confirm button{background:none;border:none;color:#1A73E8;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit;}
+  .back{background:none;border:none;color:#5F6368;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:14px;display:inline-flex;gap:6px;}
+  .back:hover{color:#202124;}
+  .icon-circle{width:64px;height:64px;border-radius:50%;background:#E8F0FE;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:30px;}
+  .foot{text-align:center;font-size:12px;color:#9AA0A6;margin-top:18px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo"><a href="/landing"><img src="/startouch-logo-dark.png" alt="StarTouch"/></a></div>
+
+  <!-- ERRO -->
+  <div class="card hidden" id="screenError">
+    <div class="icon-circle">⚠️</div>
+    <h1 id="errTitle">Código inválido</h1>
+    <p class="sub" id="errMsg">Esse código não foi encontrado ou está desabilitado. Confira a placa ou peça um novo.</p>
+    <a class="btn btn-primary" href="/landing">Voltar pro início</a>
+  </div>
+
+  <!-- ESCOLHA: novo vs existente -->
+  <div class="card hidden" id="screenChoice">
+    <h1>Ativar sua placa</h1>
+    <p class="sub">Pra ativar sua placa StarTouch, entre na sua conta ou crie uma nova.</p>
+    <div class="code-badge" id="choiceBadge">✓ Código: —</div>
+    <button class="btn btn-primary" onclick="show('screenNew')">Sou cliente novo</button>
+    <button class="btn btn-outline" onclick="goToExisting()">Já tenho conta</button>
+  </div>
+
+  <!-- CLIENTE NOVO: cadastro + busca negócio -->
+  <div class="card hidden" id="screenNew">
+    <button class="back" onclick="show('screenChoice')">← Voltar</button>
+    <h1>Criar conta</h1>
+    <p class="sub">Crie sua conta e ative a placa em seguida.</p>
+    <input type="text" id="nName" placeholder="Seu nome"/>
+    <input type="email" id="nEmail" placeholder="Seu email"/>
+    <input type="tel" id="nPhone" placeholder="WhatsApp (11) 99999-9999" maxlength="15" oninput="maskPhone(this)"/>
+    <input type="password" id="nPass" placeholder="Senha (mín. 8 caracteres)" minlength="8"/>
+
+    <label>Qual o seu negócio?</label>
+    <div id="nBizConfirm" class="hidden"></div>
+    <div id="nBizSearchWrap">
+      <input type="text" id="nBizSearch" placeholder="Nome do negócio + cidade"/>
+      <button class="btn btn-outline" style="margin-top:0" onclick="searchBiz('n')">Buscar no Google</button>
+      <div id="nResults" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="msg" id="nMsg"></div>
+    <button class="btn btn-primary" id="nSubmit" style="margin-top:14px" onclick="submitNew()">Criar conta e ativar placa</button>
+  </div>
+
+  <!-- JÁ TENHO CONTA: login -->
+  <div class="card hidden" id="screenLogin">
+    <button class="back" onclick="show('screenChoice')">← Voltar</button>
+    <h1>Entrar</h1>
+    <p class="sub">Entre pra ativar a placa na sua conta.</p>
+    <input type="email" id="lEmail" placeholder="Seu email"/>
+    <input type="password" id="lPass" placeholder="Sua senha"/>
+    <div class="msg" id="lMsg"></div>
+    <button class="btn btn-primary" id="lSubmit" onclick="submitLogin()">Entrar</button>
+  </div>
+
+  <!-- VINCULAR: escolher negócio + apelido (cliente logado) -->
+  <div class="card hidden" id="screenLink">
+    <h1>Vincular placa</h1>
+    <p class="sub">Escolha o negócio e dê um apelido pra essa placa.</p>
+    <div class="code-badge" id="linkBadge">✓ Código: —</div>
+    <div id="linkBizArea"></div>
+    <input type="text" id="linkNickname" placeholder="Apelido da placa (ex: Balcão Principal)"/>
+    <div class="msg" id="linkMsg"></div>
+    <button class="btn btn-primary" id="linkSubmit" onclick="submitLink()">Ativar placa</button>
+  </div>
+
+  <!-- SUCESSO -->
+  <div class="card hidden" id="screenDone">
+    <div class="icon-circle" style="background:#E6F4EA;">✅</div>
+    <h1>Placa ativada!</h1>
+    <p class="sub">Sua placa está pronta pra capturar avaliações. Posicione no seu negócio.</p>
+    <a class="btn btn-primary" href="/app/placas">Ver minhas placas</a>
+  </div>
+
+  <div class="foot">StarTouch · Reputação no piloto automático</div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const CODE = (params.get("code") || "").trim().toUpperCase();
+const ERROR = params.get("error");
+let token = localStorage.getItem("rz_token");
+let selectedBiz = null;       // {place_id, name, address, rating, total} pro cadastro novo
+let myBusinesses = [];        // negócios do usuário logado
+
+function show(id){
+  ["screenError","screenChoice","screenNew","screenLogin","screenLink","screenDone"]
+    .forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id));
+  window.scrollTo(0,0);
+}
+
+function maskPhone(el){
+  let d=el.value.replace(/\D/g,"").slice(0,11);
+  if(d.length===0){el.value="";return;}
+  if(d.length<=2){el.value="("+d;return;}
+  if(d.length<=6){el.value="("+d.slice(0,2)+") "+d.slice(2);return;}
+  if(d.length<=10){el.value="("+d.slice(0,2)+") "+d.slice(2,6)+"-"+d.slice(6);return;}
+  el.value="("+d.slice(0,2)+") "+d.slice(2,7)+"-"+d.slice(7);
+}
+
+// Estado inicial
+if (ERROR === "invalida") {
+  document.getElementById("errTitle").textContent="Código inválido";
+  document.getElementById("errMsg").textContent="Esse código não foi encontrado. Confira a placa ou peça um novo ao estabelecimento.";
+  show("screenError");
+} else if (ERROR === "desabilitada") {
+  document.getElementById("errTitle").textContent="Placa desabilitada";
+  document.getElementById("errMsg").textContent="Essa placa foi desabilitada e não está mais ativa.";
+  show("screenError");
+} else if (!CODE) {
+  document.getElementById("errMsg").textContent="Faltou o código da placa. Toque a placa de novo ou digite o código.";
+  show("screenError");
+} else {
+  document.getElementById("choiceBadge").textContent = "✓ Código: " + CODE;
+  document.getElementById("linkBadge").textContent = "✓ Código: " + CODE;
+  show("screenChoice");
+}
+
+// ── Busca de negócio (Google Places) ──
+async function searchBiz(prefix){
+  const q = document.getElementById(prefix+"BizSearch").value.trim();
+  if(!q){return;}
+  const box = document.getElementById(prefix+"Results");
+  box.innerHTML = '<p style="font-size:13px;color:#5F6368;">Buscando…</p>';
+  try{
+    const res = await fetch("/api/searchbiz?q="+encodeURIComponent(q));
+    const data = await res.json();
+    if(!data.results?.length){ box.innerHTML='<p style="font-size:13px;color:#5F6368;">Nenhum resultado. Tente nome + cidade.</p>'; return; }
+    box.innerHTML = data.results.map((r,i)=>`
+      <div class="result-item" onclick='pickBiz(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
+        <div class="result-name">${r.name}</div>
+        <div class="result-addr">⭐ ${r.rating||"?"} · ${r.total||0} avaliações · ${r.address}</div>
+      </div>`).join("");
+  }catch{ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Erro na busca.</p>'; }
+}
+function pickBiz(biz){
+  selectedBiz = biz;
+  document.getElementById("nBizSearchWrap").classList.add("hidden");
+  const c = document.getElementById("nBizConfirm");
+  c.classList.remove("hidden");
+  c.className = "biz-confirm";
+  c.innerHTML = `<span class="nm">${biz.name}</span><button onclick="resetBiz()">Trocar</button>`;
+}
+function resetBiz(){
+  selectedBiz=null;
+  document.getElementById("nBizConfirm").classList.add("hidden");
+  document.getElementById("nBizSearchWrap").classList.remove("hidden");
+  document.getElementById("nResults").innerHTML="";
+}
+
+// ── CLIENTE NOVO: cadastro + savebiz + activate ──
+async function submitNew(){
+  const name=document.getElementById("nName").value.trim();
+  const email=document.getElementById("nEmail").value.trim();
+  const phone=document.getElementById("nPhone").value.trim();
+  const pass=document.getElementById("nPass").value;
+  const msg=document.getElementById("nMsg");
+  msg.className="msg";
+
+  if(!name||!email||!phone||!pass){ msg.className="msg error"; msg.textContent="Preencha todos os campos."; return; }
+  if(pass.length<8){ msg.className="msg error"; msg.textContent="Senha precisa de pelo menos 8 caracteres."; return; }
+  if(!selectedBiz){ msg.className="msg error"; msg.textContent="Busque e selecione seu negócio."; return; }
+
+  const btn=document.getElementById("nSubmit");
+  btn.disabled=true; btn.textContent="Criando conta…";
+
+  try{
+    // 1. registra
+    const rReg = await fetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,email,phone,password:pass})});
+    const dReg = await rReg.json();
+    if(!rReg.ok){ msg.className="msg error"; msg.textContent=dReg.error||"Erro ao criar conta."; btn.disabled=false; btn.textContent="Criar conta e ativar placa"; return; }
+    token = dReg.token;
+    if(!token){
+      const rLog=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})});
+      const dLog=await rLog.json(); token=dLog.token;
+    }
+    localStorage.setItem("rz_token",token);
+    if(dReg.user) localStorage.setItem("rz_user",JSON.stringify(dReg.user));
+
+    // 2. salva negócio
+    btn.textContent="Salvando negócio…";
+    const rBiz = await fetch("/api/savebiz",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({place_id:selectedBiz.place_id,name:selectedBiz.name,address:selectedBiz.address,rating:selectedBiz.rating,total:selectedBiz.total,plan:"free"})});
+    const dBiz = await rBiz.json();
+    if(!rBiz.ok||!dBiz.business){ msg.className="msg error"; msg.textContent=dBiz.error||"Erro ao salvar negócio."; btn.disabled=false; btn.textContent="Criar conta e ativar placa"; return; }
+
+    // 3. ativa placa
+    btn.textContent="Ativando placa…";
+    const rAct = await fetch("/api/plates?action=activate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({code:CODE,business_id:dBiz.business.id,channel_name:null})});
+    const dAct = await rAct.json();
+    if(!rAct.ok){ msg.className="msg error"; msg.textContent=dAct.error||"Erro ao ativar placa."; btn.disabled=false; btn.textContent="Criar conta e ativar placa"; return; }
+
+    show("screenDone");
+  }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Criar conta e ativar placa"; }
+}
+
+// ── JÁ TENHO CONTA: login → vincular ──
+async function submitLogin(){
+  const email=document.getElementById("lEmail").value.trim();
+  const pass=document.getElementById("lPass").value;
+  const msg=document.getElementById("lMsg");
+  msg.className="msg";
+  if(!email||!pass){ msg.className="msg error"; msg.textContent="Preencha email e senha."; return; }
+
+  const btn=document.getElementById("lSubmit");
+  btn.disabled=true; btn.textContent="Entrando…";
+  try{
+    const rLog=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})});
+    const dLog=await rLog.json();
+    if(!rLog.ok||!dLog.token){ msg.className="msg error"; msg.textContent=dLog.error||"Email ou senha incorretos."; btn.disabled=false; btn.textContent="Entrar"; return; }
+    token=dLog.token;
+    localStorage.setItem("rz_token",token);
+    if(dLog.user) localStorage.setItem("rz_user",JSON.stringify(dLog.user));
+    await goToLink();
+  }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Entrar"; }
+}
+
+// "Já tenho conta": se já logado, pula direto pra vincular
+async function goToExisting(){
+  if(token){
+    try{
+      const test=await fetch("/api/plates?action=my-businesses",{headers:{"Authorization":`Bearer ${token}`}});
+      if(test.ok){ const d=await test.json(); myBusinesses=d.businesses||[]; renderLinkArea(); show("screenLink"); return; }
+    }catch{}
+    // token inválido → cai pro login
+    localStorage.removeItem("rz_token");
+    token=null;
+  }
+  show("screenLogin");
+}
+
+function renderLinkArea(){
+  const area=document.getElementById("linkBizArea");
+  if(!myBusinesses.length){
+    area.innerHTML='<p class="msg error" style="display:block">Você ainda não tem um negócio cadastrado. Use a opção "Sou cliente novo".</p>';
+  } else if(myBusinesses.length===1){
+    area.innerHTML=`<div class="biz-confirm"><span class="nm">${myBusinesses[0].name}</span></div>`;
+  } else {
+    area.innerHTML='<label>Qual negócio?</label><select id="linkBizSelect">'+myBusinesses.map(b=>`<option value="${b.id}">${b.name}</option>`).join("")+'</select>';
+  }
+}
+
+async function goToLink(){
+  const r=await fetch("/api/plates?action=my-businesses",{headers:{"Authorization":`Bearer ${token}`}});
+  const d=await r.json();
+  myBusinesses=d.businesses||[];
+  renderLinkArea();
+  show("screenLink");
+}
+
+async function submitLink(){
+  const msg=document.getElementById("linkMsg");
+  msg.className="msg";
+  if(!myBusinesses.length){ msg.className="msg error"; msg.textContent="Sem negócio pra vincular."; return; }
+  const business_id = myBusinesses.length===1 ? myBusinesses[0].id : document.getElementById("linkBizSelect").value;
+  const nickname = document.getElementById("linkNickname").value.trim();
+
+  const btn=document.getElementById("linkSubmit");
+  btn.disabled=true; btn.textContent="Ativando…";
+  try{
+    const r=await fetch("/api/plates?action=activate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({code:CODE,business_id,channel_name:nickname||null})});
+    const d=await r.json();
+    if(!r.ok){ msg.className="msg error"; msg.textContent=d.error||"Erro ao ativar."; btn.disabled=false; btn.textContent="Ativar placa"; return; }
+    show("screenDone");
+  }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Ativar placa"; }
+}
+
+</script>
+</body>
+</html>

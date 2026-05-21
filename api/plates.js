@@ -114,6 +114,82 @@ async function handleListStock(req, res, user) {
   return res.json({ ok: true, plates: data || [], summary });
 }
 
+// ── CLIENTE: ativar placa (vincula a um negócio do usuário) ─
+async function handleActivate(req, res, user) {
+  const { code, business_id, channel_name } = req.body || {};
+  if (!code || !business_id) {
+    return res.status(400).json({ error: "code e business_id são obrigatórios" });
+  }
+  const normalized = String(code).trim().toUpperCase();
+
+  // Busca a placa
+  const { data: plate, error: plateErr } = await supabase
+    .from("plates")
+    .select("id, code, status")
+    .eq("code", normalized)
+    .maybeSingle();
+  if (plateErr) return res.status(500).json({ error: plateErr.message });
+  if (!plate) return res.status(404).json({ error: "Código não encontrado" });
+  if (plate.status === "active") return res.status(400).json({ error: "Essa placa já está ativada" });
+  if (plate.status === "disabled") return res.status(400).json({ error: "Essa placa está desabilitada" });
+
+  // Verifica que o negócio pertence ao usuário
+  const { data: biz, error: bizErr } = await supabase
+    .from("businesses")
+    .select("id")
+    .eq("id", business_id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (bizErr) return res.status(500).json({ error: bizErr.message });
+  if (!biz) return res.status(403).json({ error: "Negócio não pertence a você" });
+
+  // Ativa
+  const { data: updated, error: updErr } = await supabase
+    .from("plates")
+    .update({
+      business_id,
+      channel_name: channel_name || null,
+      status: "active",
+      activated_at: new Date().toISOString()
+    })
+    .eq("id", plate.id)
+    .select()
+    .single();
+  if (updErr) return res.status(500).json({ error: updErr.message });
+
+  return res.json({ ok: true, plate: updated });
+}
+
+// ── CLIENTE: negócios do usuário (pro dropdown de ativação) ─
+async function handleMyBusinesses(req, res, user) {
+  const { data, error } = await supabase
+    .from("businesses")
+    .select("id, name, place_id, address")
+    .eq("user_id", user.id)
+    .order("name", { ascending: true });
+  if (error) return res.status(500).json({ error: error.message });
+  return res.json({ ok: true, businesses: data || [] });
+}
+
+// ── CLIENTE: placas do usuário (pro painel /app/placas) ─────
+async function handleMyPlates(req, res, user) {
+  const { data: bizs, error: bizErr } = await supabase
+    .from("businesses")
+    .select("id")
+    .eq("user_id", user.id);
+  if (bizErr) return res.status(500).json({ error: bizErr.message });
+  const bizIds = (bizs || []).map((b) => b.id);
+  if (!bizIds.length) return res.json({ ok: true, plates: [] });
+
+  const { data, error } = await supabase
+    .from("plates")
+    .select("id, code, product_type, status, channel_name, total_taps, last_tapped_at, activated_at")
+    .in("business_id", bizIds)
+    .order("activated_at", { ascending: false });
+  if (error) return res.status(500).json({ error: error.message });
+  return res.json({ ok: true, plates: data || [] });
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -126,12 +202,14 @@ export default async function handler(req, res) {
     if (auth.error) return res.status(auth.status).json({ error: auth.error });
 
     switch (action) {
-      case "create-batch": return await handleCreateBatch(req, res, auth.user);
-      case "list-batches": return await handleListBatches(req, res, auth.user);
-      case "list-stock":   return await handleListStock(req, res, auth.user);
-      // case "activate": ETAPA 7
+      case "create-batch":   return await handleCreateBatch(req, res, auth.user);
+      case "list-batches":   return await handleListBatches(req, res, auth.user);
+      case "list-stock":     return await handleListStock(req, res, auth.user);
+      case "activate":       return await handleActivate(req, res, auth.user);
+      case "my-businesses":  return await handleMyBusinesses(req, res, auth.user);
+      case "my-plates":      return await handleMyPlates(req, res, auth.user);
       default:
-        return res.status(400).json({ error: "Unknown action. Use ?action=create-batch|list-batches|list-stock" });
+        return res.status(400).json({ error: "Unknown action. Use ?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates" });
     }
   } catch (err) {
     console.error("[plates] erro não tratado:", err);
