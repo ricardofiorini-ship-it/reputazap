@@ -824,7 +824,9 @@ export default function StarTouch({ user, onLogout }) {
                             {ranking.top.map((c,i)=>(
                               <div key={c.place_id} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:9,background:c.is_me?"#E8F0FE":"transparent"}}>
                                 <span style={{fontSize:13,fontWeight:700,color:"#9AA0A6",width:24}}>{i+1}º</span>
-                                <span style={{flex:1,minWidth:0,fontSize:13.5,fontWeight:c.is_me?700:500,color:"#202124",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}{c.is_me&&<span style={{color:"#1A73E8",fontWeight:700}}> · você</span>}</span>
+                                {c.name
+                                  ? <span style={{flex:1,minWidth:0,fontSize:13.5,fontWeight:c.is_me?700:500,color:"#202124",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}{c.is_me&&<span style={{color:"#1A73E8",fontWeight:700}}> · você</span>}</span>
+                                  : <span style={{flex:1,minWidth:0,fontSize:13.5,fontWeight:500,color:"#202124",filter:"blur(5px)",userSelect:"none",overflow:"hidden",whiteSpace:"nowrap"}} aria-label="Nome bloqueado — disponível no plano pago">Empresa concorrente</span>}
                                 <span style={{fontSize:12.5,color:"#202124",fontWeight:600,display:"inline-flex",alignItems:"center",gap:3,flexShrink:0}}><Star size={12} color="#f59e0b" fill="#f59e0b"/>{c.rating.toFixed(1)}</span>
                                 <span style={{fontSize:12,color:"#5F6368",flexShrink:0,width:74,textAlign:"right"}}>{c.reviews} aval.</span>
                               </div>
@@ -841,6 +843,15 @@ export default function StarTouch({ user, onLogout }) {
                               </>
                             )}
                           </div>
+                          {ranking.names_locked && (
+                            <div style={{marginTop:14,background:"linear-gradient(135deg,#0f172a,#1e293b)",borderRadius:12,padding:"16px 18px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+                              <div style={{flex:"1 1 220px",minWidth:0}}>
+                                <div style={{fontSize:14,fontWeight:700,color:"#fff",marginBottom:3}}>🔒 Quem está na sua frente?</div>
+                                <div style={{fontSize:12.5,color:"#cbd5e1",lineHeight:1.45}}>Você está em #{ranking.rank_google} de {ranking.total}. Desbloqueie os nomes dos concorrentes que estão te passando no Google.</div>
+                              </div>
+                              <button onClick={goToCheckout} style={{cursor:"pointer",border:"none",fontFamily:"inherit",background:"#1A73E8",color:"#fff",borderRadius:10,padding:"11px 20px",fontSize:13.5,fontWeight:700,whiteSpace:"nowrap",display:"inline-flex",alignItems:"center",gap:7}}><ShieldCheck size={15}/> Desbloquear nomes</button>
+                            </div>
+                          )}
                         </>
                       )}
                     </div>

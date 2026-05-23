@@ -153,11 +153,18 @@ export default async function handler(req, res) {
 
     const rankGoogle = byGoogle.findIndex(p => p.place_id === biz.place_id) + 1;
 
-    // 8. Top 5 na ordem estimada do Google, marcando o próprio negócio
-    const top = byGoogle.slice(0, 5).map(p => ({
-      ...p,
-      is_me: p.place_id === biz.place_id
-    }));
+    // 8. Top 5 na ordem estimada do Google, marcando o próprio negócio.
+    //    PAYWALL: nome dos concorrentes só pra plano pago. Free ve posicao +
+    //    nota + nº de avaliacoes (o "buraco"), mas o NOME fica bloqueado no
+    //    backend (nao vai no JSON) — nao da pra burlar pelo inspetor.
+    const paid = biz.plan === "pro";
+    const top = byGoogle.slice(0, 5).map((p, i) => {
+      const mine = p.place_id === biz.place_id;
+      if (!mine && !paid) {
+        return { place_id: `locked-${i}`, name: null, rating: p.rating, reviews: p.reviews, is_me: false };
+      }
+      return { ...p, is_me: mine };
+    });
 
     return res.json({
       enough: true,
@@ -166,6 +173,7 @@ export default async function handler(req, res) {
       radius,
       me: byId.get(biz.place_id),
       rank_google: rankGoogle,
+      names_locked: !paid,
       top
     });
   } catch (err) {
