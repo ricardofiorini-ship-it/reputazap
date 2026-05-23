@@ -601,7 +601,7 @@ export default function StarTouch({ user, onLogout }) {
   const nav=[
     {id:"dashboard",icon:LayoutDashboard,label:"Painel"},
     {id:"ranking",icon:Award,label:"Ranking"},
-    {id:"vitrine",icon:Zap,label:"Vitrine"},
+    {id:"vitrine",icon:Zap,label:"Vitrine",href:"/kit"},
     {id:"avaliacoes",icon:Star,label:"Últimas avaliações"},
     {id:"placas",icon:CreditCard,label:"Ativar novo dispositivo",openModal:true},
     {id:"settings",icon:Settings,label:"Configurações"},
@@ -668,7 +668,7 @@ export default function StarTouch({ user, onLogout }) {
             {nav.map(item=>{
               const active = tab===item.id;
               return (
-                <div key={item.id} className="ni" onClick={()=>{setTab(item.id);if(item.openModal){setPlateModalOpen(true);setPlateModalMsg("");}setSidebarOpen(false);}}
+                <div key={item.id} className="ni" onClick={()=>{if(item.href){window.location.href=item.href;return;}setTab(item.id);if(item.openModal){setPlateModalOpen(true);setPlateModalMsg("");}setSidebarOpen(false);}}
                   style={{display:"flex",alignItems:"center",gap:11,padding:"11px 13px",borderRadius:12,background:active?"linear-gradient(180deg,rgba(232,240,254,0.95) 0%,rgba(232,240,254,0.6) 100%)":"transparent",color:active?"#00C49A":"#475569",border:active?"1px solid rgba(26,115,232,0.18)":"1px solid transparent",boxShadow:active?"0 1px 2px rgba(26,115,232,0.08), inset 0 1px 0 rgba(255,255,255,0.6)":"none",transition:"background .2s, border-color .2s"}}>
                   <item.icon size={17} strokeWidth={active?2.4:2}/>
                   <span style={{fontSize:14,fontWeight:active?600:500,letterSpacing:active?"-0.005em":0}}>{item.label}</span>
