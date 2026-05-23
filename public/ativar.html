@@ -253,10 +253,11 @@
     <p class="sub" style="text-align:left;margin-bottom:24px;">Informe seu negócio abaixo e descubra na hora como você está vs. os concorrentes num raio de 3 km.</p>
     <div class="form-group"><label>Nome do negócio</label><input type="text" id="bizSearch" placeholder="Ex: Café Bello Vista" oninput="clearResults()"/></div>
     <div class="form-group"><label>Cidade</label><input type="text" id="bizCity" placeholder="Ex: São Paulo"/></div>
+    <div class="form-group"><label>Bairro ou CEP <span style="color:#9ca3af;font-weight:400;">(crava a unidade certa)</span></label><input type="text" id="bizLocal" placeholder="Ex: Pinheiros ou 05422-010"/></div>
     <div class="form-group"><label>Estado (UF)</label><input type="text" id="bizState" placeholder="Ex: SP" maxlength="2" autocapitalize="characters" style="text-transform:uppercase"/></div>
     <div class="form-group"><label>O que seu negócio faz?</label><input type="text" id="bizActivity" placeholder="Ex: gráfica rápida, cafeteria, salão de beleza"/></div>
     <div style="display:flex;gap:8px;align-items:flex-start;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin:-2px 0 16px;font-size:12.5px;color:#1e40af;line-height:1.45;">
-      <span>📍</span><span>Preencha <strong>cidade, estado e atividade</strong> — é o que garante uma comparação certeira com os concorrentes certos da sua região.</span>
+      <span>📍</span><span>Preencha <strong>cidade, estado e atividade</strong> pra uma comparação certeira. Tem mais de uma unidade? O <strong>CEP</strong> crava a certa.</span>
     </div>
     <p class="legal-text">Ao continuar, você concorda com os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>.</p>
     <button class="btn-primary" onclick="searchBusiness()" id="searchBtn">Buscar empresa</button>
@@ -564,6 +565,7 @@ async function searchBusiness(){
   const query=document.getElementById("bizSearch").value.trim();
   const city=document.getElementById("bizCity").value.trim();
   const uf=document.getElementById("bizState").value.trim().toUpperCase();
+  const local=document.getElementById("bizLocal").value.trim(); // bairro ou CEP (opcional, crava a unidade)
   const activity=document.getElementById("bizActivity").value.trim();
   state.activity=activity; // atividade -> keyword do ranking
   if(!query){alert("Digite o nome do negócio!");return;}
@@ -577,7 +579,7 @@ async function searchBusiness(){
   status.textContent="Buscando no Google Maps...";
   status.className="status-msg loading";
   try{
-    const res=await fetch(`/api/searchbiz?q=${encodeURIComponent(query+" "+city+" "+uf)}`);
+    const res=await fetch(`/api/searchbiz?q=${encodeURIComponent([query,local,city,uf].filter(Boolean).join(" "))}`);
     const data=await res.json();
     if(!data.results?.length){
       status.innerHTML='Não encontramos sua empresa no Google. Tente outro nome ou cidade. Se você ainda não tem um perfil no Google Meu Negócio, <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#1A73E8;font-weight:600;text-decoration:underline">crie um aqui</a> antes de continuar.';
