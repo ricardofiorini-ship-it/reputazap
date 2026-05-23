@@ -366,14 +366,13 @@ async function handleGoogleCredential(response) {
     localStorage.setItem("rz_user", JSON.stringify(data.user));
     state.user = { name: data.user.name, email: data.user.email };
 
-    // Web flow: ja tem biz selecionado — salva e vai pra vitrine /kit
+    // Web flow: ja tem biz selecionado — salva e vai pro dashboard /app (ranking)
     if (state.from === "web" && state.business) {
       state.plan = "free";
       state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
       await saveBiz();
       state.bizSaved = true;
-      const qs = new URLSearchParams({ biz: state.business.name, place_id: state.business.place_id });
-      window.location.href = `/kit?${qs.toString()}`;
+      window.location.href = "/app";
       return;
     }
     // NFC flow: cadastro -> busca
@@ -531,14 +530,13 @@ async function goToStep2(){
     }
 
     state.user={name,email,phone,pass};
-    // Web flow: ja tem biz selecionado — salva e segue pra vitrine /kit
+    // Web flow: ja tem biz selecionado — salva e segue pro dashboard /app (ranking)
     if (state.from === "web" && state.business) {
       state.plan = "free";
       state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
       await saveBiz();
       state.bizSaved = true;
-      const qs = new URLSearchParams({ biz: state.business.name, place_id: state.business.place_id });
-      window.location.href = `/kit?${qs.toString()}`;
+      window.location.href = "/app";
       return;
     }
     // NFC flow: cadastro -> busca
