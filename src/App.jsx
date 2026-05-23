@@ -445,7 +445,7 @@ export default function StarTouch({ user, onLogout }) {
 
   // Ranking competitivo (recurso Pro): carrega só pra quem pode ver, na aba Painel
   useEffect(() => {
-    if (tab !== "dashboard" || !canSeeRanking || !bizInfo?.place_id || ranking || rankingLoading) return;
+    if ((tab !== "dashboard" && tab !== "ranking") || !canSeeRanking || !bizInfo?.place_id || ranking || rankingLoading) return;
     const token = localStorage.getItem("rz_token");
     if (!token) return;
     setRankingLoading(true);
@@ -599,9 +599,11 @@ export default function StarTouch({ user, onLogout }) {
   }
 
   const nav=[
-    {id:"placas",icon:CreditCard,label:"Meus Dispositivos"},
     {id:"dashboard",icon:LayoutDashboard,label:"Painel"},
-    {id:"feedbacks",icon:MessageSquare,label:"Mensagens"},
+    {id:"ranking",icon:Award,label:"Ranking"},
+    {id:"vitrine",icon:Zap,label:"Vitrine"},
+    {id:"avaliacoes",icon:Star,label:"Últimas avaliações"},
+    {id:"placas",icon:CreditCard,label:"Ativar novo dispositivo",openModal:true},
     {id:"settings",icon:Settings,label:"Configurações"},
   ];
 
@@ -666,7 +668,7 @@ export default function StarTouch({ user, onLogout }) {
             {nav.map(item=>{
               const active = tab===item.id;
               return (
-                <div key={item.id} className="ni" onClick={()=>{setTab(item.id);setSidebarOpen(false);}}
+                <div key={item.id} className="ni" onClick={()=>{setTab(item.id);if(item.openModal){setPlateModalOpen(true);setPlateModalMsg("");}setSidebarOpen(false);}}
                   style={{display:"flex",alignItems:"center",gap:11,padding:"11px 13px",borderRadius:12,background:active?"linear-gradient(180deg,rgba(232,240,254,0.95) 0%,rgba(232,240,254,0.6) 100%)":"transparent",color:active?"#00C49A":"#475569",border:active?"1px solid rgba(26,115,232,0.18)":"1px solid transparent",boxShadow:active?"0 1px 2px rgba(26,115,232,0.08), inset 0 1px 0 rgba(255,255,255,0.6)":"none",transition:"background .2s, border-color .2s"}}>
                   <item.icon size={17} strokeWidth={active?2.4:2}/>
                   <span style={{fontSize:14,fontWeight:active?600:500,letterSpacing:active?"-0.005em":0}}>{item.label}</span>
@@ -739,10 +741,13 @@ export default function StarTouch({ user, onLogout }) {
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,animation:"fadeUp 0.4s ease"}}>
             <div>
               <div style={{fontSize:24,fontWeight:700,fontFamily:"'General Sans',sans-serif",color:"#0f172a",lineHeight:1.2}}>
-                {tab==="dashboard"&&"Central de reputação"}{tab==="placas"&&"Meus Dispositivos"}{tab==="feedbacks"&&"Mensagens de clientes"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Dispositivos inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Plano Pro e loja"}{tab==="settings"&&"Configurações"}
+                {tab==="dashboard"&&"Central de reputação"}{tab==="ranking"&&"Seu ranking"}{tab==="vitrine"&&"Vitrine de produtos"}{tab==="avaliacoes"&&"Últimas avaliações"}{tab==="placas"&&"Meus Dispositivos"}{tab==="feedbacks"&&"Mensagens de clientes"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Dispositivos inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Plano Pro e loja"}{tab==="settings"&&"Configurações"}
               </div>
               <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
                 {tab==="dashboard"&&"Visão geral dos seus dispositivos e avaliações no Google."}
+                {tab==="ranking"&&"Sua posição vs concorrentes da mesma categoria por perto."}
+                {tab==="vitrine"&&"Os produtos StarTouch pra captar mais avaliações."}
+                {tab==="avaliacoes"&&"As avaliações mais recentes que você recebeu no Google."}
                 {tab==="placas"&&"Gerencie seus dispositivos ativos e ative novos pelo código."}
                 {tab==="feedbacks"&&(pendingFeedbacks.length>0?`${pendingFeedbacks.length} mensagem(ns) aguardando resposta`:"Tudo sob controle por enquanto.")}
                 {tab==="link"&&"Seu link de avaliação e QR Code prontos pra compartilhar."}
@@ -761,8 +766,9 @@ export default function StarTouch({ user, onLogout }) {
             )}
           </div>
 
-          {/* ─ DASHBOARD (Painel — visão geral Free) ─ */}
-          {tab==="dashboard"&&(() => {
+          {/* ─ PAINEL / RANKING / VITRINE / AVALIAÇÕES ─
+               Mesma fonte: "tudo" no Painel; cada outra aba mostra so a sua secao. */}
+          {["dashboard","ranking","vitrine","avaliacoes"].includes(tab)&&(() => {
             const totalTaps = myPlates.reduce((a,p)=>a+(p.total_taps||0),0);
             const activePlates = myPlates.length;
             const recentReviews = hasRealReviews ? reviews.slice(0,5) : [];
@@ -796,11 +802,12 @@ export default function StarTouch({ user, onLogout }) {
                 ? <a href={href} style={st}>{inner}</a>
                 : <button onClick={onClick} style={st}>{inner}</button>;
             };
+            const showAll = tab === "dashboard";
             return (
             <div style={{animation:"fadeUp 0.4s ease"}}>
 
               {/* Ranking competitivo — topo do funil (liberado no free) */}
-              {(() => {
+              {(showAll||tab==="ranking")&&(() => {
                 const rankBadge = (pos) => {
                   const top3 = pos<=3;
                   return <span style={{fontSize:30,fontWeight:800,color:top3?"#137333":"#1A73E8",fontFamily:"'General Sans',sans-serif",lineHeight:1}}>#{pos}</span>;
@@ -963,6 +970,7 @@ export default function StarTouch({ user, onLogout }) {
               })()}
 
               {/* Vitrine de produtos — adquirir hardware (logo abaixo do ranking) */}
+              {(showAll||tab==="vitrine")&&(
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,marginBottom:18}}>
                 <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,flexWrap:"wrap",marginBottom:16}}>
                   <div>
@@ -987,8 +995,10 @@ export default function StarTouch({ user, onLogout }) {
                   ))}
                 </div>
               </div>
+              )}
 
-              {/* Métricas */}
+              {/* Métricas + Atalhos (só no Painel) */}
+              {showAll&&(<>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:14,marginBottom:18}}>
                 {statCard(<TrendingUp size={19} color="#1A73E8"/>, totalTaps, "Toques nos dispositivos", "Total acumulado", {bg:"#E8F0FE"})}
                 {statCard(<CreditCard size={19} color="#1A73E8"/>, activePlates, activePlates===1?"Dispositivo ativo":"Dispositivos ativos", "Vinculados ao seu negócio", {bg:"#E8F0FE"})}
@@ -1000,17 +1010,18 @@ export default function StarTouch({ user, onLogout }) {
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,marginBottom:18}}>
                 {action(<Check size={17} color="#1A73E8"/>, "Ativar novo dispositivo", "Recebeu um dispositivo? Ative pelo código", ()=>{setTab("placas");setPlateModalOpen(true);setPlateModalMsg("");})}
                 {action(<CreditCard size={17} color="#1A73E8"/>, "Comprar mais dispositivos", "Amplie seus pontos de captura", null, "/kit")}
-                {action(<MessageSquare size={17} color="#1A73E8"/>, "Mensagens de clientes", pendingFeedbacks.length>0?`${pendingFeedbacks.length} aguardando resposta`:"Tudo sob controle", ()=>setTab("feedbacks"))}
               </div>
+              </>)}
 
               {/* Últimas avaliações */}
+              {(showAll||tab==="avaliacoes")&&(
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,marginBottom:18}}>
                 <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:14}}>
                   <div>
                     <div style={{fontSize:15,fontWeight:700,color:"#202124"}}>Últimas avaliações no Google</div>
                     {recentReviews.length>0&&<div style={{fontSize:11.5,color:"#9AA0A6",marginTop:2}}>As últimas {recentReviews.length} avaliações que sua empresa recebeu no Google</div>}
                   </div>
-                  {recentReviews.length>0&&<button onClick={()=>setTab("feedbacks")} style={{background:"none",border:"none",color:"#1A73E8",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:4,flexShrink:0}}>Ver todas <ArrowRight size={14}/></button>}
+                  {showAll&&recentReviews.length>0&&<button onClick={()=>setTab("avaliacoes")} style={{background:"none",border:"none",color:"#1A73E8",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:4,flexShrink:0}}>Ver todas <ArrowRight size={14}/></button>}
                 </div>
                 {recentAvg!=null && (()=>{
                   const tc = trend==="down" ? {bg:"#FCE8E6",fg:"#C5221F",bd:"#F6AEA9"} : trend==="up" ? {bg:"#E6F4EA",fg:"#137333",bd:"#CEEAD6"} : {bg:"#F8F9FA",fg:"#5F6368",bd:"#e5e7eb"};
@@ -1054,6 +1065,7 @@ export default function StarTouch({ user, onLogout }) {
                   </div>
                 )}
               </div>
+              )}
             </div>
             );
           })()}
