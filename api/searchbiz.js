@@ -19,9 +19,15 @@ export default async function handler(req, res) {
       return res.json({ results: [] });
     }
 
-    // Retorna ate 20 (a pagina inteira do Text Search), ordenados pela
-    // relevancia/prominencia do proprio Google.
-    const results = data.results.slice(0, 20).map(p => ({
+    // Se a busca tem CEP (5 digitos + 3, com ou sem hifen), o usuario foi
+    // especifico: o Google ja ordena por proximidade, entao devolvemos so os
+    // primeiros (a unidade certa estara no topo). Sem CEP, mantemos ate 20 pra
+    // permitir navegar entre varias unidades de uma rede.
+    const hasCep = /\d{5}-?\d{3}/.test(q);
+    const limit = hasCep ? 5 : 20;
+
+    // Retorna ate `limit`, ordenados pela relevancia/prominencia do Google.
+    const results = data.results.slice(0, limit).map(p => ({
       place_id: p.place_id,
       name: p.name,
       address: p.formatted_address || "",
