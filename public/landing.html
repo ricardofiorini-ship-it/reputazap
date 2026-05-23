@@ -3441,14 +3441,17 @@
   .brands-title {
     text-align: center;
     font-family: var(--st-font-sans);
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--st-gray-text);
-    margin: 0 0 26px;
+    font-size: clamp(24px, 3.5vw, 34px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--st-black-strong);
+    margin: 0 0 34px;
     padding: 0 24px;
+    text-wrap: balance;
   }
+  .brands-title .accent { color: var(--st-blue-primary); }
+  .brands-title .accent-dot { color: var(--st-blue-primary); }
   .brands-marquee {
     position: relative;
     width: 100%;
@@ -3491,7 +3494,7 @@
 </style>
 <section class="brands-section" aria-label="Marcas que já confiam na StarTouch">
   <div class="brands-inner">
-    <p class="brands-title">Empresas que já confiam na StarTouch</p>
+    <h2 class="brands-title">Empresas que já confiam na <span class="accent">StarTouch<span class="accent-dot">.</span></span></h2>
     <div class="brands-marquee">
       <div class="brands-track">
         <!-- conjunto 1 -->
