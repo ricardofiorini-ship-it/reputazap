@@ -274,7 +274,7 @@ function FeedbackActions({ fb, onReplied, onResolved, onContactExternal, compact
 
 // ── MAIN ──────────────────────────────────────────────────
 export default function StarTouch({ user, onLogout }) {
-  const [tab, setTab] = useState("placas"); // Minhas Placas = aba principal (até segunda ordem)
+  const [tab, setTab] = useState("dashboard"); // Dashboard = aba principal (funil do ranking, 2026-05-23)
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Sistema de placas
   const [myPlates, setMyPlates] = useState([]);
@@ -440,7 +440,7 @@ export default function StarTouch({ user, onLogout }) {
   const biz = bizInfo?.name || user?.biz || "Meu Negócio";
   const isPro = bizInfo?.plan === "pro";
   const isAdmin = user?.email?.toLowerCase() === "ricardo.fiorini@gmail.com";
-  const canSeeRanking = isAdmin || isPro;
+  const canSeeRanking = true; // ranking liberado no plano free (2026-05-23)
 
   // Ranking competitivo (recurso Pro): carrega só pra quem pode ver, na aba Painel
   useEffect(() => {
@@ -754,15 +754,8 @@ export default function StarTouch({ user, onLogout }) {
             };
             return (
             <div style={{animation:"fadeUp 0.4s ease"}}>
-              {/* Métricas */}
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:14,marginBottom:18}}>
-                {statCard(<TrendingUp size={19} color="#1A73E8"/>, totalTaps, "Toques nas placas", "Total acumulado", {bg:"#E8F0FE"})}
-                {statCard(<CreditCard size={19} color="#1A73E8"/>, activePlates, activePlates===1?"Placa ativa":"Placas ativas", "Vinculadas ao seu negócio", {bg:"#E8F0FE"})}
-                {statCard(<Star size={19} color="#f59e0b" fill="#f59e0b"/>, bizInfo?.rating ? Number(bizInfo.rating).toFixed(1) : "—", "Nota no Google", bizInfo?"sua reputação atual":"conecte seu negócio", {bg:"#FEF7E0"})}
-                {statCard(<MessageSquare size={19} color="#34A853"/>, bizInfo?.total ?? "—", "Avaliações no Google", "total recebidas", {bg:"#E6F4EA"})}
-              </div>
 
-              {/* Ranking competitivo (Pro) */}
+              {/* Ranking competitivo — topo do funil (liberado no free) */}
               {(() => {
                 const rankBadge = (pos) => {
                   const top3 = pos<=3;
@@ -840,6 +833,40 @@ export default function StarTouch({ user, onLogout }) {
                   </div>
                 );
               })()}
+
+              {/* Vitrine de produtos — adquirir hardware (logo abaixo do ranking) */}
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,marginBottom:18}}>
+                <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,flexWrap:"wrap",marginBottom:16}}>
+                  <div>
+                    <div style={{fontSize:15,fontWeight:700,color:"#202124",display:"flex",alignItems:"center",gap:8}}><Zap size={17} color="#1A73E8"/> Suba no ranking com os produtos StarTouch</div>
+                    <div style={{fontSize:12.5,color:"#5F6368",marginTop:3}}>Quanto mais avaliações você coleta, mais ultrapassa a concorrência. Escolha como captar:</div>
+                  </div>
+                  <a href="/kit" style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:600,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:7,flexShrink:0}}><CreditCard size={16}/> Adquirir produtos</a>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12}}>
+                  {[
+                    {img:"/gadget-placa.png",title:"Placa de balcão"},
+                    {img:"/gadget-cartao.png",title:"Cartão NFC"},
+                    {img:"/gadget-pulseira.png",title:"Pulseira NFC"},
+                    {img:"/gadget-adesivo.png",title:"Adesivo NFC"},
+                  ].map((p,i)=>(
+                    <a key={i} href="/kit" style={{textDecoration:"none",background:"#F8F9FA",border:"1px solid #e5e7eb",borderRadius:12,overflow:"hidden",display:"flex",flexDirection:"column"}}>
+                      <div style={{height:120,display:"flex",alignItems:"center",justifyContent:"center",background:"#fff",borderBottom:"1px solid #f1f3f4"}}>
+                        <img src={p.img} alt={p.title} style={{width:"100%",height:"100%",objectFit:"contain",padding:10}}/>
+                      </div>
+                      <div style={{padding:"10px 12px",fontSize:13,fontWeight:600,color:"#202124",textAlign:"center"}}>{p.title}</div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Métricas */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:14,marginBottom:18}}>
+                {statCard(<TrendingUp size={19} color="#1A73E8"/>, totalTaps, "Toques nas placas", "Total acumulado", {bg:"#E8F0FE"})}
+                {statCard(<CreditCard size={19} color="#1A73E8"/>, activePlates, activePlates===1?"Placa ativa":"Placas ativas", "Vinculadas ao seu negócio", {bg:"#E8F0FE"})}
+                {statCard(<Star size={19} color="#f59e0b" fill="#f59e0b"/>, bizInfo?.rating ? Number(bizInfo.rating).toFixed(1) : "—", "Nota no Google", bizInfo?"sua reputação atual":"conecte seu negócio", {bg:"#FEF7E0"})}
+                {statCard(<MessageSquare size={19} color="#34A853"/>, bizInfo?.total ?? "—", "Avaliações no Google", "total recebidas", {bg:"#E6F4EA"})}
+              </div>
 
               {/* Atalhos */}
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,marginBottom:18}}>

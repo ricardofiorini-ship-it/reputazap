@@ -201,7 +201,7 @@
     <button class="biz-change" type="button" onclick="goToStep(2)">Trocar</button>
   </div>
   <h2 id="screen1Title">Crie sua conta</h2>
-  <p class="sub" id="screen1Sub">Falta pouco pra ativar seu sistema</p>
+  <p class="sub" id="screen1Sub">Cadastre-se para ver sua posição vs. concorrentes no Google</p>
   <div class="google-btn-wrap" id="googleBtnWrap"></div>
   <div class="auth-divider">ou</div>
   <div class="form-group"><label>Seu nome</label><input type="text" id="userName" placeholder="João Silva"/></div>
@@ -569,7 +569,7 @@ async function searchBusiness(){
     const res=await fetch(`/api/searchbiz?q=${encodeURIComponent(query+" "+city)}`);
     const data=await res.json();
     if(!data.results?.length){
-      status.textContent="Negócio não encontrado. Tente com outro nome ou cidade.";
+      status.innerHTML='Não encontramos sua empresa no Google. Tente outro nome ou cidade. Se você ainda não tem um perfil no Google Meu Negócio, <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#1A73E8;font-weight:600;text-decoration:underline">crie um aqui</a> antes de continuar.';
       status.className="status-msg error";
     } else {
       status.textContent="";
@@ -726,14 +726,12 @@ async function goToSuccess(){
   document.getElementById("successBizName").textContent=state.business?.name||"Negócio";
   document.getElementById("successPlan").textContent="Plano Gratuito" + (state.tagCount > 0 ? ` · ${state.tagCount} placa(s) ativada(s)` : "");
 
-  // Web vai pra orientação /comece; NFC já gravou placa, vai direto pro dashboard
-  const dest = state.from === "web" ? "/comece" : "/app";
+  // Todos caem no dashboard (funil do ranking): web e NFC vao pra /app
+  const dest = "/app";
   const cta = document.getElementById("successCta");
   cta.href = dest;
-  cta.textContent = state.from === "web" ? "Continuar →" : "Acessar meu dashboard →";
-  document.getElementById("successSub").textContent = state.from === "web"
-    ? "Tudo certo. Vamos te orientar a começar."
-    : "Tudo certo. Vamos te levar pro seu dashboard.";
+  cta.textContent = "Ver meu resultado →";
+  document.getElementById("successSub").textContent = "Tudo certo! Veja agora sua posição vs. concorrentes no Google.";
   document.getElementById("successRedirectMsg").textContent = "Redirecionando automaticamente em 3 segundos...";
 
   goToStep(5);

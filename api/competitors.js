@@ -58,10 +58,8 @@ export default async function handler(req, res) {
     return res.status(404).json({ error: "Nenhum negócio com Google vinculado" });
   }
 
-  // 3. Gate: admin ou pro
-  if (!isAdmin(user) && biz.plan !== "pro") {
-    return res.status(403).json({ error: "Recurso Pro" });
-  }
+  // 3. Ranking liberado no plano FREE (decisao 2026-05-23). Requer apenas
+  //    negocio com Google vinculado (place_id ja checado acima).
 
   const radius = Math.min(parseInt(req.query.radius, 10) || 3000, 25000);
 
