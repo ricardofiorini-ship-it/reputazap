@@ -609,6 +609,11 @@ function showResults(results){
       <div class="result-addr">⭐ ${r.rating||"?"} · ${r.total||0} avaliações · ${r.address}</div>
     </div>
   `).join("");
+  // Rola suave ate os resultados — eles apareciam abaixo da dobra e o usuario
+  // achava que a busca nao tinha encontrado nada.
+  requestAnimationFrame(()=>{
+    container.scrollIntoView({ behavior:"smooth", block:"center" });
+  });
 }
 
 function selectBusiness(biz){
