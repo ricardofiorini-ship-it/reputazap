@@ -297,6 +297,7 @@ export default function StarTouch({ user, onLogout }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchCity, setSearchCity] = useState("");
   const [searchState, setSearchState] = useState("");
+  const [searchNeighborhood, setSearchNeighborhood] = useState("");
   const [searchActivity, setSearchActivity] = useState(() => localStorage.getItem("rz_activity") || "");
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -496,7 +497,7 @@ export default function StarTouch({ user, onLogout }) {
 
   async function doSearch() {
     if (!searchQuery.trim()) return;
-    const q = `${searchQuery.trim()} ${searchCity.trim()} ${searchState.trim()}`.replace(/\s+/g, " ").trim();
+    const q = `${searchQuery.trim()} ${searchNeighborhood.trim()} ${searchCity.trim()} ${searchState.trim()}`.replace(/\s+/g, " ").trim();
     setSearchLoading(true);
     setSearchResults([]);
     try {
@@ -1717,6 +1718,13 @@ export default function StarTouch({ user, onLogout }) {
                         style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none",fontFamily:"'General Sans',sans-serif"}}/>
                     </div>
                     <div>
+                      <label style={{fontSize:11,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:4}}>Bairro ou CEP <span style={{color:"#9ca3af",fontWeight:400}}>(crava a unidade certa)</span></label>
+                      <input value={searchNeighborhood} onChange={e=>setSearchNeighborhood(e.target.value)}
+                        onKeyDown={e=>e.key==="Enter"&&doSearch()}
+                        placeholder="ex: Pinheiros ou 05422-010"
+                        style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none",fontFamily:"'General Sans',sans-serif"}}/>
+                    </div>
+                    <div>
                       <label style={{fontSize:11,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:4}}>Estado (UF) <span style={{color:"#9ca3af",fontWeight:400}}>(recomendado)</span></label>
                       <input value={searchState} onChange={e=>setSearchState(e.target.value.toUpperCase().slice(0,2))}
                         onKeyDown={e=>e.key==="Enter"&&doSearch()}
@@ -1730,7 +1738,7 @@ export default function StarTouch({ user, onLogout }) {
                         style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none",fontFamily:"'General Sans',sans-serif"}}/>
                     </div>
                     <div style={{display:"flex",alignItems:"flex-start",gap:7,fontSize:11.5,color:"#6b7280",lineHeight:1.5,background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"9px 12px"}}>
-                      <span>📍</span><span>Cidade, estado e atividade ajudam a achar o negócio certo no Google e a comparar com os concorrentes certos da sua região.</span>
+                      <span>📍</span><span>Tem mais de uma unidade? O <strong>CEP</strong> crava a certa. Cidade, estado e atividade ajudam a achar o negócio no Google e a comparar com os concorrentes certos da região.</span>
                     </div>
                     <button onClick={doSearch} disabled={searchLoading||!searchQuery.trim()} className="bg"
                       style={{background:"#00C49A",color:"#fff",border:"none",borderRadius:10,padding:"11px 20px",fontSize:13,fontWeight:600,cursor:searchLoading?"wait":"pointer",opacity:searchLoading||!searchQuery.trim()?0.6:1}}>
