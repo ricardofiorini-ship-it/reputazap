@@ -62,6 +62,7 @@ export default async function handler(req, res) {
   //    negocio com Google vinculado (place_id ja checado acima).
 
   const radius = Math.min(parseInt(req.query.radius, 10) || 3000, 25000);
+  const keyword = (req.query.keyword || "").trim(); // categoria informada pelo cliente (opcional)
 
   try {
     // 4. Detalhes do meu negócio: localização + categoria + nota
@@ -83,19 +84,32 @@ export default async function handler(req, res) {
     const broad = myTypes.filter(t => !GENERIC_TYPES.has(t) && BROAD_TYPES.has(t));
     const matchType = specific[0] || broad[0] || null;
 
-    // 5. Nearby Search por perto, restringindo pela categoria do negócio
+    // 5. Nearby Search por perto. Se o cliente informou a categoria (keyword),
+    //    usamos busca por palavra-chave — resolve negocios mal-categorizados no
+    //    Google (ex: grafica cadastrada como "eletronicos"). Senao, caimos no
+    //    tipo detectado pelo Google.
+    const useKeyword = keyword.length >= 2;
     let nearbyUrl =
       `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&language=pt-BR&key=${API_KEY}`;
-    if (matchType) nearbyUrl += `&type=${matchType}`;
+    let comparisonLabel;
+    if (useKeyword) {
+      nearbyUrl += `&keyword=${encodeURIComponent(keyword)}`;
+      comparisonLabel = keyword;
+    } else if (matchType) {
+      nearbyUrl += `&type=${matchType}`;
+      comparisonLabel = matchType;
+    } else {
+      comparisonLabel = null;
+    }
 
     const nearRes = await fetch(nearbyUrl);
     const near = await nearRes.json();
     const rawResults = near.results || [];
 
-    // Só compara quem REALMENTE compartilha a categoria específica do negócio.
-    // (o filtro `type` do Nearby é frouxo e mistura ramos; isto é o que evita
-    // comparar bicicletaria com café.)
-    const sameCategory = (p) => !matchType || (p.types || []).includes(matchType);
+    // Com keyword confiamos na relevancia da busca do Google. Sem keyword, so
+    // compara quem compartilha o tipo especifico do negocio (evita comparar
+    // bicicletaria com cafe quando caimos no tipo do Google).
+    const sameCategory = (p) => useKeyword || !matchType || (p.types || []).includes(matchType);
 
     // 6. Monta lista de concorrentes (com nota), incluindo o próprio negócio
     const byId = new Map();
@@ -124,7 +138,7 @@ export default async function handler(req, res) {
       return res.json({
         enough: false,
         total,
-        category: matchType,
+        category: comparisonLabel,
         radius,
         me: byId.get(biz.place_id)
       });
@@ -148,7 +162,7 @@ export default async function handler(req, res) {
     return res.json({
       enough: true,
       total,
-      category: matchType,
+      category: comparisonLabel,
       radius,
       me: byId.get(biz.place_id),
       rank_google: rankGoogle,

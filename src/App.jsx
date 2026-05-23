@@ -293,6 +293,8 @@ export default function StarTouch({ user, onLogout }) {
   const [ranking, setRanking] = useState(null);
   const [rankingLoading, setRankingLoading] = useState(false);
   const [rankingError, setRankingError] = useState(false);
+  const [catEditing, setCatEditing] = useState(false);
+  const [catInput, setCatInput] = useState("");
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
@@ -454,6 +456,22 @@ export default function StarTouch({ user, onLogout }) {
       .then(d => { setRanking(d); setRankingLoading(false); })
       .catch(err => { setRankingError(err.message || true); setRankingLoading(false); });
   }, [tab, canSeeRanking, bizInfo?.place_id]);
+
+  // Recalcula o ranking usando a categoria/keyword informada pelo cliente
+  function applyCategory(keyword) {
+    const kw = (keyword || "").trim();
+    if (!kw) return;
+    const token = localStorage.getItem("rz_token");
+    if (!token) return;
+    setCatEditing(false);
+    setRanking(null);
+    setRankingLoading(true);
+    setRankingError(false);
+    fetch(`/api/competitors?keyword=${encodeURIComponent(kw)}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(async r => { if (r.ok) return r.json(); const e = await r.json().catch(()=>({})); throw new Error(e.error || `Erro ${r.status}`); })
+      .then(d => { setRanking(d); setRankingLoading(false); })
+      .catch(err => { setRankingError(err.message || true); setRankingLoading(false); });
+  }
 
   async function doSearch() {
     if (!searchQuery.trim()) return;
@@ -769,8 +787,23 @@ export default function StarTouch({ user, onLogout }) {
                         <div style={{fontSize:15,fontWeight:700,color:"#202124"}}>Sua posição vs concorrentes</div>
                         {isAdmin&&!isPro&&<span style={{fontSize:9,fontWeight:700,letterSpacing:"0.05em",background:"#E8F0FE",color:"#1A73E8",borderRadius:5,padding:"2px 7px"}}>ADMIN</span>}
                       </div>
-                      <div style={{fontSize:12.5,color:"#5F6368",marginBottom:16}}>
-                        Negócios da mesma categoria{ranking?.category?<> (<span style={{fontFamily:"monospace"}}>{ranking.category}</span>)</>:""}{ranking?.radius?` num raio de ${(ranking.radius/1000).toFixed(0)} km`:" por perto"}.
+                      <div style={{marginBottom:16}}>
+                        {catEditing ? (
+                          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                            <input autoFocus value={catInput} onChange={e=>setCatInput(e.target.value)}
+                              onKeyDown={e=>{if(e.key==="Enter")applyCategory(catInput);if(e.key==="Escape")setCatEditing(false);}}
+                              placeholder="ex: gráfica rápida"
+                              style={{flex:"1 1 180px",minWidth:0,border:"1.5px solid #1A73E8",borderRadius:8,padding:"7px 10px",fontSize:13,color:"#202124",outline:"none",fontFamily:"inherit"}}/>
+                            <button onClick={()=>applyCategory(catInput)} style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:8,padding:"7px 14px",fontSize:12.5,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Aplicar</button>
+                            <button onClick={()=>setCatEditing(false)} style={{background:"none",border:"none",color:"#5F6368",fontSize:12.5,cursor:"pointer",fontFamily:"inherit"}}>cancelar</button>
+                          </div>
+                        ) : (
+                          <div style={{fontSize:12.5,color:"#5F6368",display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                            <span>Comparando como <strong style={{color:"#202124"}}>{ranking?.category || "categoria do Google"}</strong>{ranking?.radius?` · raio de ${(ranking.radius/1000).toFixed(0)} km`:""}</span>
+                            <button onClick={()=>{setCatInput(ranking?.category||"");setCatEditing(true);}} style={{background:"none",border:"none",color:"#1A73E8",fontSize:12.5,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:3,padding:0}}>✎ ajustar</button>
+                          </div>
+                        )}
+                        <div style={{fontSize:11.5,color:"#9AA0A6",marginTop:5}}>Categoria errada? Ajuste pra comparar com os concorrentes certos.</div>
                       </div>
                       {rankingLoading&&<div style={{fontSize:13,color:"#5F6368",padding:"12px 0"}}>Calculando sua posição…</div>}
                       {rankingError&&<div style={{fontSize:13,color:"#C5221F",padding:"12px 0"}}>Não foi possível carregar o ranking agora.{typeof rankingError==="string"?` (${rankingError})`:""}</div>}
