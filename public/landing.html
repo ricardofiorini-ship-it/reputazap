@@ -3521,58 +3521,85 @@
   </div>
 </section>
 
-<!-- FEATURES — Muito além das avaliações (light, Google Business redesign) -->
-<section class="features-section" id="funcionalidades">
-  <div class="features-inner">
-    <h2 class="features-h2">Muito além das <span class="accent">avaliações<span class="accent-dot">.</span></span></h2>
-    <p class="features-sub">Transforme cada toque em uma nova oportunidade de relacionamento com seu cliente.</p>
-    <div class="features-grid">
-      <article class="feature-card">
-        <div class="feature-icon feature-icon--google" aria-hidden="true">
-          <img src="/google-g-logo.webp" alt="" width="36" height="36"/>
+<!-- COMO FUNCIONA — passo a passo (azul; substitui "Muito alem das avaliacoes") -->
+<style>
+  .howitworks-section { background: var(--st-bg-primary); padding: 72px 24px 80px; }
+  @media (min-width: 1024px) { .howitworks-section { padding: 96px 32px 104px; } }
+  .howitworks-inner { max-width: 1200px; margin: 0 auto; text-align: center; }
+  .howitworks-h2 {
+    font-family: var(--st-font-sans);
+    font-size: clamp(30px, 5vw, 44px);
+    font-weight: 800; line-height: 1.12; letter-spacing: -0.02em;
+    color: var(--st-black-strong); margin: 0 0 16px; text-wrap: balance;
+  }
+  .howitworks-h2 .accent { color: var(--st-blue-primary); }
+  .howitworks-h2 .accent-dot { color: var(--st-blue-primary); }
+  .howitworks-sub {
+    font-family: var(--st-font-sans); font-size: 17px; font-weight: 400;
+    color: var(--st-gray-text); line-height: 1.6; margin: 0 auto 56px;
+    max-width: 580px; text-wrap: balance;
+  }
+  @media (min-width: 1024px) { .howitworks-sub { font-size: 18px; margin-bottom: 64px; } }
+  .howitworks-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+  @media (min-width: 640px) { .howitworks-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .howitworks-grid { grid-template-columns: repeat(4, 1fr); } }
+  .howitworks-card {
+    background: var(--st-bg-secondary); border: 1px solid var(--st-gray-light);
+    border-radius: 16px; padding: 32px 24px; text-align: center;
+    display: flex; flex-direction: column; align-items: center;
+    transition: border-color .15s, box-shadow .15s, transform .15s;
+  }
+  .howitworks-card:hover { border-color: var(--st-blue-primary); box-shadow: var(--st-shadow-md); transform: translateY(-2px); }
+  .howitworks-icon {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: var(--st-blue-soft); color: var(--st-blue-primary);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 22px; flex-shrink: 0;
+  }
+  .howitworks-icon svg { width: 40px; height: 40px; }
+  .howitworks-title {
+    font-family: var(--st-font-sans); font-size: 18px; font-weight: 700;
+    color: var(--st-black-strong); margin: 0 0 10px; letter-spacing: -0.01em;
+  }
+  .howitworks-desc {
+    font-family: var(--st-font-sans); font-size: 14px; font-weight: 400;
+    color: var(--st-gray-text); line-height: 1.5; margin: 0; text-wrap: pretty;
+  }
+</style>
+<section class="howitworks-section" id="funcionalidades">
+  <span id="como-funciona" aria-hidden="true"></span>
+  <div class="howitworks-inner">
+    <h2 class="howitworks-h2">Como <span class="accent">funciona<span class="accent-dot">.</span></span></h2>
+    <p class="howitworks-sub">Em 4 passos, sua empresa começa a coletar mais avaliações e subir no Google.</p>
+    <div class="howitworks-grid">
+      <article class="howitworks-card">
+        <div class="howitworks-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
         </div>
-        <h3 class="feature-title">Mais avaliações no Google</h3>
-        <p class="feature-desc">Aproxime e facilite para que seus clientes avaliem você em segundos.</p>
+        <h3 class="howitworks-title">Veja sua posição</h3>
+        <p class="howitworks-desc">Descubra como você está em relação aos concorrentes da sua região.</p>
       </article>
-      <article class="feature-card">
-        <div class="feature-icon feature-icon--whatsapp" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20.52 3.48a12.04 12.04 0 0 0-17.03 0 11.96 11.96 0 0 0-2.04 13.94L0 24l6.78-1.78A11.96 11.96 0 0 0 12 24c6.62 0 12-5.38 12-12 0-3.21-1.25-6.23-3.48-8.52zM12 21.81a9.83 9.83 0 0 1-5-1.37l-.36-.21-3.69.97.99-3.6-.23-.37A9.78 9.78 0 0 1 2.19 12 9.83 9.83 0 0 1 12 2.19c2.62 0 5.08 1.02 6.93 2.87A9.74 9.74 0 0 1 21.81 12 9.83 9.83 0 0 1 12 21.81zm5.39-7.36c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.66.15-.2.3-.76.96-.94 1.16-.17.2-.34.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.05-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.49.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.91-2.18-.24-.58-.49-.5-.66-.51l-.56-.01c-.2 0-.51.07-.78.37-.27.3-1.02 1-1.02 2.44 0 1.44 1.04 2.83 1.19 3.03.15.2 2.06 3.14 4.98 4.4.7.3 1.24.48 1.66.62.7.22 1.34.19 1.84.12.56-.08 1.75-.71 2-1.39.25-.68.25-1.27.17-1.39-.07-.12-.27-.2-.57-.34z"/>
-          </svg>
+      <article class="howitworks-card">
+        <div class="howitworks-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
         </div>
-        <h3 class="feature-title">Converse no WhatsApp</h3>
-        <p class="feature-desc">Inicie conversas reais e fortaleça o relacionamento com seus clientes.</p>
+        <h3 class="howitworks-title">Adquira seus produtos</h3>
+        <p class="howitworks-desc">Placas inteligentes com NFC e QR Code prontas pra usar.</p>
       </article>
-      <article class="feature-card">
-        <div class="feature-icon feature-icon--blue" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="11" width="18" height="10" rx="2"/>
-            <circle cx="12" cy="5" r="2"/>
-            <path d="M12 7v4"/>
-            <circle cx="8.5" cy="16" r="0.6" fill="currentColor"/>
-            <circle cx="15.5" cy="16" r="0.6" fill="currentColor"/>
-          </svg>
+      <article class="howitworks-card">
+        <div class="howitworks-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
         </div>
-        <h3 class="feature-title">Atendimento inteligente</h3>
-        <p class="feature-desc">Automatize respostas e organize contatos de forma simples e eficiente.</p>
+        <h3 class="howitworks-title">Capture avaliações</h3>
+        <p class="howitworks-desc">Cliente toca o celular e avalia no Google em 30 segundos.</p>
       </article>
-      <article class="feature-card">
-        <div class="feature-icon feature-icon--blue" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="20" x2="12" y2="10"/>
-            <line x1="18" y1="20" x2="18" y2="4"/>
-            <line x1="6" y1="20" x2="6" y2="14"/>
-            <line x1="3" y1="20" x2="21" y2="20"/>
-          </svg>
+      <article class="howitworks-card">
+        <div class="howitworks-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 9-5 5-4-4-3 3"/></svg>
         </div>
-        <h3 class="feature-title">Acompanhe resultados</h3>
-        <p class="feature-desc">Veja métricas, avaliações e interações em um só lugar, de forma clara.</p>
+        <h3 class="howitworks-title">Acompanhe sua evolução</h3>
+        <p class="howitworks-desc">Painel com métricas, reviews e insights em tempo real.</p>
       </article>
-    </div>
-    <div class="features-badges">
-      <span class="features-badge"><span class="features-badge-check">✓</span>Compatível com Google</span>
-      <span class="features-badge"><span class="features-badge-check">✓</span>Sem bloqueios artificiais</span>
-      <span class="features-badge"><span class="features-badge-check">✓</span>Resultados que geram impacto</span>
     </div>
   </div>
 </section>
