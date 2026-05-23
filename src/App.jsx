@@ -297,7 +297,7 @@ export default function StarTouch({ user, onLogout }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchCity, setSearchCity] = useState("");
   const [searchState, setSearchState] = useState("");
-  const [searchNeighborhood, setSearchNeighborhood] = useState("");
+  const [searchCep, setSearchCep] = useState("");
   const [searchActivity, setSearchActivity] = useState(() => localStorage.getItem("rz_activity") || "");
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -497,7 +497,7 @@ export default function StarTouch({ user, onLogout }) {
 
   async function doSearch() {
     if (!searchQuery.trim()) return;
-    const q = `${searchQuery.trim()} ${searchNeighborhood.trim()} ${searchCity.trim()} ${searchState.trim()}`.replace(/\s+/g, " ").trim();
+    const q = `${searchQuery.trim()} ${searchCep.trim()} ${searchCity.trim()} ${searchState.trim()}`.replace(/\s+/g, " ").trim();
     setSearchLoading(true);
     setSearchResults([]);
     try {
@@ -1718,10 +1718,10 @@ export default function StarTouch({ user, onLogout }) {
                         style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none",fontFamily:"'General Sans',sans-serif"}}/>
                     </div>
                     <div>
-                      <label style={{fontSize:11,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:4}}>Bairro ou CEP <span style={{color:"#9ca3af",fontWeight:400}}>(crava a unidade certa)</span></label>
-                      <input value={searchNeighborhood} onChange={e=>setSearchNeighborhood(e.target.value)}
+                      <label style={{fontSize:11,fontWeight:600,color:"#9ca3af",display:"block",marginBottom:4}}>CEP <span style={{color:"#9ca3af",fontWeight:400}}>(crava a unidade certa)</span></label>
+                      <input value={searchCep} onChange={e=>{const d=e.target.value.replace(/\D/g,"").slice(0,8);setSearchCep(d.length>5?d.slice(0,5)+"-"+d.slice(5):d);}}
                         onKeyDown={e=>e.key==="Enter"&&doSearch()}
-                        placeholder="ex: Pinheiros ou 05422-010"
+                        placeholder="00000-000" inputMode="numeric" maxLength={9}
                         style={{width:"100%",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 14px",color:"#0f172a",fontSize:13,outline:"none",fontFamily:"'General Sans',sans-serif"}}/>
                     </div>
                     <div>
