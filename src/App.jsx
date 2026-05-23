@@ -1019,7 +1019,7 @@ export default function StarTouch({ user, onLogout }) {
                 <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:14}}>
                   <div>
                     <div style={{fontSize:15,fontWeight:700,color:"#202124"}}>Últimas avaliações no Google</div>
-                    {recentReviews.length>0&&<div style={{fontSize:11.5,color:"#9AA0A6",marginTop:2}}>As últimas {recentReviews.length} avaliações que sua empresa recebeu no Google</div>}
+                    {recentReviews.length>0&&<div style={{fontSize:11.5,color:"#9AA0A6",marginTop:2}}>Essas são as últimas {recentReviews.length} avaliações que você recebeu no Google.</div>}
                   </div>
                   {showAll&&recentReviews.length>0&&<button onClick={()=>setTab("avaliacoes")} style={{background:"none",border:"none",color:"#1A73E8",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:4,flexShrink:0}}>Ver todas <ArrowRight size={14}/></button>}
                 </div>
@@ -1033,11 +1033,38 @@ export default function StarTouch({ user, onLogout }) {
                       <span style={{fontSize:12.5,color:"#5F6368",fontWeight:600}}>média das últimas {recentReviews.length} avaliações</span>
                       {trend && overall!=null && (
                         <span style={{fontSize:12,color:tc.fg,fontWeight:600,marginLeft:"auto",display:"inline-flex",alignItems:"center",gap:4}}>
-                          {trend==="down" && <>↓ abaixo da média geral ({overall.toFixed(1)}) — fique atento</>}
+                          {trend==="down" && <>↓ abaixo da média geral ({overall.toFixed(1)})</>}
                           {trend==="up" && <>↑ acima da média geral ({overall.toFixed(1)})</>}
                           {trend==="flat" && <>em linha com a média geral ({overall.toFixed(1)})</>}
                         </span>
                       )}
+                    </div>
+                  );
+                })()}
+                {recentReviews.length>0 && (() => {
+                  let emoji, bg, bd, fg, head, body;
+                  if (trend === "down") {
+                    emoji="📉"; bg="#FEF7E0"; bd="#FEEFC3"; fg="#B06000";
+                    head="Hora de dar uma atenção extra.";
+                    body="Leia os comentários abaixo e responda quem saiu insatisfeito — uma boa resposta vira ponto a seu favor pra quem lê. E foque em juntar avaliações novas: é o que faz a média voltar a subir.";
+                  } else if (trend === "up") {
+                    emoji="🎉"; bg="#E6F4EA"; bd="#CEEAD6"; fg="#137333";
+                    head="Você está numa boa fase — aproveite!";
+                    body="Esse é o melhor momento pra pedir ainda mais avaliações. Reputação em alta puxa mais reputação: quanto mais você coleta agora, mais difícil fica te alcançar.";
+                  } else {
+                    emoji="⭐"; bg="#E8F0FE"; bd="#D2E3FC"; fg="#1A73E8";
+                    head="Bom e estável — dá pra subir mais.";
+                    body="O caminho pra subir de patamar é volume: cada nova avaliação positiva empurra sua nota pra cima. Mantenha seus dispositivos sempre à vista do cliente.";
+                  }
+                  return (
+                    <div style={{background:bg,border:`1px solid ${bd}`,borderRadius:12,padding:"13px 15px",marginBottom:16}}>
+                      <div style={{display:"flex",gap:9,alignItems:"flex-start"}}>
+                        <span style={{fontSize:18,lineHeight:1.3}}>{emoji}</span>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:13.5,fontWeight:700,color:fg,marginBottom:4,lineHeight:1.35}}>{head}</div>
+                          <div style={{fontSize:12.5,color:"#3c4043",lineHeight:1.5}}>{body}</div>
+                        </div>
+                      </div>
                     </div>
                   );
                 })()}
