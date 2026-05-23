@@ -3428,6 +3428,95 @@
   </div>
 </section>
 
+<!-- BRANDS — carrossel de marcas (prova social) | LOGOS FICTICIOS: trocar pelos reais -->
+<style>
+  .brands-section {
+    background: var(--st-bg-secondary);
+    border-top: 1px solid var(--st-gray-light);
+    border-bottom: 1px solid var(--st-gray-light);
+    padding: 36px 0;
+    overflow: hidden;
+  }
+  .brands-inner { max-width: 1200px; margin: 0 auto; }
+  .brands-title {
+    text-align: center;
+    font-family: var(--st-font-sans);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--st-gray-text);
+    margin: 0 0 26px;
+    padding: 0 24px;
+  }
+  .brands-marquee {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  }
+  .brands-track {
+    display: flex;
+    width: max-content;
+    animation: brands-scroll 42s linear infinite;
+  }
+  .brands-marquee:hover .brands-track { animation-play-state: paused; }
+  .brand-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    padding: 0 34px;
+    font-family: var(--st-font-sans);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #9AA0A6;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: color .15s, filter .15s;
+  }
+  .brand-item:hover { color: var(--st-black-strong); }
+  .brand-mark {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: #E8EAED;
+    color: #5F6368;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800;
+    flex-shrink: 0;
+  }
+  @keyframes brands-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .brands-track { animation: none; } }
+</style>
+<section class="brands-section" aria-label="Marcas que já confiam na StarTouch">
+  <div class="brands-inner">
+    <p class="brands-title">Empresas que já confiam na StarTouch</p>
+    <div class="brands-marquee">
+      <div class="brands-track">
+        <!-- conjunto 1 -->
+        <span class="brand-item"><span class="brand-mark">C</span>Café Aurora</span>
+        <span class="brand-item"><span class="brand-mark">B</span>Bella Pizza</span>
+        <span class="brand-item"><span class="brand-mark">S</span>Studio Glam</span>
+        <span class="brand-item"><span class="brand-mark">A</span>AutoMax</span>
+        <span class="brand-item"><span class="brand-mark">V</span>VitaClin</span>
+        <span class="brand-item"><span class="brand-mark">M</span>Mercado Sol</span>
+        <span class="brand-item"><span class="brand-mark">P</span>Pulse Fit</span>
+        <span class="brand-item"><span class="brand-mark">L</span>Lummi Pet</span>
+        <!-- conjunto 2 (duplicado p/ loop perfeito) -->
+        <span class="brand-item" aria-hidden="true"><span class="brand-mark">C</span>Café Aurora</span>
+        <span class="brand-item" aria-hidden="true"><span class="brand-mark">B</span>Bella Pizza</span>
+        <span class="brand-item" aria-hidden="true"><span class="brand-mark">S</span>Studio Glam</span>
+        <span class="brand-item" aria-hidden="true"><span class="brand-mark">A</span>AutoMax</span>
+        <span class="brand-item" aria-hidden="true"><span class="brand-mark">V</span>VitaClin</span>
+        <span class="brand-item" aria-hidden="true"><span class="brand-mark">M</span>Mercado Sol</span>
+        <span class="brand-item" aria-hidden="true"><span class="brand-mark">P</span>Pulse Fit</span>
+        <span class="brand-item" aria-hidden="true"><span class="brand-mark">L</span>Lummi Pet</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- FEATURES — Muito além das avaliações (light, Google Business redesign) -->
 <section class="features-section" id="funcionalidades">
   <div class="features-inner">
