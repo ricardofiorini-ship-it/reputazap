@@ -153,6 +153,14 @@ export default async function handler(req, res) {
 
     const rankGoogle = byGoogle.findIndex(p => p.place_id === biz.place_id) + 1;
 
+    // Concorrente UMA posição acima (pra "faltam X avaliações pra passar quem
+    // esta na sua frente"). So o nº de avaliacoes/nota — SEM o nome, pra nao
+    // furar o paywall do plano free.
+    const aheadEntry = rankGoogle > 1 ? byGoogle[rankGoogle - 2] : null;
+    const ahead = aheadEntry
+      ? { reviews: aheadEntry.reviews, rating: aheadEntry.rating }
+      : null;
+
     // 8. Top 5 na ordem estimada do Google, marcando o próprio negócio.
     //    PAYWALL: nome dos concorrentes só pra plano pago. Free ve posicao +
     //    nota + nº de avaliacoes (o "buraco"), mas o NOME fica bloqueado no
@@ -173,6 +181,7 @@ export default async function handler(req, res) {
       radius,
       me: byId.get(biz.place_id),
       rank_google: rankGoogle,
+      ahead,
       names_locked: !paid,
       top
     });

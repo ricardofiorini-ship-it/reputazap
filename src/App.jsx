@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Star, MessageSquare, TrendingUp, Bell, LayoutDashboard, Award, ChevronRight, X, Check, AlertCircle, ThumbsUp, Clock, MapPin, Gift, Smartphone, Settings, ExternalLink, ChevronDown, Link2, ShieldCheck, Building2, ArrowRight, Zap, LogOut, Menu, Copy, CreditCard, Mail } from "lucide-react";
 
 const MOCK_REVIEWS = [
@@ -287,6 +287,8 @@ export default function StarTouch({ user, onLogout }) {
   const [ranking, setRanking] = useState(null);
   const [rankingLoading, setRankingLoading] = useState(false);
   const [rankingError, setRankingError] = useState(false);
+  const [rankDelta, setRankDelta] = useState(null); // {from,to,dir} — "subiu/desceu" desde a última visita (localStorage)
+  const rankCompareRef = useRef(null); // evita reprocessar a mesma medição (StrictMode roda effect 2x)
   const [catEditing, setCatEditing] = useState(false);
   const [catInput, setCatInput] = useState("");
   const [loadingReviews, setLoadingReviews] = useState(true);
@@ -452,6 +454,26 @@ export default function StarTouch({ user, onLogout }) {
       .then(d => { setRanking(d); setRankingLoading(false); })
       .catch(err => { setRankingError(err.message || true); setRankingLoading(false); });
   }, [tab, canSeeRanking, bizInfo?.place_id]);
+
+  // "Você subiu/desceu" (opção A — sem banco): guarda a última posição no navegador e compara
+  // na próxima medição. Só compara dentro da mesma categoria (mudar categoria não vira "queda").
+  useEffect(() => {
+    if (!ranking || !ranking.enough || !bizInfo?.place_id) return;
+    const cur = ranking.rank_google;
+    const cat = ranking.category || "";
+    const sig = `${bizInfo.place_id}|${cat}|${cur}|${ranking.total}`;
+    if (rankCompareRef.current === sig) return; // mesma medição já processada
+    rankCompareRef.current = sig;
+    const key = `rz_lastrank_${bizInfo.place_id}`;
+    let prev = null;
+    try { prev = JSON.parse(localStorage.getItem(key) || "null"); } catch { prev = null; }
+    let delta = null;
+    if (prev && prev.category === cat && typeof prev.rank === "number" && prev.rank !== cur) {
+      delta = { from: prev.rank, to: cur, dir: cur < prev.rank ? "up" : "down" };
+    }
+    setRankDelta(delta);
+    localStorage.setItem(key, JSON.stringify({ rank: cur, total: ranking.total, category: cat, at: Date.now() }));
+  }, [ranking, bizInfo?.place_id]);
 
   // Recalcula o ranking usando a categoria/keyword informada pelo cliente
   function applyCategory(keyword) {
@@ -809,10 +831,66 @@ export default function StarTouch({ user, onLogout }) {
                       )}
                       {ranking&&ranking.enough&&(
                         <>
+                          {rankDelta&&(
+                            <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:14,padding:"10px 13px",borderRadius:10,background:rankDelta.dir==="up"?"#E6F4EA":"#FEF7E0",border:`1px solid ${rankDelta.dir==="up"?"#CEEAD6":"#FEEFC3"}`}}>
+                              <span style={{fontSize:18,lineHeight:1}}>{rankDelta.dir==="up"?"🎉":"📉"}</span>
+                              <div style={{fontSize:13,color:rankDelta.dir==="up"?"#137333":"#B06000",lineHeight:1.4}}>
+                                {rankDelta.dir==="up"
+                                  ? <><strong>Você subiu!</strong> Saiu da #{rankDelta.from} para a #{rankDelta.to} desde a última vez.</>
+                                  : <><strong>Você caiu.</strong> Foi da #{rankDelta.from} para a #{rankDelta.to} desde a última vez.</>}
+                              </div>
+                            </div>
+                          )}
                           <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:5}}>
                             {rankBadge(ranking.rank_google)}<span style={{fontSize:14,color:"#5F6368"}}>de {ranking.total}</span>
                           </div>
                           <div style={{fontSize:12.5,color:"#5F6368",marginBottom:16,display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}><Award size={13} color="#1A73E8"/> posição estimada na busca do Google <span style={{fontSize:9.5,fontWeight:700,letterSpacing:"0.05em",color:"#5F6368",background:"#F1F3F4",borderRadius:5,padding:"2px 7px"}}>ESTIMATIVA</span></div>
+                          {/* Frase contextual: escolhe topo / meio / embaixo conforme a posicao */}
+                          {(() => {
+                            const pos = ranking.rank_google;
+                            const total = ranking.total;
+                            const myRev = ranking.me?.reviews ?? 0;
+                            const aheadRev = ranking.ahead?.reviews;
+                            const gap = (typeof aheadRev === "number" && aheadRev > myRev) ? (aheadRev - myRev) : null;
+                            const ratio = pos / total;
+                            const scen = pos === 1 ? "leader" : ratio <= 0.30 ? "top" : ratio >= 0.66 ? "bottom" : "mid";
+                            const C = {
+                              leader: { bg:"#E6F4EA", bd:"#CEEAD6", fg:"#137333", emoji:"🏆" },
+                              top:    { bg:"#E6F4EA", bd:"#CEEAD6", fg:"#137333", emoji:"🏆" },
+                              mid:    { bg:"#E8F0FE", bd:"#D2E3FC", fg:"#1A73E8", emoji:"📈" },
+                              bottom: { bg:"#FEF7E0", bd:"#FEEFC3", fg:"#B06000", emoji:"🚀" },
+                            }[scen];
+                            let head, body, step;
+                            if (scen === "leader") {
+                              head = "Você lidera — agora o jogo é não cair.";
+                              body = `Você é o nº 1 de ${total} na sua categoria. Mas topo no Google não é troféu, é assinatura mensal: o algoritmo prioriza quem recebe avaliações novas e constantes. No dia que você para de coletar, os de baixo começam a passar.`;
+                              step = "Mantenha o fluxo de avaliações com seus dispositivos — é o que segura você no topo.";
+                            } else if (scen === "top") {
+                              head = "Você está entre os primeiros — falta pouco pro topo.";
+                              body = `Você é o #${pos} de ${total} da sua categoria — posição forte.` + (gap ? ` Pra alcançar quem está logo na sua frente, faltam só ${gap} avaliações.` : ` Quem recebe avaliações com mais constância assume a liderança.`);
+                              step = "Mantenha o ritmo de avaliações e o nº 1 fica ao seu alcance.";
+                            } else if (scen === "mid") {
+                              head = "Você está no jogo — e o topo está ao alcance.";
+                              body = `Você é o #${pos} de ${total}. Sua reputação é sólida; o que separa você dos primeiros é volume de avaliações — a parte mais fácil de virar.` + (gap ? ` Faltam só ${gap} avaliações pra passar quem está na sua frente.` : "");
+                              step = "Cada cliente que avalia te empurra pra cima. Mais pontos de captura, mais rápido você sobe.";
+                            } else {
+                              head = "Tem muito espaço pra crescer — e dá pra virar rápido.";
+                              body = `Hoje você aparece em #${pos} de ${total}. Na maioria das vezes isso não é qualidade — é volume de avaliações, que é o que o Google mais pesa e o que mais rápido se constrói.` + (gap ? ` Faltam ${gap} avaliações pra passar quem está logo na sua frente.` : " As primeiras dezenas de avaliações são as que mais mexem o ponteiro.");
+                              step = "Comece a coletar avaliações com 1 toque. É assim que se sai do fim da lista.";
+                            }
+                            return (
+                              <div style={{background:C.bg,border:`1px solid ${C.bd}`,borderRadius:12,padding:"13px 15px",marginBottom:16}}>
+                                <div style={{display:"flex",gap:9,alignItems:"flex-start"}}>
+                                  <span style={{fontSize:18,lineHeight:1.3}}>{C.emoji}</span>
+                                  <div style={{flex:1,minWidth:0}}>
+                                    <div style={{fontSize:13.5,fontWeight:700,color:C.fg,marginBottom:4,lineHeight:1.35}}>{head}</div>
+                                    <div style={{fontSize:12.5,color:"#3c4043",lineHeight:1.5}}>{body}</div>
+                                    <div style={{fontSize:12.5,color:"#5F6368",lineHeight:1.5,marginTop:6}}><strong style={{color:"#202124"}}>Próximo passo:</strong> {step}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
                           <div style={{fontSize:11,fontWeight:700,color:"#5F6368",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>Classificação estimada no Google</div>
                           <div style={{display:"flex",flexDirection:"column",gap:2}}>
                             {ranking.top.map((c,i)=>(
@@ -840,8 +918,10 @@ export default function StarTouch({ user, onLogout }) {
                           {ranking.names_locked && (
                             <div style={{marginTop:14,background:"linear-gradient(135deg,#0f172a,#1e293b)",borderRadius:12,padding:"16px 18px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
                               <div style={{flex:"1 1 220px",minWidth:0}}>
-                                <div style={{fontSize:14,fontWeight:700,color:"#fff",marginBottom:3}}>🔒 Quem está na sua frente?</div>
-                                <div style={{fontSize:12.5,color:"#cbd5e1",lineHeight:1.45}}>Você está em #{ranking.rank_google} de {ranking.total}. Desbloqueie os nomes dos concorrentes que estão te passando no Google.</div>
+                                <div style={{fontSize:14,fontWeight:700,color:"#fff",marginBottom:3}}>🔒 {ranking.rank_google===1 ? "Quem está te alcançando?" : "Quem está na sua frente?"}</div>
+                                <div style={{fontSize:12.5,color:"#cbd5e1",lineHeight:1.45}}>{ranking.rank_google===1
+                                  ? "Você lidera hoje — mas veja quem está crescendo mais rápido logo atrás de você."
+                                  : `Você está em #${ranking.rank_google} de ${ranking.total}. Desbloqueie os nomes dos concorrentes que estão te passando no Google.`}</div>
                               </div>
                               <button onClick={goToCheckout} style={{cursor:"pointer",border:"none",fontFamily:"inherit",background:"#1A73E8",color:"#fff",borderRadius:10,padding:"11px 20px",fontSize:13.5,fontWeight:700,whiteSpace:"nowrap",display:"inline-flex",alignItems:"center",gap:7}}><ShieldCheck size={15}/> Desbloquear nomes</button>
                             </div>
