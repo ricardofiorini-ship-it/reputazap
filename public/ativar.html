@@ -253,6 +253,7 @@
     <p class="sub" style="text-align:left;margin-bottom:24px;">Informe seu negócio abaixo e descubra na hora como você está vs. os concorrentes num raio de 3 km.</p>
     <div class="form-group"><label>Nome do negócio</label><input type="text" id="bizSearch" placeholder="Ex: Café Bello Vista" oninput="clearResults()"/></div>
     <div class="form-group"><label>Cidade</label><input type="text" id="bizCity" placeholder="Ex: São Paulo, SP"/></div>
+    <div class="form-group"><label>O que seu negócio faz? <span style="color:#9ca3af;font-weight:400;">— usado pra achar seus concorrentes certos</span></label><input type="text" id="bizActivity" placeholder="Ex: gráfica rápida, cafeteria, salão de beleza"/></div>
     <p class="legal-text">Ao continuar, você concorda com os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>.</p>
     <button class="btn-primary" onclick="searchBusiness()" id="searchBtn">Buscar empresa</button>
     <p class="status-msg" id="searchStatus"></p>
@@ -372,6 +373,7 @@ async function handleGoogleCredential(response) {
       state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
       await saveBiz();
       state.bizSaved = true;
+      if (state.activity) localStorage.setItem("rz_activity", state.activity);
       window.location.href = "/app";
       return;
     }
@@ -536,6 +538,7 @@ async function goToStep2(){
       state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
       await saveBiz();
       state.bizSaved = true;
+      if (state.activity) localStorage.setItem("rz_activity", state.activity);
       window.location.href = "/app";
       return;
     }
@@ -556,6 +559,7 @@ function clearResults(){
 async function searchBusiness(){
   const query=document.getElementById("bizSearch").value.trim();
   const city=document.getElementById("bizCity").value.trim();
+  state.activity=document.getElementById("bizActivity").value.trim(); // atividade -> keyword do ranking
   if(!query){alert("Digite o nome do negócio!");return;}
   const btn=document.getElementById("searchBtn");
   const status=document.getElementById("searchStatus");

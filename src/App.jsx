@@ -451,7 +451,9 @@ export default function StarTouch({ user, onLogout }) {
     if (!token) return;
     setRankingLoading(true);
     setRankingError(false);
-    fetch("/api/competitors", { headers: { Authorization: `Bearer ${token}` } })
+    const act = (localStorage.getItem("rz_activity") || "").trim();
+    const url = act ? `/api/competitors?keyword=${encodeURIComponent(act)}` : "/api/competitors";
+    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       .then(async r => { if (r.ok) return r.json(); const e = await r.json().catch(()=>({})); throw new Error(e.error || `Erro ${r.status}`); })
       .then(d => { setRanking(d); setRankingLoading(false); })
       .catch(err => { setRankingError(err.message || true); setRankingLoading(false); });
@@ -461,6 +463,7 @@ export default function StarTouch({ user, onLogout }) {
   function applyCategory(keyword) {
     const kw = (keyword || "").trim();
     if (!kw) return;
+    localStorage.setItem("rz_activity", kw);
     const token = localStorage.getItem("rz_token");
     if (!token) return;
     setCatEditing(false);
