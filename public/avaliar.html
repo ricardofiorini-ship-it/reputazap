@@ -327,7 +327,9 @@ async function loadBusiness() {
       return;
     }
 
-    show("stepChoice");
+    // Sem menu/peneira: cai direto no Google Meu Negocio (avaliacao).
+    markReviewed();
+    window.location.href = googleUrl;
   } catch {
     showError("Erro ao carregar", "Tente novamente em instantes ou peça um novo link ao estabelecimento.");
   }

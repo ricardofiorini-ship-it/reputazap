@@ -258,12 +258,6 @@ function FeedbackActions({ fb, onReplied, onResolved, onContactExternal, compact
   // WhatsApp / sem contato
   return (
     <div style={{display:"flex",gap:8,paddingLeft:padLeft,flexWrap:"wrap"}}>
-      {fb.contact && (
-        <button onClick={()=>onContactExternal?.(fb.contact)}
-          style={{background:"#0f172a",color:"#fff",border:"none",borderRadius:8,padding:compact?"7px 12px":"9px 14px",fontSize:compact?11:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
-          <Smartphone size={compact?11:12}/> Falar no WhatsApp
-        </button>
-      )}
       <button onClick={()=>onResolved?.(fb.id)}
         style={{background:"#fff",color:"#475569",border:"1px solid #e5e7eb",borderRadius:8,padding:compact?"7px 12px":"9px 14px",fontSize:compact?11:12,fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
         <Check size={compact?11:12}/> Já resolvi
@@ -338,7 +332,7 @@ export default function StarTouch({ user, onLogout }) {
   async function activatePlate() {
     const token = localStorage.getItem("rz_token");
     const code = plateModalCode.trim().toUpperCase();
-    if (!code) { setPlateModalMsg("Digite o código da placa."); return; }
+    if (!code) { setPlateModalMsg("Digite o código do dispositivo."); return; }
     if (!plateModalBiz) { setPlateModalMsg("Selecione o negócio."); return; }
     setPlateModalMsg("Ativando…");
     try {
@@ -351,7 +345,7 @@ export default function StarTouch({ user, onLogout }) {
       if (!res.ok) { setPlateModalMsg(data.error || "Erro ao ativar."); return; }
       setPlateModalOpen(false);
       setPlateModalCode(""); setPlateModalNick(""); setPlateModalMsg("");
-      setToast("Placa ativada!");
+      setToast("Dispositivo ativado!");
       loadPlates();
     } catch { setPlateModalMsg("Erro de conexão."); }
   }
@@ -576,7 +570,7 @@ export default function StarTouch({ user, onLogout }) {
   }
 
   const nav=[
-    {id:"placas",icon:CreditCard,label:"Minhas Placas"},
+    {id:"placas",icon:CreditCard,label:"Meus Dispositivos"},
     {id:"dashboard",icon:LayoutDashboard,label:"Painel"},
     {id:"feedbacks",icon:MessageSquare,label:"Mensagens"},
     {id:"settings",icon:Settings,label:"Configurações"},
@@ -716,15 +710,15 @@ export default function StarTouch({ user, onLogout }) {
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,animation:"fadeUp 0.4s ease"}}>
             <div>
               <div style={{fontSize:24,fontWeight:700,fontFamily:"'General Sans',sans-serif",color:"#0f172a",lineHeight:1.2}}>
-                {tab==="dashboard"&&"Central de reputação"}{tab==="placas"&&"Minhas Placas"}{tab==="feedbacks"&&"Mensagens de clientes"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Placas inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Plano Pro e loja"}{tab==="settings"&&"Configurações"}
+                {tab==="dashboard"&&"Central de reputação"}{tab==="placas"&&"Meus Dispositivos"}{tab==="feedbacks"&&"Mensagens de clientes"}{tab==="link"&&"Meu link"}{tab==="reviews"&&"Avaliações"}{tab==="capturar"&&"Dispositivos inteligentes"}{tab==="wall"&&"Mural"}{tab==="google"&&"Integração Google"}{tab==="plano"&&"Plano Pro e loja"}{tab==="settings"&&"Configurações"}
               </div>
               <div style={{fontSize:13,color:"#9ca3af",marginTop:4}}>
-                {tab==="dashboard"&&"Visão geral das suas placas e avaliações no Google."}
-                {tab==="placas"&&"Gerencie suas placas ativas e ative novas pelo código."}
+                {tab==="dashboard"&&"Visão geral dos seus dispositivos e avaliações no Google."}
+                {tab==="placas"&&"Gerencie seus dispositivos ativos e ative novos pelo código."}
                 {tab==="feedbacks"&&(pendingFeedbacks.length>0?`${pendingFeedbacks.length} mensagem(ns) aguardando resposta`:"Tudo sob controle por enquanto.")}
                 {tab==="link"&&"Seu link de avaliação e QR Code prontos pra compartilhar."}
                 {tab==="reviews"&&`${pending} aguardando resposta`}
-                {tab==="capturar"&&"Placas físicas e cartões NFC pro seu balcão"}
+                {tab==="capturar"&&"Dispositivos NFC pro seu balcão"}
                 {tab==="wall"&&"Suas melhores avaliações"}
                 {tab==="google"&&(googleConnected?"Sincronização ativa":"Configure sua conta Google")}
                 {tab==="plano"&&"Conheça o Plano Pro ou peça sua plaquinha"}
@@ -909,16 +903,16 @@ export default function StarTouch({ user, onLogout }) {
 
               {/* Métricas */}
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:14,marginBottom:18}}>
-                {statCard(<TrendingUp size={19} color="#1A73E8"/>, totalTaps, "Toques nas placas", "Total acumulado", {bg:"#E8F0FE"})}
-                {statCard(<CreditCard size={19} color="#1A73E8"/>, activePlates, activePlates===1?"Placa ativa":"Placas ativas", "Vinculadas ao seu negócio", {bg:"#E8F0FE"})}
+                {statCard(<TrendingUp size={19} color="#1A73E8"/>, totalTaps, "Toques nos dispositivos", "Total acumulado", {bg:"#E8F0FE"})}
+                {statCard(<CreditCard size={19} color="#1A73E8"/>, activePlates, activePlates===1?"Dispositivo ativo":"Dispositivos ativos", "Vinculados ao seu negócio", {bg:"#E8F0FE"})}
                 {statCard(<Star size={19} color="#f59e0b" fill="#f59e0b"/>, bizInfo?.rating ? Number(bizInfo.rating).toFixed(1) : "—", "Nota no Google", bizInfo?"sua reputação atual":"conecte seu negócio", {bg:"#FEF7E0"})}
                 {statCard(<MessageSquare size={19} color="#34A853"/>, bizInfo?.total ?? "—", "Avaliações no Google", "total recebidas", {bg:"#E6F4EA"})}
               </div>
 
               {/* Atalhos */}
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,marginBottom:18}}>
-                {action(<Check size={17} color="#1A73E8"/>, "Ativar nova placa", "Recebeu uma placa? Ative pelo código", ()=>{setTab("placas");setPlateModalOpen(true);setPlateModalMsg("");})}
-                {action(<CreditCard size={17} color="#1A73E8"/>, "Comprar mais placas", "Amplie seus pontos de captura", null, "/kit")}
+                {action(<Check size={17} color="#1A73E8"/>, "Ativar novo dispositivo", "Recebeu um dispositivo? Ative pelo código", ()=>{setTab("placas");setPlateModalOpen(true);setPlateModalMsg("");})}
+                {action(<CreditCard size={17} color="#1A73E8"/>, "Comprar mais dispositivos", "Amplie seus pontos de captura", null, "/kit")}
                 {action(<MessageSquare size={17} color="#1A73E8"/>, "Mensagens de clientes", pendingFeedbacks.length>0?`${pendingFeedbacks.length} aguardando resposta`:"Tudo sob controle", ()=>setTab("feedbacks"))}
               </div>
 
@@ -953,7 +947,7 @@ export default function StarTouch({ user, onLogout }) {
                   <div style={{textAlign:"center",padding:"28px 16px"}}>
                     <div style={{width:48,height:48,borderRadius:"50%",background:"#E8F0FE",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}><Star size={22} color="#1A73E8"/></div>
                     <div style={{fontSize:14,fontWeight:600,color:"#202124",marginBottom:4}}>Suas avaliações aparecerão aqui</div>
-                    <div style={{fontSize:12.5,color:"#5F6368",lineHeight:1.5,maxWidth:340,margin:"0 auto"}}>Conforme os clientes tocam suas placas e avaliam no Google, as avaliações mais recentes aparecem aqui.</div>
+                    <div style={{fontSize:12.5,color:"#5F6368",lineHeight:1.5,maxWidth:340,margin:"0 auto"}}>Conforme os clientes tocam seus dispositivos e avaliam no Google, as avaliações mais recentes aparecem aqui.</div>
                   </div>
                 ) : (
                   <div style={{display:"flex",flexDirection:"column"}}>
@@ -1184,10 +1178,10 @@ export default function StarTouch({ user, onLogout }) {
                   <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:20,display:"flex",flexDirection:"column",gap:12,boxShadow:"0 1px 2px rgba(60,64,67,0.06)"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
                       <div style={{width:38,height:38,borderRadius:10,background:"#f5f3ff",border:"1px solid #ddd6fe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>📶</div>
-                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>NFC / Placas</div>
+                      <div style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>NFC / Dispositivos</div>
                     </div>
                     <div style={{fontSize:13,color:"#6b7280",lineHeight:1.5,flex:1}}>
-                      Grave este link em uma placa ou cartão NFC.
+                      Grave este link no seu dispositivo NFC.
                     </div>
                     <a href="/ativar-placa"
                       style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1.5px solid #e5e7eb",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
@@ -1397,14 +1391,14 @@ export default function StarTouch({ user, onLogout }) {
             <div style={{animation:"fadeUp 0.4s ease"}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap",marginBottom:18}}>
                 <div style={{fontSize:14,color:"#5F6368"}}>
-                  {platesLoading ? "Carregando…" : `${myPlates.length} placa(s) ativa(s)`}
+                  {platesLoading ? "Carregando…" : `${myPlates.length} dispositivo(s) ativo(s)`}
                 </div>
                 <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
                   <button onClick={()=>{setPlateModalOpen(true);setPlateModalMsg("");}} style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:7}}>
-                    <Check size={16}/> Ativar nova placa
+                    <Check size={16}/> Ativar novo dispositivo
                   </button>
                   <a href="/kit" style={{background:"#fff",color:"#1A73E8",border:"1.5px solid #DADCE0",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:600,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:7}}>
-                    <CreditCard size={16}/> Comprar mais
+                    <CreditCard size={16}/> Comprar dispositivo
                   </a>
                 </div>
               </div>
@@ -1412,8 +1406,8 @@ export default function StarTouch({ user, onLogout }) {
               {!platesLoading && myPlates.length===0 && (
                 <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:"40px 24px",textAlign:"center"}}>
                   <div style={{width:56,height:56,borderRadius:"50%",background:"#E8F0FE",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}><CreditCard size={26} color="#1A73E8"/></div>
-                  <div style={{fontSize:16,fontWeight:700,marginBottom:6}}>Nenhuma placa ativa ainda</div>
-                  <div style={{fontSize:13.5,color:"#5F6368",lineHeight:1.5,maxWidth:360,margin:"0 auto 18px"}}>Recebeu sua placa? Ative pelo código impresso nela. Ou compre seu kit StarTouch.</div>
+                  <div style={{fontSize:16,fontWeight:700,marginBottom:6}}>Nenhum dispositivo ativo ainda</div>
+                  <div style={{fontSize:13.5,color:"#5F6368",lineHeight:1.5,maxWidth:360,margin:"0 auto 18px"}}>Recebeu seu dispositivo? Ative pelo código impresso nele. Ou compre seu kit StarTouch.</div>
                   <button onClick={()=>{setPlateModalOpen(true);setPlateModalMsg("");}} style={{background:"#1A73E8",color:"#fff",border:"none",borderRadius:10,padding:"11px 22px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Ativar pelo código</button>
                 </div>
               )}
@@ -1426,7 +1420,7 @@ export default function StarTouch({ user, onLogout }) {
                         <span style={{fontSize:11,fontWeight:700,color:"#137333",background:"#E6F4EA",padding:"3px 9px",borderRadius:6}}>● Ativa</span>
                         <span style={{fontFamily:"monospace",fontSize:12,color:"#5F6368"}}>{p.code}</span>
                       </div>
-                      <div style={{fontSize:16,fontWeight:700,marginBottom:2}}>{p.channel_name||"Placa sem apelido"}</div>
+                      <div style={{fontSize:16,fontWeight:700,marginBottom:2}}>{p.channel_name||"Dispositivo sem apelido"}</div>
                       <div style={{fontSize:12.5,color:"#5F6368",marginBottom:12}}>{({placa_balcao:"Placa de Balcão",placa_mesa:"Placa de Mesa",pulseira_nfc:"Pulseira NFC",adesivo_nfc:"Adesivo NFC"})[p.product_type]||p.product_type}</div>
                       <div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#202124",marginBottom:14}}>
                         <TrendingUp size={15} color="#1A73E8"/> <strong>{p.total_taps||0}</strong> <span style={{color:"#5F6368"}}>toques</span>
@@ -1444,10 +1438,10 @@ export default function StarTouch({ user, onLogout }) {
                 <div onClick={()=>setPlateModalOpen(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",display:"flex",alignItems:"center",justifyContent:"center",padding:20,zIndex:200}}>
                   <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,padding:24,width:"100%",maxWidth:380}}>
                     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-                      <strong style={{fontSize:17}}>Ativar nova placa</strong>
+                      <strong style={{fontSize:17}}>Ativar novo dispositivo</strong>
                       <button onClick={()=>setPlateModalOpen(false)} style={{background:"none",border:"none",cursor:"pointer",color:"#9AA0A6"}}><X size={20}/></button>
                     </div>
-                    <label style={{fontSize:13,fontWeight:600,color:"#5F6368",display:"block",marginBottom:6}}>Código da placa</label>
+                    <label style={{fontSize:13,fontWeight:600,color:"#5F6368",display:"block",marginBottom:6}}>Código do dispositivo</label>
                     <input value={plateModalCode} onChange={e=>setPlateModalCode(e.target.value)} placeholder="STAR-XXXXX" style={{width:"100%",border:"1.5px solid #DADCE0",borderRadius:10,padding:"11px 14px",fontSize:14,fontFamily:"monospace",outline:"none",marginBottom:14,textTransform:"uppercase"}}/>
                     {plateBusinesses.length>1 && (
                       <>
@@ -1460,7 +1454,7 @@ export default function StarTouch({ user, onLogout }) {
                     <label style={{fontSize:13,fontWeight:600,color:"#5F6368",display:"block",marginBottom:6}}>Apelido (opcional)</label>
                     <input value={plateModalNick} onChange={e=>setPlateModalNick(e.target.value)} placeholder="Ex: Balcão Principal" style={{width:"100%",border:"1.5px solid #DADCE0",borderRadius:10,padding:"11px 14px",fontSize:14,outline:"none",marginBottom:14,fontFamily:"inherit"}}/>
                     {plateModalMsg && <div style={{fontSize:13,color:plateModalMsg==="Ativando…"?"#5F6368":"#C5221F",marginBottom:12}}>{plateModalMsg}</div>}
-                    <button onClick={activatePlate} style={{width:"100%",background:"#1A73E8",color:"#fff",border:"none",borderRadius:10,padding:13,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Ativar placa</button>
+                    <button onClick={activatePlate} style={{width:"100%",background:"#1A73E8",color:"#fff",border:"none",borderRadius:10,padding:13,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Ativar dispositivo</button>
                   </div>
                 </div>
               )}
@@ -1472,16 +1466,16 @@ export default function StarTouch({ user, onLogout }) {
                 <div onClick={()=>setLinkModalPlate(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",display:"flex",alignItems:"center",justifyContent:"center",padding:20,zIndex:200}}>
                   <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,padding:24,width:"100%",maxWidth:400}}>
                     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
-                      <strong style={{fontSize:17}}>Link e QR da placa</strong>
+                      <strong style={{fontSize:17}}>Link e QR do dispositivo</strong>
                       <button onClick={()=>setLinkModalPlate(null)} style={{background:"none",border:"none",cursor:"pointer",color:"#9AA0A6"}}><X size={20}/></button>
                     </div>
                     <div style={{fontSize:13,color:"#5F6368",marginBottom:18}}>
-                      {linkModalPlate.channel_name||"Placa"} · <span style={{fontFamily:"monospace"}}>{linkModalPlate.code}</span>
+                      {linkModalPlate.channel_name||"Dispositivo"} · <span style={{fontFamily:"monospace"}}>{linkModalPlate.code}</span>
                     </div>
                     <div style={{display:"flex",justifyContent:"center",marginBottom:16}}>
-                      <img src={qrImg} alt={`QR da placa ${linkModalPlate.code}`} width={200} height={200} style={{borderRadius:12,border:"1px solid #e5e7eb"}}/>
+                      <img src={qrImg} alt={`QR do dispositivo ${linkModalPlate.code}`} width={200} height={200} style={{borderRadius:12,border:"1px solid #e5e7eb"}}/>
                     </div>
-                    <label style={{fontSize:12,fontWeight:600,color:"#5F6368",display:"block",marginBottom:6}}>Link da placa</label>
+                    <label style={{fontSize:12,fontWeight:600,color:"#5F6368",display:"block",marginBottom:6}}>Link do dispositivo</label>
                     <div style={{display:"flex",gap:8,marginBottom:12}}>
                       <input readOnly value={plateLink} onFocus={e=>e.target.select()} style={{flex:1,border:"1.5px solid #DADCE0",borderRadius:10,padding:"10px 12px",fontSize:12.5,fontFamily:"monospace",color:"#202124",outline:"none",background:"#f9fafb"}}/>
                       <button onClick={()=>{navigator.clipboard?.writeText(plateLink);setLinkCopied(true);setTimeout(()=>setLinkCopied(false),2000);}} style={{background:linkCopied?"#E6F4EA":"#1A73E8",color:linkCopied?"#137333":"#fff",border:"none",borderRadius:10,padding:"0 14px",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:6,whiteSpace:"nowrap"}}>
@@ -1492,7 +1486,7 @@ export default function StarTouch({ user, onLogout }) {
                       <ExternalLink size={14}/> Abrir / testar
                     </a>
                     <div style={{fontSize:11.5,color:"#5F6368",lineHeight:1.5,background:"#E8F0FE",borderRadius:10,padding:"10px 12px"}}>
-                      Este é exatamente o endereço gravado no chip NFC e impresso no QR Code da sua placa física. Ele direciona automaticamente pra avaliação no Google.
+                      Este é exatamente o endereço gravado no chip NFC e impresso no QR Code do seu dispositivo físico. Ele direciona automaticamente pra avaliação no Google.
                     </div>
                   </div>
                 </div>
@@ -1958,7 +1952,7 @@ export default function StarTouch({ user, onLogout }) {
                         Seu sistema já está ativo
                       </div>
                       <div style={{fontSize:14,color:"#475569",lineHeight:1.55,maxWidth:520}}>
-                        Clientes já podem avaliar sua empresa em segundos usando link, QR Code ou placas NFC.
+                        Clientes já podem avaliar sua empresa em segundos usando link, QR Code ou dispositivos NFC.
                       </div>
                     </div>
                   </div>
@@ -2023,14 +2017,14 @@ export default function StarTouch({ user, onLogout }) {
                     </a>
                   </div>
 
-                  {/* Card 3: NFC / Placas */}
+                  {/* Card 3: NFC / Dispositivos */}
                   <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:18,padding:22,display:"flex",flexDirection:"column",gap:14}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
                       <div style={{width:40,height:40,borderRadius:11,background:"#f5f3ff",border:"1px solid #ddd6fe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>📶</div>
-                      <div style={{fontSize:15,fontWeight:700,color:"#0f172a"}}>NFC / Placas</div>
+                      <div style={{fontSize:15,fontWeight:700,color:"#0f172a"}}>NFC / Dispositivos</div>
                     </div>
                     <div style={{fontSize:13,color:"#6b7280",lineHeight:1.5,flex:1}}>
-                      Grave este link em uma placa ou cartão NFC.
+                      Grave este link no seu dispositivo NFC.
                     </div>
                     <a href="/ativar-placa"
                       style={{textDecoration:"none",background:"#fff",color:"#0f172a",border:"1.5px solid #e5e7eb",borderRadius:11,padding:"11px 14px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
