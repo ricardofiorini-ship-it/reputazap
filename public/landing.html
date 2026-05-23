@@ -3521,6 +3521,42 @@
   </div>
 </section>
 
+<!-- DEMO EM VIDEO — "Avaliacoes no Google em um Toque" (looping) -->
+<style>
+  .demo-video-section { background: var(--st-bg-primary); padding: 72px 24px 80px; }
+  @media (min-width: 1024px) { .demo-video-section { padding: 96px 32px 104px; } }
+  .demo-video-inner { max-width: 960px; margin: 0 auto; text-align: center; }
+  .demo-video-h2 {
+    font-family: var(--st-font-sans);
+    font-size: clamp(30px, 5vw, 44px);
+    font-weight: 800; line-height: 1.12; letter-spacing: -0.02em;
+    color: var(--st-black-strong); margin: 0 0 16px; text-wrap: balance;
+  }
+  .demo-video-h2 .accent { color: var(--st-blue-primary); }
+  .demo-video-sub {
+    font-family: var(--st-font-sans); font-size: 17px; font-weight: 400;
+    color: var(--st-gray-text); line-height: 1.6; margin: 0 auto 40px;
+    max-width: 560px; text-wrap: balance;
+  }
+  @media (min-width: 1024px) { .demo-video-sub { font-size: 18px; margin-bottom: 48px; } }
+  .demo-video-frame {
+    position: relative; width: 100%; max-width: 880px; margin: 0 auto;
+    aspect-ratio: 16 / 9; border-radius: 20px; overflow: hidden;
+    border: 1px solid var(--st-gray-light); box-shadow: var(--st-shadow-md);
+    background: #000;
+  }
+  .demo-video-frame video { width: 100%; height: 100%; object-fit: cover; display: block; }
+</style>
+<section class="demo-video-section" aria-label="Avaliacoes no Google em um Toque">
+  <div class="demo-video-inner">
+    <h2 class="demo-video-h2">Avaliações no Google em <span class="accent">um Toque</span></h2>
+    <p class="demo-video-sub">O cliente aproxima o celular, o Google abre na hora e a avaliação acontece. Sem app, sem digitar link, sem fricção.</p>
+    <div class="demo-video-frame">
+      <video src="/demo-avaliacao.mp4" autoplay loop muted playsinline preload="auto"></video>
+    </div>
+  </div>
+</section>
+
 <!-- COMO FUNCIONA — passo a passo (azul; substitui "Muito alem das avaliacoes") -->
 <style>
   .howitworks-section { background: var(--st-bg-primary); padding: 72px 24px 80px; }
