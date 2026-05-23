@@ -165,7 +165,7 @@ export default async function handler(req, res) {
     //    PAYWALL: nome dos concorrentes só pra plano pago. Free ve posicao +
     //    nota + nº de avaliacoes (o "buraco"), mas o NOME fica bloqueado no
     //    backend (nao vai no JSON) — nao da pra burlar pelo inspetor.
-    const paid = biz.plan === "pro";
+    const paid = biz.plan === "pro" || isAdmin(user);
     const top = byGoogle.slice(0, 5).map((p, i) => {
       const mine = p.place_id === biz.place_id;
       if (!mine && !paid) {
