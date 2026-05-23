@@ -252,8 +252,12 @@
     <h2 style="text-align:left;font-size:28px;line-height:1.2;">Veja sua posição no ranking do Google</h2>
     <p class="sub" style="text-align:left;margin-bottom:24px;">Informe seu negócio abaixo e descubra na hora como você está vs. os concorrentes num raio de 3 km.</p>
     <div class="form-group"><label>Nome do negócio</label><input type="text" id="bizSearch" placeholder="Ex: Café Bello Vista" oninput="clearResults()"/></div>
-    <div class="form-group"><label>Cidade</label><input type="text" id="bizCity" placeholder="Ex: São Paulo, SP"/></div>
-    <div class="form-group"><label>O que seu negócio faz? <span style="color:#9ca3af;font-weight:400;">— usado pra achar seus concorrentes certos</span></label><input type="text" id="bizActivity" placeholder="Ex: gráfica rápida, cafeteria, salão de beleza"/></div>
+    <div class="form-group"><label>Cidade</label><input type="text" id="bizCity" placeholder="Ex: São Paulo"/></div>
+    <div class="form-group"><label>Estado (UF)</label><input type="text" id="bizState" placeholder="Ex: SP" maxlength="2" autocapitalize="characters" style="text-transform:uppercase"/></div>
+    <div class="form-group"><label>O que seu negócio faz?</label><input type="text" id="bizActivity" placeholder="Ex: gráfica rápida, cafeteria, salão de beleza"/></div>
+    <div style="display:flex;gap:8px;align-items:flex-start;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin:-2px 0 16px;font-size:12.5px;color:#1e40af;line-height:1.45;">
+      <span>📍</span><span>Preencha <strong>cidade, estado e atividade</strong> — é o que garante uma comparação certeira com os concorrentes certos da sua região.</span>
+    </div>
     <p class="legal-text">Ao continuar, você concorda com os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>.</p>
     <button class="btn-primary" onclick="searchBusiness()" id="searchBtn">Buscar empresa</button>
     <p class="status-msg" id="searchStatus"></p>
@@ -559,8 +563,13 @@ function clearResults(){
 async function searchBusiness(){
   const query=document.getElementById("bizSearch").value.trim();
   const city=document.getElementById("bizCity").value.trim();
-  state.activity=document.getElementById("bizActivity").value.trim(); // atividade -> keyword do ranking
+  const uf=document.getElementById("bizState").value.trim().toUpperCase();
+  const activity=document.getElementById("bizActivity").value.trim();
+  state.activity=activity; // atividade -> keyword do ranking
   if(!query){alert("Digite o nome do negócio!");return;}
+  if(!city){alert("Informe a cidade do seu negócio.");return;}
+  if(!uf){alert("Informe o estado (UF), ex: SP.");return;}
+  if(!activity){alert("Diga o que seu negócio faz — é essencial pra achar os concorrentes certos.");return;}
   const btn=document.getElementById("searchBtn");
   const status=document.getElementById("searchStatus");
   btn.disabled=true;
@@ -568,7 +577,7 @@ async function searchBusiness(){
   status.textContent="Buscando no Google Maps...";
   status.className="status-msg loading";
   try{
-    const res=await fetch(`/api/searchbiz?q=${encodeURIComponent(query+" "+city)}`);
+    const res=await fetch(`/api/searchbiz?q=${encodeURIComponent(query+" "+city+" "+uf)}`);
     const data=await res.json();
     if(!data.results?.length){
       status.innerHTML='Não encontramos sua empresa no Google. Tente outro nome ou cidade. Se você ainda não tem um perfil no Google Meu Negócio, <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#1A73E8;font-weight:600;text-decoration:underline">crie um aqui</a> antes de continuar.';
