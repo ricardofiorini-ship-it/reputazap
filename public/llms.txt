@@ -1,0 +1,54 @@
+# StarTouch
+
+> StarTouch é uma plataforma brasileira de gestão de reputação para negócios locais. Usando produtos NFC (placas, cartões, pulseiras e adesivos) e QR Code, transforma cada cliente atendido em uma avaliação no Google e em uma conversa no WhatsApp — em um toque, sem instalar aplicativo e 100% dentro das políticas do Google.
+
+## O que é
+
+StarTouch ajuda restaurantes, cafés, clínicas, salões, academias, oficinas e lojas a conquistar mais avaliações no Google Maps / Google Business Profile e a se relacionar com clientes pelo WhatsApp. O cliente apenas aproxima o celular da placa/cartão NFC (ou escaneia o QR Code) e é levado direto para avaliar no Google ou falar no WhatsApp.
+
+- **Site:** https://startouch.com.br
+- **Idioma:** Português (Brasil)
+- **Público:** negócios locais no Brasil
+- **Contato:** contato@startouch.com.br · WhatsApp (11) 99007-8980
+
+## Como funciona
+
+1. O negócio recebe o kit StarTouch (placa de balcão, cartão, pulseira ou adesivo NFC).
+2. Ativa em minutos: busca a empresa no Google, conecta o WhatsApp e ativa a placa pelo painel.
+3. O cliente toca o celular na placa (NFC) ou escaneia o QR Code — sem baixar app.
+4. É direcionado para avaliar no Google ou conversar no WhatsApp.
+5. O dono acompanha avaliações, contatos e oportunidades no painel.
+
+## Produtos
+
+- **Placa NFC de balcão** — fica no caixa/recepção do estabelecimento.
+- **Cartão NFC** — formato carteira, para levar no atendimento.
+- **Pulseira NFC** — para eventos e equipes.
+- **Adesivo NFC** — versátil, cola em qualquer superfície.
+
+Todos apontam para o mesmo destino configurável e são gerenciados no mesmo painel.
+
+## Diferenciais
+
+- Funciona pelo navegador do celular, sem instalar aplicativo (cliente e negócio).
+- Compatível com iPhone (a partir do iPhone 7) e Android com NFC; QR Code como alternativa.
+- Links editáveis a qualquer momento (perfil do Google, WhatsApp, destino) sem trocar o cartão/placa.
+- 100% compatível com as políticas do Google: sem review gating, sem filtros artificiais, sem manipulação. Avaliações reais de clientes reais.
+
+## Perguntas frequentes
+
+**Precisa instalar aplicativo?** Não. Funciona direto pelo navegador do celular; basta tocar.
+
+**Funciona em iPhone e Android?** Sim, em smartphones com NFC (iPhone 7+ e Android moderno). Há QR Code de fallback para aparelhos antigos.
+
+**É compatível com as regras do Google?** Sim, 100%. Não há review gating nem qualquer prática proibida.
+
+**Precisa de conhecimento técnico?** Não. A ativação é guiada passo a passo e leva minutos, com suporte humanizado.
+
+**Posso mudar os links depois?** Sim, pelo painel, em segundos, sem trocar o produto físico.
+
+## Links
+
+- Página inicial: https://startouch.com.br/
+- Monte seu kit: https://startouch.com.br/kit
+- Ativar produto: https://startouch.com.br/ativar

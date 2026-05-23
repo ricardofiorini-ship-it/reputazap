@@ -1,10 +1,33 @@
+# StarTouch — https://startouch.com.br
 User-agent: *
 Allow: /
-Allow: /ativar
-Allow: /comece
 Disallow: /app
+Disallow: /admin
 Disallow: /reset
 Disallow: /ativar-placa
+Disallow: /ativar-codigo
 Disallow: /avaliar
+
+# Crawlers de IA liberados de propósito (queremos ser lidos e citados)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
 
 Sitemap: https://startouch.com.br/sitemap.xml
