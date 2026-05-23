@@ -3441,15 +3441,16 @@
   .brands-title {
     text-align: center;
     font-family: var(--st-font-sans);
-    font-size: clamp(24px, 3.5vw, 34px);
+    font-size: 22px;
     font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
     color: var(--st-black-strong);
     margin: 0 0 34px;
     padding: 0 24px;
     text-wrap: balance;
   }
+  @media (min-width: 1024px) { .brands-title { font-size: 24px; } }
   .brands-title .accent { color: var(--st-blue-primary); }
   .brands-title .accent-dot { color: var(--st-blue-primary); }
   .brands-marquee {
