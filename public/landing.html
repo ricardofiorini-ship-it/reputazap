@@ -2112,6 +2112,51 @@
   .eco-vitrine-image img.eco-img-lg { max-width: 92%; max-height: 100%; }   /* Placa / cartoes — maior */
   .eco-vitrine-image img.eco-img-sm { max-width: 58%; max-height: 74%; }    /* menor */
   .eco-vitrine-image img.eco-img-pulseira { max-width: 92%; max-height: 100%; }  /* Pulseira +20% */
+  /* Slider de imagens (setas + dots) — reutilizavel: adicione data-slider no .eco-vitrine-image e varias <img class="eco-slide"> */
+  .eco-vitrine-image[data-slider] .eco-slide {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .35s ease;
+  }
+  .eco-vitrine-image[data-slider] .eco-slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .eco-arrow {
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    z-index: 3;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--st-gray-light);
+    background: rgba(255,255,255,0.92);
+    color: var(--st-black-strong);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--st-shadow-sm);
+    transition: background .15s, transform .1s;
+  }
+  .eco-arrow svg { width: 18px; height: 18px; }
+  .eco-arrow:hover { background: #fff; }
+  .eco-arrow:active { transform: translateY(-50%) scale(0.93); }
+  .eco-arrow-prev { left: 12px; }
+  .eco-arrow-next { right: 12px; }
+  .eco-dots {
+    position: absolute;
+    bottom: 10px; left: 50%; transform: translateX(-50%);
+    z-index: 3;
+    display: flex; gap: 6px;
+  }
+  .eco-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: rgba(60,64,67,0.28);
+    border: none; padding: 0; cursor: pointer;
+    transition: background .15s, transform .15s;
+  }
+  .eco-dot.is-active { background: var(--st-blue-primary); transform: scale(1.25); }
   .eco-vitrine-body {
     padding: 24px 24px;
     display: flex; flex-direction: column;
@@ -3813,8 +3858,13 @@
 
     <div class="eco-vitrine">
       <div class="eco-vitrine-card">
-        <div class="eco-vitrine-image">
-          <img class="eco-img-lg" src="/gadget-placa.png" alt="Placa de balcão StarTouch — acrílico com chamada AVALIE AQUI" loading="lazy" width="750" height="768"/>
+        <div class="eco-vitrine-image" data-slider>
+          <img class="eco-img-lg eco-slide is-active" src="/gadget-placa.png" alt="Placa de balcão StarTouch — acrílico com chamada AVALIE AQUI" loading="lazy" width="750" height="768"/>
+          <img class="eco-img-lg eco-slide" src="/gadget-placa-2.png" alt="Placa StarTouch — dimensões: 21 cm de altura por 15 cm de largura" loading="lazy" width="1254" height="1254"/>
+          <img class="eco-img-lg eco-slide" src="/gadget-placa-3.png" alt="Placa StarTouch — chip NFC de alta qualidade, material resistente, QR Code pronto para usar, sem mensalidades" loading="lazy" width="1307" height="1203"/>
+          <button class="eco-arrow eco-arrow-prev" type="button" aria-label="Imagem anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <button class="eco-arrow eco-arrow-next" type="button" aria-label="Próxima imagem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+          <div class="eco-dots"></div>
         </div>
         <div class="eco-vitrine-body">
           <span class="eco-vitrine-tag">Placa NFC</span>
@@ -3863,6 +3913,41 @@
     </div>
   </div>
 </section>
+<script>
+/* Slider de imagens da vitrine — funciona em qualquer .eco-vitrine-image[data-slider] com 2+ .eco-slide */
+(function(){
+  document.querySelectorAll('.eco-vitrine-image[data-slider]').forEach(function(box){
+    var slides = box.querySelectorAll('.eco-slide');
+    var dotsWrap = box.querySelector('.eco-dots');
+    var prev = box.querySelector('.eco-arrow-prev');
+    var next = box.querySelector('.eco-arrow-next');
+    if (slides.length < 2) {
+      if (prev) prev.style.display = 'none';
+      if (next) next.style.display = 'none';
+      return;
+    }
+    var i = 0;
+    slides.forEach(function(_, idx){
+      var d = document.createElement('button');
+      d.type = 'button';
+      d.className = 'eco-dot' + (idx === 0 ? ' is-active' : '');
+      d.setAttribute('aria-label', 'Ver imagem ' + (idx + 1));
+      d.addEventListener('click', function(){ go(idx); });
+      dotsWrap.appendChild(d);
+    });
+    var dots = dotsWrap.querySelectorAll('.eco-dot');
+    function go(n){
+      slides[i].classList.remove('is-active');
+      if (dots[i]) dots[i].classList.remove('is-active');
+      i = (n + slides.length) % slides.length;
+      slides[i].classList.add('is-active');
+      if (dots[i]) dots[i].classList.add('is-active');
+    }
+    if (prev) prev.addEventListener('click', function(){ go(i - 1); });
+    if (next) next.addEventListener('click', function(){ go(i + 1); });
+  });
+})();
+</script>
 <!-- TRUST — 100% compatível com o Google (light, Google Business redesign) -->
 <!-- GUARDADO a pedido (2026-05-25): secao "Confianca e transparencia" oculta. Para reexibir, remova style="display:none" da tag <section> abaixo. -->
 <section class="trust-section" style="display:none">
