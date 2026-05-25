@@ -817,7 +817,7 @@ export default function StarTouch({ user, onLogout }) {
                     <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,marginBottom:18}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
                         <Award size={18} color="#1A73E8"/>
-                        <div style={{fontSize:15,fontWeight:700,color:"#202124"}}>Sua posição vs concorrentes</div>
+                        <div style={{fontSize:20,fontWeight:800,color:"#202124"}}>Sua posição vs concorrentes</div>
                         {isAdmin&&!isPro&&<span style={{fontSize:9,fontWeight:700,letterSpacing:"0.05em",background:"#E8F0FE",color:"#1A73E8",borderRadius:5,padding:"2px 7px"}}>ADMIN</span>}
                       </div>
                       <div style={{marginBottom:16}}>
@@ -950,7 +950,7 @@ export default function StarTouch({ user, onLogout }) {
                   <div style={{position:"relative",background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,marginBottom:18,overflow:"hidden"}}>
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
                       <Award size={18} color="#1A73E8"/>
-                      <div style={{fontSize:15,fontWeight:700,color:"#202124"}}>Sua posição vs concorrentes</div>
+                      <div style={{fontSize:20,fontWeight:800,color:"#202124"}}>Sua posição vs concorrentes</div>
                       <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.05em",background:"#E8F0FE",color:"#1A73E8",borderRadius:5,padding:"2px 7px"}}>PRO</span>
                     </div>
                     <div style={{fontSize:12.5,color:"#5F6368",marginBottom:16}}>Veja como você se compara aos negócios da mesma categoria por perto.</div>
@@ -1018,7 +1018,7 @@ export default function StarTouch({ user, onLogout }) {
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:20,marginBottom:18}}>
                 <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginBottom:14}}>
                   <div>
-                    <div style={{fontSize:15,fontWeight:700,color:"#202124"}}>Últimas avaliações no Google</div>
+                    <div style={{fontSize:18,fontWeight:700,color:"#202124"}}>Últimas avaliações no Google</div>
                     {recentReviews.length>0&&<div style={{fontSize:11.5,color:"#9AA0A6",marginTop:2}}>Essas são as últimas {recentReviews.length} avaliações que você recebeu no Google.</div>}
                   </div>
                   {showAll&&recentReviews.length>0&&<button onClick={()=>setTab("avaliacoes")} style={{background:"none",border:"none",color:"#1A73E8",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"inline-flex",alignItems:"center",gap:4,flexShrink:0}}>Ver todas <ArrowRight size={14}/></button>}
