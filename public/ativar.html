@@ -259,7 +259,7 @@
     <div class="form-group"><label>Cidade</label><input type="text" id="bizCity" placeholder="Ex: São Paulo"/></div>
     <div class="form-group"><label>CEP <span style="color:#9ca3af;font-weight:400;">(crava a unidade certa)</span></label><input type="text" id="bizCep" placeholder="00000-000" inputmode="numeric" maxlength="9" oninput="maskCep(this)"/></div>
     <div class="form-group"><label>Estado (UF)</label><input type="text" id="bizState" placeholder="Ex: SP" maxlength="2" autocapitalize="characters" style="text-transform:uppercase"/></div>
-    <div class="form-group"><label>O que seu negócio faz?</label><input type="text" id="bizActivity" placeholder="Ex: gráfica rápida, cafeteria, salão de beleza"/></div>
+    <div class="form-group"><label>Qual o ramo de atuação?</label><input type="text" id="bizActivity" placeholder="Ex.: Pizzaria, Clínica, Salão de Beleza, Loja de Roupas..."/></div>
     <div style="display:flex;gap:8px;align-items:flex-start;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin:-2px 0 16px;font-size:12.5px;color:#1e40af;line-height:1.45;">
       <span>📍</span><span>Preencha <strong>cidade, estado e atividade</strong> pra uma comparação certeira. Tem mais de uma unidade? O <strong>CEP</strong> crava a certa.</span>
     </div>
@@ -580,7 +580,7 @@ async function searchBusiness(){
   if(!query){alert("Digite o nome do negócio!");return;}
   if(!city){alert("Informe a cidade do seu negócio.");return;}
   if(!uf){alert("Informe o estado (UF), ex: SP.");return;}
-  if(!activity){alert("Diga o que seu negócio faz — é essencial pra achar os concorrentes certos.");return;}
+  if(!activity){alert("Diga o ramo de atuação — é essencial pra achar os concorrentes certos.");return;}
   const btn=document.getElementById("searchBtn");
   const status=document.getElementById("searchStatus");
   btn.disabled=true;
