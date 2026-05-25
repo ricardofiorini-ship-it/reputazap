@@ -3469,7 +3469,7 @@
   </div>
 </section>
 
-<!-- BRANDS — carrossel de marcas (prova social) | LOGOS FICTICIOS: trocar pelos reais -->
+<!-- BRANDS — carrossel de marcas (prova social) | logos reais em /logos/*.svg -->
 <style>
   .brands-section {
     background: var(--st-bg-secondary);
@@ -3504,59 +3504,78 @@
   .brands-track {
     display: flex;
     width: max-content;
-    animation: brands-scroll 42s linear infinite;
+    animation: brands-scroll 90s linear infinite;
   }
   .brands-marquee:hover .brands-track { animation-play-state: paused; }
   .brand-item {
     display: inline-flex;
     align-items: center;
-    gap: 11px;
-    padding: 0 34px;
-    font-family: var(--st-font-sans);
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    color: #9AA0A6;
-    white-space: nowrap;
+    padding: 0 30px;
     flex-shrink: 0;
-    transition: color .15s, filter .15s;
   }
-  .brand-item:hover { color: var(--st-black-strong); }
-  .brand-mark {
-    width: 30px; height: 30px;
-    border-radius: 8px;
-    background: #E8EAED;
-    color: #5F6368;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 800;
-    flex-shrink: 0;
+  .brand-logo {
+    height: 36px;
+    width: auto;
+    max-width: 150px;
+    object-fit: contain;
+    display: block;
+  }
+  @media (max-width: 600px) {
+    .brand-logo { height: 30px; max-width: 120px; }
+    .brand-item { padding: 0 22px; }
   }
   @keyframes brands-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   @media (prefers-reduced-motion: reduce) { .brands-track { animation: none; } }
 </style>
-<section class="brands-section" aria-label="Marcas que já confiam na StarTouch">
+<section class="brands-section" aria-label="Marcas que já se destacam no Google">
   <div class="brands-inner">
-    <h2 class="brands-title">Empresas que já confiam na <span class="accent">StarTouch<span class="accent-dot">.</span></span></h2>
+    <h2 class="brands-title">Elas já se destacam no <span class="accent">Google<span class="accent-dot">.</span></span></h2>
     <div class="brands-marquee">
       <div class="brands-track">
         <!-- conjunto 1 -->
-        <span class="brand-item"><span class="brand-mark">C</span>Café Aurora</span>
-        <span class="brand-item"><span class="brand-mark">B</span>Bella Pizza</span>
-        <span class="brand-item"><span class="brand-mark">S</span>Studio Glam</span>
-        <span class="brand-item"><span class="brand-mark">A</span>AutoMax</span>
-        <span class="brand-item"><span class="brand-mark">V</span>VitaClin</span>
-        <span class="brand-item"><span class="brand-mark">M</span>Mercado Sol</span>
-        <span class="brand-item"><span class="brand-mark">P</span>Pulse Fit</span>
-        <span class="brand-item"><span class="brand-mark">L</span>Lummi Pet</span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/1.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/2.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/3.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/4.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/5.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/6.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/7.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/8.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/9.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/10.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/11.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/12.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/13.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/14.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/15.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/16.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/17.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/18.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/19.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/20.svg" alt=""></span>
+        <span class="brand-item"><img class="brand-logo" src="/logos/21.svg" alt=""></span>
         <!-- conjunto 2 (duplicado p/ loop perfeito) -->
-        <span class="brand-item" aria-hidden="true"><span class="brand-mark">C</span>Café Aurora</span>
-        <span class="brand-item" aria-hidden="true"><span class="brand-mark">B</span>Bella Pizza</span>
-        <span class="brand-item" aria-hidden="true"><span class="brand-mark">S</span>Studio Glam</span>
-        <span class="brand-item" aria-hidden="true"><span class="brand-mark">A</span>AutoMax</span>
-        <span class="brand-item" aria-hidden="true"><span class="brand-mark">V</span>VitaClin</span>
-        <span class="brand-item" aria-hidden="true"><span class="brand-mark">M</span>Mercado Sol</span>
-        <span class="brand-item" aria-hidden="true"><span class="brand-mark">P</span>Pulse Fit</span>
-        <span class="brand-item" aria-hidden="true"><span class="brand-mark">L</span>Lummi Pet</span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/1.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/2.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/3.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/4.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/5.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/6.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/7.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/8.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/9.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/10.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/11.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/12.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/13.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/14.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/15.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/16.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/17.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/18.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/19.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/20.svg" alt=""></span>
+        <span class="brand-item" aria-hidden="true"><img class="brand-logo" src="/logos/21.svg" alt=""></span>
       </div>
     </div>
   </div>
