@@ -380,22 +380,22 @@
   @media (min-width: 768px) { .hero { padding: 72px 32px 88px; } }
   @media (min-width: 1024px) { .hero { padding: 88px 40px 104px; } }
   .hero-inner {
-    max-width: 1200px; margin: 0 auto;
+    max-width: 1280px; margin: 0 auto;
     width: 100%;
     display: grid;
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 32px;
     align-items: center;
   }
   @media (min-width: 960px) {
     .hero-inner {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-      gap: 8px;
+      /* Desktop: 48% texto / 52% video (16:9 deitado pede mais largura) */
+      grid-template-columns: minmax(0, 48fr) minmax(0, 52fr);
+      gap: 44px;
     }
-    /* Texto na esquerda, imagem na direita */
+    /* Texto na esquerda, video na direita */
     .hero-text { order: -1; }
-    /* Imagem cola no texto (alinha à esquerda da coluna) */
-    .hero-image { justify-content: flex-start; }
+    .hero-image { justify-content: center; }
   }
   .hero-text {
     display: flex; flex-direction: column;
@@ -405,22 +405,24 @@
     .hero-text { text-align: center; align-items: center; }
   }
   .hero h1, .hero-h1 {
-    font-family: var(--st-font-sans);
+    /* 56px desktop / 36px mobile — General Sans Bold 700 */
+    font-family: 'General Sans', var(--st-font-sans);
     font-size: clamp(36px, 6.5vw, 56px);
-    font-weight: 800;
-    line-height: 1.08;
+    font-weight: 700;
+    line-height: 1.1;
     letter-spacing: -0.025em;
-    color: var(--st-black-strong);
+    color: #0F0F0F;
     margin: 0;
     text-wrap: balance;
   }
   .hero h1 .accent { color: var(--st-blue-primary); }
   .hero h1 .accent-dot { color: var(--st-blue-primary); }
   .hero-sub {
-    font-family: var(--st-font-sans);
-    font-size: 17px;
+    /* 18px desktop / 16px mobile — General Sans Regular 400 */
+    font-family: 'General Sans', var(--st-font-sans);
+    font-size: 16px;
     font-weight: 400;
-    color: var(--st-gray-text);
+    color: #4B5563;
     line-height: 1.6;
     margin: 20px 0 32px;
     max-width: 520px;
@@ -518,15 +520,22 @@
     display: flex; justify-content: center; align-items: center;
     width: 100%;
   }
-  .hero-image .hero-banner {
-    display: block;
+  /* Video demo no hero (5:4, mais quadrado) — fundo escuro = placeholder instantaneo */
+  .hero-video {
+    position: relative;
     width: 100%;
-    max-width: 576px;
-    height: auto;
-    object-fit: contain;
+    max-width: 600px;
+    aspect-ratio: 5 / 4;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--st-gray-light);
+    box-shadow: var(--st-shadow-lg);
+    background: #0F0F0F;
   }
-  @media (min-width: 1024px) {
-    .hero-image .hero-banner { max-width: 648px; }
+  .hero-video video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   /* CTA — barra de busca arredondada */
@@ -3414,8 +3423,8 @@
 <section class="hero">
   <div class="hero-inner">
     <div class="hero-text">
-      <h1>Pare de entregar clientes para concorrentes com <span class="accent">mais avaliações<span class="accent-dot">.</span></span></h1>
-      <p class="hero-sub">Assuma o primeiro lugar do Google na sua região. Com a tecnologia StarTouch, seu cliente encosta o celular no balcão e avalia em 30 segundos.</p>
+      <h1>Apareça em primeiro no Google.</h1>
+      <p class="hero-sub">Mais avaliações no Google = mais gente te encontrando. Com a placa StarTouch, seu cliente encosta o celular e avalia em 30 segundos.</p>
       <div class="hero-ctas">
         <a class="hero-cta-primary" href="/ativar?from=web">
           Veja sua posição no ranking
@@ -3437,7 +3446,9 @@
       </p>
     </div>
     <div class="hero-image">
-      <img class="hero-banner" src="/hero-header.png" alt="Placa NFC StarTouch — Aproxime seu celular e compartilhe sua experiência. Avalie no Google Reviews." width="1097" height="1097" fetchpriority="high"/>
+      <div class="hero-video">
+        <video src="/demo-avaliacao.mp4" autoplay loop muted playsinline preload="auto" aria-label="Demonstracao: cliente aproxima o celular da placa StarTouch e avalia no Google em segundos"></video>
+      </div>
     </div>
   </div>
 </section>
@@ -3554,19 +3565,17 @@
   }
   @media (min-width: 1024px) { .demo-video-sub { font-size: 18px; margin-bottom: 48px; } }
   .demo-video-frame {
-    position: relative; width: 100%; max-width: 880px; margin: 0 auto;
-    aspect-ratio: 16 / 9; border-radius: 20px; overflow: hidden;
-    border: 1px solid var(--st-gray-light); box-shadow: var(--st-shadow-md);
-    background: #000;
+    position: relative; width: 100%; max-width: 560px; margin: 0 auto;
+    border-radius: 20px; overflow: hidden;
   }
-  .demo-video-frame video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .demo-video-frame img { width: 100%; height: auto; display: block; }
 </style>
-<section class="demo-video-section" aria-label="Avaliacoes no Google em um Toque">
+<section class="demo-video-section" aria-label="Modelos StarTouch">
   <div class="demo-video-inner">
-    <h2 class="demo-video-h2">Avaliações no Google em <span class="accent">um Toque</span></h2>
-    <p class="demo-video-sub">O cliente aproxima o celular, o Google abre na hora e a avaliação acontece. Sem app, sem digitar link, sem fricção.</p>
+    <h2 class="demo-video-h2">Um modelo pra <span class="accent">cada negócio</span></h2>
+    <p class="demo-video-sub">Placa de balcão, plaquinha de mesa, pulseira ou cartão NFC. Você escolhe o que combina com o seu espaço — todos levam o cliente direto pro Google.</p>
     <div class="demo-video-frame">
-      <video src="/demo-avaliacao.mp4" autoplay loop muted playsinline preload="auto"></video>
+      <img src="/hero-header.png" alt="Modelos StarTouch: placa de balcao, plaquinha de mesa e pulseira NFC com QR Code para avaliar no Google" width="1097" height="1097"/>
     </div>
   </div>
 </section>
