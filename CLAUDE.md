@@ -7,7 +7,7 @@ SaaS de gestão de reputação para negócios locais brasileiros.
 - **Front:** React + Vite
 - **Back:** Vercel Serverless Functions (pasta `api/`)
 - **Banco:** Supabase
-- **APIs externas:** Google Places, Anthropic Claude
+- **APIs externas:** Google Places (notas/reviews/concorrentes), Stripe (pagamentos), Supabase (banco/auth), Resend (email)
 - **Deploy:** `git push origin main` (Vercel atualiza sozinho)
 
 ## Banco (Supabase)
@@ -53,7 +53,7 @@ Fluxo end-to-end funcionando:
 
 1. Rodar o SQL acima no Supabase pra adicionar `stripe_customer_id` e `stripe_subscription_id`.
 2. Criar produto no Stripe Dashboard (Plano Pro, R$49/mês recorrente). Copiar o **Price ID** (começa com `price_…`).
-3. Criar webhook em `https://startouch.vercel.app/api/billing?action=webhook` escutando `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copiar o **Signing secret** (começa com `whsec_…`).
+3. Criar webhook em `https://www.startouch.com.br/api/billing?action=webhook` escutando `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copiar o **Signing secret** (começa com `whsec_…`).
 4. Setar envs no Vercel: `STRIPE_SECRET_KEY` (sk_live_…), `STRIPE_PRICE_ID` (price_…), `STRIPE_WEBHOOK_SECRET` (whsec_…).
 5. Deploy. O fluxo: cliente clica em "Ativar Plano Pro" → POST `/api/billing?action=checkout` cria session com trial 14d → redirect → após pagamento, webhook em `/api/billing?action=webhook` atualiza `businesses.plan = 'pro'`.
 
@@ -83,5 +83,6 @@ Modelo "TrustHero adapted" — **FLUXO ÚNICO de ativação independente de cana
 
 ## Links
 
-- Repo: github.com/ricardofiorini-ship-it/startouch
-- Deploy: startouch.vercel.app
+- Repo: github.com/ricardofiorini-ship-it/reputazap
+- Deploy (produção): www.startouch.com.br
+- URL Vercel (projeto): reputazap.vercel.app (obs: `startouch.vercel.app` está inativo)
