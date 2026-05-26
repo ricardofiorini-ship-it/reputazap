@@ -87,8 +87,9 @@ async function handleCheckout(req, res) {
 // Catalogo do kit — fonte de verdade pra preços. Deve refletir public/kit.html.
 // Preços em centavos. soldOut: true bloqueia o item no checkout.
 const KIT_CATALOG = {
-  "placa-balcao": { name: "Placa de Balcão NFC",      price_cents: 7990,  soldOut: false },
-  "placa-mesa":   { name: "Placa de Mesa NFC",         price_cents: 4990,  soldOut: false },
+  "placa-balcao": { name: "Placa de Balcão G",         price_cents: 7990,  soldOut: false },
+  "placa-mesa":   { name: "Placa de Balcão M",         price_cents: 4990,  soldOut: false },
+  "cartao-nfc":   { name: "Cartão de Avaliação NFC",   price_cents: 2990,  soldOut: false },
   "pulseira":     { name: "Pulseira NFC",              price_cents: 10990, soldOut: true  }
 };
 
