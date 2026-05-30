@@ -7,17 +7,25 @@ import React from 'react'
 // ─────────────────────────────────────────────────────────────
 
 const MOCK = {
-  biz: { name: 'Café Bella Vista' },
+  biz: { name: 'Café Bella Vista', placeId: 'ChIJN1t_tDeuEmsRUsoyG83frY4' /* mock — usado pra link "Responder no Google" */ },
   kpis: {
     rating: 5.0,
     reviewCount: 12,
     rankingPos: 3,
     totalCompetitors: 12,
     newLast30Days: 7,
-    nextGoal: { reviewsToNext: 2, targetPosition: 2 } // 5o KPI: Próxima Meta
+    nextGoal: { reviewsToNext: 2, targetPosition: 2 }
   },
   hero: { reviewsToNext: 2, progressPct: 83 },
-  growthPct: 41, // % de crescimento exibido acima do gráfico
+  growthPct: 41,
+  // Tendência das últimas avaliações: a média das últimas 5 vs a média geral
+  trend: { recentAvg: 4.8, overallAvg: 4.6, direction: 'up' /* 'up' | 'down' | 'flat' */ },
+  // Sugestões da semana (pushs de direção)
+  weekActions: [
+    { icon: '🎯', text: 'Foque em pedir 2 avaliações no atendimento essa semana — leva você pro Top 2.', kind: 'goal' },
+    { icon: '💬', text: 'Responda as 5 avaliações pendentes hoje — Google premia perfis ativos.',         kind: 'action' },
+    { icon: '📸', text: 'Atualize as fotos do seu Google Meu Negócio (último upload faz 60 dias).',       kind: 'tip' }
+  ],
   ranking: [
     { pos: 1, medal: '🥇', name: 'Empresa A',         rating: 5.0, reviews: 25, you: false },
     { pos: 2, medal: '🥈', name: 'Empresa B',         rating: 5.0, reviews: 14, you: false },
@@ -172,6 +180,35 @@ function KpiCard({ icon, label, value, sub, trend }) {
         {trend != null && <Trend value={trend} />}
       </div>
       <p style={{ fontSize: 12, color: T.textDim, margin: 0 }}>{sub}</p>
+    </Card>
+  )
+}
+
+// Sugestões da semana (push de direção pro dono)
+function WeekActions({ items, isMobile }) {
+  return (
+    <Card>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 14, gap: 8 }}>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color: T.text, margin: 0 }}>🎯 Sugestões pra essa semana</h3>
+        <span style={{ fontSize: 11.5, color: T.textDim }}>3 ações</span>
+      </div>
+      <div style={{
+        display:'grid',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+        gap: 10
+      }}>
+        {items.map((a, i) => (
+          <div key={i} style={{
+            display:'flex', gap: 10, padding: '12px 14px',
+            borderRadius: 12, background: '#F8FAFC',
+            border: `1px solid ${T.border}`,
+            alignItems:'flex-start'
+          }}>
+            <span style={{ fontSize: 18, lineHeight: 1.2, flexShrink: 0 }}>{a.icon}</span>
+            <span style={{ fontSize: 13, color: T.textMid, lineHeight: 1.5 }}>{a.text}</span>
+          </div>
+        ))}
+      </div>
     </Card>
   )
 }
@@ -382,8 +419,12 @@ function EvolutionChart({ data, growthPct, isMobile }) {
 // ─────────────────────────────────────────────────────────────
 // Opportunities
 // ─────────────────────────────────────────────────────────────
-// Card AMARELO = AÇÃO IMEDIATA. Destaque pra o benefício.
-function Opportunities({ count }) {
+// Card AMARELO = AÇÃO IMEDIATA. Botão "Responder agora" abre Google direto.
+function Opportunities({ count, placeId }) {
+  // Link direto pra ver as reviews no Google (cliente acessa logado no GBP e responde lá)
+  const googleUrl = placeId
+    ? `https://search.google.com/local/reviews?placeid=${placeId}`
+    : 'https://business.google.com/'
   return (
     <Card style={{ background: T.amberBg, border: `1px solid #FCD34D` }}>
       <div style={{ display:'flex', alignItems:'flex-start', gap: 12 }}>
@@ -398,7 +439,6 @@ function Opportunities({ count }) {
         </div>
       </div>
 
-      {/* Destaque visual pro benefício */}
       <div style={{
         marginTop: 14,
         display:'flex', alignItems:'center', gap: 10,
@@ -412,14 +452,17 @@ function Opportunities({ count }) {
         <span>Negócios que respondem têm <strong style={{ color: T.amber }}>até 30% mais visitas</strong> no perfil.</span>
       </div>
 
-      <button style={{
+      <a href={googleUrl} target="_blank" rel="noopener noreferrer" style={{
         marginTop: 14, background: T.amber, color:'#fff', border:'none', borderRadius: 10,
-        padding:'11px 18px', fontSize: 13.5, fontWeight: 700, cursor:'pointer',
+        padding:'11px 18px', fontSize: 13.5, fontWeight: 700, cursor:'pointer', textDecoration:'none',
         boxShadow:'0 4px 14px rgba(245,158,11,0.30)', fontFamily:"'Inter', sans-serif",
-        width:'100%'
+        width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap: 6
       }}>
-        Responder agora →
-      </button>
+        Responder no Google →
+      </a>
+      <p style={{ fontSize: 11.5, color:'#92400E', textAlign:'center', margin:'8px 0 0', opacity: 0.85 }}>
+        Abre seu perfil do Google em nova aba
+      </p>
     </Card>
   )
 }
@@ -427,13 +470,31 @@ function Opportunities({ count }) {
 // ─────────────────────────────────────────────────────────────
 // Recent reviews
 // ─────────────────────────────────────────────────────────────
-function RecentReviews({ items, isMobile }) {
+function RecentReviews({ items, trend, isMobile }) {
+  const trendUp = trend?.direction === 'up'
+  const trendDown = trend?.direction === 'down'
+  const pillBg = trendUp ? T.greenSoft : trendDown ? '#FEE2E2' : '#F1F5F9'
+  const pillFg = trendUp ? '#065F46' : trendDown ? '#991B1B' : T.textMid
+  const arrow = trendUp ? '↑' : trendDown ? '↓' : '→'
+  const label = trendUp ? 'acima da' : trendDown ? 'abaixo da' : 'em linha com a'
   return (
     <Card>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 14 }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 14, gap: 8, flexWrap:'wrap' }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Avaliações recentes</h3>
         <a href="#" style={{ fontSize: 12.5, color: T.blue, fontWeight: 600, textDecoration:'none' }}>Ver todas →</a>
       </div>
+      {trend && (
+        <div style={{
+          display:'inline-flex', alignItems:'center', gap: 6,
+          background: pillBg, color: pillFg,
+          padding:'5px 10px', borderRadius: 999,
+          fontSize: 12, fontWeight: 600,
+          marginBottom: 12
+        }}>
+          <span style={{ fontWeight: 700 }}>{arrow}</span>
+          <span>Média recente <strong>{trend.recentAvg.toFixed(1)}</strong> · {label} média geral <strong>{trend.overallAvg.toFixed(1)}</strong></span>
+        </div>
+      )}
       <ul style={{ listStyle:'none', padding: 0, margin: 0 }}>
         {items.map((r, i) => (
           <li key={i} style={{
@@ -550,6 +611,11 @@ export default function AppV2() {
           </div>
         </Section>
 
+        {/* SUGESTÕES DA SEMANA (push de direção) */}
+        <Section>
+          <WeekActions items={d.weekActions} isMobile={isMobile} />
+        </Section>
+
         {/* HERO POSITION = card de RESULTADO (sem CTA pra Pro) */}
         <Section>
           <HeroPosition
@@ -578,8 +644,8 @@ export default function AppV2() {
             gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 360px) 1fr',
             gap: isMobile ? 14 : 24
           }}>
-            <Opportunities count={d.unrepliedReviews} />
-            <RecentReviews items={d.recentReviews} isMobile={isMobile} />
+            <Opportunities count={d.unrepliedReviews} placeId={d.biz.placeId} />
+            <RecentReviews items={d.recentReviews} trend={d.trend} isMobile={isMobile} />
           </div>
         </Section>
 
