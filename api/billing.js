@@ -59,7 +59,7 @@ function getMP() {
   return _mp;
 }
 
-// Plano Pro mensal — cria assinatura (PreApproval) e devolve init_point.
+// Plano Pro mensal — usa link estatico se MP_PRO_PAYMENT_LINK setada, senao chama API (PreApproval).
 async function handleCheckoutMP(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
@@ -75,6 +75,16 @@ async function handleCheckoutMP(req, res) {
       return res.status(400).json({ error: "Plano Pro já está ativo" });
     }
 
+    // Caminho 1 (preferencial): link pre-configurado no painel MP.
+    // Adicionamos external_reference na URL pra o webhook ligar o pagamento ao user.
+    if (process.env.MP_PRO_PAYMENT_LINK) {
+      const base = process.env.MP_PRO_PAYMENT_LINK;
+      const sep = base.includes("?") ? "&" : "?";
+      const url = `${base}${sep}external_reference=pro_${auth.user.id}`;
+      return res.json({ url });
+    }
+
+    // Caminho 2 (fallback): cria PreApproval via API. So funciona se conta MP estiver liberada (sem PolicyAgent block).
     const mp = getMP();
     const preapproval = new PreApproval(mp);
     const origin = req.headers.origin || `https://${req.headers.host}`;
