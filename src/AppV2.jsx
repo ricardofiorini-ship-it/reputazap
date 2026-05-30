@@ -91,6 +91,83 @@ const MOCK = {
     dashboard: { enabled: true,  locked: true },
     email:     { enabled: true,  frequency: 'realtime' },
     whatsapp:  { enabled: false, phone: '' }
+  },
+
+  // Relatórios (Feature 5)
+  reports: {
+    weekly: {
+      period: 'Semana de 23 a 29 de maio · 2026',
+      sentAt: 'Enviado segunda-feira 30 mai · 08:00',
+      summary: {
+        newReviews: 3,        newReviewsDelta: +1,
+        ratingDelta: +0.1,    currentRating: 5.0,
+        positionDelta: +1,    currentPosition: 3,
+        competitorDelta: -2   // ficou 2 av. mais próximo do próximo
+      },
+      chart: [4.8, 4.8, 4.9, 4.9, 5.0, 5.0, 5.0],
+      chartLabels: ['23', '24', '25', '26', '27', '28', '29'],
+      topReviews: [
+        { name:'Maria Silva',   rating: 5, comment:'"Atendimento incrível, super atenciosos!"',          initials:'MS', color:'#F59E0B', when:'Há 2 dias' },
+        { name:'Bruno Lima',    rating: 4, comment:'"Café muito bom, só a espera demorou um pouco."',     initials:'BL', color:'#10B981', when:'Há 4 dias' },
+        { name:'Carla Souza',   rating: 5, comment:'"Tudo perfeito! Recomendo demais."',                  initials:'CS', color:'#8B5CF6', when:'Há 6 dias' }
+      ],
+      rankingMoves: [
+        { type:'up',   icon:'↑',  text:'Você subiu da 4ª pra 3ª posição',           highlight: true  },
+        { type:'down', icon:'↓',  text:'Empresa C caiu da 3ª pra 4ª posição'  },
+        { type:'risk', icon:'⚠️', text:'Empresa F está crescendo rápido (+2 av.)' }
+      ],
+      competitorComparison: [
+        { name:'Empresa A',         pos: 1, reviews: 25, weekChange: +3 },
+        { name:'Empresa B',         pos: 2, reviews: 14, weekChange: +1 },
+        { name:'Café Bella Vista',  pos: 3, reviews: 12, weekChange: +2, isYou: true },
+        { name:'Empresa C',         pos: 4, reviews: 11, weekChange:  0 }
+      ],
+      opportunities: [
+        { icon:'🎯', text:'Faltam apenas 2 avaliações pra ultrapassar Empresa B e entrar no Top 2.' },
+        { icon:'💬', text:'Você tem 5 avaliações sem resposta — respondê-las melhora ranking no Google.' },
+        { icon:'📸', text:'Sua última foto no Google Meu Negócio é de 60 dias atrás. Suba 1 esse mês.' }
+      ]
+    },
+    monthly: {
+      period: 'Mês de Maio · 2026',
+      sentAt: 'Enviado dia 1 de junho · 08:00',
+      summary: {
+        newReviews: 7,        newReviewsDelta: +3,
+        ratingDelta: +0.2,    currentRating: 5.0,
+        positionDelta: +2,    currentPosition: 3,
+        competitorDelta: -4
+      },
+      chart: [4.6, 4.7, 4.7, 4.8, 4.8, 4.8, 4.9, 4.9, 4.9, 5.0, 5.0, 5.0],
+      chartLabels: ['Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai'],
+      topReviews: [
+        { name:'Maria Silva',     rating: 5, comment:'"Atendimento incrível, super atenciosos!"',         initials:'MS', color:'#F59E0B', when:'Há 2 dias' },
+        { name:'Diego Pereira',   rating: 5, comment:'"Excelente! O capuccino é um dos melhores."',       initials:'DP', color:'#EC4899', when:'Há 1 semana' },
+        { name:'Eduarda Castro',  rating: 4, comment:'"Muito bom, só a espera demorou um pouco."',         initials:'EC', color:'#06B6D4', when:'Há 2 semanas' }
+      ],
+      rankingMoves: [
+        { type:'up',   icon:'↑',  text:'Você subiu da 5ª pra 3ª posição no mês',  highlight: true  },
+        { type:'up',   icon:'↑',  text:'Ultrapassou Empresa C e Empresa D'  },
+        { type:'risk', icon:'⚠️', text:'Empresa A continua crescendo forte (+8 av. no mês)' }
+      ],
+      competitorComparison: [
+        { name:'Empresa A',         pos: 1, reviews: 25, weekChange: +8 },
+        { name:'Empresa B',         pos: 2, reviews: 14, weekChange: +4 },
+        { name:'Café Bella Vista',  pos: 3, reviews: 12, weekChange: +7, isYou: true },
+        { name:'Empresa C',         pos: 4, reviews: 11, weekChange: +1 }
+      ],
+      opportunities: [
+        { icon:'📈', text:'Sua nota subiu de 4.8 pra 5.0 no mês — capitalize isso com posts e flyers.' },
+        { icon:'🎯', text:'Mantendo o ritmo de 7 av./mês, em 60 dias você ultrapassa a Empresa A.' },
+        { icon:'🛎️', text:'Considere ativar pulseira NFC pros garçons: hoje só placa de mesa gera reviews.' }
+      ]
+    }
+  },
+  reportSettings: {
+    email: 'ricardo@cafebellavista.com.br',
+    weeklyEnabled: true,
+    monthlyEnabled: true,
+    weeklyDay: 'monday',   // dia da semana
+    monthlyDay: 1          // dia do mês
   }
 }
 
@@ -818,6 +895,369 @@ function AlertsScreen({ data, isMobile }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// RELATÓRIOS — sub-componentes
+// ─────────────────────────────────────────────────────────────
+function ReportPeriodTabs({ active, onChange, isMobile }) {
+  const tabs = [
+    { key:'weekly',  label:'Semanal', icon:'📅' },
+    { key:'monthly', label:'Mensal',  icon:'📆' }
+  ]
+  return (
+    <div style={{
+      display:'inline-flex', background:'#fff', border:'1px solid '+T.border,
+      borderRadius: 10, padding: 3, gap: 3
+    }}>
+      {tabs.map(t => {
+        const a = active === t.key
+        return (
+          <button key={t.key} onClick={() => onChange(t.key)}
+            style={{
+              border:'none', borderRadius: 8, padding: isMobile ? '8px 14px' : '9px 18px',
+              fontSize: 13.5, fontWeight: 600, cursor:'pointer',
+              background: a ? T.blue : 'transparent',
+              color: a ? '#fff' : T.textMid,
+              display:'inline-flex', alignItems:'center', gap: 6, transition:'all .15s'
+            }}>
+            <span style={{ fontSize: 14 }}>{t.icon}</span>{t.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function ReportHeader({ report, isMobile }) {
+  return (
+    <Card padded={false} style={{ padding: isMobile ? 20 : 28, background:'linear-gradient(135deg, #1A73E8 0%, #0F4DAE 100%)', borderColor:'transparent', color:'#fff' }}>
+      <div style={{ display:'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent:'space-between', gap: 16, flexDirection: isMobile ? 'column' : 'row' }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing:'.06em', textTransform:'uppercase', opacity: 0.8, marginBottom: 6 }}>
+            Relatório de reputação
+          </div>
+          <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 20 : 26, fontWeight: 700, margin:'0 0 6px', letterSpacing:'-0.02em' }}>
+            {report.period}
+          </h2>
+          <div style={{ fontSize: 13, opacity: 0.85 }}>
+            ✉️ {report.sentAt}
+          </div>
+        </div>
+        <div style={{ display:'flex', gap: 8, flexShrink: 0 }}>
+          <button style={{
+            background:'#fff', color: T.blueDk, border:'none', borderRadius: 8,
+            padding:'10px 16px', fontSize: 13, fontWeight: 600, cursor:'pointer',
+            display:'inline-flex', alignItems:'center', gap: 6
+          }}>📥 Baixar PDF</button>
+          <button style={{
+            background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.3)',
+            borderRadius: 8, padding:'10px 16px', fontSize: 13, fontWeight: 600, cursor:'pointer',
+            display:'inline-flex', alignItems:'center', gap: 6
+          }}>✉️ Enviar agora</button>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function DeltaBadge({ value, suffix = '', invert = false }) {
+  if (value === 0 || value == null) {
+    return <span style={{ fontSize: 12, color: T.textDim, fontWeight: 600 }}>—</span>
+  }
+  const isPositive = invert ? value < 0 : value > 0
+  const color = isPositive ? T.green : T.red
+  const arrow = value > 0 ? '↑' : '↓'
+  const abs = Math.abs(value)
+  return (
+    <span style={{
+      display:'inline-flex', alignItems:'center', gap: 3, fontSize: 12, fontWeight: 700,
+      color, background: isPositive ? '#ECFDF5' : '#FEF2F2',
+      padding:'2px 7px', borderRadius: 6
+    }}>{arrow} {abs}{suffix}</span>
+  )
+}
+
+function ReportSummaryGrid({ summary, isMobile }) {
+  const items = [
+    { label:'Novas avaliações', value: summary.newReviews,      delta: summary.newReviewsDelta, suffix:' vs anterior', icon:'⭐' },
+    { label:'Nota atual',       value: summary.currentRating.toFixed(1), delta: summary.ratingDelta, suffix:'',  isFloat: true, icon:'📈' },
+    { label:'Posição no rank',  value: `${summary.currentPosition}º`, delta: summary.positionDelta, suffix:' pos.', invert: false, icon:'🏆' },
+    { label:'Próximo concorrente', value: `-${Math.abs(summary.competitorDelta)} av.`, delta: null, sub:'mais perto que antes', icon:'🎯' }
+  ]
+  return (
+    <div style={{ display:'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 8 : 12 }}>
+      {items.map((it, i) => (
+        <Card key={i} padded={false} style={{ padding: isMobile ? 14 : 18 }}>
+          <div style={{ display:'flex', alignItems:'center', gap: 6, marginBottom: 4 }}>
+            <span style={{ fontSize: 14 }}>{it.icon}</span>
+            <div style={{ fontSize: 11, color: T.textMid, fontWeight: 600, letterSpacing:'.02em', textTransform:'uppercase' }}>{it.label}</div>
+          </div>
+          <div style={{ display:'flex', alignItems:'baseline', gap: 8, flexWrap:'wrap', marginTop: 4 }}>
+            <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 800, color: T.text, letterSpacing:'-0.02em', lineHeight: 1 }}>{it.value}</div>
+            {it.delta !== null && it.delta !== undefined && <DeltaBadge value={it.delta} suffix={it.suffix && it.suffix.startsWith(' ') ? '' : it.suffix}/>}
+          </div>
+          {it.sub && <div style={{ fontSize: 11, color: T.textDim, marginTop: 4 }}>{it.sub}</div>}
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+function ReportSectionTitle({ icon, title, sub }) {
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
+        <span>{icon}</span>{title}
+      </h3>
+      {sub && <div style={{ fontSize: 12.5, color: T.textMid }}>{sub}</div>}
+    </div>
+  )
+}
+
+function ReportRatingChart({ data, labels, mode }) {
+  const w = 720, h = 180, padL = 36, padR = 16, padT = 14, padB = 26
+  const max = Math.max(...data, 5)
+  const min = Math.min(...data, 4)
+  const range = max - min || 1
+  const xs = data.map((_, i) => padL + (i * (w - padL - padR)) / (data.length - 1))
+  const ys = data.map(v => padT + (h - padT - padB) - ((v - min) / range) * (h - padT - padB))
+  const path = data.map((_, i) => (i === 0 ? 'M' : 'L') + xs[i] + ',' + ys[i]).join(' ')
+  const areaPath = path + ` L${xs[xs.length - 1]},${h - padB} L${xs[0]},${h - padB} Z`
+  return (
+    <Card>
+      <ReportSectionTitle icon="📈" title="Evolução da nota" sub={`Sua nota nos últimos ${mode === 'weekly' ? '7 dias' : '12 meses'}.`}/>
+      <svg viewBox={`0 0 ${w} ${h}`} style={{ width:'100%', height:'auto', display:'block' }} preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="grad-rep" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%"   stopColor={T.blue} stopOpacity="0.18"/>
+            <stop offset="100%" stopColor={T.blue} stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+        {/* grid horizontal */}
+        {[0, 0.5, 1].map(p => (
+          <line key={p} x1={padL} x2={w - padR} y1={padT + p * (h - padT - padB)} y2={padT + p * (h - padT - padB)} stroke={T.border} strokeDasharray="2 4"/>
+        ))}
+        {/* área */}
+        <path d={areaPath} fill="url(#grad-rep)"/>
+        {/* linha */}
+        <path d={path} fill="none" stroke={T.blue} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        {/* pontos */}
+        {data.map((v, i) => (
+          <g key={i}>
+            <circle cx={xs[i]} cy={ys[i]} r={i === data.length - 1 ? 5 : 3} fill="#fff" stroke={T.blue} strokeWidth="2"/>
+            {i === data.length - 1 && (
+              <text x={xs[i]} y={ys[i] - 12} fontSize="11" fontWeight="700" fill={T.blueDk} textAnchor="middle">{v.toFixed(1)}</text>
+            )}
+          </g>
+        ))}
+        {/* labels x */}
+        {labels.map((l, i) => (
+          <text key={i} x={xs[i]} y={h - 8} fontSize="10" fill={T.textDim} textAnchor="middle">{l}</text>
+        ))}
+        {/* labels y */}
+        <text x={padL - 6} y={padT + 4} fontSize="10" fill={T.textDim} textAnchor="end">{max.toFixed(1)}</text>
+        <text x={padL - 6} y={h - padB + 4} fontSize="10" fill={T.textDim} textAnchor="end">{min.toFixed(1)}</text>
+      </svg>
+    </Card>
+  )
+}
+
+function ReportReviewsList({ reviews }) {
+  return (
+    <Card>
+      <ReportSectionTitle icon="⭐" title="Avaliações em destaque" sub="As que mais movimentaram sua reputação no período."/>
+      <ul style={{ listStyle:'none', padding: 0, margin: 0, display:'flex', flexDirection:'column', gap: 12 }}>
+        {reviews.map((r, i) => (
+          <li key={i} style={{ display:'flex', gap: 12, paddingBottom: 12, borderBottom: i < reviews.length - 1 ? '1px solid '+T.border : 'none' }}>
+            <div style={{
+              width: 38, height: 38, borderRadius:'50%', background: r.color, color:'#fff',
+              display:'grid', placeItems:'center', fontWeight: 700, fontSize: 13, flexShrink: 0
+            }}>{r.initials}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 2, flexWrap:'wrap' }}>
+                <span style={{ fontSize: 13.5, fontWeight: 600, color: T.text }}>{r.name}</span>
+                <Stars rating={r.rating} size={12}/>
+                <span style={{ fontSize: 11, color: T.textDim }}>· {r.when}</span>
+              </div>
+              <div style={{ fontSize: 13, color: T.textMid, lineHeight: 1.5 }}>{r.comment}</div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  )
+}
+
+function ReportRankingMoves({ moves }) {
+  const colors = {
+    up:   { bg:'#ECFDF5', border:'#A7F3D0', dot:'#10B981' },
+    down: { bg:'#FEF2F2', border:'#FECACA', dot:'#EF4444' },
+    risk: { bg:'#FFFBEB', border:'#FDE68A', dot:'#F59E0B' }
+  }
+  return (
+    <Card>
+      <ReportSectionTitle icon="🏆" title="Movimentação no ranking" sub="O que mudou na sua categoria no período."/>
+      <div style={{ display:'flex', flexDirection:'column', gap: 8 }}>
+        {moves.map((m, i) => {
+          const c = colors[m.type] || colors.up
+          return (
+            <div key={i} style={{
+              display:'flex', alignItems:'center', gap: 10, padding:'10px 12px',
+              background: c.bg, border:'1px solid '+c.border, borderRadius: 8,
+              fontWeight: m.highlight ? 700 : 500
+            }}>
+              <span style={{ fontSize: 16, color: c.dot, width: 18, textAlign:'center' }}>{m.icon}</span>
+              <span style={{ fontSize: 13.5, color: T.text }}>{m.text}</span>
+            </div>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}
+
+function ReportCompetitorTable({ rows }) {
+  return (
+    <Card>
+      <ReportSectionTitle icon="🔍" title="Você vs concorrentes" sub="Comparativo direto com os 4 mais próximos."/>
+      <div style={{ overflowX:'auto' }}>
+        <table style={{ width:'100%', borderCollapse:'collapse', fontSize: 13 }}>
+          <thead>
+            <tr style={{ color: T.textMid, fontSize: 11, textTransform:'uppercase', letterSpacing:'.04em' }}>
+              <th style={{ textAlign:'left',  padding:'6px 8px', fontWeight: 600, borderBottom:'1px solid '+T.border }}>#</th>
+              <th style={{ textAlign:'left',  padding:'6px 8px', fontWeight: 600, borderBottom:'1px solid '+T.border }}>Empresa</th>
+              <th style={{ textAlign:'right', padding:'6px 8px', fontWeight: 600, borderBottom:'1px solid '+T.border }}>Avaliações</th>
+              <th style={{ textAlign:'right', padding:'6px 8px', fontWeight: 600, borderBottom:'1px solid '+T.border }}>No período</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i} style={{ background: r.isYou ? T.blueSoft : 'transparent' }}>
+                <td style={{ padding:'10px 8px', fontWeight: 700, color: r.isYou ? T.blueDk : T.text }}>{r.pos}º</td>
+                <td style={{ padding:'10px 8px', fontWeight: 600, color: r.isYou ? T.blueDk : T.text }}>
+                  {r.name} {r.isYou && <span style={{ fontSize: 10, fontWeight: 700, color: T.blue, background:'#fff', padding:'1px 5px', borderRadius: 4, marginLeft: 4 }}>VOCÊ</span>}
+                </td>
+                <td style={{ padding:'10px 8px', textAlign:'right', color: T.text, fontWeight: 600 }}>{r.reviews}</td>
+                <td style={{ padding:'10px 8px', textAlign:'right' }}>
+                  {r.weekChange === 0
+                    ? <span style={{ color: T.textDim }}>—</span>
+                    : <span style={{ color: r.weekChange > 0 ? T.green : T.red, fontWeight: 700 }}>
+                        {r.weekChange > 0 ? '+' : ''}{r.weekChange}
+                      </span>
+                  }
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  )
+}
+
+function ReportOpportunities({ items }) {
+  return (
+    <Card style={{ background: T.amberSoft, borderColor:'#FDE68A' }}>
+      <ReportSectionTitle icon="💡" title="Oportunidades pra essa semana" sub="O que fazer agora pra crescer mais rápido."/>
+      <ul style={{ listStyle:'none', padding: 0, margin: 0, display:'flex', flexDirection:'column', gap: 10 }}>
+        {items.map((it, i) => (
+          <li key={i} style={{ display:'flex', gap: 10, alignItems:'flex-start', fontSize: 13.5, color: T.text, lineHeight: 1.5 }}>
+            <span style={{ fontSize: 16, flexShrink: 0, lineHeight: 1.4 }}>{it.icon}</span>
+            <span>{it.text}</span>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  )
+}
+
+function ReportSettingsCard({ settings, onChange }) {
+  const [email, setEmail] = React.useState(settings.email)
+  return (
+    <Card>
+      <ReportSectionTitle icon="⚙️" title="Configurar envio" sub="Receba este relatório direto no seu email."/>
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ fontSize: 12, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 4 }}>Email do destinatário</label>
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          style={{
+            width:'100%', padding:'9px 12px', fontSize: 13.5,
+            border:'1px solid '+T.border, borderRadius: 8, outline:'none', boxSizing:'border-box'
+          }}/>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap: 12 }}>
+        <label style={{
+          display:'flex', alignItems:'center', gap: 8, padding: 10,
+          border:'1px solid '+T.border, borderRadius: 8, cursor:'pointer',
+          background: settings.weeklyEnabled ? T.blueSoft : '#fff'
+        }}>
+          <input type="checkbox" defaultChecked={settings.weeklyEnabled} style={{ accentColor: T.blue }}/>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>Semanal</div>
+            <div style={{ fontSize: 11, color: T.textMid }}>Toda segunda · 08:00</div>
+          </div>
+        </label>
+        <label style={{
+          display:'flex', alignItems:'center', gap: 8, padding: 10,
+          border:'1px solid '+T.border, borderRadius: 8, cursor:'pointer',
+          background: settings.monthlyEnabled ? T.blueSoft : '#fff'
+        }}>
+          <input type="checkbox" defaultChecked={settings.monthlyEnabled} style={{ accentColor: T.blue }}/>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>Mensal</div>
+            <div style={{ fontSize: 11, color: T.textMid }}>Dia 1 · 08:00</div>
+          </div>
+        </label>
+      </div>
+      <button style={{
+        marginTop: 14, width:'100%', background: T.blue, color:'#fff',
+        border:'none', borderRadius: 8, padding:'10px 16px', fontSize: 13.5, fontWeight: 600, cursor:'pointer'
+      }}>Salvar preferências</button>
+    </Card>
+  )
+}
+
+function ReportsScreen({ data, isMobile }) {
+  const [mode, setMode] = React.useState('weekly')
+  const report = data.reports[mode]
+
+  return (
+    <main style={{ maxWidth: 1100, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
+      <div style={{ marginBottom: 18, display:'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent:'space-between', gap: 12, flexDirection: isMobile ? 'column' : 'row' }}>
+        <div>
+          <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
+            📈 Relatórios automáticos
+          </h1>
+          <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
+            Toda segunda no seu email — evolução da nota, novas avaliações, ranking e oportunidades.
+          </p>
+        </div>
+        <ReportPeriodTabs active={mode} onChange={setMode} isMobile={isMobile}/>
+      </div>
+
+      <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
+        <ReportHeader report={report} isMobile={isMobile}/>
+        <ReportSummaryGrid summary={report.summary} isMobile={isMobile}/>
+        <ReportRatingChart data={report.chart} labels={report.chartLabels} mode={mode}/>
+
+        <div style={{
+          display:'grid',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+          gap: 16
+        }}>
+          <ReportReviewsList reviews={report.topReviews}/>
+          <ReportRankingMoves moves={report.rankingMoves}/>
+        </div>
+
+        <ReportCompetitorTable rows={report.competitorComparison}/>
+        <ReportOpportunities items={report.opportunities}/>
+        <ReportSettingsCard settings={data.reportSettings}/>
+      </div>
+    </main>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // Header
 // ─────────────────────────────────────────────────────────────
 function Header({ bizName, plan, isMobile }) {
@@ -1273,8 +1713,13 @@ export default function AppV2() {
         <AlertsScreen data={d} isMobile={isMobile}/>
       )}
 
+      {/* Aba: RELATÓRIOS (Pro) — newsletter semanal/mensal FUNCIONAL */}
+      {tab === 'relatorios' && plan === 'pro' && (
+        <ReportsScreen data={d} isMobile={isMobile}/>
+      )}
+
       {/* Outras abas ainda em construção */}
-      {tab !== 'painel' && !(tab === 'concorrentes' && plan === 'pro') && !(tab === 'alertas' && plan === 'pro') && (
+      {tab !== 'painel' && !(tab === 'concorrentes' && plan === 'pro') && !(tab === 'alertas' && plan === 'pro') && !(tab === 'relatorios' && plan === 'pro') && (
         <ComingSoon
           icon={tab === 'concorrentes' ? '🏆' : tab === 'alertas' ? '🔔' : tab === 'relatorios' ? '📈' : '⭐'}
           title={
