@@ -548,32 +548,10 @@ export default function StarTouch({ user, onLogout }) {
   const rc = r=>r>=4?"#00C49A":r===3?"#f59e0b":"#ef4444";
   const rb = r=>r>=4?"#a7f3d0":r===3?"#fed7aa":"#fee2e2";
 
-  async function goToCheckout() {
-    console.log("[checkout] iniciando");
-    const token = localStorage.getItem("rz_token");
-    console.log("[checkout] token presente:", !!token);
-    if (!token) { setToast({ message: "Sessão expirada. Entre novamente.", kind: "error" }); return; }
-    setToast({ message: "Abrindo checkout...", kind: "success" });
-    try {
-      const res = await fetch("/api/billing?action=checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
-      });
-      console.log("[checkout] status:", res.status);
-      const text = await res.text();
-      console.log("[checkout] body:", text);
-      let data;
-      try { data = JSON.parse(text); } catch { data = { error: text || "Resposta inválida" }; }
-      if (!res.ok || !data.url) {
-        const msg = data.error || `Erro ${res.status}: configure as variáveis Stripe no Vercel.`;
-        setToast({ message: msg, kind: "error" });
-        return;
-      }
-      window.location.href = data.url;
-    } catch (err) {
-      console.error("[checkout] erro:", err);
-      setToast({ message: "Erro de conexão: " + (err?.message || "tente novamente"), kind: "error" });
-    }
+  function goToCheckout() {
+    // Antes ia direto pro Stripe. Agora passa pela /plano-pro (pagina de upsell com features+preco).
+    // O botao "Assinar agora" la chama /api/billing?action=checkout.
+    window.location.href = "/plano-pro";
   }
 
   async function openBillingPortal() {
