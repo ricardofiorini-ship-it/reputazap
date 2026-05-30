@@ -34,6 +34,7 @@
     { "source": "/artigos", "destination": "/artigos/index.html" },
     { "source": "/artigos/:slug", "destination": "/artigos/:slug.html" },
     { "source": "/app", "destination": "/index.html" },
-    { "source": "/app/(.*)", "destination": "/index.html" }
+    { "source": "/app/(.*)", "destination": "/index.html" },
+    { "source": "/app-v2", "destination": "/index-v2.html" }
   ]
 }
