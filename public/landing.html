@@ -553,6 +553,39 @@
     object-fit: cover;
     display: block;
   }
+  /* Badge "DEMO" pulsante — sinal de que e video, nao foto */
+  .hero-video-badge {
+    position: absolute;
+    top: 12px; left: 12px;
+    z-index: 3;
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(15,15,15,0.78);
+    color: #fff;
+    padding: 6px 12px 6px 10px;
+    border-radius: 999px;
+    font-family: 'General Sans', var(--st-font-sans);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    pointer-events: none;
+  }
+  .hero-video-badge::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #EA4335;
+    box-shadow: 0 0 0 3px rgba(234,67,53,0.22);
+    animation: hero-video-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes hero-video-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.5; transform: scale(0.8); }
+  }
+  /* Mobile: video PRIMEIRO (acima do texto) — destaca como video e nao foto */
+  @media (max-width: 959px) {
+    .hero-image { order: -1; }
+  }
 
   /* CTA — barra de busca arredondada */
   .hero-search {
@@ -3448,11 +3481,11 @@
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg>
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg>
       </div>
-      <h1>Apareça em primeiro no Google.</h1>
-      <p class="hero-sub">Mais avaliações no Google = mais gente te encontrando. Com a placa StarTouch, seu cliente encosta o celular e avalia em 30 segundos.</p>
+      <h1>Mais avaliações no Google.</h1>
+      <p class="hero-sub">Seu cliente aproxima o celular e avalia.</p>
       <div class="hero-ctas">
         <a class="hero-cta-primary" href="/ativar?from=web">
-          Ver minha posição grátis
+          Ver minha posição no Google
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="5" y1="12" x2="19" y2="12"/>
             <polyline points="12 5 19 12 12 19"/>
@@ -3466,14 +3499,14 @@
           </svg>
         </a>
       </div>
-      <!-- GUARDADO a pedido (2026-05-25): selo "Ver sua posicao ... gratis" oculto. Para reexibir, remova style="display:none" abaixo. -->
-      <p class="hero-free-note" style="display:none">
+      <p class="hero-free-note">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-        Ver sua posição no ranking e criar conta é <strong>grátis</strong> — sem cartão de crédito.
+        <span>Análise <strong>gratuita</strong> da sua empresa e comparação com concorrentes da região.</span>
       </p>
     </div>
     <div class="hero-image">
       <div class="hero-video">
+        <span class="hero-video-badge" aria-hidden="true">Demo</span>
         <video src="/demo-avaliacao.mp4" autoplay loop muted playsinline preload="auto" aria-label="Demonstracao: cliente aproxima o celular da placa StarTouch e avalia no Google em segundos"></video>
       </div>
     </div>
