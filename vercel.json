@@ -29,6 +29,8 @@
     { "source": "/admin/estoque", "destination": "/admin-estoque.html" },
     { "source": "/ativar-codigo", "destination": "/ativar-codigo.html" },
     { "source": "/r/:code", "destination": "/api/r/:code" },
+    { "source": "/artigos", "destination": "/artigos/index.html" },
+    { "source": "/artigos/:slug", "destination": "/artigos/:slug.html" },
     { "source": "/app", "destination": "/index.html" },
     { "source": "/app/(.*)", "destination": "/index.html" }
   ]
