@@ -168,6 +168,53 @@ const MOCK = {
     monthlyEnabled: true,
     weeklyDay: 'monday',   // dia da semana
     monthlyDay: 1          // dia do mês
+  },
+
+  // Loja (vitrine de produtos NFC)
+  products: [
+    { id:'placa-balcao',  icon:'🏷️', name:'Placa de Balcão NFC',  desc:'O cliente toca ao pagar/sair. Conversão mais alta.',         price: 89,    oldPrice: 119,  badge:'MAIS VENDIDA', specs:['NFC + QR Code', 'Acrílico premium', 'A6 vertical'] },
+    { id:'plaq-mesa',     icon:'🍽️', name:'Plaquinha de Mesa',    desc:'Em cada mesa — cliente avalia antes de sair.',                 price: 49,    oldPrice: 69,                            specs:['NFC + QR Code', 'Base estável', '8x12cm'] },
+    { id:'placa-parede',  icon:'🖼️', name:'Placa de Parede',      desc:'Visível na entrada/saída. Ideal pra clínicas e salões.',       price: 99,                                              specs:['NFC + QR Code', 'Adesivo 3M', 'A5 horizontal'] },
+    { id:'cartao-nfc',    icon:'💳', name:'Cartão NFC (3 un.)',   desc:'Pro garçom carregar — toca no celular do cliente.',            price: 29.90, oldPrice: 39.90,                         specs:['Tamanho cartão', '3 unidades', 'Cor preta'] },
+    { id:'pulseira-nfc',  icon:'⌚', name:'Pulseira NFC',          desc:'Pro garçom usar — toca no cliente após o atendimento.',       price: 39,                                              specs:['Silicone', 'Ajustável', 'Várias cores'] },
+    { id:'adesivo-nfc',   icon:'⭕', name:'Adesivo NFC',           desc:'Cole na maquininha de pagamento — toca após pagar.',          price: 19,    oldPrice: 29,                            specs:['Resistente', 'Adesivo 3M', '5x5cm'] }
+  ],
+  kit: {
+    icon: '🎁',
+    name:'Kit Completo StarTouch',
+    desc:'1 placa de balcão + 4 plaquinhas de mesa + 3 cartões NFC. Tudo o que precisa pra começar com força total e cobrir todos os pontos de contato.',
+    price: 199,
+    oldPrice: 247,
+    savings: 48
+  },
+
+  // Configurações
+  user: {
+    name:'Ricardo Fiorini',
+    email:'ricardo@cafebellavista.com.br',
+    phone:'(11) 99999-9999',
+    initials:'RF'
+  },
+  businessInfo: {
+    name:'Café Bella Vista',
+    category:'Cafeteria',
+    address:'Rua das Flores, 123 — Pinheiros, São Paulo · SP',
+    phone:'(11) 3456-7890',
+    placeId:'ChIJN1t_tDeuEmsRUsoyG83frY4',
+    gmapsUrl:'https://maps.google.com/?cid=12345'
+  },
+  billing: {
+    plan:'Plano Pro',
+    monthlyPrice: 19.90,
+    nextChargeAt:'5 de junho · 2026',
+    paymentMethod:'Cartão Visa •••• 4242',
+    status:'active',
+    sinceDate:'5 de maio · 2026',
+    invoices: [
+      { date:'5 mai 2026',  amount: 19.90, status:'paid' },
+      { date:'5 abr 2026',  amount: 19.90, status:'paid' },
+      { date:'5 mar 2026',  amount: 19.90, status:'paid' }
+    ]
   }
 }
 
@@ -252,7 +299,8 @@ const TABS = [
   { id: 'concorrentes', icon: '🏆', label: 'Concorrentes', pro: true },
   { id: 'alertas',      icon: '🔔', label: 'Alertas',      pro: true },
   { id: 'avaliacoes',   icon: '⭐', label: 'Avaliações',   pro: false },
-  { id: 'relatorios',   icon: '📈', label: 'Relatórios',   pro: true }
+  { id: 'relatorios',   icon: '📈', label: 'Relatórios',   pro: true },
+  { id: 'loja',         icon: '🛍️', label: 'Loja',         pro: false }
 ]
 
 function TopTabs({ active, onChange, plan, isMobile }) {
@@ -1258,9 +1306,352 @@ function ReportsScreen({ data, isMobile }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Header
+// LOJA — vitrine de produtos NFC
 // ─────────────────────────────────────────────────────────────
-function Header({ bizName, plan, isMobile }) {
+function ProductCard({ p }) {
+  return (
+    <Card padded={false} style={{ padding: 18, display:'flex', flexDirection:'column', height:'100%', position:'relative' }}>
+      {p.badge && (
+        <span style={{
+          position:'absolute', top: 14, right: 14, fontSize: 9.5, fontWeight: 800,
+          letterSpacing:'.05em', background:'#FBBC04', color:'#78350F',
+          padding:'3px 7px', borderRadius: 5
+        }}>{p.badge}</span>
+      )}
+      <div style={{
+        height: 96, background:'linear-gradient(135deg,#F8FAFC,#EFF6FF)',
+        borderRadius: 10, display:'grid', placeItems:'center', fontSize: 48,
+        marginBottom: 12, border:'1px solid '+T.border
+      }}>{p.icon}</div>
+      <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 15, fontWeight: 700, color: T.text, margin:'0 0 4px' }}>{p.name}</h3>
+      <p style={{ fontSize: 12.5, color: T.textMid, margin:'0 0 10px', lineHeight: 1.45, flex: 1 }}>{p.desc}</p>
+      <div style={{ display:'flex', flexWrap:'wrap', gap: 4, marginBottom: 12 }}>
+        {p.specs.map((s, i) => (
+          <span key={i} style={{ fontSize: 10.5, fontWeight: 600, color: T.textMid, background: T.bg, padding:'3px 7px', borderRadius: 5 }}>{s}</span>
+        ))}
+      </div>
+      <div style={{ display:'flex', alignItems:'baseline', gap: 6, marginBottom: 10 }}>
+        <span style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 800, color: T.text, letterSpacing:'-0.02em' }}>
+          R$ {p.price.toFixed(2).replace('.', ',')}
+        </span>
+        {p.oldPrice && (
+          <span style={{ fontSize: 12, color: T.textDim, textDecoration:'line-through' }}>
+            R$ {p.oldPrice.toFixed(2).replace('.', ',')}
+          </span>
+        )}
+      </div>
+      <button style={{
+        background: T.blue, color:'#fff', border:'none', borderRadius: 9,
+        padding:'10px 14px', fontSize: 13, fontWeight: 700, cursor:'pointer',
+        width:'100%'
+      }}>Comprar</button>
+    </Card>
+  )
+}
+
+function KitCard({ k, isMobile }) {
+  return (
+    <Card padded={false} style={{
+      padding: isMobile ? 20 : 28,
+      background:'linear-gradient(135deg,#1A73E8 0%, #0F4DAE 100%)',
+      borderColor:'transparent', color:'#fff', overflow:'hidden', position:'relative'
+    }}>
+      <div style={{ display:'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? 16 : 24, flexDirection: isMobile ? 'column' : 'row' }}>
+        <div style={{
+          width: 96, height: 96, borderRadius: 16, background:'rgba(255,255,255,.15)',
+          display:'grid', placeItems:'center', fontSize: 52, flexShrink: 0
+        }}>{k.icon}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display:'inline-block', fontSize: 10.5, fontWeight: 800, letterSpacing:'.06em', background:'#FBBC04', color:'#78350F', padding:'3px 8px', borderRadius: 5, marginBottom: 8 }}>
+            MELHOR CUSTO-BENEFÍCIO
+          </div>
+          <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 20 : 24, fontWeight: 700, margin:'0 0 6px', letterSpacing:'-0.02em' }}>
+            {k.name}
+          </h2>
+          <p style={{ fontSize: 13.5, opacity: 0.9, margin:'0 0 12px', lineHeight: 1.5 }}>{k.desc}</p>
+          <div style={{ display:'flex', alignItems:'baseline', gap: 10, flexWrap:'wrap' }}>
+            <span style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 26 : 32, fontWeight: 800, letterSpacing:'-0.02em' }}>
+              R$ {k.price.toFixed(2).replace('.', ',')}
+            </span>
+            <span style={{ fontSize: 14, opacity: 0.7, textDecoration:'line-through' }}>
+              R$ {k.oldPrice.toFixed(2).replace('.', ',')}
+            </span>
+            <span style={{ fontSize: 11.5, fontWeight: 800, background:'rgba(16,185,129,.25)', color:'#A7F3D0', padding:'3px 8px', borderRadius: 5 }}>
+              ECONOMIZA R$ {k.savings}
+            </span>
+          </div>
+        </div>
+        <button style={{
+          background:'#fff', color: T.blueDk, border:'none', borderRadius: 10,
+          padding: isMobile ? '12px 20px' : '14px 28px', fontSize: 14, fontWeight: 700, cursor:'pointer',
+          flexShrink: 0, width: isMobile ? '100%' : 'auto'
+        }}>Comprar kit completo</button>
+      </div>
+    </Card>
+  )
+}
+
+function LojaScreen({ data, isMobile, plan }) {
+  return (
+    <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
+      <div style={{ marginBottom: 22 }}>
+        <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
+          🛍️ Loja StarTouch
+        </h1>
+        <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
+          Placas, cartões e pulseiras NFC pra ampliar seus pontos de captação de avaliações.
+        </p>
+      </div>
+
+      {/* Kit em destaque */}
+      <Section><KitCard k={data.kit} isMobile={isMobile}/></Section>
+
+      {/* Grid de produtos */}
+      <Section>
+        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin:'0 0 14px' }}>
+          Produtos individuais
+        </h2>
+        <div style={{
+          display:'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: 14
+        }}>
+          {data.products.map(p => <ProductCard key={p.id} p={p}/>)}
+        </div>
+      </Section>
+
+      {/* Trust / garantias */}
+      <Card style={{ background: T.bg, borderColor: T.border }}>
+        <div style={{
+          display:'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+          gap: isMobile ? 16 : 24, textAlign:'center'
+        }}>
+          {[
+            { icon:'🚚', t:'Envio rápido', d:'Despacho em 24h pela Jadlog/Correios' },
+            { icon:'🛡️', t:'Garantia 90 dias', d:'Defeito de fabricação trocamos sem custo' },
+            { icon:'📞', t:'Suporte WhatsApp', d:'Tira dúvidas direto com a gente' }
+          ].map((it, i) => (
+            <div key={i}>
+              <div style={{ fontSize: 26, marginBottom: 4 }}>{it.icon}</div>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 2 }}>{it.t}</div>
+              <div style={{ fontSize: 12, color: T.textMid }}>{it.d}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </main>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// CONFIGURAÇÕES — Conta + Negócio + Plano
+// ─────────────────────────────────────────────────────────────
+function ConfigField({ label, value, type = 'text', readOnly, hint, action }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ fontSize: 12, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>{label}</label>
+      <div style={{ display:'flex', gap: 8 }}>
+        <input
+          type={type}
+          defaultValue={value}
+          readOnly={readOnly}
+          style={{
+            flex: 1, padding:'9px 12px', fontSize: 13.5,
+            border:'1px solid '+T.border, borderRadius: 8, outline:'none',
+            background: readOnly ? T.bg : '#fff', color: T.text, boxSizing:'border-box'
+          }}/>
+        {action && (
+          <button style={{
+            background:'#fff', color: T.blue, border:'1px solid '+T.border, borderRadius: 8,
+            padding:'9px 14px', fontSize: 12.5, fontWeight: 600, cursor:'pointer', whiteSpace:'nowrap'
+          }}>{action}</button>
+        )}
+      </div>
+      {hint && <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 4 }}>{hint}</div>}
+    </div>
+  )
+}
+
+function ConfigSectionCard({ icon, title, sub, children, anchor }) {
+  return (
+    <Card style={{ scrollMarginTop: 100 }} {...(anchor ? { id: anchor } : {})}>
+      <div style={{ marginBottom: 18 }}>
+        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
+          <span>{icon}</span>{title}
+        </h2>
+        {sub && <div style={{ fontSize: 13, color: T.textMid }}>{sub}</div>}
+      </div>
+      {children}
+    </Card>
+  )
+}
+
+function AccountSection({ user }) {
+  return (
+    <ConfigSectionCard anchor="conta" icon="👤" title="Minha conta" sub="Seus dados pessoais e acesso.">
+      <ConfigField label="Nome completo"  value={user.name}/>
+      <ConfigField label="Email"          value={user.email} type="email" hint="É também seu login."/>
+      <ConfigField label="Telefone"       value={user.phone} type="tel"/>
+      <ConfigField label="Senha"          value="••••••••" type="password" readOnly action="Alterar senha"/>
+      <div style={{ display:'flex', gap: 8, marginTop: 14 }}>
+        <button style={{
+          background: T.blue, color:'#fff', border:'none', borderRadius: 8,
+          padding:'10px 18px', fontSize: 13.5, fontWeight: 700, cursor:'pointer'
+        }}>Salvar alterações</button>
+      </div>
+    </ConfigSectionCard>
+  )
+}
+
+function BusinessSection({ biz }) {
+  return (
+    <ConfigSectionCard anchor="negocio" icon="🏢" title="Dados do negócio" sub="O que aparece nas suas placas, relatórios e nos alertas.">
+      <ConfigField label="Nome do negócio" value={biz.name}/>
+      <ConfigField label="Categoria"       value={biz.category}/>
+      <ConfigField label="Endereço"        value={biz.address}/>
+      <ConfigField label="Telefone"        value={biz.phone} type="tel"/>
+      <ConfigField label="Google Place ID" value={biz.placeId} readOnly hint="Conectado ao Google Meu Negócio · não pode ser alterado."/>
+      <div style={{ display:'flex', gap: 8, marginTop: 14 }}>
+        <button style={{
+          background: T.blue, color:'#fff', border:'none', borderRadius: 8,
+          padding:'10px 18px', fontSize: 13.5, fontWeight: 700, cursor:'pointer'
+        }}>Salvar alterações</button>
+        <a href={biz.gmapsUrl} target="_blank" rel="noreferrer" style={{
+          background:'#fff', color: T.blue, border:'1px solid '+T.border, borderRadius: 8,
+          padding:'10px 16px', fontSize: 13, fontWeight: 600, textDecoration:'none',
+          display:'inline-flex', alignItems:'center'
+        }}>Ver no Google Maps ↗</a>
+      </div>
+    </ConfigSectionCard>
+  )
+}
+
+function BillingSection({ billing, plan }) {
+  return (
+    <ConfigSectionCard anchor="plano" icon="💳" title="Plano e cobrança" sub="Seu plano atual, próxima cobrança e histórico de pagamentos.">
+      {/* Card do plano atual */}
+      <div style={{
+        background: plan === 'pro' ? 'linear-gradient(135deg,#1A73E8,#0F4DAE)' : T.bg,
+        color: plan === 'pro' ? '#fff' : T.text,
+        borderRadius: 12, padding: 18, marginBottom: 18,
+        border: plan === 'pro' ? 'none' : '1px solid '+T.border
+      }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 12, flexWrap:'wrap' }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing:'.06em', opacity: 0.85, marginBottom: 4 }}>
+              SEU PLANO ATUAL
+            </div>
+            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 800, letterSpacing:'-0.02em' }}>
+              {plan === 'pro' ? billing.plan : 'Plano Free'}
+            </div>
+            {plan === 'pro' && (
+              <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>
+                R$ {billing.monthlyPrice.toFixed(2).replace('.', ',')} / mês · ativo desde {billing.sinceDate}
+              </div>
+            )}
+          </div>
+          {plan === 'free' && (
+            <a href="/plano-pro" style={{
+              background: T.blue, color:'#fff', border:'none', borderRadius: 9,
+              padding:'10px 18px', fontSize: 13.5, fontWeight: 700, textDecoration:'none'
+            }}>Fazer upgrade pro Pro →</a>
+          )}
+        </div>
+      </div>
+
+      {plan === 'pro' && (
+        <>
+          <ConfigField label="Próxima cobrança" value={billing.nextChargeAt} readOnly/>
+          <ConfigField label="Método de pagamento" value={billing.paymentMethod} readOnly action="Alterar"/>
+
+          {/* Histórico */}
+          <div style={{ marginTop: 18 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: T.textMid, marginBottom: 8 }}>Histórico de pagamentos</div>
+            <div style={{ border:'1px solid '+T.border, borderRadius: 8, overflow:'hidden' }}>
+              {billing.invoices.map((inv, i) => (
+                <div key={i} style={{
+                  display:'flex', justifyContent:'space-between', alignItems:'center',
+                  padding:'10px 14px', borderBottom: i < billing.invoices.length - 1 ? '1px solid '+T.border : 'none',
+                  fontSize: 13
+                }}>
+                  <span style={{ color: T.textMid }}>{inv.date}</span>
+                  <span style={{ fontWeight: 600, color: T.text }}>R$ {inv.amount.toFixed(2).replace('.', ',')}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: T.green, background: T.greenSoft, padding:'2px 7px', borderRadius: 5 }}>PAGO</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 18, paddingTop: 18, borderTop:'1px solid '+T.border }}>
+            <button style={{
+              background:'#fff', color: T.red, border:'1px solid #FECACA', borderRadius: 8,
+              padding:'9px 16px', fontSize: 12.5, fontWeight: 600, cursor:'pointer'
+            }}>Cancelar assinatura</button>
+            <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 6 }}>
+              Você continua com acesso Pro até o fim do período pago.
+            </div>
+          </div>
+        </>
+      )}
+    </ConfigSectionCard>
+  )
+}
+
+function ConfigScreen({ data, isMobile, plan }) {
+  // Scroll pro anchor da URL (#conta, #negocio, #plano)
+  React.useEffect(() => {
+    const hash = window.location.hash.replace('#', '')
+    if (hash) {
+      setTimeout(() => {
+        const el = document.getElementById(hash)
+        if (el) el.scrollIntoView({ behavior:'smooth', block:'start' })
+      }, 80)
+    }
+  }, [])
+
+  return (
+    <main style={{ maxWidth: 860, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
+      <div style={{ marginBottom: 22 }}>
+        <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
+          ⚙️ Configurações
+        </h1>
+        <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
+          Gerencie sua conta, dados do negócio e plano.
+        </p>
+      </div>
+
+      <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
+        <AccountSection user={data.user}/>
+        <BusinessSection biz={data.businessInfo}/>
+        <BillingSection billing={data.billing} plan={plan}/>
+      </div>
+    </main>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Header — agora com dropdown do avatar
+// ─────────────────────────────────────────────────────────────
+function Header({ bizName, plan, isMobile, onNavigate }) {
+  const [open, setOpen] = React.useState(false)
+  const ref = React.useRef(null)
+
+  React.useEffect(() => {
+    if (!open) return
+    const onClick = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [open])
+
+  const go = (anchor) => {
+    setOpen(false)
+    if (typeof window !== 'undefined') {
+      window.location.hash = anchor
+    }
+    onNavigate && onNavigate('config')
+  }
+
   return (
     <header style={{
       background: T.surface,
@@ -1282,7 +1673,8 @@ function Header({ bizName, plan, isMobile }) {
           <span style={{ fontWeight: 600, fontSize: isMobile ? 13 : 14, color: T.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{bizName}</span>
         </div>
       </div>
-      <div style={{ display:'flex', alignItems:'center', gap: 10, flexShrink: 0 }}>
+
+      <div ref={ref} style={{ display:'flex', alignItems:'center', gap: 10, flexShrink: 0, position:'relative' }}>
         {plan === 'pro' && (
           <span style={{
             fontSize: 11, fontWeight: 800, letterSpacing: '0.06em',
@@ -1290,7 +1682,60 @@ function Header({ bizName, plan, isMobile }) {
             color: '#fff', padding: '4px 9px', borderRadius: 6
           }}>PRO</span>
         )}
-        <div style={{ width: 32, height: 32, borderRadius:'50%', background:'#1A73E8', color:'#fff', fontWeight: 700, fontSize: 12, display:'flex', alignItems:'center', justifyContent:'center' }}>RF</div>
+
+        {/* Avatar clicável */}
+        <button
+          onClick={() => setOpen(o => !o)}
+          aria-label="Menu da conta"
+          style={{
+            width: 32, height: 32, borderRadius:'50%', background:'#1A73E8', color:'#fff',
+            fontWeight: 700, fontSize: 12, display:'flex', alignItems:'center', justifyContent:'center',
+            border:'none', cursor:'pointer', padding: 0,
+            boxShadow: open ? '0 0 0 3px '+T.blueSoft : 'none', transition:'box-shadow .15s'
+          }}>RF</button>
+
+        {/* Dropdown */}
+        {open && (
+          <div style={{
+            position:'absolute', top:'calc(100% + 8px)', right: 0,
+            background: T.surface, border:'1px solid '+T.border, borderRadius: 12,
+            boxShadow:'0 8px 32px -4px rgba(15,23,42,.18)',
+            minWidth: 240, padding: 6, zIndex: 60
+          }}>
+            <div style={{ padding:'8px 12px', borderBottom:'1px solid '+T.border, marginBottom: 4 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Ricardo Fiorini</div>
+              <div style={{ fontSize: 12, color: T.textMid }}>ricardo@cafebellavista.com.br</div>
+            </div>
+
+            {[
+              { label:'👤 Minha conta',       anchor:'conta'   },
+              { label:'🏢 Dados do negócio',  anchor:'negocio' },
+              { label:'💳 Plano e cobrança',  anchor:'plano'   }
+            ].map(it => (
+              <button key={it.anchor} onClick={() => go(it.anchor)}
+                style={{
+                  display:'flex', alignItems:'center', width:'100%',
+                  padding:'9px 12px', border:'none', background:'transparent',
+                  fontSize: 13, color: T.text, textAlign:'left', cursor:'pointer',
+                  borderRadius: 6, gap: 8
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = T.bg}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >{it.label}</button>
+            ))}
+
+            <div style={{ borderTop:'1px solid '+T.border, marginTop: 4, paddingTop: 4 }}>
+              <a href="/" style={{
+                display:'flex', alignItems:'center', width:'100%',
+                padding:'9px 12px', textDecoration:'none',
+                fontSize: 13, color: T.red, gap: 8, borderRadius: 6
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >🚪 Sair</a>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   )
@@ -1700,7 +2145,7 @@ export default function AppV2() {
 
   return (
     <div style={{ background: T.bg, minHeight:'100vh' }}>
-      <Header bizName={d.biz.name} plan={plan} isMobile={isMobile} />
+      <Header bizName={d.biz.name} plan={plan} isMobile={isMobile} onNavigate={setTab} />
       <TopTabs active={tab} onChange={setTab} plan={plan} isMobile={isMobile} />
 
       {/* Aba: CONCORRENTES (Pro) — Inteligência Competitiva FUNCIONAL */}
@@ -1718,8 +2163,18 @@ export default function AppV2() {
         <ReportsScreen data={d} isMobile={isMobile}/>
       )}
 
+      {/* Aba: LOJA — vitrine de produtos NFC (free + pro) */}
+      {tab === 'loja' && (
+        <LojaScreen data={d} isMobile={isMobile} plan={plan}/>
+      )}
+
+      {/* Tela: CONFIGURAÇÕES — acessível via dropdown do avatar */}
+      {tab === 'config' && (
+        <ConfigScreen data={d} isMobile={isMobile} plan={plan}/>
+      )}
+
       {/* Outras abas ainda em construção */}
-      {tab !== 'painel' && !(tab === 'concorrentes' && plan === 'pro') && !(tab === 'alertas' && plan === 'pro') && !(tab === 'relatorios' && plan === 'pro') && (
+      {tab !== 'painel' && !(tab === 'concorrentes' && plan === 'pro') && !(tab === 'alertas' && plan === 'pro') && !(tab === 'relatorios' && plan === 'pro') && tab !== 'loja' && tab !== 'config' && (
         <ComingSoon
           icon={tab === 'concorrentes' ? '🏆' : tab === 'alertas' ? '🔔' : tab === 'relatorios' ? '📈' : '⭐'}
           title={
