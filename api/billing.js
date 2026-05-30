@@ -520,12 +520,18 @@ export default async function handler(req, res) {
                  : mpToken.startsWith("TEST-")    ? "TEST (sandbox)"
                  : mpToken                        ? "UNKNOWN (não começa com APP_USR/TEST)"
                                                  : "NAO_SETADO";
+    const proLink = process.env.MP_PRO_PAYMENT_LINK || "";
+    let proLinkHost = null;
+    try { if (proLink) proLinkHost = new URL(proLink).host; } catch {}
     return res.json({
       mp: {
         access_token_set: !!mpToken,
         access_token_type: mpType,
         access_token_prefix: mpToken ? mpToken.slice(0, 12) + "..." : null,
-        webhook_secret_set: !!process.env.MP_WEBHOOK_SECRET
+        webhook_secret_set: !!process.env.MP_WEBHOOK_SECRET,
+        pro_payment_link_set: !!proLink,
+        pro_payment_link_host: proLinkHost,
+        pro_payment_link_starts: proLink ? proLink.slice(0, 50) + "..." : null
       },
       stripe_dormant: {
         secret_set: !!process.env.STRIPE_SECRET_KEY,
