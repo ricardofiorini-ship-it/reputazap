@@ -243,6 +243,19 @@
     white-space: nowrap;
   }
   .header-nav a:hover { color: var(--st-blue-primary); }
+  /* Link "Entrar" pra quem ja tem conta — escondido no mobile (espaço) */
+  .header-login {
+    display: none;
+    font-family: var(--st-font-sans);
+    font-size: 14px; font-weight: 500;
+    color: var(--st-gray-text);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color .15s;
+    margin-right: 4px;
+  }
+  .header-login:hover { color: var(--st-blue-primary); }
+  @media (min-width: 640px) { .header-login { display: inline-flex; align-items: center; } }
   .header-cta {
     background: var(--st-blue-primary);
     color: #FFFFFF;
@@ -3461,6 +3474,7 @@
       <a href="#produtos">Produtos</a>
       <a href="#funcionalidades">Funcionalidades</a>
     </nav>
+    <a class="header-login" href="/app">Entrar</a>
     <a class="header-cta" href="/ativar?from=web">Ver minha posição grátis
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <line x1="5" y1="12" x2="19" y2="12"/>
@@ -4870,7 +4884,7 @@
         <h4>Soluções</h4>
         <ul>
           <li><a href="#como-funciona">Como funciona</a></li>
-          <li><a href="/app">Acesso ao painel</a></li>
+          <li><a href="/app">Entrar (já tenho conta)</a></li>
         </ul>
       </div>
 
