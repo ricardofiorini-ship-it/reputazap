@@ -3,10 +3,9 @@ import React from 'react'
 // ─────────────────────────────────────────────────────────────
 // Dashboard StarTouch — V2 (mockup funcional)
 // Foco: reputação · crescimento · ranking · resultado
-// Sem foco em NFC/QR/dispositivos como métrica técnica
+// Plano: usar ?plan=free ou ?plan=pro na URL pra alternar
 // ─────────────────────────────────────────────────────────────
 
-// Mock data — substituir por chamadas reais depois de aprovado o visual
 const MOCK = {
   biz: { name: 'Café Bella Vista' },
   kpis: {
@@ -16,10 +15,7 @@ const MOCK = {
     totalCompetitors: 12,
     newLast30Days: 7
   },
-  hero: {
-    reviewsToNext: 2,
-    progressPct: 83 // 10 de 12
-  },
+  hero: { reviewsToNext: 2, progressPct: 83 },
   ranking: [
     { pos: 1, medal: '🥇', name: 'Empresa A',         rating: 5.0, reviews: 25, you: false },
     { pos: 2, medal: '🥈', name: 'Empresa B',         rating: 5.0, reviews: 14, you: false },
@@ -41,34 +37,40 @@ const MOCK = {
     { name: 'Pulseira NFC',     reviewsGenerated: 3  }
   ],
   evolution: {
-    // 12 pontos representando últimos 90 dias (1 ponto/semana)
-    reviews:   [5, 5, 6, 6, 7, 7, 8, 9, 10, 11, 11, 12],
-    rating:    [4.6, 4.7, 4.7, 4.8, 4.8, 4.8, 4.9, 4.9, 4.9, 5.0, 5.0, 5.0],
-    rankings:  [9, 8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3]
+    reviews:  [5, 5, 6, 6, 7, 7, 8, 9, 10, 11, 11, 12],
+    rating:   [4.6, 4.7, 4.7, 4.8, 4.8, 4.8, 4.9, 4.9, 4.9, 5.0, 5.0, 5.0],
+    rankings: [9, 8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3]
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Theme tokens — visual premium estilo Stripe/Linear/Notion
-// ─────────────────────────────────────────────────────────────
 const T = {
-  bg:      '#F7F8FA',
-  surface: '#FFFFFF',
-  border:  '#EAEDF1',
-  text:    '#0F172A',
-  textMid: '#475569',
-  textDim: '#94A3B8',
-  blue:    '#1A73E8',
-  blueDk:  '#0F4DAE',
-  blueSoft:'#EAF2FE',
-  green:   '#10B981',
-  greenSoft:'#ECFDF5',
-  amber:   '#F59E0B',
-  amberSoft:'#FEF7E6',
-  amberBg: '#FFFBEB',
-  red:     '#EF4444',
-  shadow:  '0 1px 2px rgba(15,23,42,0.04), 0 6px 24px -8px rgba(15,23,42,0.08)',
+  bg:'#F7F8FA', surface:'#FFFFFF', border:'#EAEDF1',
+  text:'#0F172A', textMid:'#475569', textDim:'#94A3B8',
+  blue:'#1A73E8', blueDk:'#0F4DAE', blueSoft:'#EAF2FE',
+  green:'#10B981', greenSoft:'#ECFDF5',
+  amber:'#F59E0B', amberSoft:'#FEF7E6', amberBg:'#FFFBEB',
+  red:'#EF4444',
+  shadow:'0 1px 2px rgba(15,23,42,0.04), 0 6px 24px -8px rgba(15,23,42,0.08)',
   shadowSm:'0 1px 2px rgba(15,23,42,0.06)'
+}
+
+// Detect mobile via media-query hook (no extra deps)
+function useIsMobile(bp = 768) {
+  const [m, setM] = React.useState(false)
+  React.useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${bp}px)`)
+    const upd = () => setM(mq.matches)
+    upd()
+    mq.addEventListener('change', upd)
+    return () => mq.removeEventListener('change', upd)
+  }, [bp])
+  return m
+}
+
+function getPlan() {
+  if (typeof window === 'undefined') return 'pro'
+  const p = new URLSearchParams(window.location.search).get('plan')
+  return p === 'free' ? 'free' : 'pro'
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -86,27 +88,15 @@ function Card({ children, style, padded = true, accent }) {
       overflow: 'hidden',
       ...(accent && { borderTop: `3px solid ${accent}` }),
       ...style
-    }}>
-      {children}
-    </div>
+    }}>{children}</div>
   )
 }
-function Section({ title, action, children, style }) {
-  return (
-    <div style={{ marginBottom: 32, ...style }}>
-      {(title || action) && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          {title && <h2 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.textDim, margin: 0 }}>{title}</h2>}
-          {action}
-        </div>
-      )}
-      {children}
-    </div>
-  )
+function Section({ children, style }) {
+  return <div style={{ marginBottom: 24, ...style }}>{children}</div>
 }
 function Stars({ rating, size = 14 }) {
   return (
-    <span style={{ display: 'inline-flex', gap: 1, color: '#FBBC04', fontSize: size, lineHeight: 1 }}>
+    <span style={{ display:'inline-flex', gap:1, color:'#FBBC04', fontSize:size, lineHeight:1 }}>
       {[1,2,3,4,5].map(i => <span key={i}>{i <= Math.round(rating) ? '★' : '☆'}</span>)}
     </span>
   )
@@ -115,12 +105,11 @@ function Trend({ value, suffix = '' }) {
   const positive = value >= 0
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 4,
-      fontSize: 12, fontWeight: 600,
+      display:'inline-flex', alignItems:'center', gap:4,
+      fontSize:12, fontWeight:600,
       color: positive ? T.green : T.red,
       background: positive ? T.greenSoft : '#FEE2E2',
-      borderRadius: 999,
-      padding: '2px 8px'
+      borderRadius:999, padding:'2px 8px'
     }}>
       {positive ? '▲' : '▼'} {Math.abs(value)}{suffix}
     </span>
@@ -130,30 +119,37 @@ function Trend({ value, suffix = '' }) {
 // ─────────────────────────────────────────────────────────────
 // Header
 // ─────────────────────────────────────────────────────────────
-function Header({ bizName }) {
+function Header({ bizName, plan, isMobile }) {
   return (
     <header style={{
       background: T.surface,
       borderBottom: `1px solid ${T.border}`,
-      padding: '14px 32px',
+      padding: isMobile ? '12px 16px' : '14px 32px',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      gap: 8,
       position: 'sticky', top: 0, zIndex: 50,
       backdropFilter: 'blur(20px)',
       backgroundColor: 'rgba(255,255,255,0.85)'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <a href="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
-          <img src="/startouch-logo-dark.png" alt="StarTouch" style={{ height: 32, width: 'auto' }}/>
+      <div style={{ display:'flex', alignItems:'center', gap: isMobile ? 10 : 16, minWidth: 0 }}>
+        <a href="/" style={{ display:'inline-flex', alignItems:'center', textDecoration:'none', flexShrink: 0 }}>
+          <img src="/startouch-logo-dark.png" alt="StarTouch" style={{ height: isMobile ? 26 : 32, width:'auto' }}/>
         </a>
-        <div style={{ width: 1, height: 22, background: T.border }}/>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#FBBC04,#EA4335,#4285F4)', flexShrink: 0 }}/>
-          <span style={{ fontWeight: 600, fontSize: 14, color: T.text }}>{bizName}</span>
+        {!isMobile && <div style={{ width: 1, height: 22, background: T.border }}/>}
+        <div style={{ display:'flex', alignItems:'center', gap: 8, minWidth: 0 }}>
+          <div style={{ width: 26, height: 26, borderRadius: 7, background:'linear-gradient(135deg,#FBBC04,#EA4335,#4285F4)', flexShrink: 0 }}/>
+          <span style={{ fontWeight: 600, fontSize: isMobile ? 13 : 14, color: T.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{bizName}</span>
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button style={{ background: 'none', border: 'none', color: T.textMid, fontSize: 18, cursor: 'pointer', padding: 6 }} aria-label="Notificações">🔔</button>
-        <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#1A73E8', color: '#fff', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>RF</div>
+      <div style={{ display:'flex', alignItems:'center', gap: 10, flexShrink: 0 }}>
+        {plan === 'pro' && (
+          <span style={{
+            fontSize: 11, fontWeight: 800, letterSpacing: '0.06em',
+            background: 'linear-gradient(135deg,#1A73E8,#0F4DAE)',
+            color: '#fff', padding: '4px 9px', borderRadius: 6
+          }}>PRO</span>
+        )}
+        <div style={{ width: 32, height: 32, borderRadius:'50%', background:'#1A73E8', color:'#fff', fontWeight: 700, fontSize: 12, display:'flex', alignItems:'center', justifyContent:'center' }}>RF</div>
       </div>
     </header>
   )
@@ -164,59 +160,53 @@ function Header({ bizName }) {
 // ─────────────────────────────────────────────────────────────
 function KpiCard({ icon, label, value, sub, trend }) {
   return (
-    <Card style={{ padding: 22 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-        <span style={{ fontSize: 18 }}>{icon}</span>
-        <span style={{ fontSize: 13, fontWeight: 500, color: T.textMid }}>{label}</span>
+    <Card style={{ padding: 20 }}>
+      <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 12 }}>
+        <span style={{ fontSize: 16 }}>{icon}</span>
+        <span style={{ fontSize: 12.5, fontWeight: 500, color: T.textMid }}>{label}</span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 6 }}>
-        <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 40, fontWeight: 700, color: T.text, letterSpacing: '-0.025em', lineHeight: 1 }}>
-          {value}
-        </span>
+      <div style={{ display:'flex', alignItems:'baseline', gap: 8, marginBottom: 5, flexWrap:'wrap' }}>
+        <span style={{ fontFamily:"'Inter', sans-serif", fontSize: 32, fontWeight: 700, color: T.text, letterSpacing:'-0.025em', lineHeight: 1 }}>{value}</span>
         {trend != null && <Trend value={trend} />}
       </div>
-      <p style={{ fontSize: 12.5, color: T.textDim, margin: 0 }}>{sub}</p>
+      <p style={{ fontSize: 12, color: T.textDim, margin: 0 }}>{sub}</p>
     </Card>
   )
 }
 
-function HeroPosition({ rating, reviewsToNext, progressPct, currentPos, total }) {
+function HeroPosition({ reviewsToNext, progressPct, currentPos, total, isMobile, plan }) {
   return (
-    <Card padded={false} style={{ background: `linear-gradient(135deg, ${T.blue} 0%, ${T.blueDk} 100%)`, border: 'none', color: '#fff', overflow: 'hidden', position: 'relative' }}>
-      {/* glow overlay */}
-      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 90% 60% at 110% 0%, rgba(255,255,255,0.12), transparent 60%)', pointerEvents: 'none' }}/>
-      <div style={{ padding: '34px 36px', position: 'relative' }}>
-        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.75, margin: 0 }}>Sua posição no ranking local</p>
+    <Card padded={false} style={{ background: `linear-gradient(135deg, ${T.blue} 0%, ${T.blueDk} 100%)`, border:'none', color:'#fff', overflow:'hidden', position:'relative' }}>
+      <div style={{ position:'absolute', inset: 0, background:'radial-gradient(ellipse 90% 60% at 110% 0%, rgba(255,255,255,0.12), transparent 60%)', pointerEvents:'none' }}/>
+      <div style={{ padding: isMobile ? '24px 22px' : '34px 36px', position:'relative' }}>
+        <p style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.75, margin: 0 }}>Sua posição no ranking local</p>
         <h1 style={{
-          fontFamily: "'Inter', sans-serif",
-          fontSize: 42, fontWeight: 700, lineHeight: 1.15, letterSpacing: '-0.025em',
-          margin: '8px 0 16px', textWrap: 'balance'
+          fontFamily:"'Inter', sans-serif",
+          fontSize: isMobile ? 26 : 38, fontWeight: 700, lineHeight: 1.15, letterSpacing: '-0.02em',
+          margin: '8px 0 14px', textWrap: 'balance'
         }}>
           Você está em <span style={{ color: '#FBBC04' }}>{currentPos}º lugar</span> entre {total} empresas da sua categoria.
         </h1>
-        <p style={{ fontSize: 16, opacity: 0.9, lineHeight: 1.55, margin: '0 0 24px', maxWidth: 580 }}>
-          Faltam apenas <strong>{reviewsToNext} avaliações</strong> para alcançar o {currentPos - 1}º lugar.
+        <p style={{ fontSize: isMobile ? 14 : 16, opacity: 0.9, lineHeight: 1.55, margin: '0 0 20px', maxWidth: 580 }}>
+          Faltam apenas <strong>{reviewsToNext} avaliações</strong> pra alcançar o {currentPos - 1}º lugar.
         </p>
 
-        {/* Progress bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28, maxWidth: 580 }}>
-          <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.18)', borderRadius: 999, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: progressPct + '%', background: '#FBBC04', borderRadius: 999, transition: 'width .5s' }}/>
+        <div style={{ display:'flex', alignItems:'center', gap: 12, marginBottom: 22, maxWidth: 580 }}>
+          <div style={{ flex: 1, height: 7, background:'rgba(255,255,255,0.18)', borderRadius:999, overflow:'hidden' }}>
+            <div style={{ height: '100%', width: progressPct + '%', background:'#FBBC04', borderRadius:999 }}/>
           </div>
-          <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.9 }}>{progressPct}%</span>
+          <span style={{ fontSize: 12.5, fontWeight: 600, opacity: 0.9 }}>{progressPct}%</span>
         </div>
 
         <button style={{
-          background: '#fff', color: T.blueDk,
-          border: 'none', borderRadius: 12,
-          padding: '14px 24px',
-          fontSize: 15, fontWeight: 700,
-          cursor: 'pointer',
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
-          fontFamily: "'Inter', sans-serif"
+          background:'#fff', color: T.blueDk, border:'none', borderRadius: 11,
+          padding: isMobile ? '13px 20px' : '14px 24px',
+          fontSize: isMobile ? 14 : 15, fontWeight: 700, cursor:'pointer',
+          display:'inline-flex', alignItems:'center', gap: 8,
+          boxShadow:'0 4px 14px rgba(0,0,0,0.18)', fontFamily:"'Inter', sans-serif",
+          width: isMobile ? '100%' : 'auto', justifyContent:'center'
         }}>
-          Aumentar minhas avaliações →
+          {plan === 'free' ? 'Desbloquear Plano Pro' : 'Aumentar minhas avaliações'} →
         </button>
       </div>
     </Card>
@@ -224,150 +214,167 @@ function HeroPosition({ rating, reviewsToNext, progressPct, currentPos, total })
 }
 
 // ─────────────────────────────────────────────────────────────
-// Ranking card
+// Ranking — com blur pra plano Free
 // ─────────────────────────────────────────────────────────────
-function RankingList({ items }) {
+function RankingList({ items, isMobile, plan }) {
+  const locked = plan === 'free'
   return (
-    <Card>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-        <h3 style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin: 0 }}>Ranking da sua região</h3>
-        <span style={{ fontSize: 12, color: T.textDim }}>Cafeterias · 3km</span>
+    <Card style={{ position:'relative' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 16, gap: 8 }}>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Ranking da sua região</h3>
+        {locked
+          ? <span style={{ fontSize: 11, fontWeight: 700, background: T.blueSoft, color: T.blue, padding:'4px 8px', borderRadius:6 }}>PRO</span>
+          : <span style={{ fontSize: 12, color: T.textDim }}>Cafeterias · 3km</span>}
       </div>
-      <ol style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {items.map(r => (
-          <li key={r.pos} style={{
-            display: 'flex', alignItems: 'center', gap: 12,
-            padding: '14px 12px',
-            borderRadius: 12,
-            background: r.you ? T.blueSoft : 'transparent',
-            border: r.you ? `1px solid #B9D6FB` : '1px solid transparent',
-            marginBottom: 6,
-            position: 'relative'
-          }}>
-            <span style={{
-              width: 36, height: 36, borderRadius: 10,
-              background: r.you ? T.blue : '#F1F5F9',
-              color: r.you ? '#fff' : T.textMid,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, fontSize: 14, flexShrink: 0
+
+      <ol style={{ listStyle:'none', padding: 0, margin: 0 }}>
+        {items.map(r => {
+          const blurThis = locked && !r.you
+          return (
+            <li key={r.pos} style={{
+              display:'flex', alignItems:'center', gap: 12,
+              padding:'12px 12px',
+              borderRadius: 12,
+              background: r.you ? T.blueSoft : 'transparent',
+              border: r.you ? `1px solid #B9D6FB` : '1px solid transparent',
+              marginBottom: 4
             }}>
-              {r.medal || r.pos + 'º'}
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 14.5, fontWeight: 600, color: T.text, marginBottom: 2 }}>
-                {r.name} {r.you && <span style={{ fontSize: 11, fontWeight: 700, color: T.blue, background: '#fff', border: `1px solid ${T.blue}`, borderRadius: 6, padding: '1px 7px', marginLeft: 8 }}>VOCÊ</span>}
+              <span style={{
+                width: 32, height: 32, borderRadius: 9,
+                background: r.you ? T.blue : '#F1F5F9',
+                color: r.you ? '#fff' : T.textMid,
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontWeight: 700, fontSize: 13, flexShrink: 0
+              }}>
+                {r.medal || r.pos + 'º'}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: 14, fontWeight: 600, color: T.text, marginBottom: 2,
+                  ...(blurThis && { filter:'blur(5px)', userSelect:'none', pointerEvents:'none' })
+                }}>
+                  {blurThis ? 'Empresa concorrente XX' : r.name}
+                  {r.you && <span style={{ fontSize: 10.5, fontWeight: 700, color: T.blue, background:'#fff', border:`1px solid ${T.blue}`, borderRadius: 5, padding:'1px 6px', marginLeft: 6 }}>VOCÊ</span>}
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap: 6, fontSize: 12, color: T.textMid }}>
+                  <Stars rating={r.rating} size={11} />
+                  <span>{r.rating.toFixed(1)}</span>
+                  <span style={{ color: T.textDim }}>·</span>
+                  <span>{r.reviews} avaliações</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: T.textMid }}>
-                <Stars rating={r.rating} size={12} />
-                <span>{r.rating.toFixed(1)}</span>
-                <span style={{ color: T.textDim }}>·</span>
-                <span>{r.reviews} avaliações</span>
-              </div>
-            </div>
-          </li>
-        ))}
+            </li>
+          )
+        })}
       </ol>
-      <div style={{ marginTop: 18, padding: '14px 16px', borderRadius: 10, background: T.greenSoft, fontSize: 13.5, color: '#065F46', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span>🎯</span>
-        <span><strong>Você está a apenas 2 avaliações</strong> do segundo colocado.</span>
-      </div>
+
+      {locked && (
+        <div style={{
+          marginTop: 16,
+          padding: '16px 18px',
+          borderRadius: 12,
+          background: 'linear-gradient(135deg, #1A73E8 0%, #0F4DAE 100%)',
+          color: '#fff'
+        }}>
+          <div style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 4 }}>🔒 Veja seus concorrentes pelo nome</div>
+          <p style={{ fontSize: 13, opacity: 0.92, margin: '0 0 12px', lineHeight: 1.5 }}>
+            Com o Plano Pro você descobre quem está te superando — e o que falta pra alcançar.
+          </p>
+          <a href="/plano-pro" style={{
+            display:'inline-flex', alignItems:'center', gap: 6,
+            background:'#fff', color: T.blueDk,
+            padding: '9px 16px', borderRadius: 8,
+            fontSize: 13, fontWeight: 700, textDecoration:'none'
+          }}>
+            Assinar Plano Pro · R$ 19,90/mês →
+          </a>
+        </div>
+      )}
+
+      {!locked && (
+        <div style={{ marginTop: 16, padding:'12px 14px', borderRadius: 10, background: T.greenSoft, fontSize: 13, color:'#065F46', display:'flex', alignItems:'center', gap: 8 }}>
+          <span>🎯</span>
+          <span><strong>Você está a apenas 2 avaliações</strong> do segundo colocado.</span>
+        </div>
+      )}
     </Card>
   )
 }
 
 // ─────────────────────────────────────────────────────────────
-// Evolution chart (Stripe-style)
+// Evolution chart
 // ─────────────────────────────────────────────────────────────
-function EvolutionChart({ data }) {
-  const W = 600, H = 220, pad = { l: 0, r: 12, t: 10, b: 32 }
+function EvolutionChart({ data, isMobile }) {
+  const W = 600, H = 200, pad = { l: 0, r: 12, t: 10, b: 30 }
   const points = data.reviews
-  const max = Math.max(...points)
-  const min = Math.min(...points)
+  const max = Math.max(...points), min = Math.min(...points)
   const range = (max - min) || 1
-  const cw = W - pad.l - pad.r
-  const ch = H - pad.t - pad.b
+  const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b
   const xs = points.map((_, i) => pad.l + (i / (points.length - 1)) * cw)
   const ys = points.map(v => pad.t + ch - ((v - min) / range) * ch)
-  // Smooth curve via cubic bezier
   const path = xs.map((x, i) => {
     if (i === 0) return `M ${x},${ys[i]}`
     const x0 = xs[i - 1], y0 = ys[i - 1], y1 = ys[i]
     const cx1 = x0 + (x - x0) / 2, cx2 = x0 + (x - x0) / 2
     return `C ${cx1},${y0} ${cx2},${y1} ${x},${y1}`
   }).join(' ')
-  const area = `${path} L ${xs[xs.length-1]},${pad.t + ch} L ${xs[0]},${pad.t + ch} Z`
-  const labels = ['12 sem', '10 sem', '8 sem', '6 sem', '4 sem', '2 sem', 'agora']
+  const area = `${path} L ${xs[xs.length - 1]},${pad.t + ch} L ${xs[0]},${pad.t + ch} Z`
   return (
     <Card>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-        <h3 style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin: 0 }}>Sua evolução</h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: T.textMid }}>
-            <span style={{ width: 10, height: 10, borderRadius: 3, background: T.blue }}/>Avaliações
-          </span>
-        </div>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 14, gap: 8 }}>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Sua evolução</h3>
+        <span style={{ display:'inline-flex', alignItems:'center', gap: 5, fontSize: 12, color: T.textMid }}>
+          <span style={{ width: 10, height: 10, borderRadius: 3, background: T.blue }}/>Avaliações
+        </span>
       </div>
-      {/* Big metric */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8 }}>
-        <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 36, fontWeight: 700, color: T.text, letterSpacing: '-0.025em', lineHeight: 1 }}>{points[points.length - 1]}</span>
+      <div style={{ display:'flex', alignItems:'baseline', gap: 10, marginBottom: 4, flexWrap:'wrap' }}>
+        <span style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 28 : 34, fontWeight: 700, color: T.text, letterSpacing:'-0.025em', lineHeight: 1 }}>{points[points.length - 1]}</span>
         <Trend value={points[points.length - 1] - points[0]} />
-        <span style={{ fontSize: 13, color: T.textDim }}>nos últimos 90 dias</span>
+        <span style={{ fontSize: 12.5, color: T.textDim }}>últimos 90 dias</span>
       </div>
-      <p style={{ fontSize: 13, color: T.textMid, margin: '0 0 6px' }}>
-        Crescimento de avaliações · Nota subiu de <strong>{data.rating[0].toFixed(1)}</strong> pra <strong>{data.rating[data.rating.length-1].toFixed(1)}</strong> · Posição saiu de <strong>{data.rankings[0]}º</strong> pra <strong>{data.rankings[data.rankings.length-1]}º</strong>
+      <p style={{ fontSize: 12.5, color: T.textMid, margin: '0 0 8px' }}>
+        Nota subiu de <strong>{data.rating[0].toFixed(1)}</strong> pra <strong>{data.rating[data.rating.length - 1].toFixed(1)}</strong> · Posição de <strong>{data.rankings[0]}º</strong> pra <strong>{data.rankings[data.rankings.length - 1]}º</strong>
       </p>
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 220 }}>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width:'100%', height: isMobile ? 160 : 200 }}>
         <defs>
           <linearGradient id="evoGrad" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%"   stopColor={T.blue} stopOpacity="0.20"/>
+            <stop offset="0%" stopColor={T.blue} stopOpacity="0.20"/>
             <stop offset="100%" stopColor={T.blue} stopOpacity="0"/>
           </linearGradient>
         </defs>
-        {/* horizontal gridlines */}
         {[0, 0.5, 1].map(t => (
           <line key={t} x1={pad.l} x2={W - pad.r} y1={pad.t + ch * t} y2={pad.t + ch * t} stroke={T.border} strokeDasharray="4 4"/>
         ))}
-        {/* area */}
         <path d={area} fill="url(#evoGrad)" />
-        {/* line */}
         <path d={path} fill="none" stroke={T.blue} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-        {/* end dot */}
         <circle cx={xs[xs.length - 1]} cy={ys[ys.length - 1]} r="5" fill="#fff" stroke={T.blue} strokeWidth="3"/>
-        {/* X labels */}
-        {labels.map((lbl, i) => {
-          const x = pad.l + (i / (labels.length - 1)) * cw
-          return (
-            <text key={lbl} x={x} y={H - 8} textAnchor="middle" fontSize="11" fill={T.textDim} fontFamily="Inter">{lbl}</text>
-          )
-        })}
       </svg>
     </Card>
   )
 }
 
 // ─────────────────────────────────────────────────────────────
-// Opportunities (yellow)
+// Opportunities
 // ─────────────────────────────────────────────────────────────
 function Opportunities({ count }) {
   return (
     <Card style={{ background: T.amberBg, border: `1px solid #FCD34D` }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-        <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>💡</span>
-        <div style={{ flex: 1 }}>
-          <h3 style={{ fontFamily: "'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: '#78350F', margin: '0 0 6px' }}>
-            Você possui <span style={{ color: T.amber }}>{count} avaliações</span> sem resposta
+      <div style={{ display:'flex', alignItems:'flex-start', gap: 12 }}>
+        <span style={{ fontSize: 26, lineHeight: 1, flexShrink: 0 }}>💡</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color:'#78350F', margin:'0 0 4px' }}>
+            <span style={{ color: T.amber }}>{count} avaliações</span> sem resposta
           </h3>
-          <p style={{ fontSize: 13.5, color: '#92400E', margin: 0, lineHeight: 1.55 }}>
-            Responder avaliações melhora sua reputação e posicionamento no Google.
+          <p style={{ fontSize: 13, color:'#92400E', margin: 0, lineHeight: 1.55 }}>
+            Responder melhora sua reputação e posicionamento no Google.
           </p>
         </div>
       </div>
       <button style={{
-        marginTop: 18,
-        background: T.amber, color: '#fff', border: 'none', borderRadius: 10,
-        padding: '11px 20px', fontSize: 14, fontWeight: 700, cursor: 'pointer',
-        boxShadow: '0 4px 14px rgba(245,158,11,0.30)',
-        fontFamily: "'Inter', sans-serif"
+        marginTop: 16, background: T.amber, color:'#fff', border:'none', borderRadius: 10,
+        padding:'11px 18px', fontSize: 13.5, fontWeight: 700, cursor:'pointer',
+        boxShadow:'0 4px 14px rgba(245,158,11,0.30)', fontFamily:"'Inter', sans-serif",
+        width:'100%'
       }}>
         Responder agora →
       </button>
@@ -378,34 +385,32 @@ function Opportunities({ count }) {
 // ─────────────────────────────────────────────────────────────
 // Recent reviews
 // ─────────────────────────────────────────────────────────────
-function RecentReviews({ items }) {
+function RecentReviews({ items, isMobile }) {
   return (
     <Card>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-        <h3 style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin: 0 }}>Avaliações recentes</h3>
-        <a href="#" style={{ fontSize: 13, color: T.blue, fontWeight: 600, textDecoration: 'none' }}>Ver todas →</a>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 14 }}>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Avaliações recentes</h3>
+        <a href="#" style={{ fontSize: 12.5, color: T.blue, fontWeight: 600, textDecoration:'none' }}>Ver todas →</a>
       </div>
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+      <ul style={{ listStyle:'none', padding: 0, margin: 0 }}>
         {items.map((r, i) => (
           <li key={i} style={{
-            display: 'flex', gap: 14, padding: '14px 0',
+            display:'flex', gap: 12, padding:'14px 0',
             borderTop: i === 0 ? 'none' : `1px solid ${T.border}`
           }}>
             <div style={{
-              width: 40, height: 40, borderRadius: '50%',
-              background: r.color, color: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 13, fontWeight: 700, flexShrink: 0
-            }}>
-              {r.initials}
-            </div>
+              width: 36, height: 36, borderRadius:'50%',
+              background: r.color, color:'#fff',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              fontSize: 12.5, fontWeight: 700, flexShrink: 0
+            }}>{r.initials}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{r.name}</span>
-                <Stars rating={r.rating} size={12} />
-                <span style={{ fontSize: 12, color: T.textDim, marginLeft: 'auto' }}>{r.date}</span>
+              <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4, flexWrap:'wrap' }}>
+                <span style={{ fontSize: 13.5, fontWeight: 600, color: T.text }}>{r.name}</span>
+                <Stars rating={r.rating} size={11} />
+                <span style={{ fontSize: 11.5, color: T.textDim, marginLeft:'auto' }}>{r.date}</span>
               </div>
-              <p style={{ fontSize: 13.5, color: T.textMid, margin: 0, lineHeight: 1.55 }}>"{r.comment}"</p>
+              <p style={{ fontSize: 13, color: T.textMid, margin: 0, lineHeight: 1.55 }}>"{r.comment}"</p>
             </div>
           </li>
         ))}
@@ -415,31 +420,30 @@ function RecentReviews({ items }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Capture points (no NFC technical metrics — só resultado)
+// Capture points
 // ─────────────────────────────────────────────────────────────
 function CapturePoints({ items }) {
   const total = items.reduce((s, i) => s + i.reviewsGenerated, 0)
   return (
     <Card>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <h3 style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin: 0 }}>Pontos de captação</h3>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 4, gap: 8, flexWrap:'wrap' }}>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Pontos de captação</h3>
         <span style={{ fontSize: 12, color: T.textDim }}>{total} avaliações geradas</span>
       </div>
-      <p style={{ fontSize: 13, color: T.textMid, margin: '0 0 20px' }}>Onde suas avaliações estão sendo coletadas.</p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+      <p style={{ fontSize: 13, color: T.textMid, margin:'0 0 18px' }}>Onde suas avaliações estão sendo coletadas.</p>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
         {items.map((it, i) => (
-          <div key={i} style={{ padding: 18, borderRadius: 14, background: '#F8FAFC', border: `1px solid ${T.border}` }}>
-            <div style={{ fontSize: 13, color: T.textMid, fontWeight: 500, marginBottom: 6 }}>{it.name}</div>
-            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 28, fontWeight: 700, color: T.text, letterSpacing: '-0.025em', lineHeight: 1, marginBottom: 4 }}>{it.reviewsGenerated}</div>
-            <div style={{ fontSize: 12, color: T.textDim }}>avaliações geradas</div>
+          <div key={i} style={{ padding: 16, borderRadius: 12, background:'#F8FAFC', border:`1px solid ${T.border}` }}>
+            <div style={{ fontSize: 12.5, color: T.textMid, fontWeight: 500, marginBottom: 4 }}>{it.name}</div>
+            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 26, fontWeight: 700, color: T.text, letterSpacing:'-0.025em', lineHeight: 1, marginBottom: 2 }}>{it.reviewsGenerated}</div>
+            <div style={{ fontSize: 11.5, color: T.textDim }}>avaliações geradas</div>
           </div>
         ))}
       </div>
       <button style={{
-        marginTop: 22,
-        background: 'transparent', color: T.blue, border: `1.5px solid ${T.blue}`, borderRadius: 10,
-        padding: '10px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer',
-        fontFamily: "'Inter', sans-serif"
+        marginTop: 18, background:'transparent', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 10,
+        padding:'10px 18px', fontSize: 13, fontWeight: 600, cursor:'pointer',
+        fontFamily:"'Inter', sans-serif", width:'100%'
       }}>
         + Adicionar novo dispositivo
       </button>
@@ -451,27 +455,53 @@ function CapturePoints({ items }) {
 // Main layout
 // ─────────────────────────────────────────────────────────────
 export default function AppV2() {
+  const isMobile = useIsMobile(768)
+  const plan = getPlan()
   const d = MOCK
+
   return (
-    <div style={{ background: T.bg, minHeight: '100vh' }}>
-      <Header bizName={d.biz.name} />
-      <main style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 32px 64px' }}>
+    <div style={{ background: T.bg, minHeight:'100vh' }}>
+      <Header bizName={d.biz.name} plan={plan} isMobile={isMobile} />
+
+      <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
+
+        {/* Switch plano (apenas pra mockup) */}
+        <div style={{ display:'flex', gap: 8, marginBottom: 20, fontSize: 12 }}>
+          <a href="?plan=free" style={{
+            padding:'6px 12px', borderRadius:8, textDecoration:'none',
+            background: plan === 'free' ? T.blue : '#fff',
+            color: plan === 'free' ? '#fff' : T.textMid,
+            border:`1px solid ${plan === 'free' ? T.blue : T.border}`,
+            fontWeight: 600
+          }}>Ver como FREE</a>
+          <a href="?plan=pro" style={{
+            padding:'6px 12px', borderRadius:8, textDecoration:'none',
+            background: plan === 'pro' ? T.blue : '#fff',
+            color: plan === 'pro' ? '#fff' : T.textMid,
+            border:`1px solid ${plan === 'pro' ? T.blue : T.border}`,
+            fontWeight: 600
+          }}>Ver como PRO</a>
+        </div>
 
         {/* TITLE */}
-        <div style={{ marginBottom: 28 }}>
-          <h1 style={{ fontFamily: "'Inter', sans-serif", fontSize: 28, fontWeight: 700, color: T.text, margin: '0 0 6px', letterSpacing: '-0.02em' }}>
-            Olá, {d.biz.name}. Veja como seu negócio está crescendo.
+        <div style={{ marginBottom: 22 }}>
+          <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
+            Olá, {d.biz.name}.
           </h1>
-          <p style={{ fontSize: 15, color: T.textMid, margin: 0 }}>
-            Painel de reputação · atualizado agora
+          <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
+            Veja como seu negócio está crescendo · atualizado agora
           </p>
         </div>
 
         {/* KPI ROW */}
         <Section>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+          <div style={{
+            display:'grid',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: isMobile ? 10 : 16
+          }}>
             <KpiCard icon="⭐" label="Nota Google"     value={d.kpis.rating.toFixed(1)} sub="Sua reputação atual"            trend={+0.4} />
-            <KpiCard icon="📝" label="Avaliações"      value={d.kpis.reviewCount}      sub="Total de avaliações recebidas" trend={+d.kpis.newLast30Days} />
+            <KpiCard icon="📝" label="Avaliações"      value={d.kpis.reviewCount}      sub="Total recebidas"                trend={+d.kpis.newLast30Days} />
             <KpiCard icon="🏆" label="Ranking local"   value={`#${d.kpis.rankingPos}`}  sub={`Entre ${d.kpis.totalCompetitors} empresas`} trend={+2} />
             <KpiCard icon="📈" label="Últimos 30 dias" value={`+${d.kpis.newLast30Days}`} sub="Novas avaliações"             trend={+3} />
           </div>
@@ -480,27 +510,36 @@ export default function AppV2() {
         {/* HERO POSITION */}
         <Section>
           <HeroPosition
-            rating={d.kpis.rating}
             reviewsToNext={d.hero.reviewsToNext}
             progressPct={d.hero.progressPct}
             currentPos={d.kpis.rankingPos}
             total={d.kpis.totalCompetitors}
+            isMobile={isMobile}
+            plan={plan}
           />
         </Section>
 
         {/* RANKING + EVOLUTION */}
         <Section>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 420px) 1fr', gap: 24 }}>
-            <RankingList items={d.ranking} />
-            <EvolutionChart data={d.evolution} />
+          <div style={{
+            display:'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 420px) 1fr',
+            gap: isMobile ? 14 : 24
+          }}>
+            <RankingList items={d.ranking} isMobile={isMobile} plan={plan} />
+            <EvolutionChart data={d.evolution} isMobile={isMobile} />
           </div>
         </Section>
 
         {/* OPPORTUNITY + RECENT REVIEWS */}
         <Section>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 380px) 1fr', gap: 24 }}>
+          <div style={{
+            display:'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 360px) 1fr',
+            gap: isMobile ? 14 : 24
+          }}>
             <Opportunities count={d.unrepliedReviews} />
-            <RecentReviews items={d.recentReviews} />
+            <RecentReviews items={d.recentReviews} isMobile={isMobile} />
           </div>
         </Section>
 
