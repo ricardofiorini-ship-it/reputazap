@@ -503,13 +503,39 @@ export default async function handler(req, res) {
     return await handleWebhookMP(req, res);
   }
 
+  // Diagnostico GET — mostra prefixo dos tokens e quais envs estao setadas (nao vaza segredos).
+  if (action === "debug" || action === "health") {
+    const mpToken = process.env.MP_ACCESS_TOKEN || "";
+    const mpType = mpToken.startsWith("APP_USR-") ? "PRODUCTION (live)"
+                 : mpToken.startsWith("TEST-")    ? "TEST (sandbox)"
+                 : mpToken                        ? "UNKNOWN (não começa com APP_USR/TEST)"
+                                                 : "NAO_SETADO";
+    return res.json({
+      mp: {
+        access_token_set: !!mpToken,
+        access_token_type: mpType,
+        access_token_prefix: mpToken ? mpToken.slice(0, 12) + "..." : null,
+        webhook_secret_set: !!process.env.MP_WEBHOOK_SECRET
+      },
+      stripe_dormant: {
+        secret_set: !!process.env.STRIPE_SECRET_KEY,
+        price_id_set: !!process.env.STRIPE_PRICE_ID,
+        webhook_secret_set: !!process.env.STRIPE_WEBHOOK_SECRET
+      },
+      supabase: {
+        url_set: !!process.env.SUPABASE_URL,
+        service_key_set: !!process.env.SUPABASE_SERVICE_KEY
+      }
+    });
+  }
+
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
     if (action === "checkout") return await handleCheckoutMP(req, res);
     if (action === "checkout-kit") return await handleCheckoutKitMP(req, res);
     if (action === "portal") return await handlePortalMP(req, res);
-    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|portal|webhook" });
+    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|portal|webhook|debug" });
   } catch (err) {
     console.error("[billing] erro nao tratado:", err);
     if (!res.headersSent) return res.status(500).json({ error: err?.message || "Erro interno" });
