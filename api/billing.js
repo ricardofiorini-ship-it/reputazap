@@ -557,7 +557,38 @@ export default async function handler(req, res) {
       };
     } catch (e) { out.checks.users_me = { error: e.message }; }
 
-    // 2) Tentativa de criar uma PreApproval real — captura erro COMPLETO do MP
+    // 2) /v1/payment_methods — endpoint público (qualquer token válido lê) — descarta token corrompido
+    try {
+      const r = await fetch("https://api.mercadopago.com/v1/payment_methods", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const body = await r.json();
+      out.checks.payment_methods = {
+        status: r.status,
+        ok: r.ok,
+        count: Array.isArray(body) ? body.length : null,
+        sample: Array.isArray(body) ? body.slice(0, 3).map(m => m?.id) : body
+      };
+    } catch (e) { out.checks.payment_methods = { error: e.message }; }
+
+    // 3) Tenta criar Preference (kit, pagamento avulso) — testa se o problema é só PreApproval ou tudo
+    try {
+      const r = await fetch("https://api.mercadopago.com/checkout/preferences", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: [{ id: "probe", title: "Diagnostico StarTouch", quantity: 1, unit_price: 1.00, currency_id: "BRL" }]
+        })
+      });
+      const body = await r.json();
+      out.checks.preference_create = {
+        status: r.status,
+        ok: r.ok,
+        body: r.ok ? { id: body?.id, init_point: body?.init_point ? "present" : "missing" } : body
+      };
+    } catch (e) { out.checks.preference_create = { error: e.message }; }
+
+    // 4) Tenta criar PreApproval (assinatura) — testa se o problema é específico desse recurso
     try {
       const sample = {
         reason: "Diagnostico StarTouch",
@@ -574,10 +605,7 @@ export default async function handler(req, res) {
       };
       const r = await fetch("https://api.mercadopago.com/preapproval", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(sample)
       });
       const body = await r.json();
