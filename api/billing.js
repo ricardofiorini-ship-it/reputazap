@@ -529,6 +529,68 @@ export default async function handler(req, res) {
     });
   }
 
+  // Diagnostico profundo do MP — chama API real e retorna o que MP diz da conta + tentativa de PreApproval
+  if (action === "mp-probe") {
+    const token = process.env.MP_ACCESS_TOKEN;
+    if (!token) return res.status(500).json({ error: "MP_ACCESS_TOKEN nao setado" });
+
+    const out = { token_prefix: token.slice(0, 12) + "...", checks: {} };
+
+    // 1) /users/me — quem é o dono da conta
+    try {
+      const r = await fetch("https://api.mercadopago.com/users/me", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const body = await r.json();
+      out.checks.users_me = {
+        status: r.status,
+        ok: r.ok,
+        id: body?.id,
+        nickname: body?.nickname,
+        country_id: body?.country_id,
+        site_id: body?.site_id,
+        email: body?.email,
+        user_type: body?.user_type,
+        tags: body?.tags,
+        status_user: body?.status,
+        secure_email: body?.secure_email
+      };
+    } catch (e) { out.checks.users_me = { error: e.message }; }
+
+    // 2) Tentativa de criar uma PreApproval real — captura erro COMPLETO do MP
+    try {
+      const sample = {
+        reason: "Diagnostico StarTouch",
+        external_reference: "probe_" + Date.now(),
+        payer_email: "diag-probe@example.com",
+        back_url: "https://startouch.com.br/app",
+        auto_recurring: {
+          frequency: 1,
+          frequency_type: "months",
+          transaction_amount: 19.90,
+          currency_id: "BRL"
+        },
+        status: "pending"
+      };
+      const r = await fetch("https://api.mercadopago.com/preapproval", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(sample)
+      });
+      const body = await r.json();
+      out.checks.preapproval_create = {
+        status: r.status,
+        ok: r.ok,
+        body: body
+      };
+    } catch (e) { out.checks.preapproval_create = { error: e.message }; }
+
+    return res.json(out);
+  }
+
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
