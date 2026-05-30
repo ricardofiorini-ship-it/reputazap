@@ -1633,7 +1633,7 @@ function ConfigScreen({ data, isMobile, plan }) {
 // ─────────────────────────────────────────────────────────────
 // Header — agora com dropdown do avatar
 // ─────────────────────────────────────────────────────────────
-function Header({ bizName, plan, isMobile, onNavigate }) {
+function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode }) {
   const [open, setOpen] = React.useState(false)
   const ref = React.useRef(null)
 
@@ -1650,6 +1650,22 @@ function Header({ bizName, plan, isMobile, onNavigate }) {
       window.location.hash = anchor
     }
     onNavigate && onNavigate('config')
+  }
+
+  // Iniciais e nome do dropdown — usa user real se tiver, senão fallback do mock
+  const displayName  = (user && (user.name || user.email)) || 'Ricardo Fiorini'
+  const displayEmail = (user && user.email) || 'ricardo@cafebellavista.com.br'
+  const initials = (() => {
+    const src = (user && (user.name || user.email)) || 'RF'
+    const parts = src.split(/[\s@.]+/).filter(Boolean)
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+    return src.slice(0, 2).toUpperCase()
+  })()
+
+  const handleLogout = (e) => {
+    e.preventDefault()
+    setOpen(false)
+    if (onLogout) onLogout()
   }
 
   return (
@@ -1692,7 +1708,7 @@ function Header({ bizName, plan, isMobile, onNavigate }) {
             fontWeight: 700, fontSize: 12, display:'flex', alignItems:'center', justifyContent:'center',
             border:'none', cursor:'pointer', padding: 0,
             boxShadow: open ? '0 0 0 3px '+T.blueSoft : 'none', transition:'box-shadow .15s'
-          }}>RF</button>
+          }}>{initials}</button>
 
         {/* Dropdown */}
         {open && (
@@ -1703,8 +1719,11 @@ function Header({ bizName, plan, isMobile, onNavigate }) {
             minWidth: 240, padding: 6, zIndex: 60
           }}>
             <div style={{ padding:'8px 12px', borderBottom:'1px solid '+T.border, marginBottom: 4 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Ricardo Fiorini</div>
-              <div style={{ fontSize: 12, color: T.textMid }}>ricardo@cafebellavista.com.br</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{displayName}</div>
+              <div style={{ fontSize: 12, color: T.textMid }}>{displayEmail}</div>
+              {demoMode && (
+                <div style={{ fontSize: 10, fontWeight: 700, color: T.amber, marginTop: 4, letterSpacing:'.05em' }}>🔬 MODO DEMO</div>
+              )}
             </div>
 
             {[
@@ -1725,10 +1744,10 @@ function Header({ bizName, plan, isMobile, onNavigate }) {
             ))}
 
             <div style={{ borderTop:'1px solid '+T.border, marginTop: 4, paddingTop: 4 }}>
-              <a href="/" style={{
+              <a href="/" onClick={handleLogout} style={{
                 display:'flex', alignItems:'center', width:'100%',
                 padding:'9px 12px', textDecoration:'none',
-                fontSize: 13, color: T.red, gap: 8, borderRadius: 6
+                fontSize: 13, color: T.red, gap: 8, borderRadius: 6, cursor:'pointer'
               }}
               onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -2133,7 +2152,7 @@ function CapturePoints({ items }) {
 // ─────────────────────────────────────────────────────────────
 // Main layout
 // ─────────────────────────────────────────────────────────────
-export default function AppV2() {
+export default function AppV2({ user = null, onLogout, demoMode = false } = {}) {
   const isMobile = useIsMobile(768)
   const plan = getPlan()
   // Permite deep-link via ?tab=alertas|concorrentes|relatorios|avaliacoes
@@ -2141,11 +2160,17 @@ export default function AppV2() {
     ? (new URLSearchParams(window.location.search).get('tab') || 'painel')
     : 'painel'
   const [tab, setTab] = React.useState(initialTab)
+
+  // Dados: mock por enquanto; nas próximas fases vamos plugar APIs reais usando o `user` recebido.
+  // No demoMode (?demo=1) também usa mock.
   const d = MOCK
+
+  // Header usa nome do negócio real se o usuário tiver, senão mostra do mock
+  const headerBizName = (user && user.biz) || d.biz.name
 
   return (
     <div style={{ background: T.bg, minHeight:'100vh' }}>
-      <Header bizName={d.biz.name} plan={plan} isMobile={isMobile} onNavigate={setTab} />
+      <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={onLogout} demoMode={demoMode} />
       <TopTabs active={tab} onChange={setTab} plan={plan} isMobile={isMobile} />
 
       {/* Aba: CONCORRENTES (Pro) — Inteligência Competitiva FUNCIONAL */}
