@@ -127,6 +127,114 @@ function Trend({ value, suffix = '' }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Top Tabs — navegação principal
+// ─────────────────────────────────────────────────────────────
+const TABS = [
+  { id: 'painel',       icon: '📊', label: 'Painel',       pro: false },
+  { id: 'concorrentes', icon: '🏆', label: 'Concorrentes', pro: true },
+  { id: 'alertas',      icon: '🔔', label: 'Alertas',      pro: true },
+  { id: 'avaliacoes',   icon: '⭐', label: 'Avaliações',   pro: false },
+  { id: 'relatorios',   icon: '📈', label: 'Relatórios',   pro: true }
+]
+
+function TopTabs({ active, onChange, plan, isMobile }) {
+  return (
+    <div style={{
+      background: T.surface,
+      borderBottom: `1px solid ${T.border}`,
+      position: 'sticky',
+      top: isMobile ? 56 : 60, // logo abaixo do header
+      zIndex: 49,
+      backdropFilter: 'blur(20px)',
+      backgroundColor: 'rgba(255,255,255,0.92)'
+    }}>
+      <div style={{
+        maxWidth: 1280, margin: '0 auto',
+        padding: isMobile ? '0 8px' : '0 24px',
+        display: 'flex',
+        gap: 2,
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch'
+      }}>
+        {TABS.map(tab => {
+          const isActive = active === tab.id
+          const isLocked = tab.pro && plan === 'free'
+          return (
+            <a
+              key={tab.id}
+              href={isLocked ? '/plano-pro' : '#'}
+              onClick={(e) => {
+                if (isLocked) return // deixa o href levar
+                e.preventDefault()
+                onChange(tab.id)
+              }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                padding: '14px 14px 12px',
+                fontSize: 13.5, fontWeight: isActive ? 700 : 500,
+                color: isActive ? T.blue : T.textMid,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                borderBottom: isActive ? `2px solid ${T.blue}` : '2px solid transparent',
+                transition: 'color .12s, border-color .12s',
+                flexShrink: 0,
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = T.text }}
+              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = T.textMid }}
+            >
+              <span style={{ fontSize: 15, lineHeight: 1 }}>{tab.icon}</span>
+              <span>{tab.label}</span>
+              {isLocked && (
+                <span style={{
+                  fontSize: 9.5, fontWeight: 800, letterSpacing: '0.05em',
+                  background: '#FBBC04', color: '#78350F',
+                  padding: '2px 6px', borderRadius: 5, marginLeft: 2
+                }}>PRO</span>
+              )}
+            </a>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// Placeholder pras telas ainda não construídas
+function ComingSoon({ icon, title, desc, plan }) {
+  return (
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 32px', textAlign: 'center' }}>
+      <Card style={{ padding: '60px 32px', maxWidth: 560, margin: '0 auto' }}>
+        <div style={{ fontSize: 56, marginBottom: 20 }}>{icon}</div>
+        <h2 style={{ fontFamily: "'Inter', sans-serif", fontSize: 24, fontWeight: 700, color: T.text, margin: '0 0 12px', letterSpacing: '-0.02em' }}>{title}</h2>
+        <p style={{ fontSize: 15, color: T.textMid, margin: '0 0 28px', lineHeight: 1.6 }}>{desc}</p>
+        {plan === 'free' ? (
+          <a href="/plano-pro" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: T.blue, color: '#fff',
+            padding: '13px 24px', borderRadius: 11,
+            fontSize: 14, fontWeight: 700, textDecoration: 'none',
+            boxShadow: '0 4px 14px rgba(26,115,232,0.30)'
+          }}>
+            Desbloquear no Plano Pro →
+          </a>
+        ) : (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: T.blueSoft, color: T.blueDk,
+            padding: '11px 20px', borderRadius: 999,
+            fontSize: 13, fontWeight: 600
+          }}>
+            🔨 Em construção · liberado em breve
+          </div>
+        )}
+      </Card>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // Header
 // ─────────────────────────────────────────────────────────────
 function Header({ bizName, plan, isMobile }) {
@@ -560,12 +668,35 @@ function CapturePoints({ items }) {
 export default function AppV2() {
   const isMobile = useIsMobile(768)
   const plan = getPlan()
+  const [tab, setTab] = React.useState('painel')
   const d = MOCK
 
   return (
     <div style={{ background: T.bg, minHeight:'100vh' }}>
       <Header bizName={d.biz.name} plan={plan} isMobile={isMobile} />
+      <TopTabs active={tab} onChange={setTab} plan={plan} isMobile={isMobile} />
 
+      {/* Conteúdo conforme aba ativa */}
+      {tab !== 'painel' && (
+        <ComingSoon
+          icon={tab === 'concorrentes' ? '🏆' : tab === 'alertas' ? '🔔' : tab === 'relatorios' ? '📈' : '⭐'}
+          title={
+            tab === 'concorrentes' ? 'Inteligência Competitiva' :
+            tab === 'alertas'      ? 'Alertas em tempo real' :
+            tab === 'relatorios'   ? 'Relatórios completos' :
+                                     'Todas as suas avaliações'
+          }
+          desc={
+            tab === 'concorrentes' ? 'Veja quem está na sua frente, quanto falta pra ultrapassar e quem está crescendo mais rápido na sua categoria.' :
+            tab === 'alertas'      ? 'Receba aviso na hora em que um concorrente passar você, sair do Top, ou ganhar várias avaliações de uma vez.' :
+            tab === 'relatorios'   ? 'Toda segunda, no seu e-mail: evolução semanal, ranking, comparativos e oportunidades.' :
+                                     'A lista completa de avaliações fica aqui em breve. Por enquanto, veja as últimas no Painel.'
+          }
+          plan={plan}
+        />
+      )}
+
+      {tab === 'painel' && (
       <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
 
         {/* Switch plano (apenas pra mockup) */}
@@ -655,6 +786,7 @@ export default function AppV2() {
         </Section>
 
       </main>
+      )}
     </div>
   )
 }
