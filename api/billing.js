@@ -37,10 +37,38 @@ async function authUser(req) {
 // Catalogo do kit — fonte de verdade pra preços. Deve refletir public/kit.html.
 // Preços em centavos. soldOut: true bloqueia o item no checkout.
 const KIT_CATALOG = {
-  "placa-balcao": { name: "Placa de Balcão G",         price_cents: 7990,  soldOut: false },
-  "placa-mesa":   { name: "Placa de Balcão M",         price_cents: 4990,  soldOut: false },
-  "cartao-nfc":   { name: "Cartão de Avaliação NFC",   price_cents: 2990,  soldOut: false },
-  "pulseira":     { name: "Pulseira NFC",              price_cents: 10990, soldOut: true  }
+  "placa-balcao": {
+    name: "Placa de Balcão G",
+    description: "Placa NFC de balcão tamanho G — acrílico premium. Cliente aproxima o celular e avalia no Google em segundos.",
+    price_cents: 7990,
+    image: "https://startouch.com.br/gadget-placa.png",
+    category_id: "electronics",
+    soldOut: false
+  },
+  "placa-mesa": {
+    name: "Placa de Balcão M",
+    description: "Placa NFC de balcão tamanho M — versão compacta, perfeita pra balcões menores e mesas.",
+    price_cents: 4990,
+    image: "https://startouch.com.br/gadget-placa.png",
+    category_id: "electronics",
+    soldOut: false
+  },
+  "cartao-nfc": {
+    name: "Cartão de Avaliação NFC",
+    description: "Cartão NFC tamanho carteira. Ideal pra atendimento, networking e aproximação rápida.",
+    price_cents: 2990,
+    image: "https://startouch.com.br/gadget-cartao.png",
+    category_id: "electronics",
+    soldOut: false
+  },
+  "pulseira": {
+    name: "Pulseira NFC",
+    description: "Pulseira NFC pra atendimento e experiências em eventos.",
+    price_cents: 10990,
+    image: "https://startouch.com.br/gadget-pulseira.png",
+    category_id: "electronics",
+    soldOut: true
+  }
 };
 
 // Preço do plano Pro mensal (em reais, NUMBER)
@@ -89,18 +117,30 @@ async function handleCheckoutMP(req, res) {
     const preapproval = new PreApproval(mp);
     const origin = req.headers.origin || `https://${req.headers.host}`;
 
+    // Tenta extrair nome/sobrenome do biz pra enriquecer o checkout (sobe nota de qualidade no MP)
+    const fullName = (biz?.name || "").trim();
+    const [first_name, ...rest] = fullName.split(/\s+/).filter(Boolean);
+    const last_name = rest.join(" ") || first_name || "";
+
     const result = await preapproval.create({
       body: {
-        reason: "Plano Pro StarTouch",
+        reason: "Plano Pro StarTouch — desbloqueio de ranking e concorrentes",
         external_reference: `pro_${auth.user.id}`,
         payer_email: auth.user.email,
         back_url: `${origin}/app?upgrade=success`,
+        notification_url: `${origin}/api/billing?action=webhook`,
         auto_recurring: {
           frequency: 1,
           frequency_type: "months",
           transaction_amount: PRO_MONTHLY_PRICE,
           currency_id: "BRL"
         },
+        ...(first_name && {
+          payer: {
+            first_name,
+            last_name
+          }
+        }),
         status: "pending"
       }
     });
@@ -138,6 +178,9 @@ async function handleCheckoutKitMP(req, res) {
       mpItems.push({
         id: item.id,
         title: product.name,
+        description: product.description,
+        picture_url: product.image,
+        category_id: product.category_id || "electronics",
         quantity: qty,
         unit_price: Number((product.price_cents / 100).toFixed(2)),
         currency_id: "BRL"
@@ -151,11 +194,17 @@ async function handleCheckoutKitMP(req, res) {
     const preference = new Preference(mp);
     const origin = req.headers.origin || `https://${req.headers.host}`;
 
+    // Enriquece nome do payer pra subir nota de qualidade no MP
+    const fullName = (biz_name || "").trim();
+    const [first_name, ...rest] = fullName.split(/\s+/).filter(Boolean);
+    const last_name = rest.join(" ") || first_name || "";
+
     const result = await preference.create({
       body: {
         items: mpItems,
         payer: {
-          email: auth.user.email
+          email: auth.user.email,
+          ...(first_name && { name: first_name, surname: last_name })
         },
         back_urls: {
           success: `${origin}/app?kit=success`,
@@ -170,7 +219,8 @@ async function handleCheckoutKitMP(req, res) {
           biz_name,
           kit_total_cents: String(totalCents)
         },
-        statement_descriptor: "STARTOUCH"
+        statement_descriptor: "STARTOUCH",
+        additional_info: `Pedido do kit StarTouch — ${mpItems.length} item(ns), total R$ ${(totalCents / 100).toFixed(2)}`
       }
     });
 
