@@ -13,9 +13,11 @@ const MOCK = {
     reviewCount: 12,
     rankingPos: 3,
     totalCompetitors: 12,
-    newLast30Days: 7
+    newLast30Days: 7,
+    nextGoal: { reviewsToNext: 2, targetPosition: 2 } // 5o KPI: Próxima Meta
   },
   hero: { reviewsToNext: 2, progressPct: 83 },
+  growthPct: 41, // % de crescimento exibido acima do gráfico
   ranking: [
     { pos: 1, medal: '🥇', name: 'Empresa A',         rating: 5.0, reviews: 25, you: false },
     { pos: 2, medal: '🥈', name: 'Empresa B',         rating: 5.0, reviews: 14, you: false },
@@ -174,21 +176,25 @@ function KpiCard({ icon, label, value, sub, trend }) {
   )
 }
 
-function HeroPosition({ reviewsToNext, progressPct, currentPos, total, isMobile, plan }) {
+// Card AZUL = RESULTADO. Foco em crescimento. Sem CTA pra Pro.
+function HeroPosition({ progressPct, currentPos, isMobile }) {
   return (
     <Card padded={false} style={{ background: `linear-gradient(135deg, ${T.blue} 0%, ${T.blueDk} 100%)`, border:'none', color:'#fff', overflow:'hidden', position:'relative' }}>
       <div style={{ position:'absolute', inset: 0, background:'radial-gradient(ellipse 90% 60% at 110% 0%, rgba(255,255,255,0.12), transparent 60%)', pointerEvents:'none' }}/>
       <div style={{ padding: isMobile ? '24px 22px' : '34px 36px', position:'relative' }}>
-        <p style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.75, margin: 0 }}>Sua posição no ranking local</p>
+        <p style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.75, margin: 0 }}>Seu resultado</p>
         <h1 style={{
           fontFamily:"'Inter', sans-serif",
-          fontSize: isMobile ? 26 : 38, fontWeight: 700, lineHeight: 1.15, letterSpacing: '-0.02em',
-          margin: '8px 0 14px', textWrap: 'balance'
+          fontSize: isMobile ? 24 : 34, fontWeight: 700, lineHeight: 1.2, letterSpacing: '-0.02em',
+          margin: '8px 0 12px', textWrap: 'balance'
         }}>
-          Você está em <span style={{ color: '#FBBC04' }}>{currentPos}º lugar</span> entre {total} empresas da sua categoria.
+          🏆 Você está entre as melhores empresas da sua categoria.
         </h1>
-        <p style={{ fontSize: isMobile ? 14 : 16, opacity: 0.9, lineHeight: 1.55, margin: '0 0 20px', maxWidth: 580 }}>
-          Faltam apenas <strong>{reviewsToNext} avaliações</strong> pra alcançar o {currentPos - 1}º lugar.
+        <p style={{ fontSize: isMobile ? 14.5 : 16, opacity: 0.95, lineHeight: 1.55, margin: '0 0 8px', maxWidth: 620 }}>
+          Sua empresa ocupa atualmente a <strong style={{ color: '#FBBC04' }}>{currentPos}ª posição</strong> no ranking local.
+        </p>
+        <p style={{ fontSize: isMobile ? 13.5 : 15, opacity: 0.85, lineHeight: 1.55, margin: '0 0 22px', maxWidth: 620 }}>
+          Continue conquistando avaliações para fortalecer sua presença no Google.
         </p>
 
         <div style={{ display:'flex', alignItems:'center', gap: 12, marginBottom: 22, maxWidth: 580 }}>
@@ -206,7 +212,7 @@ function HeroPosition({ reviewsToNext, progressPct, currentPos, total, isMobile,
           boxShadow:'0 4px 14px rgba(0,0,0,0.18)', fontFamily:"'Inter', sans-serif",
           width: isMobile ? '100%' : 'auto', justifyContent:'center'
         }}>
-          {plan === 'free' ? 'Desbloquear Plano Pro' : 'Aumentar minhas avaliações'} →
+          🚀 Gerar mais avaliações →
         </button>
       </div>
     </Card>
@@ -270,24 +276,38 @@ function RankingList({ items, isMobile, plan }) {
 
       {locked && (
         <div style={{
-          marginTop: 16,
-          padding: '16px 18px',
-          borderRadius: 12,
+          marginTop: 18,
+          padding: '20px 22px',
+          borderRadius: 14,
           background: 'linear-gradient(135deg, #1A73E8 0%, #0F4DAE 100%)',
-          color: '#fff'
+          color: '#fff',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <div style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 4 }}>🔒 Veja seus concorrentes pelo nome</div>
-          <p style={{ fontSize: 13, opacity: 0.92, margin: '0 0 12px', lineHeight: 1.5 }}>
-            Com o Plano Pro você descobre quem está te superando — e o que falta pra alcançar.
-          </p>
-          <a href="/plano-pro" style={{
-            display:'inline-flex', alignItems:'center', gap: 6,
-            background:'#fff', color: T.blueDk,
-            padding: '9px 16px', borderRadius: 8,
-            fontSize: 13, fontWeight: 700, textDecoration:'none'
-          }}>
-            Assinar Plano Pro · R$ 19,90/mês →
-          </a>
+          <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 80% 60% at 100% 0%, rgba(255,255,255,0.10), transparent 60%)', pointerEvents:'none' }}/>
+          <div style={{ position:'relative' }}>
+            <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', background:'#FBBC04', color:'#78350F', padding:'3px 8px', borderRadius: 5 }}>PRO</span>
+            </div>
+            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 10, lineHeight: 1.25 }}>🔒 Quem está à sua frente?</div>
+            <ul style={{ listStyle:'none', padding: 0, margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.6 }}>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Quem ocupa cada posição</span></li>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Quantas avaliações cada concorrente possui</span></li>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Quanto falta para ultrapassá-los</span></li>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Quem está crescendo mais rápido</span></li>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Alertas de mudanças no ranking</span></li>
+            </ul>
+            <a href="/plano-pro" style={{
+              display:'inline-flex', alignItems:'center', gap: 8,
+              background:'#FBBC04', color:'#78350F',
+              padding: '11px 18px', borderRadius: 10,
+              fontSize: 13.5, fontWeight: 800, textDecoration:'none',
+              boxShadow: '0 4px 14px rgba(251,188,4,0.35)',
+              width: '100%', justifyContent: 'center'
+            }}>
+              Desbloquear Inteligência Competitiva →
+            </a>
+          </div>
         </div>
       )}
 
@@ -304,7 +324,7 @@ function RankingList({ items, isMobile, plan }) {
 // ─────────────────────────────────────────────────────────────
 // Evolution chart
 // ─────────────────────────────────────────────────────────────
-function EvolutionChart({ data, isMobile }) {
+function EvolutionChart({ data, growthPct, isMobile }) {
   const W = 600, H = 200, pad = { l: 0, r: 12, t: 10, b: 30 }
   const points = data.reviews
   const max = Math.max(...points), min = Math.min(...points)
@@ -327,10 +347,16 @@ function EvolutionChart({ data, isMobile }) {
           <span style={{ width: 10, height: 10, borderRadius: 3, background: T.blue }}/>Avaliações
         </span>
       </div>
-      <div style={{ display:'flex', alignItems:'baseline', gap: 10, marginBottom: 4, flexWrap:'wrap' }}>
-        <span style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 28 : 34, fontWeight: 700, color: T.text, letterSpacing:'-0.025em', lineHeight: 1 }}>{points[points.length - 1]}</span>
-        <Trend value={points[points.length - 1] - points[0]} />
-        <span style={{ fontSize: 12.5, color: T.textDim }}>últimos 90 dias</span>
+      {/* Destaque de conquista — % de crescimento */}
+      <div style={{
+        display:'inline-flex', alignItems:'center', gap: 10,
+        background: T.greenSoft, color:'#065F46',
+        padding:'10px 14px', borderRadius: 10,
+        marginBottom: 12
+      }}>
+        <span style={{ fontSize: 18 }}>📈</span>
+        <span style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 800, color: T.green, letterSpacing:'-0.02em' }}>+{growthPct}%</span>
+        <span style={{ fontSize: 13, fontWeight: 600 }}>de crescimento nos últimos 90 dias</span>
       </div>
       <p style={{ fontSize: 12.5, color: T.textMid, margin: '0 0 8px' }}>
         Nota subiu de <strong>{data.rating[0].toFixed(1)}</strong> pra <strong>{data.rating[data.rating.length - 1].toFixed(1)}</strong> · Posição de <strong>{data.rankings[0]}º</strong> pra <strong>{data.rankings[data.rankings.length - 1]}º</strong>
@@ -356,22 +382,38 @@ function EvolutionChart({ data, isMobile }) {
 // ─────────────────────────────────────────────────────────────
 // Opportunities
 // ─────────────────────────────────────────────────────────────
+// Card AMARELO = AÇÃO IMEDIATA. Destaque pra o benefício.
 function Opportunities({ count }) {
   return (
     <Card style={{ background: T.amberBg, border: `1px solid #FCD34D` }}>
       <div style={{ display:'flex', alignItems:'flex-start', gap: 12 }}>
-        <span style={{ fontSize: 26, lineHeight: 1, flexShrink: 0 }}>💡</span>
+        <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>⚠️</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color:'#78350F', margin:'0 0 4px' }}>
-            <span style={{ color: T.amber }}>{count} avaliações</span> sem resposta
+          <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color:'#78350F', margin:'0 0 8px', lineHeight: 1.3 }}>
+            Você possui <span style={{ color: T.amber }}>{count} avaliações</span> aguardando resposta.
           </h3>
           <p style={{ fontSize: 13, color:'#92400E', margin: 0, lineHeight: 1.55 }}>
-            Responder melhora sua reputação e posicionamento no Google.
+            Empresas que respondem avaliações transmitem mais confiança e podem melhorar sua presença no Google.
           </p>
         </div>
       </div>
+
+      {/* Destaque visual pro benefício */}
+      <div style={{
+        marginTop: 14,
+        display:'flex', alignItems:'center', gap: 10,
+        padding: '10px 12px',
+        background:'#FFFFFF',
+        border:'1px solid #FCD34D',
+        borderRadius: 10,
+        fontSize: 12.5, color:'#78350F', fontWeight: 600
+      }}>
+        <span style={{ fontSize: 16 }}>📈</span>
+        <span>Negócios que respondem têm <strong style={{ color: T.amber }}>até 30% mais visitas</strong> no perfil.</span>
+      </div>
+
       <button style={{
-        marginTop: 16, background: T.amber, color:'#fff', border:'none', borderRadius: 10,
+        marginTop: 14, background: T.amber, color:'#fff', border:'none', borderRadius: 10,
         padding:'11px 18px', fontSize: 13.5, fontWeight: 700, cursor:'pointer',
         boxShadow:'0 4px 14px rgba(245,158,11,0.30)', fontFamily:"'Inter', sans-serif",
         width:'100%'
@@ -427,7 +469,7 @@ function CapturePoints({ items }) {
   return (
     <Card>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 4, gap: 8, flexWrap:'wrap' }}>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Pontos de captação</h3>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>📍 Onde seus clientes avaliam</h3>
         <span style={{ fontSize: 12, color: T.textDim }}>{total} avaliações geradas</span>
       </div>
       <p style={{ fontSize: 13, color: T.textMid, margin:'0 0 18px' }}>Onde suas avaliações estão sendo coletadas.</p>
@@ -493,33 +535,31 @@ export default function AppV2() {
           </p>
         </div>
 
-        {/* KPI ROW */}
+        {/* KPI ROW — 5 cards (Próxima Meta inclusa) */}
         <Section>
           <div style={{
             display:'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: isMobile ? 10 : 16
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
+            gap: isMobile ? 10 : 14
           }}>
             <KpiCard icon="⭐" label="Nota Google"     value={d.kpis.rating.toFixed(1)} sub="Sua reputação atual"            trend={+0.4} />
             <KpiCard icon="📝" label="Avaliações"      value={d.kpis.reviewCount}      sub="Total recebidas"                trend={+d.kpis.newLast30Days} />
             <KpiCard icon="🏆" label="Ranking local"   value={`#${d.kpis.rankingPos}`}  sub={`Entre ${d.kpis.totalCompetitors} empresas`} trend={+2} />
             <KpiCard icon="📈" label="Últimos 30 dias" value={`+${d.kpis.newLast30Days}`} sub="Novas avaliações"             trend={+3} />
+            <KpiCard icon="🎯" label="Próxima Meta"    value={`${d.kpis.nextGoal.reviewsToNext} avaliações`} sub={`Para alcançar o Top ${d.kpis.nextGoal.targetPosition}`} />
           </div>
         </Section>
 
-        {/* HERO POSITION */}
+        {/* HERO POSITION = card de RESULTADO (sem CTA pra Pro) */}
         <Section>
           <HeroPosition
-            reviewsToNext={d.hero.reviewsToNext}
             progressPct={d.hero.progressPct}
             currentPos={d.kpis.rankingPos}
-            total={d.kpis.totalCompetitors}
             isMobile={isMobile}
-            plan={plan}
           />
         </Section>
 
-        {/* RANKING + EVOLUTION */}
+        {/* RANKING (conversor pra Pro) + EVOLUTION (conquista) */}
         <Section>
           <div style={{
             display:'grid',
@@ -527,7 +567,7 @@ export default function AppV2() {
             gap: isMobile ? 14 : 24
           }}>
             <RankingList items={d.ranking} isMobile={isMobile} plan={plan} />
-            <EvolutionChart data={d.evolution} isMobile={isMobile} />
+            <EvolutionChart data={d.evolution} growthPct={d.growthPct} isMobile={isMobile} />
           </div>
         </Section>
 
