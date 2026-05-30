@@ -1,5 +1,8 @@
+// Billing — provedor PRIMARIO: Mercado Pago. Stripe fica preservado como dormente (reativa trocando o dispatcher).
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
+import { MercadoPagoConfig, PreApproval, Preference, Payment } from "mercadopago";
+import crypto from "crypto";
 
 export const config = { api: { bodyParser: false } };
 
@@ -8,15 +11,9 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-// Lazy init pra que falta de env retorne JSON amigavel em vez de FUNCTION_INVOCATION_FAILED
-let _stripe;
-function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error("STRIPE_SECRET_KEY não configurada no Vercel. Vá em Project → Settings → Environment Variables.");
-  }
-  if (!_stripe) _stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-  return _stripe;
-}
+// ─────────────────────────────────────────────────────────────
+// Util compartilhado
+// ─────────────────────────────────────────────────────────────
 
 async function getRawBody(req) {
   const chunks = [];
@@ -25,7 +22,7 @@ async function getRawBody(req) {
 }
 
 function parseJson(buf) {
-  if (!buf.length) return {};
+  if (!buf || !buf.length) return {};
   try { return JSON.parse(buf.toString("utf8")); } catch { return {}; }
 }
 
@@ -37,53 +34,6 @@ async function authUser(req) {
   return { user: data.user };
 }
 
-async function handleCheckout(req, res) {
-  const auth = await authUser(req);
-  if (auth.error) return res.status(auth.status).json({ error: auth.error });
-
-  if (!process.env.STRIPE_PRICE_ID) {
-    return res.status(500).json({ error: "STRIPE_PRICE_ID não configurada no Vercel" });
-  }
-
-  try {
-    const stripe = getStripe();
-    const { data: biz } = await supabase
-      .from("businesses")
-      .select("stripe_customer_id, name, plan")
-      .eq("user_id", auth.user.id)
-      .maybeSingle();
-
-    if (biz?.plan === "pro") {
-      return res.status(400).json({ error: "Plano Pro já está ativo" });
-    }
-
-    const origin = req.headers.origin || `https://${req.headers.host}`;
-    const sessionPayload = {
-      mode: "subscription",
-      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
-      subscription_data: {
-        trial_period_days: 14,
-        metadata: { user_id: auth.user.id, biz_name: biz?.name || "" }
-      },
-      client_reference_id: auth.user.id,
-      metadata: { user_id: auth.user.id },
-      allow_promotion_codes: true,
-      success_url: `${origin}/app?upgrade=success&session={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/app?upgrade=cancel`,
-      locale: "pt-BR"
-    };
-
-    if (biz?.stripe_customer_id) sessionPayload.customer = biz.stripe_customer_id;
-    else sessionPayload.customer_email = auth.user.email;
-
-    const session = await stripe.checkout.sessions.create(sessionPayload);
-    return res.json({ url: session.url });
-  } catch (err) {
-    console.error("[billing/checkout] erro:", err);
-    return res.status(500).json({ error: err.message || "Erro ao criar checkout" });
-  }
-}
-
 // Catalogo do kit — fonte de verdade pra preços. Deve refletir public/kit.html.
 // Preços em centavos. soldOut: true bloqueia o item no checkout.
 const KIT_CATALOG = {
@@ -93,7 +43,67 @@ const KIT_CATALOG = {
   "pulseira":     { name: "Pulseira NFC",              price_cents: 10990, soldOut: true  }
 };
 
-async function handleCheckoutKit(req, res) {
+// Preço do plano Pro mensal (em reais, NUMBER)
+const PRO_MONTHLY_PRICE = 19.90;
+
+// ─────────────────────────────────────────────────────────────
+// MERCADO PAGO — provedor ativo
+// ─────────────────────────────────────────────────────────────
+
+let _mp;
+function getMP() {
+  if (!process.env.MP_ACCESS_TOKEN) {
+    throw new Error("MP_ACCESS_TOKEN não configurado. Defina nas variáveis de ambiente da Vercel (Project → Settings → Environment Variables).");
+  }
+  if (!_mp) _mp = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
+  return _mp;
+}
+
+// Plano Pro mensal — cria assinatura (PreApproval) e devolve init_point.
+async function handleCheckoutMP(req, res) {
+  const auth = await authUser(req);
+  if (auth.error) return res.status(auth.status).json({ error: auth.error });
+
+  try {
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("id, name, plan")
+      .eq("user_id", auth.user.id)
+      .maybeSingle();
+
+    if (biz?.plan === "pro") {
+      return res.status(400).json({ error: "Plano Pro já está ativo" });
+    }
+
+    const mp = getMP();
+    const preapproval = new PreApproval(mp);
+    const origin = req.headers.origin || `https://${req.headers.host}`;
+
+    const result = await preapproval.create({
+      body: {
+        reason: "Plano Pro StarTouch",
+        external_reference: `pro_${auth.user.id}`,
+        payer_email: auth.user.email,
+        back_url: `${origin}/app?upgrade=success`,
+        auto_recurring: {
+          frequency: 1,
+          frequency_type: "months",
+          transaction_amount: PRO_MONTHLY_PRICE,
+          currency_id: "BRL"
+        },
+        status: "pending"
+      }
+    });
+
+    return res.json({ url: result.init_point });
+  } catch (err) {
+    console.error("[mp/checkout] erro:", err);
+    return res.status(500).json({ error: err?.message || "Erro ao criar checkout do plano Pro" });
+  }
+}
+
+// Kit (placas + cartão) — cria Preference one-shot e devolve init_point.
+async function handleCheckoutKitMP(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
 
@@ -105,7 +115,7 @@ async function handleCheckoutKit(req, res) {
       return res.status(400).json({ error: "Carrinho vazio" });
     }
 
-    const line_items = [];
+    const mpItems = [];
     let totalCents = 0;
     for (const item of items) {
       const product = KIT_CATALOG[item?.id];
@@ -115,22 +125,273 @@ async function handleCheckoutKit(req, res) {
       if (!Number.isFinite(qty) || qty < 1 || qty > 99) {
         return res.status(400).json({ error: `Quantidade inválida pra ${product.name}` });
       }
-      line_items.push({
-        price_data: {
-          currency: "brl",
-          product_data: { name: product.name },
-          unit_amount: product.price_cents
-        },
-        quantity: qty
+      mpItems.push({
+        id: item.id,
+        title: product.name,
+        quantity: qty,
+        unit_price: Number((product.price_cents / 100).toFixed(2)),
+        currency_id: "BRL"
       });
       totalCents += product.price_cents * qty;
     }
 
     if (totalCents === 0) return res.status(400).json({ error: "Total zerado" });
 
-    const stripe = getStripe();
+    const mp = getMP();
+    const preference = new Preference(mp);
     const origin = req.headers.origin || `https://${req.headers.host}`;
 
+    const result = await preference.create({
+      body: {
+        items: mpItems,
+        payer: {
+          email: auth.user.email
+        },
+        back_urls: {
+          success: `${origin}/app?kit=success`,
+          pending: `${origin}/app?kit=pending`,
+          failure: `${origin}/kit?biz=${encodeURIComponent(biz_name)}&cancelled=1`
+        },
+        auto_return: "approved",
+        external_reference: `kit_${auth.user.id}_${Date.now()}`,
+        notification_url: `${origin}/api/billing?action=webhook`,
+        metadata: {
+          user_id: auth.user.id,
+          biz_name,
+          kit_total_cents: String(totalCents)
+        },
+        statement_descriptor: "STARTOUCH"
+      }
+    });
+
+    return res.json({ url: result.init_point });
+  } catch (err) {
+    console.error("[mp/checkout-kit] erro:", err);
+    return res.status(500).json({ error: err?.message || "Erro ao criar checkout do kit" });
+  }
+}
+
+// Cancela a assinatura Pro do usuario logado (substitui o portal do Stripe).
+async function handlePortalMP(req, res) {
+  const auth = await authUser(req);
+  if (auth.error) return res.status(auth.status).json({ error: auth.error });
+
+  try {
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("stripe_subscription_id, plan")
+      .eq("user_id", auth.user.id)
+      .maybeSingle();
+
+    if (!biz?.stripe_subscription_id) {
+      return res.status(400).json({ error: "Sem assinatura ativa pra cancelar" });
+    }
+
+    const mp = getMP();
+    const preapproval = new PreApproval(mp);
+
+    // Cancela imediatamente. (MP nao tem "cancel at period end" nativo simples.)
+    await preapproval.update({
+      id: biz.stripe_subscription_id,
+      body: { status: "cancelled" }
+    });
+
+    // O webhook deve atualizar o Supabase, mas marcamos pre-emptivamente aqui.
+    await supabase
+      .from("businesses")
+      .update({
+        plan: "free",
+        stripe_subscription_status: "cancelled",
+        stripe_cancel_at_period_end: true
+      })
+      .eq("user_id", auth.user.id);
+
+    return res.json({ ok: true, cancelled: true, message: "Assinatura cancelada com sucesso." });
+  } catch (err) {
+    console.error("[mp/portal] erro:", err);
+    return res.status(500).json({ error: err?.message || "Erro ao cancelar assinatura" });
+  }
+}
+
+// Valida assinatura HMAC do webhook do MP (se MP_WEBHOOK_SECRET estiver configurada).
+// Template oficial MP: id:{data_id};request-id:{x-request-id};ts:{ts}
+function verifyMPSignature(req, dataId) {
+  const secret = process.env.MP_WEBHOOK_SECRET;
+  if (!secret) return true; // Se nao tiver secret configurada, pula validacao (modo dev/setup inicial)
+  const sigHeader = req.headers["x-signature"] || "";
+  const requestId = req.headers["x-request-id"] || "";
+  if (!sigHeader || !requestId || !dataId) return false;
+
+  // Parse "ts=xxx,v1=yyy"
+  const parts = Object.fromEntries(
+    sigHeader.split(",").map(p => p.trim().split("=").map(s => s.trim()))
+  );
+  const ts = parts.ts;
+  const v1 = parts.v1;
+  if (!ts || !v1) return false;
+
+  const template = `id:${dataId};request-id:${requestId};ts:${ts};`;
+  const expected = crypto.createHmac("sha256", secret).update(template).digest("hex");
+  return expected === v1;
+}
+
+async function handleWebhookMP(req, res) {
+  // MP envia GET (legado) ou POST (novo). Em ambos, type/topic + id ou data.id.
+  let type, id;
+
+  if (req.method === "GET") {
+    type = req.query.type || req.query.topic;
+    id = req.query.id || req.query["data.id"];
+  } else {
+    const rawBody = await getRawBody(req);
+    const body = parseJson(rawBody);
+    type = body.type || body.action || req.query.type || req.query.topic;
+    id = body?.data?.id || body?.id || req.query.id || req.query["data.id"];
+  }
+
+  if (!type || !id) {
+    console.log("[mp/webhook] notificação sem type/id — ignorada", { type, id });
+    return res.status(200).json({ ok: true, ignored: "missing type/id" });
+  }
+
+  // Validacao de assinatura (silenciosa em modo setup)
+  if (!verifyMPSignature(req, String(id))) {
+    console.warn("[mp/webhook] assinatura inválida — rejeitado", { type, id });
+    return res.status(401).json({ error: "Invalid signature" });
+  }
+
+  try {
+    const mp = getMP();
+
+    // ── Assinatura (Plano Pro) ──
+    if (type === "subscription_preapproval" || type === "preapproval") {
+      const preapproval = new PreApproval(mp);
+      const pp = await preapproval.get({ id });
+
+      const externalRef = pp.external_reference || "";
+      if (!externalRef.startsWith("pro_")) {
+        console.log("[mp/webhook] preapproval não-Pro — ignorado", externalRef);
+        return res.json({ ok: true, ignored: "not pro" });
+      }
+      const userId = externalRef.replace("pro_", "");
+
+      // Status MP: pending | authorized | paused | cancelled
+      const isActive = ["authorized"].includes(pp.status);
+      const periodEnd = pp.next_payment_date ? new Date(pp.next_payment_date).toISOString() : null;
+
+      const { error } = await supabase
+        .from("businesses")
+        .update({
+          plan: isActive ? "pro" : "free",
+          stripe_subscription_id: isActive ? pp.id : null, // reusa coluna pra ID do MP (simplifica schema)
+          stripe_current_period_end: periodEnd,
+          stripe_cancel_at_period_end: pp.status === "cancelled",
+          stripe_subscription_status: pp.status
+        })
+        .eq("user_id", userId);
+
+      if (error) console.error("[mp/webhook] erro update pro:", error);
+      else console.log(`[mp/webhook] preapproval ${pp.id} status=${pp.status} → plan=${isActive ? "pro" : "free"} user=${userId}`);
+
+      return res.json({ ok: true, type: "preapproval", id, status: pp.status });
+    }
+
+    // ── Payment (pagamento avulso — usado por kit + recorrencias da assinatura) ──
+    if (type === "payment") {
+      const paymentClient = new Payment(mp);
+      const pay = await paymentClient.get({ id });
+      const externalRef = pay.external_reference || "";
+
+      if (externalRef.startsWith("kit_")) {
+        const userId = externalRef.split("_")[1];
+        console.log(
+          `[mp/webhook] pagamento kit ${id} status=${pay.status} user=${userId} valor=${pay.transaction_amount}`
+        );
+        // Aqui no futuro: criar registro em "orders" ou marcar status do pedido.
+        // Por enquanto, só log; o envio fisico é manual via painel.
+        return res.json({ ok: true, type: "payment-kit", id, status: pay.status });
+      }
+
+      // Pagamento mensal da assinatura (recurring) — log pra rastreio
+      console.log(`[mp/webhook] payment ${id} status=${pay.status} ref="${externalRef}"`);
+      return res.json({ ok: true, type: "payment", id, status: pay.status });
+    }
+
+    return res.json({ ok: true, ignored: type });
+  } catch (err) {
+    console.error("[mp/webhook] erro:", err);
+    return res.status(500).json({ error: err?.message || "Erro processando webhook" });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// STRIPE — DORMENTE (preservado pra reativar trocando o dispatcher)
+// ─────────────────────────────────────────────────────────────
+
+let _stripe;
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY não configurada");
+  }
+  if (!_stripe) _stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  return _stripe;
+}
+
+async function handleCheckoutStripe(req, res) {
+  const auth = await authUser(req);
+  if (auth.error) return res.status(auth.status).json({ error: auth.error });
+  if (!process.env.STRIPE_PRICE_ID) return res.status(500).json({ error: "STRIPE_PRICE_ID não configurada" });
+  try {
+    const stripe = getStripe();
+    const { data: biz } = await supabase
+      .from("businesses").select("stripe_customer_id, name, plan").eq("user_id", auth.user.id).maybeSingle();
+    if (biz?.plan === "pro") return res.status(400).json({ error: "Plano Pro já está ativo" });
+    const origin = req.headers.origin || `https://${req.headers.host}`;
+    const sessionPayload = {
+      mode: "subscription",
+      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+      subscription_data: { trial_period_days: 14, metadata: { user_id: auth.user.id, biz_name: biz?.name || "" } },
+      client_reference_id: auth.user.id,
+      metadata: { user_id: auth.user.id },
+      allow_promotion_codes: true,
+      success_url: `${origin}/app?upgrade=success&session={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/app?upgrade=cancel`,
+      locale: "pt-BR"
+    };
+    if (biz?.stripe_customer_id) sessionPayload.customer = biz.stripe_customer_id;
+    else sessionPayload.customer_email = auth.user.email;
+    const session = await stripe.checkout.sessions.create(sessionPayload);
+    return res.json({ url: session.url });
+  } catch (err) {
+    console.error("[stripe/checkout] erro:", err);
+    return res.status(500).json({ error: err.message || "Erro" });
+  }
+}
+
+async function handleCheckoutKitStripe(req, res) {
+  const auth = await authUser(req);
+  if (auth.error) return res.status(auth.status).json({ error: auth.error });
+  try {
+    const rawBody = await getRawBody(req);
+    const { items = [], biz_name = "" } = parseJson(rawBody);
+    if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: "Carrinho vazio" });
+    const line_items = [];
+    let totalCents = 0;
+    for (const item of items) {
+      const product = KIT_CATALOG[item?.id];
+      if (!product) return res.status(400).json({ error: `Produto desconhecido: ${item?.id}` });
+      if (product.soldOut) return res.status(400).json({ error: `${product.name} esgotado.` });
+      const qty = parseInt(item.qty, 10);
+      if (!Number.isFinite(qty) || qty < 1 || qty > 99) return res.status(400).json({ error: `Qty inválida pra ${product.name}` });
+      line_items.push({
+        price_data: { currency: "brl", product_data: { name: product.name }, unit_amount: product.price_cents },
+        quantity: qty
+      });
+      totalCents += product.price_cents * qty;
+    }
+    if (totalCents === 0) return res.status(400).json({ error: "Total zerado" });
+    const stripe = getStripe();
+    const origin = req.headers.origin || `https://${req.headers.host}`;
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items,
@@ -138,63 +399,39 @@ async function handleCheckoutKit(req, res) {
       phone_number_collection: { enabled: true },
       customer_email: auth.user.email,
       client_reference_id: auth.user.id,
-      payment_method_options: {
-        card: { installments: { enabled: true } }
-      },
-      metadata: {
-        user_id: auth.user.id,
-        biz_name,
-        kit_total_cents: String(totalCents),
-        order_type: "kit"
-      },
-      payment_intent_data: {
-        metadata: { user_id: auth.user.id, biz_name, order_type: "kit" }
-      },
+      payment_method_options: { card: { installments: { enabled: true } } },
+      metadata: { user_id: auth.user.id, biz_name, kit_total_cents: String(totalCents), order_type: "kit" },
+      payment_intent_data: { metadata: { user_id: auth.user.id, biz_name, order_type: "kit" } },
       allow_promotion_codes: true,
       locale: "pt-BR",
       success_url: `${origin}/app?kit=success&session={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/kit?biz=${encodeURIComponent(biz_name)}&cancelled=1`
     });
-
     return res.json({ url: session.url });
   } catch (err) {
-    console.error("[billing/checkout-kit] erro:", err);
-    return res.status(500).json({ error: err.message || "Erro ao criar checkout do kit" });
+    console.error("[stripe/checkout-kit] erro:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
-async function handlePortal(req, res) {
+async function handlePortalStripe(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
-
   try {
     const stripe = getStripe();
-    const { data: biz } = await supabase
-      .from("businesses")
-      .select("stripe_customer_id")
-      .eq("user_id", auth.user.id)
-      .maybeSingle();
-
-    if (!biz?.stripe_customer_id) {
-      return res.status(400).json({ error: "Sem assinatura ativa pra gerenciar" });
-    }
-
+    const { data: biz } = await supabase.from("businesses").select("stripe_customer_id").eq("user_id", auth.user.id).maybeSingle();
+    if (!biz?.stripe_customer_id) return res.status(400).json({ error: "Sem assinatura ativa" });
     const origin = req.headers.origin || `https://${req.headers.host}`;
-    const session = await stripe.billingPortal.sessions.create({
-      customer: biz.stripe_customer_id,
-      return_url: `${origin}/app`
-    });
+    const session = await stripe.billingPortal.sessions.create({ customer: biz.stripe_customer_id, return_url: `${origin}/app` });
     return res.json({ url: session.url });
   } catch (err) {
-    console.error("[billing/portal] erro:", err);
-    return res.status(500).json({ error: err.message || "Erro ao abrir portal" });
+    console.error("[stripe/portal] erro:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
-async function handleWebhook(req, res) {
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
-    return res.status(500).json({ error: "STRIPE_WEBHOOK_SECRET não configurada" });
-  }
+async function handleWebhookStripe(req, res) {
+  if (!process.env.STRIPE_WEBHOOK_SECRET) return res.status(500).json({ error: "STRIPE_WEBHOOK_SECRET não configurada" });
   let event;
   try {
     const stripe = getStripe();
@@ -202,55 +439,29 @@ async function handleWebhook(req, res) {
     const sig = req.headers["stripe-signature"];
     event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    console.error("[billing/webhook] assinatura inválida:", err.message);
+    console.error("[stripe/webhook] assinatura inválida:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-
   try {
     const stripe = getStripe();
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
         const userId = session.client_reference_id || session.metadata?.user_id;
-        if (!userId) { console.warn("[billing/webhook] session sem user_id:", session.id); break; }
-
-        // Pedidos de kit (mode=payment) sao logados pra acompanhamento — nao mexem no plano.
-        // O envio fisico do hardware e feito a partir do Stripe Dashboard.
-        if (session.mode === "payment") {
-          const totalCents = session.amount_total ?? session.metadata?.kit_total_cents ?? "?";
-          const bizName = session.metadata?.biz_name || "(sem biz)";
-          console.log(`[billing/webhook] pedido de kit pago — user=${userId} biz=${bizName} total_cents=${totalCents} session=${session.id}`);
-          break;
-        }
-
-        // Busca a subscription completa pra pegar current_period_end + status
-        let periodEnd = null;
-        let cancelAtEnd = false;
-        let status = null;
+        if (!userId) break;
+        if (session.mode === "payment") { console.log("[stripe/webhook] kit pago", session.id); break; }
+        let periodEnd = null, cancelAtEnd = false, status = null;
         if (session.subscription) {
           try {
             const sub = await stripe.subscriptions.retrieve(session.subscription);
             periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
-            cancelAtEnd = !!sub.cancel_at_period_end;
-            status = sub.status;
-          } catch (e) {
-            console.error("[billing/webhook] erro ao buscar subscription:", e);
-          }
+            cancelAtEnd = !!sub.cancel_at_period_end; status = sub.status;
+          } catch (e) { console.error(e); }
         }
-
-        const { error } = await supabase
-          .from("businesses")
-          .update({
-            plan: "pro",
-            stripe_customer_id: session.customer,
-            stripe_subscription_id: session.subscription,
-            stripe_current_period_end: periodEnd,
-            stripe_cancel_at_period_end: cancelAtEnd,
-            stripe_subscription_status: status
-          })
-          .eq("user_id", userId);
-        if (error) console.error("[billing/webhook] erro ao ativar pro:", error);
-        else console.log("[billing/webhook] pro ativado pra user", userId, "status", status, "renova em", periodEnd);
+        await supabase.from("businesses").update({
+          plan: "pro", stripe_customer_id: session.customer, stripe_subscription_id: session.subscription,
+          stripe_current_period_end: periodEnd, stripe_cancel_at_period_end: cancelAtEnd, stripe_subscription_status: status
+        }).eq("user_id", userId);
         break;
       }
       case "customer.subscription.deleted":
@@ -258,47 +469,49 @@ async function handleWebhook(req, res) {
         const sub = event.data.object;
         const shouldBePro = ["active", "trialing", "past_due"].includes(sub.status);
         const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
-        const { error } = await supabase
-          .from("businesses")
-          .update({
-            plan: shouldBePro ? "pro" : "free",
-            stripe_subscription_id: shouldBePro ? sub.id : null,
-            stripe_current_period_end: shouldBePro ? periodEnd : null,
-            stripe_cancel_at_period_end: shouldBePro ? !!sub.cancel_at_period_end : false,
-            stripe_subscription_status: shouldBePro ? sub.status : null
-          })
-          .eq("stripe_customer_id", sub.customer);
-        if (error) console.error("[billing/webhook] erro ao sincronizar:", error);
-        else console.log(`[billing/webhook] plano -> ${shouldBePro ? "pro" : "free"} pra ${sub.customer} (status=${sub.status} cancela=${sub.cancel_at_period_end})`);
+        await supabase.from("businesses").update({
+          plan: shouldBePro ? "pro" : "free", stripe_subscription_id: shouldBePro ? sub.id : null,
+          stripe_current_period_end: shouldBePro ? periodEnd : null, stripe_cancel_at_period_end: shouldBePro ? !!sub.cancel_at_period_end : false,
+          stripe_subscription_status: shouldBePro ? sub.status : null
+        }).eq("stripe_customer_id", sub.customer);
         break;
       }
       default: break;
     }
     return res.json({ received: true });
   } catch (err) {
-    console.error("[billing/webhook] erro processando:", err);
+    console.error("[stripe/webhook] erro:", err);
     return res.status(500).json({ error: err.message });
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Dispatcher — provedor ativo: Mercado Pago
+// Pra reativar Stripe: trocar as 4 linhas abaixo por handle*Stripe.
+// ─────────────────────────────────────────────────────────────
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, stripe-signature");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-signature, x-request-id, stripe-signature");
   if (req.method === "OPTIONS") return res.status(200).end();
+
+  const action = req.query.action || req.query.a;
+
+  // Webhook aceita GET (MP legado) ou POST. Outras actions: só POST.
+  if (action === "webhook") {
+    return await handleWebhookMP(req, res);
+  }
+
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const action = req.query.action || req.query.a;
-    if (action === "webhook") return await handleWebhook(req, res);
-    if (action === "checkout") return await handleCheckout(req, res);
-    if (action === "checkout-kit") return await handleCheckoutKit(req, res);
-    if (action === "portal") return await handlePortal(req, res);
+    if (action === "checkout") return await handleCheckoutMP(req, res);
+    if (action === "checkout-kit") return await handleCheckoutKitMP(req, res);
+    if (action === "portal") return await handlePortalMP(req, res);
     return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|portal|webhook" });
   } catch (err) {
     console.error("[billing] erro nao tratado:", err);
-    if (!res.headersSent) {
-      return res.status(500).json({ error: err?.message || "Erro interno", stack: err?.stack });
-    }
+    if (!res.headersSent) return res.status(500).json({ error: err?.message || "Erro interno" });
   }
 }

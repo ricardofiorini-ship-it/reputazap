@@ -47,15 +47,25 @@ Fluxo end-to-end funcionando:
 1. Hardware NFC: os 4 cards do dashboard apontam pro mesmo SKU Mercado Livre placeholder. Trocar por links específicos quando tiver SKU por produto.
 2. `RESEND_API_KEY` precisa ser setada na Vercel pro envio de email da peneira Pro funcionar (sem ela, feedback é salvo no Supabase mas email é skipado com log).
 3. Deploy backend no Railway (avaliar se ainda faz sentido com Vercel functions).
-4. Setup Stripe (ver seção abaixo).
+4. Setup Mercado Pago (ver seção abaixo) — provedor ativo.
 
-## Setup Stripe
+## Setup Mercado Pago (provedor ativo)
 
-1. Rodar o SQL acima no Supabase pra adicionar `stripe_customer_id` e `stripe_subscription_id`.
-2. Criar produto no Stripe Dashboard (Plano Pro, **R$ 19,90/mês recorrente, sem fidelidade — cancele quando quiser**). Copiar o **Price ID** (começa com `price_…`).
-3. Criar webhook em `https://www.startouch.com.br/api/billing?action=webhook` escutando `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copiar o **Signing secret** (começa com `whsec_…`).
-4. Setar envs no Vercel: `STRIPE_SECRET_KEY` (sk_live_…), `STRIPE_PRICE_ID` (price_…), `STRIPE_WEBHOOK_SECRET` (whsec_…).
-5. Deploy. O fluxo: cliente clica em "Ativar Plano Pro" → POST `/api/billing?action=checkout` cria session com trial 14d → redirect → após pagamento, webhook em `/api/billing?action=webhook` atualiza `businesses.plan = 'pro'`.
+**Por que MP e não Stripe?** Pivot 2026-05-30: Stripe BR exige ~3 dias de análise + KYC mais pesado. Cliente já tinha conta MP funcional. MP cobre PIX/cartão/boleto nativo, tem Checkout Pro hospedado (igual Stripe Checkout) e suporta assinatura via PreApproval. Código do Stripe ficou **preservado dormente** em `api/billing.js` (funções `handle*Stripe`) pra reativar trocando 4 linhas do dispatcher se um dia voltar.
+
+**Setup:**
+1. Rodar o SQL acima no Supabase (as colunas `stripe_*` são **reusadas** pra guardar IDs do MP — simplifica schema).
+2. Em [developers.mercadopago.com](https://www.mercadopago.com.br/developers/panel/app) → criar aplicação. Em "Configuração avançada", marcar `read`, `offline access`, `write`. URL OAuth: deixar em branco (não usamos OAuth).
+3. Copiar o **Access Token de produção** (formato `APP_USR-…`).
+4. Em "Notificações" / "Webhooks" → cadastrar URL `https://startouch.com.br/api/billing?action=webhook` escutando eventos de `Assinaturas` e `Pagamentos`. Copiar a **chave secreta** (HMAC) que aparece — vai virar `MP_WEBHOOK_SECRET`.
+5. Setar envs na Vercel:
+   - `MP_ACCESS_TOKEN` (obrigatório) — Access Token de produção
+   - `MP_WEBHOOK_SECRET` (opcional mas recomendado) — chave HMAC pra validar webhooks. Se ausente, validação é skipada com warning no log.
+6. Deploy. Fluxo:
+   - Cliente clica em "Desbloquear" no `/app` → vai pra `/plano-pro`
+   - Clica "Assinar agora" → POST `/api/billing?action=checkout` cria PreApproval no MP → redirect pra Checkout Pro → após autorização, webhook em `/api/billing?action=webhook` atualiza `businesses.plan = 'pro'`
+   - Pra kit: POST `/api/billing?action=checkout-kit` cria Preference → Checkout Pro → webhook loga pagamento (kit é manualmente despachado pelo admin via painel MP)
+   - Cancelar assinatura: POST `/api/billing?action=portal` cancela via API MP (sem portal nativo como Stripe tem)
 
 ## Sistema de Placas (códigos únicos pré-produzidos)
 
@@ -79,7 +89,7 @@ Modelo "TrustHero adapted" — **FLUXO ÚNICO de ativação independente de cana
 
 ## Variáveis de ambiente (Vercel)
 
-`PLACES_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY` (opcional), `RESEND_FROM` (opcional — ex: `"StarTouch <feedback@startouch.com.br>"`; sem isso usa `onboarding@resend.dev`), `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`.
+`PLACES_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY` (opcional), `RESEND_FROM` (opcional — ex: `"StarTouch <feedback@startouch.com.br>"`; sem isso usa `onboarding@resend.dev`), **`MP_ACCESS_TOKEN`** (Mercado Pago — provedor ativo), `MP_WEBHOOK_SECRET` (opcional, validação HMAC do webhook MP). Stripe dormente: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET` (não usadas atualmente, manter setadas só se planejar reativar Stripe).
 
 ## Links
 
