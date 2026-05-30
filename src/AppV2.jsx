@@ -50,7 +50,29 @@ const MOCK = {
     reviews:  [5, 5, 6, 6, 7, 7, 8, 9, 10, 11, 11, 12],
     rating:   [4.6, 4.7, 4.7, 4.8, 4.8, 4.8, 4.9, 4.9, 4.9, 5.0, 5.0, 5.0],
     rankings: [9, 8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3]
-  }
+  },
+  // Concorrentes (Inteligência Competitiva)
+  competitors: [
+    { id: 1,  pos: 1,  medal:'🥇', name:'Empresa A',        rating: 5.0, reviews: 25, weekGrowth: +3, history:[18,19,20,21,21,22,23,24,24,24,25,25], color:'#F59E0B', initials:'EA' },
+    { id: 2,  pos: 2,  medal:'🥈', name:'Empresa B',        rating: 5.0, reviews: 14, weekGrowth: +1, history:[10,10,11,11,11,12,12,13,13,13,14,14], color:'#10B981', initials:'EB' },
+    { id: 3,  pos: 3,  medal:'🥉', name:'Café Bella Vista', rating: 5.0, reviews: 12, weekGrowth: +2, history:[5,5,6,6,7,7,8,9,10,11,11,12],         color:'#1A73E8', initials:'CB', isYou: true },
+    { id: 4,  pos: 4,            name:'Empresa C',        rating: 4.9, reviews: 11, weekGrowth:  0, history:[10,10,10,11,11,11,11,11,11,11,11,11], color:'#8B5CF6', initials:'EC' },
+    { id: 5,  pos: 5,            name:'Empresa D',        rating: 4.8, reviews: 9,  weekGrowth: +1, history:[5,5,6,6,6,7,7,7,8,8,8,9],             color:'#EC4899', initials:'ED' },
+    { id: 6,  pos: 6,            name:'Empresa E',        rating: 4.8, reviews: 9,  weekGrowth:  0, history:[8,8,8,8,8,8,9,9,9,9,9,9],              color:'#06B6D4', initials:'EE' },
+    { id: 7,  pos: 7,            name:'Empresa F',        rating: 4.7, reviews: 8,  weekGrowth: +2, history:[4,4,5,5,5,6,6,6,7,7,8,8],              color:'#84CC16', initials:'EF' },
+    { id: 8,  pos: 8,            name:'Empresa G',        rating: 4.7, reviews: 7,  weekGrowth:  0, history:[6,6,7,7,7,7,7,7,7,7,7,7],              color:'#F97316', initials:'EG' },
+    { id: 9,  pos: 9,            name:'Empresa H',        rating: 4.6, reviews: 6,  weekGrowth: +1, history:[3,3,4,4,4,4,5,5,5,5,6,6],              color:'#06B6D4', initials:'EH' },
+    { id: 10, pos: 10,           name:'Empresa I',        rating: 4.5, reviews: 5,  weekGrowth:  0, history:[5,5,5,5,5,5,5,5,5,5,5,5],              color:'#A855F7', initials:'EI' },
+    { id: 11, pos: 11,           name:'Empresa J',        rating: 4.4, reviews: 4,  weekGrowth:  0, history:[3,3,3,3,4,4,4,4,4,4,4,4],              color:'#14B8A6', initials:'EJ' },
+    { id: 12, pos: 12,           name:'Empresa K',        rating: 4.2, reviews: 3,  weekGrowth: -1, history:[5,5,5,5,4,4,4,4,4,3,3,3],              color:'#EF4444', initials:'EK' }
+  ],
+  // Minhas metas (gamificação)
+  goals: [
+    { label:'Top 5', achieved: true,  reviewsToNext: 0, progressPct: 100 },
+    { label:'Top 3', achieved: true,  reviewsToNext: 0, progressPct: 100, current: true },
+    { label:'Top 2', achieved: false, reviewsToNext: 2, progressPct: 86,  target:'Empresa B (14 av.)' },
+    { label:'Top 1', achieved: false, reviewsToNext: 14, progressPct: 48, target:'Empresa A (25 av.)' }
+  ]
 }
 
 const T = {
@@ -231,6 +253,266 @@ function ComingSoon({ icon, title, desc, plan }) {
         )}
       </Card>
     </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// TELA: CONCORRENTES (Inteligência Competitiva)
+// ─────────────────────────────────────────────────────────────
+
+// Sparkline mini-chart (linha + área)
+function Sparkline({ data, color = T.blue, w = 80, h = 28 }) {
+  const max = Math.max(...data), min = Math.min(...data)
+  const range = (max - min) || 1
+  const xs = data.map((_, i) => (i / (data.length - 1)) * w)
+  const ys = data.map(v => h - ((v - min) / range) * (h - 4) - 2)
+  const path = xs.map((x, i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ')
+  const area = `${path} L ${w},${h} L 0,${h} Z`
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} style={{ display:'block' }}>
+      <path d={area} fill={color} opacity="0.12"/>
+      <path d={path} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function CompetitorStats({ youPos, total, reviewsToNext, risingCount, isMobile }) {
+  const Item = ({ label, value, sub, accent }) => (
+    <div style={{
+      flex: 1,
+      padding: isMobile ? '14px 16px' : '18px 20px',
+      borderRight: !isMobile ? `1px solid ${T.border}` : 'none',
+      borderBottom: isMobile ? `1px solid ${T.border}` : 'none'
+    }}>
+      <div style={{ fontSize: 11.5, fontWeight: 600, color: T.textDim, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 6 }}>{label}</div>
+      <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 24, fontWeight: 700, color: accent || T.text, letterSpacing:'-0.02em', lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 12, color: T.textMid, marginTop: 4 }}>{sub}</div>
+    </div>
+  )
+  return (
+    <Card padded={false} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow:'hidden' }}>
+      <Item label="Sua posição" value={`#${youPos}`} sub={`de ${total} empresas`} accent={T.blue}/>
+      <Item label="Falta pra subir" value={`${reviewsToNext} av.`} sub={`pra alcançar a #${youPos - 1}`} accent={T.amber}/>
+      <Item label="Em alta na sua categoria" value={`${risingCount} concorrente${risingCount > 1 ? 's' : ''}`} sub="cresceu essa semana" accent={T.green}/>
+    </Card>
+  )
+}
+
+function FilterChips({ active, onChange, counts }) {
+  const chips = [
+    { id: 'all',    label: 'Todos',          count: counts.all },
+    { id: 'ahead',  label: 'À sua frente',   count: counts.ahead },
+    { id: 'behind', label: 'Atrás de você',  count: counts.behind },
+    { id: 'rising', label: 'Em alta 📈',     count: counts.rising }
+  ]
+  return (
+    <div style={{ display:'flex', gap: 8, flexWrap:'wrap', marginBottom: 16 }}>
+      {chips.map(c => {
+        const isActive = active === c.id
+        return (
+          <button key={c.id}
+            onClick={() => onChange(c.id)}
+            style={{
+              padding: '8px 14px',
+              borderRadius: 999,
+              border: `1px solid ${isActive ? T.blue : T.border}`,
+              background: isActive ? T.blue : '#fff',
+              color: isActive ? '#fff' : T.textMid,
+              fontFamily:"'Inter', sans-serif",
+              fontSize: 13, fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all .12s'
+            }}>
+            {c.label} <span style={{ opacity: 0.7, marginLeft: 4 }}>({c.count})</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function CompetitorCard({ comp, youReviews }) {
+  const diff = comp.reviews - youReviews // positivo = à frente, negativo = atrás
+  const aheadOfYou = diff > 0
+  const isYou = comp.isYou
+  const closeTarget = aheadOfYou && diff <= 3 // alvo próximo
+
+  return (
+    <Card style={{
+      padding: '16px 18px',
+      background: isYou ? T.blueSoft : '#fff',
+      border: isYou ? `1.5px solid #B9D6FB` : `1px solid ${T.border}`
+    }}>
+      <div style={{ display:'flex', gap: 14, alignItems:'flex-start' }}>
+        {/* Position + medal */}
+        <div style={{
+          flexShrink: 0,
+          width: 44, height: 44, borderRadius: 11,
+          background: isYou ? T.blue : '#F1F5F9',
+          color: isYou ? '#fff' : T.textMid,
+          display:'flex', alignItems:'center', justifyContent:'center',
+          fontWeight: 700, fontSize: 15
+        }}>
+          {comp.medal || `#${comp.pos}`}
+        </div>
+
+        {/* Body */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4, flexWrap:'wrap' }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{comp.name}</span>
+            {isYou && <span style={{ fontSize: 10.5, fontWeight: 700, color: T.blue, background:'#fff', border:`1px solid ${T.blue}`, borderRadius: 5, padding:'1px 6px' }}>VOCÊ</span>}
+            {closeTarget && !isYou && <span style={{ fontSize: 10.5, fontWeight: 700, color:'#92400E', background:'#FEF3C7', border:'1px solid #FCD34D', borderRadius: 5, padding:'1px 6px' }}>🎯 ALVO PRÓXIMO</span>}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap: 10, fontSize: 12.5, color: T.textMid, marginBottom: 10, flexWrap:'wrap' }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap: 4 }}>
+              <Stars rating={comp.rating} size={11}/> <strong style={{ color: T.text, fontSize: 12 }}>{comp.rating.toFixed(1)}</strong>
+            </span>
+            <span style={{ color: T.textDim }}>·</span>
+            <span><strong style={{ color: T.text, fontSize: 12 }}>{comp.reviews}</strong> avaliações</span>
+            <span style={{ color: T.textDim }}>·</span>
+            <span style={{
+              display:'inline-flex', alignItems:'center', gap: 3,
+              color: comp.weekGrowth > 0 ? T.green : comp.weekGrowth < 0 ? T.red : T.textDim,
+              fontWeight: 600
+            }}>
+              {comp.weekGrowth > 0 ? '▲' : comp.weekGrowth < 0 ? '▼' : '—'} {Math.abs(comp.weekGrowth) || 0} essa semana
+            </span>
+          </div>
+
+          {/* Diff vs você (texto contextual) */}
+          {!isYou && (
+            <div style={{ fontSize: 12.5, color: T.textMid, marginBottom: 10 }}>
+              {aheadOfYou
+                ? <>Falta <strong style={{ color: T.text }}>{diff} avaliações</strong> pra você ultrapassar</>
+                : <>Você está <strong style={{ color: T.text }}>{Math.abs(diff)} avaliação{Math.abs(diff) !== 1 ? 'es' : ''} à frente</strong></>
+              }
+            </div>
+          )}
+        </div>
+
+        {/* Sparkline */}
+        <div style={{ flexShrink: 0, paddingTop: 4 }}>
+          <Sparkline data={comp.history} color={isYou ? T.blue : aheadOfYou ? T.amber : '#94A3B8'} w={70} h={32}/>
+          <div style={{ fontSize: 10.5, color: T.textDim, textAlign:'center', marginTop: 2 }}>90 dias</div>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function MyGoalsCard({ goals }) {
+  return (
+    <Card>
+      <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 14 }}>
+        <span style={{ fontSize: 22 }}>🎯</span>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin: 0 }}>Minhas Metas no Ranking</h3>
+      </div>
+      <p style={{ fontSize: 13, color: T.textMid, margin:'0 0 18px' }}>Acompanhe sua jornada rumo ao topo da sua categoria.</p>
+      <div style={{ display:'flex', flexDirection:'column', gap: 12 }}>
+        {goals.map((g, i) => {
+          const isCurrent = g.current
+          return (
+            <div key={i} style={{
+              padding: '12px 14px',
+              borderRadius: 12,
+              background: g.achieved ? T.greenSoft : '#F8FAFC',
+              border: `1px solid ${isCurrent ? T.green : g.achieved ? '#86EFAC' : T.border}`
+            }}>
+              <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 8 }}>
+                <span style={{
+                  width: 24, height: 24, borderRadius: '50%',
+                  background: g.achieved ? T.green : T.border,
+                  color: g.achieved ? '#fff' : T.textMid,
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontSize: 13, fontWeight: 700, flexShrink: 0
+                }}>{g.achieved ? '✓' : '○'}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{g.label}</span>
+                {isCurrent && <span style={{ fontSize: 10.5, fontWeight: 700, color: T.green, background:'#fff', border:`1px solid ${T.green}`, borderRadius: 5, padding:'1px 6px' }}>VOCÊ ESTÁ AQUI</span>}
+                <span style={{ marginLeft:'auto', fontSize: 12, fontWeight: 600, color: g.achieved ? '#065F46' : T.textMid }}>
+                  {g.achieved ? 'Conquistado' : `Faltam ${g.reviewsToNext} avaliações`}
+                </span>
+              </div>
+              {!g.achieved && (
+                <>
+                  <div style={{ height: 6, background: T.border, borderRadius: 999, overflow:'hidden' }}>
+                    <div style={{ height:'100%', width: g.progressPct + '%', background: T.blue, borderRadius: 999 }}/>
+                  </div>
+                  {g.target && <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 6 }}>Alvo: {g.target}</div>}
+                </>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}
+
+function CompetitorsScreen({ data, isMobile }) {
+  const [filter, setFilter] = React.useState('all')
+  const youReviews = data.kpis.reviewCount
+  const youPos = data.kpis.rankingPos
+
+  const ahead  = data.competitors.filter(c => !c.isYou && c.reviews >  youReviews)
+  const behind = data.competitors.filter(c => !c.isYou && c.reviews <= youReviews)
+  const rising = data.competitors.filter(c => !c.isYou && c.weekGrowth >= 2)
+
+  const visible = filter === 'ahead'  ? [data.competitors.find(c => c.isYou), ...ahead].filter(Boolean)
+               : filter === 'behind'  ? [data.competitors.find(c => c.isYou), ...behind].filter(Boolean)
+               : filter === 'rising'  ? [data.competitors.find(c => c.isYou), ...rising].filter(Boolean)
+               : data.competitors
+
+  const counts = {
+    all: data.competitors.length,
+    ahead: ahead.length,
+    behind: behind.length,
+    rising: rising.length
+  }
+
+  return (
+    <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
+      <div style={{ marginBottom: 22 }}>
+        <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
+          🏆 Inteligência Competitiva
+        </h1>
+        <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
+          Conheça quem está disputando o ranking com você · Cafeterias num raio de 3km
+        </p>
+      </div>
+
+      {/* Stats no topo */}
+      <Section>
+        <CompetitorStats
+          youPos={youPos}
+          total={data.competitors.length}
+          reviewsToNext={data.hero.reviewsToNext}
+          risingCount={rising.length}
+          isMobile={isMobile}
+        />
+      </Section>
+
+      {/* Layout: lista (left, maior) + metas (right) */}
+      <div style={{
+        display:'grid',
+        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) 360px',
+        gap: isMobile ? 16 : 24
+      }}>
+        {/* COLUNA ESQUERDA: filtros + lista */}
+        <div>
+          <FilterChips active={filter} onChange={setFilter} counts={counts}/>
+          <div style={{ display:'flex', flexDirection:'column', gap: 10 }}>
+            {visible.map(c => (
+              <CompetitorCard key={c.id} comp={c} youReviews={youReviews}/>
+            ))}
+          </div>
+        </div>
+
+        {/* COLUNA DIREITA: metas */}
+        <div>
+          <MyGoalsCard goals={data.goals}/>
+        </div>
+      </div>
+    </main>
   )
 }
 
@@ -676,8 +958,13 @@ export default function AppV2() {
       <Header bizName={d.biz.name} plan={plan} isMobile={isMobile} />
       <TopTabs active={tab} onChange={setTab} plan={plan} isMobile={isMobile} />
 
-      {/* Conteúdo conforme aba ativa */}
-      {tab !== 'painel' && (
+      {/* Aba: CONCORRENTES (Pro) — Inteligência Competitiva FUNCIONAL */}
+      {tab === 'concorrentes' && plan === 'pro' && (
+        <CompetitorsScreen data={d} isMobile={isMobile}/>
+      )}
+
+      {/* Outras abas ainda em construção */}
+      {tab !== 'painel' && !(tab === 'concorrentes' && plan === 'pro') && (
         <ComingSoon
           icon={tab === 'concorrentes' ? '🏆' : tab === 'alertas' ? '🔔' : tab === 'relatorios' ? '📈' : '⭐'}
           title={
