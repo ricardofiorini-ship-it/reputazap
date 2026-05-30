@@ -72,7 +72,26 @@ const MOCK = {
     { label:'Top 3', achieved: true,  reviewsToNext: 0, progressPct: 100, current: true },
     { label:'Top 2', achieved: false, reviewsToNext: 2, progressPct: 86,  target:'Empresa B (14 av.)' },
     { label:'Top 1', achieved: false, reviewsToNext: 14, progressPct: 48, target:'Empresa A (25 av.)' }
-  ]
+  ],
+  // Alertas (Feature 3)
+  alerts: [
+    { id: 1,  type:'promotion', icon:'🏆', title:'Você entrou no Top 3!',                            detail:'Subiu da 4ª pra 3ª posição na sua categoria.',                       when:'Há 2 horas',  isNew:true,  category:'ranking' },
+    { id: 2,  type:'threat',    icon:'⚠️', title:'Empresa A ganhou 5 avaliações em 3 dias',          detail:'Cresceu de 20 pra 25 avaliações — está acelerando.',                  when:'Hoje 10:42',  isNew:true,  category:'concorrente' },
+    { id: 3,  type:'goal',      icon:'🎯', title:'Você está a 2 avaliações do Top 2',                detail:'Foque em pedir avaliações essa semana e suba uma posição.',           when:'Hoje 09:15',  isNew:true,  category:'ranking' },
+    { id: 4,  type:'advance',   icon:'↑',  title:'Você ultrapassou Empresa C',                       detail:'Ganhou 1 posição no ranking.',                                        when:'Ontem 18:30',              category:'ranking' },
+    { id: 5,  type:'review',    icon:'⭐', title:'Nova avaliação 5 estrelas de Maria S.',            detail:'"Atendimento incrível, super atenciosos!"',                           when:'Ontem 14:22',              category:'avaliacao' },
+    { id: 6,  type:'regression',icon:'↓',  title:'Empresa B passou você',                            detail:'Você caiu da 2ª pra 3ª posição.',                                     when:'Há 2 dias',                category:'ranking' },
+    { id: 7,  type:'review',    icon:'⭐', title:'Nova avaliação 4 estrelas de Bruno L.',            detail:'"Café muito bom, espera só demorou um pouco no horário de pico."',     when:'Há 3 dias',                category:'avaliacao' },
+    { id: 8,  type:'review',    icon:'⭐', title:'Nova avaliação 5 estrelas de Carla S.',            detail:'"Tudo perfeito! Recomendo."',                                          when:'Há 4 dias',                category:'avaliacao' },
+    { id: 9,  type:'threat',    icon:'⚠️', title:'Empresa F ganhou 4 avaliações na semana',          detail:'Crescimento acelerado — pode ameaçar sua posição.',                   when:'Há 5 dias',                category:'concorrente' },
+    { id: 10, type:'promotion', icon:'🏆', title:'Sua nota chegou a 5.0!',                           detail:'Você atingiu nota máxima na sua categoria.',                          when:'Há 1 semana',              category:'ranking' }
+  ],
+  alertStats: { newToday: 3, weekly: 12, positionChanges: 2 },
+  alertChannels: {
+    dashboard: { enabled: true,  locked: true },
+    email:     { enabled: true,  frequency: 'realtime' },
+    whatsapp:  { enabled: false, phone: '' }
+  }
 }
 
 const T = {
@@ -517,6 +536,288 @@ function CompetitorsScreen({ data, isMobile }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// ALERTAS — tipos, cores e ícones
+// ─────────────────────────────────────────────────────────────
+const ALERT_STYLES = {
+  promotion:  { bg:'#ECFDF5', border:'#A7F3D0', dot:'#10B981', label:'Conquista'   },
+  threat:     { bg:'#FFFBEB', border:'#FDE68A', dot:'#F59E0B', label:'Ameaça'      },
+  regression: { bg:'#FEF2F2', border:'#FECACA', dot:'#EF4444', label:'Queda'       },
+  advance:    { bg:'#EFF6FF', border:'#BFDBFE', dot:'#1A73E8', label:'Avanço'      },
+  review:     { bg:'#F8FAFC', border:'#E2E8F0', dot:'#64748B', label:'Avaliação'   },
+  goal:       { bg:'#FEFCE8', border:'#FEF08A', dot:'#CA8A04', label:'Meta'        }
+}
+
+function AlertStats({ stats, isMobile }) {
+  const items = [
+    { label:'Novos hoje',      value: stats.newToday,        sub:'requerem atenção', accent: T.blue },
+    { label:'Essa semana',     value: stats.weekly,          sub:'eventos no total',  accent: T.green },
+    { label:'Mudanças no Top 3', value: stats.positionChanges, sub:'nos últimos 7 dias', accent: T.amber }
+  ]
+  return (
+    <div style={{ display:'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? 8 : 12 }}>
+      {items.map((it,i) => (
+        <Card key={i} padded={false} style={{ padding: isMobile ? 12 : 18 }}>
+          <div style={{ fontSize: isMobile ? 11 : 12, color: T.textMid, fontWeight:600, letterSpacing:'.02em', textTransform:'uppercase', marginBottom: 4 }}>{it.label}</div>
+          <div style={{ fontSize: isMobile ? 22 : 30, fontWeight: 800, color: it.accent, letterSpacing:'-0.02em', lineHeight: 1 }}>{it.value}</div>
+          <div style={{ fontSize: isMobile ? 11 : 12, color: T.textDim, marginTop: 4 }}>{it.sub}</div>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+function AlertFilterChips({ active, onChange, counts }) {
+  const chips = [
+    { key:'all',          label:'Todos',         count: counts.all },
+    { key:'ranking',      label:'Ranking',       count: counts.ranking },
+    { key:'concorrente',  label:'Concorrentes',  count: counts.concorrente },
+    { key:'avaliacao',    label:'Avaliações',    count: counts.avaliacao }
+  ]
+  return (
+    <div style={{ display:'flex', gap: 8, marginBottom: 14, flexWrap:'wrap' }}>
+      {chips.map(c => {
+        const isActive = active === c.key
+        return (
+          <button
+            key={c.key}
+            onClick={() => onChange(c.key)}
+            style={{
+              border:'1px solid', borderColor: isActive ? T.blue : T.border,
+              background: isActive ? T.blue : T.surface,
+              color: isActive ? '#fff' : T.textMid,
+              padding:'7px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600, cursor:'pointer',
+              transition:'all .15s', display:'inline-flex', alignItems:'center', gap: 6
+            }}
+          >
+            {c.label}
+            <span style={{
+              background: isActive ? 'rgba(255,255,255,.22)' : T.bg,
+              color: isActive ? '#fff' : T.textMid,
+              fontSize: 11, fontWeight: 700, padding:'1px 7px', borderRadius: 999, lineHeight:'16px'
+            }}>{c.count}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function AlertItem({ alert }) {
+  const s = ALERT_STYLES[alert.type] || ALERT_STYLES.review
+  return (
+    <Card padded={false} style={{ padding: 14, position:'relative', borderColor: s.border, background: s.bg }}>
+      {alert.isNew && (
+        <span style={{
+          position:'absolute', top: 14, right: 14, background: T.blue, color:'#fff',
+          fontSize: 10, fontWeight: 800, letterSpacing:'.05em', padding:'2px 7px', borderRadius: 4
+        }}>NOVO</span>
+      )}
+      <div style={{ display:'flex', alignItems:'flex-start', gap: 12 }}>
+        <div style={{
+          width: 38, height: 38, borderRadius: 10, background:'#fff',
+          display:'grid', placeItems:'center', fontSize: 18, border:'1px solid '+s.border, flexShrink: 0
+        }}>{alert.icon}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 2, flexWrap:'wrap' }}>
+            <span style={{
+              fontSize: 10, fontWeight: 800, color: s.dot, letterSpacing:'.05em',
+              textTransform:'uppercase'
+            }}>{s.label}</span>
+            <span style={{ width: 3, height: 3, borderRadius:'50%', background: T.textDim, display:'inline-block' }}/>
+            <span style={{ fontSize: 12, color: T.textDim }}>{alert.when}</span>
+          </div>
+          <div style={{ fontSize: 14.5, fontWeight: 700, color: T.text, lineHeight: 1.35, marginBottom: 3, paddingRight: alert.isNew ? 56 : 0 }}>
+            {alert.title}
+          </div>
+          {alert.detail && (
+            <div style={{ fontSize: 13, color: T.textMid, lineHeight: 1.5 }}>{alert.detail}</div>
+          )}
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function ChannelRow({ icon, name, desc, enabled, onToggle, locked, children }) {
+  return (
+    <div style={{
+      padding:'14px 0', borderBottom:'1px solid '+T.border,
+      display:'flex', alignItems:'flex-start', gap: 12
+    }}>
+      <div style={{
+        width: 34, height: 34, borderRadius: 8, background: enabled ? T.blueSoft : T.bg,
+        display:'grid', placeItems:'center', fontSize: 16, flexShrink: 0
+      }}>{icon}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 8 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{name}</div>
+          {/* Toggle switch */}
+          <button
+            disabled={locked}
+            onClick={onToggle}
+            aria-label={enabled ? 'Desativar' : 'Ativar'}
+            style={{
+              width: 38, height: 22, borderRadius: 999, border:'none',
+              background: enabled ? T.blue : '#CBD5E1',
+              position:'relative', cursor: locked ? 'not-allowed' : 'pointer',
+              opacity: locked ? 0.6 : 1, transition:'background .15s', flexShrink: 0
+            }}>
+            <span style={{
+              position:'absolute', top: 2, left: enabled ? 18 : 2,
+              width: 18, height: 18, borderRadius:'50%', background:'#fff',
+              transition:'left .15s', boxShadow:'0 1px 3px rgba(0,0,0,.2)'
+            }}/>
+          </button>
+        </div>
+        <div style={{ fontSize: 12, color: T.textMid, marginTop: 2, lineHeight: 1.45 }}>{desc}</div>
+        {children && <div style={{ marginTop: 8 }}>{children}</div>}
+      </div>
+    </div>
+  )
+}
+
+function AlertChannelsCard({ channels, onChange }) {
+  const [emailFreq, setEmailFreq] = React.useState(channels.email.frequency)
+  const [waPhone, setWaPhone] = React.useState(channels.whatsapp.phone)
+
+  return (
+    <Card padded={false} style={{ padding: 18 }}>
+      <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4 }}>
+        <span style={{ fontSize: 18 }}>🔔</span>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color: T.text, margin: 0 }}>
+          Onde você quer ser avisado?
+        </h3>
+      </div>
+      <p style={{ fontSize: 12.5, color: T.textMid, margin:'0 0 6px', lineHeight: 1.45 }}>
+        Escolha por onde receber os alertas em tempo real.
+      </p>
+
+      <ChannelRow
+        icon="🖥️"
+        name="No painel"
+        desc="Sino no topo do dashboard · sempre ligado"
+        enabled={channels.dashboard.enabled}
+        locked={channels.dashboard.locked}
+      />
+
+      <ChannelRow
+        icon="✉️"
+        name="Email"
+        desc="Receba os alertas no seu email — funciona até com o painel fechado."
+        enabled={channels.email.enabled}
+        onToggle={() => onChange({ ...channels, email: { ...channels.email, enabled: !channels.email.enabled } })}
+      >
+        {channels.email.enabled && (
+          <div style={{ display:'flex', gap: 6, flexWrap:'wrap' }}>
+            {[
+              { key:'realtime', label:'Tempo real' },
+              { key:'daily',    label:'Resumo diário' },
+              { key:'weekly',   label:'Resumo semanal' }
+            ].map(opt => {
+              const isActive = emailFreq === opt.key
+              return (
+                <button key={opt.key} onClick={() => setEmailFreq(opt.key)}
+                  style={{
+                    fontSize: 11.5, fontWeight: 600, padding:'5px 10px', borderRadius: 6,
+                    border:'1px solid', borderColor: isActive ? T.blue : T.border,
+                    background: isActive ? T.blueSoft : '#fff',
+                    color: isActive ? T.blueDk : T.textMid, cursor:'pointer'
+                  }}>{opt.label}</button>
+              )
+            })}
+          </div>
+        )}
+      </ChannelRow>
+
+      <ChannelRow
+        icon="📱"
+        name="WhatsApp"
+        desc="Receba as ameaças críticas no seu WhatsApp na hora — quando um concorrente passar você ou ganhar 10 av. de uma vez."
+        enabled={channels.whatsapp.enabled}
+        onToggle={() => onChange({ ...channels, whatsapp: { ...channels.whatsapp, enabled: !channels.whatsapp.enabled } })}
+      >
+        {channels.whatsapp.enabled && (
+          <input
+            value={waPhone}
+            onChange={e => setWaPhone(e.target.value)}
+            placeholder="(11) 99999-9999"
+            style={{
+              width:'100%', padding:'8px 10px', fontSize: 13,
+              border:'1px solid '+T.border, borderRadius: 6, outline:'none', boxSizing:'border-box'
+            }}
+          />
+        )}
+      </ChannelRow>
+
+      <div style={{
+        marginTop: 14, padding: 12, background: T.blueSoft, borderRadius: 8,
+        fontSize: 12.5, color: T.blueDk, lineHeight: 1.5
+      }}>
+        💡 <b>Dica:</b> deixe Email + WhatsApp ligados pra não perder nenhuma mudança importante no ranking.
+      </div>
+    </Card>
+  )
+}
+
+function AlertsScreen({ data, isMobile }) {
+  const [filter, setFilter] = React.useState('all')
+  const [channels, setChannels] = React.useState(data.alertChannels)
+
+  const visible = filter === 'all' ? data.alerts : data.alerts.filter(a => a.category === filter)
+
+  const counts = {
+    all:          data.alerts.length,
+    ranking:      data.alerts.filter(a => a.category === 'ranking').length,
+    concorrente:  data.alerts.filter(a => a.category === 'concorrente').length,
+    avaliacao:    data.alerts.filter(a => a.category === 'avaliacao').length
+  }
+
+  return (
+    <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
+      <div style={{ marginBottom: 22 }}>
+        <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
+          🔔 Alertas em tempo real
+        </h1>
+        <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
+          Saiba na hora quando um concorrente passa você, sair do Top ou ganhar várias avaliações.
+        </p>
+      </div>
+
+      {/* Stats no topo */}
+      <Section>
+        <AlertStats stats={data.alertStats} isMobile={isMobile}/>
+      </Section>
+
+      {/* Layout: feed (left, maior) + canais (right) */}
+      <div style={{
+        display:'grid',
+        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) 360px',
+        gap: isMobile ? 16 : 24
+      }}>
+        {/* COLUNA ESQUERDA: filtros + feed */}
+        <div>
+          <AlertFilterChips active={filter} onChange={setFilter} counts={counts}/>
+          {visible.length === 0 ? (
+            <Card style={{ textAlign:'center', padding: 40, color: T.textMid }}>
+              Nenhum alerta nessa categoria.
+            </Card>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column', gap: 10 }}>
+              {visible.map(a => <AlertItem key={a.id} alert={a}/>)}
+            </div>
+          )}
+        </div>
+
+        {/* COLUNA DIREITA: canais de notificação */}
+        <div>
+          <AlertChannelsCard channels={channels} onChange={setChannels}/>
+        </div>
+      </div>
+    </main>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // Header
 // ─────────────────────────────────────────────────────────────
 function Header({ bizName, plan, isMobile }) {
@@ -950,7 +1251,11 @@ function CapturePoints({ items }) {
 export default function AppV2() {
   const isMobile = useIsMobile(768)
   const plan = getPlan()
-  const [tab, setTab] = React.useState('painel')
+  // Permite deep-link via ?tab=alertas|concorrentes|relatorios|avaliacoes
+  const initialTab = typeof window !== 'undefined'
+    ? (new URLSearchParams(window.location.search).get('tab') || 'painel')
+    : 'painel'
+  const [tab, setTab] = React.useState(initialTab)
   const d = MOCK
 
   return (
@@ -963,8 +1268,13 @@ export default function AppV2() {
         <CompetitorsScreen data={d} isMobile={isMobile}/>
       )}
 
+      {/* Aba: ALERTAS (Pro) — feed + canais FUNCIONAL */}
+      {tab === 'alertas' && plan === 'pro' && (
+        <AlertsScreen data={d} isMobile={isMobile}/>
+      )}
+
       {/* Outras abas ainda em construção */}
-      {tab !== 'painel' && !(tab === 'concorrentes' && plan === 'pro') && (
+      {tab !== 'painel' && !(tab === 'concorrentes' && plan === 'pro') && !(tab === 'alertas' && plan === 'pro') && (
         <ComingSoon
           icon={tab === 'concorrentes' ? '🏆' : tab === 'alertas' ? '🔔' : tab === 'relatorios' ? '📈' : '⭐'}
           title={
