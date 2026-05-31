@@ -2637,7 +2637,7 @@ function AccountSection({ user }) {
   )
 }
 
-function BusinessSection({ biz, googleCategory, categoryOverride }) {
+function BusinessSection({ biz, googleCategory, categoryOverride, showDebug }) {
   // Categoria customizada — agora persiste NO BANCO (businesses.category_override).
   // Sincroniza entre mobile, desktop e outros devices automaticamente.
   const savedCustom = categoryOverride || ''
@@ -2780,8 +2780,8 @@ function BusinessSection({ biz, googleCategory, categoryOverride }) {
         }}>Ver no Google Maps ↗</a>
       </div>
 
-      {/* Debug discreto pra Ricardo verificar que mobile e desktop batem */}
-      <details style={{ marginTop: 18, fontSize: 11.5, color: T.textDim }}>
+      {/* Debug discreto — só admins (pra não confundir usuário comum com dado técnico) */}
+      {showDebug && <details style={{ marginTop: 18, fontSize: 11.5, color: T.textDim }}>
         <summary style={{ cursor:'pointer' }}>🔍 Diagnóstico (debug)</summary>
         <pre style={{
           background: T.bg, border:'1px solid '+T.border, borderRadius: 6,
@@ -2796,7 +2796,7 @@ localStorage.rz_activity:  ${typeof window !== 'undefined' ? JSON.stringify(loca
 build:                     ${typeof window !== 'undefined' ? (document.querySelector('script[src*="v2-"]')?.src?.match(/v2-([^.]+)/)?.[1] || '?') : '—'}
 hora local:                ${new Date().toISOString()}`}
         </pre>
-      </details>
+      </details>}
     </ConfigSectionCard>
   )
 }
@@ -2872,7 +2872,7 @@ function BillingSection({ billing, plan }) {
   )
 }
 
-function ConfigScreen({ data, isMobile, plan, isReal }) {
+function ConfigScreen({ data, isMobile, plan, isReal, isAdmin }) {
   // Scroll pro anchor da URL (#conta, #negocio, #plano)
   React.useEffect(() => {
     const hash = window.location.hash.replace('#', '')
@@ -2910,7 +2910,7 @@ function ConfigScreen({ data, isMobile, plan, isReal }) {
 
       <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
         <AccountSection user={data.user}/>
-        <BusinessSection biz={data.businessInfo} googleCategory={data.googleCategory} categoryOverride={data.categoryOverride}/>
+        <BusinessSection biz={data.businessInfo} googleCategory={data.googleCategory} categoryOverride={data.categoryOverride} showDebug={isAdmin}/>
         <BillingSection billing={data.billing} plan={plan}/>
       </div>
     </main>
@@ -3963,7 +3963,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
 
       {/* Tela: CONFIGURAÇÕES — acessível via dropdown do avatar */}
       {tab === 'config' && (
-        <ConfigScreen data={d} isMobile={isMobile} plan={plan} isReal={!demoMode && real.hasBusiness}/>
+        <ConfigScreen data={d} isMobile={isMobile} plan={plan} isReal={!demoMode && real.hasBusiness} isAdmin={isAdminUser(user)}/>
       )}
 
       {/* Outras abas ainda em construção */}
