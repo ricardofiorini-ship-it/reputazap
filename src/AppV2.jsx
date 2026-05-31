@@ -289,7 +289,9 @@ function useRealData(user, demoMode) {
 
     ;(async () => {
       try {
-        const myBizRes = await apiCall('/api/mybiz')
+        // Cache-buster: garante que browser/CDN não devolvam resposta antiga sem colunas novas
+        const cb = '?_t=' + Date.now()
+        const myBizRes = await apiCall('/api/mybiz' + cb)
         const biz = myBizRes.business || null
         if (!biz || !biz.place_id) {
           if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, competitors: null, plates: null, hasBusiness: false })
@@ -2787,6 +2789,21 @@ function BusinessSection({ biz, googleCategory, categoryOverride }) {
           display:'inline-flex', alignItems:'center'
         }}>Ver no Google Maps ↗</a>
       </div>
+
+      {/* Debug discreto pra Ricardo verificar que mobile e desktop batem */}
+      <details style={{ marginTop: 18, fontSize: 11.5, color: T.textDim }}>
+        <summary style={{ cursor:'pointer' }}>🔍 Diagnóstico (debug)</summary>
+        <pre style={{
+          background: T.bg, border:'1px solid '+T.border, borderRadius: 6,
+          padding: 10, marginTop: 8, fontSize: 11, overflowX:'auto', lineHeight: 1.5
+        }}>
+{`category_override (banco): ${JSON.stringify(savedCustom || null)}
+googleCategory (auto):     ${JSON.stringify(googleCategory || null)}
+activeCategory (em uso):   ${JSON.stringify(activeCategory)}
+localStorage.rz_activity:  ${typeof window !== 'undefined' ? JSON.stringify(localStorage.getItem('rz_activity')) : '—'}
+build:                     ${typeof window !== 'undefined' ? (document.querySelector('script[src*="v2-"]')?.src?.match(/v2-([^.]+)/)?.[1] || '?') : '—'}`}
+        </pre>
+      </details>
     </ConfigSectionCard>
   )
 }

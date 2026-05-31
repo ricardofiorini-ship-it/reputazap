@@ -7,6 +7,8 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
+  // Sem cache — Google Places mudou ou banco mudou e queremos refletir na hora
+  res.setHeader("Cache-Control", "private, no-store, no-cache, max-age=0");
   const { place_id } = req.query;
   if (!place_id) return res.status(400).json({ error: "place_id obrigatório" });
 
