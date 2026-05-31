@@ -458,6 +458,9 @@ function buildData(real, user, demoMode) {
       phone: bizInfo?.phone || null,              // telefone real do Google
       gmapsUrl: bizInfo?.gmapsUrl || `https://www.google.com/maps/place/?q=place_id:${biz.place_id}`
     },
+    // Categoria ativa do ranking — override do localStorage vence sobre a do Google
+    activeCategory: (typeof window !== 'undefined' ? localStorage.getItem('rz_activity') : null) || bizInfo?.category || null,
+    googleCategory: bizInfo?.category || null,
     billing: {
       ...MOCK.billing,
       plan: biz.plan === 'pro' ? 'Plano Pro' : 'Plano Free',
@@ -2544,14 +2547,19 @@ function AccountSection({ user }) {
   )
 }
 
-function BusinessSection({ biz }) {
+function BusinessSection({ biz, googleCategory }) {
   // Categoria customizada (palavra-chave usada na busca de concorrentes).
   // Persiste em localStorage.rz_activity (mesmo storage do app antigo, compatível).
-  const [category, setCategory] = React.useState(() => {
-    if (typeof window === 'undefined') return biz.category || ''
-    return localStorage.getItem('rz_activity') || biz.category || ''
+  const [savedCustom] = React.useState(() => {
+    if (typeof window === 'undefined') return ''
+    return localStorage.getItem('rz_activity') || ''
   })
+  const [category, setCategory] = React.useState(savedCustom || googleCategory || '')
   const [savedNotice, setSavedNotice] = React.useState('')
+
+  // O que está sendo usado AGORA pra buscar concorrentes
+  const activeCategory = savedCustom || googleCategory || '(automática)'
+  const usingCustom = Boolean(savedCustom)
 
   function handleSaveCategory() {
     try {
@@ -2568,18 +2576,59 @@ function BusinessSection({ biz }) {
     }
   }
 
+  function handleClearOverride() {
+    try {
+      localStorage.removeItem('rz_activity')
+      setSavedNotice('✓ Voltando pra categoria automática do Google…')
+      setTimeout(() => window.location.reload(), 900)
+    } catch (e) {
+      setSavedNotice('⚠️ Não conseguimos limpar.')
+    }
+  }
+
   return (
     <ConfigSectionCard anchor="negocio" icon="🏢" title="Dados do negócio" sub="O que aparece nas suas placas, relatórios e nos alertas.">
+
+      {/* Status visível da categoria em uso */}
+      <div style={{
+        marginBottom: 16, padding: 14, borderRadius: 10,
+        background: usingCustom ? '#FFFBEB' : T.bg,
+        border: usingCustom ? '1px solid #FDE68A' : '1px solid '+T.border
+      }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing:'.05em', textTransform:'uppercase', color: T.textMid, marginBottom: 4 }}>
+          Categoria sendo usada pro ranking
+        </div>
+        <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, marginBottom: 6, display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap' }}>
+          <span>{activeCategory}</span>
+          {usingCustom && (
+            <span style={{ fontSize: 10, fontWeight: 800, background:'#FBBC04', color:'#78350F', padding:'2px 6px', borderRadius: 4 }}>
+              SALVA POR VOCÊ
+            </span>
+          )}
+        </div>
+        {usingCustom && googleCategory && (
+          <div style={{ fontSize: 12, color: T.textMid, marginBottom: 8 }}>
+            Categoria automática do Google: <strong>{googleCategory}</strong>
+          </div>
+        )}
+        {usingCustom && (
+          <button onClick={handleClearOverride} style={{
+            background:'#fff', color: T.textMid, border:'1px solid '+T.border, borderRadius: 7,
+            padding:'6px 12px', fontSize: 12, fontWeight: 600, cursor:'pointer'
+          }}>↺ Voltar pra categoria automática do Google</button>
+        )}
+      </div>
+
       {/* Categoria editável — controla a busca de concorrentes */}
       <div style={{ marginBottom: 14 }}>
         <label style={{ fontSize: 12, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>
-          Categoria / palavra-chave da busca
+          Alterar palavra-chave da busca
         </label>
         <div style={{ display:'flex', gap: 8 }}>
           <input
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            placeholder="Ex: cafeteria, salão de beleza, clínica odontológica…"
+            placeholder={googleCategory ? `Ex: ${googleCategory}` : 'Ex: cafeteria, salão de beleza, clínica…'}
             style={{
               flex: 1, padding:'9px 12px', fontSize: 13.5,
               border:'1px solid '+T.border, borderRadius: 8, outline:'none',
@@ -2743,7 +2792,7 @@ function ConfigScreen({ data, isMobile, plan, isReal }) {
 
       <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
         <AccountSection user={data.user}/>
-        <BusinessSection biz={data.businessInfo}/>
+        <BusinessSection biz={data.businessInfo} googleCategory={data.googleCategory}/>
         <BillingSection billing={data.billing} plan={plan}/>
       </div>
     </main>
@@ -2974,15 +3023,21 @@ function HeroPosition({ progressPct, currentPos, isMobile }) {
 // ─────────────────────────────────────────────────────────────
 // Ranking — com blur pra plano Free
 // ─────────────────────────────────────────────────────────────
-function RankingList({ items, isMobile, plan }) {
+function RankingList({ items, isMobile, plan, category }) {
   const locked = plan === 'free'
+  const catLabel = category ? `${category.charAt(0).toUpperCase() + category.slice(1)} · 3km` : 'Sua categoria · 3km'
   return (
     <Card style={{ position:'relative' }}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 16, gap: 8 }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 16, gap: 8, flexWrap:'wrap' }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Ranking da sua região</h3>
         {locked
           ? <span style={{ fontSize: 11, fontWeight: 700, background: T.blueSoft, color: T.blue, padding:'4px 8px', borderRadius:6 }}>PRO</span>
-          : <span style={{ fontSize: 12, color: T.textDim }}>Cafeterias · 3km</span>}
+          : (
+            <span style={{ fontSize: 12, color: T.textDim, display:'inline-flex', alignItems:'center', gap: 6 }}>
+              <span>{catLabel}</span>
+              <a href="/app#negocio" style={{ color: T.blue, textDecoration:'none', fontWeight: 600 }}>✏️ alterar</a>
+            </span>
+          )}
       </div>
 
       {items.length === 0 ? (
@@ -3858,7 +3913,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
             gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 420px) 1fr',
             gap: isMobile ? 14 : 24
           }}>
-            <RankingList items={d.ranking} isMobile={isMobile} plan={plan} />
+            <RankingList items={d.ranking} isMobile={isMobile} plan={plan} category={d.activeCategory} />
             <EvolutionChart data={d.evolution} growthPct={d.growthPct} isMobile={isMobile} />
           </div>
         </Section>
