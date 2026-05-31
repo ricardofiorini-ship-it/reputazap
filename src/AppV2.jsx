@@ -373,9 +373,9 @@ function buildData(real, user, demoMode) {
 
   // Concorrentes — só sobrescreve se a API retornou algo válido
   const compData = (competitors && competitors.enough && competitors.top) ? (() => {
-    // Map shape do backend pro shape do CompetitorsScreen
-    const sorted = [...competitors.top].sort((a, b) => b.reviews - a.reviews)
-    const list = sorted.map((c, i) => {
+    // IMPORTANTE: backend já manda `top` na ordem real do Google (gscore = rating × log10(reviews))
+    // NÃO reordenar — senão posição do KPI (rank_google) fica diferente da posição na lista.
+    const list = competitors.top.map((c, i) => {
       const isLocked = !c.name && !c.is_me  // name veio null e não sou eu → backend bloqueou
       return {
         id: c.place_id || i,
