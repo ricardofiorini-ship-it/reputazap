@@ -174,8 +174,7 @@ const MOCK = {
   products: [
     { id:'placa-balcao', img:'/gadget-placa.png',    name:'Placa de balcão', desc:'Acrílico premium pro caixa. Cliente toca pra avaliar ao pagar.',          buyUrl:'/kit' },
     { id:'cartao-nfc',   img:'/gadget-cartao.png',   name:'Cartão NFC',      desc:'Pro garçom carregar — toca no celular do cliente após o atendimento.', buyUrl:'/kit' },
-    { id:'pulseira-nfc', img:'/gadget-pulseira.png', name:'Pulseira NFC',    desc:'Pro garçom usar no pulso — toca no cliente após o atendimento.',         buyUrl:'/kit' },
-    { id:'adesivo-nfc',  img:'/gadget-adesivo.png',  name:'Adesivo NFC',     desc:'Cole na maquininha ou parede — toca após pagar.',                         buyUrl:'/kit' }
+    { id:'pulseira-nfc', img:'/gadget-pulseira.png', name:'Pulseira NFC',    desc:'Pro garçom usar no pulso — toca no cliente após o atendimento.',         buyUrl:'/kit' }
   ],
   kit: {
     icon: '🎁',
@@ -266,7 +265,7 @@ function relativeDate(unixOrIso) {
 }
 
 // Hook que carrega dados reais do user logado.
-// Retorna { loading, error, biz, reviews, bizInfo, competitors, hasBusiness }
+// Retorna { loading, error, biz, reviews, bizInfo, competitors, plates, hasBusiness }
 function useRealData(user, demoMode) {
   const [state, setState] = React.useState({
     loading: !demoMode && !!user,
@@ -275,6 +274,7 @@ function useRealData(user, demoMode) {
     reviews: [],
     bizInfo: null,
     competitors: null,
+    plates: null,
     hasBusiness: false
   })
 
@@ -291,13 +291,14 @@ function useRealData(user, demoMode) {
         const myBizRes = await apiCall('/api/mybiz')
         const biz = myBizRes.business || null
         if (!biz || !biz.place_id) {
-          if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, competitors: null, hasBusiness: false })
+          if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, competitors: null, plates: null, hasBusiness: false })
           return
         }
-        // /api/reviews é público (sem token). /api/competitors precisa de token. Roda em paralelo.
-        const [reviewsRes, competitorsRes] = await Promise.all([
+        // 3 chamadas em paralelo: reviews (público), competitors (auth), plates (auth)
+        const [reviewsRes, competitorsRes, platesRes] = await Promise.all([
           fetch(`/api/reviews?place_id=${encodeURIComponent(biz.place_id)}`).then(r => r.json()).catch(() => ({})),
-          apiCall('/api/competitors').catch(() => null)
+          apiCall('/api/competitors').catch(() => null),
+          apiCall('/api/plates?action=my-plates').catch(() => null)
         ])
         if (!cancelled) {
           setState({
@@ -306,11 +307,12 @@ function useRealData(user, demoMode) {
             reviews: reviewsRes.reviews || [],
             bizInfo: { rating: reviewsRes.rating ?? biz.rating, total: reviewsRes.total ?? biz.total_reviews, name: reviewsRes.name ?? biz.name },
             competitors: competitorsRes,
+            plates: platesRes?.plates || [],
             hasBusiness: true
           })
         }
       } catch (e) {
-        if (!cancelled) setState({ loading: false, error: e.message, biz: null, reviews: [], bizInfo: null, competitors: null, hasBusiness: false })
+        if (!cancelled) setState({ loading: false, error: e.message, biz: null, reviews: [], bizInfo: null, competitors: null, plates: null, hasBusiness: false })
       }
     })()
 
@@ -320,10 +322,34 @@ function useRealData(user, demoMode) {
   return state
 }
 
+// Nome humano dos product_types do banco
+const PRODUCT_LABELS = {
+  placa_balcao: 'Placa de Balcão',
+  placa_mesa:   'Placa de Mesa',
+  placa_parede: 'Placa de Parede',
+  pulseira_nfc: 'Pulseira NFC',
+  adesivo_nfc:  'Adesivo NFC',
+  cartao_nfc:   'Cartão NFC'
+}
+
 // Compõe `d` (dados pra UI) misturando real + MOCK. Real sobrescreve, mock preenche gaps.
 function buildData(real, user, demoMode) {
   if (demoMode || !real.hasBusiness) return MOCK
-  const { biz, bizInfo, reviews, competitors } = real
+  const { biz, bizInfo, reviews, competitors, plates } = real
+
+  // Capture points reais: agrupa plates ATIVAS por product_type, soma total_taps
+  const activePlates = (plates || []).filter(p => p.status === 'active')
+  const byType = {}
+  for (const p of activePlates) {
+    if (!byType[p.product_type]) byType[p.product_type] = { count: 0, taps: 0 }
+    byType[p.product_type].count += 1
+    byType[p.product_type].taps += (p.total_taps || 0)
+  }
+  const realCapturePoints = Object.entries(byType).map(([type, data]) => ({
+    name: PRODUCT_LABELS[type] || type,
+    reviewsGenerated: data.taps,
+    devicesCount: data.count
+  }))
   const rating = bizInfo?.rating ?? MOCK.kpis.rating
   const total  = bizInfo?.total  ?? MOCK.kpis.reviewCount
 
@@ -382,6 +408,8 @@ function buildData(real, user, demoMode) {
     // Se a API retornou dados reais, usa; senão mostra vazio (NÃO mock) pra UI ser honesta
     ranking: compData?.rankingMini ?? [],
     competitors: compData?.list ?? [],
+    // capturePoints reais — array vazio se não tem placa ativa (empty state honesto)
+    capturePoints: realCapturePoints,
     recentReviews: (reviews && reviews.length > 0)
       ? reviews.slice(0, 5).map(r => {
           // /api/reviews retorna shape: { author, avatar, rating, text, date, ... }
@@ -2354,30 +2382,62 @@ function RecentReviews({ items, trend, isMobile }) {
 // Capture points
 // ─────────────────────────────────────────────────────────────
 function CapturePoints({ items }) {
-  const total = items.reduce((s, i) => s + i.reviewsGenerated, 0)
+  const total = items.reduce((s, i) => s + (i.reviewsGenerated || 0), 0)
+  const isEmpty = !items || items.length === 0
   return (
     <Card>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 4, gap: 8, flexWrap:'wrap' }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>📍 Onde seus clientes avaliam</h3>
-        <span style={{ fontSize: 12, color: T.textDim }}>{total} avaliações geradas</span>
+        {!isEmpty && <span style={{ fontSize: 12, color: T.textDim }}>{total} {total === 1 ? 'toque registrado' : 'toques registrados'}</span>}
       </div>
-      <p style={{ fontSize: 13, color: T.textMid, margin:'0 0 18px' }}>Onde suas avaliações estão sendo coletadas.</p>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
-        {items.map((it, i) => (
-          <div key={i} style={{ padding: 16, borderRadius: 12, background:'#F8FAFC', border:`1px solid ${T.border}` }}>
-            <div style={{ fontSize: 12.5, color: T.textMid, fontWeight: 500, marginBottom: 4 }}>{it.name}</div>
-            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 26, fontWeight: 700, color: T.text, letterSpacing:'-0.025em', lineHeight: 1, marginBottom: 2 }}>{it.reviewsGenerated}</div>
-            <div style={{ fontSize: 11.5, color: T.textDim }}>avaliações geradas</div>
+      <p style={{ fontSize: 13, color: T.textMid, margin:'0 0 18px' }}>
+        {isEmpty
+          ? 'Você ainda não tem dispositivos ativos. Coloque uma placa no balcão ou um cartão NFC pra começar a captar avaliações no piloto automático.'
+          : 'Cada vez que um cliente toca/escaneia, conta aqui.'}
+      </p>
+
+      {isEmpty ? (
+        <div style={{
+          padding: 24, borderRadius: 12, background: T.bg, border:`1px dashed ${T.border}`,
+          textAlign:'center'
+        }}>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>📡</div>
+          <div style={{ fontSize: 13, color: T.textMid, marginBottom: 14, lineHeight: 1.5 }}>
+            Nenhum dispositivo ativo ainda.
           </div>
-        ))}
-      </div>
-      <button style={{
-        marginTop: 18, background:'transparent', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 10,
-        padding:'10px 18px', fontSize: 13, fontWeight: 600, cursor:'pointer',
-        fontFamily:"'Inter', sans-serif", width:'100%'
-      }}>
-        + Adicionar novo dispositivo
-      </button>
+          <div style={{ display:'flex', gap: 8, justifyContent:'center', flexWrap:'wrap' }}>
+            <a href="/ativar-codigo" style={{
+              background: T.blue, color:'#fff', borderRadius: 9,
+              padding:'10px 16px', fontSize: 13, fontWeight: 700, textDecoration:'none'
+            }}>Ativar código de placa →</a>
+            <a href="/kit" style={{
+              background:'#fff', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 9,
+              padding:'10px 16px', fontSize: 13, fontWeight: 700, textDecoration:'none'
+            }}>Comprar dispositivos</a>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
+            {items.map((it, i) => (
+              <div key={i} style={{ padding: 16, borderRadius: 12, background:'#F8FAFC', border:`1px solid ${T.border}` }}>
+                <div style={{ fontSize: 12.5, color: T.textMid, fontWeight: 500, marginBottom: 4 }}>{it.name}</div>
+                <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 26, fontWeight: 700, color: T.text, letterSpacing:'-0.025em', lineHeight: 1, marginBottom: 2 }}>{it.reviewsGenerated}</div>
+                <div style={{ fontSize: 11.5, color: T.textDim }}>
+                  {it.devicesCount ? `${it.devicesCount} ${it.devicesCount === 1 ? 'ativo' : 'ativos'} · ` : ''}toques
+                </div>
+              </div>
+            ))}
+          </div>
+          <a href="/ativar-codigo" style={{
+            display:'block', marginTop: 18, background:'transparent', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 10,
+            padding:'10px 18px', fontSize: 13, fontWeight: 600, cursor:'pointer',
+            fontFamily:"'Inter', sans-serif", width:'100%', textAlign:'center', textDecoration:'none', boxSizing:'border-box'
+          }}>
+            + Ativar novo dispositivo
+          </a>
+        </>
+      )}
     </Card>
   )
 }
