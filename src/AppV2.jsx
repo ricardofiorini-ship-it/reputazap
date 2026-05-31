@@ -393,7 +393,7 @@ function buildData(real, user, demoMode) {
 
   return {
     ...MOCK,
-    biz: { name: biz.name, placeId: biz.place_id },
+    biz: { id: biz.id, name: biz.name, placeId: biz.place_id },
     kpis: {
       ...MOCK.kpis,
       rating: typeof rating === 'number' ? rating : MOCK.kpis.rating,
@@ -2379,9 +2379,139 @@ function RecentReviews({ items, trend, isMobile }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Modal de ativação de placa (logged user → liga código a um negócio)
+// ─────────────────────────────────────────────────────────────
+function ActivatePlateModal({ businessId, onClose }) {
+  const [code, setCode] = React.useState('')
+  const [nick, setNick] = React.useState('')
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState('')
+  const [success, setSuccess] = React.useState(false)
+
+  // Fecha com ESC
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    const cleanCode = code.trim().toUpperCase()
+    if (!cleanCode) { setError('Digite o código do dispositivo.'); return }
+    if (!businessId) { setError('Negócio não identificado. Recarregue a página.'); return }
+    setLoading(true); setError('')
+    try {
+      await apiCall('/api/plates?action=activate', {
+        method: 'POST',
+        body: JSON.stringify({
+          code: cleanCode,
+          business_id: businessId,
+          channel_name: nick.trim() || null
+        })
+      })
+      setSuccess(true)
+      // Recarrega pra a tela refletir nova placa
+      setTimeout(() => window.location.reload(), 900)
+    } catch (err) {
+      setError(err.message || 'Erro ao ativar. Verifique o código.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      style={{
+        position:'fixed', inset: 0, background:'rgba(15,23,42,.55)',
+        display:'grid', placeItems:'center', zIndex: 100, padding: 16,
+        animation:'fadeIn .15s ease-out'
+      }}>
+      <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
+      <Card padded={false} style={{ padding: 24, maxWidth: 440, width:'100%', position:'relative' }}>
+        <button onClick={onClose} aria-label="Fechar" style={{
+          position:'absolute', top: 12, right: 12, width: 32, height: 32, borderRadius: 8,
+          border:'none', background:'transparent', color: T.textMid, fontSize: 20, cursor:'pointer'
+        }}>×</button>
+
+        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 20, fontWeight: 700, color: T.text, margin:'0 0 6px', letterSpacing:'-0.02em', display:'flex', alignItems:'center', gap: 8 }}>
+          📦 Ativar dispositivo
+        </h2>
+        <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 18px', lineHeight: 1.5 }}>
+          Cole o código que veio na sua placa, cartão ou pulseira NFC. O código fica no verso, começa com <code style={{ background: T.bg, padding:'1px 5px', borderRadius: 4, fontSize: 12 }}>STAR-</code>.
+        </p>
+
+        {success ? (
+          <div style={{
+            padding: 18, background: T.greenSoft, border:'1px solid #A7F3D0', borderRadius: 10,
+            display:'flex', alignItems:'center', gap: 10
+          }}>
+            <span style={{ fontSize: 24 }}>✅</span>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color:'#065F46' }}>Dispositivo ativado!</div>
+              <div style={{ fontSize: 12.5, color:'#047857' }}>Atualizando a tela…</div>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>
+              Código do dispositivo
+            </label>
+            <input
+              autoFocus
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="STAR-XXXXX"
+              style={{
+                width:'100%', padding:'11px 14px', fontSize: 15, fontFamily:'monospace',
+                letterSpacing:'.05em', textTransform:'uppercase',
+                border:'1px solid '+T.border, borderRadius: 9, outline:'none', boxSizing:'border-box',
+                marginBottom: 14
+              }}/>
+
+            <label style={{ fontSize: 12, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>
+              Nome do ponto de captura <span style={{ color: T.textDim, fontWeight: 400 }}>(opcional)</span>
+            </label>
+            <input
+              value={nick}
+              onChange={(e) => setNick(e.target.value)}
+              placeholder="Ex: Balcão principal, Mesa 5, Garçom João…"
+              style={{
+                width:'100%', padding:'10px 14px', fontSize: 13.5,
+                border:'1px solid '+T.border, borderRadius: 9, outline:'none', boxSizing:'border-box',
+                marginBottom: 6
+              }}/>
+            <div style={{ fontSize: 11.5, color: T.textDim, marginBottom: 16 }}>
+              Aparece nos seus relatórios pra você saber qual ponto traz mais avaliações.
+            </div>
+
+            {error && (
+              <div style={{
+                padding:'10px 12px', background:'#FEF2F2', border:'1px solid #FECACA',
+                borderRadius: 8, color: T.red, fontSize: 13, marginBottom: 14
+              }}>⚠️ {error}</div>
+            )}
+
+            <button type="submit" disabled={loading} style={{
+              width:'100%', background: loading ? T.textDim : T.blue, color:'#fff',
+              border:'none', borderRadius: 10, padding:'12px 18px',
+              fontSize: 14, fontWeight: 700, cursor: loading ? 'wait' : 'pointer'
+            }}>
+              {loading ? 'Ativando…' : 'Ativar dispositivo'}
+            </button>
+          </form>
+        )}
+      </Card>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // Capture points
 // ─────────────────────────────────────────────────────────────
-function CapturePoints({ items }) {
+function CapturePoints({ items, businessId }) {
+  const [modalOpen, setModalOpen] = React.useState(false)
   const total = items.reduce((s, i) => s + (i.reviewsGenerated || 0), 0)
   const isEmpty = !items || items.length === 0
   return (
@@ -2406,10 +2536,10 @@ function CapturePoints({ items }) {
             Nenhum dispositivo ativo ainda.
           </div>
           <div style={{ display:'flex', gap: 8, justifyContent:'center', flexWrap:'wrap' }}>
-            <a href="/ativar-codigo" style={{
-              background: T.blue, color:'#fff', borderRadius: 9,
-              padding:'10px 16px', fontSize: 13, fontWeight: 700, textDecoration:'none'
-            }}>Ativar código de placa →</a>
+            <button onClick={() => setModalOpen(true)} style={{
+              background: T.blue, color:'#fff', border:'none', borderRadius: 9,
+              padding:'10px 16px', fontSize: 13, fontWeight: 700, cursor:'pointer'
+            }}>Ativar código de placa →</button>
             <a href="/kit" style={{
               background:'#fff', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 9,
               padding:'10px 16px', fontSize: 13, fontWeight: 700, textDecoration:'none'
@@ -2429,14 +2559,20 @@ function CapturePoints({ items }) {
               </div>
             ))}
           </div>
-          <a href="/ativar-codigo" style={{
+          <button onClick={() => setModalOpen(true)} style={{
             display:'block', marginTop: 18, background:'transparent', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 10,
             padding:'10px 18px', fontSize: 13, fontWeight: 600, cursor:'pointer',
-            fontFamily:"'Inter', sans-serif", width:'100%', textAlign:'center', textDecoration:'none', boxSizing:'border-box'
+            fontFamily:"'Inter', sans-serif", width:'100%', textAlign:'center'
           }}>
             + Ativar novo dispositivo
-          </a>
+          </button>
         </>
+      )}
+      {modalOpen && (
+        <ActivatePlateModal
+          businessId={businessId}
+          onClose={() => setModalOpen(false)}
+        />
       )}
     </Card>
   )
@@ -2837,7 +2973,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
 
         {/* CAPTURE POINTS */}
         <Section>
-          <CapturePoints items={d.capturePoints} />
+          <CapturePoints items={d.capturePoints} businessId={d.biz.id} />
         </Section>
 
       </main>
