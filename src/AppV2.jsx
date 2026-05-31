@@ -788,12 +788,16 @@ function TopTabs({ active, onChange, plan, isMobile }) {
     }
   }, [updateFades])
 
-  // Quando troca de aba, garante que a aba ativa fique visível
+  // Quando troca de aba em mobile, centraliza a ativa no scroller.
+  // Em desktop as 6 abas cabem juntas — não precisa scroll (e scrollIntoView
+  // global causava jump horizontal indesejado na página inteira).
   React.useEffect(() => {
-    if (activeRef.current) {
-      activeRef.current.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' })
-    }
-  }, [active])
+    if (!isMobile || !activeRef.current || !scrollerRef.current) return
+    const el = activeRef.current
+    const scroller = scrollerRef.current
+    const offset = el.offsetLeft - (scroller.clientWidth / 2) + (el.clientWidth / 2)
+    scroller.scrollTo({ left: Math.max(0, offset), behavior:'smooth' })
+  }, [active, isMobile])
 
   return (
     <div style={{
@@ -3023,7 +3027,7 @@ function HeroPosition({ progressPct, currentPos, isMobile }) {
 // ─────────────────────────────────────────────────────────────
 // Ranking — com blur pra plano Free
 // ─────────────────────────────────────────────────────────────
-function RankingList({ items, isMobile, plan, category }) {
+function RankingList({ items, isMobile, plan, category, onEditCategory }) {
   const locked = plan === 'free'
   const catLabel = category ? `${category.charAt(0).toUpperCase() + category.slice(1)} · 3km` : 'Sua categoria · 3km'
   return (
@@ -3035,7 +3039,12 @@ function RankingList({ items, isMobile, plan, category }) {
           : (
             <span style={{ fontSize: 12, color: T.textDim, display:'inline-flex', alignItems:'center', gap: 6 }}>
               <span>{catLabel}</span>
-              <a href="/app#negocio" style={{ color: T.blue, textDecoration:'none', fontWeight: 600 }}>✏️ alterar</a>
+              <button
+                type="button"
+                onClick={() => onEditCategory && onEditCategory()}
+                style={{ background:'none', border:'none', padding: 0, color: T.blue, fontWeight: 600, fontSize: 12, cursor:'pointer' }}>
+                ✏️ alterar
+              </button>
             </span>
           )}
       </div>
@@ -3246,7 +3255,7 @@ function Opportunities({ count, placeId }) {
 // ─────────────────────────────────────────────────────────────
 // Recent reviews
 // ─────────────────────────────────────────────────────────────
-function RecentReviews({ items, trend, isMobile }) {
+function RecentReviews({ items, trend, isMobile, onSeeAll }) {
   const trendUp = trend?.direction === 'up'
   const trendDown = trend?.direction === 'down'
   const pillBg = trendUp ? T.greenSoft : trendDown ? '#FEE2E2' : '#F1F5F9'
@@ -3257,7 +3266,12 @@ function RecentReviews({ items, trend, isMobile }) {
     <Card>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 14, gap: 8, flexWrap:'wrap' }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Avaliações recentes</h3>
-        <a href="#" style={{ fontSize: 12.5, color: T.blue, fontWeight: 600, textDecoration:'none' }}>Ver todas →</a>
+        <button
+          type="button"
+          onClick={() => onSeeAll && onSeeAll()}
+          style={{ background:'none', border:'none', padding: 0, fontSize: 12.5, color: T.blue, fontWeight: 600, cursor:'pointer' }}>
+          Ver todas →
+        </button>
       </div>
       {trend && (
         <div style={{
@@ -3736,6 +3750,22 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
   const [tab, setTab] = React.useState(initialTab)
   const [moreOpen, setMoreOpen] = React.useState(false)
 
+  // Sincroniza URL com state — copiar/colar e F5 mantêm aba correta
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    if (tab === 'painel') {
+      url.searchParams.delete('tab')
+    } else {
+      url.searchParams.set('tab', tab)
+    }
+    // Mantém hash só pra config; em outras abas, limpa pra não confundir
+    if (tab !== 'config') {
+      url.hash = ''
+    }
+    window.history.replaceState({}, '', url.toString())
+  }, [tab])
+
   // Helper pra navegar de bottom sheet "Mais" → tab + anchor opcional
   const navigateFromMore = React.useCallback((newTab, hash) => {
     if (typeof window !== 'undefined' && hash) {
@@ -3913,7 +3943,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
             gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 420px) 1fr',
             gap: isMobile ? 14 : 24
           }}>
-            <RankingList items={d.ranking} isMobile={isMobile} plan={plan} category={d.activeCategory} />
+            <RankingList items={d.ranking} isMobile={isMobile} plan={plan} category={d.activeCategory} onEditCategory={() => navigateFromMore('config', 'negocio')} />
             <EvolutionChart data={d.evolution} growthPct={d.growthPct} isMobile={isMobile} />
           </div>
         </Section>
@@ -3926,7 +3956,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
             gap: isMobile ? 14 : 24
           }}>
             <Opportunities count={d.unrepliedReviews} placeId={d.biz.placeId} />
-            <RecentReviews items={d.recentReviews} trend={d.trend} isMobile={isMobile} />
+            <RecentReviews items={d.recentReviews} trend={d.trend} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
           </div>
         </Section>
 
