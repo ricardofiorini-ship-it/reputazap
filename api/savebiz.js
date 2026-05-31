@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   const token = req.headers.authorization?.replace("Bearer ", "");
   if (!token) return res.status(401).json({ error: "Token obrigatório" });
 
-  const { place_id, name, address, rating, total, plan, manager_email } = req.body;
+  const { place_id, name, address, rating, total, plan, manager_email, category_override } = req.body;
 
   try {
     const { data: userData, error: authError } = await supabase.auth.getUser(token);
@@ -38,6 +38,21 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: updErr.message });
       }
       return res.json({ ok: true, manager_email: cleanEmail });
+    }
+
+    // Update parcial: apenas category_override (Settings → Dados do negócio)
+    // Per-user, persiste entre devices — substitui o localStorage.rz_activity legado.
+    if (category_override !== undefined && !place_id) {
+      const cleanCat = (category_override || "").trim() || null;
+      const { error: updErr } = await supabase
+        .from("businesses")
+        .update({ category_override: cleanCat })
+        .eq("user_id", user_id);
+      if (updErr) {
+        console.error("[savebiz] erro ao atualizar category_override:", updErr);
+        return res.status(400).json({ error: updErr.message });
+      }
+      return res.json({ ok: true, category_override: cleanCat });
     }
 
     console.log("[savebiz] Payload recebido:", req.body);

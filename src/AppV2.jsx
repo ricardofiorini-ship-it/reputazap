@@ -295,8 +295,23 @@ function useRealData(user, demoMode) {
           if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, competitors: null, plates: null, hasBusiness: false })
           return
         }
-        // Categoria customizada salva pelo user (sobrepõe a categoria do Google)
-        const keyword = (typeof window !== 'undefined' ? localStorage.getItem('rz_activity') : '') || ''
+        // Categoria customizada — agora persiste no banco (businesses.category_override).
+        // Fallback: localStorage.rz_activity (legado). Migração: se backend não tem mas
+        // localStorage sim, fazer upload na 1ª carga (uma vez só, depois limpar localStorage).
+        let keyword = (biz.category_override || '').trim()
+        if (!keyword && typeof window !== 'undefined') {
+          const legacy = (localStorage.getItem('rz_activity') || '').trim()
+          if (legacy) {
+            keyword = legacy
+            // Upload pro banco (não-bloqueante) + limpa localStorage
+            apiCall('/api/savebiz', {
+              method: 'POST',
+              body: JSON.stringify({ category_override: legacy })
+            }).then(() => {
+              try { localStorage.removeItem('rz_activity') } catch {}
+            }).catch(() => { /* silencioso — tenta de novo na próxima carga */ })
+          }
+        }
         const competitorsUrl = keyword
           ? `/api/competitors?keyword=${encodeURIComponent(keyword)}`
           : '/api/competitors'
@@ -458,9 +473,10 @@ function buildData(real, user, demoMode) {
       phone: bizInfo?.phone || null,              // telefone real do Google
       gmapsUrl: bizInfo?.gmapsUrl || `https://www.google.com/maps/place/?q=place_id:${biz.place_id}`
     },
-    // Categoria ativa do ranking — override do localStorage vence sobre a do Google
-    activeCategory: (typeof window !== 'undefined' ? localStorage.getItem('rz_activity') : null) || bizInfo?.category || null,
+    // Categoria ativa do ranking — override no banco vence sobre a do Google
+    activeCategory: (biz.category_override || '').trim() || bizInfo?.category || null,
     googleCategory: bizInfo?.category || null,
+    categoryOverride: (biz.category_override || '').trim() || null,
     billing: {
       ...MOCK.billing,
       plan: biz.plan === 'pro' ? 'Plano Pro' : 'Plano Free',
@@ -2629,42 +2645,50 @@ function AccountSection({ user }) {
   )
 }
 
-function BusinessSection({ biz, googleCategory }) {
-  // Categoria customizada (palavra-chave usada na busca de concorrentes).
-  // Persiste em localStorage.rz_activity (mesmo storage do app antigo, compatível).
-  const [savedCustom] = React.useState(() => {
-    if (typeof window === 'undefined') return ''
-    return localStorage.getItem('rz_activity') || ''
-  })
+function BusinessSection({ biz, googleCategory, categoryOverride }) {
+  // Categoria customizada — agora persiste NO BANCO (businesses.category_override).
+  // Sincroniza entre mobile, desktop e outros devices automaticamente.
+  const savedCustom = categoryOverride || ''
   const [category, setCategory] = React.useState(savedCustom || googleCategory || '')
   const [savedNotice, setSavedNotice] = React.useState('')
+  const [saving, setSaving] = React.useState(false)
 
   // O que está sendo usado AGORA pra buscar concorrentes
   const activeCategory = savedCustom || googleCategory || '(automática)'
   const usingCustom = Boolean(savedCustom)
 
-  function handleSaveCategory() {
+  async function handleSaveCategory() {
+    setSaving(true)
+    setSavedNotice('')
     try {
       const v = (category || '').trim()
-      if (v) {
-        localStorage.setItem('rz_activity', v)
-      } else {
-        localStorage.removeItem('rz_activity')
-      }
-      setSavedNotice('✓ Categoria salva. Recarregando o ranking…')
-      setTimeout(() => window.location.reload(), 900)
+      await apiCall('/api/savebiz', {
+        method: 'POST',
+        body: JSON.stringify({ category_override: v || null })
+      })
+      try { localStorage.removeItem('rz_activity') } catch {}
+      setSavedNotice('✓ Categoria salva no seu perfil · sincroniza em todos os dispositivos. Recarregando…')
+      setTimeout(() => window.location.reload(), 1100)
     } catch (e) {
-      setSavedNotice('⚠️ Não conseguimos salvar localmente.')
+      setSavedNotice('⚠️ Erro ao salvar: ' + (e.message || 'tente de novo'))
+      setSaving(false)
     }
   }
 
-  function handleClearOverride() {
+  async function handleClearOverride() {
+    setSaving(true)
+    setSavedNotice('')
     try {
-      localStorage.removeItem('rz_activity')
+      await apiCall('/api/savebiz', {
+        method: 'POST',
+        body: JSON.stringify({ category_override: null })
+      })
+      try { localStorage.removeItem('rz_activity') } catch {}
       setSavedNotice('✓ Voltando pra categoria automática do Google…')
       setTimeout(() => window.location.reload(), 900)
     } catch (e) {
-      setSavedNotice('⚠️ Não conseguimos limpar.')
+      setSavedNotice('⚠️ Erro: ' + (e.message || 'tente de novo'))
+      setSaving(false)
     }
   }
 
@@ -2694,9 +2718,10 @@ function BusinessSection({ biz, googleCategory }) {
           </div>
         )}
         {usingCustom && (
-          <button onClick={handleClearOverride} style={{
+          <button onClick={handleClearOverride} disabled={saving} style={{
             background:'#fff', color: T.textMid, border:'1px solid '+T.border, borderRadius: 7,
-            padding:'6px 12px', fontSize: 12, fontWeight: 600, cursor:'pointer'
+            padding:'6px 12px', fontSize: 12, fontWeight: 600, cursor: saving ? 'wait' : 'pointer',
+            opacity: saving ? 0.6 : 1
           }}>↺ Voltar pra categoria automática do Google</button>
         )}
       </div>
@@ -2716,10 +2741,11 @@ function BusinessSection({ biz, googleCategory }) {
               border:'1px solid '+T.border, borderRadius: 8, outline:'none',
               background:'#fff', color: T.text, boxSizing:'border-box'
             }}/>
-          <button onClick={handleSaveCategory} style={{
-            background: T.blue, color:'#fff', border:'none', borderRadius: 8,
-            padding:'9px 16px', fontSize: 13, fontWeight: 700, cursor:'pointer', whiteSpace:'nowrap'
-          }}>Salvar</button>
+          <button onClick={handleSaveCategory} disabled={saving} style={{
+            background: saving ? T.textDim : T.blue, color:'#fff', border:'none', borderRadius: 8,
+            padding:'9px 16px', fontSize: 13, fontWeight: 700,
+            cursor: saving ? 'wait' : 'pointer', whiteSpace:'nowrap'
+          }}>{saving ? 'Salvando…' : 'Salvar'}</button>
         </div>
         <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 4, lineHeight: 1.5 }}>
           Esse termo é usado pra buscar concorrentes na sua região. Se o Google te classificou diferente do que você é (ex: "loja" em vez de "padaria"), corrija aqui.
@@ -2874,7 +2900,7 @@ function ConfigScreen({ data, isMobile, plan, isReal }) {
 
       <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
         <AccountSection user={data.user}/>
-        <BusinessSection biz={data.businessInfo} googleCategory={data.googleCategory}/>
+        <BusinessSection biz={data.businessInfo} googleCategory={data.googleCategory} categoryOverride={data.categoryOverride}/>
         <BillingSection billing={data.billing} plan={plan}/>
       </div>
     </main>
