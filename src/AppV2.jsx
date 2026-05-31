@@ -2787,11 +2787,14 @@ function BusinessSection({ biz, googleCategory, categoryOverride }) {
           background: T.bg, border:'1px solid '+T.border, borderRadius: 6,
           padding: 10, marginTop: 8, fontSize: 11, overflowX:'auto', lineHeight: 1.5
         }}>
-{`category_override (banco): ${JSON.stringify(savedCustom || null)}
+{`place_id:                  ${JSON.stringify(biz?.placeId || null)}
+biz.name:                  ${JSON.stringify(biz?.name || null)}
+category_override (banco): ${JSON.stringify(savedCustom || null)}
 googleCategory (auto):     ${JSON.stringify(googleCategory || null)}
 activeCategory (em uso):   ${JSON.stringify(activeCategory)}
 localStorage.rz_activity:  ${typeof window !== 'undefined' ? JSON.stringify(localStorage.getItem('rz_activity')) : '—'}
-build:                     ${typeof window !== 'undefined' ? (document.querySelector('script[src*="v2-"]')?.src?.match(/v2-([^.]+)/)?.[1] || '?') : '—'}`}
+build:                     ${typeof window !== 'undefined' ? (document.querySelector('script[src*="v2-"]')?.src?.match(/v2-([^.]+)/)?.[1] || '?') : '—'}
+hora local:                ${new Date().toISOString()}`}
         </pre>
       </details>
     </ConfigSectionCard>
