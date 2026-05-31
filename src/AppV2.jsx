@@ -71,8 +71,8 @@ const MOCK = {
   goals: [
     { label:'Top 5', achieved: true,  reviewsToNext: 0, progressPct: 100 },
     { label:'Top 3', achieved: true,  reviewsToNext: 0, progressPct: 100, current: true },
-    { label:'Top 2', achieved: false, reviewsToNext: 2, progressPct: 86,  target:'Empresa B (14 av.)' },
-    { label:'Top 1', achieved: false, reviewsToNext: 14, progressPct: 48, target:'Empresa A (25 av.)' }
+    { label:'Top 2', achieved: false, reviewsToNext: 2, progressPct: 86,  target:'Empresa B (14 avaliações)' },
+    { label:'Top 1', achieved: false, reviewsToNext: 14, progressPct: 48, target:'Empresa A (25 avaliações)' }
   ],
   // Alertas (Feature 3)
   alerts: [
@@ -115,7 +115,7 @@ const MOCK = {
       rankingMoves: [
         { type:'up',   icon:'↑',  text:'Você subiu da 4ª pra 3ª posição',           highlight: true  },
         { type:'down', icon:'↓',  text:'Empresa C caiu da 3ª pra 4ª posição'  },
-        { type:'risk', icon:'⚠️', text:'Empresa F está crescendo rápido (+2 av.)' }
+        { type:'risk', icon:'⚠️', text:'Empresa F está crescendo rápido (+2 avaliações)' }
       ],
       competitorComparison: [
         { name:'Empresa A',         pos: 1, reviews: 25, weekChange: +3 },
@@ -148,7 +148,7 @@ const MOCK = {
       rankingMoves: [
         { type:'up',   icon:'↑',  text:'Você subiu da 5ª pra 3ª posição no mês',  highlight: true  },
         { type:'up',   icon:'↑',  text:'Ultrapassou Empresa C e Empresa D'  },
-        { type:'risk', icon:'⚠️', text:'Empresa A continua crescendo forte (+8 av. no mês)' }
+        { type:'risk', icon:'⚠️', text:'Empresa A continua crescendo forte (+8 avaliações no mês)' }
       ],
       competitorComparison: [
         { name:'Empresa A',         pos: 1, reviews: 25, weekChange: +8 },
@@ -158,7 +158,7 @@ const MOCK = {
       ],
       opportunities: [
         { icon:'📈', text:'Sua nota subiu de 4.8 pra 5.0 no mês — capitalize isso com posts e flyers.' },
-        { icon:'🎯', text:'Mantendo o ritmo de 7 av./mês, em 60 dias você ultrapassa a Empresa A.' },
+        { icon:'🎯', text:'Mantendo o ritmo de 7 avaliações/mês, em 60 dias você ultrapassa a Empresa A.' },
         { icon:'🛎️', text:'Considere ativar pulseira NFC pros garçons: hoje só placa de mesa gera reviews.' }
       ]
     }
@@ -920,7 +920,7 @@ function CompetitorStats({ youPos, total, reviewsToNext, risingCount, isMobile }
   return (
     <Card padded={false} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow:'hidden' }}>
       <Item label="Sua posição" value={`#${youPos}`} sub={`de ${total} empresas`} accent={T.blue}/>
-      <Item label="Falta pra subir" value={`${reviewsToNext} av.`} sub={`pra alcançar a #${youPos - 1}`} accent={T.amber}/>
+      <Item label="Falta pra subir" value={`${reviewsToNext} ${reviewsToNext === 1 ? 'avaliação' : 'avaliações'}`} sub={`pra alcançar a #${youPos - 1}`} accent={T.amber}/>
       <Item label="Em alta na sua categoria" value={`${risingCount} concorrente${risingCount > 1 ? 's' : ''}`} sub="cresceu essa semana" accent={T.green}/>
     </Card>
   )
@@ -1317,7 +1317,7 @@ function EnhancedCompetitorRow({ comp, youReviews, isMobile }) {
             <strong style={{ color: T.text, fontSize: 11.5 }}>{comp.rating.toFixed(1)}</strong>
           </span>
           <span style={{ color: T.textDim }}>·</span>
-          <span><strong style={{ color: T.text, fontSize: 11.5 }}>{comp.reviews}</strong> av.</span>
+          <span><strong style={{ color: T.text, fontSize: 11.5 }}>{comp.reviews}</strong> {comp.reviews === 1 ? 'avaliação' : 'avaliações'}</span>
           <span style={{ color: T.textDim }}>·</span>
           <span style={{
             display:'inline-flex', alignItems:'center', gap: 2,
@@ -1338,10 +1338,10 @@ function EnhancedCompetitorRow({ comp, youReviews, isMobile }) {
         {!isYou && (
           <div style={{ fontSize: 12.5, color: T.textMid }}>
             {aheadOfYou
-              ? <>Falta <strong style={{ color: T.text }}>{diff} av.</strong> pra ultrapassar</>
+              ? <>Falta{diff === 1 ? '' : 'm'} <strong style={{ color: T.text }}>{diff} {diff === 1 ? 'avaliação' : 'avaliações'}</strong> pra ultrapassar</>
               : diff === 0
               ? <>Empatados em avaliações</>
-              : <>Você está <strong style={{ color: T.text }}>{Math.abs(diff)} av. à frente</strong></>
+              : <>Você está <strong style={{ color: T.text }}>{Math.abs(diff)} {Math.abs(diff) === 1 ? 'avaliação' : 'avaliações'} à frente</strong></>
             }
           </div>
         )}
@@ -1437,7 +1437,7 @@ function GrowthSimulator({ data, list, isMobile }) {
                 {change.txt}
               </div>
               <div style={{ fontSize: 11, color: T.textDim }}>
-                {it.proj.my} av. totais
+                {it.proj.my} avaliações totais
               </div>
             </div>
           )
@@ -1477,7 +1477,7 @@ function OpportunitiesPanel({ data, list, isMobile }) {
       color: T.green,
       bg: T.greenSoft,
       title:`Subir pro Top ${closeUp.pos} está perto`,
-      text:`Faltam ${closeUp.reviews - youReviews} av. pra ultrapassar ${closeUp.locked ? 'o próximo' : closeUp.name}. Em 1-2 semanas com captação consistente.`,
+      text:`Faltam ${closeUp.reviews - youReviews} ${closeUp.reviews - youReviews === 1 ? 'avaliação' : 'avaliações'} pra ultrapassar ${closeUp.locked ? 'o próximo' : closeUp.name}. Em 1-2 semanas com captação consistente.`,
       cta:{ label:'Ativar mais placas', href:'/ativar-codigo' }
     })
   }
@@ -1488,7 +1488,7 @@ function OpportunitiesPanel({ data, list, isMobile }) {
       color: T.red,
       bg:'#FEF2F2',
       title:`${r.locked ? 'Um concorrente' : r.name} está acelerando`,
-      text:`Cresce ${r.weekGrowth} av./semana — o dobro da média da categoria. Pode passar você em ${Math.ceil((youReviews - r.reviews + 1) / Math.max(1, r.weekGrowth - 1))} semanas se não reagir.`,
+      text:`Cresce ${r.weekGrowth} ${r.weekGrowth === 1 ? 'avaliação' : 'avaliações'} por semana — o dobro da média da categoria. Pode passar você em ${Math.ceil((youReviews - r.reviews + 1) / Math.max(1, r.weekGrowth - 1))} semanas se não reagir.`,
       cta:{ label:'Ver simulador', href:'#simulador' }
     })
   }
@@ -1887,7 +1887,7 @@ function AlertChannelsCard({ channels, onChange }) {
       <ChannelRow
         icon="📱"
         name="WhatsApp"
-        desc="Receba as ameaças críticas no seu WhatsApp na hora — quando um concorrente passar você ou ganhar 10 av. de uma vez."
+        desc="Receba as ameaças críticas no seu WhatsApp na hora — quando um concorrente passar você ou ganhar 10 avaliações de uma vez."
         enabled={channels.whatsapp.enabled}
         onToggle={() => onChange({ ...channels, whatsapp: { ...channels.whatsapp, enabled: !channels.whatsapp.enabled } })}
       >
@@ -2060,7 +2060,7 @@ function ReportSummaryGrid({ summary, isMobile }) {
     { label:'Novas avaliações', value: summary.newReviews,      delta: summary.newReviewsDelta, suffix:' vs anterior', icon:'⭐' },
     { label:'Nota atual',       value: summary.currentRating.toFixed(1), delta: summary.ratingDelta, suffix:'',  isFloat: true, icon:'📈' },
     { label:'Posição no rank',  value: `${summary.currentPosition}º`, delta: summary.positionDelta, suffix:' pos.', invert: false, icon:'🏆' },
-    { label:'Próximo concorrente', value: `-${Math.abs(summary.competitorDelta)} av.`, delta: null, sub:'mais perto que antes', icon:'🎯' }
+    { label:'Próximo concorrente', value: `-${Math.abs(summary.competitorDelta)} ${Math.abs(summary.competitorDelta) === 1 ? 'avaliação' : 'avaliações'}`, delta: null, sub:'mais perto que antes', icon:'🎯' }
   ]
   return (
     <div style={{ display:'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 8 : 12 }}>
@@ -3725,7 +3725,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
             <KpiCard icon="📝" label="Avaliações"      value={d.kpis.reviewCount}      sub="Total recebidas"                trend={+d.kpis.newLast30Days} />
             <KpiCard icon="🏆" label="Ranking local"   value={`#${d.kpis.rankingPos}`}  sub={`Entre ${d.kpis.totalCompetitors} empresas`} trend={+2} />
             <KpiCard icon="📈" label="Últimos 30 dias" value={`+${d.kpis.newLast30Days}`} sub="Novas avaliações"             trend={+3} />
-            <KpiCard icon="🎯" label="Próxima Meta"    value={`${d.kpis.nextGoal.reviewsToNext} av.`} sub={`Para o Top ${d.kpis.nextGoal.targetPosition}`} />
+            <KpiCard icon="🎯" label="Próxima Meta"    value={`${d.kpis.nextGoal.reviewsToNext} ${d.kpis.nextGoal.reviewsToNext === 1 ? 'avaliação' : 'avaliações'}`} sub={`Para o Top ${d.kpis.nextGoal.targetPosition}`} />
             <KpiCard icon="🏅" label="Score StarTouch" value={`${calcStarTouchScore(d)}`} sub="Sua presença local · 0–100" />
           </div>
         </Section>
