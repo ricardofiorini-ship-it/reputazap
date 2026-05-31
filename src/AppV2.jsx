@@ -1080,7 +1080,7 @@ function AlertChannelsCard({ channels, onChange }) {
   )
 }
 
-function AlertsScreen({ data, isMobile }) {
+function AlertsScreen({ data, isMobile, isReal }) {
   const [filter, setFilter] = React.useState('all')
   const [channels, setChannels] = React.useState(data.alertChannels)
 
@@ -1103,6 +1103,8 @@ function AlertsScreen({ data, isMobile }) {
           Saiba na hora quando um concorrente passa você, sair do Top ou ganhar várias avaliações.
         </p>
       </div>
+
+      {isReal && <BetaBanner feature="Alertas em tempo real" eta="Vamos começar a gerar alertas reais assim que tivermos snapshot diário das suas posições — previsto pra próximas semanas."/>}
 
       {/* Stats no topo */}
       <Section>
@@ -1461,7 +1463,7 @@ function ReportSettingsCard({ settings, onChange }) {
   )
 }
 
-function ReportsScreen({ data, isMobile }) {
+function ReportsScreen({ data, isMobile, isReal }) {
   const [mode, setMode] = React.useState('weekly')
   const report = data.reports[mode]
 
@@ -1478,6 +1480,8 @@ function ReportsScreen({ data, isMobile }) {
         </div>
         <ReportPeriodTabs active={mode} onChange={setMode} isMobile={isMobile}/>
       </div>
+
+      {isReal && <BetaBanner feature="Relatórios automáticos" eta="O primeiro relatório real chega no seu email assim que ligarmos o cron de envio — previsto pras próximas semanas."/>}
 
       <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
         <ReportHeader report={report} isMobile={isMobile}/>
@@ -1794,7 +1798,7 @@ function BillingSection({ billing, plan }) {
   )
 }
 
-function ConfigScreen({ data, isMobile, plan }) {
+function ConfigScreen({ data, isMobile, plan, isReal }) {
   // Scroll pro anchor da URL (#conta, #negocio, #plano)
   React.useEffect(() => {
     const hash = window.location.hash.replace('#', '')
@@ -1816,6 +1820,19 @@ function ConfigScreen({ data, isMobile, plan }) {
           Gerencie sua conta, dados do negócio e plano.
         </p>
       </div>
+
+      {isReal && (
+        <div style={{
+          background: T.blueSoft, border:'1px solid #BFDBFE', borderRadius: 10,
+          padding:'10px 14px', marginBottom: 16,
+          display:'flex', alignItems:'flex-start', gap: 10
+        }}>
+          <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>🚧</span>
+          <div style={{ fontSize: 12.5, color: T.blueDk, lineHeight: 1.45 }}>
+            <b>Modo leitura.</b> Seus dados reais aparecem abaixo — a edição completa (alterar nome, endereço, método de pagamento) chega na próxima atualização.
+          </div>
+        </div>
+      )}
 
       <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
         <AccountSection user={data.user}/>
@@ -2346,6 +2363,29 @@ function CapturePoints({ items }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// BetaBanner — aviso de feature em demonstração (sem dados reais ainda)
+// ─────────────────────────────────────────────────────────────
+function BetaBanner({ feature, eta }) {
+  return (
+    <div style={{
+      background:'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+      border:'1px solid #FCD34D', borderRadius: 12, padding:'12px 16px',
+      marginBottom: 18, display:'flex', alignItems:'flex-start', gap: 12
+    }}>
+      <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>🔬</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color:'#78350F', marginBottom: 2 }}>
+          {feature} · em demonstração
+        </div>
+        <div style={{ fontSize: 12.5, color:'#92400E', lineHeight: 1.45 }}>
+          Os dados abaixo são de exemplo. {eta || 'Em breve conectado aos seus dados reais.'}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // AVALIAÇÕES — tela completa (lista todas as reviews)
 // ─────────────────────────────────────────────────────────────
 function ReviewsScreen({ data, isMobile }) {
@@ -2583,14 +2623,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
         <CompetitorsScreen data={d} isMobile={isMobile}/>
       )}
 
-      {/* Aba: ALERTAS (Pro) — feed + canais FUNCIONAL */}
+      {/* Aba: ALERTAS (Pro) — feed + canais (dados ainda em demonstração) */}
       {tab === 'alertas' && plan === 'pro' && (
-        <AlertsScreen data={d} isMobile={isMobile}/>
+        <AlertsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness}/>
       )}
 
-      {/* Aba: RELATÓRIOS (Pro) — newsletter semanal/mensal FUNCIONAL */}
+      {/* Aba: RELATÓRIOS (Pro) — newsletter semanal/mensal (dados ainda em demonstração) */}
       {tab === 'relatorios' && plan === 'pro' && (
-        <ReportsScreen data={d} isMobile={isMobile}/>
+        <ReportsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness}/>
       )}
 
       {/* Aba: LOJA — vitrine de produtos NFC (free + pro) */}
@@ -2605,7 +2645,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
 
       {/* Tela: CONFIGURAÇÕES — acessível via dropdown do avatar */}
       {tab === 'config' && (
-        <ConfigScreen data={d} isMobile={isMobile} plan={plan}/>
+        <ConfigScreen data={d} isMobile={isMobile} plan={plan} isReal={!demoMode && real.hasBusiness}/>
       )}
 
       {/* Outras abas ainda em construção */}
