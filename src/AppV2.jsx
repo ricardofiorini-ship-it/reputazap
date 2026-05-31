@@ -926,8 +926,11 @@ function ComingSoon({ icon, title, desc, plan }) {
 
 // Sparkline mini-chart (linha + área)
 function Sparkline({ data, color = T.blue, w = 80, h = 28 }) {
+  // Sem dados, sem variação ou data inválida → não renderiza (evita crash com null/[])
+  if (!Array.isArray(data) || data.length < 2) return null
   const max = Math.max(...data), min = Math.min(...data)
-  const range = (max - min) || 1
+  if (max === min) return null
+  const range = max - min
   const xs = data.map((_, i) => (i / (data.length - 1)) * w)
   const ys = data.map(v => h - ((v - min) / range) * (h - 4) - 2)
   const path = xs.map((x, i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ')
@@ -1201,6 +1204,31 @@ function CategoryBenchmark({ data, list, isMobile }) {
 // ─────────────────────────────────────────────────────────────
 function CompetitorMap({ list, isMobile }) {
   if (!list.length) return null
+
+  // Sem distâncias reais (backend ainda não retorna lat/lng) → empty state honesto
+  const hasAnyDistance = list.some(c => !c.isYou && typeof c.distance === 'number' && c.distance > 0)
+  if (!hasAnyDistance) {
+    return (
+      <Card padded={false} style={{ padding: 22 }}>
+        <div style={{ marginBottom: 12 }}>
+          <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
+            🗺️ Mapa de concorrência
+          </h3>
+          <div style={{ fontSize: 12.5, color: T.textMid }}>Em breve: posição geográfica de cada concorrente em relação a você.</div>
+        </div>
+        <div style={{
+          padding: 28, borderRadius: 12, background: T.bg,
+          border:'1px dashed '+T.border, textAlign:'center'
+        }}>
+          <div style={{ fontSize: 40, marginBottom: 8 }}>📍</div>
+          <div style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.5, maxWidth: 420, margin:'0 auto' }}>
+            Estamos integrando o Google Maps pra mostrar onde cada concorrente está em volta de você. Por enquanto, veja o ranking detalhado abaixo.
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
   const W = isMobile ? 340 : 720
   const H = isMobile ? 340 : 380
   const cx = W / 2, cy = H / 2
@@ -1208,7 +1236,7 @@ function CompetitorMap({ list, isMobile }) {
   const maxDistance = Math.max(...list.filter(c => !c.isYou).map(c => c.distance || 0)) || 2000
   const scale = maxR / maxDistance
 
-  const others = list.filter(c => !c.isYou && c.distance != null)
+  const others = list.filter(c => !c.isYou && c.distance != null && c.angle != null)
   const me = list.find(c => c.isYou)
 
   return (
@@ -1354,14 +1382,18 @@ function EnhancedCompetitorRow({ comp, youReviews, isMobile }) {
           </span>
           <span style={{ color: T.textDim }}>·</span>
           <span><strong style={{ color: T.text, fontSize: 11.5 }}>{comp.reviews}</strong> {comp.reviews === 1 ? 'avaliação' : 'avaliações'}</span>
-          <span style={{ color: T.textDim }}>·</span>
-          <span style={{
-            display:'inline-flex', alignItems:'center', gap: 2,
-            color: comp.weekGrowth > 0 ? T.green : comp.weekGrowth < 0 ? T.red : T.textDim,
-            fontWeight: 600
-          }}>
-            {comp.weekGrowth > 0 ? '▲' : comp.weekGrowth < 0 ? '▼' : '—'}{Math.abs(comp.weekGrowth) || 0}/sem
-          </span>
+          {comp.weekGrowth != null && (
+            <>
+              <span style={{ color: T.textDim }}>·</span>
+              <span style={{
+                display:'inline-flex', alignItems:'center', gap: 2,
+                color: comp.weekGrowth > 0 ? T.green : comp.weekGrowth < 0 ? T.red : T.textDim,
+                fontWeight: 600
+              }}>
+                {comp.weekGrowth > 0 ? '▲' : comp.weekGrowth < 0 ? '▼' : '—'}{Math.abs(comp.weekGrowth) || 0}/sem
+              </span>
+            </>
+          )}
           {distance && (
             <>
               <span style={{ color: T.textDim }}>·</span>
@@ -1383,8 +1415,8 @@ function EnhancedCompetitorRow({ comp, youReviews, isMobile }) {
         )}
       </div>
 
-      {/* Mini sparkline */}
-      {!isMobile && (
+      {/* Mini sparkline — só renderiza se tem histórico com variação real */}
+      {!isMobile && Array.isArray(comp.history) && comp.history.length >= 2 && (
         <div style={{ flexShrink: 0 }}>
           <Sparkline data={comp.history} color={isYou ? T.blue : aheadOfYou ? T.amber : '#94A3B8'} w={60} h={28}/>
         </div>
