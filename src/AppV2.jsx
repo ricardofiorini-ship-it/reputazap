@@ -170,22 +170,18 @@ const MOCK = {
     monthlyDay: 1          // dia do mês
   },
 
-  // Loja (vitrine de produtos NFC)
+  // Loja — produtos reais StarTouch (catálogo + preços oficiais em /kit)
   products: [
-    { id:'placa-balcao',  icon:'🏷️', name:'Placa de Balcão NFC',  desc:'O cliente toca ao pagar/sair. Conversão mais alta.',         price: 89,    oldPrice: 119,  badge:'MAIS VENDIDA', specs:['NFC + QR Code', 'Acrílico premium', 'A6 vertical'] },
-    { id:'plaq-mesa',     icon:'🍽️', name:'Plaquinha de Mesa',    desc:'Em cada mesa — cliente avalia antes de sair.',                 price: 49,    oldPrice: 69,                            specs:['NFC + QR Code', 'Base estável', '8x12cm'] },
-    { id:'placa-parede',  icon:'🖼️', name:'Placa de Parede',      desc:'Visível na entrada/saída. Ideal pra clínicas e salões.',       price: 99,                                              specs:['NFC + QR Code', 'Adesivo 3M', 'A5 horizontal'] },
-    { id:'cartao-nfc',    icon:'💳', name:'Cartão NFC (3 un.)',   desc:'Pro garçom carregar — toca no celular do cliente.',            price: 29.90, oldPrice: 39.90,                         specs:['Tamanho cartão', '3 unidades', 'Cor preta'] },
-    { id:'pulseira-nfc',  icon:'⌚', name:'Pulseira NFC',          desc:'Pro garçom usar — toca no cliente após o atendimento.',       price: 39,                                              specs:['Silicone', 'Ajustável', 'Várias cores'] },
-    { id:'adesivo-nfc',   icon:'⭕', name:'Adesivo NFC',           desc:'Cole na maquininha de pagamento — toca após pagar.',          price: 19,    oldPrice: 29,                            specs:['Resistente', 'Adesivo 3M', '5x5cm'] }
+    { id:'placa-balcao', img:'/gadget-placa.png',    name:'Placa de balcão', desc:'Acrílico premium pro caixa. Cliente toca pra avaliar ao pagar.',          buyUrl:'/kit' },
+    { id:'cartao-nfc',   img:'/gadget-cartao.png',   name:'Cartão NFC',      desc:'Pro garçom carregar — toca no celular do cliente após o atendimento.', buyUrl:'/kit' },
+    { id:'pulseira-nfc', img:'/gadget-pulseira.png', name:'Pulseira NFC',    desc:'Pro garçom usar no pulso — toca no cliente após o atendimento.',         buyUrl:'/kit' },
+    { id:'adesivo-nfc',  img:'/gadget-adesivo.png',  name:'Adesivo NFC',     desc:'Cole na maquininha ou parede — toca após pagar.',                         buyUrl:'/kit' }
   ],
   kit: {
     icon: '🎁',
-    name:'Kit Completo StarTouch',
-    desc:'1 placa de balcão + 4 plaquinhas de mesa + 3 cartões NFC. Tudo o que precisa pra começar com força total e cobrir todos os pontos de contato.',
-    price: 199,
-    oldPrice: 247,
-    savings: 48
+    name:'Catálogo completo no shop',
+    desc:'Veja todos os produtos com preços, escolha tamanhos, monte seu kit e compre direto no nosso shop oficial.',
+    buyUrl:'/kit'
   },
 
   // Configurações
@@ -335,19 +331,23 @@ function buildData(real, user, demoMode) {
   const compData = (competitors && competitors.enough && competitors.top) ? (() => {
     // Map shape do backend pro shape do CompetitorsScreen
     const sorted = [...competitors.top].sort((a, b) => b.reviews - a.reviews)
-    const list = sorted.map((c, i) => ({
-      id: c.place_id || i,
-      pos: i + 1,
-      medal: i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '',
-      name: c.name || `Concorrente ${i + 1}`,
-      rating: c.rating,
-      reviews: c.reviews,
-      weekGrowth: 0,                         // sem snapshot semanal ainda — Fase futura
-      history: Array(12).fill(c.reviews),    // achatado — sparkline sem dados ainda
-      color: colorFromName(c.name || `${i}`),
-      initials: initialsFromName(c.name || `C${i}`),
-      isYou: c.is_me
-    }))
+    const list = sorted.map((c, i) => {
+      const isLocked = !c.name && !c.is_me  // name veio null e não sou eu → backend bloqueou
+      return {
+        id: c.place_id || i,
+        pos: i + 1,
+        medal: i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '',
+        name: c.name || (isLocked ? null : `Concorrente ${i + 1}`),
+        locked: isLocked,
+        rating: c.rating,
+        reviews: c.reviews,
+        weekGrowth: 0,                         // sem snapshot semanal ainda — Fase futura
+        history: Array(12).fill(c.reviews),    // achatado — sparkline sem dados ainda
+        color: isLocked ? '#94A3B8' : colorFromName(c.name || `${i}`),
+        initials: isLocked ? '🔒' : initialsFromName(c.name || `C${i}`),
+        isYou: c.is_me
+      }
+    })
     return {
       rankingPos: competitors.rank_google,
       totalCompetitors: competitors.total,
@@ -379,8 +379,9 @@ function buildData(real, user, demoMode) {
         : MOCK.kpis.nextGoal
     },
     hero,
-    ranking: compData?.rankingMini ?? MOCK.ranking,
-    competitors: compData?.list ?? MOCK.competitors,
+    // Se a API retornou dados reais, usa; senão mostra vazio (NÃO mock) pra UI ser honesta
+    ranking: compData?.rankingMini ?? [],
+    competitors: compData?.list ?? [],
     recentReviews: (reviews && reviews.length > 0)
       ? reviews.slice(0, 5).map(r => ({
           name: r.author_name || 'Cliente Google',
@@ -433,15 +434,16 @@ function useIsMobile(bp = 768) {
   return m
 }
 
-function getPlan(realBiz) {
-  // URL ?plan=free|pro sempre vence (útil pra testar)
+function getPlan(realBiz, demoMode) {
+  // URL ?plan=free|pro só vale em demoMode OU quando ainda não tem negócio real
+  // (em produção, NUNCA permitir bypass do paywall pelo URL)
   if (typeof window !== 'undefined') {
     const p = new URLSearchParams(window.location.search).get('plan')
-    if (p === 'free' || p === 'pro') return p
+    if ((p === 'free' || p === 'pro') && (demoMode || !realBiz)) return p
   }
-  // Sem override: usa plano real do biz (default = free pra usuário novo, pro no demo)
+  // Sem override válido: usa plano real do biz (default = free)
   if (realBiz) return realBiz.plan === 'pro' ? 'pro' : 'free'
-  return 'pro' // demo mode default
+  return 'pro' // demo default
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -675,7 +677,8 @@ function CompetitorCard({ comp, youReviews }) {
   const diff = comp.reviews - youReviews // positivo = à frente, negativo = atrás
   const aheadOfYou = diff > 0
   const isYou = comp.isYou
-  const closeTarget = aheadOfYou && diff <= 3 // alvo próximo
+  const isLocked = comp.locked
+  const closeTarget = aheadOfYou && diff <= 3 && !isLocked // alvo próximo
 
   return (
     <Card style={{
@@ -699,7 +702,14 @@ function CompetitorCard({ comp, youReviews }) {
         {/* Body */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4, flexWrap:'wrap' }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{comp.name}</span>
+            {isLocked ? (
+              <span style={{ fontSize: 15, fontWeight: 700, color: T.textMid, display:'inline-flex', alignItems:'center', gap: 6 }}>
+                🔒 Concorrente oculto
+                <a href="/plano-pro" style={{ fontSize: 11, fontWeight: 700, color: T.blue, background: T.blueSoft, padding:'2px 7px', borderRadius: 5, textDecoration:'none' }}>Desbloquear</a>
+              </span>
+            ) : (
+              <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{comp.name}</span>
+            )}
             {isYou && <span style={{ fontSize: 10.5, fontWeight: 700, color: T.blue, background:'#fff', border:`1px solid ${T.blue}`, borderRadius: 5, padding:'1px 6px' }}>VOCÊ</span>}
             {closeTarget && !isYou && <span style={{ fontSize: 10.5, fontWeight: 700, color:'#92400E', background:'#FEF3C7', border:'1px solid #FCD34D', borderRadius: 5, padding:'1px 6px' }}>🎯 ALVO PRÓXIMO</span>}
           </div>
@@ -792,18 +802,46 @@ function CompetitorsScreen({ data, isMobile }) {
   const [filter, setFilter] = React.useState('all')
   const youReviews = data.kpis.reviewCount
   const youPos = data.kpis.rankingPos
+  const list = data.competitors || []
 
-  const ahead  = data.competitors.filter(c => !c.isYou && c.reviews >  youReviews)
-  const behind = data.competitors.filter(c => !c.isYou && c.reviews <= youReviews)
-  const rising = data.competitors.filter(c => !c.isYou && c.weekGrowth >= 2)
+  // Empty state — API ainda não retornou concorrentes (ou negócio em região rarefeita)
+  if (list.length === 0) {
+    return (
+      <main style={{ maxWidth: 720, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
+        <div style={{ marginBottom: 22 }}>
+          <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
+            🏆 Inteligência Competitiva
+          </h1>
+        </div>
+        <Card style={{ textAlign:'center', padding: 48 }}>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>📡</div>
+          <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin:'0 0 8px' }}>
+            Coletando concorrentes da sua região
+          </h2>
+          <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, margin:'0 0 18px' }}>
+            A gente está vasculhando o Google pra encontrar quem disputa o ranking com você na sua categoria e raio.
+            Isso pode levar alguns segundos no primeiro acesso.
+          </p>
+          <button onClick={() => window.location.reload()} style={{
+            background: T.blue, color:'#fff', border:'none', borderRadius: 9,
+            padding:'10px 20px', fontSize: 13.5, fontWeight: 700, cursor:'pointer'
+          }}>Recarregar</button>
+        </Card>
+      </main>
+    )
+  }
 
-  const visible = filter === 'ahead'  ? [data.competitors.find(c => c.isYou), ...ahead].filter(Boolean)
-               : filter === 'behind'  ? [data.competitors.find(c => c.isYou), ...behind].filter(Boolean)
-               : filter === 'rising'  ? [data.competitors.find(c => c.isYou), ...rising].filter(Boolean)
-               : data.competitors
+  const ahead  = list.filter(c => !c.isYou && c.reviews >  youReviews)
+  const behind = list.filter(c => !c.isYou && c.reviews <= youReviews)
+  const rising = list.filter(c => !c.isYou && c.weekGrowth >= 2)
+
+  const visible = filter === 'ahead'  ? [list.find(c => c.isYou), ...ahead].filter(Boolean)
+               : filter === 'behind'  ? [list.find(c => c.isYou), ...behind].filter(Boolean)
+               : filter === 'rising'  ? [list.find(c => c.isYou), ...rising].filter(Boolean)
+               : list
 
   const counts = {
-    all: data.competitors.length,
+    all: list.length,
     ahead: ahead.length,
     behind: behind.length,
     rising: rising.length
@@ -816,7 +854,7 @@ function CompetitorsScreen({ data, isMobile }) {
           🏆 Inteligência Competitiva
         </h1>
         <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
-          Conheça quem está disputando o ranking com você · Cafeterias num raio de 3km
+          Conheça quem está disputando o ranking com você na sua categoria e região.
         </p>
       </div>
 
@@ -824,7 +862,7 @@ function CompetitorsScreen({ data, isMobile }) {
       <Section>
         <CompetitorStats
           youPos={youPos}
-          total={data.competitors.length}
+          total={list.length}
           reviewsToNext={data.hero.reviewsToNext}
           risingCount={rising.length}
           isMobile={isMobile}
@@ -1510,41 +1548,23 @@ function ReportsScreen({ data, isMobile, isReal }) {
 // ─────────────────────────────────────────────────────────────
 function ProductCard({ p }) {
   return (
-    <Card padded={false} style={{ padding: 18, display:'flex', flexDirection:'column', height:'100%', position:'relative' }}>
-      {p.badge && (
-        <span style={{
-          position:'absolute', top: 14, right: 14, fontSize: 9.5, fontWeight: 800,
-          letterSpacing:'.05em', background:'#FBBC04', color:'#78350F',
-          padding:'3px 7px', borderRadius: 5
-        }}>{p.badge}</span>
-      )}
+    <Card padded={false} style={{ padding: 0, display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
       <div style={{
-        height: 96, background:'linear-gradient(135deg,#F8FAFC,#EFF6FF)',
-        borderRadius: 10, display:'grid', placeItems:'center', fontSize: 48,
-        marginBottom: 12, border:'1px solid '+T.border
-      }}>{p.icon}</div>
-      <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 15, fontWeight: 700, color: T.text, margin:'0 0 4px' }}>{p.name}</h3>
-      <p style={{ fontSize: 12.5, color: T.textMid, margin:'0 0 10px', lineHeight: 1.45, flex: 1 }}>{p.desc}</p>
-      <div style={{ display:'flex', flexWrap:'wrap', gap: 4, marginBottom: 12 }}>
-        {p.specs.map((s, i) => (
-          <span key={i} style={{ fontSize: 10.5, fontWeight: 600, color: T.textMid, background: T.bg, padding:'3px 7px', borderRadius: 5 }}>{s}</span>
-        ))}
+        height: 160, background:'#fff',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        borderBottom:'1px solid '+T.border, padding: 10
+      }}>
+        <img src={p.img} alt={p.name} style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain' }}/>
       </div>
-      <div style={{ display:'flex', alignItems:'baseline', gap: 6, marginBottom: 10 }}>
-        <span style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 800, color: T.text, letterSpacing:'-0.02em' }}>
-          R$ {p.price.toFixed(2).replace('.', ',')}
-        </span>
-        {p.oldPrice && (
-          <span style={{ fontSize: 12, color: T.textDim, textDecoration:'line-through' }}>
-            R$ {p.oldPrice.toFixed(2).replace('.', ',')}
-          </span>
-        )}
+      <div style={{ padding: 16, display:'flex', flexDirection:'column', flex: 1 }}>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 15, fontWeight: 700, color: T.text, margin:'0 0 6px' }}>{p.name}</h3>
+        <p style={{ fontSize: 12.5, color: T.textMid, margin:'0 0 14px', lineHeight: 1.5, flex: 1 }}>{p.desc}</p>
+        <a href={p.buyUrl} style={{
+          display:'block', background: T.blue, color:'#fff', textDecoration:'none',
+          borderRadius: 9, padding:'10px 14px', fontSize: 13, fontWeight: 700,
+          textAlign:'center'
+        }}>Comprar →</a>
       </div>
-      <button style={{
-        background: T.blue, color:'#fff', border:'none', borderRadius: 9,
-        padding:'10px 14px', fontSize: 13, fontWeight: 700, cursor:'pointer',
-        width:'100%'
-      }}>Comprar</button>
     </Card>
   )
 }
@@ -1563,29 +1583,19 @@ function KitCard({ k, isMobile }) {
         }}>{k.icon}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display:'inline-block', fontSize: 10.5, fontWeight: 800, letterSpacing:'.06em', background:'#FBBC04', color:'#78350F', padding:'3px 8px', borderRadius: 5, marginBottom: 8 }}>
-            MELHOR CUSTO-BENEFÍCIO
+            VER PREÇOS E MONTAR KIT
           </div>
           <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 20 : 24, fontWeight: 700, margin:'0 0 6px', letterSpacing:'-0.02em' }}>
             {k.name}
           </h2>
-          <p style={{ fontSize: 13.5, opacity: 0.9, margin:'0 0 12px', lineHeight: 1.5 }}>{k.desc}</p>
-          <div style={{ display:'flex', alignItems:'baseline', gap: 10, flexWrap:'wrap' }}>
-            <span style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 26 : 32, fontWeight: 800, letterSpacing:'-0.02em' }}>
-              R$ {k.price.toFixed(2).replace('.', ',')}
-            </span>
-            <span style={{ fontSize: 14, opacity: 0.7, textDecoration:'line-through' }}>
-              R$ {k.oldPrice.toFixed(2).replace('.', ',')}
-            </span>
-            <span style={{ fontSize: 11.5, fontWeight: 800, background:'rgba(16,185,129,.25)', color:'#A7F3D0', padding:'3px 8px', borderRadius: 5 }}>
-              ECONOMIZA R$ {k.savings}
-            </span>
-          </div>
+          <p style={{ fontSize: 13.5, opacity: 0.9, margin:'0 0 4px', lineHeight: 1.5 }}>{k.desc}</p>
         </div>
-        <button style={{
+        <a href={k.buyUrl} style={{
           background:'#fff', color: T.blueDk, border:'none', borderRadius: 10,
           padding: isMobile ? '12px 20px' : '14px 28px', fontSize: 14, fontWeight: 700, cursor:'pointer',
-          flexShrink: 0, width: isMobile ? '100%' : 'auto'
-        }}>Comprar kit completo</button>
+          flexShrink: 0, width: isMobile ? '100%' : 'auto', textDecoration:'none',
+          textAlign:'center', display:'inline-block'
+        }}>Abrir shop →</a>
       </div>
     </Card>
   )
@@ -2078,6 +2088,11 @@ function RankingList({ items, isMobile, plan }) {
           : <span style={{ fontSize: 12, color: T.textDim }}>Cafeterias · 3km</span>}
       </div>
 
+      {items.length === 0 ? (
+        <div style={{ padding: 22, textAlign:'center', color: T.textMid, fontSize: 13 }}>
+          📡 Coletando dados dos concorrentes da sua região…
+        </div>
+      ) : (
       <ol style={{ listStyle:'none', padding: 0, margin: 0 }}>
         {items.map(r => {
           const blurThis = locked && !r.you
@@ -2118,6 +2133,7 @@ function RankingList({ items, isMobile, plan }) {
           )
         })}
       </ol>
+      )}
 
       {locked && (
         <div style={{
@@ -2578,8 +2594,8 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
   // Carrega dados reais via API (skipa em demoMode ou sem user)
   const real = useRealData(user, demoMode)
 
-  // Plano real vence sobre URL só se não tiver override; em demo, default 'pro' pra mostrar tudo
-  const plan = getPlan(demoMode ? null : real.biz)
+  // Plano real vence sobre URL em modo logado. URL override só rola em demo.
+  const plan = getPlan(demoMode ? null : real.biz, demoMode)
 
   // Compõe dados: real sobrescreve mock; mock preenche lacunas
   const d = buildData(real, user, demoMode)
@@ -2671,23 +2687,26 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
       {tab === 'painel' && (
       <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
 
-        {/* Switch plano (apenas pra mockup) */}
-        <div style={{ display:'flex', gap: 8, marginBottom: 20, fontSize: 12 }}>
-          <a href="?plan=free" style={{
-            padding:'6px 12px', borderRadius:8, textDecoration:'none',
-            background: plan === 'free' ? T.blue : '#fff',
-            color: plan === 'free' ? '#fff' : T.textMid,
-            border:`1px solid ${plan === 'free' ? T.blue : T.border}`,
-            fontWeight: 600
-          }}>Ver como FREE</a>
-          <a href="?plan=pro" style={{
-            padding:'6px 12px', borderRadius:8, textDecoration:'none',
-            background: plan === 'pro' ? T.blue : '#fff',
-            color: plan === 'pro' ? '#fff' : T.textMid,
-            border:`1px solid ${plan === 'pro' ? T.blue : T.border}`,
-            fontWeight: 600
-          }}>Ver como PRO</a>
-        </div>
+        {/* Switch plano — só em demo (?demo=1). Em produção logada, o plano vem do banco. */}
+        {demoMode && (
+          <div style={{ display:'flex', gap: 8, marginBottom: 20, fontSize: 12, alignItems:'center' }}>
+            <span style={{ fontSize: 11, color: T.textDim, marginRight: 4 }}>DEMO:</span>
+            <a href="?demo=1&plan=free" style={{
+              padding:'6px 12px', borderRadius:8, textDecoration:'none',
+              background: plan === 'free' ? T.blue : '#fff',
+              color: plan === 'free' ? '#fff' : T.textMid,
+              border:`1px solid ${plan === 'free' ? T.blue : T.border}`,
+              fontWeight: 600
+            }}>Ver como FREE</a>
+            <a href="?demo=1&plan=pro" style={{
+              padding:'6px 12px', borderRadius:8, textDecoration:'none',
+              background: plan === 'pro' ? T.blue : '#fff',
+              color: plan === 'pro' ? '#fff' : T.textMid,
+              border:`1px solid ${plan === 'pro' ? T.blue : T.border}`,
+              fontWeight: 600
+            }}>Ver como PRO</a>
+          </div>
+        )}
 
         {/* TITLE */}
         <div style={{ marginBottom: 22 }}>
