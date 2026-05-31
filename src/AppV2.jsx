@@ -3669,10 +3669,15 @@ function calcStarTouchScore(d) {
 // ─────────────────────────────────────────────────────────────
 export default function AppV2({ user = null, onLogout, demoMode = false } = {}) {
   const isMobile = useIsMobile(768)
-  // Permite deep-link via ?tab=alertas|concorrentes|relatorios|avaliacoes
-  const initialTab = typeof window !== 'undefined'
-    ? (new URLSearchParams(window.location.search).get('tab') || 'painel')
-    : 'painel'
+  // Deep-link inicial: ?tab=X (vence) OU hash #conta|#negocio|#plano (vai pra config) OU painel
+  const initialTab = (() => {
+    if (typeof window === 'undefined') return 'painel'
+    const qsTab = new URLSearchParams(window.location.search).get('tab')
+    if (qsTab) return qsTab
+    const hash = window.location.hash.replace('#', '')
+    if (['conta', 'negocio', 'plano'].includes(hash)) return 'config'
+    return 'painel'
+  })()
   const [tab, setTab] = React.useState(initialTab)
   const [moreOpen, setMoreOpen] = React.useState(false)
 
