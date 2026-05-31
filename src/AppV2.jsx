@@ -295,10 +295,16 @@ function useRealData(user, demoMode) {
           if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, competitors: null, plates: null, hasBusiness: false })
           return
         }
+        // Categoria customizada salva pelo user (sobrepõe a categoria do Google)
+        const keyword = (typeof window !== 'undefined' ? localStorage.getItem('rz_activity') : '') || ''
+        const competitorsUrl = keyword
+          ? `/api/competitors?keyword=${encodeURIComponent(keyword)}`
+          : '/api/competitors'
+
         // 3 chamadas em paralelo: reviews (público), competitors (auth), plates (auth)
         const [reviewsRes, competitorsRes, platesRes] = await Promise.all([
           fetch(`/api/reviews?place_id=${encodeURIComponent(biz.place_id)}`).then(r => r.json()).catch(() => ({})),
-          apiCall('/api/competitors').catch(() => null),
+          apiCall(competitorsUrl).catch(() => null),
           apiCall('/api/plates?action=my-plates').catch(() => null)
         ])
         if (!cancelled) {
@@ -2517,18 +2523,67 @@ function AccountSection({ user }) {
 }
 
 function BusinessSection({ biz }) {
+  // Categoria customizada (palavra-chave usada na busca de concorrentes).
+  // Persiste em localStorage.rz_activity (mesmo storage do app antigo, compatível).
+  const [category, setCategory] = React.useState(() => {
+    if (typeof window === 'undefined') return biz.category || ''
+    return localStorage.getItem('rz_activity') || biz.category || ''
+  })
+  const [savedNotice, setSavedNotice] = React.useState('')
+
+  function handleSaveCategory() {
+    try {
+      const v = (category || '').trim()
+      if (v) {
+        localStorage.setItem('rz_activity', v)
+      } else {
+        localStorage.removeItem('rz_activity')
+      }
+      setSavedNotice('✓ Categoria salva. Recarregando o ranking…')
+      setTimeout(() => window.location.reload(), 900)
+    } catch (e) {
+      setSavedNotice('⚠️ Não conseguimos salvar localmente.')
+    }
+  }
+
   return (
     <ConfigSectionCard anchor="negocio" icon="🏢" title="Dados do negócio" sub="O que aparece nas suas placas, relatórios e nos alertas.">
-      <ConfigField label="Nome do negócio" value={biz.name}/>
-      <ConfigField label="Categoria"       value={biz.category}/>
-      <ConfigField label="Endereço"        value={biz.address}/>
-      <ConfigField label="Telefone"        value={biz.phone} type="tel"/>
-      <ConfigField label="Google Place ID" value={biz.placeId} readOnly hint="Conectado ao Google Meu Negócio · não pode ser alterado."/>
+      {/* Categoria editável — controla a busca de concorrentes */}
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ fontSize: 12, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>
+          Categoria / palavra-chave da busca
+        </label>
+        <div style={{ display:'flex', gap: 8 }}>
+          <input
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="Ex: cafeteria, salão de beleza, clínica odontológica…"
+            style={{
+              flex: 1, padding:'9px 12px', fontSize: 13.5,
+              border:'1px solid '+T.border, borderRadius: 8, outline:'none',
+              background:'#fff', color: T.text, boxSizing:'border-box'
+            }}/>
+          <button onClick={handleSaveCategory} style={{
+            background: T.blue, color:'#fff', border:'none', borderRadius: 8,
+            padding:'9px 16px', fontSize: 13, fontWeight: 700, cursor:'pointer', whiteSpace:'nowrap'
+          }}>Salvar</button>
+        </div>
+        <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 4, lineHeight: 1.5 }}>
+          Esse termo é usado pra buscar concorrentes na sua região. Se o Google te classificou diferente do que você é (ex: "loja" em vez de "padaria"), corrija aqui.
+        </div>
+        {savedNotice && (
+          <div style={{
+            marginTop: 8, padding:'8px 12px', background: T.greenSoft, border:'1px solid #A7F3D0',
+            borderRadius: 8, fontSize: 12.5, color:'#065F46', fontWeight: 600
+          }}>{savedNotice}</div>
+        )}
+      </div>
+
+      <ConfigField label="Nome do negócio" value={biz.name}      readOnly hint="Vem do Google Meu Negócio."/>
+      <ConfigField label="Endereço"        value={biz.address}   readOnly hint="Vem do Google Meu Negócio."/>
+      <ConfigField label="Telefone"        value={biz.phone}     readOnly type="tel"/>
+      <ConfigField label="Google Place ID" value={biz.placeId}   readOnly hint="Identificador único do Google · não pode ser alterado."/>
       <div style={{ display:'flex', gap: 8, marginTop: 14 }}>
-        <button style={{
-          background: T.blue, color:'#fff', border:'none', borderRadius: 8,
-          padding:'10px 18px', fontSize: 13.5, fontWeight: 700, cursor:'pointer'
-        }}>Salvar alterações</button>
         <a href={biz.gmapsUrl} target="_blank" rel="noreferrer" style={{
           background:'#fff', color: T.blue, border:'1px solid '+T.border, borderRadius: 8,
           padding:'10px 16px', fontSize: 13, fontWeight: 600, textDecoration:'none',
