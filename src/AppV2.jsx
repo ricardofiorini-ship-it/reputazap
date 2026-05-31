@@ -467,13 +467,19 @@ function useIsMobile(bp = 768) {
   return m
 }
 
-function getPlan(realBiz, demoMode) {
+// Admin emails — devem casar com api/competitors.js ADMIN_EMAIL
+const ADMIN_EMAILS = ['ricardo.fiorini@gmail.com']
+const isAdminUser = (user) => !!user && ADMIN_EMAILS.includes((user.email || '').toLowerCase())
+
+function getPlan(realBiz, demoMode, user) {
   // URL ?plan=free|pro só vale em demoMode OU quando ainda não tem negócio real
   // (em produção, NUNCA permitir bypass do paywall pelo URL)
   if (typeof window !== 'undefined') {
     const p = new URLSearchParams(window.location.search).get('plan')
     if ((p === 'free' || p === 'pro') && (demoMode || !realBiz)) return p
   }
+  // Admin vê tudo como Pro automaticamente (já tinha esse override no backend)
+  if (isAdminUser(user)) return 'pro'
   // Sem override válido: usa plano real do biz (default = free)
   if (realBiz) return realBiz.plan === 'pro' ? 'pro' : 'free'
   return 'pro' // demo default
@@ -3587,7 +3593,8 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
   const real = useRealData(user, demoMode)
 
   // Plano real vence sobre URL em modo logado. URL override só rola em demo.
-  const plan = getPlan(demoMode ? null : real.biz, demoMode)
+  // Admin (email hardcoded) tbm vê tudo como Pro automaticamente.
+  const plan = getPlan(demoMode ? null : real.biz, demoMode, user)
 
   // Compõe dados: real sobrescreve mock; mock preenche lacunas
   const d = buildData(real, user, demoMode)
