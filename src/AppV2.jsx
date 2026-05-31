@@ -301,9 +301,11 @@ function useRealData(user, demoMode) {
           ? `/api/competitors?keyword=${encodeURIComponent(keyword)}`
           : '/api/competitors'
 
-        // 3 chamadas em paralelo: reviews (público), competitors (auth), plates (auth)
-        const [reviewsRes, competitorsRes, platesRes] = await Promise.all([
+        // 4 chamadas em paralelo: reviews (público), bizinfo (público, traz endereço/foto/categoria),
+        // competitors (auth), plates (auth)
+        const [reviewsRes, bizInfoRes, competitorsRes, platesRes] = await Promise.all([
           fetch(`/api/reviews?place_id=${encodeURIComponent(biz.place_id)}`).then(r => r.json()).catch(() => ({})),
+          fetch(`/api/bizinfo?place_id=${encodeURIComponent(biz.place_id)}`).then(r => r.json()).catch(() => ({})),
           apiCall(competitorsUrl).catch(() => null),
           apiCall('/api/plates?action=my-plates').catch(() => null)
         ])
@@ -312,7 +314,16 @@ function useRealData(user, demoMode) {
             loading: false, error: null,
             biz,
             reviews: reviewsRes.reviews || [],
-            bizInfo: { rating: reviewsRes.rating ?? biz.rating, total: reviewsRes.total ?? biz.total_reviews, name: reviewsRes.name ?? biz.name },
+            bizInfo: {
+              rating: reviewsRes.rating ?? bizInfoRes.rating ?? biz.rating,
+              total: reviewsRes.total ?? bizInfoRes.total ?? biz.total_reviews,
+              name: reviewsRes.name ?? bizInfoRes.name ?? biz.name,
+              address: bizInfoRes.address || null,
+              phone: bizInfoRes.phone || null,
+              gmapsUrl: bizInfoRes.gmapsUrl || null,
+              category: bizInfoRes.category || null,
+              photoUrl: bizInfoRes.photoUrl || null
+            },
             competitors: competitorsRes,
             plates: platesRes?.plates || [],
             hasBusiness: true
@@ -374,8 +385,10 @@ function buildData(real, user, demoMode) {
         locked: isLocked,
         rating: c.rating,
         reviews: c.reviews,
-        weekGrowth: 0,                         // sem snapshot semanal ainda — Fase futura
-        history: Array(12).fill(c.reviews),    // achatado — sparkline sem dados ainda
+        // weekGrowth/distance/history são null pra UI saber esconder (em vez de mostrar 0 falso)
+        weekGrowth: null,
+        distance: null,
+        history: null,
         color: isLocked ? '#94A3B8' : colorFromName(c.name || `${i}`),
         initials: isLocked ? '🔒' : initialsFromName(c.name || `C${i}`),
         isYou: c.is_me
@@ -436,10 +449,14 @@ function buildData(real, user, demoMode) {
       name: user?.name || user?.email || MOCK.user.name,
       email: user?.email || MOCK.user.email
     },
+    // Sem mock vazando: campos sem dados reais ficam null e a UI mostra "—"
     businessInfo: {
-      ...MOCK.businessInfo,
       name: biz.name,
-      placeId: biz.place_id
+      placeId: biz.place_id,
+      category: bizInfo?.category || null,        // categoria do Google (types)
+      address: bizInfo?.address || null,          // formatted_address real do Google
+      phone: bizInfo?.phone || null,              // telefone real do Google
+      gmapsUrl: bizInfo?.gmapsUrl || `https://www.google.com/maps/place/?q=place_id:${biz.place_id}`
     },
     billing: {
       ...MOCK.billing,
@@ -2466,18 +2483,23 @@ function LojaScreen({ data, isMobile, plan }) {
 // CONFIGURAÇÕES — Conta + Negócio + Plano
 // ─────────────────────────────────────────────────────────────
 function ConfigField({ label, value, type = 'text', readOnly, hint, action }) {
+  const isEmpty = value == null || value === ''
   return (
     <div style={{ marginBottom: 14 }}>
       <label style={{ fontSize: 12, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>{label}</label>
       <div style={{ display:'flex', gap: 8 }}>
         <input
           type={type}
-          defaultValue={value}
+          defaultValue={isEmpty ? '' : value}
+          placeholder={isEmpty ? '— Não informado' : ''}
           readOnly={readOnly}
           style={{
             flex: 1, padding:'9px 12px', fontSize: 13.5,
             border:'1px solid '+T.border, borderRadius: 8, outline:'none',
-            background: readOnly ? T.bg : '#fff', color: T.text, boxSizing:'border-box'
+            background: readOnly ? T.bg : '#fff',
+            color: isEmpty ? T.textDim : T.text,
+            fontStyle: isEmpty ? 'italic' : 'normal',
+            boxSizing:'border-box'
           }}/>
         {action && (
           <button style={{
@@ -2581,8 +2603,26 @@ function BusinessSection({ biz }) {
 
       <ConfigField label="Nome do negócio" value={biz.name}      readOnly hint="Vem do Google Meu Negócio."/>
       <ConfigField label="Endereço"        value={biz.address}   readOnly hint="Vem do Google Meu Negócio."/>
-      <ConfigField label="Telefone"        value={biz.phone}     readOnly type="tel"/>
+      <ConfigField label="Telefone"        value={biz.phone}     readOnly type="tel" hint="Vem do Google Meu Negócio."/>
       <ConfigField label="Google Place ID" value={biz.placeId}   readOnly hint="Identificador único do Google · não pode ser alterado."/>
+
+      <div style={{
+        marginTop: 16, padding: 14, background: T.blueSoft, borderRadius: 10,
+        border:'1px solid #BFDBFE'
+      }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: T.blueDk, marginBottom: 4 }}>
+          Negócio errado vinculado?
+        </div>
+        <div style={{ fontSize: 12.5, color: T.blueDk, lineHeight: 1.5, marginBottom: 10 }}>
+          Os dados acima são puxados do Google Meu Negócio do <strong>place_id</strong> vinculado. Se você vinculou o negócio errado (ou mudou de loja), troque pra refazer a busca de concorrentes na região certa.
+        </div>
+        <a href="/comece" style={{
+          display:'inline-block', background: T.blue, color:'#fff',
+          borderRadius: 8, padding:'9px 16px', fontSize: 13, fontWeight: 700,
+          textDecoration:'none'
+        }}>🔄 Trocar negócio vinculado</a>
+      </div>
+
       <div style={{ display:'flex', gap: 8, marginTop: 14 }}>
         <a href={biz.gmapsUrl} target="_blank" rel="noreferrer" style={{
           background:'#fff', color: T.blue, border:'1px solid '+T.border, borderRadius: 8,
