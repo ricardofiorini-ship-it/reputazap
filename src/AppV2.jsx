@@ -383,14 +383,18 @@ function buildData(real, user, demoMode) {
     ranking: compData?.rankingMini ?? [],
     competitors: compData?.list ?? [],
     recentReviews: (reviews && reviews.length > 0)
-      ? reviews.slice(0, 5).map(r => ({
-          name: r.author_name || 'Cliente Google',
-          rating: r.rating || 5,
-          comment: r.text || '',
-          date: relativeDate(r.time),
-          initials: initialsFromName(r.author_name),
-          color: colorFromName(r.author_name)
-        }))
+      ? reviews.slice(0, 5).map(r => {
+          // /api/reviews retorna shape: { author, avatar, rating, text, date, ... }
+          const name = r.author || r.author_name || 'Cliente Google'
+          return {
+            name,
+            rating: r.rating || 5,
+            comment: r.text || '',
+            date: r.date || relativeDate(r.time || r.id),
+            initials: r.avatar || initialsFromName(name),
+            color: colorFromName(name)
+          }
+        })
       : MOCK.recentReviews,
     user: {
       ...MOCK.user,
