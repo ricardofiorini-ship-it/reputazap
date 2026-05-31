@@ -533,6 +533,64 @@ const TABS = [
   { id: 'loja',         icon: '🛍️', label: 'Loja',         pro: false }
 ]
 
+// ─────────────────────────────────────────────────────────────
+// Bottom Tab Bar — mobile (fixa no rodapé, todas as 6 abas visíveis)
+// ─────────────────────────────────────────────────────────────
+function BottomTabBar({ active, onChange, plan }) {
+  return (
+    <nav style={{
+      position:'fixed', bottom: 0, left: 0, right: 0,
+      background:'rgba(255,255,255,0.96)', backdropFilter:'blur(20px)',
+      borderTop:'1px solid '+T.border,
+      display:'flex', zIndex: 50,
+      paddingBottom:'env(safe-area-inset-bottom, 0)',  // iOS notch
+      boxShadow:'0 -2px 12px rgba(15,23,42,0.06)'
+    }}>
+      {TABS.map(tab => {
+        const isActive = active === tab.id
+        const isLocked = tab.pro && plan === 'free'
+        return (
+          <a
+            key={tab.id}
+            href={isLocked ? '/plano-pro' : '#'}
+            onClick={(e) => {
+              if (isLocked) return // deixa o href levar
+              e.preventDefault()
+              onChange(tab.id)
+            }}
+            style={{
+              flex: 1, minWidth: 0,
+              display:'flex', flexDirection:'column',
+              alignItems:'center', justifyContent:'center',
+              padding:'8px 2px 10px',
+              color: isActive ? T.blue : T.textMid,
+              textDecoration:'none',
+              position:'relative',
+              borderTop: isActive ? `2px solid ${T.blue}` : '2px solid transparent',
+              transition:'color .12s, border-color .12s'
+            }}
+          >
+            <span style={{ fontSize: 21, lineHeight: 1, marginBottom: 3 }}>{tab.icon}</span>
+            <span style={{
+              fontSize: 10.5, fontWeight: isActive ? 700 : 500,
+              whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
+              maxWidth: '100%', textAlign:'center'
+            }}>{tab.label}</span>
+            {isLocked && (
+              <span style={{
+                position:'absolute', top: 4, right: 'calc(50% - 22px)',
+                fontSize: 9, fontWeight: 800,
+                padding:'1px 4px', borderRadius: 3,
+                background:'#FBBC04', color:'#78350F'
+              }}>🔒</span>
+            )}
+          </a>
+        )
+      })}
+    </nav>
+  )
+}
+
 function TopTabs({ active, onChange, plan, isMobile }) {
   const scrollerRef = React.useRef(null)
   const activeRef = React.useRef(null)
@@ -2887,9 +2945,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
   }
 
   return (
-    <div style={{ background: T.bg, minHeight:'100vh' }}>
+    <div style={{
+      background: T.bg, minHeight:'100vh',
+      // Espaço pro bottom tab bar não cobrir o conteúdo final (só mobile)
+      paddingBottom: isMobile ? 'calc(72px + env(safe-area-inset-bottom, 0))' : 0
+    }}>
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={onLogout} demoMode={demoMode} />
-      <TopTabs active={tab} onChange={setTab} plan={plan} isMobile={isMobile} />
+      {!isMobile && <TopTabs active={tab} onChange={setTab} plan={plan} isMobile={false} />}
 
       {/* Aba: CONCORRENTES (Pro) — Inteligência Competitiva FUNCIONAL */}
       {tab === 'concorrentes' && plan === 'pro' && (
@@ -3035,6 +3097,9 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
 
       </main>
       )}
+
+      {/* Bottom Tab Bar — só mobile, fixa no rodapé com todas as 6 abas visíveis */}
+      {isMobile && <BottomTabBar active={tab} onChange={setTab} plan={plan} />}
     </div>
   )
 }
