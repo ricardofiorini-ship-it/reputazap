@@ -52,19 +52,20 @@ const MOCK = {
     rankings: [9, 8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3]
   },
   // Concorrentes (Inteligência Competitiva)
+  // distance: metros até o seu negócio. angle: ângulo (radianos) pro mapa SVG.
   competitors: [
-    { id: 1,  pos: 1,  medal:'🥇', name:'Empresa A',        rating: 5.0, reviews: 25, weekGrowth: +3, history:[18,19,20,21,21,22,23,24,24,24,25,25], color:'#F59E0B', initials:'EA' },
-    { id: 2,  pos: 2,  medal:'🥈', name:'Empresa B',        rating: 5.0, reviews: 14, weekGrowth: +1, history:[10,10,11,11,11,12,12,13,13,13,14,14], color:'#10B981', initials:'EB' },
-    { id: 3,  pos: 3,  medal:'🥉', name:'Café Bella Vista', rating: 5.0, reviews: 12, weekGrowth: +2, history:[5,5,6,6,7,7,8,9,10,11,11,12],         color:'#1A73E8', initials:'CB', isYou: true },
-    { id: 4,  pos: 4,            name:'Empresa C',        rating: 4.9, reviews: 11, weekGrowth:  0, history:[10,10,10,11,11,11,11,11,11,11,11,11], color:'#8B5CF6', initials:'EC' },
-    { id: 5,  pos: 5,            name:'Empresa D',        rating: 4.8, reviews: 9,  weekGrowth: +1, history:[5,5,6,6,6,7,7,7,8,8,8,9],             color:'#EC4899', initials:'ED' },
-    { id: 6,  pos: 6,            name:'Empresa E',        rating: 4.8, reviews: 9,  weekGrowth:  0, history:[8,8,8,8,8,8,9,9,9,9,9,9],              color:'#06B6D4', initials:'EE' },
-    { id: 7,  pos: 7,            name:'Empresa F',        rating: 4.7, reviews: 8,  weekGrowth: +2, history:[4,4,5,5,5,6,6,6,7,7,8,8],              color:'#84CC16', initials:'EF' },
-    { id: 8,  pos: 8,            name:'Empresa G',        rating: 4.7, reviews: 7,  weekGrowth:  0, history:[6,6,7,7,7,7,7,7,7,7,7,7],              color:'#F97316', initials:'EG' },
-    { id: 9,  pos: 9,            name:'Empresa H',        rating: 4.6, reviews: 6,  weekGrowth: +1, history:[3,3,4,4,4,4,5,5,5,5,6,6],              color:'#06B6D4', initials:'EH' },
-    { id: 10, pos: 10,           name:'Empresa I',        rating: 4.5, reviews: 5,  weekGrowth:  0, history:[5,5,5,5,5,5,5,5,5,5,5,5],              color:'#A855F7', initials:'EI' },
-    { id: 11, pos: 11,           name:'Empresa J',        rating: 4.4, reviews: 4,  weekGrowth:  0, history:[3,3,3,3,4,4,4,4,4,4,4,4],              color:'#14B8A6', initials:'EJ' },
-    { id: 12, pos: 12,           name:'Empresa K',        rating: 4.2, reviews: 3,  weekGrowth: -1, history:[5,5,5,5,4,4,4,4,4,3,3,3],              color:'#EF4444', initials:'EK' }
+    { id: 1,  pos: 1,  medal:'🥇', name:'Empresa A',        rating: 5.0, reviews: 25, weekGrowth: +3, distance:  320, angle: 0.4, history:[18,19,20,21,21,22,23,24,24,24,25,25], color:'#F59E0B', initials:'EA' },
+    { id: 2,  pos: 2,  medal:'🥈', name:'Empresa B',        rating: 5.0, reviews: 14, weekGrowth: +1, distance:  480, angle: 1.9, history:[10,10,11,11,11,12,12,13,13,13,14,14], color:'#10B981', initials:'EB' },
+    { id: 3,  pos: 3,  medal:'🥉', name:'Café Bella Vista', rating: 5.0, reviews: 12, weekGrowth: +2, distance:    0, angle: 0,   history:[5,5,6,6,7,7,8,9,10,11,11,12],         color:'#1A73E8', initials:'CB', isYou: true },
+    { id: 4,  pos: 4,            name:'Empresa C',        rating: 4.9, reviews: 11, weekGrowth:  0, distance:  580, angle: 3.2, history:[10,10,10,11,11,11,11,11,11,11,11,11], color:'#8B5CF6', initials:'EC' },
+    { id: 5,  pos: 5,            name:'Empresa D',        rating: 4.8, reviews:  9, weekGrowth: +1, distance:  710, angle: 4.7, history:[5,5,6,6,6,7,7,7,8,8,8,9],             color:'#EC4899', initials:'ED' },
+    { id: 6,  pos: 6,            name:'Empresa E',        rating: 4.8, reviews:  9, weekGrowth:  0, distance:  860, angle: 0.9, history:[8,8,8,8,8,8,9,9,9,9,9,9],              color:'#06B6D4', initials:'EE' },
+    { id: 7,  pos: 7,            name:'Empresa F',        rating: 4.7, reviews:  8, weekGrowth: +2, distance:  990, angle: 2.6, history:[4,4,5,5,5,6,6,6,7,7,8,8],              color:'#84CC16', initials:'EF' },
+    { id: 8,  pos: 8,            name:'Empresa G',        rating: 4.7, reviews:  7, weekGrowth:  0, distance: 1180, angle: 5.5, history:[6,6,7,7,7,7,7,7,7,7,7,7],              color:'#F97316', initials:'EG' },
+    { id: 9,  pos: 9,            name:'Empresa H',        rating: 4.6, reviews:  6, weekGrowth: +1, distance: 1450, angle: 1.3, history:[3,3,4,4,4,4,5,5,5,5,6,6],              color:'#06B6D4', initials:'EH' },
+    { id: 10, pos: 10,           name:'Empresa I',        rating: 4.5, reviews:  5, weekGrowth:  0, distance: 1620, angle: 3.8, history:[5,5,5,5,5,5,5,5,5,5,5,5],              color:'#A855F7', initials:'EI' },
+    { id: 11, pos: 11,           name:'Empresa J',        rating: 4.4, reviews:  4, weekGrowth:  0, distance: 1780, angle: 5.0, history:[3,3,3,3,4,4,4,4,4,4,4,4],              color:'#14B8A6', initials:'EJ' },
+    { id: 12, pos: 12,           name:'Empresa K',        rating: 4.2, reviews:  3, weekGrowth: -1, distance: 1850, angle: 2.2, history:[5,5,5,5,4,4,4,4,4,3,3,3],              color:'#EF4444', initials:'EK' }
   ],
   // Minhas metas (gamificação)
   goals: [
@@ -1083,8 +1084,477 @@ function MyGoalsCard({ goals }) {
   )
 }
 
+// ─────────────────────────────────────────────────────────────
+// Benchmark da categoria — sua nota vs média/top/mediana
+// ─────────────────────────────────────────────────────────────
+function CategoryBenchmark({ data, list, isMobile }) {
+  if (!list.length) return null
+  const others = list.filter(c => !c.isYou && !c.locked)
+  const allReviews = [...others.map(c => c.reviews), data.kpis.reviewCount].sort((a,b) => a-b)
+  const allRatings = [...others.map(c => c.rating), data.kpis.rating]
+
+  const avgRating = (allRatings.reduce((s,r) => s+r, 0) / allRatings.length).toFixed(1)
+  const topReviews = Math.max(...allReviews)
+  const topComp = list.find(c => c.reviews === topReviews) || null
+  const median = allReviews[Math.floor(allReviews.length / 2)]
+  const youRating = data.kpis.rating
+  const youReviews = data.kpis.reviewCount
+
+  const ratingDelta = (youRating - parseFloat(avgRating)).toFixed(1)
+
+  const items = [
+    {
+      label:'Sua nota',
+      value: youRating.toFixed(1),
+      hint: youRating >= parseFloat(avgRating)
+        ? <span style={{ color: T.green }}>{ratingDelta > 0 ? `+${ratingDelta}` : ratingDelta} vs média</span>
+        : <span style={{ color: T.red }}>{ratingDelta} vs média</span>,
+      icon:'⭐',
+      accent: T.blue
+    },
+    {
+      label:'Média da categoria',
+      value: avgRating,
+      hint:`com ${allRatings.length} negócios`,
+      icon:'📊',
+      accent: T.textMid
+    },
+    {
+      label:'Líder em volume',
+      value: topReviews,
+      hint: topComp ? (topComp.locked ? '🔒 nome oculto' : topComp.isYou ? '(você!)' : topComp.name) : '—',
+      icon:'🥇',
+      accent: T.amber
+    },
+    {
+      label:'Mediana da região',
+      value: median,
+      hint: youReviews >= median ? <span style={{ color: T.green }}>Acima da mediana</span> : <span style={{ color: T.red }}>Abaixo da mediana</span>,
+      icon:'📍',
+      accent: T.textMid
+    }
+  ]
+
+  return (
+    <Card>
+      <div style={{ marginBottom: 12 }}>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
+          📊 Benchmark da categoria
+        </h3>
+        <div style={{ fontSize: 12.5, color: T.textMid }}>Como você se compara nos índices da sua categoria.</div>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 10 }}>
+        {items.map((it, i) => (
+          <div key={i} style={{ padding: 14, background: T.bg, border:'1px solid '+T.border, borderRadius: 10 }}>
+            <div style={{ fontSize: 11, color: T.textMid, fontWeight: 600, letterSpacing:'.02em', textTransform:'uppercase', marginBottom: 4, display:'flex', alignItems:'center', gap: 4 }}>
+              <span style={{ fontSize: 12 }}>{it.icon}</span>{it.label}
+            </div>
+            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 26, fontWeight: 800, color: it.accent, letterSpacing:'-0.02em', lineHeight: 1, marginBottom: 4 }}>
+              {it.value}
+            </div>
+            <div style={{ fontSize: 11.5, color: T.textDim, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{it.hint}</div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Mapa SVG dos concorrentes
+// ─────────────────────────────────────────────────────────────
+function CompetitorMap({ list, isMobile }) {
+  if (!list.length) return null
+  const W = isMobile ? 340 : 720
+  const H = isMobile ? 340 : 380
+  const cx = W / 2, cy = H / 2
+  const maxR = Math.min(W, H) / 2 - 30
+  const maxDistance = Math.max(...list.filter(c => !c.isYou).map(c => c.distance || 0)) || 2000
+  const scale = maxR / maxDistance
+
+  const others = list.filter(c => !c.isYou && c.distance != null)
+  const me = list.find(c => c.isYou)
+
+  return (
+    <Card padded={false} style={{ padding: 18 }}>
+      <div style={{ marginBottom: 14, display:'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent:'space-between', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
+        <div>
+          <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
+            🗺️ Mapa de concorrência
+          </h3>
+          <div style={{ fontSize: 12.5, color: T.textMid }}>Quem disputa o cliente que está pertinho de você.</div>
+        </div>
+        <div style={{ display:'flex', gap: 10, fontSize: 11, flexWrap:'wrap' }}>
+          <span style={{ display:'inline-flex', alignItems:'center', gap: 5 }}><span style={{ width: 10, height: 10, borderRadius:'50%', background: T.blue, display:'inline-block' }}/>Você</span>
+          <span style={{ display:'inline-flex', alignItems:'center', gap: 5 }}><span style={{ width: 10, height: 10, borderRadius:'50%', background: T.amber, display:'inline-block' }}/>À sua frente</span>
+          <span style={{ display:'inline-flex', alignItems:'center', gap: 5 }}><span style={{ width: 10, height: 10, borderRadius:'50%', background:'#CBD5E1', display:'inline-block' }}/>Atrás</span>
+        </div>
+      </div>
+
+      <div style={{
+        position:'relative', borderRadius: 12, overflow:'hidden',
+        background:'linear-gradient(135deg,#F1F5F9 0%, #E2E8F0 100%)',
+        border:'1px solid '+T.border, aspectRatio: `${W}/${H}`
+      }}>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width:'100%', height:'auto', display:'block' }}>
+          {/* Grid lines (estilo mapa abstrato) */}
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#CBD5E1" strokeWidth="0.5" opacity="0.5"/>
+            </pattern>
+          </defs>
+          <rect width={W} height={H} fill="url(#grid)"/>
+
+          {/* Anéis de distância */}
+          {[0.33, 0.66, 1].map((p, i) => (
+            <circle key={i} cx={cx} cy={cy} r={maxR * p}
+              fill="none" stroke="#94A3B8" strokeWidth="0.8" strokeDasharray="3 5" opacity="0.5"/>
+          ))}
+          {/* Labels dos anéis */}
+          {[0.33, 0.66, 1].map((p, i) => {
+            const m = Math.round((maxDistance * p) / 100) * 100
+            return (
+              <text key={i} x={cx} y={cy - maxR * p - 4} fontSize="9.5" fill="#94A3B8" textAnchor="middle" fontWeight="600">
+                {m < 1000 ? `${m}m` : `${(m/1000).toFixed(1)}km`}
+              </text>
+            )
+          })}
+
+          {/* Linhas radiais sutis */}
+          {[0, 1, 2, 3].map(i => (
+            <line key={i}
+              x1={cx} y1={cy}
+              x2={cx + Math.cos(i * Math.PI / 4) * maxR}
+              y2={cy + Math.sin(i * Math.PI / 4) * maxR}
+              stroke="#CBD5E1" strokeWidth="0.6" strokeDasharray="2 4" opacity="0.4"/>
+          ))}
+
+          {/* Concorrentes */}
+          {others.map(c => {
+            const r = (c.distance || 0) * scale
+            const x = cx + Math.cos(c.angle) * r
+            const y = cy + Math.sin(c.angle) * r
+            const ahead = c.reviews > (me?.reviews || 0)
+            const pinColor = ahead ? T.amber : '#CBD5E1'
+            return (
+              <g key={c.id}>
+                {/* "rastro" do pino */}
+                <ellipse cx={x} cy={y + 9} rx={7} ry={2.5} fill="rgba(15,23,42,.18)"/>
+                <circle cx={x} cy={y} r={11} fill={pinColor} stroke="#fff" strokeWidth="2"/>
+                <text x={x} y={y + 3.5} fontSize="9" fontWeight="800" fill="#fff" textAnchor="middle">{c.pos}</text>
+              </g>
+            )
+          })}
+
+          {/* Você (centro, destaque) */}
+          {me && (
+            <g>
+              <circle cx={cx} cy={cy} r={20} fill={T.blue} opacity="0.12"/>
+              <circle cx={cx} cy={cy} r={14} fill={T.blue} opacity="0.25"/>
+              <ellipse cx={cx} cy={cy + 11} rx={9} ry={3} fill="rgba(15,23,42,.25)"/>
+              <circle cx={cx} cy={cy} r={13} fill={T.blue} stroke="#fff" strokeWidth="2.5"/>
+              <text x={cx} y={cy + 4} fontSize="11" fontWeight="800" fill="#fff" textAnchor="middle">VC</text>
+            </g>
+          )}
+        </svg>
+      </div>
+
+      <div style={{ marginTop: 12, fontSize: 11.5, color: T.textDim, textAlign:'center', display:'flex', justifyContent:'center', alignItems:'center', gap: 6 }}>
+        <span>📍</span>
+        <span>Posições relativas das {others.length} cafeterias da sua categoria. Anéis = distância até você.</span>
+      </div>
+    </Card>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Linha de concorrente premium — com distância, alvo e CTA
+// ─────────────────────────────────────────────────────────────
+function EnhancedCompetitorRow({ comp, youReviews, isMobile }) {
+  const diff = comp.reviews - youReviews
+  const aheadOfYou = diff > 0
+  const isYou = comp.isYou
+  const isLocked = comp.locked
+  const closeTarget = aheadOfYou && diff <= 3 && !isLocked
+  const distance = comp.distance != null
+    ? (comp.distance < 1000 ? `${comp.distance}m` : `${(comp.distance/1000).toFixed(1)}km`)
+    : null
+
+  return (
+    <div style={{
+      padding: 14, borderRadius: 12,
+      background: isYou ? T.blueSoft : '#fff',
+      border: isYou ? '1.5px solid #B9D6FB' : '1px solid '+T.border,
+      display:'flex', gap: 12, alignItems:'flex-start'
+    }}>
+      {/* Posição + medalha */}
+      <div style={{
+        width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+        background: isYou ? T.blue : '#F1F5F9', color: isYou ? '#fff' : T.textMid,
+        display:'grid', placeItems:'center', fontWeight: 800, fontSize: 14
+      }}>
+        {comp.medal || `#${comp.pos}`}
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap: 6, marginBottom: 4, flexWrap:'wrap' }}>
+          {isLocked ? (
+            <span style={{ fontSize: 14, fontWeight: 700, color: T.textMid, display:'inline-flex', alignItems:'center', gap: 6 }}>
+              🔒 Concorrente oculto
+              <a href="/plano-pro" style={{ fontSize: 10, fontWeight: 700, color: T.blue, background: T.blueSoft, padding:'2px 6px', borderRadius: 4, textDecoration:'none' }}>Desbloquear</a>
+            </span>
+          ) : (
+            <span style={{ fontSize: 14.5, fontWeight: 700, color: T.text }}>{comp.name}</span>
+          )}
+          {isYou && <span style={{ fontSize: 10, fontWeight: 700, color: T.blue, background:'#fff', border:`1px solid ${T.blue}`, borderRadius: 4, padding:'1px 5px' }}>VOCÊ</span>}
+          {closeTarget && !isYou && <span style={{ fontSize: 10, fontWeight: 700, color:'#92400E', background:'#FEF3C7', border:'1px solid #FCD34D', borderRadius: 4, padding:'1px 5px' }}>🎯 ALVO</span>}
+        </div>
+
+        {/* Métricas em linha */}
+        <div style={{ display:'flex', alignItems:'center', gap: 10, fontSize: 12, color: T.textMid, flexWrap:'wrap', marginBottom: 6 }}>
+          <span style={{ display:'inline-flex', alignItems:'center', gap: 3 }}>
+            <Stars rating={comp.rating} size={10}/>
+            <strong style={{ color: T.text, fontSize: 11.5 }}>{comp.rating.toFixed(1)}</strong>
+          </span>
+          <span style={{ color: T.textDim }}>·</span>
+          <span><strong style={{ color: T.text, fontSize: 11.5 }}>{comp.reviews}</strong> av.</span>
+          <span style={{ color: T.textDim }}>·</span>
+          <span style={{
+            display:'inline-flex', alignItems:'center', gap: 2,
+            color: comp.weekGrowth > 0 ? T.green : comp.weekGrowth < 0 ? T.red : T.textDim,
+            fontWeight: 600
+          }}>
+            {comp.weekGrowth > 0 ? '▲' : comp.weekGrowth < 0 ? '▼' : '—'}{Math.abs(comp.weekGrowth) || 0}/sem
+          </span>
+          {distance && (
+            <>
+              <span style={{ color: T.textDim }}>·</span>
+              <span style={{ display:'inline-flex', alignItems:'center', gap: 3 }}>📍 {distance}</span>
+            </>
+          )}
+        </div>
+
+        {/* Diff vs você */}
+        {!isYou && (
+          <div style={{ fontSize: 12.5, color: T.textMid }}>
+            {aheadOfYou
+              ? <>Falta <strong style={{ color: T.text }}>{diff} av.</strong> pra ultrapassar</>
+              : diff === 0
+              ? <>Empatados em avaliações</>
+              : <>Você está <strong style={{ color: T.text }}>{Math.abs(diff)} av. à frente</strong></>
+            }
+          </div>
+        )}
+      </div>
+
+      {/* Mini sparkline */}
+      {!isMobile && (
+        <div style={{ flexShrink: 0 }}>
+          <Sparkline data={comp.history} color={isYou ? T.blue : aheadOfYou ? T.amber : '#94A3B8'} w={60} h={28}/>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Simulador de crescimento
+// ─────────────────────────────────────────────────────────────
+function GrowthSimulator({ data, list, isMobile }) {
+  const [perWeek, setPerWeek] = React.useState(2)
+  const youReviews = data.kpis.reviewCount
+  const youPos = data.kpis.rankingPos
+  const allOthers = list.filter(c => !c.isYou && !c.locked).map(c => ({
+    pos: c.pos,
+    reviews: c.reviews,
+    growth: c.weekGrowth
+  }))
+
+  // Projeta posição em N semanas — para cada concorrente, sua média + nosso perWeek
+  function projectPos(weeks) {
+    const myFuture = youReviews + perWeek * weeks
+    let pos = 1
+    for (const o of allOthers) {
+      const theirFuture = o.reviews + (o.growth || 0) * weeks
+      if (theirFuture > myFuture) pos++
+    }
+    return { pos, my: myFuture }
+  }
+
+  const w4  = projectPos(4)   // ~30 dias
+  const w8  = projectPos(8)   // ~60 dias
+  const w12 = projectPos(12)  // ~90 dias
+
+  const positionChange = (p) => {
+    if (p === youPos) return { txt:'Mantém posição', color: T.textMid }
+    if (p < youPos) return { txt:`Sobe pra ${p}º`, color: T.green }
+    return { txt:`Cai pra ${p}º`, color: T.red }
+  }
+
+  return (
+    <Card>
+      <div style={{ marginBottom: 14 }}>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
+          🚀 Simulador de crescimento
+        </h3>
+        <div style={{ fontSize: 12.5, color: T.textMid }}>"E se eu conseguisse <strong>{perWeek}</strong> nova{perWeek !== 1 ? 's' : ''} avaliação/semana?"</div>
+      </div>
+
+      {/* Slider */}
+      <div style={{ padding:'8px 4px 16px' }}>
+        <input
+          type="range"
+          min="1" max="10" step="1"
+          value={perWeek}
+          onChange={(e) => setPerWeek(parseInt(e.target.value))}
+          style={{ width:'100%', accentColor: T.blue, cursor:'pointer' }}
+        />
+        <div style={{ display:'flex', justifyContent:'space-between', fontSize: 11, color: T.textDim, marginTop: 4 }}>
+          <span>1/sem</span>
+          <span>5/sem</span>
+          <span>10/sem</span>
+        </div>
+      </div>
+
+      {/* Projeções */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap: 10 }}>
+        {[
+          { label:'Em 30 dias', proj: w4,  d:'+30d' },
+          { label:'Em 60 dias', proj: w8,  d:'+60d' },
+          { label:'Em 90 dias', proj: w12, d:'+90d' }
+        ].map((it, i) => {
+          const change = positionChange(it.proj.pos)
+          return (
+            <div key={i} style={{
+              padding: isMobile ? 12 : 14, borderRadius: 10,
+              background: T.bg, border:'1px solid '+T.border, textAlign:'center'
+            }}>
+              <div style={{ fontSize: 10.5, color: T.textDim, fontWeight: 600, letterSpacing:'.04em', textTransform:'uppercase', marginBottom: 4 }}>{it.label}</div>
+              <div style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 20 : 26, fontWeight: 800, color: T.text, letterSpacing:'-0.02em', lineHeight: 1, marginBottom: 4 }}>
+                #{it.proj.pos}
+              </div>
+              <div style={{ fontSize: 11, color: change.color, fontWeight: 600, marginBottom: 4 }}>
+                {change.txt}
+              </div>
+              <div style={{ fontSize: 11, color: T.textDim }}>
+                {it.proj.my} av. totais
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div style={{
+        marginTop: 14, padding: 12, background: T.blueSoft, borderRadius: 8,
+        fontSize: 12.5, color: T.blueDk, lineHeight: 1.5
+      }}>
+        💡 <b>Como capitar {perWeek}/semana?</b> {
+          perWeek <= 2 ? 'Ative a placa de balcão — toque do cliente após pagar gera ~3 avaliações/semana automaticamente.' :
+          perWeek <= 5 ? 'Combine placa de balcão + cartão NFC do garçom — multiplica os pontos de contato em 2-3x.' :
+                         'Kit completo (placa + cartão + pulseira) + treinamento da equipe pra pedir avaliação no fim do atendimento.'
+        }
+      </div>
+    </Card>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Oportunidades acionáveis
+// ─────────────────────────────────────────────────────────────
+function OpportunitiesPanel({ data, list, isMobile }) {
+  if (!list.length) return null
+  const youPos = data.kpis.rankingPos
+  const youReviews = data.kpis.reviewCount
+  const ahead = list.filter(c => !c.isYou && !c.locked && c.reviews > youReviews).sort((a,b) => a.reviews - b.reviews)
+  const rising = list.filter(c => !c.isYou && !c.locked && c.weekGrowth >= 2 && c.reviews <= youReviews + 5)
+  const closeUp = ahead.find(c => c.reviews - youReviews <= 3)
+  const top1 = list.find(c => c.pos === 1)
+
+  const ops = []
+  if (closeUp) {
+    ops.push({
+      icon:'🎯',
+      color: T.green,
+      bg: T.greenSoft,
+      title:`Subir pro Top ${closeUp.pos} está perto`,
+      text:`Faltam ${closeUp.reviews - youReviews} av. pra ultrapassar ${closeUp.locked ? 'o próximo' : closeUp.name}. Em 1-2 semanas com captação consistente.`,
+      cta:{ label:'Ativar mais placas', href:'/ativar-codigo' }
+    })
+  }
+  if (rising.length > 0) {
+    const r = rising[0]
+    ops.push({
+      icon:'🚨',
+      color: T.red,
+      bg:'#FEF2F2',
+      title:`${r.locked ? 'Um concorrente' : r.name} está acelerando`,
+      text:`Cresce ${r.weekGrowth} av./semana — o dobro da média da categoria. Pode passar você em ${Math.ceil((youReviews - r.reviews + 1) / Math.max(1, r.weekGrowth - 1))} semanas se não reagir.`,
+      cta:{ label:'Ver simulador', href:'#simulador' }
+    })
+  }
+  if (top1 && !top1.isYou && data.kpis.rating >= 4.8) {
+    ops.push({
+      icon:'⭐',
+      color: T.blue,
+      bg: T.blueSoft,
+      title:'Sua nota é igual ou maior que a do líder',
+      text:`Sua reputação de qualidade está no topo. Falta volume: o líder tem ${top1.reviews} avaliações e você ${youReviews}.`,
+      cta:{ label:'Comprar dispositivos', href:'/kit' }
+    })
+  }
+  if (youPos <= 3) {
+    ops.push({
+      icon:'🏆',
+      color: T.amber,
+      bg:'#FFFBEB',
+      title:'Você está no Top 3 — capitalize',
+      text:'97% dos clientes escolhem entre os 3 primeiros. Compartilhe seu link nas redes sociais e flyers pra manter o ritmo.',
+      cta:{ label:'Pegar link de avaliação', href:'/app?tab=loja' }
+    })
+  }
+
+  if (ops.length === 0) return null
+
+  return (
+    <Card>
+      <div style={{ marginBottom: 12 }}>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
+          💡 Oportunidades pra subir
+        </h3>
+        <div style={{ fontSize: 12.5, color: T.textMid }}>O que fazer agora pra ganhar posições com mais velocidade.</div>
+      </div>
+
+      <div style={{ display:'flex', flexDirection:'column', gap: 10 }}>
+        {ops.map((op, i) => (
+          <div key={i} style={{
+            padding: 14, borderRadius: 10, background: op.bg,
+            border:`1px solid ${op.color}33`
+          }}>
+            <div style={{ display:'flex', gap: 10, alignItems:'flex-start' }}>
+              <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{op.icon}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 4, lineHeight: 1.35 }}>
+                  {op.title}
+                </div>
+                <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.5, marginBottom: 8 }}>
+                  {op.text}
+                </div>
+                <a href={op.cta.href} style={{
+                  display:'inline-block', fontSize: 12, fontWeight: 700, color: op.color,
+                  textDecoration:'none', borderBottom:`1px dashed ${op.color}`
+                }}>{op.cta.label} →</a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  )
+}
+
 function CompetitorsScreen({ data, isMobile }) {
   const [filter, setFilter] = React.useState('all')
+  const [sortMode, setSortMode] = React.useState('position') // 'position' | 'distance' | 'growth'
   const youReviews = data.kpis.reviewCount
   const youPos = data.kpis.rankingPos
   const list = data.competitors || []
@@ -1120,17 +1590,26 @@ function CompetitorsScreen({ data, isMobile }) {
   const behind = list.filter(c => !c.isYou && c.reviews <= youReviews)
   const rising = list.filter(c => !c.isYou && c.weekGrowth >= 2)
 
-  const visible = filter === 'ahead'  ? [list.find(c => c.isYou), ...ahead].filter(Boolean)
-               : filter === 'behind'  ? [list.find(c => c.isYou), ...behind].filter(Boolean)
-               : filter === 'rising'  ? [list.find(c => c.isYou), ...rising].filter(Boolean)
-               : list
+  let visible = filter === 'ahead'  ? [list.find(c => c.isYou), ...ahead].filter(Boolean)
+              : filter === 'behind'  ? [list.find(c => c.isYou), ...behind].filter(Boolean)
+              : filter === 'rising'  ? [list.find(c => c.isYou), ...rising].filter(Boolean)
+              : list
 
-  const counts = {
-    all: list.length,
-    ahead: ahead.length,
-    behind: behind.length,
-    rising: rising.length
+  // Ordenação (mantém você sempre presente; ordena resto pelo modo)
+  if (sortMode === 'distance') {
+    visible = [...visible].sort((a, b) => (a.distance ?? 9e9) - (b.distance ?? 9e9))
+  } else if (sortMode === 'growth') {
+    visible = [...visible].sort((a, b) => (b.weekGrowth ?? -9e9) - (a.weekGrowth ?? -9e9))
   }
+  // sortMode === 'position' usa a ordem natural (pos)
+
+  const counts = { all: list.length, ahead: ahead.length, behind: behind.length, rising: rising.length }
+
+  const sortChips = [
+    { key:'position', label:'Por posição' },
+    { key:'distance', label:'Por distância' },
+    { key:'growth',   label:'Em alta' }
+  ]
 
   return (
     <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
@@ -1139,11 +1618,11 @@ function CompetitorsScreen({ data, isMobile }) {
           🏆 Inteligência Competitiva
         </h1>
         <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
-          Conheça quem está disputando o ranking com você na sua categoria e região.
+          {data.kpis.totalCompetitors > 0 ? `${data.kpis.totalCompetitors} negócios na sua categoria num raio de 3km. Sua presença local em detalhe.` : 'Sua presença local em detalhe.'}
         </p>
       </div>
 
-      {/* Stats no topo */}
+      {/* Quick stats */}
       <Section>
         <CompetitorStats
           youPos={youPos}
@@ -1154,27 +1633,59 @@ function CompetitorsScreen({ data, isMobile }) {
         />
       </Section>
 
-      {/* Layout: lista (left, maior) + metas (right) */}
-      <div style={{
-        display:'grid',
-        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) 360px',
-        gap: isMobile ? 16 : 24
-      }}>
-        {/* COLUNA ESQUERDA: filtros + lista */}
-        <div>
-          <FilterChips active={filter} onChange={setFilter} counts={counts}/>
-          <div style={{ display:'flex', flexDirection:'column', gap: 10 }}>
-            {visible.map(c => (
-              <CompetitorCard key={c.id} comp={c} youReviews={youReviews}/>
-            ))}
+      {/* BENCHMARK DA CATEGORIA */}
+      <Section><CategoryBenchmark data={data} list={list} isMobile={isMobile}/></Section>
+
+      {/* MAPA + LISTA — grid 2 colunas no desktop */}
+      <Section>
+        <div style={{
+          display:'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) 380px',
+          gap: isMobile ? 16 : 20
+        }}>
+          {/* Esquerda: Mapa em cima + Lista */}
+          <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
+            <CompetitorMap list={list} isMobile={isMobile}/>
+
+            <Card>
+              <div style={{ marginBottom: 12 }}>
+                <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 8px', display:'inline-flex', alignItems:'center', gap: 8 }}>
+                  📋 Ranking detalhado
+                </h3>
+                <FilterChips active={filter} onChange={setFilter} counts={counts}/>
+                <div style={{ display:'flex', gap: 6, marginTop: 8, flexWrap:'wrap' }}>
+                  {sortChips.map(s => {
+                    const a = sortMode === s.key
+                    return (
+                      <button key={s.key} onClick={() => setSortMode(s.key)} style={{
+                        fontSize: 11, fontWeight: 600, padding:'4px 10px', borderRadius: 6,
+                        border:'1px solid', borderColor: a ? T.blue : T.border,
+                        background: a ? T.blueSoft : '#fff',
+                        color: a ? T.blueDk : T.textMid, cursor:'pointer'
+                      }}>{s.label}</button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div style={{ display:'flex', flexDirection:'column', gap: 8 }}>
+                {visible.map(c => (
+                  <EnhancedCompetitorRow key={c.id} comp={c} youReviews={youReviews} isMobile={isMobile}/>
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          {/* Direita: Simulador + Oportunidades + Metas */}
+          <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
+            <div id="simulador">
+              <GrowthSimulator data={data} list={list} isMobile={isMobile}/>
+            </div>
+            <OpportunitiesPanel data={data} list={list} isMobile={isMobile}/>
+            <MyGoalsCard goals={data.goals}/>
           </div>
         </div>
-
-        {/* COLUNA DIREITA: metas */}
-        <div>
-          <MyGoalsCard goals={data.goals}/>
-        </div>
-      </div>
+      </Section>
     </main>
   )
 }
