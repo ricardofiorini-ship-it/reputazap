@@ -2006,30 +2006,51 @@ function AlertsScreen({ data, isMobile, isReal }) {
         </p>
       </div>
 
-      {isReal && <BetaBanner feature="Alertas em tempo real" eta="Vamos começar a gerar alertas reais assim que tivermos snapshot diário das suas posições — previsto pra próximas semanas."/>}
-
-      {/* Stats no topo */}
-      <Section>
-        <AlertStats stats={data.alertStats} isMobile={isMobile}/>
-      </Section>
-
       {/* Layout: feed (left, maior) + canais (right) */}
       <div style={{
         display:'grid',
         gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) 360px',
         gap: isMobile ? 16 : 24
       }}>
-        {/* COLUNA ESQUERDA: filtros + feed */}
+        {/* COLUNA ESQUERDA: feed ou empty state */}
         <div>
-          <AlertFilterChips active={filter} onChange={setFilter} counts={counts}/>
-          {visible.length === 0 ? (
-            <Card style={{ textAlign:'center', padding: 40, color: T.textMid }}>
-              Nenhum alerta nessa categoria.
+          {isReal ? (
+            // Em modo real, ainda não temos cron diário detectando mudanças.
+            // Em vez de mostrar alertas falsos com "Empresa A/C", mostramos empty state honesto.
+            <Card style={{ textAlign:'center', padding: 40 }}>
+              <div style={{ fontSize: 56, marginBottom: 14 }}>🔔</div>
+              <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin:'0 0 8px' }}>
+                Coletando dados pra você
+              </h2>
+              <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, margin:'0 auto 18px', maxWidth: 480 }}>
+                Estamos preparando o sistema pra detectar movimentações nos concorrentes da sua região.
+                Você receberá o primeiro alerta assim que algo mudar no ranking — em geral nos primeiros 7 dias depois que ativar.
+              </p>
+              <div style={{
+                display:'inline-flex', alignItems:'center', gap: 6,
+                fontSize: 11.5, fontWeight: 700, color: '#92400E',
+                background:'#FEF3C7', padding:'5px 10px', borderRadius: 6
+              }}>🔬 BETA · alertas começarão em breve</div>
+              <p style={{ fontSize: 12, color: T.textDim, lineHeight: 1.5, marginTop: 22 }}>
+                Enquanto isso, configure no card ao lado por onde você quer receber os alertas (email/WhatsApp).
+              </p>
             </Card>
           ) : (
-            <div style={{ display:'flex', flexDirection:'column', gap: 10 }}>
-              {visible.map(a => <AlertItem key={a.id} alert={a}/>)}
-            </div>
+            <>
+              <Section>
+                <AlertStats stats={data.alertStats} isMobile={isMobile}/>
+              </Section>
+              <AlertFilterChips active={filter} onChange={setFilter} counts={counts}/>
+              {visible.length === 0 ? (
+                <Card style={{ textAlign:'center', padding: 40, color: T.textMid }}>
+                  Nenhum alerta nessa categoria.
+                </Card>
+              ) : (
+                <div style={{ display:'flex', flexDirection:'column', gap: 10 }}>
+                  {visible.map(a => <AlertItem key={a.id} alert={a}/>)}
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -2383,26 +2404,51 @@ function ReportsScreen({ data, isMobile, isReal }) {
         <ReportPeriodTabs active={mode} onChange={setMode} isMobile={isMobile}/>
       </div>
 
-      {isReal && <BetaBanner feature="Relatórios automáticos" eta="O primeiro relatório real chega no seu email assim que ligarmos o cron de envio — previsto pras próximas semanas."/>}
-
-      <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
-        <ReportHeader report={report} isMobile={isMobile}/>
-        <ReportSummaryGrid summary={report.summary} isMobile={isMobile}/>
-        <ReportRatingChart data={report.chart} labels={report.chartLabels} mode={mode}/>
-
-        <div style={{
-          display:'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-          gap: 16
-        }}>
-          <ReportReviewsList reviews={report.topReviews}/>
-          <ReportRankingMoves moves={report.rankingMoves}/>
+      {isReal ? (
+        // Em modo real, ainda não temos cron semanal/mensal montando relatório real.
+        // Em vez de mostrar relatório fake com Maria Silva/Bruno Lima, mostramos
+        // empty state honesto + form de configurar canal de envio.
+        <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
+          <Card style={{ textAlign:'center', padding: 48 }}>
+            <div style={{ fontSize: 56, marginBottom: 14 }}>📬</div>
+            <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin:'0 0 8px' }}>
+              Seu primeiro relatório está sendo preparado
+            </h2>
+            <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, margin:'0 auto 18px', maxWidth: 480 }}>
+              Toda segunda-feira, às 8h, você vai receber no email um resumo da sua reputação na semana — nota, novas avaliações, mudanças no ranking, oportunidades e comparativo com concorrentes.
+              O primeiro chega depois que coletarmos pelo menos 7 dias de dados seus.
+            </p>
+            <div style={{
+              display:'inline-flex', alignItems:'center', gap: 6,
+              fontSize: 11.5, fontWeight: 700, color: '#92400E',
+              background:'#FEF3C7', padding:'5px 10px', borderRadius: 6, marginBottom: 18
+            }}>🔬 BETA · relatórios em preparação</div>
+            <p style={{ fontSize: 12, color: T.textDim, lineHeight: 1.5 }}>
+              Confirme abaixo o email pra envio e a frequência (semanal/mensal).
+            </p>
+          </Card>
+          <ReportSettingsCard settings={data.reportSettings}/>
         </div>
+      ) : (
+        <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
+          <ReportHeader report={report} isMobile={isMobile}/>
+          <ReportSummaryGrid summary={report.summary} isMobile={isMobile}/>
+          <ReportRatingChart data={report.chart} labels={report.chartLabels} mode={mode}/>
 
-        <ReportCompetitorTable rows={report.competitorComparison}/>
-        <ReportOpportunities items={report.opportunities}/>
-        <ReportSettingsCard settings={data.reportSettings}/>
-      </div>
+          <div style={{
+            display:'grid',
+            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+            gap: 16
+          }}>
+            <ReportReviewsList reviews={report.topReviews}/>
+            <ReportRankingMoves moves={report.rankingMoves}/>
+          </div>
+
+          <ReportCompetitorTable rows={report.competitorComparison}/>
+          <ReportOpportunities items={report.opportunities}/>
+          <ReportSettingsCard settings={data.reportSettings}/>
+        </div>
+      )}
     </main>
   )
 }
