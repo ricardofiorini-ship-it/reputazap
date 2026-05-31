@@ -534,6 +534,38 @@ const TABS = [
 ]
 
 function TopTabs({ active, onChange, plan, isMobile }) {
+  const scrollerRef = React.useRef(null)
+  const activeRef = React.useRef(null)
+  const [showFadeRight, setShowFadeRight] = React.useState(false)
+  const [showFadeLeft, setShowFadeLeft] = React.useState(false)
+
+  // Atualiza fade indicators (mostra que tem mais conteúdo scrollavel)
+  const updateFades = React.useCallback(() => {
+    const el = scrollerRef.current
+    if (!el) return
+    setShowFadeLeft(el.scrollLeft > 4)
+    setShowFadeRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
+  }, [])
+
+  React.useEffect(() => {
+    updateFades()
+    const el = scrollerRef.current
+    if (!el) return
+    el.addEventListener('scroll', updateFades, { passive: true })
+    window.addEventListener('resize', updateFades)
+    return () => {
+      el.removeEventListener('scroll', updateFades)
+      window.removeEventListener('resize', updateFades)
+    }
+  }, [updateFades])
+
+  // Quando troca de aba, garante que a aba ativa fique visível
+  React.useEffect(() => {
+    if (activeRef.current) {
+      activeRef.current.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' })
+    }
+  }, [active])
+
   return (
     <div style={{
       background: T.surface,
@@ -544,21 +576,27 @@ function TopTabs({ active, onChange, plan, isMobile }) {
       backdropFilter: 'blur(20px)',
       backgroundColor: 'rgba(255,255,255,0.92)'
     }}>
-      <div style={{
-        maxWidth: 1280, margin: '0 auto',
-        padding: isMobile ? '0 8px' : '0 24px',
-        display: 'flex',
-        gap: 2,
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
-        WebkitOverflowScrolling: 'touch'
-      }}>
+      <div style={{ position:'relative', maxWidth: 1280, margin: '0 auto' }}>
+        <div ref={scrollerRef} style={{
+          padding: isMobile ? '0 12px' : '0 24px',
+          display: 'flex',
+          gap: 2,
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          WebkitOverflowScrolling: 'touch'
+        }}>
+          <style>{`
+            /* Hide webkit scrollbar */
+            div[style*="overflowX: auto"]::-webkit-scrollbar{display:none}
+          `}</style>
         {TABS.map(tab => {
           const isActive = active === tab.id
           const isLocked = tab.pro && plan === 'free'
           return (
             <a
               key={tab.id}
+              ref={isActive ? activeRef : null}
               href={isLocked ? '/plano-pro' : '#'}
               onClick={(e) => {
                 if (isLocked) return // deixa o href levar
@@ -566,9 +604,9 @@ function TopTabs({ active, onChange, plan, isMobile }) {
                 onChange(tab.id)
               }}
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: 7,
-                padding: '14px 14px 12px',
-                fontSize: 13.5, fontWeight: isActive ? 700 : 500,
+                display: 'inline-flex', alignItems: 'center', gap: isMobile ? 5 : 7,
+                padding: isMobile ? '14px 10px 12px' : '14px 14px 12px',
+                fontSize: isMobile ? 12.5 : 13.5, fontWeight: isActive ? 700 : 500,
                 color: isActive ? T.blue : T.textMid,
                 textDecoration: 'none',
                 whiteSpace: 'nowrap',
@@ -580,7 +618,7 @@ function TopTabs({ active, onChange, plan, isMobile }) {
               onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = T.text }}
               onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = T.textMid }}
             >
-              <span style={{ fontSize: 15, lineHeight: 1 }}>{tab.icon}</span>
+              <span style={{ fontSize: isMobile ? 14 : 15, lineHeight: 1 }}>{tab.icon}</span>
               <span>{tab.label}</span>
               {isLocked && (
                 <span style={{
@@ -592,6 +630,25 @@ function TopTabs({ active, onChange, plan, isMobile }) {
             </a>
           )
         })}
+        </div>
+        {/* Fade gradient indicators — sinaliza scroll lateral */}
+        {showFadeLeft && (
+          <div style={{
+            position:'absolute', top: 0, bottom: 0, left: 0, width: 24,
+            background:'linear-gradient(to right, rgba(255,255,255,.95), rgba(255,255,255,0))',
+            pointerEvents:'none', zIndex: 1
+          }}/>
+        )}
+        {showFadeRight && (
+          <div style={{
+            position:'absolute', top: 0, bottom: 0, right: 0, width: 28,
+            background:'linear-gradient(to left, rgba(255,255,255,.95), rgba(255,255,255,0))',
+            pointerEvents:'none', zIndex: 1,
+            display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight: 4
+          }}>
+            <span style={{ fontSize: 14, color: T.textMid, opacity: 0.7 }}>›</span>
+          </div>
+        )}
       </div>
     </div>
   )
