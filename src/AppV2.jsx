@@ -270,7 +270,7 @@ function relativeDate(unixOrIso) {
 }
 
 // Hook que carrega dados reais do user logado.
-// Retorna { loading, error, biz, reviews, bizInfo, hasBusiness }
+// Retorna { loading, error, biz, reviews, bizInfo, competitors, hasBusiness }
 function useRealData(user, demoMode) {
   const [state, setState] = React.useState({
     loading: !demoMode && !!user,
@@ -278,6 +278,7 @@ function useRealData(user, demoMode) {
     biz: null,
     reviews: [],
     bizInfo: null,
+    competitors: null,
     hasBusiness: false
   })
 
@@ -294,25 +295,26 @@ function useRealData(user, demoMode) {
         const myBizRes = await apiCall('/api/mybiz')
         const biz = myBizRes.business || null
         if (!biz || !biz.place_id) {
-          if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, hasBusiness: false })
+          if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, competitors: null, hasBusiness: false })
           return
         }
-        // /api/reviews é público, sem token
-        let reviewsRes = { reviews: [], rating: biz.rating, total: biz.total_reviews, name: biz.name }
-        try {
-          reviewsRes = await fetch(`/api/reviews?place_id=${encodeURIComponent(biz.place_id)}`).then(r => r.json())
-        } catch {}
+        // /api/reviews é público (sem token). /api/competitors precisa de token. Roda em paralelo.
+        const [reviewsRes, competitorsRes] = await Promise.all([
+          fetch(`/api/reviews?place_id=${encodeURIComponent(biz.place_id)}`).then(r => r.json()).catch(() => ({})),
+          apiCall('/api/competitors').catch(() => null)
+        ])
         if (!cancelled) {
           setState({
             loading: false, error: null,
             biz,
             reviews: reviewsRes.reviews || [],
             bizInfo: { rating: reviewsRes.rating ?? biz.rating, total: reviewsRes.total ?? biz.total_reviews, name: reviewsRes.name ?? biz.name },
+            competitors: competitorsRes,
             hasBusiness: true
           })
         }
       } catch (e) {
-        if (!cancelled) setState({ loading: false, error: e.message, biz: null, reviews: [], bizInfo: null, hasBusiness: false })
+        if (!cancelled) setState({ loading: false, error: e.message, biz: null, reviews: [], bizInfo: null, competitors: null, hasBusiness: false })
       }
     })()
 
@@ -325,9 +327,43 @@ function useRealData(user, demoMode) {
 // Compõe `d` (dados pra UI) misturando real + MOCK. Real sobrescreve, mock preenche gaps.
 function buildData(real, user, demoMode) {
   if (demoMode || !real.hasBusiness) return MOCK
-  const { biz, bizInfo, reviews } = real
+  const { biz, bizInfo, reviews, competitors } = real
   const rating = bizInfo?.rating ?? MOCK.kpis.rating
   const total  = bizInfo?.total  ?? MOCK.kpis.reviewCount
+
+  // Concorrentes — só sobrescreve se a API retornou algo válido
+  const compData = (competitors && competitors.enough && competitors.top) ? (() => {
+    // Map shape do backend pro shape do CompetitorsScreen
+    const sorted = [...competitors.top].sort((a, b) => b.reviews - a.reviews)
+    const list = sorted.map((c, i) => ({
+      id: c.place_id || i,
+      pos: i + 1,
+      medal: i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '',
+      name: c.name || `Concorrente ${i + 1}`,
+      rating: c.rating,
+      reviews: c.reviews,
+      weekGrowth: 0,                         // sem snapshot semanal ainda — Fase futura
+      history: Array(12).fill(c.reviews),    // achatado — sparkline sem dados ainda
+      color: colorFromName(c.name || `${i}`),
+      initials: initialsFromName(c.name || `C${i}`),
+      isYou: c.is_me
+    }))
+    return {
+      rankingPos: competitors.rank_google,
+      totalCompetitors: competitors.total,
+      reviewsToNext: competitors.ahead ? Math.max(0, competitors.ahead.reviews - (competitors.me?.reviews || 0)) : 0,
+      list,
+      // Mini ranking pro Painel (top 5)
+      rankingMini: list.slice(0, 5).map(c => ({
+        pos: c.pos, medal: c.medal, name: c.name, rating: c.rating, reviews: c.reviews, you: c.isYou
+      }))
+    }
+  })() : null
+
+  // Hero "quanto falta pra subir" baseado em dados reais quando disponível
+  const hero = compData?.reviewsToNext != null
+    ? { reviewsToNext: compData.reviewsToNext, progressPct: Math.min(100, Math.max(10, 100 - compData.reviewsToNext * 6)) }
+    : MOCK.hero
 
   return {
     ...MOCK,
@@ -335,9 +371,16 @@ function buildData(real, user, demoMode) {
     kpis: {
       ...MOCK.kpis,
       rating: typeof rating === 'number' ? rating : MOCK.kpis.rating,
-      reviewCount: typeof total === 'number' ? total : MOCK.kpis.reviewCount
-      // rankingPos/totalCompetitors mockados até Fase 3 (Concorrentes)
+      reviewCount: typeof total === 'number' ? total : MOCK.kpis.reviewCount,
+      rankingPos: compData?.rankingPos ?? MOCK.kpis.rankingPos,
+      totalCompetitors: compData?.totalCompetitors ?? MOCK.kpis.totalCompetitors,
+      nextGoal: compData
+        ? { reviewsToNext: compData.reviewsToNext, targetPosition: Math.max(1, (compData.rankingPos || 2) - 1) }
+        : MOCK.kpis.nextGoal
     },
+    hero,
+    ranking: compData?.rankingMini ?? MOCK.ranking,
+    competitors: compData?.list ?? MOCK.competitors,
     recentReviews: (reviews && reviews.length > 0)
       ? reviews.slice(0, 5).map(r => ({
           name: r.author_name || 'Cliente Google',
@@ -2303,6 +2346,125 @@ function CapturePoints({ items }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// AVALIAÇÕES — tela completa (lista todas as reviews)
+// ─────────────────────────────────────────────────────────────
+function ReviewsScreen({ data, isMobile }) {
+  const [starFilter, setStarFilter] = React.useState(0) // 0 = todas
+  const reviews = data.recentReviews || []
+  const visible = starFilter ? reviews.filter(r => r.rating === starFilter) : reviews
+
+  const counts = [5, 4, 3, 2, 1].map(s => ({ s, n: reviews.filter(r => r.rating === s).length }))
+  const total = reviews.length
+  const avg = total ? (reviews.reduce((sum, r) => sum + r.rating, 0) / total) : 0
+
+  return (
+    <main style={{ maxWidth: 980, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
+      <div style={{ marginBottom: 22 }}>
+        <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
+          ⭐ Suas avaliações
+        </h1>
+        <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
+          As últimas avaliações que seus clientes deixaram no Google.
+        </p>
+      </div>
+
+      {/* Header com média + breakdown por estrela */}
+      <Section>
+        <Card>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'auto 1fr', gap: isMobile ? 16 : 28, alignItems:'center' }}>
+            <div style={{ textAlign:'center' }}>
+              <div style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 40 : 52, fontWeight: 800, color: T.text, letterSpacing:'-0.03em', lineHeight: 1 }}>
+                {(data.kpis.rating || avg).toFixed(1)}
+              </div>
+              <div style={{ margin:'4px 0' }}><Stars rating={data.kpis.rating || avg} size={isMobile ? 16 : 18}/></div>
+              <div style={{ fontSize: 12.5, color: T.textMid }}>{data.kpis.reviewCount || total} avaliações</div>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap: 4 }}>
+              {counts.map(({ s, n }) => {
+                const pct = total ? (n / total) * 100 : 0
+                return (
+                  <div key={s} style={{ display:'flex', alignItems:'center', gap: 8, fontSize: 12.5 }}>
+                    <span style={{ width: 14, color: T.textMid, fontWeight: 600 }}>{s}★</span>
+                    <div style={{ flex: 1, height: 8, background: T.bg, borderRadius: 4, overflow:'hidden' }}>
+                      <div style={{ width: pct + '%', height:'100%', background:'#FBBC04' }}/>
+                    </div>
+                    <span style={{ width: 24, color: T.textDim, fontSize: 12, textAlign:'right' }}>{n}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </Card>
+      </Section>
+
+      {/* Filtros */}
+      <Section>
+        <div style={{ display:'flex', gap: 8, flexWrap:'wrap' }}>
+          <button onClick={() => setStarFilter(0)} style={{
+            padding:'7px 14px', fontSize: 13, fontWeight: 600, borderRadius: 999,
+            border:'1px solid', borderColor: starFilter === 0 ? T.blue : T.border,
+            background: starFilter === 0 ? T.blue : T.surface,
+            color: starFilter === 0 ? '#fff' : T.textMid, cursor:'pointer'
+          }}>Todas ({total})</button>
+          {[5, 4, 3, 2, 1].map(s => {
+            const n = counts.find(c => c.s === s)?.n || 0
+            const active = starFilter === s
+            return (
+              <button key={s} onClick={() => setStarFilter(s)} disabled={n === 0} style={{
+                padding:'7px 14px', fontSize: 13, fontWeight: 600, borderRadius: 999,
+                border:'1px solid', borderColor: active ? T.blue : T.border,
+                background: active ? T.blue : T.surface,
+                color: active ? '#fff' : (n === 0 ? T.textDim : T.textMid),
+                cursor: n === 0 ? 'not-allowed' : 'pointer', opacity: n === 0 ? 0.5 : 1
+              }}>{s}★ ({n})</button>
+            )
+          })}
+        </div>
+      </Section>
+
+      {/* Lista */}
+      {visible.length === 0 ? (
+        <Card style={{ textAlign:'center', padding: 48 }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: T.text, marginBottom: 4 }}>Nada por aqui ainda</div>
+          <div style={{ fontSize: 13, color: T.textMid }}>
+            {starFilter ? 'Nenhuma avaliação com essa nota.' : 'Quando alguém avaliar no Google, aparece aqui.'}
+          </div>
+        </Card>
+      ) : (
+        <div style={{ display:'flex', flexDirection:'column', gap: 10 }}>
+          {visible.map((r, i) => (
+            <Card key={i} padded={false} style={{ padding: 18 }}>
+              <div style={{ display:'flex', gap: 14 }}>
+                <div style={{
+                  width: 46, height: 46, borderRadius:'50%', background: r.color, color:'#fff',
+                  display:'grid', placeItems:'center', fontSize: 15, fontWeight: 700, flexShrink: 0
+                }}>{r.initials}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 6, flexWrap:'wrap' }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{r.name}</span>
+                    <Stars rating={r.rating} size={13}/>
+                    <span style={{ fontSize: 12, color: T.textDim, marginLeft:'auto' }}>{r.date}</span>
+                  </div>
+                  <p style={{ fontSize: 14, color: T.textMid, margin: 0, lineHeight: 1.55 }}>
+                    {r.comment ? `"${r.comment}"` : <em style={{ color: T.textDim }}>(Cliente avaliou sem deixar comentário)</em>}
+                  </p>
+                  {data.biz.placeId && (
+                    <a href={`https://search.google.com/local/reviews?placeid=${data.biz.placeId}`} target="_blank" rel="noreferrer" style={{
+                      display:'inline-block', marginTop: 8, fontSize: 12, color: T.blue, fontWeight: 600, textDecoration:'none'
+                    }}>Responder no Google ↗</a>
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </main>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // Estados especiais: loading, erro, sem-negócio
 // ─────────────────────────────────────────────────────────────
 function LoadingScreen() {
@@ -2436,13 +2598,18 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
         <LojaScreen data={d} isMobile={isMobile} plan={plan}/>
       )}
 
+      {/* Aba: AVALIAÇÕES — lista todas as reviews do Google (free + pro) */}
+      {tab === 'avaliacoes' && (
+        <ReviewsScreen data={d} isMobile={isMobile}/>
+      )}
+
       {/* Tela: CONFIGURAÇÕES — acessível via dropdown do avatar */}
       {tab === 'config' && (
         <ConfigScreen data={d} isMobile={isMobile} plan={plan}/>
       )}
 
       {/* Outras abas ainda em construção */}
-      {tab !== 'painel' && !(tab === 'concorrentes' && plan === 'pro') && !(tab === 'alertas' && plan === 'pro') && !(tab === 'relatorios' && plan === 'pro') && tab !== 'loja' && tab !== 'config' && (
+      {tab !== 'painel' && !(tab === 'concorrentes' && plan === 'pro') && !(tab === 'alertas' && plan === 'pro') && !(tab === 'relatorios' && plan === 'pro') && tab !== 'loja' && tab !== 'avaliacoes' && tab !== 'config' && (
         <ComingSoon
           icon={tab === 'concorrentes' ? '🏆' : tab === 'alertas' ? '🔔' : tab === 'relatorios' ? '📈' : '⭐'}
           title={
