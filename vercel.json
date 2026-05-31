@@ -7,6 +7,8 @@
     { "source": "/(.*)", "has": [{ "type": "host", "value": "www.reputazap.com.br" }], "destination": "https://startouch.com.br/$1", "permanent": true },
     { "source": "/(.*)", "has": [{ "type": "host", "value": "www.startouch.com.br" }], "destination": "https://startouch.com.br/$1", "permanent": true },
     { "source": "/", "destination": "/landing", "permanent": false },
+    { "source": "/app-v2", "destination": "/app", "permanent": true },
+    { "source": "/app-v2/(.*)", "destination": "/app/$1", "permanent": true },
     { "source": "/landing.html", "destination": "/landing", "permanent": true },
     { "source": "/ativar.html", "destination": "/ativar", "permanent": true },
     { "source": "/kit.html", "destination": "/kit", "permanent": true },
@@ -33,8 +35,8 @@
     { "source": "/r/:code", "destination": "/api/r/:code" },
     { "source": "/artigos", "destination": "/artigos/index.html" },
     { "source": "/artigos/:slug", "destination": "/artigos/:slug.html" },
-    { "source": "/app", "destination": "/index.html" },
-    { "source": "/app/(.*)", "destination": "/index.html" },
-    { "source": "/app-v2", "destination": "/index-v2.html" }
+    { "source": "/app", "destination": "/index-v2.html" },
+    { "source": "/app/(.*)", "destination": "/index-v2.html" },
+    { "source": "/app-legacy", "destination": "/index.html" }
   ]
 }
