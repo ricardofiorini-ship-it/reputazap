@@ -218,6 +218,154 @@ const MOCK = {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// DATA LAYER — chamadas pras APIs reais
+// Estratégia: real sobrescreve mock. Telas sem backend ainda
+// continuam mostrando mock automaticamente.
+// ─────────────────────────────────────────────────────────────
+async function apiCall(path, opts = {}) {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('rz_token') : null
+  const res = await fetch(path, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(opts.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  })
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`
+    try { const j = await res.json(); if (j.error) msg = j.error } catch {}
+    throw new Error(msg)
+  }
+  return res.json()
+}
+
+// Cores estáveis pros avatars das avaliações
+const REVIEW_COLORS = ['#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#A855F7']
+function colorFromName(name) {
+  if (!name) return REVIEW_COLORS[0]
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0
+  return REVIEW_COLORS[Math.abs(h) % REVIEW_COLORS.length]
+}
+function initialsFromName(name) {
+  if (!name) return '?'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+  return name.slice(0, 2).toUpperCase()
+}
+function relativeDate(unixOrIso) {
+  if (!unixOrIso) return 'recente'
+  const t = typeof unixOrIso === 'number' ? unixOrIso * 1000 : Date.parse(unixOrIso)
+  if (!t) return 'recente'
+  const diffDays = Math.floor((Date.now() - t) / 86400000)
+  if (diffDays < 1)   return 'hoje'
+  if (diffDays < 2)   return 'ontem'
+  if (diffDays < 7)   return `há ${diffDays} dias`
+  if (diffDays < 14)  return 'há 1 semana'
+  if (diffDays < 30)  return `há ${Math.floor(diffDays/7)} semanas`
+  if (diffDays < 60)  return 'há 1 mês'
+  return `há ${Math.floor(diffDays/30)} meses`
+}
+
+// Hook que carrega dados reais do user logado.
+// Retorna { loading, error, biz, reviews, bizInfo, hasBusiness }
+function useRealData(user, demoMode) {
+  const [state, setState] = React.useState({
+    loading: !demoMode && !!user,
+    error: null,
+    biz: null,
+    reviews: [],
+    bizInfo: null,
+    hasBusiness: false
+  })
+
+  React.useEffect(() => {
+    if (demoMode || !user) {
+      setState(s => ({ ...s, loading: false }))
+      return
+    }
+    let cancelled = false
+    setState(s => ({ ...s, loading: true, error: null }))
+
+    ;(async () => {
+      try {
+        const myBizRes = await apiCall('/api/mybiz')
+        const biz = myBizRes.business || null
+        if (!biz || !biz.place_id) {
+          if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, hasBusiness: false })
+          return
+        }
+        // /api/reviews é público, sem token
+        let reviewsRes = { reviews: [], rating: biz.rating, total: biz.total_reviews, name: biz.name }
+        try {
+          reviewsRes = await fetch(`/api/reviews?place_id=${encodeURIComponent(biz.place_id)}`).then(r => r.json())
+        } catch {}
+        if (!cancelled) {
+          setState({
+            loading: false, error: null,
+            biz,
+            reviews: reviewsRes.reviews || [],
+            bizInfo: { rating: reviewsRes.rating ?? biz.rating, total: reviewsRes.total ?? biz.total_reviews, name: reviewsRes.name ?? biz.name },
+            hasBusiness: true
+          })
+        }
+      } catch (e) {
+        if (!cancelled) setState({ loading: false, error: e.message, biz: null, reviews: [], bizInfo: null, hasBusiness: false })
+      }
+    })()
+
+    return () => { cancelled = true }
+  }, [user, demoMode])
+
+  return state
+}
+
+// Compõe `d` (dados pra UI) misturando real + MOCK. Real sobrescreve, mock preenche gaps.
+function buildData(real, user, demoMode) {
+  if (demoMode || !real.hasBusiness) return MOCK
+  const { biz, bizInfo, reviews } = real
+  const rating = bizInfo?.rating ?? MOCK.kpis.rating
+  const total  = bizInfo?.total  ?? MOCK.kpis.reviewCount
+
+  return {
+    ...MOCK,
+    biz: { name: biz.name, placeId: biz.place_id },
+    kpis: {
+      ...MOCK.kpis,
+      rating: typeof rating === 'number' ? rating : MOCK.kpis.rating,
+      reviewCount: typeof total === 'number' ? total : MOCK.kpis.reviewCount
+      // rankingPos/totalCompetitors mockados até Fase 3 (Concorrentes)
+    },
+    recentReviews: (reviews && reviews.length > 0)
+      ? reviews.slice(0, 5).map(r => ({
+          name: r.author_name || 'Cliente Google',
+          rating: r.rating || 5,
+          comment: r.text || '',
+          date: relativeDate(r.time),
+          initials: initialsFromName(r.author_name),
+          color: colorFromName(r.author_name)
+        }))
+      : MOCK.recentReviews,
+    user: {
+      ...MOCK.user,
+      name: user?.name || user?.email || MOCK.user.name,
+      email: user?.email || MOCK.user.email
+    },
+    businessInfo: {
+      ...MOCK.businessInfo,
+      name: biz.name,
+      placeId: biz.place_id
+    },
+    billing: {
+      ...MOCK.billing,
+      plan: biz.plan === 'pro' ? 'Plano Pro' : 'Plano Free',
+      status: biz.stripe_subscription_status || MOCK.billing.status
+    }
+  }
+}
+
 const T = {
   bg:'#F7F8FA', surface:'#FFFFFF', border:'#EAEDF1',
   text:'#0F172A', textMid:'#475569', textDim:'#94A3B8',
@@ -242,10 +390,15 @@ function useIsMobile(bp = 768) {
   return m
 }
 
-function getPlan() {
-  if (typeof window === 'undefined') return 'pro'
-  const p = new URLSearchParams(window.location.search).get('plan')
-  return p === 'free' ? 'free' : 'pro'
+function getPlan(realBiz) {
+  // URL ?plan=free|pro sempre vence (útil pra testar)
+  if (typeof window !== 'undefined') {
+    const p = new URLSearchParams(window.location.search).get('plan')
+    if (p === 'free' || p === 'pro') return p
+  }
+  // Sem override: usa plano real do biz (default = free pra usuário novo, pro no demo)
+  if (realBiz) return realBiz.plan === 'pro' ? 'pro' : 'free'
+  return 'pro' // demo mode default
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -2150,23 +2303,113 @@ function CapturePoints({ items }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Estados especiais: loading, erro, sem-negócio
+// ─────────────────────────────────────────────────────────────
+function LoadingScreen() {
+  return (
+    <div style={{ display:'grid', placeItems:'center', minHeight:'calc(100vh - 80px)', padding: 40 }}>
+      <div style={{ textAlign:'center' }}>
+        <div style={{
+          width: 40, height: 40, borderRadius:'50%',
+          border:'3px solid '+T.border, borderTopColor: T.blue,
+          margin:'0 auto 16px', animation:'rotateA2 0.8s linear infinite'
+        }}/>
+        <div style={{ fontSize: 14, color: T.textMid, fontWeight: 500 }}>Carregando seus dados…</div>
+        <style>{`@keyframes rotateA2{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    </div>
+  )
+}
+
+function ErrorScreen({ message, onRetry }) {
+  return (
+    <main style={{ maxWidth: 560, margin:'80px auto', padding:'0 24px', textAlign:'center' }}>
+      <Card style={{ padding: 32 }}>
+        <div style={{ fontSize: 48, marginBottom: 14 }}>⚠️</div>
+        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 20, fontWeight: 700, color: T.text, margin:'0 0 8px' }}>
+          Não conseguimos carregar seus dados
+        </h2>
+        <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 18px', lineHeight: 1.5 }}>
+          {message || 'Erro de conexão. Verifique sua internet e tente novamente.'}
+        </p>
+        <button onClick={onRetry} style={{
+          background: T.blue, color:'#fff', border:'none', borderRadius: 9,
+          padding:'10px 20px', fontSize: 13.5, fontWeight: 700, cursor:'pointer'
+        }}>Tentar novamente</button>
+      </Card>
+    </main>
+  )
+}
+
+function NoBusinessScreen() {
+  return (
+    <main style={{ maxWidth: 560, margin:'80px auto', padding:'0 24px', textAlign:'center' }}>
+      <Card style={{ padding: 40 }}>
+        <div style={{ fontSize: 56, marginBottom: 16 }}>🏪</div>
+        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 700, color: T.text, margin:'0 0 8px', letterSpacing:'-0.02em' }}>
+          Vamos configurar seu negócio
+        </h2>
+        <p style={{ fontSize: 14, color: T.textMid, margin:'0 0 24px', lineHeight: 1.55 }}>
+          Primeiro a gente precisa encontrar seu negócio no Google. Leva 1 minuto e desbloqueia todo o painel.
+        </p>
+        <a href="/comece" style={{
+          display:'inline-block', background: T.blue, color:'#fff', textDecoration:'none',
+          borderRadius: 10, padding:'12px 24px', fontSize: 14, fontWeight: 700,
+          boxShadow:'0 4px 14px rgba(26,115,232,.3)'
+        }}>Configurar agora →</a>
+      </Card>
+    </main>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // Main layout
 // ─────────────────────────────────────────────────────────────
 export default function AppV2({ user = null, onLogout, demoMode = false } = {}) {
   const isMobile = useIsMobile(768)
-  const plan = getPlan()
   // Permite deep-link via ?tab=alertas|concorrentes|relatorios|avaliacoes
   const initialTab = typeof window !== 'undefined'
     ? (new URLSearchParams(window.location.search).get('tab') || 'painel')
     : 'painel'
   const [tab, setTab] = React.useState(initialTab)
 
-  // Dados: mock por enquanto; nas próximas fases vamos plugar APIs reais usando o `user` recebido.
-  // No demoMode (?demo=1) também usa mock.
-  const d = MOCK
+  // Carrega dados reais via API (skipa em demoMode ou sem user)
+  const real = useRealData(user, demoMode)
 
-  // Header usa nome do negócio real se o usuário tiver, senão mostra do mock
-  const headerBizName = (user && user.biz) || d.biz.name
+  // Plano real vence sobre URL só se não tiver override; em demo, default 'pro' pra mostrar tudo
+  const plan = getPlan(demoMode ? null : real.biz)
+
+  // Compõe dados: real sobrescreve mock; mock preenche lacunas
+  const d = buildData(real, user, demoMode)
+
+  // Header usa nome do negócio real
+  const headerBizName = d.biz.name
+
+  // Estados especiais — early return mantém Header pra usuário não ficar perdido
+  if (real.loading) {
+    return (
+      <div style={{ background: T.bg, minHeight:'100vh' }}>
+        <Header bizName={user?.email || 'Carregando…'} plan="free" isMobile={isMobile} user={user} onLogout={onLogout} demoMode={demoMode} />
+        <LoadingScreen/>
+      </div>
+    )
+  }
+  if (real.error) {
+    return (
+      <div style={{ background: T.bg, minHeight:'100vh' }}>
+        <Header bizName={user?.email || 'StarTouch'} plan="free" isMobile={isMobile} user={user} onLogout={onLogout} demoMode={demoMode} />
+        <ErrorScreen message={real.error} onRetry={() => window.location.reload()}/>
+      </div>
+    )
+  }
+  if (!demoMode && user && !real.hasBusiness) {
+    return (
+      <div style={{ background: T.bg, minHeight:'100vh' }}>
+        <Header bizName="Meu Negócio" plan="free" isMobile={isMobile} user={user} onLogout={onLogout} demoMode={demoMode} />
+        <NoBusinessScreen/>
+      </div>
+    )
+  }
 
   return (
     <div style={{ background: T.bg, minHeight:'100vh' }}>
