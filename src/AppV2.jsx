@@ -3096,7 +3096,136 @@ function WeekActions({ items, isMobile }) {
 }
 
 // Card AZUL = RESULTADO. Foco em crescimento. Sem CTA pra Pro.
-function HeroPosition({ progressPct, currentPos, isMobile }) {
+// ─────────────────────────────────────────────────────────────
+// Modal "Gerar mais avaliações" — 3 caminhos práticos pra coletar mais
+// ─────────────────────────────────────────────────────────────
+function ShareReviewsModal({ placeId, bizName, onClose, onActivatePlate }) {
+  const [copied, setCopied] = React.useState(false)
+  const reviewUrl = placeId
+    ? `${typeof window !== 'undefined' ? window.location.origin : 'https://startouch.com.br'}/avaliar?place_id=${encodeURIComponent(placeId)}`
+    : null
+  const waText = encodeURIComponent(
+    `Olá! Como foi sua experiência com a gente${bizName ? ' na ' + bizName : ''}? Deixa uma avaliação rapidinho: ${reviewUrl || ''}`
+  )
+
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  async function handleCopy() {
+    if (!reviewUrl) return
+    try {
+      await navigator.clipboard.writeText(reviewUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    } catch {
+      // fallback: select + execCommand
+      const ta = document.createElement('textarea')
+      ta.value = reviewUrl; document.body.appendChild(ta)
+      ta.select(); document.execCommand('copy'); document.body.removeChild(ta)
+      setCopied(true); setTimeout(() => setCopied(false), 1800)
+    }
+  }
+
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      style={{
+        position:'fixed', inset: 0, background:'rgba(15,23,42,.55)',
+        display:'grid', placeItems:'center', zIndex: 100, padding: 16,
+        animation:'fadeInGm .15s ease-out'
+      }}>
+      <style>{`@keyframes fadeInGm{from{opacity:0}to{opacity:1}}`}</style>
+      <Card padded={false} style={{ padding: 24, maxWidth: 520, width:'100%', position:'relative' }}>
+        <button onClick={onClose} aria-label="Fechar" style={{
+          position:'absolute', top: 12, right: 12, width: 32, height: 32, borderRadius: 8,
+          border:'none', background:'transparent', color: T.textMid, fontSize: 22, cursor:'pointer'
+        }}>×</button>
+
+        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 20, fontWeight: 700, color: T.text, margin:'0 0 6px', letterSpacing:'-0.02em' }}>
+          🚀 Gerar mais avaliações
+        </h2>
+        <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 18px', lineHeight: 1.5 }}>
+          Escolha o caminho mais prático pra coletar mais reviews dos seus clientes.
+        </p>
+
+        {/* 1. Compartilhar link direto */}
+        {reviewUrl && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: T.textMid, letterSpacing:'.04em', textTransform:'uppercase', marginBottom: 8 }}>
+              ① Compartilhar link direto
+            </div>
+            <div style={{
+              padding: 12, background: T.bg, border:'1px solid '+T.border, borderRadius: 8,
+              fontSize: 12.5, color: T.textMid, marginBottom: 8, wordBreak:'break-all', fontFamily:'monospace'
+            }}>{reviewUrl}</div>
+            <div style={{ display:'flex', gap: 8, flexWrap:'wrap' }}>
+              <button onClick={handleCopy} style={{
+                flex:'1 1 140px', background: copied ? T.green : T.blue, color:'#fff',
+                border:'none', borderRadius: 8, padding:'10px 14px',
+                fontSize: 13, fontWeight: 700, cursor:'pointer',
+                display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6,
+                transition:'background .15s'
+              }}>{copied ? '✓ Copiado!' : '📋 Copiar link'}</button>
+              <a href={`https://wa.me/?text=${waText}`} target="_blank" rel="noreferrer" style={{
+                flex:'1 1 140px', background:'#25D366', color:'#fff', textDecoration:'none',
+                borderRadius: 8, padding:'10px 14px', fontSize: 13, fontWeight: 700,
+                display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6
+              }}>💬 Enviar por WhatsApp</a>
+            </div>
+            <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 6, lineHeight: 1.45 }}>
+              Coloca no rodapé do email, na descrição do Instagram, ou manda direto pros clientes que você atendeu.
+            </div>
+          </div>
+        )}
+
+        <div style={{ height: 1, background: T.border, margin:'18px 0' }}/>
+
+        {/* 2. Ativar código de placa que já tem */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.textMid, letterSpacing:'.04em', textTransform:'uppercase', marginBottom: 8 }}>
+            ② Já tem placa/cartão NFC?
+          </div>
+          <button
+            onClick={() => { onClose(); onActivatePlate && onActivatePlate() }}
+            style={{
+              width:'100%', background:'#fff', color: T.text,
+              border:'1.5px solid '+T.border, borderRadius: 8, padding:'12px 14px',
+              fontSize: 13.5, fontWeight: 600, cursor:'pointer',
+              display:'flex', alignItems:'center', gap: 10, textAlign:'left'
+            }}>
+            <span style={{ fontSize: 20 }}>📦</span>
+            <span style={{ flex: 1 }}>Ativar código (STAR-XXXXX)</span>
+            <span style={{ color: T.textDim }}>›</span>
+          </button>
+        </div>
+
+        {/* 3. Comprar novos dispositivos */}
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.textMid, letterSpacing:'.04em', textTransform:'uppercase', marginBottom: 8 }}>
+            ③ Ampliar pontos de captação
+          </div>
+          <a href="/kit" style={{
+            display:'flex', width:'100%', boxSizing:'border-box',
+            background:'#fff', color: T.text,
+            border:'1.5px solid '+T.border, borderRadius: 8, padding:'12px 14px',
+            fontSize: 13.5, fontWeight: 600, textDecoration:'none',
+            alignItems:'center', gap: 10
+          }}>
+            <span style={{ fontSize: 20 }}>🛒</span>
+            <span style={{ flex: 1 }}>Comprar placa de balcão, cartão NFC ou pulseira</span>
+            <span style={{ color: T.textDim }}>›</span>
+          </a>
+        </div>
+      </Card>
+    </div>
+  )
+}
+
+function HeroPosition({ progressPct, currentPos, isMobile, placeId, bizName, onActivatePlate }) {
+  const [open, setOpen] = React.useState(false)
   return (
     <Card padded={false} style={{ background: `linear-gradient(135deg, ${T.blue} 0%, ${T.blueDk} 100%)`, border:'none', color:'#fff', overflow:'hidden', position:'relative' }}>
       <div style={{ position:'absolute', inset: 0, background:'radial-gradient(ellipse 90% 60% at 110% 0%, rgba(255,255,255,0.12), transparent 60%)', pointerEvents:'none' }}/>
@@ -3123,7 +3252,7 @@ function HeroPosition({ progressPct, currentPos, isMobile }) {
           <span style={{ fontSize: 12.5, fontWeight: 600, opacity: 0.9 }}>{progressPct}%</span>
         </div>
 
-        <button style={{
+        <button onClick={() => setOpen(true)} style={{
           background:'#fff', color: T.blueDk, border:'none', borderRadius: 11,
           padding: isMobile ? '13px 20px' : '14px 24px',
           fontSize: isMobile ? 14 : 15, fontWeight: 700, cursor:'pointer',
@@ -3134,6 +3263,14 @@ function HeroPosition({ progressPct, currentPos, isMobile }) {
           🚀 Gerar mais avaliações →
         </button>
       </div>
+      {open && (
+        <ShareReviewsModal
+          placeId={placeId}
+          bizName={bizName}
+          onClose={() => setOpen(false)}
+          onActivatePlate={onActivatePlate}
+        />
+      )}
     </Card>
   )
 }
@@ -3863,6 +4000,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
   })()
   const [tab, setTab] = React.useState(initialTab)
   const [moreOpen, setMoreOpen] = React.useState(false)
+  const [activatePlateOpen, setActivatePlateOpen] = React.useState(false)
 
   // Sincroniza URL com state — copiar/colar e F5 mantêm aba correta
   React.useEffect(() => {
@@ -4047,6 +4185,9 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
             progressPct={d.hero.progressPct}
             currentPos={d.kpis.rankingPos}
             isMobile={isMobile}
+            placeId={d.biz.placeId}
+            bizName={d.biz.name}
+            onActivatePlate={() => setActivatePlateOpen(true)}
           />
         </Section>
 
@@ -4101,6 +4242,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
             onLogout={onLogout}
           />
         </>
+      )}
+
+      {/* Modal global de ativação de placa — disparado pelo HeroPosition (Gerar mais avaliações) */}
+      {activatePlateOpen && (
+        <ActivatePlateModal
+          businessId={d.biz.id}
+          onClose={() => setActivatePlateOpen(false)}
+        />
       )}
     </div>
   )
