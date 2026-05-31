@@ -534,60 +534,198 @@ const TABS = [
 ]
 
 // ─────────────────────────────────────────────────────────────
-// Bottom Tab Bar — mobile (fixa no rodapé, todas as 6 abas visíveis)
+// Bottom Tab Bar — mobile (4 itens principais + Mais → bottom sheet)
+// Spec: Nubank/Mercado Livre/Stripe app style.
 // ─────────────────────────────────────────────────────────────
-function BottomTabBar({ active, onChange, plan }) {
+const MOBILE_PRIMARY_TABS = [
+  { id: 'painel',       icon: '🏠', label: 'Painel'       },
+  { id: 'avaliacoes',   icon: '⭐', label: 'Avaliações'   },
+  { id: 'concorrentes', icon: '🏆', label: 'Concorrentes', pro: true },
+  { id: 'more',         icon: '☰',  label: 'Mais'         }
+]
+
+function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen }) {
   return (
     <nav style={{
       position:'fixed', bottom: 0, left: 0, right: 0,
       background:'rgba(255,255,255,0.96)', backdropFilter:'blur(20px)',
       borderTop:'1px solid '+T.border,
       display:'flex', zIndex: 50,
-      paddingBottom:'env(safe-area-inset-bottom, 0)',  // iOS notch
+      paddingBottom:'env(safe-area-inset-bottom, 0)',
       boxShadow:'0 -2px 12px rgba(15,23,42,0.06)'
     }}>
-      {TABS.map(tab => {
-        const isActive = active === tab.id
+      {MOBILE_PRIMARY_TABS.map(tab => {
+        const isMore = tab.id === 'more'
+        const isActive = isMore ? moreOpen : active === tab.id
         const isLocked = tab.pro && plan === 'free'
         return (
           <a
             key={tab.id}
             href={isLocked ? '/plano-pro' : '#'}
             onClick={(e) => {
-              if (isLocked) return // deixa o href levar
+              if (isLocked) return
               e.preventDefault()
+              if (isMore) { onOpenMore(); return }
               onChange(tab.id)
             }}
             style={{
-              flex: 1, minWidth: 0,
+              flex: 1, minWidth: 0, maxWidth:'25%',
               display:'flex', flexDirection:'column',
               alignItems:'center', justifyContent:'center',
-              padding:'8px 2px 10px',
+              padding:'10px 2px 12px',
               color: isActive ? T.blue : T.textMid,
               textDecoration:'none',
               position:'relative',
               borderTop: isActive ? `2px solid ${T.blue}` : '2px solid transparent',
-              transition:'color .12s, border-color .12s'
+              transition:'color .12s, border-color .12s',
+              overflow:'hidden'
             }}
           >
-            <span style={{ fontSize: 21, lineHeight: 1, marginBottom: 3 }}>{tab.icon}</span>
+            <span style={{ fontSize: 22, lineHeight: 1, marginBottom: 4 }}>{tab.icon}</span>
             <span style={{
               fontSize: 10.5, fontWeight: isActive ? 700 : 500,
-              whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
-              maxWidth: '100%', textAlign:'center'
+              whiteSpace:'nowrap', textAlign:'center', maxWidth:'100%'
             }}>{tab.label}</span>
             {isLocked && (
               <span style={{
                 position:'absolute', top: 4, right: 'calc(50% - 22px)',
-                fontSize: 9, fontWeight: 800,
-                padding:'1px 4px', borderRadius: 3,
-                background:'#FBBC04', color:'#78350F'
+                fontSize: 9, padding:'1px 4px', borderRadius: 3,
+                background:'#FBBC04', color:'#78350F', fontWeight: 800
               }}>🔒</span>
             )}
           </a>
         )
       })}
     </nav>
+  )
+}
+
+// Bottom Sheet "Mais" — overlay com secundários
+function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
+  // Fecha com ESC
+  React.useEffect(() => {
+    if (!open) return
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open, onClose])
+
+  if (!open) return null
+
+  const items = [
+    { label:'Alertas',     icon:'🔔', tabId:'alertas',    pro: true  },
+    { label:'Relatórios',  icon:'📊', tabId:'relatorios', pro: true  },
+    { label:'Loja',        icon:'🛒', tabId:'loja'                   },
+    { label:'Configurações', icon:'⚙️', tabId:'config', hash:'negocio' },
+    { label:'Minha conta', icon:'👤', tabId:'config', hash:'conta' }
+  ]
+
+  const handleLogout = (e) => {
+    e.preventDefault()
+    onClose()
+    onLogout && onLogout()
+  }
+
+  const displayName = (user && (user.name || user.email)) || 'Sua conta'
+  const displayEmail = (user && user.email) || ''
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position:'fixed', inset: 0, background:'rgba(15,23,42,.55)',
+          zIndex: 60, animation:'fadeInBs .15s ease-out'
+        }}/>
+      <style>{`
+        @keyframes fadeInBs{from{opacity:0}to{opacity:1}}
+        @keyframes slideUpBs{from{transform:translateY(100%)}to{transform:translateY(0)}}
+      `}</style>
+      {/* Sheet */}
+      <div style={{
+        position:'fixed', left: 0, right: 0, bottom: 0, zIndex: 61,
+        background: T.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20,
+        boxShadow:'0 -8px 32px rgba(15,23,42,.18)',
+        animation:'slideUpBs .22s cubic-bezier(.22,.61,.36,1)',
+        paddingBottom:'calc(env(safe-area-inset-bottom, 0) + 12px)',
+        maxHeight:'85vh', overflowY:'auto'
+      }}>
+        {/* Drag handle */}
+        <div style={{
+          width: 36, height: 4, borderRadius: 999, background:'#CBD5E1',
+          margin:'10px auto 14px'
+        }}/>
+
+        {/* User header */}
+        <div style={{ padding:'4px 20px 16px', borderBottom:'1px solid '+T.border, marginBottom: 10 }}>
+          <div style={{ display:'flex', alignItems:'center', gap: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius:'50%', background: T.blue, color:'#fff',
+              display:'grid', placeItems:'center', fontWeight: 700, fontSize: 14, flexShrink: 0
+            }}>
+              {(displayName || 'U').slice(0, 1).toUpperCase()}
+            </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: T.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{displayName}</div>
+              {displayEmail && <div style={{ fontSize: 12, color: T.textMid, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{displayEmail}</div>}
+            </div>
+          </div>
+        </div>
+
+        {/* Lista */}
+        <div style={{ padding:'0 8px' }}>
+          {items.map((it, i) => {
+            const isLocked = it.pro && plan === 'free'
+            return (
+              <a
+                key={i}
+                href={isLocked ? '/plano-pro' : '#'}
+                onClick={(e) => {
+                  if (isLocked) return
+                  e.preventDefault()
+                  onPick(it.tabId, it.hash)
+                  onClose()
+                }}
+                style={{
+                  display:'flex', alignItems:'center', gap: 14,
+                  padding:'14px 14px', borderRadius: 12, textDecoration:'none',
+                  color: T.text, fontSize: 15, fontWeight: 500,
+                  marginBottom: 2
+                }}
+              >
+                <span style={{ fontSize: 22, width: 28, textAlign:'center' }}>{it.icon}</span>
+                <span style={{ flex: 1 }}>{it.label}</span>
+                {isLocked && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, letterSpacing:'.05em',
+                    background:'#FBBC04', color:'#78350F',
+                    padding:'2px 7px', borderRadius: 5
+                  }}>PRO</span>
+                )}
+                {!isLocked && <span style={{ color: T.textDim, fontSize: 18 }}>›</span>}
+              </a>
+            )
+          })}
+
+          {/* Sair separado */}
+          <div style={{ borderTop:'1px solid '+T.border, marginTop: 8, paddingTop: 8 }}>
+            <a
+              href="/"
+              onClick={handleLogout}
+              style={{
+                display:'flex', alignItems:'center', gap: 14,
+                padding:'14px 14px', borderRadius: 12, textDecoration:'none',
+                color: T.red, fontSize: 15, fontWeight: 500
+              }}
+            >
+              <span style={{ fontSize: 22, width: 28, textAlign:'center' }}>🚪</span>
+              <span style={{ flex: 1 }}>Sair</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -2896,6 +3034,25 @@ function NoBusinessScreen() {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Score StarTouch — índice 0-100 da presença local
+// Composição: nota Google (50pts) + volume de avaliações (30pts) + posição relativa (20pts)
+// Mostra o esforço total — quem só tem nota 5 com 3 reviews não vence quem tem 4.7 com 500.
+// ─────────────────────────────────────────────────────────────
+function calcStarTouchScore(d) {
+  const rating  = d.kpis?.rating || 0
+  const reviews = d.kpis?.reviewCount || 0
+  const total   = d.kpis?.totalCompetitors || 0
+  const pos     = d.kpis?.rankingPos || total
+
+  const ratingPart   = (rating / 5) * 50                         // 0-50
+  const reviewsPart  = Math.min(reviews / 100, 1) * 30           // satura em 100 reviews
+  const positionPart = total > 0
+    ? ((total - pos + 1) / total) * 20
+    : 10                                                          // sem ranking ainda: meio termo
+  return Math.max(0, Math.min(100, Math.round(ratingPart + reviewsPart + positionPart)))
+}
+
+// ─────────────────────────────────────────────────────────────
 // Main layout
 // ─────────────────────────────────────────────────────────────
 export default function AppV2({ user = null, onLogout, demoMode = false } = {}) {
@@ -2905,6 +3062,15 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
     ? (new URLSearchParams(window.location.search).get('tab') || 'painel')
     : 'painel'
   const [tab, setTab] = React.useState(initialTab)
+  const [moreOpen, setMoreOpen] = React.useState(false)
+
+  // Helper pra navegar de bottom sheet "Mais" → tab + anchor opcional
+  const navigateFromMore = React.useCallback((newTab, hash) => {
+    if (typeof window !== 'undefined' && hash) {
+      window.location.hash = hash
+    }
+    setTab(newTab)
+  }, [])
 
   // Carrega dados reais via API (skipa em demoMode ou sem user)
   const real = useRealData(user, demoMode)
@@ -3037,18 +3203,19 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
           </p>
         </div>
 
-        {/* KPI ROW — 5 cards (Próxima Meta inclusa) */}
+        {/* KPI ROW — 6 cards (mobile vira 2x3, desktop continua 6 colunas) */}
         <Section>
           <div style={{
             display:'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
-            gap: isMobile ? 10 : 14
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(6, 1fr)',
+            gap: isMobile ? 10 : 12
           }}>
             <KpiCard icon="⭐" label="Nota Google"     value={d.kpis.rating.toFixed(1)} sub="Sua reputação atual"            trend={+0.4} />
             <KpiCard icon="📝" label="Avaliações"      value={d.kpis.reviewCount}      sub="Total recebidas"                trend={+d.kpis.newLast30Days} />
             <KpiCard icon="🏆" label="Ranking local"   value={`#${d.kpis.rankingPos}`}  sub={`Entre ${d.kpis.totalCompetitors} empresas`} trend={+2} />
             <KpiCard icon="📈" label="Últimos 30 dias" value={`+${d.kpis.newLast30Days}`} sub="Novas avaliações"             trend={+3} />
-            <KpiCard icon="🎯" label="Próxima Meta"    value={`${d.kpis.nextGoal.reviewsToNext} avaliações`} sub={`Para alcançar o Top ${d.kpis.nextGoal.targetPosition}`} />
+            <KpiCard icon="🎯" label="Próxima Meta"    value={`${d.kpis.nextGoal.reviewsToNext} av.`} sub={`Para o Top ${d.kpis.nextGoal.targetPosition}`} />
+            <KpiCard icon="🏅" label="Score StarTouch" value={`${calcStarTouchScore(d)}`} sub="Sua presença local · 0–100" />
           </div>
         </Section>
 
@@ -3098,8 +3265,26 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
       </main>
       )}
 
-      {/* Bottom Tab Bar — só mobile, fixa no rodapé com todas as 6 abas visíveis */}
-      {isMobile && <BottomTabBar active={tab} onChange={setTab} plan={plan} />}
+      {/* Bottom Tab Bar — só mobile, 4 itens + "Mais" abre sheet */}
+      {isMobile && (
+        <>
+          <BottomTabBar
+            active={tab}
+            onChange={setTab}
+            plan={plan}
+            onOpenMore={() => setMoreOpen(true)}
+            moreOpen={moreOpen}
+          />
+          <MoreSheet
+            open={moreOpen}
+            onClose={() => setMoreOpen(false)}
+            onPick={navigateFromMore}
+            plan={plan}
+            user={user}
+            onLogout={onLogout}
+          />
+        </>
+      )}
     </div>
   )
 }
