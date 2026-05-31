@@ -297,23 +297,13 @@ function useRealData(user, demoMode) {
           if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, competitors: null, plates: null, hasBusiness: false })
           return
         }
-        // Categoria customizada — agora persiste no banco (businesses.category_override).
-        // Fallback: localStorage.rz_activity (legado). Migração: se backend não tem mas
-        // localStorage sim, fazer upload na 1ª carga (uma vez só, depois limpar localStorage).
-        let keyword = (biz.category_override || '').trim()
-        if (!keyword && typeof window !== 'undefined') {
-          const legacy = (localStorage.getItem('rz_activity') || '').trim()
-          if (legacy) {
-            keyword = legacy
-            // Upload pro banco (não-bloqueante) + limpa localStorage
-            apiCall('/api/savebiz', {
-              method: 'POST',
-              body: JSON.stringify({ category_override: legacy })
-            }).then(() => {
-              try { localStorage.removeItem('rz_activity') } catch {}
-            }).catch(() => { /* silencioso — tenta de novo na próxima carga */ })
-          }
+        // Categoria customizada — fonte única é businesses.category_override no banco.
+        // Limpa localStorage legado SEM fazer upload (auto-upload causava sobrescrita
+        // do valor do banco quando devices abriam fora de ordem).
+        if (typeof window !== 'undefined' && localStorage.getItem('rz_activity')) {
+          try { localStorage.removeItem('rz_activity') } catch {}
         }
+        const keyword = (biz.category_override || '').trim()
         const competitorsUrl = keyword
           ? `/api/competitors?keyword=${encodeURIComponent(keyword)}`
           : '/api/competitors'
