@@ -825,7 +825,7 @@ function TopTabs({ active, onChange, plan, isMobile }) {
       background: T.surface,
       borderBottom: `1px solid ${T.border}`,
       position: 'sticky',
-      top: isMobile ? 56 : 60, // logo abaixo do header
+      top: isMobile ? 58 : 70, // logo abaixo do header (header ficou mais alto com logo proeminente)
       zIndex: 49,
       backdropFilter: 'blur(20px)',
       backgroundColor: 'rgba(255,255,255,0.92)'
@@ -2972,21 +2972,23 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode 
     <header style={{
       background: T.surface,
       borderBottom: `1px solid ${T.border}`,
-      padding: isMobile ? '12px 16px' : '14px 32px',
+      padding: isMobile ? '10px 16px' : '12px 32px',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       gap: 8,
       position: 'sticky', top: 0, zIndex: 50,
       backdropFilter: 'blur(20px)',
       backgroundColor: 'rgba(255,255,255,0.85)'
     }}>
-      <div style={{ display:'flex', alignItems:'center', gap: isMobile ? 10 : 16, minWidth: 0 }}>
+      <div style={{ display:'flex', alignItems:'center', gap: isMobile ? 10 : 14, minWidth: 0 }}>
+        {/* Logo — dominante visualmente (era pequeno demais antes) */}
         <a href="/" style={{ display:'inline-flex', alignItems:'center', textDecoration:'none', flexShrink: 0 }}>
-          <img src="/startouch-logo-dark.png" alt="StarTouch" style={{ height: isMobile ? 26 : 32, width:'auto' }}/>
+          <img src="/startouch-logo-dark.png" alt="StarTouch" style={{ height: isMobile ? 38 : 46, width:'auto' }}/>
         </a>
-        {!isMobile && <div style={{ width: 1, height: 22, background: T.border }}/>}
-        <div style={{ display:'flex', alignItems:'center', gap: 8, minWidth: 0 }}>
-          <div style={{ width: 26, height: 26, borderRadius: 7, background:'linear-gradient(135deg,#FBBC04,#EA4335,#4285F4)', flexShrink: 0 }}/>
-          <span style={{ fontWeight: 600, fontSize: isMobile ? 13 : 14, color: T.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{bizName}</span>
+        {!isMobile && <div style={{ width: 1, height: 28, background: T.border }}/>}
+        {/* Nome do negócio — secundário (com label sutil pra hierarquia clara) */}
+        <div style={{ display:'flex', flexDirection:'column', minWidth: 0, gap: 1 }}>
+          <span style={{ fontSize: 9.5, fontWeight: 700, color: T.textDim, letterSpacing:'.06em', textTransform:'uppercase' }}>Negócio</span>
+          <span style={{ fontWeight: 600, fontSize: isMobile ? 12.5 : 13.5, color: T.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight: 1.2 }}>{bizName}</span>
         </div>
       </div>
 
