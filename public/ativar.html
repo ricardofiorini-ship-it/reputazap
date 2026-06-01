@@ -279,12 +279,14 @@
       Ver seu ranking e criar conta é <span style="font-weight:800;margin:0 3px;">100% grátis</span> · sem cartão
     </div>
     <div class="form-group"><label>Nome do negócio</label><input type="text" id="bizSearch" placeholder="Ex: Café Bello Vista" oninput="clearResults()"/></div>
-    <div class="form-group"><label>Cidade</label><input type="text" id="bizCity" placeholder="Ex: São Paulo"/></div>
-    <div class="form-group"><label>CEP <span style="color:#9ca3af;font-weight:400;">(crava a unidade certa)</span></label><input type="text" id="bizCep" placeholder="00000-000" inputmode="numeric" maxlength="9" oninput="maskCep(this)"/></div>
-    <div class="form-group"><label>Estado (UF)</label><input type="text" id="bizState" placeholder="Ex: SP" maxlength="2" autocapitalize="characters" style="text-transform:uppercase"/></div>
+    <div class="form-group">
+      <label>CEP do negócio</label>
+      <input type="text" id="bizCep" placeholder="00000-000" inputmode="numeric" maxlength="9" oninput="maskCep(this); lookupCep()" autocomplete="postal-code"/>
+      <p id="cepFeedback" style="margin:6px 0 0;font-size:12px;color:#6b7280;line-height:1.4;"></p>
+    </div>
     <div class="form-group"><label>Qual o ramo de atuação?</label><input type="text" id="bizActivity" placeholder="Ex.: Pizzaria, Clínica, Salão de Beleza, Loja de Roupas..."/></div>
     <div style="display:flex;gap:8px;align-items:flex-start;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin:-2px 0 16px;font-size:12.5px;color:#1e40af;line-height:1.45;">
-      <span>📍</span><span>Preencha <strong>cidade, estado e atividade</strong> pra uma comparação certeira. Tem mais de uma unidade? O <strong>CEP</strong> crava a certa.</span>
+      <span>📍</span><span>O <strong>CEP</strong> nos diz a cidade e o estado automaticamente — busca certeira na sua região.</span>
     </div>
     <p class="legal-text">Ao continuar, você concorda com os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>.</p>
     <button class="btn-primary" onclick="searchBusiness()" id="searchBtn">Buscar empresa</button>
@@ -593,17 +595,54 @@ function clearResults(){
   state.business=null;
 }
 
+// Cache do último lookup ViaCEP — evita re-fetch desnecessário
+let cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
+
+// Lookup ViaCEP em background quando o user termina de digitar o CEP (8 dígitos)
+async function lookupCep(){
+  const raw = document.getElementById("bizCep").value.replace(/\D/g, "");
+  const fb = document.getElementById("cepFeedback");
+  if(raw.length < 8){
+    fb.textContent = "";
+    fb.style.color = "#6b7280";
+    cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
+    return;
+  }
+  if(raw === cepCache.cep) return; // já buscou esse CEP
+  fb.textContent = "Buscando CEP…";
+  fb.style.color = "#6b7280";
+  try{
+    const r = await fetch(`https://viacep.com.br/ws/${raw}/json/`);
+    const d = await r.json();
+    if(d.erro){
+      fb.textContent = "⚠️ CEP não encontrado — confira os números";
+      fb.style.color = "#dc2626";
+      cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
+      return;
+    }
+    cepCache = { cep: raw, city: d.localidade || "", uf: d.uf || "", neighborhood: d.bairro || "" };
+    fb.innerHTML = `<span style="color:#137333;font-weight:600;">📍 ${d.localidade}/${d.uf}${d.bairro ? " · " + d.bairro : ""}</span>`;
+  } catch {
+    fb.textContent = "Não conseguimos consultar o CEP. Você pode buscar mesmo assim.";
+    fb.style.color = "#6b7280";
+  }
+}
+
 async function searchBusiness(){
   const query=document.getElementById("bizSearch").value.trim();
-  const city=document.getElementById("bizCity").value.trim();
-  const uf=document.getElementById("bizState").value.trim().toUpperCase();
-  const cep=document.getElementById("bizCep").value.trim(); // CEP (opcional, crava a unidade)
+  const cep=document.getElementById("bizCep").value.replace(/\D/g, "");
   const activity=document.getElementById("bizActivity").value.trim();
   state.activity=activity; // atividade -> keyword do ranking
-  if(!query){alert("Digite o nome do negócio!");return;}
-  if(!city){alert("Informe a cidade do seu negócio.");return;}
-  if(!uf){alert("Informe o estado (UF), ex: SP.");return;}
+
+  if(!query){alert("Digite o nome do negócio.");return;}
+  if(cep.length < 8){alert("Informe o CEP do negócio (8 dígitos).");return;}
   if(!activity){alert("Diga o ramo de atuação — é essencial pra achar os concorrentes certos.");return;}
+
+  // Pega cidade/UF do ViaCEP (ou faz lookup agora, caso o user nem tenha esperado)
+  if(cepCache.cep !== cep){ await lookupCep(); }
+  const city = cepCache.city;
+  const uf = cepCache.uf;
+
   const btn=document.getElementById("searchBtn");
   const status=document.getElementById("searchStatus");
   btn.disabled=true;
