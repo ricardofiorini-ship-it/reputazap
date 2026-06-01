@@ -448,6 +448,8 @@ function buildData(real, user, demoMode) {
     competitors: compData?.list ?? [],
     // capturePoints reais — array vazio se não tem placa ativa (empty state honesto)
     capturePoints: realCapturePoints,
+    // Lista bruta das placas ativas (com código, channel_name, taps) — pro detalhamento na UI
+    activePlates: activePlates,
     recentReviews: (reviews && reviews.length > 0)
       ? reviews.slice(0, 5).map(r => {
           // /api/reviews retorna shape: { author, avatar, rating, text, date, ... }
@@ -3706,20 +3708,30 @@ function ActivatePlateModal({ businessId, onClose }) {
 // ─────────────────────────────────────────────────────────────
 // Capture points
 // ─────────────────────────────────────────────────────────────
-function CapturePoints({ items, businessId }) {
+const PRODUCT_ICONS = {
+  placa_balcao: '🏷️',
+  placa_mesa:   '🍽️',
+  placa_parede: '🖼️',
+  pulseira_nfc: '⌚',
+  adesivo_nfc:  '⭕',
+  cartao_nfc:   '💳'
+}
+
+function CapturePoints({ items, plates, businessId }) {
   const [modalOpen, setModalOpen] = React.useState(false)
   const total = items.reduce((s, i) => s + (i.reviewsGenerated || 0), 0)
-  const isEmpty = !items || items.length === 0
+  const platesList = plates || []
+  const isEmpty = platesList.length === 0
   return (
     <Card>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 4, gap: 8, flexWrap:'wrap' }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>📍 Onde seus clientes avaliam</h3>
-        {!isEmpty && <span style={{ fontSize: 12, color: T.textDim }}>{total} {total === 1 ? 'toque registrado' : 'toques registrados'}</span>}
+        {!isEmpty && <span style={{ fontSize: 12, color: T.textDim }}>{platesList.length} {platesList.length === 1 ? 'dispositivo ativo' : 'dispositivos ativos'} · {total} {total === 1 ? 'toque' : 'toques'}</span>}
       </div>
       <p style={{ fontSize: 13, color: T.textMid, margin:'0 0 18px' }}>
         {isEmpty
           ? 'Você ainda não tem dispositivos ativos. Coloque uma placa no balcão ou um cartão NFC pra começar a captar avaliações no piloto automático.'
-          : 'Cada vez que um cliente toca/escaneia, conta aqui.'}
+          : 'Cada vez que um cliente toca/escaneia uma das placas abaixo, conta aqui.'}
       </p>
 
       {isEmpty ? (
@@ -3744,19 +3756,63 @@ function CapturePoints({ items, businessId }) {
         </div>
       ) : (
         <>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
-            {items.map((it, i) => (
-              <div key={i} style={{ padding: 16, borderRadius: 12, background:'#F8FAFC', border:`1px solid ${T.border}` }}>
-                <div style={{ fontSize: 12.5, color: T.textMid, fontWeight: 500, marginBottom: 4 }}>{it.name}</div>
-                <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 26, fontWeight: 700, color: T.text, letterSpacing:'-0.025em', lineHeight: 1, marginBottom: 2 }}>{it.reviewsGenerated}</div>
-                <div style={{ fontSize: 11.5, color: T.textDim }}>
-                  {it.devicesCount ? `${it.devicesCount} ${it.devicesCount === 1 ? 'ativo' : 'ativos'} · ` : ''}toques
+          {/* Resumo por tipo (cards horizontais — só se tem > 1 tipo) */}
+          {items.length > 1 && (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, marginBottom: 16 }}>
+              {items.map((it, i) => (
+                <div key={i} style={{ padding: 12, borderRadius: 10, background:'#F8FAFC', border:`1px solid ${T.border}` }}>
+                  <div style={{ fontSize: 11.5, color: T.textMid, fontWeight: 600, marginBottom: 2, textTransform:'uppercase', letterSpacing:'.04em' }}>{it.name}</div>
+                  <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 700, color: T.text, letterSpacing:'-0.025em', lineHeight: 1, marginBottom: 2 }}>{it.reviewsGenerated}</div>
+                  <div style={{ fontSize: 11, color: T.textDim }}>
+                    {it.devicesCount} {it.devicesCount === 1 ? 'ativo' : 'ativos'} · toques
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Lista detalhada de cada placa */}
+          <div style={{ display:'flex', flexDirection:'column', gap: 8 }}>
+            {platesList.map((p) => (
+              <div key={p.id} style={{
+                padding:'12px 14px', borderRadius: 10, background:'#fff',
+                border:`1px solid ${T.border}`,
+                display:'flex', alignItems:'center', gap: 12
+              }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                  background: T.blueSoft, display:'grid', placeItems:'center', fontSize: 20
+                }}>{PRODUCT_ICONS[p.product_type] || '📦'}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 2, flexWrap:'wrap' }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>
+                      {p.channel_name || (PRODUCT_LABELS[p.product_type] || p.product_type)}
+                    </span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: T.green, background: T.greenSoft, padding:'1px 6px', borderRadius: 4, letterSpacing:'.04em' }}>ATIVO</span>
+                  </div>
+                  <div style={{ fontSize: 11.5, color: T.textMid, fontFamily:'monospace' }}>
+                    {p.code} · {PRODUCT_LABELS[p.product_type] || p.product_type}
+                  </div>
+                </div>
+                <div style={{ textAlign:'right', flexShrink: 0 }}>
+                  <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, lineHeight: 1 }}>
+                    {p.total_taps || 0}
+                  </div>
+                  <div style={{ fontSize: 10.5, color: T.textDim, marginTop: 2 }}>
+                    {p.total_taps === 1 ? 'toque' : 'toques'}
+                  </div>
+                  {p.last_tapped_at && (
+                    <div style={{ fontSize: 10, color: T.textDim, marginTop: 2 }}>
+                      último {relativeDate(p.last_tapped_at)}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
+
           <button onClick={() => setModalOpen(true)} style={{
-            display:'block', marginTop: 18, background:'transparent', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 10,
+            display:'block', marginTop: 14, background:'transparent', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 10,
             padding:'10px 18px', fontSize: 13, fontWeight: 600, cursor:'pointer',
             fontFamily:"'Inter', sans-serif", width:'100%', textAlign:'center'
           }}>
@@ -4251,7 +4307,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
 
         {/* CAPTURE POINTS */}
         <Section>
-          <CapturePoints items={d.capturePoints} businessId={d.biz.id} />
+          <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} />
         </Section>
 
       </main>
