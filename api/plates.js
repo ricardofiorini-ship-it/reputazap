@@ -122,18 +122,40 @@ async function handleActivate(req, res, user) {
   }
   const normalized = String(code).trim().toUpperCase();
 
-  // Busca a placa
+  // Busca a placa (inclui business_id atual pra detectar "ativa mas orfã")
   const { data: plate, error: plateErr } = await supabase
     .from("plates")
-    .select("id, code, status")
+    .select("id, code, status, business_id")
     .eq("code", normalized)
     .maybeSingle();
   if (plateErr) return res.status(500).json({ error: plateErr.message });
   if (!plate) return res.status(404).json({ error: "Código não encontrado" });
-  if (plate.status === "active") return res.status(400).json({ error: "Essa placa já está ativada" });
   if (plate.status === "disabled") return res.status(400).json({ error: "Essa placa está desabilitada" });
 
-  // Verifica que o negócio pertence ao usuário
+  // Se já está ativa, valida se o business atual realmente pertence a alguém ainda existente.
+  // Caso comum: user re-cadastrou negócio (UNIQUE user_id sobrescreve o registro com novo UUID),
+  // a placa fica apontando pra UUID órfã. Nesse caso permitimos transferir a placa pro negócio novo.
+  if (plate.status === "active") {
+    let currentOwnerId = null;
+    if (plate.business_id) {
+      const { data: currentBiz } = await supabase
+        .from("businesses")
+        .select("id, user_id")
+        .eq("id", plate.business_id)
+        .maybeSingle();
+      currentOwnerId = currentBiz?.user_id || null;
+    }
+    if (currentOwnerId === user.id) {
+      return res.status(400).json({ error: "Essa placa já está ativada no seu negócio" });
+    }
+    if (currentOwnerId && currentOwnerId !== user.id) {
+      return res.status(403).json({ error: "Essa placa já foi ativada por outro usuário. Se você comprou recentemente, fale com a gente." });
+    }
+    // Senão: dono original sumiu (placa órfã) → permite ativar
+    console.log("[plates.activate] re-ativando placa orfã", { code: normalized, oldBizId: plate.business_id, newUserId: user.id });
+  }
+
+  // Verifica que o novo negócio pertence ao usuário
   const { data: biz, error: bizErr } = await supabase
     .from("businesses")
     .select("id")
@@ -143,7 +165,7 @@ async function handleActivate(req, res, user) {
   if (bizErr) return res.status(500).json({ error: bizErr.message });
   if (!biz) return res.status(403).json({ error: "Negócio não pertence a você" });
 
-  // Ativa
+  // Ativa (vincula ou re-vincula)
   const { data: updated, error: updErr } = await supabase
     .from("plates")
     .update({
