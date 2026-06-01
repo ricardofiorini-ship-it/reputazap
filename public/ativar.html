@@ -650,7 +650,7 @@ async function searchBusiness(){
   status.textContent="Buscando no Google Maps...";
   status.className="status-msg loading";
   try{
-    const res=await fetch(`/api/searchbiz?q=${encodeURIComponent([query,cep,city,uf].filter(Boolean).join(" "))}`);
+    const res=await fetch(`/api/searchbiz?q=${encodeURIComponent([query,cep,city,uf].filter(Boolean).join(" "))}&cep=${encodeURIComponent(cep)}`);
     const data=await res.json();
     if(!data.results?.length){
       status.innerHTML='Não encontramos sua empresa no Google. Tente outro nome ou cidade. Se você ainda não tem um perfil no Google Meu Negócio, <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#1A73E8;font-weight:600;text-decoration:underline">crie um aqui</a> antes de continuar.';
@@ -669,10 +669,15 @@ async function searchBusiness(){
 
 function showResults(results){
   const container=document.getElementById("searchResults");
-  container.innerHTML=results.map(r=>`
+  const fmtDistance = (m) => {
+    if (!m && m !== 0) return "";
+    if (m < 1000) return `${m} m`;
+    return `${(m/1000).toFixed(1)} km`;
+  };
+  container.innerHTML=results.map((r,i)=>`
     <div class="result-item" onclick='selectBusiness(${JSON.stringify(r)})'>
-      <div class="result-name">${r.name}</div>
-      <div class="result-addr">⭐ ${r.rating||"?"} · ${r.total||0} avaliações · ${r.address}</div>
+      <div class="result-name">${r.name}${i===0 && r.distance_meters!=null ? ' <span style="font-size:10.5px;font-weight:700;background:#E6F4EA;color:#137333;padding:2px 7px;border-radius:5px;margin-left:6px;letter-spacing:.04em;">MAIS PRÓXIMA</span>' : ''}</div>
+      <div class="result-addr">⭐ ${r.rating||"?"} · ${r.total||0} avaliações${r.distance_meters!=null ? ' · 📍 '+fmtDistance(r.distance_meters)+' do CEP' : ''} · ${r.address}</div>
     </div>
   `).join("");
   // Rola suave ate os resultados — eles apareciam abaixo da dobra e o usuario

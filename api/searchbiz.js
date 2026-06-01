@@ -1,15 +1,26 @@
+// Haversine — distância em metros entre dois pontos lat/lng
+function haversine(a, b) {
+  if (!a || !b || a.lat == null || b.lat == null) return Infinity;
+  const R = 6371000; // raio da Terra em metros
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat), lat2 = toRad(b.lat);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  const { q } = req.query;
+  const { q, cep } = req.query;
   if (!q) return res.status(400).json({ error: "Query obrigatória" });
 
   const API_KEY = process.env.PLACES_API_KEY;
+  const cepDigits = (cep || "").replace(/\D/g, "");
 
   try {
     // Text Search (e nao Find Place): retorna uma LISTA de lugares (ate 20 por
-    // pagina), essencial pra redes com varias unidades. O Find Place antigo so
-    // devolvia o "melhor palpite" pra um nome — por isso uma rede com 20 lojas
-    // aparecia com 2-3 resultados.
+    // pagina), essencial pra redes com varias unidades.
     const searchRes = await fetch(
       `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&language=pt-BR&region=br&key=${API_KEY}`
     );
@@ -19,20 +30,41 @@ export default async function handler(req, res) {
       return res.json({ results: [] });
     }
 
-    // Se a busca tem CEP (5 digitos + 3, com ou sem hifen), o usuario foi
-    // especifico: o Google ja ordena por proximidade, entao devolvemos so os
-    // primeiros (a unidade certa estara no topo). Sem CEP, mantemos ate 20 pra
-    // permitir navegar entre varias unidades de uma rede.
-    const hasCep = /\d{5}-?\d{3}/.test(q);
-    const limit = hasCep ? 5 : 20;
+    // Se temos CEP, geocoda pra obter lat/lng de referencia e ordena resultados
+    // pela proximidade — pra redes (varias unidades), a loja mais perto do CEP
+    // do cliente fica no topo (em vez do "best match" do Google, que costuma ser
+    // a unidade com mais reviews, nao a mais perto).
+    let origin = null;
+    if (cepDigits.length === 8) {
+      try {
+        const geoRes = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${cepDigits}&components=country:BR&language=pt-BR&key=${API_KEY}`
+        );
+        const geo = await geoRes.json();
+        const loc = geo.results?.[0]?.geometry?.location;
+        if (loc) origin = { lat: loc.lat, lng: loc.lng };
+      } catch (e) {
+        console.warn("[searchbiz] geocoding falhou, mantendo ordem do Google:", e.message);
+      }
+    }
 
-    // Retorna ate `limit`, ordenados pela relevancia/prominencia do Google.
-    const results = data.results.slice(0, limit).map(p => ({
+    let ordered = data.results;
+    if (origin) {
+      ordered = data.results
+        .map(p => ({ ...p, _dist: haversine(origin, p.geometry?.location) }))
+        .sort((a, b) => a._dist - b._dist);
+    }
+
+    const limit = cepDigits.length === 8 ? 5 : 20;
+    const results = ordered.slice(0, limit).map(p => ({
       place_id: p.place_id,
       name: p.name,
       address: p.formatted_address || "",
       rating: p.rating || 0,
-      total: p.user_ratings_total || 0
+      total: p.user_ratings_total || 0,
+      ...(typeof p._dist === "number" && isFinite(p._dist)
+        ? { distance_meters: Math.round(p._dist) }
+        : {})
     }));
 
     res.json({ results });
