@@ -674,12 +674,18 @@ function showResults(results){
     if (m < 1000) return `${m} m`;
     return `${(m/1000).toFixed(1)} km`;
   };
-  container.innerHTML=results.map((r,i)=>`
+  const cards = results.map((r,i)=>`
     <div class="result-item" onclick='selectBusiness(${JSON.stringify(r)})'>
       <div class="result-name">${r.name}${i===0 && r.distance_meters!=null ? ' <span style="font-size:10.5px;font-weight:700;background:#E6F4EA;color:#137333;padding:2px 7px;border-radius:5px;margin-left:6px;letter-spacing:.04em;">MAIS PRÓXIMA</span>' : ''}</div>
       <div class="result-addr">⭐ ${r.rating||"?"} · ${r.total||0} avaliações${r.distance_meters!=null ? ' · 📍 '+fmtDistance(r.distance_meters)+' do CEP' : ''} · ${r.address}</div>
     </div>
   `).join("");
+  const disclaimer = `
+    <div style="margin-top:12px;padding:10px 12px;background:#fefce8;border:1px solid #fef08a;border-radius:8px;font-size:12px;color:#854d0e;line-height:1.5;">
+      <span style="font-weight:700;">⚠️ Nome ou endereço diferente do real?</span>
+      Os dados vêm direto do <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#854d0e;font-weight:600;text-decoration:underline;">Google Meu Negócio</a> do dono. Se estiver desatualizado, escolha mesmo assim e atualize no Google depois — a correção propaga aqui em 1-2 dias.
+    </div>`;
+  container.innerHTML = cards + disclaimer;
   // Rola suave ate os resultados — eles apareciam abaixo da dobra e o usuario
   // achava que a busca nao tinha encontrado nada.
   requestAnimationFrame(()=>{

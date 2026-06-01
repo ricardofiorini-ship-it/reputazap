@@ -30,6 +30,16 @@ export default async function handler(req, res) {
       return res.json({ results: [] });
     }
 
+    // Filtra lojas fechadas/temporariamente fechadas — Google mantem no indice
+    // mesmo apos o dono fechar; mostrar essas dava resultado confuso pro usuario.
+    data.results = data.results.filter(p =>
+      !p.business_status || p.business_status === "OPERATIONAL"
+    );
+
+    if (!data.results.length) {
+      return res.json({ results: [] });
+    }
+
     // Se temos CEP, geocoda pra obter lat/lng de referencia e ordena resultados
     // pela proximidade — pra redes (varias unidades), a loja mais perto do CEP
     // do cliente fica no topo (em vez do "best match" do Google, que costuma ser
