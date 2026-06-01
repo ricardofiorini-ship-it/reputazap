@@ -3719,107 +3719,144 @@ const PRODUCT_ICONS = {
   cartao_nfc:   '💳'
 }
 
-function CapturePoints({ items, plates, businessId }) {
+function CapturePoints({ items, plates, businessId, isAdmin }) {
   const [modalOpen, setModalOpen] = React.useState(false)
-  const total = items.reduce((s, i) => s + (i.reviewsGenerated || 0), 0)
-  const platesList = plates || []
+  const [showCode, setShowCode] = React.useState(false)
+  const platesList = (plates || []).slice().sort((a,b) => (b.total_taps || 0) - (a.total_taps || 0))
+  const total = platesList.reduce((s, p) => s + (p.total_taps || 0), 0)
   const isEmpty = platesList.length === 0
+  // Detecta a placa mais usada — útil pra "estrela" visual
+  const topPlate = platesList[0]
+  const hasMultiple = platesList.length > 1
+
   return (
     <Card>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 4, gap: 8, flexWrap:'wrap' }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>📍 Onde seus clientes avaliam</h3>
-        {!isEmpty && <span style={{ fontSize: 12, color: T.textDim }}>{platesList.length} {platesList.length === 1 ? 'dispositivo ativo' : 'dispositivos ativos'} · {total} {total === 1 ? 'toque' : 'toques'}</span>}
       </div>
-      <p style={{ fontSize: 13, color: T.textMid, margin:'0 0 18px' }}>
-        {isEmpty
-          ? 'Você ainda não tem dispositivos ativos. Coloque uma placa no balcão ou um cartão NFC pra começar a captar avaliações no piloto automático.'
-          : 'Cada vez que um cliente toca/escaneia uma das placas abaixo, conta aqui.'}
-      </p>
 
       {isEmpty ? (
-        <div style={{
-          padding: 24, borderRadius: 12, background: T.bg, border:`1px dashed ${T.border}`,
-          textAlign:'center'
-        }}>
-          <div style={{ fontSize: 36, marginBottom: 8 }}>📡</div>
-          <div style={{ fontSize: 13, color: T.textMid, marginBottom: 14, lineHeight: 1.5 }}>
-            Nenhum dispositivo ativo ainda.
+        <>
+          <p style={{ fontSize: 13, color: T.textMid, margin:'0 0 18px' }}>
+            Você ainda não tem dispositivos ativos. Coloque uma placa no balcão ou um cartão NFC pra começar a captar avaliações no piloto automático.
+          </p>
+          <div style={{
+            padding: 24, borderRadius: 12, background: T.bg, border:`1px dashed ${T.border}`,
+            textAlign:'center'
+          }}>
+            <div style={{ fontSize: 36, marginBottom: 8 }}>📡</div>
+            <div style={{ fontSize: 13, color: T.textMid, marginBottom: 14, lineHeight: 1.5 }}>
+              Nenhum dispositivo ativo ainda.
+            </div>
+            <div style={{ display:'flex', gap: 8, justifyContent:'center', flexWrap:'wrap' }}>
+              <button onClick={() => setModalOpen(true)} style={{
+                background: T.blue, color:'#fff', border:'none', borderRadius: 9,
+                padding:'10px 16px', fontSize: 13, fontWeight: 700, cursor:'pointer'
+              }}>Ativar código de placa →</button>
+              <a href="/kit" style={{
+                background:'#fff', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 9,
+                padding:'10px 16px', fontSize: 13, fontWeight: 700, textDecoration:'none'
+              }}>Comprar dispositivos</a>
+            </div>
           </div>
-          <div style={{ display:'flex', gap: 8, justifyContent:'center', flexWrap:'wrap' }}>
-            <button onClick={() => setModalOpen(true)} style={{
-              background: T.blue, color:'#fff', border:'none', borderRadius: 9,
-              padding:'10px 16px', fontSize: 13, fontWeight: 700, cursor:'pointer'
-            }}>Ativar código de placa →</button>
-            <a href="/kit" style={{
-              background:'#fff', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 9,
-              padding:'10px 16px', fontSize: 13, fontWeight: 700, textDecoration:'none'
-            }}>Comprar dispositivos</a>
-          </div>
-        </div>
+        </>
       ) : (
         <>
-          {/* Resumo por tipo (cards horizontais — só se tem > 1 tipo) */}
-          {items.length > 1 && (
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, marginBottom: 16 }}>
-              {items.map((it, i) => (
-                <div key={i} style={{ padding: 12, borderRadius: 10, background:'#F8FAFC', border:`1px solid ${T.border}` }}>
-                  <div style={{ fontSize: 11.5, color: T.textMid, fontWeight: 600, marginBottom: 2, textTransform:'uppercase', letterSpacing:'.04em' }}>{it.name}</div>
-                  <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 700, color: T.text, letterSpacing:'-0.025em', lineHeight: 1, marginBottom: 2 }}>{it.reviewsGenerated}</div>
-                  <div style={{ fontSize: 11, color: T.textDim }}>
-                    {it.devicesCount} {it.devicesCount === 1 ? 'ativo' : 'ativos'} · toques
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Lista detalhada de cada placa */}
-          <div style={{ display:'flex', flexDirection:'column', gap: 8 }}>
-            {platesList.map((p) => (
-              <div key={p.id} style={{
-                padding:'12px 14px', borderRadius: 10, background:'#fff',
-                border:`1px solid ${T.border}`,
-                display:'flex', alignItems:'center', gap: 12
-              }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-                  background: T.blueSoft, display:'grid', placeItems:'center', fontSize: 20
-                }}>{PRODUCT_ICONS[p.product_type] || '📦'}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 2, flexWrap:'wrap' }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>
-                      {p.channel_name || (PRODUCT_LABELS[p.product_type] || p.product_type)}
-                    </span>
-                    <span style={{ fontSize: 10.5, fontWeight: 700, color: T.green, background: T.greenSoft, padding:'1px 6px', borderRadius: 4, letterSpacing:'.04em' }}>ATIVO</span>
-                  </div>
-                  <div style={{ fontSize: 11.5, color: T.textMid, fontFamily:'monospace' }}>
-                    {p.code} · {PRODUCT_LABELS[p.product_type] || p.product_type}
-                  </div>
-                </div>
-                <div style={{ textAlign:'right', flexShrink: 0 }}>
-                  <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, lineHeight: 1 }}>
-                    {p.total_taps || 0}
-                  </div>
-                  <div style={{ fontSize: 10.5, color: T.textDim, marginTop: 2 }}>
-                    {p.total_taps === 1 ? 'toque' : 'toques'}
-                  </div>
-                  {p.last_tapped_at && (
-                    <div style={{ fontSize: 10, color: T.textDim, marginTop: 2 }}>
-                      último {relativeDate(p.last_tapped_at)}
-                    </div>
-                  )}
-                </div>
+          {/* HERO STAT — narrativa clara ("seus clientes tocaram X vezes") */}
+          <div style={{
+            background:'linear-gradient(135deg, '+T.blueSoft+' 0%, #fff 100%)',
+            border:'1px solid '+T.border, borderRadius: 12,
+            padding:'14px 16px', marginBottom: 14,
+            display:'flex', alignItems:'center', gap: 14, flexWrap:'wrap'
+          }}>
+            <div style={{
+              fontFamily:"'Inter', sans-serif", fontSize: 36, fontWeight: 800,
+              color: T.blue, letterSpacing:'-0.03em', lineHeight: 1
+            }}>{total}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: T.text, lineHeight: 1.3 }}>
+                {total === 0
+                  ? 'Aguardando o primeiro toque'
+                  : total === 1
+                  ? 'Cliente tocou na sua placa 1 vez'
+                  : `Seus clientes tocaram ${total} vezes`}
               </div>
-            ))}
+              <div style={{ fontSize: 12.5, color: T.textMid, marginTop: 2 }}>
+                {total === 0
+                  ? `Posicione ${hasMultiple ? 'as placas' : 'a placa'} num lugar visível e peça pra avaliarem.`
+                  : hasMultiple
+                  ? `${platesList.length} dispositivos ativos · ${topPlate?.channel_name || 'a placa principal'} é a campeã`
+                  : 'Continue assim! Cada toque pode virar uma avaliação no Google.'}
+              </div>
+            </div>
           </div>
 
-          <button onClick={() => setModalOpen(true)} style={{
-            display:'block', marginTop: 14, background:'transparent', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 10,
-            padding:'10px 18px', fontSize: 13, fontWeight: 600, cursor:'pointer',
-            fontFamily:"'Inter', sans-serif", width:'100%', textAlign:'center'
-          }}>
-            + Ativar novo dispositivo
-          </button>
+          {/* LISTA SIMPLIFICADA — uma placa por linha, sem badges/códigos confusos */}
+          <div style={{ display:'flex', flexDirection:'column', gap: 8 }}>
+            {platesList.map((p, idx) => {
+              const taps = p.total_taps || 0
+              const isTop = hasMultiple && idx === 0 && taps > 0
+              const displayName = p.channel_name || (PRODUCT_LABELS[p.product_type] || 'Dispositivo')
+              const productLabel = PRODUCT_LABELS[p.product_type] || p.product_type
+              return (
+                <div key={p.id} style={{
+                  padding:'14px 16px', borderRadius: 12,
+                  background: isTop ? T.blueSoft : '#fff',
+                  border: isTop ? `1.5px solid #B9D6FB` : `1px solid ${T.border}`,
+                  display:'flex', alignItems:'center', gap: 14
+                }}>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                    background:'#fff', border:'1px solid '+T.border,
+                    display:'grid', placeItems:'center', fontSize: 22
+                  }}>{PRODUCT_ICONS[p.product_type] || '📦'}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap' }}>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>
+                        {displayName}
+                      </span>
+                      {isTop && <span style={{ fontSize: 10.5, fontWeight: 800, color: T.blueDk, background:'#fff', padding:'1px 7px', borderRadius: 4 }}>🏆 MAIS USADA</span>}
+                    </div>
+                    <div style={{ fontSize: 12, color: T.textMid, marginTop: 2 }}>
+                      {productLabel}{p.last_tapped_at && taps > 0 ? ' · último toque ' + relativeDate(p.last_tapped_at) : ''}
+                    </div>
+                    {showCode && (
+                      <div style={{ fontSize: 10.5, color: T.textDim, marginTop: 2, fontFamily:'monospace' }}>{p.code}</div>
+                    )}
+                  </div>
+                  <div style={{ textAlign:'right', flexShrink: 0 }}>
+                    <div style={{
+                      fontFamily:"'Inter', sans-serif",
+                      fontSize: 24, fontWeight: 800,
+                      color: taps > 0 ? T.text : T.textDim,
+                      lineHeight: 1, letterSpacing:'-0.02em'
+                    }}>{taps}</div>
+                    <div style={{ fontSize: 11, color: T.textDim, marginTop: 3, fontWeight: 500 }}>
+                      {taps === 1 ? 'toque' : 'toques'}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          <div style={{ display:'flex', gap: 8, marginTop: 14, flexWrap:'wrap' }}>
+            <button onClick={() => setModalOpen(true)} style={{
+              flex:'1 1 200px', background:'transparent', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 10,
+              padding:'10px 18px', fontSize: 13, fontWeight: 600, cursor:'pointer',
+              fontFamily:"'Inter', sans-serif", textAlign:'center'
+            }}>
+              + Ativar novo dispositivo
+            </button>
+            {isAdmin && (
+              <button onClick={() => setShowCode(s => !s)} style={{
+                background:'transparent', color: T.textMid, border:`1px solid ${T.border}`, borderRadius: 10,
+                padding:'10px 14px', fontSize: 12, fontWeight: 500, cursor:'pointer'
+              }}>
+                {showCode ? 'Esconder' : 'Mostrar'} códigos
+              </button>
+            )}
+          </div>
         </>
       )}
       {modalOpen && (
@@ -4309,7 +4346,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
 
         {/* CAPTURE POINTS */}
         <Section>
-          <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} />
+          <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} isAdmin={isAdminUser(user)} />
         </Section>
 
       </main>
