@@ -58,10 +58,14 @@
   <!-- ESCOLHA: novo vs existente -->
   <div class="card hidden" id="screenChoice">
     <h1>Ativar sua placa</h1>
-    <p class="sub">Pra ativar sua placa StarTouch, entre na sua conta ou crie uma nova.</p>
+    <p class="sub">Pra ativar sua placa StarTouch, entre com seu Google ou escolha um caminho abaixo.</p>
     <div class="code-badge" id="choiceBadge">✓ Código: —</div>
-    <button class="btn btn-primary" onclick="show('screenNew')">Sou cliente novo</button>
-    <button class="btn btn-outline" onclick="goToExisting()">Já tenho conta</button>
+    <div id="googleBtnChoice" style="display:flex;justify-content:center;margin-bottom:14px;min-height:44px;"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin:10px 0 14px;font-size:11.5px;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">
+      <div style="flex:1;height:1px;background:#DADCE0;"></div>OU<div style="flex:1;height:1px;background:#DADCE0;"></div>
+    </div>
+    <button class="btn btn-primary" onclick="show('screenNew')">Sou cliente novo (email/senha)</button>
+    <button class="btn btn-outline" onclick="goToExisting()">Já tenho conta (email/senha)</button>
   </div>
 
   <!-- CLIENTE NOVO: cadastro + busca negócio -->
@@ -91,6 +95,10 @@
     <button class="back" onclick="show('screenChoice')">← Voltar</button>
     <h1>Entrar</h1>
     <p class="sub">Entre pra ativar a placa na sua conta.</p>
+    <div id="googleBtnLogin" style="display:flex;justify-content:center;margin-bottom:14px;min-height:44px;"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin:6px 0 14px;font-size:11.5px;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">
+      <div style="flex:1;height:1px;background:#DADCE0;"></div>OU COM EMAIL<div style="flex:1;height:1px;background:#DADCE0;"></div>
+    </div>
     <input type="email" id="lEmail" placeholder="Seu email"/>
     <input type="password" id="lPass" placeholder="Sua senha"/>
     <div class="msg" id="lMsg"></div>
@@ -126,11 +134,83 @@ const ERROR = params.get("error");
 let token = localStorage.getItem("rz_token");
 let selectedBiz = null;       // {place_id, name, address, rating, total} pro cadastro novo
 let myBusinesses = [];        // negócios do usuário logado
+let googleAuthed = false;     // true se chegou aqui via login Google (pula senha)
+
+// ── Google Sign-In (atalho que cobre cadastro novo + login) ──
+const GOOGLE_CLIENT_ID = "215106300952-pb5ucf4l8jd8ls9q6ff059b41mo26gkt.apps.googleusercontent.com";
+let gsiScriptLoaded = false;
+function loadGsiScript(){
+  return new Promise((resolve)=>{
+    if(gsiScriptLoaded||window.google?.accounts?.id){gsiScriptLoaded=true;return resolve();}
+    const s=document.createElement("script");
+    s.src="https://accounts.google.com/gsi/client";
+    s.async=true; s.defer=true;
+    s.onload=()=>{gsiScriptLoaded=true;resolve();};
+    document.head.appendChild(s);
+  });
+}
+async function renderGoogleButton(containerId){
+  await loadGsiScript();
+  if(!window.google?.accounts?.id) return;
+  const container=document.getElementById(containerId);
+  if(!container) return;
+  window.google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleGoogleCredential,
+    auto_select: false
+  });
+  container.innerHTML="";
+  window.google.accounts.id.renderButton(container, {
+    theme:"outline", size:"large", text:"continue_with",
+    shape:"rectangular", logo_alignment:"left", width: Math.min(320, container.clientWidth || 320),
+    locale:"pt-BR"
+  });
+}
+async function handleGoogleCredential(response){
+  const idToken=response?.credential;
+  if(!idToken){alert("Falha no login Google.");return;}
+  try{
+    const r=await fetch("/api/login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({action:"google",id_token:idToken})
+    });
+    const d=await r.json();
+    if(!r.ok||!d.token){alert(d.error||"Erro no login Google.");return;}
+    token=d.token;
+    localStorage.setItem("rz_token",token);
+    if(d.user) localStorage.setItem("rz_user",JSON.stringify(d.user));
+    googleAuthed = true;
+
+    // Se já tem negócio cadastrado, pula direto pra vincular
+    if(d.business){
+      myBusinesses=[d.business];
+      renderLinkArea();
+      show("screenLink");
+      return;
+    }
+    // Sem negócio — vai pro form de cadastro com nome/email pre-preenchidos e senha escondida
+    document.getElementById("nName").value = d.user?.name || "";
+    document.getElementById("nEmail").value = d.user?.email || "";
+    document.getElementById("nName").readOnly = true;
+    document.getElementById("nEmail").readOnly = true;
+    document.getElementById("nName").style.background = "#F1F3F4";
+    document.getElementById("nEmail").style.background = "#F1F3F4";
+    document.getElementById("nPass").style.display = "none"; // não precisa senha — autenticado via Google
+    document.getElementById("nSubmit").textContent = "Salvar negócio e ativar placa";
+    show("screenNew");
+  }catch{
+    alert("Erro de conexão.");
+  }
+}
 
 function show(id){
   ["screenError","screenChoice","screenNew","screenLogin","screenLink","screenDone"]
     .forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id));
   window.scrollTo(0,0);
+  // Renderiza botão Google nas telas que oferecem (assincrono — GSI carrega lazy)
+  if(id==="screenChoice") renderGoogleButton("googleBtnChoice");
+  if(id==="screenLogin")  renderGoogleButton("googleBtnLogin");
 }
 
 function maskPhone(el){
@@ -193,6 +273,7 @@ function resetBiz(){
 }
 
 // ── CLIENTE NOVO: cadastro + savebiz + activate ──
+// Se chegou via Google (googleAuthed=true), pula o register — só precisa do negócio.
 async function submitNew(){
   const name=document.getElementById("nName").value.trim();
   const email=document.getElementById("nEmail").value.trim();
@@ -201,25 +282,33 @@ async function submitNew(){
   const msg=document.getElementById("nMsg");
   msg.className="msg";
 
-  if(!name||!email||!phone||!pass){ msg.className="msg error"; msg.textContent="Preencha todos os campos."; return; }
-  if(pass.length<8){ msg.className="msg error"; msg.textContent="Senha precisa de pelo menos 8 caracteres."; return; }
+  if(!name||!email){ msg.className="msg error"; msg.textContent="Preencha nome e email."; return; }
+  if(!googleAuthed){
+    // Cadastro via email/senha — exige senha+phone
+    if(!phone||!pass){ msg.className="msg error"; msg.textContent="Preencha WhatsApp e senha."; return; }
+    if(pass.length<8){ msg.className="msg error"; msg.textContent="Senha precisa de pelo menos 8 caracteres."; return; }
+  }
   if(!selectedBiz){ msg.className="msg error"; msg.textContent="Busque e selecione seu negócio."; return; }
 
   const btn=document.getElementById("nSubmit");
-  btn.disabled=true; btn.textContent="Criando conta…";
+  btn.disabled=true;
+  btn.textContent = googleAuthed ? "Salvando negócio…" : "Criando conta…";
 
   try{
-    // 1. registra
-    const rReg = await fetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,email,phone,password:pass})});
-    const dReg = await rReg.json();
-    if(!rReg.ok){ msg.className="msg error"; msg.textContent=dReg.error||"Erro ao criar conta."; btn.disabled=false; btn.textContent="Criar conta e ativar placa"; return; }
-    token = dReg.token;
-    if(!token){
-      const rLog=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})});
-      const dLog=await rLog.json(); token=dLog.token;
+    // Se NÃO autenticado via Google, faz register tradicional primeiro
+    if(!googleAuthed){
+      const rReg = await fetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,email,phone,password:pass})});
+      const dReg = await rReg.json();
+      if(!rReg.ok){ msg.className="msg error"; msg.textContent=dReg.error||"Erro ao criar conta."; btn.disabled=false; btn.textContent="Criar conta e ativar placa"; return; }
+      token = dReg.token;
+      if(!token){
+        const rLog=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})});
+        const dLog=await rLog.json(); token=dLog.token;
+      }
+      localStorage.setItem("rz_token",token);
+      if(dReg.user) localStorage.setItem("rz_user",JSON.stringify(dReg.user));
     }
-    localStorage.setItem("rz_token",token);
-    if(dReg.user) localStorage.setItem("rz_user",JSON.stringify(dReg.user));
+    // Se autenticado via Google, token já foi setado em handleGoogleCredential
 
     // 2. salva negócio
     btn.textContent="Salvando negócio…";
