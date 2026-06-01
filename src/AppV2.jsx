@@ -232,7 +232,9 @@ async function apiCall(path, opts = {}) {
   if (!res.ok) {
     let msg = `HTTP ${res.status}`
     try { const j = await res.json(); if (j.error) msg = j.error } catch {}
-    throw new Error(msg)
+    const err = new Error(msg)
+    err.status = res.status
+    throw err
   }
   return res.json()
 }
@@ -266,11 +268,12 @@ function relativeDate(unixOrIso) {
 }
 
 // Hook que carrega dados reais do user logado.
-// Retorna { loading, error, biz, reviews, bizInfo, competitors, plates, hasBusiness }
+// Retorna { loading, error, authExpired, biz, reviews, bizInfo, competitors, plates, hasBusiness }
 function useRealData(user, demoMode) {
   const [state, setState] = React.useState({
     loading: !demoMode && !!user,
     error: null,
+    authExpired: false,
     biz: null,
     reviews: [],
     bizInfo: null,
@@ -285,7 +288,7 @@ function useRealData(user, demoMode) {
       return
     }
     let cancelled = false
-    setState(s => ({ ...s, loading: true, error: null }))
+    setState(s => ({ ...s, loading: true, error: null, authExpired: false }))
 
     ;(async () => {
       try {
@@ -337,7 +340,15 @@ function useRealData(user, demoMode) {
           })
         }
       } catch (e) {
-        if (!cancelled) setState({ loading: false, error: e.message, biz: null, reviews: [], bizInfo: null, competitors: null, plates: null, hasBusiness: false })
+        if (cancelled) return
+        // Token expirado/inválido — vai virar fluxo de logout no AppV2
+        const isAuth = e.status === 401 || /token/i.test(e.message || '')
+        setState({
+          loading: false,
+          error: e.message,
+          authExpired: isAuth,
+          biz: null, reviews: [], bizInfo: null, competitors: null, plates: null, hasBusiness: false
+        })
       }
     })()
 
@@ -4045,6 +4056,29 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
       <div style={{ background: T.bg, minHeight:'100vh' }}>
         <Header bizName={user?.email || 'Carregando…'} plan="free" isMobile={isMobile} user={user} onLogout={onLogout} demoMode={demoMode} />
         <LoadingScreen/>
+      </div>
+    )
+  }
+  // Token expirado/inválido — limpa storage e força re-login (sem tela de erro confusa)
+  if (real.authExpired) {
+    return (
+      <div style={{ background: T.bg, minHeight:'100vh' }}>
+        <Header bizName="StarTouch" plan="free" isMobile={isMobile} user={user} onLogout={onLogout} demoMode={demoMode} />
+        <main style={{ maxWidth: 480, margin:'80px auto', padding:'0 24px', textAlign:'center' }}>
+          <Card style={{ padding: 32 }}>
+            <div style={{ fontSize: 48, marginBottom: 14 }}>🔐</div>
+            <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 20, fontWeight: 700, color: T.text, margin:'0 0 8px' }}>
+              Sua sessão expirou
+            </h2>
+            <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 18px', lineHeight: 1.55 }}>
+              Pra continuar protegendo seus dados, a gente desconecta automaticamente depois de um tempo. Faça login de novo pra retomar.
+            </p>
+            <button onClick={() => onLogout && onLogout()} style={{
+              background: T.blue, color:'#fff', border:'none', borderRadius: 9,
+              padding:'11px 22px', fontSize: 14, fontWeight: 700, cursor:'pointer'
+            }}>Fazer login de novo</button>
+          </Card>
+        </main>
       </div>
     )
   }
