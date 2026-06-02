@@ -76,7 +76,13 @@
     <input type="text" id="nName" placeholder="Seu nome"/>
     <input type="email" id="nEmail" placeholder="Seu email"/>
     <input type="tel" id="nPhone" placeholder="WhatsApp (11) 99999-9999" maxlength="15" oninput="maskPhone(this)"/>
-    <input type="password" id="nPass" placeholder="Senha (mín. 8 caracteres)" minlength="8"/>
+    <input type="password" id="nPass" placeholder="Senha (mín. 8 caracteres)" minlength="8" autocomplete="new-password"/>
+    <input type="password" id="nPass2" placeholder="Confirme a senha" minlength="8" autocomplete="new-password"/>
+    <!-- Honeypot: campo invisível pra humanos, bots geralmente preenchem -->
+    <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+      <label>Não preencher (campo de segurança)</label>
+      <input type="text" id="nWebsite" name="website" tabindex="-1" autocomplete="off"/>
+    </div>
 
     <label>Qual o seu negócio?</label>
     <div id="nBizConfirm" class="hidden"></div>
@@ -351,14 +357,20 @@ async function submitNew(){
   const email=document.getElementById("nEmail").value.trim();
   const phone=document.getElementById("nPhone").value.trim();
   const pass=document.getElementById("nPass").value;
+  const pass2=document.getElementById("nPass2")?.value || "";
+  const honeypot=document.getElementById("nWebsite")?.value || "";
   const msg=document.getElementById("nMsg");
   msg.className="msg";
 
+  // Honeypot: bot preencheu campo invisível → bloqueia silenciosamente
+  if(honeypot){ msg.className="msg error"; msg.textContent="Tente de novo em alguns segundos."; return; }
+
   if(!name||!email){ msg.className="msg error"; msg.textContent="Preencha nome e email."; return; }
   if(!googleAuthed){
-    // Cadastro via email/senha — exige senha+phone
+    // Cadastro via email/senha — exige senha+confirmação+phone
     if(!phone||!pass){ msg.className="msg error"; msg.textContent="Preencha WhatsApp e senha."; return; }
     if(pass.length<8){ msg.className="msg error"; msg.textContent="Senha precisa de pelo menos 8 caracteres."; return; }
+    if(pass !== pass2){ msg.className="msg error"; msg.textContent="As senhas não batem. Confira a confirmação."; return; }
   }
   if(!selectedBiz){ msg.className="msg error"; msg.textContent="Busque e selecione seu negócio."; return; }
 
