@@ -81,7 +81,10 @@
     <label>Qual o seu negócio?</label>
     <div id="nBizConfirm" class="hidden"></div>
     <div id="nBizSearchWrap">
-      <input type="text" id="nBizSearch" placeholder="Nome do negócio + cidade"/>
+      <input type="text" id="nBizSearch" placeholder="Nome do negócio"/>
+      <input type="text" id="nBizCep" placeholder="CEP do negócio (00000-000)" inputmode="numeric" maxlength="9" oninput="maskCep(this); lookupCep()" autocomplete="postal-code"/>
+      <p id="nCepFeedback" style="margin:-6px 0 8px;font-size:12px;color:#5F6368;line-height:1.4;"></p>
+      <input type="text" id="nBizActivity" placeholder="Ramo (ex: cafeteria, pizzaria, salão)"/>
       <button class="btn btn-outline" style="margin-top:0" onclick="searchBiz('n')">Buscar no Google</button>
       <div id="nResults" style="margin-top:10px;"></div>
     </div>
@@ -213,6 +216,43 @@ function show(id){
   if(id==="screenLogin")  renderGoogleButton("googleBtnLogin");
 }
 
+function maskCep(el){
+  let d=el.value.replace(/\D/g,"").slice(0,8);
+  if(d.length>5) d=d.slice(0,5)+"-"+d.slice(5);
+  el.value=d;
+}
+
+// ── ViaCEP: lookup automático ao terminar de digitar (mesmo padrão do /ativar) ──
+let cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
+async function lookupCep(){
+  const raw = document.getElementById("nBizCep").value.replace(/\D/g, "");
+  const fb = document.getElementById("nCepFeedback");
+  if(raw.length < 8){
+    fb.textContent = "";
+    fb.style.color = "#5F6368";
+    cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
+    return;
+  }
+  if(raw === cepCache.cep) return;
+  fb.textContent = "Buscando CEP…";
+  fb.style.color = "#5F6368";
+  try{
+    const r = await fetch(`https://viacep.com.br/ws/${raw}/json/`);
+    const d = await r.json();
+    if(d.erro){
+      fb.textContent = "⚠️ CEP não encontrado — confira os números";
+      fb.style.color = "#C5221F";
+      cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
+      return;
+    }
+    cepCache = { cep: raw, city: d.localidade || "", uf: d.uf || "", neighborhood: d.bairro || "" };
+    fb.innerHTML = `<span style="color:#137333;font-weight:600;">📍 ${d.localidade}/${d.uf}${d.bairro ? " · " + d.bairro : ""}</span>`;
+  } catch {
+    fb.textContent = "Não conseguimos consultar o CEP. Você pode buscar mesmo assim.";
+    fb.style.color = "#5F6368";
+  }
+}
+
 function maskPhone(el){
   let d=el.value.replace(/\D/g,"").slice(0,11);
   if(d.length===0){el.value="";return;}
@@ -243,18 +283,44 @@ if (ERROR === "invalida") {
 // ── Busca de negócio (Google Places) ──
 async function searchBiz(prefix){
   const q = document.getElementById(prefix+"BizSearch").value.trim();
-  if(!q){return;}
+  const cep = document.getElementById(prefix+"BizCep").value.replace(/\D/g, "");
+  const activity = document.getElementById(prefix+"BizActivity").value.trim();
   const box = document.getElementById(prefix+"Results");
-  box.innerHTML = '<p style="font-size:13px;color:#5F6368;">Buscando…</p>';
+
+  if(!q){ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Digite o nome do negócio.</p>'; return; }
+  if(cep.length<8){ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Informe o CEP (8 dígitos).</p>'; return; }
+  if(!activity){ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Diga o ramo de atuação.</p>'; return; }
+
+  // Garante lookup do CEP (se user submeteu antes do ViaCEP responder)
+  if(cepCache.cep !== cep){ await lookupCep(); }
+  const city = cepCache.city;
+  const uf = cepCache.uf;
+
+  box.innerHTML = '<p style="font-size:13px;color:#5F6368;">Buscando no Google Maps…</p>';
   try{
-    const res = await fetch("/api/searchbiz?q="+encodeURIComponent(q));
+    const searchQ = [q, cep, city, uf].filter(Boolean).join(" ");
+    const res = await fetch(`/api/searchbiz?q=${encodeURIComponent(searchQ)}&cep=${encodeURIComponent(cep)}`);
     const data = await res.json();
-    if(!data.results?.length){ box.innerHTML='<p style="font-size:13px;color:#5F6368;">Nenhum resultado. Tente nome + cidade.</p>'; return; }
-    box.innerHTML = data.results.map((r,i)=>`
+    if(!data.results?.length){
+      box.innerHTML = '<p style="font-size:13px;color:#5F6368;">Não encontramos sua empresa no Google. Confira o nome ou peça pro Google Meu Negócio cadastrar.</p>';
+      return;
+    }
+    const fmtDistance = (m) => {
+      if (m == null) return "";
+      if (m < 1000) return `${m} m`;
+      return `${(m/1000).toFixed(1)} km`;
+    };
+    const cards = data.results.map((r,i)=>`
       <div class="result-item" onclick='pickBiz(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
-        <div class="result-name">${r.name}</div>
-        <div class="result-addr">⭐ ${r.rating||"?"} · ${r.total||0} avaliações · ${r.address}</div>
+        <div class="result-name">${r.name}${i===0 && r.distance_meters!=null ? ' <span style="font-size:10px;font-weight:700;background:#E6F4EA;color:#137333;padding:2px 6px;border-radius:4px;margin-left:6px;letter-spacing:.04em;">MAIS PRÓXIMA</span>' : ''}</div>
+        <div class="result-addr">⭐ ${r.rating||"?"} · ${r.total||0} avaliações${r.distance_meters!=null ? ' · 📍 '+fmtDistance(r.distance_meters)+' do CEP' : ''} · ${r.address}</div>
       </div>`).join("");
+    const disclaimer = `
+      <div style="margin-top:10px;padding:9px 11px;background:#FEFCE8;border:1px solid #FEF08A;border-radius:8px;font-size:11.5px;color:#854D0E;line-height:1.45;">
+        <span style="font-weight:700;">⚠️ Nome ou endereço diferente do real?</span>
+        Os dados vêm do <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#854D0E;font-weight:600;text-decoration:underline;">Google Meu Negócio</a> do dono. Se estiver desatualizado, escolha mesmo assim e atualize depois — a correção propaga aqui em 1-2 dias.
+      </div>`;
+    box.innerHTML = cards + disclaimer;
   }catch{ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Erro na busca.</p>'; }
 }
 function pickBiz(biz){
