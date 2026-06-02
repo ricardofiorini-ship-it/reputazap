@@ -580,8 +580,8 @@ function Card({ children, style, padded = true, accent }) {
     }}>{children}</div>
   )
 }
-function Section({ children, style }) {
-  return <div style={{ marginBottom: 24, ...style }}>{children}</div>
+function Section({ children, style, id }) {
+  return <div id={id} style={{ marginBottom: 24, scrollMarginTop: 100, ...style }}>{children}</div>
 }
 function Stars({ rating, size = 14 }) {
   return (
@@ -4166,6 +4166,12 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
   const [moreOpen, setMoreOpen] = React.useState(false)
   const [activatePlateOpen, setActivatePlateOpen] = React.useState(false)
 
+  // Hashes válidos por aba (preservados ao trocar de aba — outros são limpos)
+  const VALID_HASHES_BY_TAB = {
+    config: ['conta', 'negocio', 'plano'],
+    painel: ['pontos-de-captacao']
+  }
+
   // Sincroniza URL com state — copiar/colar e F5 mantêm aba correta
   React.useEffect(() => {
     if (typeof window === 'undefined') return
@@ -4175,12 +4181,28 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
     } else {
       url.searchParams.set('tab', tab)
     }
-    // Mantém hash só pra config; em outras abas, limpa pra não confundir
-    if (tab !== 'config') {
+    // Limpa hash se não for válido pra aba atual
+    const currentHash = url.hash.replace('#', '')
+    const validHashes = VALID_HASHES_BY_TAB[tab] || []
+    if (currentHash && !validHashes.includes(currentHash)) {
       url.hash = ''
     }
     window.history.replaceState({}, '', url.toString())
   }, [tab])
+
+  // Scroll automático pro elemento do hash quando muda de aba ou monta
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    const hash = window.location.hash.replace('#', '')
+    if (!hash) return
+    const validHashes = VALID_HASHES_BY_TAB[tab] || []
+    if (!validHashes.includes(hash)) return
+    // Atraso pra DOM montar
+    setTimeout(() => {
+      const el = document.getElementById(hash)
+      if (el) el.scrollIntoView({ behavior:'smooth', block:'start' })
+    }, 120)
+  }, [tab, real.loading])
 
   // Helper pra navegar de bottom sheet "Mais" → tab + anchor opcional
   const navigateFromMore = React.useCallback((newTab, hash) => {
@@ -4402,8 +4424,8 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
           </div>
         </Section>
 
-        {/* CAPTURE POINTS */}
-        <Section>
+        {/* CAPTURE POINTS — id pra scroll automático de /app#pontos-de-captacao */}
+        <Section id="pontos-de-captacao">
           <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} isAdmin={isAdminUser(user)} />
         </Section>
 

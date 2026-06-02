@@ -89,6 +89,12 @@
       <div id="nResults" style="margin-top:10px;"></div>
     </div>
 
+    <label style="margin-top:6px;">Apelido da placa <span style="color:#9aa0a6;font-weight:400;">(opcional)</span></label>
+    <input type="text" id="nNickname" placeholder="Ex: Balcão Principal, Mesa 5, Garçom João…"/>
+    <p style="font-size:11.5px;color:#5F6368;margin:-8px 0 12px;line-height:1.4;">
+      Vai aparecer nos seus relatórios pra você saber qual ponto traz mais avaliações.
+    </p>
+
     <div class="msg" id="nMsg"></div>
     <button class="btn btn-primary" id="nSubmit" style="margin-top:14px" onclick="submitNew()">Criar conta e ativar placa</button>
   </div>
@@ -124,7 +130,7 @@
     <div class="icon-circle" style="background:#E6F4EA;">✅</div>
     <h1>Placa ativada!</h1>
     <p class="sub">Sua placa está pronta pra capturar avaliações. Posicione no seu negócio.</p>
-    <a class="btn btn-primary" href="/app/placas">Ver minhas placas</a>
+    <a class="btn btn-primary" href="/app#pontos-de-captacao">Ver minhas placas</a>
   </div>
 
   <div class="foot">StarTouch · Reputação no piloto automático</div>
@@ -384,7 +390,8 @@ async function submitNew(){
 
     // 3. ativa placa
     btn.textContent="Ativando placa…";
-    const rAct = await fetch("/api/plates?action=activate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({code:CODE,business_id:dBiz.business.id,channel_name:null})});
+    const nickname = document.getElementById("nNickname").value.trim() || null;
+    const rAct = await fetch("/api/plates?action=activate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({code:CODE,business_id:dBiz.business.id,channel_name:nickname})});
     const dAct = await rAct.json();
     if(!rAct.ok){ msg.className="msg error"; msg.textContent=dAct.error||"Erro ao ativar placa."; btn.disabled=false; btn.textContent="Criar conta e ativar placa"; return; }
 
