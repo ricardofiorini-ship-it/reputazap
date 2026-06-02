@@ -279,6 +279,7 @@ function useRealData(user, demoMode) {
     bizInfo: null,
     competitors: null,
     plates: null,
+    alertPreferences: null,
     hasBusiness: false
   })
 
@@ -297,7 +298,7 @@ function useRealData(user, demoMode) {
         const myBizRes = await apiCall('/api/mybiz' + cb)
         const biz = myBizRes.business || null
         if (!biz || !biz.place_id) {
-          if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, competitors: null, plates: null, hasBusiness: false })
+          if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, competitors: null, plates: null, alertPreferences: null, hasBusiness: false })
           return
         }
         // Categoria customizada — fonte única é businesses.category_override no banco.
@@ -311,13 +312,13 @@ function useRealData(user, demoMode) {
           ? `/api/competitors?keyword=${encodeURIComponent(keyword)}`
           : '/api/competitors'
 
-        // 4 chamadas em paralelo: reviews (público), bizinfo (público, traz endereço/foto/categoria),
-        // competitors (auth), plates (auth)
-        const [reviewsRes, bizInfoRes, competitorsRes, platesRes] = await Promise.all([
+        // 5 chamadas em paralelo: reviews + bizinfo (públicas), competitors + plates + alert prefs (auth)
+        const [reviewsRes, bizInfoRes, competitorsRes, platesRes, alertPrefsRes] = await Promise.all([
           fetch(`/api/reviews?place_id=${encodeURIComponent(biz.place_id)}`).then(r => r.json()).catch(() => ({})),
           fetch(`/api/bizinfo?place_id=${encodeURIComponent(biz.place_id)}`).then(r => r.json()).catch(() => ({})),
           apiCall(competitorsUrl).catch(() => null),
-          apiCall('/api/plates?action=my-plates').catch(() => null)
+          apiCall('/api/plates?action=my-plates').catch(() => null),
+          apiCall('/api/alerts?action=preferences').catch(() => null)
         ])
         if (!cancelled) {
           setState({
@@ -336,6 +337,7 @@ function useRealData(user, demoMode) {
             },
             competitors: competitorsRes,
             plates: platesRes?.plates || [],
+            alertPreferences: alertPrefsRes?.preferences || null,
             hasBusiness: true
           })
         }
@@ -347,7 +349,7 @@ function useRealData(user, demoMode) {
           loading: false,
           error: e.message,
           authExpired: isAuth,
-          biz: null, reviews: [], bizInfo: null, competitors: null, plates: null, hasBusiness: false
+          biz: null, reviews: [], bizInfo: null, competitors: null, plates: null, alertPreferences: null, hasBusiness: false
         })
       }
     })()
@@ -371,7 +373,7 @@ const PRODUCT_LABELS = {
 // Compõe `d` (dados pra UI) misturando real + MOCK. Real sobrescreve, mock preenche gaps.
 function buildData(real, user, demoMode) {
   if (demoMode || !real.hasBusiness) return MOCK
-  const { biz, bizInfo, reviews, competitors, plates } = real
+  const { biz, bizInfo, reviews, competitors, plates, alertPreferences } = real
 
   // Capture points reais: agrupa plates ATIVAS por product_type, soma total_taps
   const activePlates = (plates || []).filter(p => p.status === 'active')
@@ -516,7 +518,21 @@ function buildData(real, user, demoMode) {
       ...MOCK.billing,
       plan: biz.plan === 'pro' ? 'Plano Pro' : 'Plano Free',
       status: biz.stripe_subscription_status || MOCK.billing.status
-    }
+    },
+    // Preferências de alertas vindas do banco (Fase 2a). Shape compatível com AlertChannelsCard.
+    alertChannels: alertPreferences ? {
+      dashboard: { enabled: alertPreferences.dashboard_enabled !== false, locked: true },
+      email: {
+        enabled: !!alertPreferences.email_enabled,
+        frequency: alertPreferences.email_frequency || 'realtime',
+        emailTo: alertPreferences.email_to || ''
+      },
+      whatsapp: {
+        enabled: !!alertPreferences.whatsapp_enabled,
+        phone: alertPreferences.whatsapp_phone || '',
+        criticalOnly: alertPreferences.whatsapp_critical_only !== false
+      }
+    } : MOCK.alertChannels
   }
 }
 
@@ -1978,70 +1994,126 @@ function ChannelRow({ icon, name, desc, enabled, onToggle, locked, children }) {
   )
 }
 
-function AlertChannelsCard({ channels, onChange }) {
-  const [emailFreq, setEmailFreq] = React.useState(channels.email.frequency)
-  const [waPhone, setWaPhone] = React.useState(channels.whatsapp.phone)
+// Card 'Onde você quer ser avisado?' — agora salva no banco via /api/alerts?action=preferences
+function AlertChannelsCard({ channels, isReal, userEmail }) {
+  const [local, setLocal] = React.useState({
+    emailEnabled: channels.email.enabled,
+    emailFreq: channels.email.frequency,
+    emailTo: channels.email.emailTo || userEmail || '',
+    whatsappEnabled: channels.whatsapp.enabled,
+    whatsappPhone: channels.whatsapp.phone || ''
+  })
+  const [saving, setSaving] = React.useState(false)
+  const [notice, setNotice] = React.useState('')
+
+  async function persist(next) {
+    if (!isReal) return  // em demo, só state local (sem chamada de rede)
+    setSaving(true); setNotice('')
+    try {
+      const body = {
+        dashboard_enabled: true,
+        email_enabled: next.emailEnabled,
+        email_frequency: next.emailFreq,
+        email_to: next.emailTo || userEmail || null,
+        whatsapp_enabled: next.whatsappEnabled,
+        whatsapp_phone: next.whatsappPhone || null
+      }
+      await apiCall('/api/alerts?action=preferences', {
+        method: 'POST',
+        body: JSON.stringify(body)
+      })
+      setNotice('✓ Preferências salvas')
+      setTimeout(() => setNotice(''), 2200)
+    } catch (e) {
+      setNotice('⚠️ ' + (e.message || 'Erro ao salvar'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function update(patch) {
+    const next = { ...local, ...patch }
+    setLocal(next)
+    persist(next)
+  }
 
   return (
     <Card padded={false} style={{ padding: 18 }}>
-      <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4 }}>
-        <span style={{ fontSize: 18 }}>🔔</span>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color: T.text, margin: 0 }}>
-          Onde você quer ser avisado?
-        </h3>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 8, marginBottom: 4 }}>
+        <div style={{ display:'flex', alignItems:'center', gap: 8 }}>
+          <span style={{ fontSize: 18 }}>🔔</span>
+          <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color: T.text, margin: 0 }}>
+            Onde você quer ser avisado?
+          </h3>
+        </div>
+        {saving && <span style={{ fontSize: 11, color: T.textDim }}>Salvando…</span>}
       </div>
       <p style={{ fontSize: 12.5, color: T.textMid, margin:'0 0 6px', lineHeight: 1.45 }}>
-        Escolha por onde receber os alertas em tempo real.
+        Escolha por onde receber os alertas. As mudanças são salvas automaticamente.
       </p>
 
       <ChannelRow
         icon="🖥️"
         name="No painel"
         desc="Sino no topo do dashboard · sempre ligado"
-        enabled={channels.dashboard.enabled}
-        locked={channels.dashboard.locked}
+        enabled={true}
+        locked={true}
       />
 
       <ChannelRow
         icon="✉️"
         name="Email"
         desc="Receba os alertas no seu email — funciona até com o painel fechado."
-        enabled={channels.email.enabled}
-        onToggle={() => onChange({ ...channels, email: { ...channels.email, enabled: !channels.email.enabled } })}
+        enabled={local.emailEnabled}
+        onToggle={() => update({ emailEnabled: !local.emailEnabled })}
       >
-        {channels.email.enabled && (
-          <div style={{ display:'flex', gap: 6, flexWrap:'wrap' }}>
-            {[
-              { key:'realtime', label:'Tempo real' },
-              { key:'daily',    label:'Resumo diário' },
-              { key:'weekly',   label:'Resumo semanal' }
-            ].map(opt => {
-              const isActive = emailFreq === opt.key
-              return (
-                <button key={opt.key} onClick={() => setEmailFreq(opt.key)}
-                  style={{
-                    fontSize: 11.5, fontWeight: 600, padding:'5px 10px', borderRadius: 6,
-                    border:'1px solid', borderColor: isActive ? T.blue : T.border,
-                    background: isActive ? T.blueSoft : '#fff',
-                    color: isActive ? T.blueDk : T.textMid, cursor:'pointer'
-                  }}>{opt.label}</button>
-              )
-            })}
-          </div>
+        {local.emailEnabled && (
+          <>
+            <div style={{ display:'flex', gap: 6, flexWrap:'wrap', marginBottom: 8 }}>
+              {[
+                { key:'realtime',       label:'Tempo real' },
+                { key:'daily_digest',   label:'Resumo diário' },
+                { key:'weekly_digest',  label:'Resumo semanal' }
+              ].map(opt => {
+                const isActive = local.emailFreq === opt.key
+                return (
+                  <button key={opt.key} onClick={() => update({ emailFreq: opt.key })}
+                    style={{
+                      fontSize: 11.5, fontWeight: 600, padding:'5px 10px', borderRadius: 6,
+                      border:'1px solid', borderColor: isActive ? T.blue : T.border,
+                      background: isActive ? T.blueSoft : '#fff',
+                      color: isActive ? T.blueDk : T.textMid, cursor:'pointer'
+                    }}>{opt.label}</button>
+                )
+              })}
+            </div>
+            <input
+              type="email"
+              value={local.emailTo}
+              onChange={e => setLocal({ ...local, emailTo: e.target.value })}
+              onBlur={() => persist(local)}
+              placeholder={userEmail || 'seu@email.com'}
+              style={{
+                width:'100%', padding:'8px 10px', fontSize: 13,
+                border:'1px solid '+T.border, borderRadius: 6, outline:'none', boxSizing:'border-box'
+              }}
+            />
+          </>
         )}
       </ChannelRow>
 
       <ChannelRow
         icon="📱"
         name="WhatsApp"
-        desc="Receba as ameaças críticas no seu WhatsApp na hora — quando um concorrente passar você ou ganhar 10 avaliações de uma vez."
-        enabled={channels.whatsapp.enabled}
-        onToggle={() => onChange({ ...channels, whatsapp: { ...channels.whatsapp, enabled: !channels.whatsapp.enabled } })}
+        desc="Receba as ameaças críticas no WhatsApp — concorrente passou você, saiu do Top 3 ou ganhou 10 avaliações de uma vez."
+        enabled={local.whatsappEnabled}
+        onToggle={() => update({ whatsappEnabled: !local.whatsappEnabled })}
       >
-        {channels.whatsapp.enabled && (
+        {local.whatsappEnabled && (
           <input
-            value={waPhone}
-            onChange={e => setWaPhone(e.target.value)}
+            value={local.whatsappPhone}
+            onChange={e => setLocal({ ...local, whatsappPhone: e.target.value })}
+            onBlur={() => persist(local)}
             placeholder="(11) 99999-9999"
             style={{
               width:'100%', padding:'8px 10px', fontSize: 13,
@@ -2051,19 +2123,27 @@ function AlertChannelsCard({ channels, onChange }) {
         )}
       </ChannelRow>
 
+      {notice && (
+        <div style={{
+          marginTop: 10, padding:'7px 10px', fontSize: 12, fontWeight: 600,
+          background: notice.startsWith('✓') ? T.greenSoft : '#FEF2F2',
+          color: notice.startsWith('✓') ? '#065F46' : T.red,
+          borderRadius: 6, textAlign:'center'
+        }}>{notice}</div>
+      )}
+
       <div style={{
         marginTop: 14, padding: 12, background: T.blueSoft, borderRadius: 8,
         fontSize: 12.5, color: T.blueDk, lineHeight: 1.5
       }}>
-        💡 <b>Dica:</b> deixe Email + WhatsApp ligados pra não perder nenhuma mudança importante no ranking.
+        💡 <b>Dica:</b> deixe Email + WhatsApp ligados pra não perder mudança importante no ranking.
       </div>
     </Card>
   )
 }
 
-function AlertsScreen({ data, isMobile, isReal }) {
+function AlertsScreen({ data, isMobile, isReal, userEmail }) {
   const [filter, setFilter] = React.useState('all')
-  const [channels, setChannels] = React.useState(data.alertChannels)
 
   const visible = filter === 'all' ? data.alerts : data.alerts.filter(a => a.category === filter)
 
@@ -2135,7 +2215,7 @@ function AlertsScreen({ data, isMobile, isReal }) {
 
         {/* COLUNA DIREITA: canais de notificação */}
         <div>
-          <AlertChannelsCard channels={channels} onChange={setChannels}/>
+          <AlertChannelsCard channels={data.alertChannels} isReal={isReal} userEmail={userEmail}/>
         </div>
       </div>
     </main>
@@ -4291,7 +4371,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
 
       {/* Aba: ALERTAS (Pro) — feed + canais (dados ainda em demonstração) */}
       {tab === 'alertas' && plan === 'pro' && (
-        <AlertsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness}/>
+        <AlertsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness} userEmail={user?.email}/>
       )}
 
       {/* Aba: RELATÓRIOS (Pro) — newsletter semanal/mensal (dados ainda em demonstração) */}
