@@ -393,8 +393,36 @@ function buildData(real, user, demoMode) {
   const compData = (competitors && competitors.enough && competitors.top) ? (() => {
     // IMPORTANTE: backend já manda `top` na ordem real do Google (gscore = rating × log10(reviews))
     // NÃO reordenar — senão posição do KPI (rank_google) fica diferente da posição na lista.
+
+    // Coordenadas do "me" pra calcular distância dos concorrentes (Haversine)
+    const myCoord = competitors.top.find(c => c.is_me)
+    const myLat = myCoord?.lat ?? null
+    const myLng = myCoord?.lng ?? null
+
     const list = competitors.top.map((c, i) => {
       const isLocked = !c.name && !c.is_me  // name veio null e não sou eu → backend bloqueou
+
+      // Calcula distância + ângulo se temos lat/lng (snapshot real)
+      let distance = null
+      let angle = null
+      if (!c.is_me && myLat != null && myLng != null && c.lat != null && c.lng != null) {
+        // Haversine em metros
+        const R = 6371000
+        const toRad = (d) => (d * Math.PI) / 180
+        const dLat = toRad(c.lat - myLat)
+        const dLng = toRad(c.lng - myLng)
+        const lat1 = toRad(myLat), lat2 = toRad(c.lat)
+        const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2
+        distance = Math.round(2 * R * Math.asin(Math.sqrt(h)))
+
+        // Ângulo (bearing simplificado) — usado só pra posicionar o pino no SVG
+        // 0 = leste, π/2 = sul, π = oeste, -π/2 = norte
+        angle = Math.atan2(c.lat - myLat, c.lng - myLng) * -1  // invertido porque SVG y cresce pra baixo
+      }
+
+      // weekGrowth / history vêm null da API (calculado no backend a partir de snapshots)
+      // mantemos esses do snapshot real (já vem enriched do endpoint refatorado na Fase 1)
+
       return {
         id: c.place_id || i,
         pos: i + 1,
@@ -403,10 +431,12 @@ function buildData(real, user, demoMode) {
         locked: isLocked,
         rating: c.rating,
         reviews: c.reviews,
-        // weekGrowth/distance/history são null pra UI saber esconder (em vez de mostrar 0 falso)
-        weekGrowth: null,
-        distance: null,
-        history: null,
+        weekGrowth: c.weekGrowth ?? null,
+        history: c.history ?? null,
+        distance,
+        angle,
+        lat: c.lat ?? null,
+        lng: c.lng ?? null,
         color: isLocked ? '#94A3B8' : colorFromName(c.name || `${i}`),
         initials: isLocked ? '🔒' : initialsFromName(c.name || `C${i}`),
         isYou: c.is_me
@@ -1675,22 +1705,26 @@ function CompetitorsScreen({ data, isMobile }) {
     )
   }
 
+  // Filtros: cada filtro mostra SÓ os concorrentes da categoria — sem injetar "você" no topo.
+  // Quem quer ver "você no contexto" usa o filtro Todos (que preserva a ordem do ranking).
   const ahead  = list.filter(c => !c.isYou && c.reviews >  youReviews)
   const behind = list.filter(c => !c.isYou && c.reviews <= youReviews)
-  const rising = list.filter(c => !c.isYou && c.weekGrowth >= 2)
+  const rising = list.filter(c => !c.isYou && c.weekGrowth != null && c.weekGrowth >= 2)
 
-  let visible = filter === 'ahead'  ? [list.find(c => c.isYou), ...ahead].filter(Boolean)
-              : filter === 'behind'  ? [list.find(c => c.isYou), ...behind].filter(Boolean)
-              : filter === 'rising'  ? [list.find(c => c.isYou), ...rising].filter(Boolean)
-              : list
+  let visible = filter === 'ahead'  ? ahead
+              : filter === 'behind'  ? behind
+              : filter === 'rising'  ? rising
+              : list  // 'all' mantém ordem natural (do ranking) com você no meio
 
-  // Ordenação (mantém você sempre presente; ordena resto pelo modo)
-  if (sortMode === 'distance') {
-    visible = [...visible].sort((a, b) => (a.distance ?? 9e9) - (b.distance ?? 9e9))
-  } else if (sortMode === 'growth') {
-    visible = [...visible].sort((a, b) => (b.weekGrowth ?? -9e9) - (a.weekGrowth ?? -9e9))
+  // Ordenação secundária — só aplica em 'all' (filtros já têm ordem implícita)
+  if (filter === 'all') {
+    if (sortMode === 'distance') {
+      visible = [...visible].sort((a, b) => (a.distance ?? 9e9) - (b.distance ?? 9e9))
+    } else if (sortMode === 'growth') {
+      visible = [...visible].sort((a, b) => (b.weekGrowth ?? -9e9) - (a.weekGrowth ?? -9e9))
+    }
+    // sortMode === 'position' usa a ordem natural (pos do ranking)
   }
-  // sortMode === 'position' usa a ordem natural (pos)
 
   const counts = { all: list.length, ahead: ahead.length, behind: behind.length, rising: rising.length }
 
@@ -1722,10 +1756,19 @@ function CompetitorsScreen({ data, isMobile }) {
         />
       </Section>
 
-      {/* BENCHMARK DA CATEGORIA */}
-      <Section><CategoryBenchmark data={data} list={list} isMobile={isMobile}/></Section>
+      {/* BENCHMARK + METAS no topo (Ricardo: metas devem estar mais acima) */}
+      <Section>
+        <div style={{
+          display:'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) 380px',
+          gap: isMobile ? 16 : 20
+        }}>
+          <CategoryBenchmark data={data} list={list} isMobile={isMobile}/>
+          <MyGoalsCard goals={data.goals}/>
+        </div>
+      </Section>
 
-      {/* MAPA + LISTA — grid 2 colunas no desktop */}
+      {/* MAPA + LISTA + SIMULADOR/OPORTUNIDADES */}
       <Section>
         <div style={{
           display:'grid',
@@ -1742,36 +1785,51 @@ function CompetitorsScreen({ data, isMobile }) {
                   📋 Ranking detalhado
                 </h3>
                 <FilterChips active={filter} onChange={setFilter} counts={counts}/>
-                <div style={{ display:'flex', gap: 6, marginTop: 8, flexWrap:'wrap' }}>
-                  {sortChips.map(s => {
-                    const a = sortMode === s.key
-                    return (
-                      <button key={s.key} onClick={() => setSortMode(s.key)} style={{
-                        fontSize: 11, fontWeight: 600, padding:'4px 10px', borderRadius: 6,
-                        border:'1px solid', borderColor: a ? T.blue : T.border,
-                        background: a ? T.blueSoft : '#fff',
-                        color: a ? T.blueDk : T.textMid, cursor:'pointer'
-                      }}>{s.label}</button>
-                    )
-                  })}
-                </div>
+                {/* Ordenação secundária só faz sentido no filtro Todos */}
+                {filter === 'all' && (
+                  <div style={{ display:'flex', gap: 6, marginTop: 8, flexWrap:'wrap' }}>
+                    <span style={{ fontSize: 10.5, color: T.textDim, fontWeight: 600, alignSelf:'center', letterSpacing:'.04em', textTransform:'uppercase' }}>Ordenar:</span>
+                    {sortChips.map(s => {
+                      const a = sortMode === s.key
+                      return (
+                        <button key={s.key} onClick={() => setSortMode(s.key)} style={{
+                          fontSize: 11, fontWeight: 600, padding:'4px 10px', borderRadius: 6,
+                          border:'1px solid', borderColor: a ? T.blue : T.border,
+                          background: a ? T.blueSoft : '#fff',
+                          color: a ? T.blueDk : T.textMid, cursor:'pointer'
+                        }}>{s.label}</button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
-              <div style={{ display:'flex', flexDirection:'column', gap: 8 }}>
-                {visible.map(c => (
-                  <EnhancedCompetitorRow key={c.id} comp={c} youReviews={youReviews} isMobile={isMobile}/>
-                ))}
-              </div>
+              {visible.length === 0 ? (
+                <div style={{
+                  padding: 28, borderRadius: 10, background: T.bg, border:'1px dashed '+T.border,
+                  textAlign:'center', fontSize: 13, color: T.textMid
+                }}>
+                  {filter === 'ahead' ? 'Você está em 1º lugar — ninguém à frente!' :
+                   filter === 'behind' ? 'Você está em último — todo mundo à frente.' :
+                   filter === 'rising' ? 'Nenhum concorrente acelerando essa semana.' :
+                   'Nenhum concorrente encontrado.'}
+                </div>
+              ) : (
+                <div style={{ display:'flex', flexDirection:'column', gap: 8 }}>
+                  {visible.map(c => (
+                    <EnhancedCompetitorRow key={c.id} comp={c} youReviews={youReviews} isMobile={isMobile}/>
+                  ))}
+                </div>
+              )}
             </Card>
           </div>
 
-          {/* Direita: Simulador + Oportunidades + Metas */}
+          {/* Direita: Simulador + Oportunidades */}
           <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
             <div id="simulador">
               <GrowthSimulator data={data} list={list} isMobile={isMobile}/>
             </div>
             <OpportunitiesPanel data={data} list={list} isMobile={isMobile}/>
-            <MyGoalsCard goals={data.goals}/>
           </div>
         </div>
       </Section>
