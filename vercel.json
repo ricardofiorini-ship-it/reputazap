@@ -38,5 +38,8 @@
     { "source": "/app", "destination": "/index-v2.html" },
     { "source": "/app/(.*)", "destination": "/index-v2.html" },
     { "source": "/app-legacy", "destination": "/index.html" }
+  ],
+  "crons": [
+    { "path": "/api/cron/snapshot-competitors", "schedule": "0 4 * * 1" }
   ]
 }

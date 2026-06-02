@@ -1,11 +1,18 @@
 // ============================================================
-// StarTouch — Ranking competitivo (recurso Pro)
-// Compara o negócio do usuário com concorrentes da mesma
-// categoria por perto (Google Places Nearby Search).
-// Retorna posição por NOTA e por Nº DE AVALIAÇÕES.
-// Gate: admin (hardcoded) OU plano pro. Free não chama isto.
+// StarTouch — Ranking competitivo
 // ============================================================
+// Estratégia (a partir da Fase 1 do roadmap backend):
+//   1. Default: serve último snapshot do banco (rápido, sem custo)
+//      + calcula weekGrowth e history a partir dos últimos 12 snapshots
+//   2. Sem snapshot ainda? Cai pro fetch live do Google (compat retro)
+//   3. ?fresh=1 (admin only) força call Google ignorando cache
+//
+// Paywall: nome dos concorrentes só pra plano pro/admin (locking no
+// backend, não dá pra burlar via inspetor).
+// ============================================================
+
 import { createClient } from "@supabase/supabase-js";
+import { fetchCompetitorsSnapshot, applyNameLocking } from "./_lib/competitors.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -13,20 +20,6 @@ const supabase = createClient(
 );
 
 const ADMIN_EMAIL = "ricardo.fiorini@gmail.com";
-const API_KEY = process.env.PLACES_API_KEY;
-
-// Tipos genéricos do Google que não servem como "categoria" de busca
-const GENERIC_TYPES = new Set([
-  "point_of_interest", "establishment", "premise", "geocode",
-  "political", "store_storage"
-]);
-
-// Tipos amplos demais pra comparar (muitos ramos diferentes compartilham
-// "store"/"food" etc). Só servem de fallback quando não há tipo específico.
-const BROAD_TYPES = new Set([
-  "store", "food", "health", "finance", "general_contractor",
-  "home_goods_store", "shopping_mall"
-]);
 
 async function authUser(req) {
   const token = req.headers.authorization?.replace("Bearer ", "");
@@ -38,8 +31,56 @@ async function authUser(req) {
 
 const isAdmin = (user) => user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
+// Calcula weekGrowth e history (sparkline 12 semanas) a partir dos
+// snapshots históricos de um business. Retorna Map<place_id, {weekGrowth, history}>.
+async function enrichWithHistory(businessId) {
+  const enrichment = new Map();
+
+  // Pega últimos 12 snapshots (até 12 semanas, em ordem cronológica desc)
+  const { data: snaps } = await supabase
+    .from("competitor_snapshots")
+    .select("snapshot_date, competitors")
+    .eq("business_id", businessId)
+    .order("snapshot_date", { ascending: false })
+    .limit(12);
+
+  if (!snaps || snaps.length < 2) return enrichment;
+
+  // Para cada place_id que aparece nos snapshots, monta histórico
+  // de reviews ao longo do tempo (mais antigo → mais recente)
+  const chronological = [...snaps].reverse(); // ASC
+
+  // Coleta todos place_ids únicos
+  const allPlaceIds = new Set();
+  for (const s of chronological) {
+    for (const c of s.competitors || []) {
+      if (c?.place_id) allPlaceIds.add(c.place_id);
+    }
+  }
+
+  for (const pid of allPlaceIds) {
+    const history = chronological.map(s => {
+      const c = (s.competitors || []).find(x => x.place_id === pid);
+      return c ? c.reviews : null;
+    }).filter(v => v !== null);
+
+    if (history.length < 2) continue;
+
+    // weekGrowth = reviews mais recente - reviews da semana anterior
+    const latest = history[history.length - 1];
+    const previous = history[history.length - 2];
+    const weekGrowth = latest - previous;
+
+    enrichment.set(pid, { weekGrowth, history });
+  }
+
+  return enrichment;
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
+  // Sem cache HTTP — snapshot já é "cache" no banco
+  res.setHeader("Cache-Control", "private, no-store");
   if (req.method !== "GET") return res.status(405).json({ error: "Método não permitido" });
 
   // 1. Auth
@@ -47,10 +88,10 @@ export default async function handler(req, res) {
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
   const user = auth.user;
 
-  // 2. Negócio do usuário (place_id + plano)
+  // 2. Negócio do usuário
   const { data: biz, error: bizErr } = await supabase
     .from("businesses")
-    .select("place_id, name, plan")
+    .select("id, place_id, name, plan, category_override")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -58,132 +99,103 @@ export default async function handler(req, res) {
     return res.status(404).json({ error: "Nenhum negócio com Google vinculado" });
   }
 
-  // 3. Ranking liberado no plano FREE (decisao 2026-05-23). Requer apenas
-  //    negocio com Google vinculado (place_id ja checado acima).
-
   const radius = Math.min(parseInt(req.query.radius, 10) || 3000, 25000);
-  const keyword = (req.query.keyword || "").trim(); // categoria informada pelo cliente (opcional)
+  const keyword = (req.query.keyword || biz.category_override || "").trim();
+  const forceFresh = req.query.fresh === "1" && isAdmin(user);
+  const paid = biz.plan === "pro" || isAdmin(user);
 
   try {
-    // 4. Detalhes do meu negócio: localização + categoria + nota
-    const detRes = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${biz.place_id}&fields=name,rating,user_ratings_total,geometry,types&language=pt-BR&key=${API_KEY}`
-    );
-    const det = await detRes.json();
-    const me = det.result;
-    if (!me?.geometry?.location) {
-      return res.status(404).json({ error: "Localização do negócio não encontrada no Google" });
+    let snap = null;
+    let fromSnapshot = false;
+    let snapshotDate = null;
+
+    // 3. Tenta servir do último snapshot (a menos que ?fresh=1)
+    if (!forceFresh) {
+      const { data: last } = await supabase
+        .from("competitor_snapshots")
+        .select("snapshot_date, my_rating, my_reviews, my_rank, total_competitors, category, radius_meters, competitors")
+        .eq("business_id", biz.id)
+        .order("snapshot_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // Snapshot precisa ter no máx 8 dias (margem do cron semanal)
+      if (last) {
+        const ageDays = (Date.now() - new Date(last.snapshot_date).getTime()) / 86400000;
+        if (ageDays <= 8) {
+          fromSnapshot = true;
+          snapshotDate = last.snapshot_date;
+          snap = {
+            enough: (last.total_competitors || 0) >= 2,
+            total: last.total_competitors || 0,
+            category: last.category,
+            radius: last.radius_meters,
+            myRank: last.my_rank,
+            me: {
+              place_id: biz.place_id,
+              name: biz.name,
+              rating: last.my_rating,
+              reviews: last.my_reviews
+            },
+            top: last.competitors || [],
+            ahead: null  // calculado abaixo se enough
+          };
+          // Recalcula `ahead` (concorrente uma posição acima) a partir do top
+          if (snap.enough && snap.myRank > 1 && snap.top.length >= snap.myRank - 1) {
+            const aheadEntry = snap.top[snap.myRank - 2];
+            if (aheadEntry) snap.ahead = { reviews: aheadEntry.reviews, rating: aheadEntry.rating };
+          }
+        }
+      }
     }
-    const { lat, lng } = me.geometry.location;
 
-    // Escolhe a categoria de comparação: prioriza o tipo ESPECÍFICO do
-    // negócio (ex: "cafe", "bicycle_store"); só usa um tipo amplo ("store")
-    // como último recurso. Esse mesmo tipo é usado pra filtrar concorrentes.
-    const myTypes = me.types || [];
-    const specific = myTypes.filter(t => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t));
-    const broad = myTypes.filter(t => !GENERIC_TYPES.has(t) && BROAD_TYPES.has(t));
-    const matchType = specific[0] || broad[0] || null;
-
-    // 5. Nearby Search por perto. Se o cliente informou a categoria (keyword),
-    //    usamos busca por palavra-chave — resolve negocios mal-categorizados no
-    //    Google (ex: grafica cadastrada como "eletronicos"). Senao, caimos no
-    //    tipo detectado pelo Google.
-    const useKeyword = keyword.length >= 2;
-    let nearbyUrl =
-      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&language=pt-BR&key=${API_KEY}`;
-    let comparisonLabel;
-    if (useKeyword) {
-      nearbyUrl += `&keyword=${encodeURIComponent(keyword)}`;
-      comparisonLabel = keyword;
-    } else if (matchType) {
-      nearbyUrl += `&type=${matchType}`;
-      comparisonLabel = matchType;
-    } else {
-      comparisonLabel = null;
-    }
-
-    const nearRes = await fetch(nearbyUrl);
-    const near = await nearRes.json();
-    const rawResults = near.results || [];
-
-    // Com keyword confiamos na relevancia da busca do Google. Sem keyword, so
-    // compara quem compartilha o tipo especifico do negocio (evita comparar
-    // bicicletaria com cafe quando caimos no tipo do Google).
-    const sameCategory = (p) => useKeyword || !matchType || (p.types || []).includes(matchType);
-
-    // 6. Monta lista de concorrentes (com nota), incluindo o próprio negócio
-    const byId = new Map();
-    for (const p of rawResults) {
-      if (typeof p.rating !== "number") continue; // sem nota não entra no ranking
-      if (!sameCategory(p)) continue;             // categoria diferente, ignora
-      byId.set(p.place_id, {
-        place_id: p.place_id,
-        name: p.name,
-        rating: p.rating,
-        reviews: p.user_ratings_total || 0
+    // 4. Sem snapshot recente? Busca live no Google
+    if (!snap) {
+      snap = await fetchCompetitorsSnapshot({
+        placeId: biz.place_id,
+        keyword,
+        radius
       });
     }
-    // Garante que o próprio negócio esteja na lista (dados oficiais dos detalhes)
-    byId.set(biz.place_id, {
-      place_id: biz.place_id,
-      name: me.name || biz.name,
-      rating: typeof me.rating === "number" ? me.rating : 0,
-      reviews: me.user_ratings_total || 0
-    });
 
-    const list = Array.from(byId.values());
-    const total = list.length;
-
-    if (total < 2) {
+    if (!snap.enough) {
       return res.json({
         enough: false,
-        total,
-        category: comparisonLabel,
-        radius,
-        me: byId.get(biz.place_id)
+        total: snap.total,
+        category: snap.category,
+        radius: snap.radius,
+        me: snap.me,
+        snapshot_date: snapshotDate,
+        from_snapshot: fromSnapshot
       });
     }
 
-    // 7. Score que SIMULA a lógica de prominência do Google (estimativa):
-    // o volume de avaliações domina (com retorno decrescente via log) e a
-    // nota modula. Ex: nota 4.6 com 4623 aval supera nota 5.0 com 96 aval.
-    // (O Google usa mais sinais que a API não expõe — isto é aproximação.)
-    const gscore = (p) => (p.rating || 0) * Math.log10((p.reviews || 0) + 1);
-    const byGoogle = [...list].sort((a, b) => gscore(b) - gscore(a) || b.reviews - a.reviews);
-
-    const rankGoogle = byGoogle.findIndex(p => p.place_id === biz.place_id) + 1;
-
-    // Concorrente UMA posição acima (pra "faltam X avaliações pra passar quem
-    // esta na sua frente"). So o nº de avaliacoes/nota — SEM o nome, pra nao
-    // furar o paywall do plano free.
-    const aheadEntry = rankGoogle > 1 ? byGoogle[rankGoogle - 2] : null;
-    const ahead = aheadEntry
-      ? { reviews: aheadEntry.reviews, rating: aheadEntry.rating }
-      : null;
-
-    // 8. Top 5 na ordem estimada do Google, marcando o próprio negócio.
-    //    PAYWALL: nome dos concorrentes só pra plano pago. Free ve posicao +
-    //    nota + nº de avaliacoes (o "buraco"), mas o NOME fica bloqueado no
-    //    backend (nao vai no JSON) — nao da pra burlar pelo inspetor.
-    const paid = biz.plan === "pro" || isAdmin(user);
-    const top = byGoogle.slice(0, 5).map((p, i) => {
-      const mine = p.place_id === biz.place_id;
-      if (!mine && !paid) {
-        return { place_id: `locked-${i}`, name: null, rating: p.rating, reviews: p.reviews, is_me: false };
-      }
-      return { ...p, is_me: mine };
+    // 5. Enriquece top com weekGrowth + history (a partir do banco)
+    const enrichment = await enrichWithHistory(biz.id);
+    const enrichedTop = snap.top.map(c => {
+      const extra = enrichment.get(c.place_id);
+      return {
+        ...c,
+        weekGrowth: extra?.weekGrowth ?? null,
+        history: extra?.history ?? null
+      };
     });
+
+    // 6. Aplica paywall de nome (free → null)
+    const topLocked = applyNameLocking(enrichedTop, paid);
 
     return res.json({
       enough: true,
-      total,
-      category: comparisonLabel,
-      radius,
-      me: byId.get(biz.place_id),
-      rank_google: rankGoogle,
-      ahead,
+      total: snap.total,
+      category: snap.category,
+      radius: snap.radius,
+      me: snap.me,
+      rank_google: snap.myRank,
+      ahead: snap.ahead,
       names_locked: !paid,
-      top
+      top: topLocked,
+      snapshot_date: snapshotDate,
+      from_snapshot: fromSnapshot
     });
   } catch (err) {
     console.error("[competitors] erro:", err);
