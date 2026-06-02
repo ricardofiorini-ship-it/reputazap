@@ -2132,6 +2132,38 @@ function AlertChannelsCard({ channels, isReal, userEmail }) {
         }}>{notice}</div>
       )}
 
+      {/* Botão de teste: envia 1 alerta exemplo agora pelos canais ativos */}
+      {isReal && (local.emailEnabled || local.whatsappEnabled) && (
+        <button
+          onClick={async () => {
+            setSaving(true); setNotice('')
+            try {
+              const r = await apiCall('/api/alerts?action=test', { method:'POST', body: '{}' })
+              const sent = r.results?.email?.sent
+              const skipped = r.results?.email?.skipped
+              const errMsg = r.results?.email?.error
+              if (sent) setNotice('✓ Alerta de teste enviado pra ' + (r.results.email.to))
+              else if (errMsg) setNotice('⚠️ ' + errMsg)
+              else if (skipped) setNotice('⚠️ ' + (r.results.email.reason || 'Envio pulado'))
+              else setNotice('Tentei enviar — sem resposta clara do servidor.')
+              setTimeout(() => setNotice(''), 6000)
+            } catch (e) {
+              setNotice('⚠️ ' + (e.message || 'Erro ao enviar teste'))
+            } finally {
+              setSaving(false)
+            }
+          }}
+          disabled={saving}
+          style={{
+            marginTop: 12, width:'100%',
+            background: '#fff', color: T.blue, border:`1.5px solid ${T.blue}`,
+            borderRadius: 8, padding:'10px 14px',
+            fontSize: 13, fontWeight: 600, cursor: saving ? 'wait' : 'pointer',
+            opacity: saving ? 0.6 : 1
+          }}
+        >🧪 Enviar alerta de teste agora</button>
+      )}
+
       <div style={{
         marginTop: 14, padding: 12, background: T.blueSoft, borderRadius: 8,
         fontSize: 12.5, color: T.blueDk, lineHeight: 1.5
