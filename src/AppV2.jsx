@@ -2057,7 +2057,7 @@ function AlertChannelsCard({ channels, isReal, userEmail }) {
       <ChannelRow
         icon="🖥️"
         name="No painel"
-        desc="Sino no topo do dashboard · sempre ligado"
+        desc="Alertas ficam visíveis na aba Alertas do painel · sempre ligado"
         enabled={true}
         locked={true}
       />
