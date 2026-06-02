@@ -1597,7 +1597,7 @@ function OpportunitiesPanel({ data, list, isMobile }) {
       bg: T.greenSoft,
       title:`Subir pro Top ${closeUp.pos} está perto`,
       text:`Faltam ${closeUp.reviews - youReviews} ${closeUp.reviews - youReviews === 1 ? 'avaliação' : 'avaliações'} pra ultrapassar ${closeUp.locked ? 'o próximo' : closeUp.name}. Em 1-2 semanas com captação consistente.`,
-      cta:{ label:'Ativar mais placas', href:'/ativar-codigo' }
+      cta:{ label:'Ativar mais dispositivos', href:'/ativar-codigo' }
     })
   }
   if (rising.length > 0) {
@@ -2756,7 +2756,7 @@ function BusinessSection({ biz, googleCategory, categoryOverride, showDebug }) {
   }
 
   return (
-    <ConfigSectionCard anchor="negocio" icon="🏢" title="Dados do negócio" sub="O que aparece nas suas placas, relatórios e nos alertas.">
+    <ConfigSectionCard anchor="negocio" icon="🏢" title="Dados do negócio" sub="O que aparece nos seus dispositivos, relatórios e alertas.">
 
       {/* Status visível da categoria em uso */}
       <div style={{
@@ -3256,7 +3256,7 @@ function ShareReviewsModal({ placeId, bizName, onClose, onActivatePlate }) {
 
         <div style={{ height: 1, background: T.border, margin:'18px 0' }}/>
 
-        {/* 2. Ativar código de placa que já tem */}
+        {/* 2. Ativar código de dispositivo que já tem */}
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: T.textMid, letterSpacing:'.04em', textTransform:'uppercase', marginBottom: 8 }}>
             ② Já tem placa/cartão NFC?
@@ -3810,7 +3810,7 @@ function CapturePoints({ items, plates, businessId, isAdmin }) {
               <button onClick={() => setModalOpen(true)} style={{
                 background: T.blue, color:'#fff', border:'none', borderRadius: 9,
                 padding:'10px 16px', fontSize: 13, fontWeight: 700, cursor:'pointer'
-              }}>Ativar código de placa →</button>
+              }}>Ativar código de dispositivo →</button>
               <a href="/kit" style={{
                 background:'#fff', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 9,
                 padding:'10px 16px', fontSize: 13, fontWeight: 700, textDecoration:'none'
@@ -3836,14 +3836,14 @@ function CapturePoints({ items, plates, businessId, isAdmin }) {
                 {total === 0
                   ? 'Aguardando o primeiro toque'
                   : total === 1
-                  ? 'Cliente tocou na sua placa 1 vez'
+                  ? 'Cliente tocou no seu dispositivo 1 vez'
                   : `Seus clientes tocaram ${total} vezes`}
               </div>
               <div style={{ fontSize: 12.5, color: T.textMid, marginTop: 2 }}>
                 {total === 0
-                  ? `Posicione ${hasMultiple ? 'as placas' : 'a placa'} num lugar visível e peça pra avaliarem.`
+                  ? `Posicione ${hasMultiple ? 'os dispositivos' : 'o dispositivo'} num lugar visível e peça pra avaliarem.`
                   : hasMultiple
-                  ? `${platesList.length} dispositivos ativos · ${topPlate?.channel_name || 'a placa principal'} é a campeã`
+                  ? `${platesList.length} dispositivos ativos · ${topPlate?.channel_name || 'o dispositivo principal'} é o campeão`
                   : 'Continue assim! Cada toque pode virar uma avaliação no Google.'}
               </div>
             </div>
@@ -4453,7 +4453,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
         </>
       )}
 
-      {/* Modal global de ativação de placa — disparado pelo HeroPosition (Gerar mais avaliações) */}
+      {/* Modal global de ativação de dispositivo — disparado pelo HeroPosition (Gerar mais avaliações) */}
       {activatePlateOpen && (
         <ActivatePlateModal
           businessId={d.biz.id}

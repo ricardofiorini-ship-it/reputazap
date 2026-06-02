@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Ativar placa — StarTouch</title>
+<title>Ativar dispositivo — StarTouch</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/startouch-vars.css"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
@@ -58,11 +58,15 @@
   .product-tile{background:#F8F9FA;border:1px solid #E8EAED;border-radius:10px;padding:12px 6px;text-align:center;}
   .product-tile img{height:54px;width:auto;object-fit:contain;display:block;margin:0 auto 4px;}
   .product-tile-label{font-size:10.5px;color:#5F6368;font-weight:600;}
-  /* Ações de navegação entre passos */
-  .step-actions{display:flex;gap:8px;margin-top:6px;}
-  .step-actions .btn{flex:1;margin-top:0;}
-  .step-actions .btn-back{flex:0 0 auto;background:#fff;color:#5F6368;border:1.5px solid #DADCE0;padding:14px 18px;}
+  /* Ações de navegação entre passos — ambos botões com mesma altura/largura */
+  .step-actions{display:flex;gap:10px;margin-top:6px;}
+  .step-actions .btn{flex:1;margin-top:0;padding:14px;font-size:14px;min-width:0;white-space:nowrap;}
+  .step-actions .btn-back{background:#fff;color:#5F6368;border:1.5px solid #DADCE0;flex:0 0 110px;}
   .step-actions .btn-back:hover{background:#F8F9FA;}
+  @media (max-width: 360px) {
+    .step-actions .btn-back{flex:0 0 90px;font-size:13px;}
+    .step-actions .btn{font-size:13px;}
+  }
 </style>
 </head>
 <body>
@@ -73,14 +77,14 @@
   <div class="card hidden" id="screenError">
     <div class="icon-circle">⚠️</div>
     <h1 id="errTitle">Código inválido</h1>
-    <p class="sub" id="errMsg">Esse código não foi encontrado ou está desabilitado. Confira a placa ou peça um novo.</p>
+    <p class="sub" id="errMsg">Esse código não foi encontrado ou está desabilitado. Confira o dispositivo ou peça um novo.</p>
     <a class="btn btn-primary" href="/landing">Voltar pro início</a>
   </div>
 
   <!-- ESCOLHA: novo vs existente -->
   <div class="card hidden" id="screenChoice">
-    <h1>Ativar sua placa</h1>
-    <p class="sub">Pra ativar sua placa StarTouch, entre com seu Google ou escolha um caminho abaixo.</p>
+    <h1>Ativar seu dispositivo</h1>
+    <p class="sub">Pra ativar seu dispositivo StarTouch, entre com seu Google ou escolha um caminho abaixo.</p>
     <div class="code-badge" id="choiceBadge">✓ Código: —</div>
     <div id="googleBtnChoice" style="display:flex;justify-content:center;margin-bottom:14px;min-height:44px;"></div>
     <div style="display:flex;align-items:center;gap:10px;margin:10px 0 14px;font-size:11.5px;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">
@@ -108,14 +112,14 @@
       </div>
       <div class="step-item" data-step="3">
         <div class="step-dot">3</div>
-        <div class="step-label">Placa</div>
+        <div class="step-label">Dispositivo</div>
       </div>
     </div>
 
     <!-- ─── PASSO 1: identificação + senha ─── -->
     <div id="nStep1">
       <h1>Crie sua conta</h1>
-      <p class="sub">É rapidinho. Em 3 passos sua placa fica ativa.</p>
+      <p class="sub">É rapidinho. Em 3 passos seu dispositivo fica ativo.</p>
       <input type="text" id="nName" placeholder="Seu nome"/>
       <input type="email" id="nEmail" placeholder="Seu email"/>
       <input type="tel" id="nPhone" placeholder="WhatsApp (11) 99999-9999" maxlength="15" oninput="maskPhone(this)"/>
@@ -133,7 +137,7 @@
     <!-- ─── PASSO 2: busca de negócio ─── -->
     <div id="nStep2" class="hidden">
       <h1>Qual seu negócio?</h1>
-      <p class="sub">A gente busca no Google pra vincular sua placa ao perfil certo.</p>
+      <p class="sub">A gente busca no Google pra vincular seu dispositivo ao perfil certo.</p>
       <div id="nBizConfirm" class="hidden"></div>
       <div id="nBizSearchWrap">
         <input type="text" id="nBizSearch" placeholder="Nome do negócio"/>
@@ -153,7 +157,7 @@
     <!-- ─── PASSO 3: propaganda + código + apelido ─── -->
     <div id="nStep3" class="hidden">
       <h1>Quase lá!</h1>
-      <p class="sub">Sua placa vai capturar avaliações automaticamente. Coloque num lugar visível pros seus clientes.</p>
+      <p class="sub">Seu dispositivo vai capturar avaliações automaticamente. Coloque num lugar visível pros seus clientes.</p>
 
       <!-- Mini propaganda dos produtos -->
       <div class="product-strip">
@@ -174,7 +178,7 @@
       <!-- Código sendo ativado -->
       <div class="code-badge" id="nStep3Badge" style="margin-top:0;">✓ Código sendo ativado: —</div>
 
-      <label style="margin-top:6px;">Apelido da placa <span style="color:#9aa0a6;font-weight:400;">(opcional)</span></label>
+      <label style="margin-top:6px;">Apelido do dispositivo <span style="color:#9aa0a6;font-weight:400;">(opcional)</span></label>
       <input type="text" id="nNickname" placeholder="Ex: Balcão Principal, Mesa 5, Garçom João…"/>
       <p style="font-size:11.5px;color:#5F6368;margin:-8px 0 12px;line-height:1.4;">
         Vai aparecer nos seus relatórios pra você saber qual ponto traz mais avaliações.
@@ -183,7 +187,7 @@
       <div class="msg" id="nMsg"></div>
       <div class="step-actions">
         <button class="btn btn-back" onclick="nGoToStep(2)">← Voltar</button>
-        <button class="btn btn-primary" id="nSubmit" onclick="submitNew()">✓ Ativar minha placa</button>
+        <button class="btn btn-primary" id="nSubmit" onclick="submitNew()">✓ Ativar</button>
       </div>
     </div>
   </div>
@@ -192,7 +196,7 @@
   <div class="card hidden" id="screenLogin">
     <button class="back" onclick="show('screenChoice')">← Voltar</button>
     <h1>Entrar</h1>
-    <p class="sub">Entre pra ativar a placa na sua conta.</p>
+    <p class="sub">Entre pra ativar o dispositivo na sua conta.</p>
     <div id="googleBtnLogin" style="display:flex;justify-content:center;margin-bottom:14px;min-height:44px;"></div>
     <div style="display:flex;align-items:center;gap:10px;margin:6px 0 14px;font-size:11.5px;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">
       <div style="flex:1;height:1px;background:#DADCE0;"></div>OU COM EMAIL<div style="flex:1;height:1px;background:#DADCE0;"></div>
@@ -205,21 +209,21 @@
 
   <!-- VINCULAR: escolher negócio + apelido (cliente logado) -->
   <div class="card hidden" id="screenLink">
-    <h1>Vincular placa</h1>
-    <p class="sub">Escolha o negócio e dê um apelido pra essa placa.</p>
+    <h1>Vincular dispositivo</h1>
+    <p class="sub">Escolha o negócio e dê um apelido pra esse dispositivo.</p>
     <div class="code-badge" id="linkBadge">✓ Código: —</div>
     <div id="linkBizArea"></div>
-    <input type="text" id="linkNickname" placeholder="Apelido da placa (ex: Balcão Principal)"/>
+    <input type="text" id="linkNickname" placeholder="Apelido (ex: Balcão Principal)"/>
     <div class="msg" id="linkMsg"></div>
-    <button class="btn btn-primary" id="linkSubmit" onclick="submitLink()">Ativar placa</button>
+    <button class="btn btn-primary" id="linkSubmit" onclick="submitLink()">Ativar</button>
   </div>
 
   <!-- SUCESSO -->
   <div class="card hidden" id="screenDone">
     <div class="icon-circle" style="background:#E6F4EA;">✅</div>
-    <h1>Placa ativada!</h1>
-    <p class="sub">Sua placa está pronta pra capturar avaliações. Posicione no seu negócio.</p>
-    <a class="btn btn-primary" href="/app#pontos-de-captacao">Ver minhas placas</a>
+    <h1>Dispositivo ativado!</h1>
+    <p class="sub">Está pronto pra capturar avaliações. Posicione no seu negócio.</p>
+    <a class="btn btn-primary" href="/app#pontos-de-captacao">Ver meus dispositivos</a>
   </div>
 
   <div class="foot">StarTouch · Reputação no piloto automático</div>
@@ -299,7 +303,7 @@ async function handleGoogleCredential(response){
       const el = document.getElementById(id);
       if (el) el.style.display = "none";
     });
-    document.getElementById("nSubmit").textContent = "✓ Ativar minha placa";
+    document.getElementById("nSubmit").textContent = "✓ Ativar";
     show("screenNew");
     // Pula direto pro passo 2 (busca de negócio) — já temos identidade
     nGoToStep(2);
@@ -366,14 +370,14 @@ function maskPhone(el){
 // Estado inicial
 if (ERROR === "invalida") {
   document.getElementById("errTitle").textContent="Código inválido";
-  document.getElementById("errMsg").textContent="Esse código não foi encontrado. Confira a placa ou peça um novo ao estabelecimento.";
+  document.getElementById("errMsg").textContent="Esse código não foi encontrado. Confira o dispositivo ou peça um novo ao estabelecimento.";
   show("screenError");
 } else if (ERROR === "desabilitada") {
-  document.getElementById("errTitle").textContent="Placa desabilitada";
-  document.getElementById("errMsg").textContent="Essa placa foi desabilitada e não está mais ativa.";
+  document.getElementById("errTitle").textContent="Dispositivo desabilitado";
+  document.getElementById("errMsg").textContent="Esse dispositivo foi desabilitado e não está mais ativo.";
   show("screenError");
 } else if (!CODE) {
-  document.getElementById("errMsg").textContent="Faltou o código da placa. Toque a placa de novo ou digite o código.";
+  document.getElementById("errMsg").textContent="Faltou o código do dispositivo. Toque novamente ou digite o código manualmente.";
   show("screenError");
 } else {
   document.getElementById("choiceBadge").textContent = "✓ Código: " + CODE;
@@ -533,7 +537,7 @@ async function submitNew(){
     if(!googleAuthed){
       const rReg = await fetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,email,phone,password:pass})});
       const dReg = await rReg.json();
-      if(!rReg.ok){ msg.className="msg error"; msg.textContent=dReg.error||"Erro ao criar conta."; btn.disabled=false; btn.textContent="Criar conta e ativar placa"; return; }
+      if(!rReg.ok){ msg.className="msg error"; msg.textContent=dReg.error||"Erro ao criar conta."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
       token = dReg.token;
       if(!token){
         const rLog=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})});
@@ -548,17 +552,17 @@ async function submitNew(){
     btn.textContent="Salvando negócio…";
     const rBiz = await fetch("/api/savebiz",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({place_id:selectedBiz.place_id,name:selectedBiz.name,address:selectedBiz.address,rating:selectedBiz.rating,total:selectedBiz.total,plan:"free"})});
     const dBiz = await rBiz.json();
-    if(!rBiz.ok||!dBiz.business){ msg.className="msg error"; msg.textContent=dBiz.error||"Erro ao salvar negócio."; btn.disabled=false; btn.textContent="Criar conta e ativar placa"; return; }
+    if(!rBiz.ok||!dBiz.business){ msg.className="msg error"; msg.textContent=dBiz.error||"Erro ao salvar negócio."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
 
     // 3. ativa placa
-    btn.textContent="Ativando placa…";
+    btn.textContent="Ativando…";
     const nickname = document.getElementById("nNickname").value.trim() || null;
     const rAct = await fetch("/api/plates?action=activate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({code:CODE,business_id:dBiz.business.id,channel_name:nickname})});
     const dAct = await rAct.json();
-    if(!rAct.ok){ msg.className="msg error"; msg.textContent=dAct.error||"Erro ao ativar placa."; btn.disabled=false; btn.textContent="Criar conta e ativar placa"; return; }
+    if(!rAct.ok){ msg.className="msg error"; msg.textContent=dAct.error||"Erro ao ativar o dispositivo."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
 
     show("screenDone");
-  }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Criar conta e ativar placa"; }
+  }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="✓ Ativar"; }
 }
 
 // ── JÁ TENHO CONTA: login → vincular ──
@@ -627,9 +631,9 @@ async function submitLink(){
   try{
     const r=await fetch("/api/plates?action=activate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({code:CODE,business_id,channel_name:nickname||null})});
     const d=await r.json();
-    if(!r.ok){ msg.className="msg error"; msg.textContent=d.error||"Erro ao ativar."; btn.disabled=false; btn.textContent="Ativar placa"; return; }
+    if(!r.ok){ msg.className="msg error"; msg.textContent=d.error||"Erro ao ativar."; btn.disabled=false; btn.textContent="Ativar"; return; }
     show("screenDone");
-  }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Ativar placa"; }
+  }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Ativar"; }
 }
 
 </script>
