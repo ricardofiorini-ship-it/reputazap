@@ -63,12 +63,17 @@ export default async function handler(req, res) {
   // ── Services: pings rápidos ──
   const services = [];
 
-  // Supabase
-  if (process.env.SUPABASE_URL) {
-    const r = await ping(process.env.SUPABASE_URL + "/auth/v1/health");
+  // Supabase (precisa do apikey header pra acessar endpoint de auth)
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+    const r = await ping(process.env.SUPABASE_URL + "/auth/v1/health", {
+      headers: {
+        apikey: process.env.SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}`
+      }
+    });
     services.push({ name: "Supabase", ok: r.ok, status: r.status, error: r.error });
   } else {
-    services.push({ name: "Supabase", ok: false, error: "SUPABASE_URL ausente" });
+    services.push({ name: "Supabase", ok: false, error: "SUPABASE_URL ou SUPABASE_ANON_KEY ausente" });
   }
 
   // Google Places API
