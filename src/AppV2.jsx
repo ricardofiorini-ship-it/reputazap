@@ -4190,7 +4190,19 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
     window.history.replaceState({}, '', url.toString())
   }, [tab])
 
-  // Scroll automático pro elemento do hash quando muda de aba ou monta
+  // Helper pra navegar de bottom sheet "Mais" → tab + anchor opcional
+  const navigateFromMore = React.useCallback((newTab, hash) => {
+    if (typeof window !== 'undefined' && hash) {
+      window.location.hash = hash
+    }
+    setTab(newTab)
+  }, [])
+
+  // Carrega dados reais via API (skipa em demoMode ou sem user)
+  const real = useRealData(user, demoMode)
+
+  // Scroll automático pro elemento do hash quando muda de aba ou termina o loading
+  // (DEPOIS do `real` ser declarado pra evitar temporal dead zone)
   React.useEffect(() => {
     if (typeof window === 'undefined') return
     const hash = window.location.hash.replace('#', '')
@@ -4203,17 +4215,6 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
       if (el) el.scrollIntoView({ behavior:'smooth', block:'start' })
     }, 120)
   }, [tab, real.loading])
-
-  // Helper pra navegar de bottom sheet "Mais" → tab + anchor opcional
-  const navigateFromMore = React.useCallback((newTab, hash) => {
-    if (typeof window !== 'undefined' && hash) {
-      window.location.hash = hash
-    }
-    setTab(newTab)
-  }, [])
-
-  // Carrega dados reais via API (skipa em demoMode ou sem user)
-  const real = useRealData(user, demoMode)
 
   // Plano real vence sobre URL em modo logado. URL override só rola em demo.
   // Admin (email hardcoded) tbm vê tudo como Pro automaticamente.
