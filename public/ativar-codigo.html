@@ -41,6 +41,28 @@
   .back:hover{color:#202124;}
   .icon-circle{width:64px;height:64px;border-radius:50%;background:#E8F0FE;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:30px;}
   .foot{text-align:center;font-size:12px;color:#9AA0A6;margin-top:18px;}
+  /* Stepper 3 passos */
+  .stepper{display:flex;align-items:center;gap:0;margin:0 -4px 18px;padding:0 4px;}
+  .step-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;}
+  .step-dot{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #DADCE0;color:#9AA0A6;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .15s;z-index:1;}
+  .step-dot.active{background:#1A73E8;border-color:#1A73E8;color:#fff;box-shadow:0 0 0 4px rgba(26,115,232,.12);}
+  .step-dot.done{background:#137333;border-color:#137333;color:#fff;}
+  .step-label{font-size:10.5px;font-weight:600;color:#9AA0A6;text-align:center;letter-spacing:.04em;text-transform:uppercase;}
+  .step-item.active .step-label{color:#1A73E8;}
+  .step-item.done .step-label{color:#137333;}
+  .step-line{position:absolute;top:15px;left:50%;right:-50%;height:2px;background:#DADCE0;z-index:0;}
+  .step-item.done .step-line{background:#137333;}
+  .step-item:last-child .step-line{display:none;}
+  /* Cards de produto na fase 3 (mini propaganda) */
+  .product-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 14px;}
+  .product-tile{background:#F8F9FA;border:1px solid #E8EAED;border-radius:10px;padding:12px 6px;text-align:center;}
+  .product-tile img{height:54px;width:auto;object-fit:contain;display:block;margin:0 auto 4px;}
+  .product-tile-label{font-size:10.5px;color:#5F6368;font-weight:600;}
+  /* Ações de navegação entre passos */
+  .step-actions{display:flex;gap:8px;margin-top:6px;}
+  .step-actions .btn{flex:1;margin-top:0;}
+  .step-actions .btn-back{flex:0 0 auto;background:#fff;color:#5F6368;border:1.5px solid #DADCE0;padding:14px 18px;}
+  .step-actions .btn-back:hover{background:#F8F9FA;}
 </style>
 </head>
 <body>
@@ -68,41 +90,102 @@
     <button class="btn btn-outline" onclick="goToExisting()">Já tenho conta (email/senha)</button>
   </div>
 
-  <!-- CLIENTE NOVO: cadastro + busca negócio -->
+  <!-- CLIENTE NOVO: cadastro em 3 passos -->
   <div class="card hidden" id="screenNew">
     <button class="back" onclick="show('screenChoice')">← Voltar</button>
-    <h1>Criar conta</h1>
-    <p class="sub">Crie sua conta e ative a placa em seguida.</p>
-    <input type="text" id="nName" placeholder="Seu nome"/>
-    <input type="email" id="nEmail" placeholder="Seu email"/>
-    <input type="tel" id="nPhone" placeholder="WhatsApp (11) 99999-9999" maxlength="15" oninput="maskPhone(this)"/>
-    <input type="password" id="nPass" placeholder="Senha (mín. 8 caracteres)" minlength="8" autocomplete="new-password"/>
-    <input type="password" id="nPass2" placeholder="Confirme a senha" minlength="8" autocomplete="new-password"/>
-    <!-- Honeypot: campo invisível pra humanos, bots geralmente preenchem -->
-    <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
-      <label>Não preencher (campo de segurança)</label>
-      <input type="text" id="nWebsite" name="website" tabindex="-1" autocomplete="off"/>
+
+    <!-- Stepper visual -->
+    <div class="stepper" id="nStepper">
+      <div class="step-item active" data-step="1">
+        <div class="step-dot">1</div>
+        <div class="step-label">Você</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-item" data-step="2">
+        <div class="step-dot">2</div>
+        <div class="step-label">Negócio</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-item" data-step="3">
+        <div class="step-dot">3</div>
+        <div class="step-label">Placa</div>
+      </div>
     </div>
 
-    <label>Qual o seu negócio?</label>
-    <div id="nBizConfirm" class="hidden"></div>
-    <div id="nBizSearchWrap">
-      <input type="text" id="nBizSearch" placeholder="Nome do negócio"/>
-      <input type="text" id="nBizCep" placeholder="CEP do negócio (00000-000)" inputmode="numeric" maxlength="9" oninput="maskCep(this); lookupCep()" autocomplete="postal-code"/>
-      <p id="nCepFeedback" style="margin:-6px 0 8px;font-size:12px;color:#5F6368;line-height:1.4;"></p>
-      <input type="text" id="nBizActivity" placeholder="Ramo (ex: cafeteria, pizzaria, salão)"/>
-      <button class="btn btn-outline" style="margin-top:0" onclick="searchBiz('n')">Buscar no Google</button>
-      <div id="nResults" style="margin-top:10px;"></div>
+    <!-- ─── PASSO 1: identificação + senha ─── -->
+    <div id="nStep1">
+      <h1>Crie sua conta</h1>
+      <p class="sub">É rapidinho. Em 3 passos sua placa fica ativa.</p>
+      <input type="text" id="nName" placeholder="Seu nome"/>
+      <input type="email" id="nEmail" placeholder="Seu email"/>
+      <input type="tel" id="nPhone" placeholder="WhatsApp (11) 99999-9999" maxlength="15" oninput="maskPhone(this)"/>
+      <input type="password" id="nPass" placeholder="Senha (mín. 8 caracteres)" minlength="8" autocomplete="new-password"/>
+      <input type="password" id="nPass2" placeholder="Confirme a senha" minlength="8" autocomplete="new-password"/>
+      <!-- Honeypot anti-bot -->
+      <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+        <label>Não preencher (campo de segurança)</label>
+        <input type="text" id="nWebsite" name="website" tabindex="-1" autocomplete="off"/>
+      </div>
+      <div class="msg" id="nMsg1"></div>
+      <button class="btn btn-primary" style="margin-top:8px" onclick="nGoToStep(2)">Continuar →</button>
     </div>
 
-    <label style="margin-top:6px;">Apelido da placa <span style="color:#9aa0a6;font-weight:400;">(opcional)</span></label>
-    <input type="text" id="nNickname" placeholder="Ex: Balcão Principal, Mesa 5, Garçom João…"/>
-    <p style="font-size:11.5px;color:#5F6368;margin:-8px 0 12px;line-height:1.4;">
-      Vai aparecer nos seus relatórios pra você saber qual ponto traz mais avaliações.
-    </p>
+    <!-- ─── PASSO 2: busca de negócio ─── -->
+    <div id="nStep2" class="hidden">
+      <h1>Qual seu negócio?</h1>
+      <p class="sub">A gente busca no Google pra vincular sua placa ao perfil certo.</p>
+      <div id="nBizConfirm" class="hidden"></div>
+      <div id="nBizSearchWrap">
+        <input type="text" id="nBizSearch" placeholder="Nome do negócio"/>
+        <input type="text" id="nBizCep" placeholder="CEP do negócio (00000-000)" inputmode="numeric" maxlength="9" oninput="maskCep(this); lookupCep()" autocomplete="postal-code"/>
+        <p id="nCepFeedback" style="margin:-6px 0 8px;font-size:12px;color:#5F6368;line-height:1.4;"></p>
+        <input type="text" id="nBizActivity" placeholder="Ramo (ex: cafeteria, pizzaria, salão)"/>
+        <button class="btn btn-outline" style="margin-top:0" onclick="searchBiz('n')">Buscar no Google</button>
+        <div id="nResults" style="margin-top:10px;"></div>
+      </div>
+      <div class="msg" id="nMsg2"></div>
+      <div class="step-actions">
+        <button class="btn btn-back" onclick="nGoToStep(1)">← Voltar</button>
+        <button class="btn btn-primary" id="nStep2Continue" onclick="nGoToStep(3)" disabled style="opacity:.5;cursor:not-allowed;">Continuar →</button>
+      </div>
+    </div>
 
-    <div class="msg" id="nMsg"></div>
-    <button class="btn btn-primary" id="nSubmit" style="margin-top:14px" onclick="submitNew()">Criar conta e ativar placa</button>
+    <!-- ─── PASSO 3: propaganda + código + apelido ─── -->
+    <div id="nStep3" class="hidden">
+      <h1>Quase lá!</h1>
+      <p class="sub">Sua placa vai capturar avaliações automaticamente. Coloque num lugar visível pros seus clientes.</p>
+
+      <!-- Mini propaganda dos produtos -->
+      <div class="product-strip">
+        <div class="product-tile">
+          <img src="/gadget-placa.png" alt="Placa de balcão"/>
+          <div class="product-tile-label">Placa de balcão</div>
+        </div>
+        <div class="product-tile">
+          <img src="/gadget-cartao.png" alt="Cartão NFC"/>
+          <div class="product-tile-label">Cartão NFC</div>
+        </div>
+        <div class="product-tile">
+          <img src="/gadget-pulseira.png" alt="Pulseira NFC"/>
+          <div class="product-tile-label">Pulseira NFC</div>
+        </div>
+      </div>
+
+      <!-- Código sendo ativado -->
+      <div class="code-badge" id="nStep3Badge" style="margin-top:0;">✓ Código sendo ativado: —</div>
+
+      <label style="margin-top:6px;">Apelido da placa <span style="color:#9aa0a6;font-weight:400;">(opcional)</span></label>
+      <input type="text" id="nNickname" placeholder="Ex: Balcão Principal, Mesa 5, Garçom João…"/>
+      <p style="font-size:11.5px;color:#5F6368;margin:-8px 0 12px;line-height:1.4;">
+        Vai aparecer nos seus relatórios pra você saber qual ponto traz mais avaliações.
+      </p>
+
+      <div class="msg" id="nMsg"></div>
+      <div class="step-actions">
+        <button class="btn btn-back" onclick="nGoToStep(2)">← Voltar</button>
+        <button class="btn btn-primary" id="nSubmit" onclick="submitNew()">✓ Ativar minha placa</button>
+      </div>
+    </div>
   </div>
 
   <!-- JÁ TENHO CONTA: login -->
@@ -204,16 +287,22 @@ async function handleGoogleCredential(response){
       show("screenLink");
       return;
     }
-    // Sem negócio — vai pro form de cadastro com nome/email pre-preenchidos e senha escondida
+    // Sem negócio — vai pro form de cadastro com nome/email pre-preenchidos
     document.getElementById("nName").value = d.user?.name || "";
     document.getElementById("nEmail").value = d.user?.email || "";
     document.getElementById("nName").readOnly = true;
     document.getElementById("nEmail").readOnly = true;
     document.getElementById("nName").style.background = "#F1F3F4";
     document.getElementById("nEmail").style.background = "#F1F3F4";
-    document.getElementById("nPass").style.display = "none"; // não precisa senha — autenticado via Google
-    document.getElementById("nSubmit").textContent = "Salvar negócio e ativar placa";
+    // Esconde senha + WhatsApp + confirmação (autenticado via Google)
+    ["nPhone","nPass","nPass2"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = "none";
+    });
+    document.getElementById("nSubmit").textContent = "✓ Ativar minha placa";
     show("screenNew");
+    // Pula direto pro passo 2 (busca de negócio) — já temos identidade
+    nGoToStep(2);
   }catch{
     alert("Erro de conexão.");
   }
@@ -342,12 +431,73 @@ function pickBiz(biz){
   c.classList.remove("hidden");
   c.className = "biz-confirm";
   c.innerHTML = `<span class="nm">${biz.name}</span><button onclick="resetBiz()">Trocar</button>`;
+  // Habilita botão Continuar do passo 2
+  const cont = document.getElementById("nStep2Continue");
+  if (cont){ cont.disabled = false; cont.style.opacity = "1"; cont.style.cursor = "pointer"; }
 }
 function resetBiz(){
   selectedBiz=null;
   document.getElementById("nBizConfirm").classList.add("hidden");
   document.getElementById("nBizSearchWrap").classList.remove("hidden");
   document.getElementById("nResults").innerHTML="";
+  // Desabilita botão Continuar do passo 2
+  const cont = document.getElementById("nStep2Continue");
+  if (cont){ cont.disabled = true; cont.style.opacity = ".5"; cont.style.cursor = "not-allowed"; }
+}
+
+// Navegação entre os 3 sub-passos do cadastro novo
+function nGoToStep(step){
+  // Validação ao avançar
+  if (step === 2){
+    const v = nValidateStep1();
+    if (!v.ok){
+      const msg = document.getElementById("nMsg1");
+      msg.className = "msg error"; msg.textContent = v.error;
+      return;
+    }
+    document.getElementById("nMsg1").className = "msg";
+  } else if (step === 3){
+    if (!selectedBiz){
+      const msg = document.getElementById("nMsg2");
+      msg.className = "msg error"; msg.textContent = "Busque e selecione seu negócio antes de continuar.";
+      return;
+    }
+    document.getElementById("nMsg2").className = "msg";
+    // Atualiza badge do código na fase 3
+    document.getElementById("nStep3Badge").textContent = "✓ Código sendo ativado: " + CODE;
+  }
+  // Esconde todos, mostra o atual
+  ["nStep1","nStep2","nStep3"].forEach(id => {
+    document.getElementById(id).classList.toggle("hidden", id !== "nStep"+step);
+  });
+  // Atualiza visual do stepper
+  document.querySelectorAll("#nStepper .step-item").forEach(el => {
+    const n = parseInt(el.getAttribute("data-step"), 10);
+    el.classList.toggle("active", n === step);
+    el.classList.toggle("done", n < step);
+    const dot = el.querySelector(".step-dot");
+    if (n < step){ dot.textContent = "✓"; }
+    else { dot.textContent = String(n); }
+  });
+  window.scrollTo(0, 0);
+}
+
+// Valida passo 1 (dados pessoais + senha)
+function nValidateStep1(){
+  const name = document.getElementById("nName").value.trim();
+  const email = document.getElementById("nEmail").value.trim();
+  const phone = document.getElementById("nPhone").value.trim();
+  const pass = document.getElementById("nPass").value;
+  const pass2 = document.getElementById("nPass2").value;
+  const honeypot = document.getElementById("nWebsite").value;
+  if (honeypot) return { ok:false, error:"Tente de novo em alguns segundos." };
+  if (!name || !email){ return { ok:false, error:"Preencha nome e email." }; }
+  // Se veio via Google, pula validação de senha
+  if (googleAuthed) return { ok:true };
+  if (!phone || !pass){ return { ok:false, error:"Preencha WhatsApp e senha." }; }
+  if (pass.length < 8){ return { ok:false, error:"Senha precisa de pelo menos 8 caracteres." }; }
+  if (pass !== pass2){ return { ok:false, error:"As senhas não batem. Confira a confirmação." }; }
+  return { ok:true };
 }
 
 // ── CLIENTE NOVO: cadastro + savebiz + activate ──
