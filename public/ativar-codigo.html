@@ -637,5 +637,32 @@ async function submitLink(){
 }
 
 </script>
+
+<!-- WhatsApp de suporte StarTouch — flutuante, presente em toda a página -->
+<a href="https://wa.me/5511976944026?text=Oi!%20Preciso%20de%20ajuda%20pra%20ativar%20meu%20StarTouch."
+   target="_blank" rel="noreferrer"
+   aria-label="Falar com suporte StarTouch no WhatsApp (11) 97694-4026"
+   title="Suporte StarTouch · WhatsApp (11) 97694-4026"
+   style="position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(37,211,102,0.35),0 2px 6px rgba(0,0,0,0.10);z-index:1000;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease;"
+   onmouseover="this.style.transform='translateY(-2px) scale(1.04)';this.style.boxShadow='0 12px 28px rgba(37,211,102,0.45),0 4px 12px rgba(0,0,0,0.12)';"
+   onmouseout="this.style.transform='translateY(0) scale(1)';this.style.boxShadow='0 8px 20px rgba(37,211,102,0.35),0 2px 6px rgba(0,0,0,0.10)';">
+  <span aria-hidden="true" style="position:absolute;inset:0;border-radius:50%;background:#25D366;opacity:0.35;animation:stFabPulse 1.6s ease-out infinite;"></span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="position:relative;">
+    <path fill="currentColor" d="M16.001 3C9.373 3 4 8.373 4 15c0 2.252.624 4.36 1.706 6.165L4 29l8.06-1.667A11.94 11.94 0 0 0 16.001 27C22.628 27 28 21.627 28 15S22.628 3 16.001 3Zm0 21.6c-1.747 0-3.4-.46-4.825-1.293l-.345-.205-4.78.988.999-4.654-.225-.359A9.55 9.55 0 0 1 6.4 15c0-5.293 4.308-9.6 9.601-9.6 5.293 0 9.6 4.307 9.6 9.6 0 5.293-4.307 9.6-9.6 9.6Zm5.522-7.182c-.302-.151-1.792-.884-2.07-.985-.279-.101-.481-.151-.683.151-.202.302-.783.985-.96 1.187-.176.202-.353.227-.655.076-.302-.151-1.276-.47-2.43-1.5-.898-.8-1.504-1.79-1.681-2.093-.176-.302-.019-.466.132-.616.135-.135.302-.353.453-.53.151-.176.202-.302.302-.504.101-.202.05-.378-.025-.53-.076-.151-.683-1.647-.936-2.256-.247-.594-.498-.513-.683-.523l-.581-.01c-.202 0-.53.076-.806.378-.279.302-1.061 1.037-1.061 2.528 0 1.49 1.087 2.93 1.238 3.132.151.202 2.14 3.27 5.187 4.586.725.313 1.29.5 1.731.64.727.231 1.388.198 1.91.12.583-.087 1.792-.732 2.045-1.439.252-.706.252-1.31.176-1.439-.076-.126-.279-.202-.581-.353Z"/>
+  </svg>
+</a>
+<style>
+  @keyframes stFabPulse { 0%{transform:scale(1);opacity:.35} 70%{transform:scale(1.55);opacity:0} 100%{transform:scale(1.55);opacity:0} }
+  /* some o halo depois de 6s — vira só botão estático */
+  @media (prefers-reduced-motion: reduce) { span[aria-hidden="true"]{ display:none; } }
+</style>
+<script>
+  // Esconde o halo após 6s pra não distrair o resto do onboarding
+  setTimeout(function(){
+    var halo = document.querySelector('a[href*="wa.me/5511976944026"] span[aria-hidden="true"]');
+    if (halo) halo.style.display = 'none';
+  }, 6000);
+</script>
+
 </body>
 </html>
