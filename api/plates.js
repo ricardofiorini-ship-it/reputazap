@@ -5,6 +5,8 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { generateBatchCodes } from "./_lib/plates.js";
+import { sendInBackground } from "./_lib/email-sender.js";
+import { firstDeviceEmail, additionalDeviceEmail } from "./_lib/email-templates.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -178,6 +180,60 @@ async function handleActivate(req, res, user) {
     .select()
     .single();
   if (updErr) return res.status(500).json({ error: updErr.message });
+
+  // Email de ativação (primeiro ou adicional)
+  try {
+    const { data: bizFull } = await supabase
+      .from("businesses")
+      .select("name")
+      .eq("id", business_id)
+      .maybeSingle();
+    const { data: activePlates } = await supabase
+      .from("plates")
+      .select("id")
+      .eq("business_id", business_id)
+      .eq("status", "active");
+    const totalCount = (activePlates || []).length;
+    const userMeta = user.user_metadata || {};
+    const userName = userMeta.name || userMeta.full_name || (user.email || "").split("@")[0] || "";
+
+    if (totalCount === 1) {
+      // Primeiro dispositivo
+      const tmpl = firstDeviceEmail({
+        userName,
+        bizName: bizFull?.name,
+        code: normalized,
+        channelName: channel_name
+      });
+      sendInBackground({
+        userId: user.id,
+        emailType: "first_device",
+        to: user.email,
+        subject: tmpl.subject,
+        html: tmpl.html,
+        metadata: { plate_id: plate.id, code: normalized, channel_name }
+      });
+    } else if (totalCount > 1) {
+      // Dispositivo adicional (recorrente, sem idempotência por user — só por plate_id)
+      const tmpl = additionalDeviceEmail({
+        userName,
+        bizName: bizFull?.name,
+        code: normalized,
+        channelName: channel_name,
+        totalCount
+      });
+      sendInBackground({
+        userId: user.id,
+        emailType: "another_device",
+        to: user.email,
+        subject: tmpl.subject,
+        html: tmpl.html,
+        metadata: { plate_id: plate.id, code: normalized, channel_name, total: totalCount }
+      });
+    }
+  } catch (e) {
+    console.error("[plates.activate] erro no email transacional:", e);
+  }
 
   return res.json({ ok: true, plate: updated });
 }

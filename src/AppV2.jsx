@@ -2104,26 +2104,8 @@ function AlertChannelsCard({ channels, isReal, userEmail }) {
         )}
       </ChannelRow>
 
-      <ChannelRow
-        icon="📱"
-        name="WhatsApp"
-        desc="Receba as ameaças críticas no WhatsApp — concorrente passou você, saiu do Top 3 ou ganhou 10 avaliações de uma vez."
-        enabled={local.whatsappEnabled}
-        onToggle={() => update({ whatsappEnabled: !local.whatsappEnabled })}
-      >
-        {local.whatsappEnabled && (
-          <input
-            value={local.whatsappPhone}
-            onChange={e => setLocal({ ...local, whatsappPhone: e.target.value })}
-            onBlur={() => persist(local)}
-            placeholder="(11) 99999-9999"
-            style={{
-              width:'100%', padding:'8px 10px', fontSize: 13,
-              border:'1px solid '+T.border, borderRadius: 6, outline:'none', boxSizing:'border-box'
-            }}
-          />
-        )}
-      </ChannelRow>
+      {/* WhatsApp: integração ainda não pronta — escondido da UI por enquanto.
+          Quando ligar (Twilio/WAPI), basta reativar este bloco. Schema do banco mantém o campo. */}
 
       {notice && (
         <div style={{
@@ -2170,7 +2152,7 @@ function AlertChannelsCard({ channels, isReal, userEmail }) {
         marginTop: 14, padding: 12, background: T.blueSoft, borderRadius: 8,
         fontSize: 12.5, color: T.blueDk, lineHeight: 1.5
       }}>
-        💡 <b>Dica:</b> deixe Email + WhatsApp ligados pra não perder mudança importante no ranking.
+        💡 <b>Dica:</b> deixe email ligado pra não perder mudança importante no ranking — assim você sabe quando algo muda mesmo sem abrir o painel.
       </div>
     </Card>
   )

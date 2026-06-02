@@ -1,4 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
+import { sendInBackground } from "./_lib/email-sender.js";
+import { welcomeEmail } from "./_lib/email-templates.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -31,6 +33,17 @@ export default async function handler(req, res) {
 
     // Retorna token direto se a sessão foi criada
     const token = data.session?.access_token || null;
+
+    // Email de boas-vindas (background — não bloqueia resposta)
+    const tmpl = welcomeEmail({ userName: name });
+    sendInBackground({
+      userId: data.user.id,
+      emailType: "welcome",
+      to: email,
+      subject: tmpl.subject,
+      html: tmpl.html,
+      metadata: { source: "register" }
+    });
 
     res.json({
       ok: true,

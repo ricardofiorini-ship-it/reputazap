@@ -1,4 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
+import { sendInBackground } from "./_lib/email-sender.js";
+import { welcomeEmail } from "./_lib/email-templates.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -41,6 +43,20 @@ export default async function handler(req, res) {
       .maybeSingle();
 
     const meta = data.user.user_metadata || {};
+
+    // Bem-vindo no primeiro login Google (idempotente — só envia 1x)
+    if (action === "google" || id_token) {
+      const name = meta.full_name || meta.name || (data.user.email || "").split("@")[0] || "";
+      const tmpl = welcomeEmail({ userName: name });
+      sendInBackground({
+        userId: data.user.id,
+        emailType: "welcome",
+        to: data.user.email,
+        subject: tmpl.subject,
+        html: tmpl.html,
+        metadata: { source: "login_google" }
+      });
+    }
     res.json({
       ok: true,
       token: data.session.access_token,

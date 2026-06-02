@@ -1,4 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
+import { sendInBackground } from "./_lib/email-sender.js";
+import { businessLinkedEmail } from "./_lib/email-templates.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -103,6 +105,20 @@ export default async function handler(req, res) {
     }
 
     console.log("[savebiz] Sucesso! Business salvo:", data);
+
+    // Email "negócio vinculado" (idempotente — só envia 1x por user)
+    const userMeta = userData.user.user_metadata || {};
+    const userName = userMeta.name || userMeta.full_name || (userData.user.email || "").split("@")[0] || "";
+    const tmpl = businessLinkedEmail({ userName, bizName: name });
+    sendInBackground({
+      userId: user_id,
+      emailType: "business_linked",
+      to: userData.user.email,
+      subject: tmpl.subject,
+      html: tmpl.html,
+      metadata: { business_id: data.id, place_id, business_name: name }
+    });
+
     res.json({ ok: true, business: data });
   } catch (err) {
     console.error("[savebiz] Erro inesperado:", err);
