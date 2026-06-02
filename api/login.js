@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { sendInBackground } from "./_lib/email-sender.js";
-import { welcomeEmail } from "./_lib/email-templates.js";
+import { welcomeEmail, adminNewClientEmail } from "./_lib/email-templates.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -56,6 +56,25 @@ export default async function handler(req, res) {
         html: tmpl.html,
         metadata: { source: "login_google" }
       });
+
+      // Notificação admin (pra Ricardo) — 1x por novo cliente Google
+      const adminTo = process.env.ADMIN_NOTIFICATIONS_EMAIL;
+      if (adminTo) {
+        const adminTmpl = adminNewClientEmail({
+          clientName: name,
+          clientEmail: data.user.email,
+          clientPhone: meta.phone || null,
+          source: "login_google"
+        });
+        sendInBackground({
+          userId: data.user.id,
+          emailType: "admin_new_client",
+          to: adminTo,
+          subject: adminTmpl.subject,
+          html: adminTmpl.html,
+          metadata: { source: "login_google", client_email: data.user.email }
+        });
+      }
     }
     res.json({
       ok: true,

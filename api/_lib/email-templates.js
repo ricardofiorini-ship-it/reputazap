@@ -227,6 +227,148 @@ export function firstReviewEmail({ userName, bizName, channelName }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// ADMIN: novo cliente cadastrado (interno — pra Ricardo)
+// ─────────────────────────────────────────────────────────────
+export function adminNewClientEmail({ clientName, clientEmail, clientPhone, source }) {
+  const name = escapeHtml(clientName || "(sem nome)");
+  const email = escapeHtml(clientEmail || "");
+  const phone = clientPhone ? escapeHtml(clientPhone) : "—";
+  const srcLabel = {
+    register: "📝 Cadastro email/senha",
+    login_google: "🔵 Login Google (1ª vez)",
+    activate_codigo: "📦 Veio pelo /ativar-codigo (NFC)",
+    activate_inbound: "🌐 Veio pela landing"
+  }[source] || source || "Direto";
+  const when = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+
+  return {
+    subject: `🎉 Novo cliente no StarTouch: ${name}`,
+    html: shell({
+      title: "🎉 NOVO CLIENTE",
+      headerColor: "#137333",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
+          ${name} acabou de criar conta
+        </h1>
+        <p style="font-size:14px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          Notificação automática — chegou um cliente novo no sistema.
+        </p>
+
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin:14px 0;">
+          <table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;font-size:13.5px;">
+            <tr>
+              <td style="padding:4px 0;color:#5F6368;width:130px;">Nome</td>
+              <td style="padding:4px 0;color:#202124;font-weight:600;">${name}</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#5F6368;">Email</td>
+              <td style="padding:4px 0;color:#202124;font-weight:600;"><a href="mailto:${email}" style="color:#1A73E8;text-decoration:none;">${email}</a></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#5F6368;">WhatsApp</td>
+              <td style="padding:4px 0;color:#202124;font-weight:600;">${phone}</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#5F6368;">Origem</td>
+              <td style="padding:4px 0;color:#202124;font-weight:600;">${escapeHtml(srcLabel)}</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#5F6368;">Data</td>
+              <td style="padding:4px 0;color:#202124;">${when}</td>
+            </tr>
+          </table>
+        </div>
+
+        ${cta(`https://supabase.com/dashboard`, "Ver no Supabase →", "#137333")}
+
+        <p style="font-size:12px;color:#80868B;line-height:1.55;margin:14px 0 0;">
+          Dica: salva o WhatsApp no Customer Success — o cliente recebeu o email de boas-vindas e tá começando o onboarding agora.
+        </p>
+      `
+    })
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
+// ADMIN: dispositivo ativado (interno — pra Ricardo)
+// ─────────────────────────────────────────────────────────────
+const PRODUCT_LABELS_PT = {
+  placa_balcao: "Placa de Balcão",
+  placa_mesa: "Placa de Mesa",
+  placa_parede: "Placa de Parede",
+  pulseira_nfc: "Pulseira NFC",
+  adesivo_nfc: "Adesivo NFC",
+  cartao_nfc: "Cartão NFC"
+};
+
+export function adminDeviceActivatedEmail({
+  clientName, clientEmail, bizName, code, channelName, productType, totalDevices
+}) {
+  const name = escapeHtml(clientName || "Cliente");
+  const email = escapeHtml(clientEmail || "");
+  const biz = escapeHtml(bizName || "—");
+  const codeStr = escapeHtml(code || "STAR-XXXXX");
+  const nick = channelName ? escapeHtml(channelName) : "<em>(sem apelido)</em>";
+  const product = PRODUCT_LABELS_PT[productType] || escapeHtml(productType || "Dispositivo");
+  const total = totalDevices || 1;
+  const when = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+
+  return {
+    subject: `⚡ ${codeStr} ativado por ${biz}`,
+    html: shell({
+      title: "⚡ DISPOSITIVO ATIVADO",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
+          ${biz} acabou de ativar um dispositivo
+        </h1>
+        <p style="font-size:14px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          ${total === 1
+            ? "Primeira ativação desse cliente! Marco importante 🎯"
+            : `É o ${total}º dispositivo desse cliente.`}
+        </p>
+
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin:14px 0;">
+          <table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;font-size:13.5px;">
+            <tr>
+              <td style="padding:4px 0;color:#5F6368;width:130px;">Cliente</td>
+              <td style="padding:4px 0;color:#202124;font-weight:600;">${name}<br/><a href="mailto:${email}" style="color:#1A73E8;font-size:12.5px;text-decoration:none;">${email}</a></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#5F6368;">Negócio</td>
+              <td style="padding:4px 0;color:#202124;font-weight:600;">${biz}</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#5F6368;">Código</td>
+              <td style="padding:4px 0;color:#202124;font-family:monospace;font-weight:700;letter-spacing:.04em;">${codeStr}</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#5F6368;">Tipo</td>
+              <td style="padding:4px 0;color:#202124;font-weight:600;">${product}</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#5F6368;">Apelido</td>
+              <td style="padding:4px 0;color:#202124;">${nick}</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#5F6368;">Total ativos</td>
+              <td style="padding:4px 0;color:#202124;font-weight:600;">${total} dispositivo${total > 1 ? "s" : ""}</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#5F6368;">Data</td>
+              <td style="padding:4px 0;color:#202124;">${when}</td>
+            </tr>
+          </table>
+        </div>
+
+        <p style="font-size:12px;color:#80868B;line-height:1.55;margin:14px 0 0;">
+          O cliente já recebeu o email de confirmação. ${total === 1 ? "Bom momento pra dar oi no WhatsApp e oferecer ajuda com o posicionamento." : ""}
+        </p>
+      `
+    })
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
 // 5. HARDWARE ADICIONAL (2ª, 3ª placa…)
 // ─────────────────────────────────────────────────────────────
 export function additionalDeviceEmail({ userName, bizName, code, channelName, totalCount }) {

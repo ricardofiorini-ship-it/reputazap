@@ -6,6 +6,11 @@ import React from 'react'
 // Plano: usar ?plan=free ou ?plan=pro na URL pra alternar
 // ─────────────────────────────────────────────────────────────
 
+// WhatsApp oficial de suporte StarTouch
+const SUPPORT_WA_NUMBER = '5511976944026'           // formato internacional (sem + nem espaços) usado em wa.me
+const SUPPORT_WA_DISPLAY = '(11) 97694-4026'        // pra exibir bonito na UI
+const SUPPORT_WA_DEFAULT_MSG = 'Oi! Sou cliente do StarTouch e preciso de ajuda.'
+
 const MOCK = {
   biz: { name: 'Café Bella Vista', placeId: 'ChIJN1t_tDeuEmsRUsoyG83frY4' /* mock — usado pra link "Responder no Google" */ },
   kpis: {
@@ -643,6 +648,76 @@ const MOBILE_PRIMARY_TABS = [
   { id: 'concorrentes', icon: '🏆', label: 'Concorrentes', pro: true },
   { id: 'more',         icon: '☰',  label: 'Mais'         }
 ]
+
+// ─────────────────────────────────────────────────────────────
+// FAB de suporte WhatsApp — botão flutuante presente em todo /app
+// ─────────────────────────────────────────────────────────────
+function SupportFAB({ isMobile }) {
+  const [hover, setHover] = React.useState(false)
+  const [pulse, setPulse] = React.useState(true)
+  // Some o pulse depois de 6s pra não distrair eternamente
+  React.useEffect(() => {
+    const t = setTimeout(() => setPulse(false), 6000)
+    return () => clearTimeout(t)
+  }, [])
+
+  const href = `https://wa.me/${SUPPORT_WA_NUMBER}?text=${encodeURIComponent(SUPPORT_WA_DEFAULT_MSG)}`
+  // No mobile sobe pra não colidir com a BottomTabBar (altura ~62 + safe-area)
+  const bottom = isMobile
+    ? 'calc(76px + env(safe-area-inset-bottom, 0px))'
+    : 24
+  const size = isMobile ? 54 : 58
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`Falar com suporte StarTouch no WhatsApp ${SUPPORT_WA_DISPLAY}`}
+      title={`Suporte StarTouch · WhatsApp ${SUPPORT_WA_DISPLAY}`}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        position: 'fixed',
+        right: isMobile ? 16 : 24,
+        bottom,
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        background: '#25D366',
+        color: '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: hover
+          ? '0 12px 28px rgba(37,211,102,0.45), 0 4px 12px rgba(0,0,0,0.12)'
+          : '0 8px 20px rgba(37,211,102,0.35), 0 2px 6px rgba(0,0,0,0.10)',
+        transform: hover ? 'translateY(-2px) scale(1.04)' : 'translateY(0) scale(1)',
+        transition: 'transform .18s ease, box-shadow .18s ease',
+        zIndex: 60,                                            // acima da BottomTabBar (50)
+        textDecoration: 'none'
+      }}
+    >
+      {/* halo pulsante por alguns segundos no primeiro carregamento */}
+      {pulse && (
+        <span style={{
+          position:'absolute', inset: 0, borderRadius: '50%',
+          background:'#25D366', opacity: 0.35,
+          animation: 'st-fab-pulse 1.6s ease-out infinite'
+        }} />
+      )}
+      <style>{`
+        @keyframes st-fab-pulse {
+          0%   { transform: scale(1);    opacity: 0.35; }
+          70%  { transform: scale(1.55); opacity: 0;    }
+          100% { transform: scale(1.55); opacity: 0;    }
+        }
+      `}</style>
+      {/* logo WhatsApp oficial (simplified) */}
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width={size * 0.55} height={size * 0.55} aria-hidden="true" style={{ position:'relative' }}>
+        <path fill="currentColor" d="M16.001 3C9.373 3 4 8.373 4 15c0 2.252.624 4.36 1.706 6.165L4 29l8.06-1.667A11.94 11.94 0 0 0 16.001 27C22.628 27 28 21.627 28 15S22.628 3 16.001 3Zm0 21.6c-1.747 0-3.4-.46-4.825-1.293l-.345-.205-4.78.988.999-4.654-.225-.359A9.55 9.55 0 0 1 6.4 15c0-5.293 4.308-9.6 9.601-9.6 5.293 0 9.6 4.307 9.6 9.6 0 5.293-4.307 9.6-9.6 9.6Zm5.522-7.182c-.302-.151-1.792-.884-2.07-.985-.279-.101-.481-.151-.683.151-.202.302-.783.985-.96 1.187-.176.202-.353.227-.655.076-.302-.151-1.276-.47-2.43-1.5-.898-.8-1.504-1.79-1.681-2.093-.176-.302-.019-.466.132-.616.135-.135.302-.353.453-.53.151-.176.202-.302.302-.504.101-.202.05-.378-.025-.53-.076-.151-.683-1.647-.936-2.256-.247-.594-.498-.513-.683-.523l-.581-.01c-.202 0-.53.076-.806.378-.279.302-1.061 1.037-1.061 2.528 0 1.49 1.087 2.93 1.238 3.132.151.202 2.14 3.27 5.187 4.586.725.313 1.29.5 1.731.64.727.231 1.388.198 1.91.12.583-.087 1.792-.732 2.045-1.439.252-.706.252-1.31.176-1.439-.076-.126-.279-.202-.581-.353Z"/>
+      </svg>
+    </a>
+  )
+}
 
 function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen }) {
   return (
@@ -2725,7 +2800,7 @@ function LojaScreen({ data, isMobile, plan }) {
           {[
             { icon:'🚚', t:'Envio rápido', d:'Despacho em 24h pela Jadlog/Correios' },
             { icon:'🛡️', t:'Garantia 90 dias', d:'Defeito de fabricação trocamos sem custo' },
-            { icon:'📞', t:'Suporte WhatsApp', d:'Tira dúvidas direto com a gente' }
+            { icon:'📞', t:'Suporte WhatsApp', d:SUPPORT_WA_DISPLAY+' — tira dúvidas direto com a gente' }
           ].map((it, i) => (
             <div key={i}>
               <div style={{ fontSize: 26, marginBottom: 4 }}>{it.icon}</div>
@@ -4557,6 +4632,9 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
           onClose={() => setActivatePlateOpen(false)}
         />
       )}
+
+      {/* WhatsApp de suporte — flutuante em todas as telas do /app */}
+      <SupportFAB isMobile={isMobile} />
     </div>
   )
 }

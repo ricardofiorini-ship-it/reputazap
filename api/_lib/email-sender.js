@@ -22,7 +22,8 @@ const UNIQUE_TYPES = new Set([
   "welcome",
   "business_linked",
   "first_device",
-  "first_review"
+  "first_review",
+  "admin_new_client"  // 1 notificação admin por cliente novo
 ]);
 
 /**
@@ -40,25 +41,32 @@ const UNIQUE_TYPES = new Set([
  * @returns {Promise<Object>} { sent, skipped, error, resend_id }
  */
 export async function sendTransactionalEmail({
-  userId, emailType, to, subject, html, metadata = {}
+  userId, emailType, to, subject, html, metadata = {},
+  // dedupeByMetadata: se passado, faz idempotência por user_id + email_type + metadata[key]=value
+  // (em vez de só user_id + email_type). Útil pra eventos por dispositivo (plate_id), etc.
+  dedupeByMetadata
 }) {
   if (!userId || !emailType || !to) {
     console.warn("[email-sender] params faltando:", { userId, emailType, to });
     return { skipped: true, reason: "params faltando" };
   }
 
-  // Idempotência: verifica se já enviou esse tipo pra esse user antes
-  if (UNIQUE_TYPES.has(emailType)) {
-    const { data: existing } = await supabase
+  // Idempotência: por user+type por padrão, ou por user+type+metadata[key] se dedupeByMetadata
+  if (UNIQUE_TYPES.has(emailType) || dedupeByMetadata) {
+    let q = supabase
       .from("email_log")
       .select("id")
       .eq("user_id", userId)
-      .eq("email_type", emailType)
-      .limit(1)
-      .maybeSingle();
+      .eq("email_type", emailType);
 
+    if (dedupeByMetadata && dedupeByMetadata.key && dedupeByMetadata.value != null) {
+      q = q.eq(`metadata->>${dedupeByMetadata.key}`, String(dedupeByMetadata.value));
+    }
+
+    const { data: existing } = await q.limit(1).maybeSingle();
     if (existing) {
-      console.log(`[email-sender] ${emailType} ja enviado pro user ${userId} — pulando.`);
+      const detail = dedupeByMetadata ? ` (${dedupeByMetadata.key}=${dedupeByMetadata.value})` : "";
+      console.log(`[email-sender] ${emailType}${detail} ja enviado pro user ${userId} — pulando.`);
       return { skipped: true, reason: "already sent" };
     }
   }

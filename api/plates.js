@@ -6,7 +6,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { generateBatchCodes } from "./_lib/plates.js";
 import { sendInBackground } from "./_lib/email-sender.js";
-import { firstDeviceEmail, additionalDeviceEmail } from "./_lib/email-templates.js";
+import { firstDeviceEmail, additionalDeviceEmail, adminDeviceActivatedEmail } from "./_lib/email-templates.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -229,6 +229,29 @@ async function handleActivate(req, res, user) {
         subject: tmpl.subject,
         html: tmpl.html,
         metadata: { plate_id: plate.id, code: normalized, channel_name, total: totalCount }
+      });
+    }
+
+    // Notificação admin (pra Ricardo) — 1x por dispositivo (dedupe por plate_id)
+    const adminTo = process.env.ADMIN_NOTIFICATIONS_EMAIL;
+    if (adminTo) {
+      const adminTmpl = adminDeviceActivatedEmail({
+        clientName: userName,
+        clientEmail: user.email,
+        bizName: bizFull?.name,
+        code: normalized,
+        channelName: channel_name,
+        productType: plate.product_type,
+        totalDevices: totalCount
+      });
+      sendInBackground({
+        userId: user.id,
+        emailType: "admin_device_activated",
+        to: adminTo,
+        subject: adminTmpl.subject,
+        html: adminTmpl.html,
+        metadata: { plate_id: plate.id, code: normalized, client_email: user.email, biz_id: business_id },
+        dedupeByMetadata: { key: "plate_id", value: plate.id }
       });
     }
   } catch (e) {

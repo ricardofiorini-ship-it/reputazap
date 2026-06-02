@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { sendInBackground } from "./_lib/email-sender.js";
-import { welcomeEmail } from "./_lib/email-templates.js";
+import { welcomeEmail, adminNewClientEmail } from "./_lib/email-templates.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     // Retorna token direto se a sessão foi criada
     const token = data.session?.access_token || null;
 
-    // Email de boas-vindas (background — não bloqueia resposta)
+    // Email de boas-vindas pro cliente (background — não bloqueia resposta)
     const tmpl = welcomeEmail({ userName: name });
     sendInBackground({
       userId: data.user.id,
@@ -44,6 +44,25 @@ export default async function handler(req, res) {
       html: tmpl.html,
       metadata: { source: "register" }
     });
+
+    // Notificação admin (pra Ricardo) — 1x por novo cliente
+    const adminTo = process.env.ADMIN_NOTIFICATIONS_EMAIL;
+    if (adminTo) {
+      const adminTmpl = adminNewClientEmail({
+        clientName: name,
+        clientEmail: email,
+        clientPhone: phone,
+        source: "register"
+      });
+      sendInBackground({
+        userId: data.user.id,
+        emailType: "admin_new_client",
+        to: adminTo,
+        subject: adminTmpl.subject,
+        html: adminTmpl.html,
+        metadata: { source: "register", client_email: email }
+      });
+    }
 
     res.json({
       ok: true,
