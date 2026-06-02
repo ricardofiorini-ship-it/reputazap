@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
+
 // Haversine — distância em metros entre dois pontos lat/lng
 function haversine(a, b) {
   if (!a || !b || a.lat == null || b.lat == null) return Infinity;
@@ -21,8 +23,9 @@ export default async function handler(req, res) {
   try {
     // Text Search (e nao Find Place): retorna uma LISTA de lugares (ate 20 por
     // pagina), essencial pra redes com varias unidades.
-    const searchRes = await fetch(
-      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&language=pt-BR&region=br&key=${API_KEY}`
+    const searchRes = await fetchWithTimeout(
+      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&language=pt-BR&region=br&key=${API_KEY}`,
+      {}, 8000
     );
     const data = await searchRes.json();
 
@@ -47,8 +50,9 @@ export default async function handler(req, res) {
     let origin = null;
     if (cepDigits.length === 8) {
       try {
-        const geoRes = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${cepDigits}&components=country:BR&language=pt-BR&key=${API_KEY}`
+        const geoRes = await fetchWithTimeout(
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${cepDigits}&components=country:BR&language=pt-BR&key=${API_KEY}`,
+          {}, 5000
         );
         const geo = await geoRes.json();
         const loc = geo.results?.[0]?.geometry?.location;

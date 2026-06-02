@@ -1300,8 +1300,10 @@ function CompetitorMap({ list, isMobile }) {
   const H = isMobile ? 340 : 380
   const cx = W / 2, cy = H / 2
   const maxR = Math.min(W, H) / 2 - 30
-  const maxDistance = Math.max(...list.filter(c => !c.isYou).map(c => c.distance || 0)) || 2000
-  const scale = maxR / maxDistance
+  // Math.max em array vazio retorna -Infinity → quebra. Guard explicit.
+  const distances = list.filter(c => !c.isYou && typeof c.distance === 'number' && c.distance > 0).map(c => c.distance)
+  const maxDistance = distances.length > 0 ? Math.max(...distances) : 2000
+  const scale = maxR / Math.max(maxDistance, 1)  // evita divisão por zero
 
   const others = list.filter(c => !c.isYou && c.distance != null && c.angle != null)
   const me = list.find(c => c.isYou)

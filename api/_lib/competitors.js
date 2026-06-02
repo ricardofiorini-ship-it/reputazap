@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from "./fetch-timeout.js";
+
 // ============================================================
 // StarTouch — Helper de busca de concorrentes (compartilhado)
 // ============================================================
@@ -59,8 +61,9 @@ export async function fetchCompetitorsSnapshot({ placeId, keyword, radius }) {
   const cleanKeyword = (keyword || "").trim();
 
   // 1. Detalhes do negócio: localização + categoria + nota
-  const detRes = await fetch(
-    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,user_ratings_total,geometry,types&language=pt-BR&key=${API_KEY}`
+  const detRes = await fetchWithTimeout(
+    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,user_ratings_total,geometry,types&language=pt-BR&key=${API_KEY}`,
+    {}, 6000
   );
   const det = await detRes.json();
   const me = det.result;
@@ -90,7 +93,7 @@ export async function fetchCompetitorsSnapshot({ placeId, keyword, radius }) {
     comparisonLabel = null;
   }
 
-  const nearRes = await fetch(nearbyUrl);
+  const nearRes = await fetchWithTimeout(nearbyUrl, {}, 6000);
   const near = await nearRes.json();
   const rawResults = near.results || [];
 

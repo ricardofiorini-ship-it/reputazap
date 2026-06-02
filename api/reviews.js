@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET");
@@ -12,8 +14,9 @@ export default async function handler(req, res) {
   try {
     console.log("[reviews] Buscando reviews do place_id:", place_id);
 
-    const detailRes = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,rating,user_ratings_total,reviews&reviews_sort=newest&language=pt-BR&key=${API_KEY}`
+    const detailRes = await fetchWithTimeout(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,rating,user_ratings_total,reviews&reviews_sort=newest&language=pt-BR&key=${API_KEY}`,
+      {}, 6000
     );
     const detailData = await detailRes.json();
     const result = detailData.result;
@@ -27,17 +30,28 @@ export default async function handler(req, res) {
       name: result.name,
       rating: result.rating,
       total: result.user_ratings_total,
-      reviews: (result.reviews || []).map(r => ({
-        id: r.time,
-        author: r.author_name,
-        avatar: r.author_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(),
-        rating: r.rating,
-        text: r.text,
-        date: r.relative_time_description,
-        replied: false,
-        reply: null,
-        via: "organic"
-      }))
+      reviews: (result.reviews || []).map(r => {
+        // Guard contra author_name null (Google permite reviews anônimas em alguns países)
+        const name = (r.author_name || "Cliente Google").toString();
+        const initials = name
+          .split(" ")
+          .filter(Boolean)
+          .map(n => n[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase() || "?";
+        return {
+          id: r.time,
+          author: name,
+          avatar: initials,
+          rating: r.rating ?? 0,
+          text: r.text || "",
+          date: r.relative_time_description || "",
+          replied: false,
+          reply: null,
+          via: "organic"
+        };
+      })
     });
   } catch (err) {
     console.error("[reviews] Erro:", err);

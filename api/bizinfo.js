@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -15,7 +16,7 @@ export default async function handler(req, res) {
   const API_KEY = process.env.PLACES_API_KEY;
   try {
     const [googleRes, bizRes] = await Promise.all([
-      fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,rating,user_ratings_total,photos,formatted_address,formatted_phone_number,international_phone_number,url,types&language=pt-BR&key=${API_KEY}`).then(r => r.json()),
+      fetchWithTimeout(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,rating,user_ratings_total,photos,formatted_address,formatted_phone_number,international_phone_number,url,types&language=pt-BR&key=${API_KEY}`, {}, 6000).then(r => r.json()),
       supabase.from("businesses").select("plan").eq("place_id", place_id).maybeSingle()
     ]);
 
