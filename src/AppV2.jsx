@@ -4330,25 +4330,249 @@ function ErrorScreen({ message, onRetry }) {
   )
 }
 
-function NoBusinessScreen() {
+// Mascara CEP: 12345-678
+function maskCep(v) {
+  const d = String(v || "").replace(/\D/g, "").slice(0, 8)
+  return d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d
+}
+
+// Tela de onboarding OBRIGATÓRIO: busca + confirma + salva.
+// Substitui a antiga NoBusinessScreen que tinha so um botao pra /comece.
+// Bloqueia o /app ate o user cadastrar negocio — sem opcao de pular.
+function NoBusinessScreen({ user }) {
+  const [name, setName] = React.useState("")
+  const [cep, setCep] = React.useState("")
+  const [activity, setActivity] = React.useState("")
+  const [cepFeedback, setCepFeedback] = React.useState("")
+  const [searching, setSearching] = React.useState(false)
+  const [results, setResults] = React.useState(null)
+  const [error, setError] = React.useState("")
+  const [saving, setSaving] = React.useState(false)
+
+  // Lookup ViaCEP em background quando completar 8 digitos
+  React.useEffect(() => {
+    const raw = cep.replace(/\D/g, "")
+    if (raw.length !== 8) {
+      if (cep) setCepFeedback("Faltam dígitos…")
+      else setCepFeedback("")
+      return
+    }
+    let cancelled = false
+    setCepFeedback("Buscando cidade…")
+    fetch(`https://viacep.com.br/ws/${raw}/json/`)
+      .then(r => r.json())
+      .then(j => {
+        if (cancelled) return
+        if (j.erro) { setCepFeedback("CEP não encontrado"); return }
+        setCepFeedback(`📍 ${j.localidade} / ${j.uf}${j.bairro ? " · " + j.bairro : ""}`)
+      })
+      .catch(() => { if (!cancelled) setCepFeedback("") })
+    return () => { cancelled = true }
+  }, [cep])
+
+  async function handleSearch(e) {
+    if (e) e.preventDefault()
+    if (!name.trim()) { setError("Informe o nome do seu negócio"); return }
+    if (cep.replace(/\D/g, "").length !== 8) { setError("Digite um CEP válido"); return }
+    setError("")
+    setSearching(true)
+    setResults(null)
+    try {
+      const q = [name, cep, activity].filter(Boolean).join(" ")
+      const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(q)}&cep=${encodeURIComponent(cep)}`)
+      const data = await r.json()
+      if (!data.results?.length) {
+        setError("Não encontramos seu negócio no Google. Tente outro nome ou cadastre primeiro em google.com/business.")
+        setResults([])
+      } else {
+        setResults(data.results)
+      }
+    } catch {
+      setError("Erro ao buscar. Tente novamente.")
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  async function handleSelect(biz) {
+    setSaving(true)
+    setError("")
+    try {
+      const token = localStorage.getItem("rz_token")
+      const r = await fetch("/api/savebiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          place_id: biz.place_id,
+          name: biz.name,
+          address: biz.address || "",
+          rating: biz.rating || 0,
+          total: biz.total || 0,
+          plan: "free"
+        })
+      })
+      const data = await r.json()
+      if (!r.ok || !data.ok) {
+        setError(data.error || "Não conseguimos salvar. Tente de novo.")
+        setSaving(false)
+        return
+      }
+      // Sucesso: recarrega o app pra useRealData detectar o business novo
+      window.location.reload()
+    } catch {
+      setError("Erro de conexão. Tente novamente.")
+      setSaving(false)
+    }
+  }
+
+  const fmtDistance = (m) => {
+    if (m == null) return ""
+    if (m < 1000) return `${m} m`
+    return `${(m / 1000).toFixed(1)} km`
+  }
+
   return (
-    <main style={{ maxWidth: 560, margin:'80px auto', padding:'0 24px', textAlign:'center' }}>
-      <Card style={{ padding: 40 }}>
-        <div style={{ fontSize: 56, marginBottom: 16 }}>🏪</div>
-        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 700, color: T.text, margin:'0 0 8px', letterSpacing:'-0.02em' }}>
-          Vamos configurar seu negócio
+    <main style={{ maxWidth: 620, margin:'40px auto 80px', padding:'0 20px' }}>
+      <Card style={{ padding: isCompact() ? 24 : 36 }}>
+        <div style={{ fontSize: 44, textAlign:'center', marginBottom: 12 }}>🏪</div>
+        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 24, fontWeight: 700, color: T.text, margin:'0 0 8px', letterSpacing:'-0.02em', textAlign:'center' }}>
+          Falta 1 passo pra começar
         </h2>
-        <p style={{ fontSize: 14, color: T.textMid, margin:'0 0 24px', lineHeight: 1.55 }}>
-          Primeiro a gente precisa encontrar seu negócio no Google. Leva 1 minuto e desbloqueia todo o painel.
+        <p style={{ fontSize: 14, color: T.textMid, margin:'0 0 24px', lineHeight: 1.6, textAlign:'center' }}>
+          Pra desbloquear seu painel, precisamos encontrar seu negócio no Google.
+          <br/>
+          <span style={{ fontSize: 12.5, color: T.textDim }}>Leva 1 minuto. Sem essa etapa, o sistema não tem como te ajudar.</span>
         </p>
-        <a href="/comece" style={{
-          display:'inline-block', background: T.blue, color:'#fff', textDecoration:'none',
-          borderRadius: 10, padding:'12px 24px', fontSize: 14, fontWeight: 700,
-          boxShadow:'0 4px 14px rgba(26,115,232,.3)'
-        }}>Configurar agora →</a>
+
+        <div style={{ display:'flex', flexDirection:'column', gap: 14 }}>
+          <div>
+            <label style={{ fontSize: 12.5, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>Nome do negócio</label>
+            <input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Ex: Café Bella Vista"
+              style={inpStyle()}
+              disabled={saving}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12.5, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>CEP do negócio</label>
+            <input
+              value={cep}
+              onChange={e => setCep(maskCep(e.target.value))}
+              placeholder="00000-000"
+              inputMode="numeric"
+              maxLength={9}
+              autoComplete="postal-code"
+              style={inpStyle()}
+              disabled={saving}
+            />
+            {cepFeedback && (
+              <p style={{ margin:'6px 0 0', fontSize: 11.5, color: T.textMid }}>{cepFeedback}</p>
+            )}
+          </div>
+          <div>
+            <label style={{ fontSize: 12.5, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>Ramo de atuação</label>
+            <input
+              value={activity}
+              onChange={e => setActivity(e.target.value)}
+              placeholder="Ex.: Pizzaria, Clínica, Salão de Beleza…"
+              style={inpStyle()}
+              disabled={saving}
+            />
+          </div>
+
+          {error && (
+            <div style={{
+              background:'#fef2f2', border:'1px solid #fecaca', borderRadius: 9,
+              padding:'10px 12px', fontSize: 12.5, color:'#dc2626'
+            }}>{error}</div>
+          )}
+
+          <button
+            onClick={handleSearch}
+            disabled={searching || saving}
+            style={{
+              width:'100%', background: searching ? T.textDim : T.blue, color:'#fff',
+              border:'none', borderRadius: 10, padding:'12px',
+              fontSize: 14, fontWeight: 700, cursor: searching ? 'wait' : 'pointer',
+              marginTop: 4
+            }}
+          >
+            {searching ? 'Buscando…' : '🔍 Buscar no Google'}
+          </button>
+        </div>
+
+        {/* Resultados da busca */}
+        {results && results.length > 0 && (
+          <div style={{ marginTop: 20 }}>
+            <p style={{ fontSize: 12.5, fontWeight: 600, color: T.textMid, marginBottom: 8 }}>
+              Toque no seu negócio pra confirmar:
+            </p>
+            {results.map((r, i) => (
+              <div
+                key={r.place_id || i}
+                onClick={() => !saving && handleSelect(r)}
+                style={{
+                  border:'1px solid '+T.border, borderRadius: 10, padding: 14,
+                  marginBottom: 8, cursor: saving ? 'wait' : 'pointer', background: '#fff',
+                  transition: 'all .15s', opacity: saving ? 0.6 : 1
+                }}
+                onMouseEnter={e => !saving && (e.currentTarget.style.borderColor = T.blue)}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = T.border)}
+              >
+                <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 4 }}>
+                  {r.name}
+                  {i === 0 && r.distance_meters != null && (
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, background:'#E6F4EA', color:'#137333',
+                      padding:'2px 7px', borderRadius: 5, marginLeft: 6, letterSpacing:'.04em'
+                    }}>MAIS PRÓXIMA</span>
+                  )}
+                </div>
+                <div style={{ fontSize: 12, color: T.textMid }}>
+                  ⭐ {r.rating || "?"} · {r.total || 0} avaliações
+                  {r.distance_meters != null && ` · 📍 ${fmtDistance(r.distance_meters)} do CEP`}
+                </div>
+                <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 3 }}>{r.address}</div>
+              </div>
+            ))}
+            <div style={{
+              marginTop: 10, padding:'10px 12px', background:'#fefce8', border:'1px solid #fef08a',
+              borderRadius: 8, fontSize: 11.5, color:'#854d0e', lineHeight: 1.5
+            }}>
+              <strong>⚠️ Nome ou endereço diferente?</strong> Os dados vêm do Google Meu Negócio. Selecione mesmo assim e atualize no Google depois — propaga em 1-2 dias.
+            </div>
+          </div>
+        )}
+
+        {/* Saída de emergência: logout */}
+        <div style={{ marginTop: 28, textAlign:'center', paddingTop: 16, borderTop:'1px solid '+T.border }}>
+          <p style={{ fontSize: 11.5, color: T.textDim, marginBottom: 6 }}>
+            Não é seu negócio? <br/>
+            <a href="/" style={{ color: T.textMid, fontSize: 12, fontWeight: 600 }}
+               onClick={(e) => {
+                 e.preventDefault()
+                 localStorage.removeItem("rz_token")
+                 localStorage.removeItem("rz_user")
+                 window.location.href = "/"
+               }}
+            >Sair da conta</a>
+          </p>
+        </div>
       </Card>
     </main>
   )
+}
+
+// Helpers do OnboardingMandatory (compactness + input style)
+function isCompact() { return typeof window !== 'undefined' && window.innerWidth < 640 }
+function inpStyle() {
+  return {
+    width:'100%', padding:'10px 12px', border:'1px solid '+T.border, borderRadius: 9,
+    fontSize: 14, fontFamily:'inherit', outline:'none', background:'#fff', color: T.text,
+    transition:'border-color .15s'
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -4491,8 +4715,8 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
   if (!demoMode && user && !real.hasBusiness) {
     return (
       <div style={{ background: T.bg, minHeight:'100vh' }}>
-        <Header bizName="Meu Negócio" plan="free" isMobile={isMobile} user={user} onLogout={onLogout} demoMode={demoMode} />
-        <NoBusinessScreen/>
+        <Header bizName="Configure seu negócio" plan="free" isMobile={isMobile} user={user} onLogout={onLogout} demoMode={demoMode} />
+        <NoBusinessScreen user={user}/>
       </div>
     )
   }

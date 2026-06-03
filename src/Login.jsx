@@ -38,6 +38,21 @@ export default function Login({ onLogin }) {
         body: JSON.stringify({ action: "google", id_token: idToken })
       });
       const data = await res.json();
+      // 404 com error='no_account' = email do Google sem conta cadastrada
+      // → manda pro fluxo de cadastro (/ativar) em vez de criar conta orfa
+      if (res.status === 404 && data.error === "no_account") {
+        const goSignup = window.confirm(
+          (data.message || "Você ainda não tem conta no StarTouch.") +
+          "\n\nDeseja criar sua conta agora? Leva 1 minuto."
+        );
+        if (goSignup) {
+          window.location.href = "/ativar?from=login";
+        } else {
+          setError("Conta não encontrada. Crie sua conta em /ativar antes de entrar.");
+          setLoading(false);
+        }
+        return;
+      }
       if (!res.ok || !data.ok) {
         setError(data.error || "Erro no login com Google.");
         setLoading(false);
@@ -165,8 +180,8 @@ export default function Login({ onLogin }) {
         {mode==="login"&&(
           <>
             <div style={{textAlign:"center",marginBottom:24}}>
-              <div style={{fontFamily:"'Inter','General Sans',sans-serif",fontSize:24,fontWeight:700,color:"#0f172a",marginBottom:6}}>Bem-vindo de volta</div>
-              <div style={{fontSize:13,color:"#6b7280"}}>Entre na sua conta para continuar</div>
+              <div style={{fontFamily:"'Inter','General Sans',sans-serif",fontSize:24,fontWeight:700,color:"#0f172a",marginBottom:6}}>Já tem conta?</div>
+              <div style={{fontSize:13,color:"#6b7280"}}>Entre pra acessar seu painel</div>
             </div>
 
             <div ref={googleBtnRef} style={{display:"flex",justifyContent:"center",minHeight:40,marginBottom:16}}/>
@@ -204,7 +219,7 @@ export default function Login({ onLogin }) {
             </form>
 
             <div style={{marginTop:20,textAlign:"center",fontSize:13,color:"#6b7280"}}>
-              Não tem conta? <a href="/landing" style={{color:"#1A73E8",fontWeight:600,textDecoration:"none"}}>Comece grátis</a>
+              Ainda não tem conta? <a href="/ativar?from=login" style={{color:"#1A73E8",fontWeight:600,textDecoration:"none"}}>Criar conta grátis →</a>
             </div>
           </>
         )}

@@ -7,6 +7,46 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
+// Cliente admin pra verificar existencia de user sem cria-lo
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+// Decodifica o payload do id_token Google (JWT) sem validar a assinatura.
+// Validacao real e feita pelo Supabase no signInWithIdToken — aqui so
+// queremos o email pra checar se ja existe antes de deixar o Supabase criar.
+function decodeJwtEmail(idToken) {
+  try {
+    const parts = idToken.split(".");
+    if (parts.length < 2) return null;
+    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = payload + "===".slice((payload.length + 3) % 4);
+    const json = Buffer.from(padded, "base64").toString("utf-8");
+    const obj = JSON.parse(json);
+    return (obj.email || "").toLowerCase() || null;
+  } catch {
+    return null;
+  }
+}
+
+// Verifica se existe conta com esse email. Pra base pequena, listUsers
+// resolve. Quando passar de ~500 users, migrar pra query direta na tabela
+// auth.users via SQL ou pra GET /admin/users?email=
+async function findUserByEmail(email) {
+  if (!email) return null;
+  const target = email.toLowerCase();
+  // perPage=1000 = padrao maximo. Pra escalar acima disso, paginar.
+  const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+    page: 1, perPage: 1000
+  });
+  if (error) {
+    console.error("[login.findUserByEmail]", error);
+    return null;
+  }
+  return (data?.users || []).find(u => (u.email || "").toLowerCase() === target) || null;
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -23,6 +63,26 @@ export default async function handler(req, res) {
       // Login via Google Identity Services — recebe o id_token (JWT) do client.
       // Supabase precisa ter Google provider habilitado em Authentication > Providers.
       if (!id_token) return res.status(400).json({ error: "id_token obrigatório pra login Google" });
+
+      // SEGURANCA: por padrao, signInWithIdToken CRIA o user se nao existir.
+      // No /app queremos so LOGIN — cadastro tem que passar pelo fluxo do /ativar
+      // (que vincula o negocio do Google). Sem esse check, sobravam contas orfas
+      // sem business.
+      // Decodifica o email do id_token (sem validar — Supabase valida depois)
+      // e checa antes se ja existe.
+      const tokenEmail = decodeJwtEmail(id_token);
+      if (!tokenEmail) {
+        return res.status(400).json({ error: "Token Google inválido (sem email)" });
+      }
+      const existingUser = await findUserByEmail(tokenEmail);
+      if (!existingUser) {
+        return res.status(404).json({
+          error: "no_account",
+          message: "Você ainda não tem conta no StarTouch. Crie sua conta primeiro pra começar.",
+          email: tokenEmail
+        });
+      }
+
       ({ data, error } = await supabase.auth.signInWithIdToken({
         provider: "google",
         token: id_token
