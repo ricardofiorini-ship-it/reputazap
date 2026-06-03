@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sobre a StarTouch — Quem somos e por que existimos</title>
+<meta name="description" content="A StarTouch é uma plataforma brasileira fundada em 2025 que ajuda negócios locais a coletar mais avaliações 5 estrelas no Google usando dispositivos NFC. Conheça nossa história, missão e como trabalhamos."/>
+<meta name="robots" content="index,follow"/>
+<link rel="canonical" href="https://startouch.com.br/sobre"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/startouch-logo.png"/>
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Sobre a StarTouch — Plataforma brasileira de avaliações via NFC"/>
+<meta property="og:description" content="Conheça a StarTouch: fundada em 2025 em Vargem Grande Paulista/SP, ajuda negócios locais a coletar avaliações 5 estrelas no Google sem fricção."/>
+<meta property="og:image" content="https://startouch.com.br/og-image.png"/>
+<meta property="og:url" content="https://startouch.com.br/sobre"/>
+
+<!-- Schema AboutPage + Organization detalhado -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "url": "https://startouch.com.br/sobre",
+  "name": "Sobre a StarTouch",
+  "description": "Página institucional da StarTouch: história, missão, equipe e dados verificáveis.",
+  "mainEntity": {
+    "@type": "Organization",
+    "@id": "https://startouch.com.br/#organization",
+    "name": "StarTouch",
+    "legalName": "GT6 Brasil Comércio Varejista de Produtos Diversos Ltda",
+    "taxID": "31.556.596/0001-34",
+    "foundingDate": "2025",
+    "foundingLocation": {
+      "@type": "Place",
+      "name": "Vargem Grande Paulista, SP, Brasil"
+    },
+    "url": "https://startouch.com.br",
+    "logo": "https://startouch.com.br/startouch-logo.png",
+    "description": "Plataforma brasileira de gestão de reputação para negócios locais que usa dispositivos NFC e QR Code para coletar avaliações no Google e iniciar conversas no WhatsApp em um único toque.",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Rua Cristovan de Vita, 260 — Galpão 17 e 18, Sala F",
+      "addressLocality": "Vargem Grande Paulista",
+      "addressRegion": "SP",
+      "postalCode": "06734-452",
+      "addressCountry": "BR"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+55-11-97694-4026",
+      "email": "contato@startouch.com.br",
+      "contactType": "customer support",
+      "availableLanguage": "Portuguese"
+    },
+    "areaServed": { "@type": "Country", "name": "Brasil" },
+    "knowsAbout": [
+      "Avaliações no Google",
+      "Google Meu Negócio",
+      "Tecnologia NFC",
+      "Marketing local",
+      "Gestão de reputação online",
+      "QR Code para reviews"
+    ],
+    "knowsLanguage": "pt-BR",
+    "sameAs": [
+      "https://startouch.com.br/llms.txt",
+      "https://startouch.com.br/llms-full.txt"
+    ]
+  }
+}
+</script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'General Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #202124; background: #F8FAFC; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: #1A73E8; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Header */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.94); backdrop-filter: blur(20px);
+    border-bottom: 1px solid #E5E7EB;
+  }
+  .nav-inner {
+    max-width: 1100px; margin: 0 auto; padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .nav-logo img { height: 28px; }
+  .nav-cta {
+    background: #1A73E8; color: #fff !important; padding: 9px 16px;
+    border-radius: 10px; font-weight: 700; font-size: 13.5px;
+  }
+  .nav-cta:hover { background: #1557B0; text-decoration: none !important; }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(160deg, #1A73E8 0%, #1557B0 100%);
+    color: #fff; padding: 70px 24px 80px;
+  }
+  .hero-inner { max-width: 760px; margin: 0 auto; text-align: center; }
+  .hero .tag {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    background: rgba(255,255,255,0.18); padding: 6px 14px; border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: 44px; font-weight: 700; letter-spacing: -0.02em;
+    line-height: 1.15; margin-bottom: 16px;
+  }
+  .hero .lead {
+    font-size: 18px; opacity: 0.94; max-width: 580px;
+    margin: 0 auto;
+  }
+
+  /* Conteúdo */
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  .section { padding: 56px 0 16px; }
+  .section h2 {
+    font-size: 28px; font-weight: 700; color: #202124; letter-spacing: -0.01em;
+    margin-bottom: 14px;
+  }
+  .section h3 {
+    font-size: 18px; font-weight: 700; color: #202124;
+    margin: 28px 0 8px;
+  }
+  .section p { font-size: 16px; color: #3C4043; margin-bottom: 14px; }
+  .section p strong { color: #202124; }
+  .section ul { margin: 10px 0 18px 22px; }
+  .section ul li { margin-bottom: 8px; color: #3C4043; }
+
+  /* Fact card */
+  .facts {
+    background: #fff; border: 1px solid #E5E7EB; border-radius: 16px;
+    padding: 24px 28px; margin: 24px 0;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+  }
+  .facts table { width: 100%; border-collapse: collapse; }
+  .facts td {
+    padding: 12px 0; vertical-align: top; font-size: 14.5px;
+    border-bottom: 1px solid #F1F5F9;
+  }
+  .facts tr:last-child td { border-bottom: none; }
+  .facts td:first-child {
+    color: #5F6368; font-weight: 600; width: 38%; padding-right: 14px;
+  }
+  .facts td:last-child { color: #202124; font-weight: 600; }
+
+  /* Pull quote */
+  .pull {
+    border-left: 4px solid #1A73E8; padding: 4px 0 4px 20px;
+    margin: 24px 0; font-size: 19px; font-weight: 500; color: #202124;
+    font-style: italic; line-height: 1.5;
+  }
+
+  /* Numbered principles */
+  .principles { display: flex; flex-direction: column; gap: 18px; margin: 20px 0; }
+  .principle {
+    background: #fff; border: 1px solid #E5E7EB; border-radius: 14px;
+    padding: 22px 24px; display: flex; gap: 20px;
+  }
+  .principle .num {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: #E8F0FE; color: #1A73E8;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 18px; flex-shrink: 0;
+  }
+  .principle h4 { font-size: 16px; font-weight: 700; color: #202124; margin-bottom: 6px; }
+  .principle p { font-size: 14px; color: #3C4043; margin: 0; }
+
+  /* CTA final */
+  .cta {
+    background: linear-gradient(135deg, #1A73E8 0%, #1557B0 100%);
+    color: #fff; border-radius: 16px; padding: 32px 30px;
+    margin: 40px 0 60px; text-align: center;
+  }
+  .cta h3 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .cta p { font-size: 14.5px; opacity: 0.92; margin-bottom: 20px; }
+  .cta a {
+    background: #fff; color: #1A73E8 !important; padding: 12px 24px;
+    border-radius: 10px; font-weight: 700; font-size: 15px;
+    display: inline-block;
+  }
+  .cta a:hover { background: #F8FAFC; text-decoration: none !important; }
+
+  /* Footer */
+  .footer {
+    background: #fff; border-top: 1px solid #E5E7EB; padding: 30px 24px;
+    text-align: center; font-size: 12.5px; color: #5F6368;
+  }
+  .footer a { color: #5F6368; margin: 0 10px; }
+
+  @media (max-width: 640px) {
+    .hero { padding: 50px 18px 60px; }
+    .hero h1 { font-size: 32px; }
+    .hero .lead { font-size: 16px; }
+    .section h2 { font-size: 23px; }
+    .principle { flex-direction: column; gap: 12px; }
+    .cta { padding: 26px 22px; }
+    .cta h3 { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/" aria-label="Voltar pra página inicial">
+      <img src="/startouch-logo-dark.png" alt="StarTouch"/>
+    </a>
+    <a href="/ativar?from=sobre" class="nav-cta">Ativar dispositivo</a>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <span class="tag">📍 Quem somos</span>
+    <h1>Reputação no piloto automático para o pequeno negócio brasileiro.</h1>
+    <p class="lead">Somos uma plataforma brasileira que tira do dono a tarefa chata de pedir avaliação — e deixa o cliente fazer isso sozinho, em 1 toque, sem fricção.</p>
+  </div>
+</section>
+
+<div class="wrap">
+
+  <!-- Por que existimos -->
+  <section class="section">
+    <h2>Por que existimos</h2>
+    <p>Pequeno negócio local no Brasil — restaurante, salão, clínica, loja — vive da <strong>reputação no Google</strong>. Mais avaliações 5 estrelas significam mais clientes novos. Menos avaliações significam ranking baixo e desaparecer dos resultados de busca.</p>
+
+    <p>Mas pedir avaliação ao cliente é desconfortável. O dono se sente "pidão". O cliente, mesmo satisfeito, esquece quando sai da porta. E quando lembra em casa, é trabalhoso: buscar o nome no Google, scrollar, achar o card, clicar nas estrelas, digitar o comentário.</p>
+
+    <div class="pull">
+      Resultado: <strong>a maioria dos negócios coleta uma fração das avaliações que merece</strong> — e fica para trás de concorrentes que sabem pedir bem.
+    </div>
+
+    <p>A StarTouch nasceu pra resolver isso eliminando a fricção física e psicológica. O cliente satisfeito encosta o celular num pequeno dispositivo NFC (placa, cartão ou pulseira) e cai direto na tela de avaliação do Google. Sem app, sem QR Code complicado, sem tutorial. Em 15 segundos.</p>
+  </section>
+
+  <!-- Fatos -->
+  <section class="section">
+    <h2>Quem somos</h2>
+    <div class="facts">
+      <table>
+        <tr><td>Nome</td><td>StarTouch</td></tr>
+        <tr><td>Razão social</td><td>GT6 Brasil Comércio Varejista de Produtos Diversos Ltda</td></tr>
+        <tr><td>CNPJ</td><td>31.556.596/0001-34</td></tr>
+        <tr><td>Fundação</td><td>2025</td></tr>
+        <tr><td>Sede</td><td>Vargem Grande Paulista — São Paulo — Brasil</td></tr>
+        <tr><td>Idioma de operação</td><td>Português brasileiro</td></tr>
+        <tr><td>Mercado-alvo</td><td>Negócios locais brasileiros (B2B)</td></tr>
+        <tr><td>Modelo</td><td>SaaS com hardware NFC complementar</td></tr>
+        <tr><td>Endereço</td><td>Rua Cristovan de Vita, 260 — Galpão 17 e 18, Sala F · Jardim Elias · CEP 06734-452</td></tr>
+        <tr><td>Contato</td><td>contato@startouch.com.br · WhatsApp (11) 97694-4026</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- O que fazemos -->
+  <section class="section">
+    <h2>O que fazemos</h2>
+    <p>Vendemos dispositivos NFC pequenos (placas, cartões e pulseiras) que negócios locais posicionam no balcão, levam com o atendente ou usam no pulso. Quando o cliente encosta o celular ou aponta a câmera no QR Code impresso, o navegador abre direto na tela de avaliação do Google daquele negócio.</p>
+
+    <p>Junto, oferecemos uma plataforma web (<a href="https://startouch.com.br/app">startouch.com.br/app</a>) onde o dono acompanha sua nota média, vê quais dispositivos estão gerando mais avaliação, compara com concorrentes da mesma categoria e recebe alertas quando algo muda no ranking.</p>
+
+    <p>Tudo isso <strong>dentro das políticas do Google</strong> — sem comprar avaliação, sem manipular, sem usar bots ou contas falsas.</p>
+  </section>
+
+  <!-- Princípios -->
+  <section class="section">
+    <h2>Como trabalhamos</h2>
+    <div class="principles">
+      <div class="principle">
+        <div class="num">1</div>
+        <div>
+          <h4>Honestidade com o Google</h4>
+          <p>Não fazemos review gating no plano gratuito. Não compramos avaliação. Não usamos bots. A plataforma só facilita o que o Google já permite: deixar o cliente satisfeito chegar na tela de avaliação com 1 toque em vez de 15.</p>
+        </div>
+      </div>
+      <div class="principle">
+        <div class="num">2</div>
+        <div>
+          <h4>Suporte humano em português</h4>
+          <p>Quando você chama nosso WhatsApp (11) 97694-4026, fala com gente — não com chatbot. Em horário comercial, respondemos em minutos.</p>
+        </div>
+      </div>
+      <div class="principle">
+        <div class="num">3</div>
+        <div>
+          <h4>Plano gratuito de verdade</h4>
+          <p>O plano grátis é grátis pra sempre, sem cartão de crédito. Você paga uma vez pelo hardware e o uso da plataforma básica não tem mensalidade. Quando precisar de mais (peneira, concorrentes, relatórios), o Pro está lá — mas não obrigamos ninguém.</p>
+        </div>
+      </div>
+      <div class="principle">
+        <div class="num">4</div>
+        <div>
+          <h4>Construído pra leigo, não pra técnico</h4>
+          <p>Nosso usuário é dono de cafeteria, salão, clínica. Não é desenvolvedor. Cada tela do produto é pensada pra alguém que nunca usou software de marketing antes — e ainda assim consegue ativar em 2 minutos.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- O que NÃO fazemos -->
+  <section class="section">
+    <h2>O que <em>não</em> fazemos</h2>
+    <p>Algumas coisas a gente recusa de propósito:</p>
+    <ul>
+      <li><strong>Não vendemos avaliação falsa.</strong> Há concorrentes que oferecem isso por baixo do pano. Pra nós, queima cliente e quebra o Google.</li>
+      <li><strong>Não bloqueamos clientes insatisfeitos de avaliar</strong>. A Peneira (plano Pro) oferece um caminho privado pra crítica chegar antes — mas o cliente sempre pode optar por ir pro Google.</li>
+      <li><strong>Não terceirizamos suporte pra chatbot.</strong> Quando o cliente trava, fala com pessoa real.</li>
+      <li><strong>Não cobramos pra resolver problemas básicos.</strong> Suporte está no plano gratuito.</li>
+      <li><strong>Não atendemos fora do Brasil.</strong> Foco total em pt-BR e Google Brasil. Pra fazer bem feito, tem que ter foco.</li>
+    </ul>
+  </section>
+
+  <!-- CTA final -->
+  <div class="cta">
+    <h3>Quer experimentar?</h3>
+    <p>Comece pelo plano gratuito. Sem cartão, sem mensalidade, sem pegadinha.</p>
+    <a href="/ativar?from=sobre">Começar agora →</a>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>
+    <a href="/">Início</a> ·
+    <a href="/app">Entrar</a> ·
+    <a href="/ajuda">Central de ajuda</a> ·
+    <a href="/ativar?from=sobre">Ativar dispositivo</a> ·
+    <a href="mailto:contato@startouch.com.br">Email</a>
+  </p>
+  <p style="margin-top:8px;">© 2026 StarTouch · CNPJ 31.556.596/0001-34 · Vargem Grande Paulista/SP</p>
+</footer>
+
+<!-- FAB WhatsApp (mesmo padrão do resto do site) -->
+<a href="https://wa.me/5511976944026?text=Oi!%20Tenho%20uma%20duvida%20sobre%20a%20StarTouch."
+   target="_blank" rel="noreferrer"
+   aria-label="Falar com StarTouch no WhatsApp (11) 97694-4026"
+   title="StarTouch · WhatsApp (11) 97694-4026"
+   id="st-wa-fab"
+   style="position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:50%;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(37,211,102,0.38),0 2px 6px rgba(0,0,0,0.10);z-index:9999;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease;">
+  <span aria-hidden="true" id="st-wa-halo" style="position:absolute;inset:0;border-radius:50%;background:#25D366;opacity:0.35;animation:stWaPulse 1.8s ease-out infinite;"></span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="34" height="34" aria-hidden="true" style="position:relative;">
+    <path fill="currentColor" d="M16.001 3C9.373 3 4 8.373 4 15c0 2.252.624 4.36 1.706 6.165L4 29l8.06-1.667A11.94 11.94 0 0 0 16.001 27C22.628 27 28 21.627 28 15S22.628 3 16.001 3Zm0 21.6c-1.747 0-3.4-.46-4.825-1.293l-.345-.205-4.78.988.999-4.654-.225-.359A9.55 9.55 0 0 1 6.4 15c0-5.293 4.308-9.6 9.601-9.6 5.293 0 9.6 4.307 9.6 9.6 0 5.293-4.307 9.6-9.6 9.6Zm5.522-7.182c-.302-.151-1.792-.884-2.07-.985-.279-.101-.481-.151-.683.151-.202.302-.783.985-.96 1.187-.176.202-.353.227-.655.076-.302-.151-1.276-.47-2.43-1.5-.898-.8-1.504-1.79-1.681-2.093-.176-.302-.019-.466.132-.616.135-.135.302-.353.453-.53.151-.176.202-.302.302-.504.101-.202.05-.378-.025-.53-.076-.151-.683-1.647-.936-2.256-.247-.594-.498-.513-.683-.523l-.581-.01c-.202 0-.53.076-.806.378-.279.302-1.061 1.037-1.061 2.528 0 1.49 1.087 2.93 1.238 3.132.151.202 2.14 3.27 5.187 4.586.725.313 1.29.5 1.731.64.727.231 1.388.198 1.91.12.583-.087 1.792-.732 2.045-1.439.252-.706.252-1.31.176-1.439-.076-.126-.279-.202-.581-.353Z"/>
+  </svg>
+</a>
+<style>
+  @keyframes stWaPulse { 0%{transform:scale(1);opacity:.35} 70%{transform:scale(1.65);opacity:0} 100%{transform:scale(1.65);opacity:0} }
+  #st-wa-fab:hover { transform: translateY(-2px) scale(1.05); box-shadow:0 14px 30px rgba(37,211,102,0.48),0 4px 12px rgba(0,0,0,0.12); }
+</style>
+<script>
+  setTimeout(function(){ var h=document.getElementById('st-wa-halo'); if(h) h.style.display='none'; }, 8000);
+</script>
+
+</body>
+</html>
