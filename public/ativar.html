@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Veja sua posiÃ§Ã£o no ranking do Google | StarTouch</title>
+<title>Veja sua posição no ranking do Google | StarTouch</title>
 <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/startouch-vars.css"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <link rel="apple-touch-icon" href="/startouch-logo.png"/>
-<meta name="description" content="Descubra grÃ¡tis onde seu negÃ³cio aparece no Google em relaÃ§Ã£o aos concorrentes da sua regiÃ£o â€” e comece a subir no ranking com a StarTouch."/>
+<meta name="description" content="Descubra grátis onde seu negócio aparece no Google em relação aos concorrentes da sua região — e comece a subir no ranking com a StarTouch."/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="StarTouch"/>
 <meta property="og:locale" content="pt_BR"/>
-<meta property="og:title" content="Veja sua posiÃ§Ã£o no ranking do Google"/>
-<meta property="og:description" content="Veja grÃ¡tis a posiÃ§Ã£o do seu negÃ³cio no ranking do Google e descubra como subir, com a StarTouch."/>
+<meta property="og:title" content="Veja sua posição no ranking do Google"/>
+<meta property="og:description" content="Veja grátis a posição do seu negócio no ranking do Google e descubra como subir, com a StarTouch."/>
 <meta property="og:image" content="https://startouch.com.br/og-image.png"/>
 <meta property="og:url" content="https://startouch.com.br/ativar"/>
 <link rel="canonical" href="https://startouch.com.br/ativar"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="Veja sua posiÃ§Ã£o no ranking do Google"/>
-<meta name="twitter:description" content="Veja grÃ¡tis a posiÃ§Ã£o do seu negÃ³cio no ranking do Google e descubra como subir."/>
+<meta name="twitter:title" content="Veja sua posição no ranking do Google"/>
+<meta name="twitter:description" content="Veja grátis a posição do seu negócio no ranking do Google e descubra como subir."/>
 <meta name="twitter:image" content="https://startouch.com.br/og-image.png"/>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
@@ -30,7 +30,7 @@
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
   .logo{display:flex;align-items:center;justify-content:center;margin-bottom:32px;text-decoration:none;}
   .logo img{display:block;height:72px;width:auto;}
-  /* Top bar: logo + link "JÃ¡ tenho conta" pra quem nao vai cadastrar de novo */
+  /* Top bar: logo + link "Já tenho conta" pra quem nao vai cadastrar de novo */
   .page-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;}
   .page-top .logo{margin-bottom:0;justify-content:flex-start;}
   .page-top .logo img{height:52px;}
@@ -169,10 +169,10 @@
 <body>
 
 <div class="page-top">
-  <a class="logo" href="/landing" aria-label="StarTouch â€” voltar pro inÃ­cio">
+  <a class="logo" href="/landing" aria-label="StarTouch — voltar pro início">
     <img src="/startouch-logo-dark.png" alt="StarTouch"/>
   </a>
-  <a class="page-top-login" href="/app"><span class="page-top-login-long">JÃ¡ tenho conta Â· </span>Entrar â†’</a>
+  <a class="page-top-login" href="/app"><span class="page-top-login-long">Já tenho conta · </span>Entrar →</a>
 </div>
 
 <div class="progress" id="progressBar">
@@ -184,23 +184,23 @@
 <!-- SCREEN 0: DEVICE CHECK -->
 <div class="screen" id="screen0">
   <div class="device-card ok" id="deviceOk" style="display:none">
-    <div class="device-icon">âœ…</div>
+    <div class="device-icon">✅</div>
     <div class="device-title">Tudo certo!</div>
-    <div class="device-desc">Seu celular Android com Chrome suporta gravaÃ§Ã£o NFC.<br/>VocÃª pode fazer a ativaÃ§Ã£o completa aqui mesmo.</div>
-    <button class="btn-primary" onclick="goToStep(1)">ComeÃ§ar ativaÃ§Ã£o â†’</button>
+    <div class="device-desc">Seu celular Android com Chrome suporta gravação NFC.<br/>Você pode fazer a ativação completa aqui mesmo.</div>
+    <button class="btn-primary" onclick="goToStep(1)">Começar ativação →</button>
   </div>
 
   <div class="device-card warn" id="deviceIphone" style="display:none">
-    <div class="device-icon">ðŸŽ</div>
+    <div class="device-icon">🍎</div>
     <div class="device-title">iPhone detectado</div>
-    <div class="device-desc">O iPhone nÃ£o suporta gravaÃ§Ã£o NFC pelo navegador. VocÃª pode fazer o cadastro aqui, mas vai precisar do app <strong style="color:#f9fafb">NFC Tools</strong> para gravar o cartÃ£o no final.</div>
-    <button class="btn-primary" onclick="goToStep(1)">Entendi, continuar â†’</button>
+    <div class="device-desc">O iPhone não suporta gravação NFC pelo navegador. Você pode fazer o cadastro aqui, mas vai precisar do app <strong style="color:#f9fafb">NFC Tools</strong> para gravar o cartão no final.</div>
+    <button class="btn-primary" onclick="goToStep(1)">Entendi, continuar →</button>
   </div>
 
   <div class="device-card warn" id="deviceDesktop" style="display:none">
-    <div class="device-icon">ðŸ’»</div>
+    <div class="device-icon">💻</div>
     <div class="device-title">Acesse pelo celular</div>
-    <div class="device-desc">A gravaÃ§Ã£o do NFC precisa ser feita pelo celular Android com o Chrome.<br/>Escaneie o QR code abaixo para abrir esta pÃ¡gina no seu celular:</div>
+    <div class="device-desc">A gravação do NFC precisa ser feita pelo celular Android com o Chrome.<br/>Escaneie o QR code abaixo para abrir esta página no seu celular:</div>
     <div class="qr-box">
       <div id="qrcode"></div>
     </div>
@@ -214,62 +214,62 @@
 
 <!-- STEP 1: CADASTRO -->
 <div class="screen" id="screen1">
-  <button class="back-btn" id="screen1Back" onclick="goToStep(2)" style="display:none">â† Voltar</button>
+  <button class="back-btn" id="screen1Back" onclick="goToStep(2)" style="display:none">← Voltar</button>
   <div class="biz-summary-card" id="bizSummary" style="display:none">
     <div class="biz-icon"></div>
     <div class="biz-info">
-      <div class="biz-info-eyebrow">NegÃ³cio selecionado</div>
-      <div class="biz-info-name" id="bizSummaryName">â€”</div>
+      <div class="biz-info-eyebrow">Negócio selecionado</div>
+      <div class="biz-info-name" id="bizSummaryName">—</div>
     </div>
     <button class="biz-change" type="button" onclick="goToStep(2)">Trocar</button>
   </div>
   <h2 id="screen1Title">Crie sua conta</h2>
-  <p class="sub" id="screen1Sub">Cadastre-se para ver sua posiÃ§Ã£o vs. concorrentes no Google</p>
+  <p class="sub" id="screen1Sub">Cadastre-se para ver sua posição vs. concorrentes no Google</p>
   <div class="google-btn-wrap" id="googleBtnWrap"></div>
   <div class="auth-divider">ou</div>
-  <div class="form-group"><label>Seu nome</label><input type="text" id="userName" placeholder="JoÃ£o Silva"/></div>
+  <div class="form-group"><label>Seu nome</label><input type="text" id="userName" placeholder="João Silva"/></div>
   <div class="form-group"><label>Email</label><input type="email" id="userEmail" placeholder="joao@email.com"/></div>
   <div class="form-group"><label>WhatsApp</label><input type="tel" id="userPhone" placeholder="(11) 99999-9999" inputmode="tel" autocomplete="tel-national" maxlength="15" oninput="maskPhone(this)"/></div>
   <div class="form-group">
     <label>Senha</label>
-    <div class="pass-wrap"><input type="password" id="userPass" placeholder="MÃ­nimo 6 caracteres" minlength="6" autocomplete="new-password"/><button type="button" class="pass-toggle" onclick="togglePass('userPass', this)" aria-label="Mostrar senha">ðŸ‘</button></div>
+    <div class="pass-wrap"><input type="password" id="userPass" placeholder="Mínimo 6 caracteres" minlength="6" autocomplete="new-password"/><button type="button" class="pass-toggle" onclick="togglePass('userPass', this)" aria-label="Mostrar senha">👁</button></div>
   </div>
   <div class="form-group">
     <label>Confirmar senha</label>
-    <div class="pass-wrap"><input type="password" id="userPassConfirm" placeholder="Repita a senha" minlength="6" autocomplete="new-password" oninput="checkPassMatch()"/><button type="button" class="pass-toggle" onclick="togglePass('userPassConfirm', this)" aria-label="Mostrar senha">ðŸ‘</button></div>
+    <div class="pass-wrap"><input type="password" id="userPassConfirm" placeholder="Repita a senha" minlength="6" autocomplete="new-password" oninput="checkPassMatch()"/><button type="button" class="pass-toggle" onclick="togglePass('userPassConfirm', this)" aria-label="Mostrar senha">👁</button></div>
     <p class="pass-hint" id="passHint"></p>
   </div>
-  <!-- Honeypot: campo invisÃ­vel pra humanos, bots geralmente preenchem -->
+  <!-- Honeypot: campo invisível pra humanos, bots geralmente preenchem -->
   <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
-    <label>NÃ£o preencher (campo de seguranÃ§a)</label>
+    <label>Não preencher (campo de segurança)</label>
     <input type="text" id="userWebsite" name="website" tabindex="-1" autocomplete="off"/>
   </div>
-  <button class="btn-primary" onclick="goToStep2()">Continuar â†’</button>
-  <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:16px;">JÃ¡ tem conta? <a href="/app" style="color:#1A73E8;font-weight:600">Entrar</a></p>
+  <button class="btn-primary" onclick="goToStep2()">Continuar →</button>
+  <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:16px;">Já tem conta? <a href="/app" style="color:#1A73E8;font-weight:600">Entrar</a></p>
 </div>
 
-<!-- STEP 2: BUSCA â€” layout 2-col estilo Google -->
+<!-- STEP 2: BUSCA — layout 2-col estilo Google -->
 <div class="screen screen-wide active" id="screen2">
   <div class="search-illustration">
     <div class="phone">
       <div class="phone-google-logo">
         <span class="g1">G</span><span class="g2">o</span><span class="g3">o</span><span class="g4">g</span><span class="g5">l</span><span class="g6">e</span>
       </div>
-      <div class="phone-search">ðŸ” Seu negÃ³cio</div>
+      <div class="phone-search">🔍 Seu negócio</div>
       <div class="phone-line"></div>
       <div class="phone-result">
         <div class="phone-result-img"></div>
         <div class="phone-result-info">
-          <div class="phone-result-name">CafÃ© Bello Vista</div>
-          <div class="phone-result-meta">Cafeteria Â· Aberto agora</div>
-          <div class="phone-result-stars">â˜…â˜…â˜…â˜…â˜…</div>
+          <div class="phone-result-name">Café Bello Vista</div>
+          <div class="phone-result-meta">Cafeteria · Aberto agora</div>
+          <div class="phone-result-stars">★★★★★</div>
         </div>
       </div>
       <div class="phone-icons-row">
-        <div class="phone-icon-btn">ðŸ“</div>
-        <div class="phone-icon-btn">ðŸ“ž</div>
-        <div class="phone-icon-btn">ðŸ”–</div>
-        <div class="phone-icon-btn">â†—</div>
+        <div class="phone-icon-btn">📍</div>
+        <div class="phone-icon-btn">📞</div>
+        <div class="phone-icon-btn">🔖</div>
+        <div class="phone-icon-btn">↗</div>
       </div>
       <div class="phone-info-line"></div>
       <div class="phone-info-line short"></div>
@@ -277,23 +277,23 @@
     </div>
   </div>
   <div class="search-form">
-    <h2 style="text-align:left;font-size:28px;line-height:1.2;">Veja sua posiÃ§Ã£o no ranking do Google</h2>
-    <p class="sub" style="text-align:left;margin-bottom:14px;">Informe seu negÃ³cio abaixo e descubra na hora como vocÃª estÃ¡ vs. os concorrentes num raio de 3 km.</p>
+    <h2 style="text-align:left;font-size:28px;line-height:1.2;">Veja sua posição no ranking do Google</h2>
+    <p class="sub" style="text-align:left;margin-bottom:14px;">Informe seu negócio abaixo e descubra na hora como você está vs. os concorrentes num raio de 3 km.</p>
     <div style="display:inline-flex;align-items:center;gap:7px;background:#E6F4EA;border:1px solid #CEEAD6;color:#137333;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;margin-bottom:22px;line-height:1.3;">
       <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
-      Ver seu ranking e criar conta Ã© <span style="font-weight:800;margin:0 3px;">100% grÃ¡tis</span> Â· sem cartÃ£o
+      Ver seu ranking e criar conta é <span style="font-weight:800;margin:0 3px;">100% grátis</span> · sem cartão
     </div>
-    <div class="form-group"><label>Nome do negÃ³cio</label><input type="text" id="bizSearch" placeholder="Ex: CafÃ© Bello Vista" oninput="clearResults()"/></div>
+    <div class="form-group"><label>Nome do negócio</label><input type="text" id="bizSearch" placeholder="Ex: Café Bello Vista" oninput="clearResults()"/></div>
     <div class="form-group">
-      <label>CEP do negÃ³cio</label>
+      <label>CEP do negócio</label>
       <input type="text" id="bizCep" placeholder="00000-000" inputmode="numeric" maxlength="9" oninput="maskCep(this); lookupCep()" autocomplete="postal-code"/>
       <p id="cepFeedback" style="margin:6px 0 0;font-size:12px;color:#6b7280;line-height:1.4;"></p>
     </div>
-    <div class="form-group"><label>Qual o ramo de atuaÃ§Ã£o?</label><input type="text" id="bizActivity" placeholder="Ex.: Pizzaria, ClÃ­nica, SalÃ£o de Beleza, Loja de Roupas..."/></div>
+    <div class="form-group"><label>Qual o ramo de atuação?</label><input type="text" id="bizActivity" placeholder="Ex.: Pizzaria, Clínica, Salão de Beleza, Loja de Roupas..."/></div>
     <div style="display:flex;gap:8px;align-items:flex-start;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin:-2px 0 16px;font-size:12.5px;color:#1e40af;line-height:1.45;">
-      <span>ðŸ“</span><span>O <strong>CEP</strong> nos diz a cidade e o estado automaticamente â€” busca certeira na sua regiÃ£o.</span>
+      <span>📍</span><span>O <strong>CEP</strong> nos diz a cidade e o estado automaticamente — busca certeira na sua região.</span>
     </div>
-    <p class="legal-text">Ao continuar, vocÃª concorda com os <a href="#">Termos de Uso</a> e <a href="#">PolÃ­tica de Privacidade</a>.</p>
+    <p class="legal-text">Ao continuar, você concorda com os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>.</p>
     <button class="btn-primary" onclick="searchBusiness()" id="searchBtn">Buscar empresa</button>
     <p class="status-msg" id="searchStatus"></p>
     <div id="searchResults" style="margin-top:16px;"></div>
@@ -303,40 +303,40 @@
 
 <!-- STEP 4: NFC -->
 <div class="screen" id="screen4">
-  <button class="back-btn" onclick="goToStep(2)">â† Voltar</button>
+  <button class="back-btn" onclick="goToStep(2)">← Voltar</button>
   <h2>Grave sua placa</h2>
-  <p class="sub">Placa #<span id="tagCounterLabel">1</span> â€” programe o NFC</p>
+  <p class="sub">Placa #<span id="tagCounterLabel">1</span> — programe o NFC</p>
   <div class="os-tabs">
-    <button class="os-tab active" onclick="switchOS('android')">ðŸ“± Android</button>
-    <button class="os-tab" onclick="switchOS('iphone')">ðŸŽ iPhone</button>
+    <button class="os-tab active" onclick="switchOS('android')">📱 Android</button>
+    <button class="os-tab" onclick="switchOS('iphone')">🍎 iPhone</button>
   </div>
   <div id="androidSteps">
     <div class="nfc-card">
-      <div class="nfc-step"><div class="nfc-n">1</div><div><h4>Clique no botÃ£o abaixo</h4><p>Grave o link direto pelo navegador Chrome.</p></div></div>
+      <div class="nfc-step"><div class="nfc-n">1</div><div><h4>Clique no botão abaixo</h4><p>Grave o link direto pelo navegador Chrome.</p></div></div>
       <div class="nfc-step"><div class="nfc-n">2</div><div><h4>Aproxime a placa NFC</h4><p>Encoste na parte traseira do celular quando aparecer a mensagem.</p></div></div>
-      <div class="nfc-step"><div class="nfc-n">3</div><div><h4>Posicione no negÃ³cio</h4><p>Pronto! JÃ¡ estÃ¡ ativa.</p></div></div>
+      <div class="nfc-step"><div class="nfc-n">3</div><div><h4>Posicione no negócio</h4><p>Pronto! Já está ativa.</p></div></div>
     </div>
-    <button class="btn-primary" onclick="writeNFC()" id="nfcBtn">ðŸ“¡ Gravar placa NFC agora</button>
+    <button class="btn-primary" onclick="writeNFC()" id="nfcBtn">📡 Gravar placa NFC agora</button>
     <p class="status-msg" id="nfcStatus"></p>
   </div>
   <div id="iphoneSteps" style="display:none">
     <div class="nfc-card">
-      <div class="nfc-step"><div class="nfc-n">1</div><div><h4>Baixe o NFC Tools</h4><a class="app-link" href="https://apps.apple.com/br/app/nfc-tools/id1252962749" target="_blank" rel="noopener">ðŸ“± Baixar NFC Tools â€” App Store</a></div></div>
-      <div class="nfc-step"><div class="nfc-n">2</div><div><h4>Abra â†’ Write â†’ Add record â†’ URL</h4><p>Cole o link abaixo:</p><code id="nfcLinkDisplay">Carregando...</code></div></div>
-      <div class="nfc-step"><div class="nfc-n">3</div><div><h4>Grave e posicione no negÃ³cio</h4><p>Toque em Write e aproxime a placa.</p></div></div>
+      <div class="nfc-step"><div class="nfc-n">1</div><div><h4>Baixe o NFC Tools</h4><a class="app-link" href="https://apps.apple.com/br/app/nfc-tools/id1252962749" target="_blank" rel="noopener">📱 Baixar NFC Tools — App Store</a></div></div>
+      <div class="nfc-step"><div class="nfc-n">2</div><div><h4>Abra → Write → Add record → URL</h4><p>Cole o link abaixo:</p><code id="nfcLinkDisplay">Carregando...</code></div></div>
+      <div class="nfc-step"><div class="nfc-n">3</div><div><h4>Grave e posicione no negócio</h4><p>Toque em Write e aproxime a placa.</p></div></div>
     </div>
-    <button class="btn-primary" onclick="copyNFCLink()">ðŸ“‹ Copiar link</button>
-    <button class="btn-ghost" onclick="onIphoneWritten()" style="margin-top:10px">JÃ¡ gravei essa placa</button>
+    <button class="btn-primary" onclick="copyNFCLink()">📋 Copiar link</button>
+    <button class="btn-ghost" onclick="onIphoneWritten()" style="margin-top:10px">Já gravei essa placa</button>
     <p class="status-msg" id="copyStatus"></p>
   </div>
 </div>
 
-<!-- STEP 4b: PLACA GRAVADA â€” escolha continuar ou concluir -->
+<!-- STEP 4b: PLACA GRAVADA — escolha continuar ou concluir -->
 <div class="screen" id="screen4b">
   <div style="background:#ecfdf5;border:2px solid #a7f3d0;border-radius:16px;padding:28px 22px;text-align:center;margin-bottom:18px;">
-    <div style="font-size:48px;margin-bottom:8px">âœ…</div>
+    <div style="font-size:48px;margin-bottom:8px">✅</div>
     <div style="font-family:'Inter','General Sans',sans-serif;font-size:20px;font-weight:700;color:#065f46;margin-bottom:4px">Placa #<span id="screen4bCount">1</span> gravada</div>
-    <div style="font-size:13px;color:#059669">Posicione a placa no negÃ³cio.</div>
+    <div style="font-size:13px;color:#059669">Posicione a placa no negócio.</div>
   </div>
   <button class="btn-primary" onclick="recordAnother()">Gravar outra placa</button>
   <button class="btn-ghost" onclick="finishActivation()">Concluir e ir pro dashboard</button>
@@ -344,15 +344,15 @@
 
 <!-- STEP 5: SUCESSO -->
 <div class="screen" id="screen5">
-  <div style="font-size:56px;text-align:center;margin-bottom:16px;">ðŸŽ‰</div>
+  <div style="font-size:56px;text-align:center;margin-bottom:16px;">🎉</div>
   <h2>Conta criada!</h2>
-  <p class="sub" id="successSub">Tudo certo. Vamos te orientar a comeÃ§ar.</p>
+  <p class="sub" id="successSub">Tudo certo. Vamos te orientar a começar.</p>
   <div style="background:#ecfdf5;border:2px solid #a7f3d0;border-radius:14px;padding:16px 20px;text-align:center;margin-bottom:20px;">
-    <div style="font-size:13px;color:#059669;margin-bottom:4px;font-weight:600;">NegÃ³cio cadastrado</div>
+    <div style="font-size:13px;color:#059669;margin-bottom:4px;font-weight:600;">Negócio cadastrado</div>
     <div style="font-size:16px;font-weight:700;color:#0f172a;" id="successBizName"></div>
     <div style="font-size:12px;color:#6b7280;margin-top:4px;" id="successPlan"></div>
   </div>
-  <a href="/comece" id="successCta" style="text-decoration:none;" class="btn-primary">Continuar â†’</a>
+  <a href="/comece" id="successCta" style="text-decoration:none;" class="btn-primary">Continuar →</a>
   <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:12px;" id="successRedirectMsg">Redirecionando automaticamente em 3 segundos...</p>
 </div>
 
@@ -362,7 +362,7 @@ const params = new URLSearchParams(window.location.search);
 const fromSource = params.get("from") === "web" ? "web" : "nfc";
 const state = { user:{}, business:null, plan:null, nfcLink:null, from:fromSource, tagCount:0, bizSaved:false };
 
-// Google Sign-In â€” Client ID public, ok hardcodar
+// Google Sign-In — Client ID public, ok hardcodar
 const GOOGLE_CLIENT_ID = "215106300952-pb5ucf4l8jd8ls9q6ff059b41mo26gkt.apps.googleusercontent.com";
 function initGoogleSignIn() {
   if (!window.google?.accounts?.id) { setTimeout(initGoogleSignIn, 200); return; }
@@ -406,7 +406,7 @@ async function handleGoogleCredential(response) {
     localStorage.setItem("rz_user", JSON.stringify(data.user));
     state.user = { name: data.user.name, email: data.user.email };
 
-    // Web flow: ja tem biz selecionado â€” salva e vai pro dashboard /app (ranking)
+    // Web flow: ja tem biz selecionado — salva e vai pro dashboard /app (ranking)
     if (state.from === "web" && state.business) {
       state.plan = "free";
       state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
@@ -420,13 +420,13 @@ async function handleGoogleCredential(response) {
     goToStep(2);
   } catch (e) {
     console.error("[google-login]", e);
-    alert("Erro de conexÃ£o. Tente novamente.");
+    alert("Erro de conexão. Tente novamente.");
   }
 }
 
 // Detecta dispositivo ao carregar
 window.addEventListener("load", () => {
-  // Web flow: invertido â€” busca empresa primeiro, cadastro depois
+  // Web flow: invertido — busca empresa primeiro, cadastro depois
   if (state.from === "web") {
     document.getElementById("progressBar").style.display = "none";
     goToStep(2);
@@ -463,7 +463,7 @@ function generateQR() {
   });
 }
 
-// screen 1 = passo 1, screen 2 = passo 2, screen 4 = passo 3 (NFC), screen 4b idem (jÃ¡ gravada)
+// screen 1 = passo 1, screen 2 = passo 2, screen 4 = passo 3 (NFC), screen 4b idem (já gravada)
 const screenToProgress = { 1:1, 2:2, 4:3, "4b":3 };
 
 function goToStep(n) {
@@ -476,11 +476,11 @@ function goToStep(n) {
   } else {
     document.getElementById("progressBar").style.display = "none";
   }
-  // Quando volta pro screen4 pra gravar mais uma placa, reseta estado do botÃ£o
+  // Quando volta pro screen4 pra gravar mais uma placa, reseta estado do botão
   if (n === 4) {
     document.getElementById("tagCounterLabel").textContent = state.tagCount + 1;
     const btn = document.getElementById("nfcBtn");
-    if (btn) { btn.disabled = false; btn.innerHTML = "ðŸ“¡ Gravar placa NFC agora"; }
+    if (btn) { btn.disabled = false; btn.innerHTML = "📡 Gravar placa NFC agora"; }
     const ns = document.getElementById("nfcStatus");
     if (ns) { ns.textContent = ""; ns.className = "status-msg"; }
     const cs = document.getElementById("copyStatus");
@@ -508,7 +508,7 @@ function togglePass(id, btn) {
   const input = document.getElementById(id);
   const visible = input.type === "text";
   input.type = visible ? "password" : "text";
-  btn.textContent = visible ? "ðŸ‘" : "ðŸ™ˆ";
+  btn.textContent = visible ? "👁" : "🙈";
   btn.setAttribute("aria-label", visible ? "Mostrar senha" : "Ocultar senha");
 }
 
@@ -517,15 +517,15 @@ function checkPassMatch() {
   const b = document.getElementById("userPassConfirm").value;
   const hint = document.getElementById("passHint");
   if (!b) { hint.textContent = ""; hint.className = "pass-hint"; return true; }
-  if (a === b) { hint.textContent = "âœ“ Senhas conferem"; hint.className = "pass-hint ok"; return true; }
-  hint.textContent = "As senhas nÃ£o coincidem"; hint.className = "pass-hint err"; return false;
+  if (a === b) { hint.textContent = "✓ Senhas conferem"; hint.className = "pass-hint ok"; return true; }
+  hint.textContent = "As senhas não coincidem"; hint.className = "pass-hint err"; return false;
 }
 
 function updateProgress(step) {
   for(let i=1;i<=3;i++){
     const el=document.getElementById(`p${i}`);
     const line=document.getElementById(`l${i}`);
-    if(i<step){el.classList.add("done");el.classList.remove("active");el.textContent="âœ“";}
+    if(i<step){el.classList.add("done");el.classList.remove("active");el.textContent="✓";}
     else if(i===step){el.classList.add("active");el.classList.remove("done");el.textContent=i;}
     else{el.classList.remove("done","active");el.textContent=i;}
     if(line){i<step?line.classList.add("done"):line.classList.remove("done");}
@@ -539,17 +539,17 @@ async function goToStep2(){
   const pass=document.getElementById("userPass").value;
   const passConfirm=document.getElementById("userPassConfirm").value;
   const honeypot=document.getElementById("userWebsite")?.value || "";
-  // Honeypot: bot preencheu campo invisÃ­vel â†’ bloqueia silenciosamente
+  // Honeypot: bot preencheu campo invisível → bloqueia silenciosamente
   if(honeypot){ alert("Tente de novo em alguns segundos."); return; }
   if(!name||!email||!phone||!pass||!passConfirm){alert("Preencha todos os campos!");return;}
   const phoneDigits=phone.replace(/\D/g,"");
-  if(phoneDigits.length<10||phoneDigits.length>11){alert("WhatsApp invÃ¡lido. Digite DDD + nÃºmero (ex: 11 99999-9999).");return;}
+  if(phoneDigits.length<10||phoneDigits.length>11){alert("WhatsApp inválido. Digite DDD + número (ex: 11 99999-9999).");return;}
   if(pass.length<6){alert("Senha precisa de pelo menos 6 caracteres.");return;}
-  if(pass!==passConfirm){alert("As senhas nÃ£o coincidem.");document.getElementById("userPassConfirm").focus();return;}
+  if(pass!==passConfirm){alert("As senhas não coincidem.");document.getElementById("userPassConfirm").focus();return;}
 
   const btn=document.querySelector("#screen1 .btn-primary");
   btn.disabled=true;
-  btn.innerHTML='<span class="spinner">âŸ³</span> Criando conta...';
+  btn.innerHTML='<span class="spinner">⟳</span> Criando conta...';
 
   try {
     const res=await fetch("/api/register",{
@@ -558,7 +558,7 @@ async function goToStep2(){
       body:JSON.stringify({name,email,phone,password:pass})
     });
     const data=await res.json();
-    if(!res.ok){alert(data.error||"Erro ao criar conta");btn.disabled=false;btn.innerHTML="Continuar â†’";return;}
+    if(!res.ok){alert(data.error||"Erro ao criar conta");btn.disabled=false;btn.innerHTML="Continuar →";return;}
 
     // Salva token retornado direto do register
     if(data.token){
@@ -579,7 +579,7 @@ async function goToStep2(){
     }
 
     state.user={name,email,phone,pass};
-    // Web flow: ja tem biz selecionado â€” salva e segue pro dashboard /app (ranking)
+    // Web flow: ja tem biz selecionado — salva e segue pro dashboard /app (ranking)
     if (state.from === "web" && state.business) {
       state.plan = "free";
       state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
@@ -592,10 +592,10 @@ async function goToStep2(){
     // NFC flow: cadastro -> busca
     goToStep(2);
   } catch {
-    alert("Erro de conexÃ£o. Tente novamente.");
+    alert("Erro de conexão. Tente novamente.");
   }
   btn.disabled=false;
-  btn.innerHTML="Continuar â†’";
+  btn.innerHTML="Continuar →";
 }
 
 function clearResults(){
@@ -603,10 +603,10 @@ function clearResults(){
   state.business=null;
 }
 
-// Cache do Ãºltimo lookup ViaCEP â€” evita re-fetch desnecessÃ¡rio
+// Cache do último lookup ViaCEP — evita re-fetch desnecessário
 let cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
 
-// Lookup ViaCEP em background quando o user termina de digitar o CEP (8 dÃ­gitos)
+// Lookup ViaCEP em background quando o user termina de digitar o CEP (8 dígitos)
 async function lookupCep(){
   const raw = document.getElementById("bizCep").value.replace(/\D/g, "");
   const fb = document.getElementById("cepFeedback");
@@ -616,22 +616,22 @@ async function lookupCep(){
     cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
     return;
   }
-  if(raw === cepCache.cep) return; // jÃ¡ buscou esse CEP
-  fb.textContent = "Buscando CEPâ€¦";
+  if(raw === cepCache.cep) return; // já buscou esse CEP
+  fb.textContent = "Buscando CEP…";
   fb.style.color = "#6b7280";
   try{
     const r = await fetch(`https://viacep.com.br/ws/${raw}/json/`);
     const d = await r.json();
     if(d.erro){
-      fb.textContent = "âš ï¸ CEP nÃ£o encontrado â€” confira os nÃºmeros";
+      fb.textContent = "⚠️ CEP não encontrado — confira os números";
       fb.style.color = "#dc2626";
       cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
       return;
     }
     cepCache = { cep: raw, city: d.localidade || "", uf: d.uf || "", neighborhood: d.bairro || "" };
-    fb.innerHTML = `<span style="color:#137333;font-weight:600;">ðŸ“ ${d.localidade}/${d.uf}${d.bairro ? " Â· " + d.bairro : ""}</span>`;
+    fb.innerHTML = `<span style="color:#137333;font-weight:600;">📍 ${d.localidade}/${d.uf}${d.bairro ? " · " + d.bairro : ""}</span>`;
   } catch {
-    fb.textContent = "NÃ£o conseguimos consultar o CEP. VocÃª pode buscar mesmo assim.";
+    fb.textContent = "Não conseguimos consultar o CEP. Você pode buscar mesmo assim.";
     fb.style.color = "#6b7280";
   }
 }
@@ -642,9 +642,9 @@ async function searchBusiness(){
   const activity=document.getElementById("bizActivity").value.trim();
   state.activity=activity; // atividade -> keyword do ranking
 
-  if(!query){alert("Digite o nome do negÃ³cio.");return;}
-  if(cep.length < 8){alert("Informe o CEP do negÃ³cio (8 dÃ­gitos).");return;}
-  if(!activity){alert("Diga o ramo de atuaÃ§Ã£o â€” Ã© essencial pra achar os concorrentes certos.");return;}
+  if(!query){alert("Digite o nome do negócio.");return;}
+  if(cep.length < 8){alert("Informe o CEP do negócio (8 dígitos).");return;}
+  if(!activity){alert("Diga o ramo de atuação — é essencial pra achar os concorrentes certos.");return;}
 
   // Pega cidade/UF do ViaCEP (ou faz lookup agora, caso o user nem tenha esperado)
   if(cepCache.cep !== cep){ await lookupCep(); }
@@ -654,25 +654,25 @@ async function searchBusiness(){
   const btn=document.getElementById("searchBtn");
   const status=document.getElementById("searchStatus");
   btn.disabled=true;
-  btn.innerHTML='<span class="spinner">âŸ³</span> Buscando...';
+  btn.innerHTML='<span class="spinner">⟳</span> Buscando...';
   status.textContent="Buscando no Google Maps...";
   status.className="status-msg loading";
   try{
     const res=await fetch(`/api/searchbiz?q=${encodeURIComponent([query,cep,city,uf].filter(Boolean).join(" "))}&cep=${encodeURIComponent(cep)}`);
     const data=await res.json();
     if(!data.results?.length){
-      status.innerHTML='NÃ£o encontramos sua empresa no Google. Tente outro nome ou cidade. Se vocÃª ainda nÃ£o tem um perfil no Google Meu NegÃ³cio, <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#1A73E8;font-weight:600;text-decoration:underline">crie um aqui</a> antes de continuar.';
+      status.innerHTML='Não encontramos sua empresa no Google. Tente outro nome ou cidade. Se você ainda não tem um perfil no Google Meu Negócio, <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#1A73E8;font-weight:600;text-decoration:underline">crie um aqui</a> antes de continuar.';
       status.className="status-msg error";
     } else {
       status.textContent="";
       showResults(data.results);
     }
   }catch{
-    status.textContent="Erro ao buscar. Verifique sua conexÃ£o.";
+    status.textContent="Erro ao buscar. Verifique sua conexão.";
     status.className="status-msg error";
   }
   btn.disabled=false;
-  btn.innerHTML="ðŸ” Buscar no Google Maps";
+  btn.innerHTML="🔍 Buscar no Google Maps";
 }
 
 function showResults(results){
@@ -684,17 +684,17 @@ function showResults(results){
   };
   const cards = results.map((r,i)=>`
     <div class="result-item" onclick='selectBusiness(${JSON.stringify(r)})'>
-      <div class="result-name">${r.name}${i===0 && r.distance_meters!=null ? ' <span style="font-size:10.5px;font-weight:700;background:#E6F4EA;color:#137333;padding:2px 7px;border-radius:5px;margin-left:6px;letter-spacing:.04em;">MAIS PRÃ“XIMA</span>' : ''}</div>
-      <div class="result-addr">â­ ${r.rating||"?"} Â· ${r.total||0} avaliaÃ§Ãµes${r.distance_meters!=null ? ' Â· ðŸ“ '+fmtDistance(r.distance_meters)+' do CEP' : ''} Â· ${r.address}</div>
+      <div class="result-name">${r.name}${i===0 && r.distance_meters!=null ? ' <span style="font-size:10.5px;font-weight:700;background:#E6F4EA;color:#137333;padding:2px 7px;border-radius:5px;margin-left:6px;letter-spacing:.04em;">MAIS PRÓXIMA</span>' : ''}</div>
+      <div class="result-addr">⭐ ${r.rating||"?"} · ${r.total||0} avaliações${r.distance_meters!=null ? ' · 📍 '+fmtDistance(r.distance_meters)+' do CEP' : ''} · ${r.address}</div>
     </div>
   `).join("");
   const disclaimer = `
     <div style="margin-top:12px;padding:10px 12px;background:#fefce8;border:1px solid #fef08a;border-radius:8px;font-size:12px;color:#854d0e;line-height:1.5;">
-      <span style="font-weight:700;">âš ï¸ Nome ou endereÃ§o diferente do real?</span>
-      Os dados vÃªm direto do <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#854d0e;font-weight:600;text-decoration:underline;">Google Meu NegÃ³cio</a> do dono. Se estiver desatualizado, escolha mesmo assim e atualize no Google depois â€” a correÃ§Ã£o propaga aqui em 1-2 dias.
+      <span style="font-weight:700;">⚠️ Nome ou endereço diferente do real?</span>
+      Os dados vêm direto do <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#854d0e;font-weight:600;text-decoration:underline;">Google Meu Negócio</a> do dono. Se estiver desatualizado, escolha mesmo assim e atualize no Google depois — a correção propaga aqui em 1-2 dias.
     </div>`;
   container.innerHTML = cards + disclaimer;
-  // Rola suave ate os resultados â€” eles apareciam abaixo da dobra e o usuario
+  // Rola suave ate os resultados — eles apareciam abaixo da dobra e o usuario
   // achava que a busca nao tinha encontrado nada.
   requestAnimationFrame(()=>{
     container.scrollIntoView({ behavior:"smooth", block:"center" });
@@ -704,16 +704,16 @@ function showResults(results){
 function selectBusiness(biz){
   state.business=biz;
   document.getElementById("searchResults").innerHTML="";
-  document.getElementById("searchStatus").textContent=`âœ… "${biz.name}" selecionado!`;
+  document.getElementById("searchStatus").textContent=`✅ "${biz.name}" selecionado!`;
   document.getElementById("searchStatus").className="status-msg success";
   if (state.from === "web") {
-    // Web flow: apÃ³s selecionar negÃ³cio, mostra o cadastro (screen1).
-    // ApÃ³s cadastro, o goToStep2() redireciona pra /kit (vitrine).
+    // Web flow: após selecionar negócio, mostra o cadastro (screen1).
+    // Após cadastro, o goToStep2() redireciona pra /kit (vitrine).
     document.getElementById("bizSummaryName").textContent = biz.name;
     document.getElementById("bizSummary").style.display = "flex";
     document.getElementById("screen1Back").style.display = "flex";
-    document.getElementById("screen1Title").textContent = "Quase lÃ¡ â€” crie sua conta";
-    document.getElementById("screen1Sub").textContent = "Em seguida vocÃª monta o kit do seu negÃ³cio.";
+    document.getElementById("screen1Title").textContent = "Quase lá — crie sua conta";
+    document.getElementById("screen1Sub").textContent = "Em seguida você monta o kit do seu negócio.";
     setTimeout(()=>goToStep(1),700);
     return;
   }
@@ -724,7 +724,7 @@ function selectBusiness(biz){
 // Decisao de plano e compra de hardware acontecem dentro do dashboard.
 function goToStep3(){
   state.plan = "free";
-  // NFC sempre aponta pra /avaliar â€” assim upgrade Freeâ†’Pro nao requer
+  // NFC sempre aponta pra /avaliar — assim upgrade Free→Pro nao requer
   // re-gravar o cartao (a peneira liga/desliga via plan no DB)
   state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
   document.getElementById("nfcLinkDisplay").textContent = state.nfcLink;
@@ -745,38 +745,38 @@ async function writeNFC(){
   const btn=document.getElementById("nfcBtn");
   const status=document.getElementById("nfcStatus");
   if(!("NDEFReader" in window)){
-    status.textContent="âš ï¸ Use o Chrome no Android para gravar o NFC.";
+    status.textContent="⚠️ Use o Chrome no Android para gravar o NFC.";
     status.className="status-msg error";
     return;
   }
   try{
     btn.disabled=true;
-    btn.innerHTML='<span class="spinner">âŸ³</span> Aproxime a placa NFC...';
+    btn.innerHTML='<span class="spinner">⟳</span> Aproxime a placa NFC...';
     status.textContent="Aguardando placa...";
     status.className="status-msg loading";
     const ndef=new NDEFReader();
     await ndef.write({records:[{recordType:"url",data:state.nfcLink}]});
-    status.textContent="âœ… Gravado com sucesso!";
+    status.textContent="✅ Gravado com sucesso!";
     status.className="status-msg success";
-    btn.innerHTML="âœ… Placa gravada!";
+    btn.innerHTML="✅ Placa gravada!";
     setTimeout(()=>onTagWritten(),900);
   }catch(err){
     status.textContent=`Erro: ${err.message}`;
     status.className="status-msg error";
     btn.disabled=false;
-    btn.innerHTML="ðŸ“¡ Tentar novamente";
+    btn.innerHTML="📡 Tentar novamente";
   }
 }
 
 function copyNFCLink(){
   navigator.clipboard.writeText(state.nfcLink).then(()=>{
-    document.getElementById("copyStatus").textContent="âœ… Link copiado! Cole no NFC Tools.";
+    document.getElementById("copyStatus").textContent="✅ Link copiado! Cole no NFC Tools.";
     document.getElementById("copyStatus").className="status-msg success";
   });
 }
 
 function onIphoneWritten(){
-  // iPhone confia que o usuÃ¡rio gravou via NFC Tools
+  // iPhone confia que o usuário gravou via NFC Tools
   onTagWritten();
 }
 
@@ -791,7 +791,7 @@ function recordAnother(){
 }
 
 async function finishActivation(){
-  // Salva o negÃ³cio uma Ãºnica vez (na primeira conclusÃ£o)
+  // Salva o negócio uma única vez (na primeira conclusão)
   if (!state.bizSaved) {
     await saveBiz();
     state.bizSaved = true;
@@ -802,7 +802,7 @@ async function finishActivation(){
 async function saveBiz(){
   const token=localStorage.getItem("rz_token");
   if(!token || !state.business?.place_id) {
-    console.error("Token ou place_id ausente â€” negÃ³cio nÃ£o serÃ¡ salvo");
+    console.error("Token ou place_id ausente — negócio não será salvo");
     return;
   }
   try {
@@ -821,25 +821,25 @@ async function saveBiz(){
     const d = await r.json();
     console.log("Savebiz response:", d);
   } catch(e){
-    console.error("Erro ao salvar negÃ³cio:", e);
+    console.error("Erro ao salvar negócio:", e);
   }
 }
 
 async function goToSuccess(){
-  // Quando vem do fluxo web (sem NFC), salva o negÃ³cio agora antes de mostrar success
+  // Quando vem do fluxo web (sem NFC), salva o negócio agora antes de mostrar success
   if (!state.bizSaved) {
     await saveBiz();
     state.bizSaved = true;
   }
-  document.getElementById("successBizName").textContent=state.business?.name||"NegÃ³cio";
-  document.getElementById("successPlan").textContent="Plano Gratuito" + (state.tagCount > 0 ? ` Â· ${state.tagCount} placa(s) ativada(s)` : "");
+  document.getElementById("successBizName").textContent=state.business?.name||"Negócio";
+  document.getElementById("successPlan").textContent="Plano Gratuito" + (state.tagCount > 0 ? ` · ${state.tagCount} placa(s) ativada(s)` : "");
 
   // Todos caem no dashboard (funil do ranking): web e NFC vao pra /app
   const dest = "/app";
   const cta = document.getElementById("successCta");
   cta.href = dest;
-  cta.textContent = "Ver meu resultado â†’";
-  document.getElementById("successSub").textContent = "Tudo certo! Veja agora sua posiÃ§Ã£o vs. concorrentes no Google.";
+  cta.textContent = "Ver meu resultado →";
+  document.getElementById("successSub").textContent = "Tudo certo! Veja agora sua posição vs. concorrentes no Google.";
   document.getElementById("successRedirectMsg").textContent = "Redirecionando automaticamente em 3 segundos...";
 
   goToStep(5);
@@ -848,8 +848,8 @@ async function goToSuccess(){
 </script>
 
 <footer style="max-width:560px;margin:48px auto 32px;padding:24px 16px;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#6b7280;line-height:1.65;font-family:'Inter','General Sans',sans-serif;">
-  <p style="margin:0 0 4px;"><strong style="color:#374151;font-weight:600;">GT6 Brasil ComÃ©rcio Varejista de Produtos Diversos Ltda</strong> Â· CNPJ 31.556.596/0001-34</p>
-  <p style="margin:0;">Rua Cristovan de Vita, 260 â€” GalpÃ£o 17 e 18, Sala F Â· Jardim Elias Â· Vargem Grande Paulista/SP Â· CEP 06734-452</p>
+  <p style="margin:0 0 4px;"><strong style="color:#374151;font-weight:600;">GT6 Brasil Comércio Varejista de Produtos Diversos Ltda</strong> · CNPJ 31.556.596/0001-34</p>
+  <p style="margin:0;">Rua Cristovan de Vita, 260 — Galpão 17 e 18, Sala F · Jardim Elias · Vargem Grande Paulista/SP · CEP 06734-452</p>
 </footer>
 
 <!-- WhatsApp de suporte StarTouch — botão flutuante -->

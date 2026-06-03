@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Seu link jÃ¡ estÃ¡ pronto â€” StarTouch</title>
+<title>Seu link já está pronto — StarTouch</title>
 <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/startouch-vars.css"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
@@ -11,7 +11,7 @@
 <meta name="robots" content="noindex,follow"/>
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="StarTouch"/>
-<meta property="og:description" content="Plataforma de relacionamento local pra negÃ³cios brasileiros."/>
+<meta property="og:description" content="Plataforma de relacionamento local pra negócios brasileiros."/>
 <meta property="og:image" content="https://startouch.com.br/og-image.png"/>
 <meta property="og:url" content="https://startouch.com.br/comece"/>
 <link rel="canonical" href="https://startouch.com.br/comece"/>
@@ -66,45 +66,45 @@
 <body>
 
 <div class="container">
-  <a class="logo" href="/landing" aria-label="StarTouch â€” voltar pro inÃ­cio">
+  <a class="logo" href="/landing" aria-label="StarTouch — voltar pro início">
     <img src="/startouch-logo-dark.png" alt="StarTouch"/>
   </a>
 
   <div id="loading" class="loading">
-    <div style="font-size:32px;margin-bottom:12px"><span class="spinner">âŸ³</span></div>
-    <div>Carregando seu negÃ³cioâ€¦</div>
+    <div style="font-size:32px;margin-bottom:12px"><span class="spinner">⟳</span></div>
+    <div>Carregando seu negócio…</div>
   </div>
 
   <div id="content" style="display:none">
-    <h1>Seu link jÃ¡ estÃ¡ pronto</h1>
-    <p class="sub">Seu sistema de avaliaÃ§Ã£o jÃ¡ estÃ¡ ativo. VocÃª pode comeÃ§ar a receber avaliaÃ§Ãµes agora mesmo.</p>
+    <h1>Seu link já está pronto</h1>
+    <p class="sub">Seu sistema de avaliação já está ativo. Você pode começar a receber avaliações agora mesmo.</p>
 
     <div class="main-card">
       <div class="biz-row">
         <div class="biz-google"></div>
         <div class="biz-info">
-          <span class="biz-label">Seu negÃ³cio</span>
-          <span class="biz-name" id="bizName">â€”</span>
+          <span class="biz-label">Seu negócio</span>
+          <span class="biz-name" id="bizName">—</span>
         </div>
         <div class="status-badge"><div class="status-dot"></div>Ativo</div>
       </div>
 
-      <div class="link-label">Link de avaliaÃ§Ã£o</div>
-      <div class="link-preview" id="linkPreview">â€”</div>
+      <div class="link-label">Link de avaliação</div>
+      <div class="link-preview" id="linkPreview">—</div>
 
       <div class="btn-stack">
         <button class="btn btn-primary" id="copyBtn" onclick="copyLink()">Copiar meu link</button>
         <a class="btn btn-secondary" id="qrBtn" target="_blank" rel="noopener" onclick="onQrClick()">Baixar QR Code</a>
-        <a class="btn btn-tertiary" id="previewBtn" target="_blank" rel="noopener">Ver simulaÃ§Ã£o</a>
+        <a class="btn btn-tertiary" id="previewBtn" target="_blank" rel="noopener">Ver simulação</a>
       </div>
     </div>
 
     <div class="share-hint">
-      <span class="share-hint-icon">ðŸ’¡</span>
-      <span>Comece compartilhando este link no WhatsApp, redes sociais ou no balcÃ£o da loja.</span>
+      <span class="share-hint-icon">💡</span>
+      <span>Comece compartilhando este link no WhatsApp, redes sociais ou no balcão da loja.</span>
     </div>
 
-    <a class="next-btn" id="nextBtn" href="/app" onclick="goToPainel()">Ir para o painel â†’</a>
+    <a class="next-btn" id="nextBtn" href="/app" onclick="goToPainel()">Ir para o painel →</a>
   </div>
 </div>
 
@@ -157,7 +157,7 @@ function copyLink() {
   navigator.clipboard.writeText(reviewLink).then(() => {
     const btn = document.getElementById("copyBtn");
     btn.classList.add("copied");
-    btn.innerHTML = "âœ“ Link copiado";
+    btn.innerHTML = "✓ Link copiado";
     showToast("Link copiado!");
   });
 }
