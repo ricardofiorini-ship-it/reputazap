@@ -46,7 +46,7 @@ export default function Login({ onLogin }) {
           "\n\nDeseja criar sua conta agora? Leva 1 minuto."
         );
         if (goSignup) {
-          window.location.href = "/ativar?from=login";
+          window.location.href = "/ativar?from=web";
         } else {
           setError("Conta não encontrada. Crie sua conta em /ativar antes de entrar.");
           setLoading(false);
@@ -219,7 +219,7 @@ export default function Login({ onLogin }) {
             </form>
 
             <div style={{marginTop:20,textAlign:"center",fontSize:13,color:"#6b7280"}}>
-              Ainda não tem conta? <a href="/ativar?from=login" style={{color:"#1A73E8",fontWeight:600,textDecoration:"none"}}>Criar conta grátis →</a>
+              Ainda não tem conta? <a href="/ativar?from=web" style={{color:"#1A73E8",fontWeight:600,textDecoration:"none"}}>Criar conta grátis →</a>
             </div>
           </>
         )}
