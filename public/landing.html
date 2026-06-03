@@ -287,8 +287,6 @@
   }
   .header-cta:active { transform: translateY(1px); }
   .header-cta svg { width: 16px; height: 16px; flex-shrink: 0; }
-  /* Hover do link Ajuda */
-  .header-help:hover { color: #1A73E8 !important; background: #F1F5F9; text-decoration: none !important; }
   /* Mobile: header compacto pra "Entrar" + CTA caberem na largura da tela */
   @media (max-width: 600px) {
     .header-inner { padding: 12px 12px; gap: 6px; }
@@ -297,7 +295,6 @@
     .header-login { padding: 7px 12px; font-size: 13px; }
     .header-cta { padding: 8px 12px; font-size: 12.5px; gap: 0; flex-shrink: 0; }
     .header-cta svg { display: none; }
-    .header-help { display: none !important; } /* Ajuda fica só desktop; mobile usa o FAB do WhatsApp */
   }
   @media (max-width: 380px) {
     /* Em telas bem pequenas, "Entrar" perde texto e vira só ícone */
@@ -3504,8 +3501,7 @@
     <nav class="header-nav" aria-label="Navegação principal" style="display:none">
       <!-- Menus 'Produtos' e 'Funcionalidades' removidos a pedido (header mais limpo). -->
     </nav>
-    <a class="header-help" href="/ajuda" aria-label="Central de ajuda" style="margin-left:auto;font-size:13.5px;font-weight:600;color:#5F6368;text-decoration:none;padding:8px 12px;border-radius:8px;transition:color .15s,background .15s;">Ajuda</a>
-    <a class="header-login" href="/app" aria-label="Entrar na sua conta" style="margin-left:0;">
+    <a class="header-login" href="/app" aria-label="Entrar na sua conta">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
         <polyline points="10 17 15 12 10 7"/>
@@ -4922,7 +4918,6 @@
         <h4>Soluções</h4>
         <ul>
           <li><a href="#como-funciona">Como funciona</a></li>
-          <li><a href="/ajuda">Central de ajuda</a></li>
           <li><a href="/app">Entrar (já tenho conta)</a></li>
         </ul>
       </div>

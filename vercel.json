@@ -17,7 +17,8 @@
     { "source": "/reset.html", "destination": "/reset", "permanent": true },
     { "source": "/comece.html", "destination": "/comece", "permanent": true },
     { "source": "/diagnostico.html", "destination": "/diagnostico", "permanent": true },
-    { "source": "/plano-pro.html", "destination": "/plano-pro", "permanent": true }
+    { "source": "/plano-pro.html", "destination": "/plano-pro", "permanent": true },
+    { "source": "/ajuda.html", "destination": "/ajuda", "permanent": true }
   ],
   "rewrites": [
     { "source": "/landing", "destination": "/landing.html" },
@@ -32,6 +33,7 @@
     { "source": "/admin/estoque", "destination": "/admin-estoque.html" },
     { "source": "/ativar-codigo", "destination": "/ativar-codigo.html" },
     { "source": "/plano-pro", "destination": "/plano-pro.html" },
+    { "source": "/ajuda", "destination": "/ajuda.html" },
     { "source": "/r/:code", "destination": "/api/r/:code" },
     { "source": "/artigos", "destination": "/artigos/index.html" },
     { "source": "/artigos/:slug", "destination": "/artigos/:slug.html" },

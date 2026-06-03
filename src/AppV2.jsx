@@ -792,7 +792,8 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
     { label:'Relatórios',  icon:'📊', tabId:'relatorios', pro: true  },
     { label:'Loja',        icon:'🛒', tabId:'loja'                   },
     { label:'Configurações', icon:'⚙️', tabId:'config', hash:'negocio' },
-    { label:'Minha conta', icon:'👤', tabId:'config', hash:'conta' }
+    { label:'Minha conta', icon:'👤', tabId:'config', hash:'conta' },
+    { label:'Central de ajuda', icon:'❓', href:'/ajuda', external: true }
   ]
 
   const handleLogout = (e) => {
@@ -852,11 +853,17 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
         <div style={{ padding:'0 8px' }}>
           {items.map((it, i) => {
             const isLocked = it.pro && plan === 'free'
+            // Item com link externo (ex: Central de ajuda → /ajuda em nova aba)
+            const isExternal = !!it.external
+            const targetHref = isExternal ? it.href : (isLocked ? '/plano-pro' : '#')
             return (
               <a
                 key={i}
-                href={isLocked ? '/plano-pro' : '#'}
+                href={targetHref}
+                target={isExternal ? '_blank' : undefined}
+                rel={isExternal ? 'noopener' : undefined}
                 onClick={(e) => {
+                  if (isExternal) { onClose(); return }                    // deixa o link abrir em nova aba
                   if (isLocked) return
                   e.preventDefault()
                   onPick(it.tabId, it.hash)
@@ -878,7 +885,8 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
                     padding:'2px 7px', borderRadius: 5
                   }}>PRO</span>
                 )}
-                {!isLocked && <span style={{ color: T.textDim, fontSize: 18 }}>›</span>}
+                {!isLocked && !isExternal && <span style={{ color: T.textDim, fontSize: 18 }}>›</span>}
+                {isExternal && <span style={{ color: T.textDim, fontSize: 14 }}>↗</span>}
               </a>
             )
           })}
@@ -3230,6 +3238,31 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode 
           }}>PRO</span>
         )}
 
+        {/* Ícone de ajuda (desktop only — mobile usa o MoreSheet) */}
+        {!isMobile && (
+          <a href="/ajuda" target="_blank" rel="noopener"
+            title="Central de ajuda · /ajuda"
+            aria-label="Abrir central de ajuda"
+            style={{
+              width: 32, height: 32, borderRadius:'50%',
+              background:'transparent', color: T.textMid,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              border:'1px solid '+T.border, textDecoration:'none',
+              fontSize: 14, fontWeight: 700, transition:'all .15s'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = T.blueSoft
+              e.currentTarget.style.color = T.blue
+              e.currentTarget.style.borderColor = T.blue
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'transparent'
+              e.currentTarget.style.color = T.textMid
+              e.currentTarget.style.borderColor = T.border
+            }}
+          >?</a>
+        )}
+
         {/* Avatar clicável */}
         <button
           onClick={() => setOpen(o => !o)}
@@ -3275,6 +3308,16 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode 
             ))}
 
             <div style={{ borderTop:'1px solid '+T.border, marginTop: 4, paddingTop: 4 }}>
+              <a href="/ajuda" target="_blank" rel="noopener"
+                onClick={() => setOpen(false)}
+                style={{
+                  display:'flex', alignItems:'center', width:'100%',
+                  padding:'9px 12px', textDecoration:'none',
+                  fontSize: 13, color: T.text, gap: 8, borderRadius: 6
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = T.bg}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >❓ Central de ajuda <span style={{ marginLeft:'auto', color: T.textDim, fontSize: 11 }}>↗</span></a>
               <a href="/" onClick={handleLogout} style={{
                 display:'flex', alignItems:'center', width:'100%',
                 padding:'9px 12px', textDecoration:'none',
