@@ -181,7 +181,8 @@ async function handleActivate(req, res, user) {
     .single();
   if (updErr) return res.status(500).json({ error: updErr.message });
 
-  // Email de ativação (primeiro ou adicional)
+  // Emails de ativação (cliente + admin) — aguardados antes do res.json
+  // (serverless da Vercel corta promises órfãs)
   try {
     const { data: bizFull } = await supabase
       .from("businesses")
@@ -197,6 +198,8 @@ async function handleActivate(req, res, user) {
     const userMeta = user.user_metadata || {};
     const userName = userMeta.name || userMeta.full_name || (user.email || "").split("@")[0] || "";
 
+    const emailPromises = [];
+
     if (totalCount === 1) {
       // Primeiro dispositivo
       const tmpl = firstDeviceEmail({
@@ -205,14 +208,14 @@ async function handleActivate(req, res, user) {
         code: normalized,
         channelName: channel_name
       });
-      sendInBackground({
+      emailPromises.push(sendInBackground({
         userId: user.id,
         emailType: "first_device",
         to: user.email,
         subject: tmpl.subject,
         html: tmpl.html,
         metadata: { plate_id: plate.id, code: normalized, channel_name }
-      });
+      }));
     } else if (totalCount > 1) {
       // Dispositivo adicional (recorrente, sem idempotência por user — só por plate_id)
       const tmpl = additionalDeviceEmail({
@@ -222,14 +225,14 @@ async function handleActivate(req, res, user) {
         channelName: channel_name,
         totalCount
       });
-      sendInBackground({
+      emailPromises.push(sendInBackground({
         userId: user.id,
         emailType: "another_device",
         to: user.email,
         subject: tmpl.subject,
         html: tmpl.html,
         metadata: { plate_id: plate.id, code: normalized, channel_name, total: totalCount }
-      });
+      }));
     }
 
     // Notificação admin (pra Ricardo) — 1x por dispositivo (dedupe por plate_id)
@@ -244,7 +247,7 @@ async function handleActivate(req, res, user) {
         productType: plate.product_type,
         totalDevices: totalCount
       });
-      sendInBackground({
+      emailPromises.push(sendInBackground({
         userId: user.id,
         emailType: "admin_device_activated",
         to: adminTo,
@@ -252,8 +255,10 @@ async function handleActivate(req, res, user) {
         html: adminTmpl.html,
         metadata: { plate_id: plate.id, code: normalized, client_email: user.email, biz_id: business_id },
         dedupeByMetadata: { key: "plate_id", value: plate.id }
-      });
+      }));
     }
+
+    await Promise.allSettled(emailPromises);
   } catch (e) {
     console.error("[plates.activate] erro no email transacional:", e);
   }

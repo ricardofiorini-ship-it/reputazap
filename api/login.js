@@ -44,20 +44,22 @@ export default async function handler(req, res) {
 
     const meta = data.user.user_metadata || {};
 
-    // Bem-vindo no primeiro login Google (idempotente — só envia 1x)
+    // Bem-vindo no primeiro login Google + notificação admin (idempotentes — só 1x)
+    // Emails aguardados antes do res.json — serverless corta promises órfãs.
     if (action === "google" || id_token) {
       const name = meta.full_name || meta.name || (data.user.email || "").split("@")[0] || "";
+      const emailPromises = [];
+
       const tmpl = welcomeEmail({ userName: name });
-      sendInBackground({
+      emailPromises.push(sendInBackground({
         userId: data.user.id,
         emailType: "welcome",
         to: data.user.email,
         subject: tmpl.subject,
         html: tmpl.html,
         metadata: { source: "login_google" }
-      });
+      }));
 
-      // Notificação admin (pra Ricardo) — 1x por novo cliente Google
       const adminTo = process.env.ADMIN_NOTIFICATIONS_EMAIL;
       if (adminTo) {
         const adminTmpl = adminNewClientEmail({
@@ -66,15 +68,17 @@ export default async function handler(req, res) {
           clientPhone: meta.phone || null,
           source: "login_google"
         });
-        sendInBackground({
+        emailPromises.push(sendInBackground({
           userId: data.user.id,
           emailType: "admin_new_client",
           to: adminTo,
           subject: adminTmpl.subject,
           html: adminTmpl.html,
           metadata: { source: "login_google", client_email: data.user.email }
-        });
+        }));
       }
+
+      await Promise.allSettled(emailPromises);
     }
     res.json({
       ok: true,

@@ -87,7 +87,8 @@ export default async function handler(req, res) {
               bizName: biz.name,
               channelName: plate.channel_name
             });
-            sendInBackground({
+            // Aguarda antes do redirect — serverless corta promises órfãs
+            await sendInBackground({
               userId: biz.user_id,
               emailType: "first_review",
               to: ownerUser.email,

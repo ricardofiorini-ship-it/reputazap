@@ -34,18 +34,23 @@ export default async function handler(req, res) {
     // Retorna token direto se a sessão foi criada
     const token = data.session?.access_token || null;
 
-    // Email de boas-vindas pro cliente (background — não bloqueia resposta)
+    // Emails em paralelo, mas AGUARDADOS antes do res.json — caso contrário
+    // o serverless da Vercel termina a função antes do Resend completar
+    // (fire-and-forget não é confiável em ambiente serverless).
+    const emailPromises = [];
+
+    // 1) Boas-vindas pro cliente
     const tmpl = welcomeEmail({ userName: name });
-    sendInBackground({
+    emailPromises.push(sendInBackground({
       userId: data.user.id,
       emailType: "welcome",
       to: email,
       subject: tmpl.subject,
       html: tmpl.html,
       metadata: { source: "register" }
-    });
+    }));
 
-    // Notificação admin (pra Ricardo) — 1x por novo cliente
+    // 2) Notificação admin (pra Ricardo) — 1x por novo cliente
     const adminTo = process.env.ADMIN_NOTIFICATIONS_EMAIL;
     if (adminTo) {
       const adminTmpl = adminNewClientEmail({
@@ -54,15 +59,18 @@ export default async function handler(req, res) {
         clientPhone: phone,
         source: "register"
       });
-      sendInBackground({
+      emailPromises.push(sendInBackground({
         userId: data.user.id,
         emailType: "admin_new_client",
         to: adminTo,
         subject: adminTmpl.subject,
         html: adminTmpl.html,
         metadata: { source: "register", client_email: email }
-      });
+      }));
     }
+
+    // Aguarda paralelo (~300-800ms a mais de latência, mas garante envio)
+    await Promise.allSettled(emailPromises);
 
     res.json({
       ok: true,

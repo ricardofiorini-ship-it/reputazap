@@ -106,11 +106,12 @@ export default async function handler(req, res) {
 
     console.log("[savebiz] Sucesso! Business salvo:", data);
 
-    // Email "negócio vinculado" (idempotente — só envia 1x por user)
+    // Email "negócio vinculado" — aguardado antes do res.json
+    // (serverless da Vercel corta promises órfãs depois do return)
     const userMeta = userData.user.user_metadata || {};
     const userName = userMeta.name || userMeta.full_name || (userData.user.email || "").split("@")[0] || "";
     const tmpl = businessLinkedEmail({ userName, bizName: name });
-    sendInBackground({
+    await sendInBackground({
       userId: user_id,
       emailType: "business_linked",
       to: userData.user.email,
