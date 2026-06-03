@@ -3238,17 +3238,18 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode 
           }}>PRO</span>
         )}
 
-        {/* Ícone de ajuda (desktop only — mobile usa o MoreSheet) */}
+        {/* Botão de ajuda (desktop only — mobile usa o MoreSheet) */}
         {!isMobile && (
           <a href="/ajuda" target="_blank" rel="noopener"
-            title="Central de ajuda · /ajuda"
+            title="Abrir central de ajuda em nova aba"
             aria-label="Abrir central de ajuda"
             style={{
-              width: 32, height: 32, borderRadius:'50%',
+              display:'inline-flex', alignItems:'center', gap: 6,
+              padding:'7px 12px 7px 10px', borderRadius: 8,
               background:'transparent', color: T.textMid,
-              display:'flex', alignItems:'center', justifyContent:'center',
               border:'1px solid '+T.border, textDecoration:'none',
-              fontSize: 14, fontWeight: 700, transition:'all .15s'
+              fontSize: 13, fontWeight: 600, transition:'all .15s',
+              whiteSpace:'nowrap'
             }}
             onMouseEnter={e => {
               e.currentTarget.style.background = T.blueSoft
@@ -3260,7 +3261,14 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode 
               e.currentTarget.style.color = T.textMid
               e.currentTarget.style.borderColor = T.border
             }}
-          >?</a>
+          >
+            <span aria-hidden="true" style={{
+              display:'inline-flex', alignItems:'center', justifyContent:'center',
+              width: 18, height: 18, borderRadius:'50%',
+              background:'currentColor', color:'#fff', fontSize: 11, fontWeight: 800
+            }}>?</span>
+            <span>Ajuda</span>
+          </a>
         )}
 
         {/* Avatar clicável */}
