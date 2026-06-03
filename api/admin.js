@@ -161,24 +161,27 @@ async function handleListClients(req, res) {
   const bizByUser = {};
   (businesses || []).forEach(b => { bizByUser[b.user_id] = b; });
 
-  // Pega todas as placas e conta ativas por business_id
+  // Pega todas as placas (incluindo last_tapped_at pra calcular ultimo toque)
   const { data: plates } = await supabase
     .from("plates")
-    .select("business_id, status, code, product_type, total_taps, activated_at, channel_name");
+    .select("business_id, status, code, product_type, total_taps, last_tapped_at, activated_at, channel_name");
   const platesByBiz = {};
   (plates || []).forEach(p => {
     if (!platesByBiz[p.business_id]) platesByBiz[p.business_id] = [];
     platesByBiz[p.business_id].push(p);
   });
 
-  // Pega último snapshot de cada business (pra ter nota Google)
+  // Pega TODOS os snapshots de cada business (pra ter nota inicial + atual)
+  // Ordenado DESC: o primeiro de cada business e o mais novo; o ultimo e o mais antigo
   const { data: snapshots } = await supabase
     .from("competitor_snapshots")
     .select("business_id, snapshot_date, competitors")
     .order("snapshot_date", { ascending: false });
   const latestSnapByBiz = {};
+  const firstSnapByBiz = {};
   (snapshots || []).forEach(s => {
     if (!latestSnapByBiz[s.business_id]) latestSnapByBiz[s.business_id] = s;
+    firstSnapByBiz[s.business_id] = s; // ultima iteracao = snapshot mais antigo
   });
 
   // Monta os clientes
@@ -190,17 +193,41 @@ async function handleListClients(req, res) {
       const activePlates = bizPlates.filter(p => p.status === "active");
       const totalTaps = bizPlates.reduce((s, p) => s + (p.total_taps || 0), 0);
 
-      // Tenta achar a nota Google do snapshot (procura o próprio negócio na lista de concorrentes)
+      // Ultimo toque (max de last_tapped_at em todas as placas do negocio)
+      const lastTapAt = bizPlates.reduce((max, p) => {
+        if (!p.last_tapped_at) return max;
+        const t = new Date(p.last_tapped_at).getTime();
+        return t > max ? t : max;
+      }, 0);
+
+      // Helper pra extrair nota+reviews do snapshot procurando o proprio negocio
+      const extractMyRating = (snap) => {
+        if (!snap || !Array.isArray(snap.competitors)) return null;
+        const me = snap.competitors.find(c => c.place_id === biz?.place_id || c.isYou);
+        if (!me) return null;
+        return {
+          rating: me.rating || null,
+          reviews: me.reviews || me.user_ratings_total || null
+        };
+      };
+
+      // Nota inicial (primeiro snapshot) + atual (ultimo snapshot)
+      let initialRating = null;
+      let initialReviews = null;
+      let initialSnapDate = null;
       let googleRating = null;
       let googleReviews = null;
       if (biz) {
-        const snap = latestSnapByBiz[biz.id];
-        if (snap && Array.isArray(snap.competitors)) {
-          const me = snap.competitors.find(c => c.place_id === biz.place_id || c.isYou);
-          if (me) {
-            googleRating = me.rating || null;
-            googleReviews = me.reviews || me.user_ratings_total || null;
-          }
+        const latest = extractMyRating(latestSnapByBiz[biz.id]);
+        if (latest) {
+          googleRating = latest.rating;
+          googleReviews = latest.reviews;
+        }
+        const first = extractMyRating(firstSnapByBiz[biz.id]);
+        if (first) {
+          initialRating = first.rating;
+          initialReviews = first.reviews;
+          initialSnapDate = firstSnapByBiz[biz.id].snapshot_date;
         }
       }
 
@@ -227,20 +254,25 @@ async function handleListClients(req, res) {
           total: bizPlates.length,
           active: activePlates.length,
           totalTaps,
+          lastTapAt: lastTapAt ? new Date(lastTapAt).toISOString() : null,
           list: bizPlates.map(p => ({
             code: p.code,
             status: p.status,
             product_type: p.product_type,
             channel_name: p.channel_name,
             total_taps: p.total_taps,
+            last_tapped_at: p.last_tapped_at,
             activated_at: p.activated_at
           }))
         },
-        // Google (do snapshot semanal)
+        // Google: nota atual + inicial (do primeiro e ultimo snapshot)
         google: googleRating != null ? {
           rating: googleRating,
           reviews: googleReviews,
-          snapshot_date: latestSnapByBiz[biz?.id]?.snapshot_date || null
+          snapshot_date: latestSnapByBiz[biz?.id]?.snapshot_date || null,
+          initial_rating: initialRating,
+          initial_reviews: initialReviews,
+          initial_snapshot_date: initialSnapDate
         } : null
       };
     })

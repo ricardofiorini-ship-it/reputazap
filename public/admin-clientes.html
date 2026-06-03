@@ -150,6 +150,14 @@
   .plate-count.is-zero .pill { background: #FEE; color: #B91C1C; }
   .plate-count .total { color: #5F6368; font-size: 11.5px; font-weight: 500; }
 
+  /* Bloco taps embaixo da contagem de placas */
+  .taps {
+    margin-top: 4px; font-size: 11px; color: #5F6368;
+  }
+  .taps .num { font-weight: 700; color: #1A73E8; }
+  .taps .never { color: #9AA0A6; font-style: italic; }
+  .taps .last { color: #5F6368; }
+
   .rating {
     display: inline-flex; align-items: center; gap: 4px;
     font-weight: 700; color: #202124;
@@ -157,6 +165,24 @@
   .rating .star { color: #F59E0B; }
   .rating .num { font-size: 13px; }
   .rating .count { color: #5F6368; font-size: 11px; font-weight: 500; }
+
+  /* Evolução de nota */
+  .rating-evo {
+    display: flex; flex-direction: column; gap: 2px; font-size: 12px;
+  }
+  .rating-evo .row { display: flex; align-items: center; gap: 4px; }
+  .rating-evo .from-val { color: #5F6368; font-weight: 600; }
+  .rating-evo .arrow { color: #9AA0A6; font-size: 11px; }
+  .rating-evo .to-val { font-weight: 800; color: #202124; }
+  .rating-evo .star { color: #F59E0B; font-size: 11px; }
+  .rating-evo .trend {
+    font-size: 11px; font-weight: 700; padding: 1px 5px; border-radius: 4px;
+  }
+  .rating-evo .trend.up   { background: #DCFCE7; color: #137333; }
+  .rating-evo .trend.down { background: #FEE2E2; color: #B91C1C; }
+  .rating-evo .trend.eq   { background: #F1F5F9; color: #5F6368; }
+  .rating-evo .reviews-delta { font-size: 10.5px; color: #5F6368; }
+  .rating-evo .reviews-delta.gained { color: #137333; font-weight: 700; }
 
   .actions { display: flex; gap: 6px; }
   .actions a, .actions button {
@@ -312,8 +338,11 @@
       <option value="created_desc">Mais recentes</option>
       <option value="created_asc">Mais antigos</option>
       <option value="last_sign_in_desc">Último login (recente)</option>
-      <option value="plates_desc">Mais placas</option>
+      <option value="last_tap_desc">Último toque (recente)</option>
+      <option value="taps_desc">Mais toques</option>
+      <option value="plates_desc">Mais dispositivos</option>
       <option value="rating_desc">Maior nota Google</option>
+      <option value="growth_desc">Maior crescimento (delta nota)</option>
     </select>
     <span class="count" id="count">— clientes</span>
   </div>
@@ -552,8 +581,15 @@ function applyFiltersAndRender() {
   // Ordenação
   if (sort === "created_asc")          list.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
   if (sort === "last_sign_in_desc")    list.sort((a,b) => new Date(b.last_sign_in_at||0) - new Date(a.last_sign_in_at||0));
+  if (sort === "last_tap_desc")        list.sort((a,b) => new Date(b.plates.lastTapAt||0) - new Date(a.plates.lastTapAt||0));
+  if (sort === "taps_desc")            list.sort((a,b) => (b.plates.totalTaps||0) - (a.plates.totalTaps||0));
   if (sort === "plates_desc")          list.sort((a,b) => b.plates.active - a.plates.active);
   if (sort === "rating_desc")          list.sort((a,b) => (b.google?.rating || 0) - (a.google?.rating || 0));
+  if (sort === "growth_desc")          list.sort((a,b) => {
+    const dA = (a.google?.rating || 0) - (a.google?.initial_rating || 0);
+    const dB = (b.google?.rating || 0) - (b.google?.initial_rating || 0);
+    return dB - dA;
+  });
   // created_desc é o default (já vem ordenado do backend)
 
   document.getElementById("count").textContent = `${list.length} ${list.length === 1 ? "cliente" : "clientes"}`;
@@ -577,14 +613,69 @@ function applyFiltersAndRender() {
       ? '<span class="badge badge-pro">PRO</span>'
       : '<span class="badge badge-free">FREE</span>';
 
-    const rating = c.google
-      ? `<div class="rating"><span class="star">★</span><span class="num">${c.google.rating.toFixed(1)}</span><span class="count">(${c.google.reviews || 0})</span></div>`
-      : `<span class="muted">sem dados</span>`;
+    // Nota: evolução inicial -> atual quando temos snapshot antigo + novo
+    let rating;
+    if (c.google) {
+      const cur = c.google.rating;
+      const ini = c.google.initial_rating;
+      const curR = c.google.reviews || 0;
+      const iniR = c.google.initial_reviews || 0;
+      if (ini != null && ini !== cur) {
+        const trend = cur > ini ? 'up' : 'down';
+        const sign = cur > ini ? '+' : '';
+        const delta = (cur - ini).toFixed(1);
+        const reviewsDelta = curR - iniR;
+        rating = `
+          <div class="rating-evo">
+            <div class="row">
+              <span class="from-val">${ini.toFixed(1)}</span>
+              <span class="arrow">→</span>
+              <span class="star">★</span>
+              <span class="to-val">${cur.toFixed(1)}</span>
+              <span class="trend ${trend}">${sign}${delta}</span>
+            </div>
+            <div class="reviews-delta ${reviewsDelta > 0 ? 'gained' : ''}">
+              ${iniR} → ${curR} avaliações${reviewsDelta > 0 ? ' (+' + reviewsDelta + ')' : ''}
+            </div>
+          </div>`;
+      } else if (ini != null) {
+        // Sem mudança ainda (mesmo valor)
+        rating = `
+          <div class="rating-evo">
+            <div class="row">
+              <span class="star">★</span>
+              <span class="to-val">${cur.toFixed(1)}</span>
+              <span class="trend eq">=</span>
+            </div>
+            <div class="reviews-delta">${curR} avaliações</div>
+          </div>`;
+      } else {
+        // Só temos 1 snapshot ainda — nota atual sem histórico
+        rating = `
+          <div class="rating-evo">
+            <div class="row">
+              <span class="star">★</span>
+              <span class="to-val">${cur.toFixed(1)}</span>
+            </div>
+            <div class="reviews-delta">${curR} avaliações <span style="color:#9AA0A6;">· 1º snapshot</span></div>
+          </div>`;
+      }
+    } else {
+      rating = `<span class="muted">sem snapshot</span>`;
+    }
+
+    // Toques + ultimo toque
+    const tapsBlock = c.plates.totalTaps > 0
+      ? `<div class="taps">
+          <span class="num">${c.plates.totalTaps}</span> toques
+          ${c.plates.lastTapAt ? ` · <span class="last">último ${fmtDate(c.plates.lastTapAt)}</span>` : ''}
+        </div>`
+      : (c.plates.active > 0 ? `<div class="taps"><span class="never">nenhum toque ainda</span></div>` : '');
 
     const plates = c.plates.active > 0
-      ? `<div class="plate-count"><span class="pill">${c.plates.active}</span><span class="total">de ${c.plates.total}</span></div>`
+      ? `<div class="plate-count"><span class="pill">${c.plates.active}</span><span class="total">de ${c.plates.total}</span></div>${tapsBlock}`
       : (c.plates.total > 0
-          ? `<div class="plate-count is-zero"><span class="pill">0</span><span class="total">de ${c.plates.total}</span></div>`
+          ? `<div class="plate-count is-zero"><span class="pill">0</span><span class="total">de ${c.plates.total}</span></div>${tapsBlock}`
           : `<span class="muted">nenhum</span>`);
 
     return `
@@ -641,7 +732,9 @@ window.showPlates = function(userId) {
           ${escapeHtml(p.product_type || "—")} ${p.channel_name ? `· "${escapeHtml(p.channel_name)}"` : ""}
         </div>
         <div style="margin-top:4px;font-size:11.5px;color:#5F6368;">
-          ${p.total_taps || 0} toques · ativado em ${fmtDate(p.activated_at)}
+          <strong style="color:#1A73E8;">${p.total_taps || 0}</strong> toques
+          ${p.last_tapped_at ? ` · último ${fmtDateTime(p.last_tapped_at)}` : ' · <span style="color:#9AA0A6;font-style:italic;">nunca tocado</span>'}
+          · ativado em ${fmtDate(p.activated_at)}
         </div>
       </li>
     `).join("");
