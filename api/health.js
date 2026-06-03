@@ -17,6 +17,7 @@ const REQUIRED_ENVS = [
   // Email
   { name: "RESEND_API_KEY",       category: "email",    description: "Envio de emails (peneira + alertas)" },
   { name: "RESEND_FROM",          category: "email",    description: "'De' do email (opcional, default onboarding@resend.dev)", optional: true },
+  { name: "ADMIN_NOTIFICATIONS_EMAIL", category: "email", description: "Email do admin pra receber notificacoes de novo cliente / device ativado (opcional)", optional: true },
   // Login Google
   { name: "GOOGLE_CLIENT_ID",     category: "auth",     description: "Login com Google" },
   // Mercado Pago
