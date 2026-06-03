@@ -58,7 +58,7 @@ async function requireAdmin(req, res) {
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   if (req.method === "OPTIONS") return res.status(200).end();
 
@@ -70,7 +70,8 @@ export default async function handler(req, res) {
   try {
     if (action === "stats")        return await handleStats(req, res);
     if (action === "list-clients") return await handleListClients(req, res);
-    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats ou ?action=list-clients" });
+    if (action === "delete-user")  return await handleDeleteUser(req, res, admin);
+    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients ou delete-user" });
   } catch (err) {
     console.error("[admin] erro:", err);
     return res.status(500).json({ error: err.message });
@@ -246,4 +247,126 @@ async function handleListClients(req, res) {
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   return res.json({ ok: true, clients, count: clients.length });
+}
+
+// ── DELETE USER (cascade) ────────────────────────────────────
+// Apaga: auth.users + businesses + feedbacks + competitor_snapshots
+//        + email_log + alert_preferences (se existir)
+// Placas: devolve pro estoque (status='in_stock', business_id=null)
+//         em vez de deletar — assim recupera código pra outro cliente.
+//
+// Protecao: bloqueia se user_id = self (Ricardo nao deleta ele mesmo)
+async function handleDeleteUser(req, res, admin) {
+  if (req.method !== "POST" && req.method !== "DELETE") {
+    return res.status(405).json({ error: "Use POST ou DELETE" });
+  }
+
+  const userId = req.query.user_id || req.body?.user_id;
+  if (!userId) return res.status(400).json({ error: "user_id obrigatório" });
+
+  // Protecao: nao deletar o proprio admin
+  if (userId === admin.id) {
+    return res.status(400).json({ error: "Não pode deletar sua própria conta admin" });
+  }
+
+  const summary = {
+    user_id: userId,
+    deleted: {
+      auth_user: false,
+      businesses: 0,
+      feedbacks: 0,
+      snapshots: 0,
+      email_logs: 0,
+      alert_preferences: 0
+    },
+    plates_returned_to_stock: 0,
+    warnings: []
+  };
+
+  try {
+    // 1. Acha os businesses do user
+    const { data: bizs } = await supabase
+      .from("businesses")
+      .select("id, name")
+      .eq("user_id", userId);
+    const bizIds = (bizs || []).map(b => b.id);
+
+    // 2. Devolve placas pro estoque (mantém código + histórico de taps, perde vínculo)
+    if (bizIds.length) {
+      const { data: returnedPlates, error: platesErr } = await supabase
+        .from("plates")
+        .update({
+          business_id: null,
+          status: "in_stock",
+          channel_name: null,
+          activated_at: null
+        })
+        .in("business_id", bizIds)
+        .select("id");
+      if (platesErr) summary.warnings.push("plates: " + platesErr.message);
+      else summary.plates_returned_to_stock = (returnedPlates || []).length;
+
+      // 3. Apaga feedbacks dos businesses
+      const { count: fbCount, error: fbErr } = await supabase
+        .from("feedbacks")
+        .delete({ count: "exact" })
+        .in("business_id", bizIds);
+      if (fbErr) summary.warnings.push("feedbacks: " + fbErr.message);
+      else summary.deleted.feedbacks = fbCount || 0;
+
+      // 4. Apaga snapshots dos businesses
+      const { count: snapCount, error: snapErr } = await supabase
+        .from("competitor_snapshots")
+        .delete({ count: "exact" })
+        .in("business_id", bizIds);
+      if (snapErr) summary.warnings.push("snapshots: " + snapErr.message);
+      else summary.deleted.snapshots = snapCount || 0;
+
+      // 5. Apaga os businesses
+      const { count: bizCount, error: bizDelErr } = await supabase
+        .from("businesses")
+        .delete({ count: "exact" })
+        .eq("user_id", userId);
+      if (bizDelErr) summary.warnings.push("businesses: " + bizDelErr.message);
+      else summary.deleted.businesses = bizCount || 0;
+    }
+
+    // 6. Apaga email_log do user (se a tabela existir)
+    try {
+      const { count: emailCount } = await supabase
+        .from("email_log")
+        .delete({ count: "exact" })
+        .eq("user_id", userId);
+      summary.deleted.email_logs = emailCount || 0;
+    } catch (e) {
+      summary.warnings.push("email_log: " + e.message);
+    }
+
+    // 7. Apaga alert_preferences do user (se a tabela existir)
+    try {
+      const { count: alertCount } = await supabase
+        .from("alert_preferences")
+        .delete({ count: "exact" })
+        .eq("user_id", userId);
+      summary.deleted.alert_preferences = alertCount || 0;
+    } catch (e) {
+      summary.warnings.push("alert_preferences: " + e.message);
+    }
+
+    // 8. Por fim, deleta o user em auth.users
+    const { error: authErr } = await supabase.auth.admin.deleteUser(userId);
+    if (authErr) {
+      return res.status(500).json({
+        error: "Dados removidos mas auth.user não deletou: " + authErr.message,
+        summary
+      });
+    }
+    summary.deleted.auth_user = true;
+
+    console.log("[admin.delete-user]", JSON.stringify(summary));
+    return res.json({ ok: true, summary });
+  } catch (err) {
+    console.error("[admin.delete-user] erro:", err);
+    return res.status(500).json({ error: err.message, summary });
+  }
 }

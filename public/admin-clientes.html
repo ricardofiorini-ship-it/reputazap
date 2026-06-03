@@ -167,6 +167,44 @@
   .actions a:hover, .actions button:hover { background: #E5E7EB; color: #202124; }
   .actions .is-wa { background: #DCFCE7; color: #166534; }
   .actions .is-wa:hover { background: #BBF7D0; }
+  .actions .is-danger { background: #FEE2E2; color: #B91C1C; }
+  .actions .is-danger:hover { background: #FCA5A5; color: #7F1D1D; }
+
+  /* Modal delete */
+  .del-list {
+    list-style: none; background: #F8FAFC; border: 1px solid #E5E7EB;
+    border-radius: 8px; padding: 12px 14px; margin: 12px 0; font-size: 13px;
+  }
+  .del-list li {
+    padding: 4px 0; color: #3C4043; display: flex; gap: 8px;
+  }
+  .del-list li::before { content: '•'; color: #9AA0A6; }
+  .del-warning {
+    background: #FEF7E0; border: 1px solid #FBBC04; border-radius: 8px;
+    padding: 12px; margin: 12px 0; font-size: 13px; color: #78350F;
+  }
+  .del-warning strong { color: #92400E; }
+  .modal .danger-buttons {
+    display: flex; gap: 8px; margin-top: 16px;
+  }
+  .modal .btn-cancel {
+    flex: 1; background: #F1F5F9; border: none; padding: 11px;
+    border-radius: 8px; cursor: pointer; font-family: inherit;
+    font-size: 14px; font-weight: 600; color: #5F6368;
+  }
+  .modal .btn-cancel:hover { background: #E5E7EB; }
+  .modal .btn-danger {
+    flex: 1; background: #DC2626; color: #fff; border: none; padding: 11px;
+    border-radius: 8px; cursor: pointer; font-family: inherit;
+    font-size: 14px; font-weight: 700;
+  }
+  .modal .btn-danger:hover { background: #B91C1C; }
+  .modal .btn-danger:disabled { background: #FCA5A5; cursor: not-allowed; }
+  .modal input.confirm-input {
+    width: 100%; padding: 10px 12px; border: 1px solid #E5E7EB; border-radius: 8px;
+    font-size: 14px; font-family: inherit; outline: none; margin: 8px 0 4px;
+  }
+  .modal input.confirm-input:focus { border-color: #DC2626; }
 
   .nodata {
     padding: 50px 20px; text-align: center; color: #5F6368;
@@ -313,6 +351,27 @@
     <p class="modal-sub" id="modal-sub"></p>
     <ul class="modal-list" id="modal-list"></ul>
     <button class="close" onclick="document.getElementById('modal').classList.remove('show')">Fechar</button>
+  </div>
+</div>
+
+<!-- Modal: confirmar delete -->
+<div class="modal-bg" id="del-modal">
+  <div class="modal">
+    <h2 style="color:#B91C1C;">🗑️ Apagar este cliente?</h2>
+    <p class="modal-sub" id="del-target"></p>
+    <p style="font-size:13.5px;color:#3C4043;margin-bottom:8px;">Vai apagar:</p>
+    <ul class="del-list" id="del-list"></ul>
+    <div class="del-warning" id="del-warning" style="display:none;"></div>
+    <div id="del-confirm-box" style="display:none;">
+      <p style="font-size:13px;color:#78350F;margin-top:8px;">
+        Como esse cliente tem dados de uso real, digite <strong>APAGAR</strong> pra confirmar:
+      </p>
+      <input class="confirm-input" id="del-confirm-input" type="text" placeholder="Digite APAGAR"/>
+    </div>
+    <div class="danger-buttons">
+      <button class="btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+      <button class="btn-danger" id="btn-confirm-delete" disabled>Apagar definitivamente</button>
+    </div>
   </div>
 </div>
 
@@ -551,6 +610,7 @@ function applyFiltersAndRender() {
             ${c.plates.total > 0 ? `<button onclick="showPlates('${c.user_id}')" title="Ver dispositivos">📦</button>` : ""}
             ${waLink ? `<a class="is-wa" href="${waLink}" target="_blank" rel="noopener" title="Abrir WhatsApp">💬</a>` : ""}
             <a href="mailto:${escapeHtml(c.email)}" title="Enviar email">✉</a>
+            <button class="is-danger" onclick="askDelete('${c.user_id}')" title="Apagar este cliente">🗑️</button>
           </div>
         </td>
       </tr>
@@ -593,6 +653,128 @@ window.showPlates = function(userId) {
 document.getElementById("modal").addEventListener("click", (e) => {
   if (e.target.id === "modal") e.currentTarget.classList.remove("show");
 });
+
+// ────────────────────────────────────────────────────────────
+// DELETE CLIENTE (cascade + voltar placas pro estoque)
+// ────────────────────────────────────────────────────────────
+let deleteTargetUserId = null;
+
+window.askDelete = function(userId) {
+  const c = allClients.find(x => x.user_id === userId);
+  if (!c) return;
+  deleteTargetUserId = userId;
+
+  // Monta a lista do que vai ser apagado
+  const items = [];
+  items.push(`Conta de login (auth): <code>${escapeHtml(c.email)}</code>`);
+  if (c.business) items.push(`Negócio "<strong>${escapeHtml(c.business.name || "")}</strong>" (vínculo com Google Maps)`);
+  if (c.plates.total > 0) {
+    items.push(`<strong>${c.plates.total}</strong> dispositivo${c.plates.total > 1 ? "s" : ""} <span style="color:#5F6368;">— voltam pro estoque, não são apagados</span>`);
+  }
+  // Estimativa: feedbacks, snapshots e email_logs são apagados no backend; aqui só sinalizamos
+  items.push("Feedbacks privados (Peneira) deste cliente");
+  items.push("Snapshots semanais de concorrentes deste cliente");
+  items.push("Histórico de emails enviados");
+  items.push("Preferências de alertas");
+
+  document.getElementById("del-target").innerHTML = `
+    <strong>${escapeHtml(c.name || c.email)}</strong> · ${escapeHtml(c.email)}<br/>
+    ${c.business ? escapeHtml(c.business.name || "") : '<em style="color:#9AA0A6;">sem negócio cadastrado</em>'}
+  `;
+  document.getElementById("del-list").innerHTML = items.map(i => `<li><span>${i}</span></li>`).join("");
+
+  // Proteção: se cliente tem dados reais de uso, força digitar "APAGAR"
+  const totalTaps = c.plates.totalTaps || 0;
+  const hasData = totalTaps >= 3 || (c.google && c.google.reviews > 0);
+  const warn = document.getElementById("del-warning");
+  const confirmBox = document.getElementById("del-confirm-box");
+  const confirmInput = document.getElementById("del-confirm-input");
+  const btn = document.getElementById("btn-confirm-delete");
+
+  if (hasData) {
+    const reason = totalTaps >= 3
+      ? `<strong>${totalTaps} toques registrados</strong> nos dispositivos`
+      : `<strong>${c.google.reviews}</strong> avaliações no Google`;
+    warn.innerHTML = `⚠️ <strong>Este cliente tem dados reais de uso</strong> — ${reason}. Tem certeza?`;
+    warn.style.display = "block";
+    confirmBox.style.display = "block";
+    confirmInput.value = "";
+    btn.disabled = true;
+    confirmInput.oninput = () => {
+      btn.disabled = confirmInput.value.trim().toUpperCase() !== "APAGAR";
+    };
+  } else {
+    warn.style.display = "none";
+    confirmBox.style.display = "none";
+    btn.disabled = false;
+  }
+
+  btn.textContent = "Apagar definitivamente";
+  document.getElementById("del-modal").classList.add("show");
+};
+
+window.closeDeleteModal = function() {
+  document.getElementById("del-modal").classList.remove("show");
+  deleteTargetUserId = null;
+};
+
+document.getElementById("del-modal").addEventListener("click", (e) => {
+  if (e.target.id === "del-modal") closeDeleteModal();
+});
+
+document.getElementById("btn-confirm-delete").addEventListener("click", async () => {
+  if (!deleteTargetUserId) return;
+  const btn = document.getElementById("btn-confirm-delete");
+  btn.disabled = true;
+  btn.textContent = "Apagando…";
+
+  try {
+    const r = await fetch("/api/admin?action=delete-user&user_id=" + encodeURIComponent(deleteTargetUserId), {
+      method: "POST",
+      headers: { Authorization: "Bearer " + getToken() }
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      alert("Erro: " + (data.error || "falha ao apagar"));
+      btn.disabled = false;
+      btn.textContent = "Apagar definitivamente";
+      return;
+    }
+    // Remove da lista localmente (sem refetch — mais rápido)
+    allClients = allClients.filter(c => c.user_id !== deleteTargetUserId);
+    closeDeleteModal();
+    applyFiltersAndRender();
+    // Refresh stats em background
+    fetchStats().then(s => { if (s.stats) renderStats(s.stats); }).catch(() => {});
+
+    const sum = data.summary || {};
+    const msg = [
+      "✅ Cliente apagado.",
+      sum.plates_returned_to_stock > 0 ? `${sum.plates_returned_to_stock} dispositivo(s) voltaram pro estoque.` : null,
+      sum.deleted?.feedbacks > 0 ? `${sum.deleted.feedbacks} feedback(s) apagados.` : null
+    ].filter(Boolean).join(" ");
+    // Toast simples
+    showToast(msg);
+  } catch (e) {
+    alert("Erro de rede: " + e.message);
+    btn.disabled = false;
+    btn.textContent = "Apagar definitivamente";
+  }
+});
+
+// Toast simples
+function showToast(msg) {
+  let t = document.getElementById("st-toast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "st-toast";
+    t.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#137333;color:#fff;padding:12px 20px;border-radius:10px;font-size:13.5px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.15);z-index:200;max-width:90vw;text-align:center;";
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = "1";
+  setTimeout(() => { t.style.transition = "opacity .4s"; t.style.opacity = "0"; }, 4500);
+}
 
 // ────────────────────────────────────────────────────────────
 // FILTROS / EVENTOS
