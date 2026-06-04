@@ -3361,13 +3361,67 @@ function KpiCard({ icon, label, value, sub, trend }) {
   )
 }
 
+// Sugestões REAIS da semana — calculadas do estado competitivo do próprio
+// negócio (mesma fórmula do ranking: gscore = nota × log10(avaliações+1)).
+// Sem MOCK: cada negócio recebe conselho dos seus próprios números.
+// Só roda quando há dado real de concorrente (chamada gated por hasComp).
+function realWeekActions(d) {
+  const actions = []
+  const rating = d.kpis.rating
+  const reviews = d.kpis.reviewCount
+  const pos = d.kpis.rankingPos
+  const comp = d.competitors || []
+  const toNext = d.kpis.nextGoal?.reviewsToNext ?? 0
+  const targetPos = d.kpis.nextGoal?.targetPosition ?? Math.max(1, pos - 1)
+  const gscore = (rt, rv) => (rt || 0) * Math.log10((rv || 0) + 1)
+
+  // 1) Como subir de posição (ou manter o topo)
+  if (pos <= 1) {
+    actions.push({ icon: '🏆', text: 'Você é #1 na sua categoria. Continue coletando avaliações toda semana pra manter a liderança — quem para de coletar acaba ultrapassado.', kind: 'goal' })
+  } else {
+    const ahead = comp.find(c => c.pos === pos - 1)
+    // Alavanca "nota": que nota te empataria com quem está à frente, mantendo as avaliações atuais
+    let ratingShortcut = null
+    if (ahead) {
+      const ratingNeeded = gscore(ahead.rating, ahead.reviews) / Math.log10(reviews + 1)
+      if (ratingNeeded > rating && ratingNeeded <= 5 && (ratingNeeded - rating) <= 0.3) {
+        ratingShortcut = Math.ceil(ratingNeeded * 10) / 10
+      }
+    }
+    if (toNext <= 0 && ahead) {
+      // Mesmo volume de avaliações, atrás por nota → o único caminho é a nota
+      actions.push({ icon: '🎯', text: `Você tem volume parecido com a ${targetPos}ª posição, mas perde na nota. Foque em avaliações 5★ pra subir de ${rating.toFixed(1)} e ultrapassar.`, kind: 'goal' })
+    } else if (ratingShortcut && toNext > 5) {
+      // Quando faltam muitas avaliações, subir a nota é o atalho
+      actions.push({ icon: '🎯', text: `Atalho: suba sua nota de ${rating.toFixed(1)} pra ${ratingShortcut.toFixed(1)} e você passa pra ${targetPos}ª posição — bem mais rápido do que coletar ~${toNext} avaliações.`, kind: 'goal' })
+    } else {
+      actions.push({ icon: '🎯', text: `Faltam ~${toNext} ${toNext === 1 ? 'avaliação' : 'avaliações'} pra alcançar a ${targetPos}ª posição. Foque em coletar no atendimento essa semana.`, kind: 'goal' })
+    }
+  }
+
+  // 2) Coleta ligada aos pontos de captação (placas)
+  const hasActivePlates = (d.activePlates || []).length > 0
+  if (hasActivePlates) {
+    actions.push({ icon: '📲', text: 'Peça pro cliente tocar a placa logo após o atendimento — o momento da satisfação é quando ele mais avalia.', kind: 'action' })
+  } else {
+    actions.push({ icon: '📲', text: 'Ative um dispositivo (placa de balcão ou cartão NFC) pra coletar avaliações no automático — cada toque do cliente vira uma avaliação.', kind: 'action' })
+  }
+
+  // 3) Qualidade da nota (se ainda não chegou no teto)
+  if (rating < 4.9) {
+    actions.push({ icon: '⭐', text: 'Atendeu bem? Peça a avaliação na hora. Notas 5★ recentes puxam sua média pra cima e te separam dos concorrentes.', kind: 'tip' })
+  }
+
+  return actions.slice(0, 3)
+}
+
 // Sugestões da semana (push de direção pro dono)
 function WeekActions({ items, isMobile }) {
   return (
     <Card>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 14, gap: 8 }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color: T.text, margin: 0 }}>🎯 Sugestões pra essa semana</h3>
-        <span style={{ fontSize: 11.5, color: T.textDim }}>3 ações</span>
+        <span style={{ fontSize: 11.5, color: T.textDim }}>{items.length} {items.length === 1 ? 'ação' : 'ações'}</span>
       </div>
       <div style={{
         display:'grid',
@@ -4844,13 +4898,12 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
           </div>
         </Section>
 
-        {/* SUGESTÕES DA SEMANA (push de direção) — só em demo.
-            Em produção real ainda é conteúdo MOCK ("2 avaliações pro Top 2"),
-            que nao reflete os numeros reais do negocio. Esconde ate ter
-            calculo real (gscore: nota × log10(avaliacoes)). */}
-        {demoMode && (
+        {/* SUGESTÕES DA SEMANA (push de direção).
+            Demo: itens MOCK. Real: calculadas do estado competitivo (realWeekActions).
+            Só com dado real de concorrente (hasComp) — senão não há o que sugerir. */}
+        {(demoMode || hasComp) && (
         <Section>
-          <WeekActions items={d.weekActions} isMobile={isMobile} />
+          <WeekActions items={demoMode ? d.weekActions : realWeekActions(d)} isMobile={isMobile} />
         </Section>
         )}
 
