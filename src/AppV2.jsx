@@ -4869,32 +4869,44 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
         </Section>
         )}
 
-        {/* RANKING (real) + EVOLUTION (MOCK — gráfico/+41% só em demo).
-            Sem o gráfico, o ranking ocupa largura natural (não estica). */}
-        {(demoMode || hasComp) && (
-        <Section>
-          <div style={{
-            display:'grid',
-            gridTemplateColumns: isMobile ? '1fr' : demoMode ? 'minmax(0, 420px) 1fr' : 'minmax(0, 460px)',
-            gap: isMobile ? 14 : 24
-          }}>
-            <RankingList items={d.ranking} isMobile={isMobile} plan={plan} category={d.activeCategory} onEditCategory={() => navigateFromMore('config', 'negocio')} />
-            {demoMode && <EvolutionChart data={d.evolution} growthPct={d.growthPct} isMobile={isMobile} />}
-          </div>
-        </Section>
+        {demoMode ? (
+          <>
+            {/* DEMO: Ranking + gráfico de evolução, depois Oportunidades + Avaliações */}
+            <Section>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 420px) 1fr', gap: isMobile ? 14 : 24 }}>
+                <RankingList items={d.ranking} isMobile={isMobile} plan={plan} category={d.activeCategory} onEditCategory={() => navigateFromMore('config', 'negocio')} />
+                <EvolutionChart data={d.evolution} growthPct={d.growthPct} isMobile={isMobile} />
+              </div>
+            </Section>
+            <Section>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 360px) 1fr', gap: isMobile ? 14 : 24 }}>
+                <Opportunities count={d.unrepliedReviews} placeId={d.biz.placeId} />
+                <RecentReviews items={d.recentReviews} trend={d.trend} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
+              </div>
+            </Section>
+          </>
+        ) : (
+          <>
+            {/* REAL: sem gráfico MOCK. Ranking ao lado das Avaliações (preenche o espaço
+                que sobrou do gráfico); Oportunidades vira faixa de largura total embaixo. */}
+            {hasComp ? (
+              <Section>
+                <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 460px) 1fr', gap: isMobile ? 14 : 24, alignItems:'start' }}>
+                  <RankingList items={d.ranking} isMobile={isMobile} plan={plan} category={d.activeCategory} onEditCategory={() => navigateFromMore('config', 'negocio')} />
+                  <RecentReviews items={d.recentReviews} trend={null} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
+                </div>
+              </Section>
+            ) : (
+              // Sem dado de concorrente: só as avaliações reais, largura total.
+              <Section>
+                <RecentReviews items={d.recentReviews} trend={null} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
+              </Section>
+            )}
+            <Section>
+              <Opportunities count={null} placeId={d.biz.placeId} />
+            </Section>
+          </>
         )}
-
-        {/* OPPORTUNITY + RECENT REVIEWS */}
-        <Section>
-          <div style={{
-            display:'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 360px) 1fr',
-            gap: isMobile ? 14 : 24
-          }}>
-            <Opportunities count={demoMode ? d.unrepliedReviews : null} placeId={d.biz.placeId} />
-            <RecentReviews items={d.recentReviews} trend={demoMode ? d.trend : null} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
-          </div>
-        </Section>
 
         {/* CAPTURE POINTS — id pra scroll automático de /app#pontos-de-captacao */}
         <Section id="pontos-de-captacao">
