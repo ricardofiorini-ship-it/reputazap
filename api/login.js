@@ -54,7 +54,7 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { email, password, id_token, action } = req.body;
+  const { email, password, id_token, action, allow_signup } = req.body;
 
   try {
     let data, error;
@@ -68,6 +68,8 @@ export default async function handler(req, res) {
       // No /app queremos so LOGIN — cadastro tem que passar pelo fluxo do /ativar
       // (que vincula o negocio do Google). Sem esse check, sobravam contas orfas
       // sem business.
+      // EXCECAO: o fluxo de ativacao manda allow_signup=true — la o cadastro via
+      // Google E o caminho desejado (e o negocio e vinculado logo em seguida).
       // Decodifica o email do id_token (sem validar — Supabase valida depois)
       // e checa antes se ja existe.
       const tokenEmail = decodeJwtEmail(id_token);
@@ -75,13 +77,16 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Token Google inválido (sem email)" });
       }
       const existingUser = await findUserByEmail(tokenEmail);
-      if (!existingUser) {
+      if (!existingUser && !allow_signup) {
+        // Login puro (/app): nao cria conta orfa.
         return res.status(404).json({
           error: "no_account",
           message: "Você ainda não tem conta no StarTouch. Crie sua conta primeiro pra começar.",
           email: tokenEmail
         });
       }
+      // Se chegou aqui sem existingUser, allow_signup=true: o signInWithIdToken
+      // abaixo cria a conta automaticamente.
 
       ({ data, error } = await supabase.auth.signInWithIdToken({
         provider: "google",

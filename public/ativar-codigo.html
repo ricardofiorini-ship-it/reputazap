@@ -277,10 +277,12 @@ async function handleGoogleCredential(response){
     const r=await fetch("/api/login",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({action:"google",id_token:idToken})
+      // allow_signup: aqui (ativacao) o Google PODE criar a conta — o negocio
+      // e vinculado logo depois. A trava de "so login" vale so no /app.
+      body:JSON.stringify({action:"google",id_token:idToken,allow_signup:true})
     });
     const d=await r.json();
-    // Google sem conta StarTouch: nao e erro — e cliente novo. Manda pro cadastro.
+    // Fallback: se por algum motivo voltar no_account, manda pro cadastro manual.
     if(r.status===404 && d.error==="no_account"){
       alert(d.message || "Você ainda não tem conta StarTouch. Vamos criar a sua agora — leva 1 minuto.");
       show("screenNew");
