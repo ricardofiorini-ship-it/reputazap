@@ -500,7 +500,7 @@ function buildData(real, user, demoMode) {
             color: colorFromName(name)
           }
         })
-      : MOCK.recentReviews,
+      : [],  // negócio real sem reviews: empty state honesto (não MOCK "Carla Souza")
     user: {
       ...MOCK.user,
       name: user?.name || user?.email || MOCK.user.name,
@@ -3762,7 +3762,9 @@ function Opportunities({ count, placeId }) {
         <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>⚠️</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color:'#78350F', margin:'0 0 8px', lineHeight: 1.3 }}>
-            Você possui <span style={{ color: T.amber }}>{count} avaliações</span> aguardando resposta.
+            {count != null
+              ? <>Você possui <span style={{ color: T.amber }}>{count} avaliações</span> aguardando resposta.</>
+              : <>Responda suas avaliações no Google.</>}
           </h3>
           <p style={{ fontSize: 13, color:'#92400E', margin: 0, lineHeight: 1.55 }}>
             Empresas que respondem avaliações transmitem mais confiança e podem melhorar sua presença no Google.
@@ -3831,6 +3833,11 @@ function RecentReviews({ items, trend, isMobile, onSeeAll }) {
           <span>Média recente <strong>{trend.recentAvg.toFixed(1)}</strong> · {label} média geral <strong>{trend.overallAvg.toFixed(1)}</strong></span>
         </div>
       )}
+      {items.length === 0 ? (
+        <p style={{ fontSize: 13, color: T.textMid, margin: 0, lineHeight: 1.55 }}>
+          Ainda não há avaliações recentes pra mostrar. Assim que chegarem avaliações no seu Google, elas aparecem aqui.
+        </p>
+      ) : (
       <ul style={{ listStyle:'none', padding: 0, margin: 0 }}>
         {items.map((r, i) => (
           <li key={i} style={{
@@ -3854,6 +3861,7 @@ function RecentReviews({ items, trend, isMobile, onSeeAll }) {
           </li>
         ))}
       </ul>
+      )}
     </Card>
   )
 }
@@ -4669,6 +4677,10 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
   // Compõe dados: real sobrescreve mock; mock preenche lacunas
   const d = buildData(real, user, demoMode)
 
+  // Tem dados REAIS de concorrente? (lista vazia = API não retornou ranking).
+  // Usado pra esconder KPIs de ranking/posição quando seriam MOCK num negócio real.
+  const hasComp = (d.competitors && d.competitors.length > 0)
+
   // Header usa nome do negócio real
   const headerBizName = d.biz.name
 
@@ -4814,18 +4826,20 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
           </p>
         </div>
 
-        {/* KPI ROW — 6 cards (mobile vira 2x3, desktop continua 6 colunas) */}
+        {/* KPI ROW — grid flexível: nº de cards varia conforme dados reais.
+            Trends fixos (+0.4/+2/+3) e "Últimos 30 dias" são MOCK → só em demo.
+            Ranking/Próxima Meta só aparecem com dado real de concorrente. */}
         <Section>
           <div style={{
             display:'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(6, 1fr)',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(160px, 1fr))',
             gap: isMobile ? 10 : 12
           }}>
-            <KpiCard icon="⭐" label="Nota Google"     value={d.kpis.rating.toFixed(1)} sub="Sua reputação atual"            trend={+0.4} />
-            <KpiCard icon="📝" label="Avaliações"      value={d.kpis.reviewCount}      sub="Total recebidas"                trend={+d.kpis.newLast30Days} />
-            <KpiCard icon="🏆" label="Ranking local"   value={`#${d.kpis.rankingPos}`}  sub={`Entre ${d.kpis.totalCompetitors} empresas`} trend={+2} />
-            <KpiCard icon="📈" label="Últimos 30 dias" value={`+${d.kpis.newLast30Days}`} sub="Novas avaliações"             trend={+3} />
-            <KpiCard icon="🎯" label="Próxima Meta"    value={`${d.kpis.nextGoal.reviewsToNext} ${d.kpis.nextGoal.reviewsToNext === 1 ? 'avaliação' : 'avaliações'}`} sub={`Para o Top ${d.kpis.nextGoal.targetPosition}`} />
+            <KpiCard icon="⭐" label="Nota Google"     value={d.kpis.rating.toFixed(1)} sub="Sua reputação atual"            trend={demoMode ? +0.4 : undefined} />
+            <KpiCard icon="📝" label="Avaliações"      value={d.kpis.reviewCount}      sub="Total recebidas"                trend={demoMode ? +d.kpis.newLast30Days : undefined} />
+            {(demoMode || hasComp) && <KpiCard icon="🏆" label="Ranking local"   value={`#${d.kpis.rankingPos}`}  sub={`Entre ${d.kpis.totalCompetitors} empresas`} trend={demoMode ? +2 : undefined} />}
+            {demoMode && <KpiCard icon="📈" label="Últimos 30 dias" value={`+${d.kpis.newLast30Days}`} sub="Novas avaliações"             trend={+3} />}
+            {(demoMode || hasComp) && <KpiCard icon="🎯" label="Próxima Meta"    value={`${d.kpis.nextGoal.reviewsToNext} ${d.kpis.nextGoal.reviewsToNext === 1 ? 'avaliação' : 'avaliações'}`} sub={`Para o Top ${d.kpis.nextGoal.targetPosition}`} />}
             <KpiCard icon="🏅" label="Score StarTouch" value={`${calcStarTouchScore(d)}`} sub="Sua presença local · 0–100" />
           </div>
         </Section>
@@ -4840,7 +4854,9 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
         </Section>
         )}
 
-        {/* HERO POSITION = card de RESULTADO (sem CTA pra Pro) */}
+        {/* HERO POSITION = card de RESULTADO (sem CTA pra Pro).
+            Depende de posição real → só com dado de concorrente. */}
+        {(demoMode || hasComp) && (
         <Section>
           <HeroPosition
             progressPct={d.hero.progressPct}
@@ -4851,18 +4867,22 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
             onActivatePlate={() => setActivatePlateOpen(true)}
           />
         </Section>
+        )}
 
-        {/* RANKING (conversor pra Pro) + EVOLUTION (conquista) */}
+        {/* RANKING (real) + EVOLUTION (MOCK — gráfico/+41% só em demo).
+            Sem o gráfico, o ranking ocupa largura natural (não estica). */}
+        {(demoMode || hasComp) && (
         <Section>
           <div style={{
             display:'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 420px) 1fr',
+            gridTemplateColumns: isMobile ? '1fr' : demoMode ? 'minmax(0, 420px) 1fr' : 'minmax(0, 460px)',
             gap: isMobile ? 14 : 24
           }}>
             <RankingList items={d.ranking} isMobile={isMobile} plan={plan} category={d.activeCategory} onEditCategory={() => navigateFromMore('config', 'negocio')} />
-            <EvolutionChart data={d.evolution} growthPct={d.growthPct} isMobile={isMobile} />
+            {demoMode && <EvolutionChart data={d.evolution} growthPct={d.growthPct} isMobile={isMobile} />}
           </div>
         </Section>
+        )}
 
         {/* OPPORTUNITY + RECENT REVIEWS */}
         <Section>
@@ -4871,8 +4891,8 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
             gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 360px) 1fr',
             gap: isMobile ? 14 : 24
           }}>
-            <Opportunities count={d.unrepliedReviews} placeId={d.biz.placeId} />
-            <RecentReviews items={d.recentReviews} trend={d.trend} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
+            <Opportunities count={demoMode ? d.unrepliedReviews : null} placeId={d.biz.placeId} />
+            <RecentReviews items={d.recentReviews} trend={demoMode ? d.trend : null} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
           </div>
         </Section>
 
