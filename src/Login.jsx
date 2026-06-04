@@ -180,7 +180,7 @@ export default function Login({ onLogin }) {
         {mode==="login"&&(
           <>
             <div style={{textAlign:"center",marginBottom:24}}>
-              <div style={{fontFamily:"'Inter','General Sans',sans-serif",fontSize:24,fontWeight:700,color:"#0f172a",marginBottom:6}}>Já tem conta?</div>
+              <div style={{fontFamily:"'Inter','General Sans',sans-serif",fontSize:24,fontWeight:700,color:"#0f172a",marginBottom:6}}>Já tem conta StarTouch?</div>
               <div style={{fontSize:13,color:"#6b7280"}}>Entre pra acessar seu painel</div>
             </div>
 
