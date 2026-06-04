@@ -4830,10 +4830,15 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
           </div>
         </Section>
 
-        {/* SUGESTÕES DA SEMANA (push de direção) */}
+        {/* SUGESTÕES DA SEMANA (push de direção) — só em demo.
+            Em produção real ainda é conteúdo MOCK ("2 avaliações pro Top 2"),
+            que nao reflete os numeros reais do negocio. Esconde ate ter
+            calculo real (gscore: nota × log10(avaliacoes)). */}
+        {demoMode && (
         <Section>
           <WeekActions items={d.weekActions} isMobile={isMobile} />
         </Section>
+        )}
 
         {/* HERO POSITION = card de RESULTADO (sem CTA pra Pro) */}
         <Section>
