@@ -101,7 +101,7 @@ async function handleListStock(req, res, user) {
   if (!isAdmin(user)) return res.status(403).json({ error: "Acesso restrito ao admin" });
   const { data, error } = await supabase
     .from("plates")
-    .select("id, code, product_type, status, source, channel_name, total_taps, created_at, activated_at, batch_id")
+    .select("id, code, product_type, status, source, channel_name, total_taps, created_at, activated_at, batch_id, production_batches(batch_name)")
     .order("created_at", { ascending: false })
     .limit(2000);
   if (error) return res.status(500).json({ error: error.message });
