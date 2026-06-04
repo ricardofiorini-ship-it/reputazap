@@ -39,13 +39,13 @@ Helpers em `api/_lib/` (prefixo `_` = não vira function): `plates.js` (geraçã
 
 Fluxo end-to-end funcionando:
 - **Onboarding:** cadastro → `savebiz` → dashboard.
-- **Dashboard como vitrine:** 6 produtos (placa balcão, plaquinha mesa, placa parede, cartões NFC + QR Code próprio + link direto). Hardware com link Mercado Livre placeholder; QR e link são gerados pelo app. Cada card mostra inline o flow conforme o plano (Free → direto pro Google, Pro → peneira).
-- **`avaliar.html`:** roteia por plano. Pro vê peneira (positivo→Google, negativo→form que envia email pro dono via Resend). Free vai direto pra step neutra de avaliação no Google. Anti-dupla avaliação por device (localStorage 30 dias) roda em ambos.
+- **Dashboard como vitrine:** 6 produtos (placa balcão, plaquinha mesa, placa parede, cartões NFC + QR Code próprio + link direto). Hardware com link Mercado Livre placeholder; QR e link são gerados pelo app.
+- **`avaliar.html`:** ao abrir (toque/scan/link), redireciona **direto pro Google Meu Negócio** pra avaliar — igual pra todos, sem rotear por plano. Anti-dupla avaliação por device (localStorage 30 dias). **Peneira REMOVIDA em 2026-05-23** (commit `95b41d2`): não há mais desvio do insatisfeito pro privado. As telas da peneira (escolha positivo/negativo + form privado) seguem no HTML como código morto — nunca exibidas.
 
 ## Pendências
 
 1. Hardware NFC: os 4 cards do dashboard apontam pro mesmo SKU Mercado Livre placeholder. Trocar por links específicos quando tiver SKU por produto.
-2. `RESEND_API_KEY` precisa ser setada na Vercel pro envio de email da peneira Pro funcionar (sem ela, feedback é salvo no Supabase mas email é skipado com log).
+2. `RESEND_API_KEY` precisa ser setada na Vercel pros emails transacionais (boas-vindas, dispositivo ativado, notificações admin) funcionarem (sem ela, o envio é skipado com log). Obs: não é mais usada pra peneira — ela foi removida.
 3. Deploy backend no Railway (avaliar se ainda faz sentido com Vercel functions).
 4. Setup Mercado Pago (ver seção abaixo) — provedor ativo.
 
