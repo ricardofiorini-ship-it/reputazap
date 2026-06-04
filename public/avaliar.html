@@ -44,29 +44,12 @@
   .step{animation:fadeUp 0.35s ease;}
   .step.hidden{display:none;}
 
-  /* Avatar do negocio (foto Places ou inicial em circulo verde) */
-  .biz-avatar{
-    display:none;width:80px;height:80px;
-    margin:32px auto 24px;
-    border-radius:50%;
-    background:#1A73E8;color:#fff;
-    font-weight:700;font-size:32px;line-height:1;
-    align-items:center;justify-content:center;
-    overflow:hidden;flex-shrink:0;
-    user-select:none;text-transform:uppercase;
-    font-family:'Inter','General Sans',sans-serif;letter-spacing:-0.01em;
-  }
-  .biz-avatar.is-ready{display:flex;}
-  .biz-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
   .headline{font-family:'Inter','General Sans',sans-serif;font-size:20px;font-weight:700;color:#0F0F0F;text-align:center;margin-top:16px;margin-bottom:6px;line-height:1.3;letter-spacing:-0.015em;text-wrap:balance;}
   @media(min-width:480px){.headline{font-size:24px;}}
   .subline{font-size:13.5px;color:#5F6368;text-align:center;margin-bottom:22px;line-height:1.55;}
-  #choiceSubline{font-size:16px;font-weight:400;color:#6B7280;margin-top:8px;line-height:1.55;}
 
-  /* 2 botões simétricos — compliance Google (fill vs outline) */
-  .choice-stack{display:flex;flex-direction:column;gap:16px;}
+  /* Botão (usado na tela de erro) */
   .choice-btn{
-    /* Reset comum pra eliminar diff entre <a> e <button> */
     box-sizing:border-box;
     width:100%;
     padding:18px 20px;
@@ -83,9 +66,6 @@
   }
   .choice-btn:focus-visible{outline:3px solid rgba(26,115,232,0.32);outline-offset:2px;}
   .choice-btn strong{font-size:16px;font-weight:700;letter-spacing:-0.005em;color:inherit;}
-  .choice-btn small{font-size:12.5px;font-weight:400;line-height:1.4;color:inherit;opacity:0.85;}
-
-  /* Variant fill (primário visual, mas SEM hierarquia retórica) */
   .choice-btn--primary{
     background:#1A73E8;border-color:#1A73E8;color:#fff;
     box-shadow:0 1px 2px rgba(26,115,232,0.20), 0 4px 12px -2px rgba(26,115,232,0.18);
@@ -95,58 +75,6 @@
     transform:translateY(-1px);
     box-shadow:0 2px 6px rgba(26,115,232,0.30), 0 8px 20px -4px rgba(26,115,232,0.30);
   }
-
-  /* Variant outline (mesma dimensao, fundo branco, borda+texto verde) */
-  .choice-btn--outline{
-    background:#fff;border-color:#1A73E8;color:#1A73E8;
-  }
-  .choice-btn--outline:hover{
-    background:#E8F0FE;border-color:#174EA6;color:#174EA6;
-    transform:translateY(-1px);
-    box-shadow:0 2px 6px rgba(26,115,232,0.18);
-  }
-
-  /* Form privado */
-  .category-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-  .category-option{
-    cursor:pointer;
-    border:1.5px solid #e5e7eb;background:#fff;
-    border-radius:12px;padding:14px 12px;
-    display:flex;flex-direction:column;align-items:center;gap:6px;
-    text-align:center;transition:border-color .15s, background .15s;
-  }
-  .category-option:hover{border-color:#1A73E8;background:#F8F9FA;}
-  .category-option input{position:absolute;opacity:0;width:0;height:0;}
-  .category-option.selected{border-color:#1A73E8;background:#E8F0FE;box-shadow:0 0 0 3px rgba(26,115,232,0.12);}
-  .category-emoji{font-size:22px;line-height:1;}
-  .category-label{font-size:12.5px;font-weight:600;color:#202124;line-height:1.3;}
-
-  textarea, input[type="text"]{
-    width:100%;background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;
-    padding:12px 14px;font-size:13.5px;font-family:'Inter','General Sans',sans-serif;color:#202124;
-    outline:none;resize:none;line-height:1.55;margin-bottom:10px;
-    transition:border-color .15s;
-  }
-  textarea:focus, input[type="text"]:focus{border-color:#1A73E8;}
-  textarea::placeholder, input::placeholder{color:#80868B;}
-
-  .btn-submit{
-    width:100%;padding:13px 20px;
-    background:#1A73E8;color:#fff;border:none;border-radius:12px;
-    font-size:14.5px;font-weight:700;font-family:'Inter','General Sans',sans-serif;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;gap:8px;
-    box-shadow:0 1px 2px rgba(26,115,232,0.20), 0 4px 12px -2px rgba(26,115,232,0.18);
-    transition:background .15s, box-shadow .15s;
-    margin-top:6px;
-  }
-  .btn-submit:hover:not(:disabled){background:#174EA6;}
-  .btn-submit:disabled{opacity:0.5;cursor:not-allowed;}
-  .btn-back{
-    background:none;border:none;color:#5F6368;font-size:13px;
-    cursor:pointer;font-family:'Inter','General Sans',sans-serif;padding:8px 0;
-    display:inline-flex;align-items:center;gap:6px;margin-bottom:8px;
-  }
-  .btn-back:hover{color:#202124;}
 
   /* Thanks */
   .thanks-icon{font-size:48px;text-align:center;margin-bottom:14px;}
@@ -174,61 +102,11 @@
 
   <div class="body" id="bodyContent">
 
-    <!-- STEP: 2 botões simétricos -->
-    <div id="stepChoice" class="step hidden">
-      <div class="biz-avatar" id="bizAvatar" aria-hidden="true"></div>
-      <div class="headline" id="choiceHeadline">Compartilhe sua experiência</div>
-      <div class="subline" id="choiceSubline">Sua opinião faz a diferença</div>
-      <div class="choice-stack">
-        <a class="choice-btn choice-btn--primary js-google-link" href="#" target="_blank" rel="noopener" onclick="onGoogleClick()">
-          <strong>Avaliar no Google</strong>
-          <small>Compartilhe sua experiência publicamente</small>
-        </a>
-        <button class="choice-btn choice-btn--outline" type="button" onclick="show('stepPrivateForm')">
-          <strong>Falar direto com a equipe</strong>
-          <small>Sua mensagem chega direto na nossa equipe</small>
-        </button>
-      </div>
-    </div>
-
-    <!-- STEP: formulário privado segmentado -->
-    <div id="stepPrivateForm" class="step hidden">
-      <button class="btn-back" type="button" onclick="show('stepChoice')">← Voltar</button>
-      <div class="headline">Como podemos te ajudar?</div>
-      <div class="subline">Escolha um tipo e conte o que aconteceu</div>
-      <div class="category-grid">
-        <label class="category-option" onclick="selectCategory('elogio',this)">
-          <input type="radio" name="category" value="elogio"/>
-          <span class="category-emoji">😊</span>
-          <span class="category-label">Elogio</span>
-        </label>
-        <label class="category-option" onclick="selectCategory('sugestao',this)">
-          <input type="radio" name="category" value="sugestao"/>
-          <span class="category-emoji">💡</span>
-          <span class="category-label">Sugestão</span>
-        </label>
-        <label class="category-option" onclick="selectCategory('reclamacao',this)">
-          <input type="radio" name="category" value="reclamacao"/>
-          <span class="category-emoji">⚠️</span>
-          <span class="category-label">Reclamação</span>
-        </label>
-        <label class="category-option" onclick="selectCategory('duvida',this)">
-          <input type="radio" name="category" value="duvida"/>
-          <span class="category-emoji">❓</span>
-          <span class="category-label">Dúvida</span>
-        </label>
-      </div>
-      <textarea id="privateText" rows="4" placeholder="Conta o que aconteceu... (opcional)"></textarea>
-      <input type="text" id="privateName" placeholder="Seu nome (opcional)"/>
-      <input type="text" id="privateContact" placeholder="WhatsApp ou e-mail (opcional)"/>
-      <button class="btn-submit" id="submitBtn" type="button" onclick="submitPrivate()" disabled>Enviar mensagem</button>
-    </div>
-
-    <!-- STEP: agradecimento -->
+    <!-- STEP: agradecimento (usado no caso de já ter avaliado recentemente) -->
     <div id="stepThanks" class="step hidden">
       <div class="thanks-icon">✓</div>
-      <div class="headline" style="margin-bottom:10px;">Mensagem enviada</div>
-      <div class="thanks-text">Sua mensagem chegou na equipe. Eles vão analisar e, se for o caso, entrar em contato.</div>
+      <div class="headline" style="margin-bottom:10px;">Obrigado!</div>
+      <div class="thanks-text">Obrigado pela sua avaliação.</div>
     </div>
 
     <!-- STEP: erro (link inválido, biz não encontrado, falha API) — mutuamente exclusivo -->
@@ -259,7 +137,6 @@
 const params = new URLSearchParams(window.location.search);
 const placeId = params.get("place_id") || params.get("place");
 const isPreview = params.get("preview") === "1";
-let selectedCategory = null;
 
 function checkDuplicate() {
   if (isPreview) return false;
@@ -289,7 +166,7 @@ async function loadBusiness() {
     document.body.classList.add("has-preview");
     const banner = document.createElement("div");
     banner.className = "preview-banner";
-    banner.innerHTML = "🔍 Modo simulação <span>— nenhuma mensagem será enviada</span>";
+    banner.innerHTML = "🔍 Modo simulação <span>— você será levado ao Google, igual ao cliente real</span>";
     document.body.prepend(banner);
   }
   if (!placeId) {
@@ -305,29 +182,15 @@ async function loadBusiness() {
     }
     document.getElementById("bizName").textContent = data.name;
     document.getElementById("bizSub").textContent = `⭐ ${data.rating ?? "—"} · ${data.total ?? 0} avaliações no Google`;
-    document.getElementById("choiceHeadline").textContent = `Compartilhe sua experiência com a ${data.name}`;
-    const avatarEl = document.getElementById("bizAvatar");
-    if (data.photoUrl) {
-      const img = document.createElement("img");
-      img.src = data.photoUrl;
-      img.alt = "";
-      img.loading = "lazy";
-      img.onerror = () => { avatarEl.textContent = data.name.trim().charAt(0); };
-      avatarEl.appendChild(img);
-    } else {
-      avatarEl.textContent = data.name.trim().charAt(0);
-    }
-    avatarEl.classList.add("is-ready");
 
     const googleUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
-    document.querySelectorAll(".js-google-link").forEach(el => el.href = googleUrl);
 
     if (checkDuplicate()) {
       showThanks("Você já avaliou esse negócio recentemente. Obrigado!");
       return;
     }
 
-    // Sem menu/peneira: cai direto no Google Meu Negocio (avaliacao).
+    // Vai direto pro Google Meu Negócio pra avaliar (sem menu/peneira).
     markReviewed();
     window.location.href = googleUrl;
   } catch {
@@ -337,7 +200,7 @@ async function loadBusiness() {
 loadBusiness();
 
 function show(stepId) {
-  ["stepLoading","stepChoice","stepPrivateForm","stepThanks","stepError"].forEach(id => {
+  ["stepLoading","stepThanks","stepError"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle("hidden", id !== stepId);
   });
@@ -349,64 +212,6 @@ function showThanks(text) {
   }
   show("stepThanks");
 }
-
-function onGoogleClick() {
-  // O link <a target="_blank"> já abre o Google em nova aba
-  markReviewed();
-  // Pequeno burst confetti
-  for(let i=0;i<16;i++) {
-    const el = document.createElement("div");
-    el.style.cssText = `position:fixed;top:-20px;left:${Math.random()*100}vw;width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;background:${["#1A73E8","#34A853","#FBBC04","#EA4335"][i%4]};border-radius:2px;pointer-events:none;animation:cfall ${1+Math.random()*0.8}s ease-in forwards;animation-delay:${Math.random()*0.4}s;`;
-    document.body.appendChild(el);
-    setTimeout(()=>el.remove(), 2000);
-  }
-}
-
-function selectCategory(cat, el) {
-  selectedCategory = cat;
-  document.querySelectorAll(".category-option").forEach(o => o.classList.remove("selected"));
-  el.classList.add("selected");
-  document.getElementById("submitBtn").disabled = false;
-}
-
-async function submitPrivate() {
-  if (!selectedCategory) { alert("Escolha um tipo de mensagem."); return; }
-  const text = document.getElementById("privateText").value.trim();
-  const name = document.getElementById("privateName").value.trim();
-  const contact = document.getElementById("privateContact").value.trim();
-
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true;
-  btn.textContent = "Enviando...";
-
-  if (isPreview) {
-    setTimeout(()=>{
-      markReviewed();
-      showThanks();
-    }, 600);
-    return;
-  }
-
-  try {
-    await fetch("/api/feedback", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        place_id: placeId,
-        category: selectedCategory,
-        text,
-        sender_name: name || null,
-        contact: contact || null
-      })
-    });
-  } catch {}
-  markReviewed();
-  showThanks();
-}
 </script>
-
-<style>
-@keyframes cfall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
-</style>
 </body>
 </html>
