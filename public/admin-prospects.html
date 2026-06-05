@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin · Prospecção — StarTouch</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:#F8F9FA;color:#202124;min-height:100vh;padding:24px 16px 64px;}
+  .wrap{max-width:1040px;margin:0 auto;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px;flex-wrap:wrap;}
+  .topbar img{height:34px;width:auto;}
+  .topbar nav{display:flex;gap:8px;flex-wrap:wrap;}
+  .topbar nav a{font-size:13px;font-weight:600;color:#5F6368;text-decoration:none;padding:8px 12px;border-radius:8px;}
+  .topbar nav a:hover{background:#E8F0FE;color:#1A73E8;}
+  .topbar nav a.active{background:#1A73E8;color:#fff;}
+  h1{font-size:24px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;}
+  .sub{font-size:14px;color:#5F6368;margin-bottom:24px;}
+  .card{background:#fff;border:1px solid #DADCE0;border-radius:14px;padding:20px;margin-bottom:20px;}
+  .form-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;}
+  .field{flex:1;min-width:200px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:#5F6368;margin-bottom:6px;}
+  .field input{width:100%;border:1.5px solid #DADCE0;border-radius:10px;padding:12px 14px;font-size:14px;font-family:inherit;outline:none;}
+  .field input:focus{border-color:#1A73E8;}
+  .btn{border:none;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;}
+  .btn-primary{background:#1A73E8;color:#fff;}
+  .btn-primary:hover:not(:disabled){background:#174EA6;}
+  .btn-primary:disabled{opacity:.55;cursor:not-allowed;}
+  .btn-ghost{background:#fff;color:#1A73E8;border:1.5px solid #DADCE0;}
+  .btn-ghost:hover{background:#E8F0FE;}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{border:1.5px solid #DADCE0;background:#fff;color:#5F6368;border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;}
+  .chip.active{background:#1A73E8;border-color:#1A73E8;color:#fff;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;color:#5F6368;font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:0.04em;padding:8px 10px;border-bottom:1px solid #DADCE0;cursor:pointer;user-select:none;}
+  td{padding:10px;border-bottom:1px solid #F1F3F4;vertical-align:middle;}
+  td.name{font-weight:600;}
+  .target-pill{font-size:10px;font-weight:800;color:#137333;background:#E6F4EA;border-radius:5px;padding:2px 7px;margin-left:6px;letter-spacing:.04em;}
+  .addr{font-size:11.5px;color:#80868B;}
+  .row-actions{display:flex;gap:6px;white-space:nowrap;}
+  .mini{font-size:12px;font-weight:600;border-radius:8px;padding:6px 10px;text-decoration:none;cursor:pointer;border:1.5px solid #DADCE0;background:#fff;color:#1A73E8;font-family:inherit;}
+  .mini:hover{background:#E8F0FE;}
+  .mini-primary{background:#1A73E8;color:#fff;border-color:#1A73E8;}
+  .mini-primary:hover{background:#174EA6;}
+  .loading{text-align:center;color:#5F6368;font-size:14px;padding:32px;}
+  .spinner{width:30px;height:30px;border:3px solid #E5E7EB;border-top-color:#1A73E8;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .empty{color:#5F6368;font-size:14px;padding:16px 8px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <img src="/startouch-logo-dark.png" alt="StarTouch"/>
+    <nav>
+      <a href="/admin/clientes">Clientes</a>
+      <a href="/admin/estoque">Estoque</a>
+      <a href="/admin/producao">Produção</a>
+      <a href="/admin/prospects" class="active">Prospecção</a>
+    </nav>
+  </div>
+
+  <h1>Prospecção de alvos</h1>
+  <p class="sub">Busca negócios por termo + região e gera os links de diagnóstico prontos pra abordagem.</p>
+
+  <div id="authGate" class="loading">Verificando acesso…</div>
+
+  <div id="content" style="display:none;">
+    <div class="card">
+      <div class="form-row">
+        <div class="field">
+          <label for="q">O que eles são (termo que o cliente busca)</label>
+          <input id="q" type="text" placeholder="Ex: padaria artesanal" autocomplete="off"/>
+        </div>
+        <div class="field">
+          <label for="loc">Cidade ou CEP</label>
+          <input id="loc" type="text" placeholder="Ex: Vila Leopoldina ou 05086-010" autocomplete="off"/>
+        </div>
+        <button class="btn btn-primary" id="genBtn" type="button">Gerar lista</button>
+      </div>
+    </div>
+
+    <div id="resultsArea"></div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem("rz_token");
+const ORIGIN = "https://startouch.com.br";
+let allProspects = [];
+let filterMode = "all";   // all | targets
+let sortKey = "reviews";  // reviews | rating
+let sortDir = 1;          // 1 asc, -1 desc
+let lastTerm = "";
+
+function init() {
+  if (!token) {
+    document.getElementById("authGate").innerHTML =
+      'Você precisa estar logado como admin. <a href="/app" style="color:#1A73E8;font-weight:600">Entrar →</a>';
+    return;
+  }
+  // Mostra o conteúdo; a validação real de admin acontece no endpoint.
+  document.getElementById("authGate").style.display = "none";
+  document.getElementById("content").style.display = "block";
+  document.getElementById("genBtn").addEventListener("click", generate);
+  document.getElementById("q").addEventListener("keydown", e => { if (e.key === "Enter") generate(); });
+  document.getElementById("loc").addEventListener("keydown", e => { if (e.key === "Enter") generate(); });
+}
+
+async function generate() {
+  const q = document.getElementById("q").value.trim();
+  const loc = document.getElementById("loc").value.trim();
+  if (q.length < 2) { document.getElementById("q").focus(); return; }
+  const btn = document.getElementById("genBtn");
+  btn.disabled = true; btn.textContent = "Buscando…";
+  document.getElementById("resultsArea").innerHTML =
+    '<div class="card"><div class="loading"><div class="spinner"></div>Buscando negócios no Google… (pode levar alguns segundos)</div></div>';
+  try {
+    const r = await fetch(`/api/admin?action=prospects&q=${encodeURIComponent(q)}&loc=${encodeURIComponent(loc)}`,
+      { headers: { "Authorization": `Bearer ${token}` } });
+    if (r.status === 403) { document.getElementById("resultsArea").innerHTML = '<div class="card empty">Acesso restrito ao admin.</div>'; return; }
+    if (r.status === 401) { document.getElementById("resultsArea").innerHTML = '<div class="card empty">Sessão expirada. <a href="/app" style="color:#1A73E8;font-weight:600">Entrar →</a></div>'; return; }
+    const d = await r.json();
+    if (!d.ok) { document.getElementById("resultsArea").innerHTML = `<div class="card empty">${d.error || "Erro ao buscar."}</div>`; return; }
+    allProspects = d.prospects || [];
+    lastTerm = d.term || q;
+    filterMode = "all"; sortKey = "reviews"; sortDir = 1;
+    renderResults(d);
+  } catch {
+    document.getElementById("resultsArea").innerHTML = '<div class="card empty">Erro de conexão. Tente de novo.</div>';
+  } finally {
+    btn.disabled = false; btn.textContent = "Gerar lista";
+  }
+}
+
+function visibleList() {
+  let list = filterMode === "targets" ? allProspects.filter(p => p.isTarget) : allProspects.slice();
+  list.sort((a, b) => ((a[sortKey] || 0) - (b[sortKey] || 0)) * sortDir);
+  return list;
+}
+
+function renderResults(d) {
+  const targets = allProspects.filter(p => p.isTarget).length;
+  if (!allProspects.length) {
+    document.getElementById("resultsArea").innerHTML = '<div class="card empty">Nada encontrado. Tente outro termo ou cidade.</div>';
+    return;
+  }
+  const list = visibleList();
+  const rows = list.map(p => `
+    <tr>
+      <td class="name">${escapeHtml(p.name)}${p.isTarget ? '<span class="target-pill">ALVO</span>' : ''}<div class="addr">${escapeHtml(p.address || "")}</div></td>
+      <td>⭐ ${p.rating || "—"}</td>
+      <td>${p.reviews}</td>
+      <td><div class="row-actions">
+        <a class="mini mini-primary" href="${ORIGIN}${p.diagnostico}" target="_blank" rel="noopener">Diagnóstico ↗</a>
+        <button class="mini" type="button" onclick="copyLink('${ORIGIN}${p.diagnostico}', this)">Copiar link</button>
+      </div></td>
+    </tr>`).join("");
+
+  document.getElementById("resultsArea").innerHTML = `
+    <div class="card">
+      <div class="toolbar">
+        <div class="chips">
+          <button class="chip ${filterMode==='all'?'active':''}" onclick="setFilter('all')">Todos (${allProspects.length})</button>
+          <button class="chip ${filterMode==='targets'?'active':''}" onclick="setFilter('targets')">🎯 Alvos quentes (${targets})</button>
+        </div>
+        <button class="btn btn-ghost" type="button" onclick="exportCSV()">⬇ Exportar CSV</button>
+      </div>
+      <p style="font-size:12px;color:#80868B;margin-bottom:12px;">
+        ${allProspects.length} negócios em "${escapeHtml(lastTerm)}"${d && d.location ? " · " + escapeHtml(d.location) : ""}.
+        <strong>Alvo quente</strong> = nota ≥ 4,0 e poucas avaliações (bom produto, coletando pouco).
+      </p>
+      <table>
+        <thead><tr>
+          <th>Negócio</th>
+          <th onclick="setSort('rating')">Nota ${sortArrow('rating')}</th>
+          <th onclick="setSort('reviews')">Avaliações ${sortArrow('reviews')}</th>
+          <th>Ações</th>
+        </tr></thead>
+        <tbody>${rows || '<tr><td colspan="4" class="empty">Nenhum nesse filtro.</td></tr>'}</tbody>
+      </table>
+    </div>`;
+}
+
+function sortArrow(key) {
+  if (sortKey !== key) return "";
+  return sortDir === 1 ? "▲" : "▼";
+}
+function setSort(key) {
+  if (sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = 1; }
+  renderResults();
+}
+function setFilter(mode) { filterMode = mode; renderResults(); }
+
+function copyLink(url, btn) {
+  navigator.clipboard.writeText(url).then(() => {
+    const t = btn.textContent; btn.textContent = "Copiado!";
+    setTimeout(() => btn.textContent = t, 1400);
+  }).catch(() => {});
+}
+
+function exportCSV() {
+  const list = visibleList();
+  const header = ["nome","nota","avaliacoes","alvo_quente","endereco","place_id","link_diagnostico"];
+  const lines = [header.join(",")];
+  for (const p of list) {
+    const row = [
+      p.name, p.rating, p.reviews, p.isTarget ? "sim" : "nao",
+      p.address || "", p.place_id, ORIGIN + p.diagnostico
+    ].map(csvCell).join(",");
+    lines.push(row);
+  }
+  const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `prospects-${(lastTerm||"lista").replace(/[^a-z0-9]+/gi,"-").toLowerCase()}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function csvCell(v) {
+  const s = String(v ?? "");
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+init();
+</script>
+</body>
+</html>

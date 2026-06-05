@@ -14,6 +14,7 @@
 // ============================================================
 
 import { createClient } from "@supabase/supabase-js";
+import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 
 // Lista de emails autorizados como admin (hardcoded)
 const ADMIN_EMAILS = new Set([
@@ -71,7 +72,8 @@ export default async function handler(req, res) {
     if (action === "stats")        return await handleStats(req, res);
     if (action === "list-clients") return await handleListClients(req, res);
     if (action === "delete-user")  return await handleDeleteUser(req, res, admin);
-    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients ou delete-user" });
+    if (action === "prospects")    return await handleProspects(req, res);
+    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user ou prospects" });
   } catch (err) {
     console.error("[admin] erro:", err);
     return res.status(500).json({ error: err.message });
@@ -401,4 +403,67 @@ async function handleDeleteUser(req, res, admin) {
     console.error("[admin.delete-user] erro:", err);
     return res.status(500).json({ error: err.message, summary });
   }
+}
+
+// ── PROSPECTS: gera lista de alvos (negócios por termo + região) ──────
+// CEP de 8 dígitos vira cidade/UF via ViaCEP pra ancorar a busca no Brasil.
+async function resolveLoc(loc) {
+  const digits = (loc || "").replace(/\D/g, "");
+  if (digits.length === 8) {
+    try {
+      const v = await fetch(`https://viacep.com.br/ws/${digits}/json/`).then(r => r.json());
+      if (v && !v.erro) return [v.localidade, v.uf].filter(Boolean).join(" ");
+    } catch {}
+  }
+  return loc || "";
+}
+
+async function handleProspects(req, res) {
+  const API_KEY = process.env.PLACES_API_KEY;
+  if (!API_KEY) return res.status(500).json({ error: "PLACES_API_KEY ausente" });
+
+  const q = (req.query.q || "").trim();
+  const loc = (req.query.loc || "").trim();
+  if (q.length < 2) return res.status(400).json({ error: "Informe o termo de busca (q)" });
+
+  const locExpanded = await resolveLoc(loc);
+  const query = [q, locExpanded].filter(Boolean).join(" ");
+
+  // Text Search com paginação (até 2 páginas ≈ 40 resultados).
+  // next_page_token só fica válido ~2s depois — aguardamos antes da 2ª página.
+  const collected = [];
+  let url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&language=pt-BR&region=br&key=${API_KEY}`;
+  for (let page = 0; page < 2; page++) {
+    const data = await fetchWithTimeout(url, {}, 8000).then(r => r.json());
+    for (const p of (data.results || [])) {
+      if (p.business_status && p.business_status !== "OPERATIONAL") continue;
+      if (typeof p.rating !== "number") continue;
+      collected.push(p);
+    }
+    if (!data.next_page_token) break;
+    await new Promise(r => setTimeout(r, 2200));
+    url = `https://maps.googleapis.com/maps/api/place/textsearch/json?pagetoken=${data.next_page_token}&key=${API_KEY}`;
+  }
+
+  // Dedup + monta prospects com link de diagnóstico pronto
+  const seen = new Set();
+  const prospects = [];
+  for (const p of collected) {
+    if (seen.has(p.place_id)) continue;
+    seen.add(p.place_id);
+    const rating = p.rating || 0;
+    const reviews = p.user_ratings_total || 0;
+    prospects.push({
+      place_id: p.place_id,
+      name: p.name,
+      address: p.formatted_address || "",
+      rating,
+      reviews,
+      // "Alvo quente": bom produto (nota >= 4.0) mas coletando pouco
+      isTarget: rating >= 4.0 && reviews >= 3 && reviews <= 150,
+      diagnostico: `/diagnostico?place_id=${encodeURIComponent(p.place_id)}&keyword=${encodeURIComponent(q)}`
+    });
+  }
+
+  return res.json({ ok: true, term: q, location: locExpanded, total: prospects.length, prospects });
 }
