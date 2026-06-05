@@ -22,10 +22,11 @@ export default async function handler(req, res) {
 
   const placeId = req.query.place_id || req.query.place;
   const keyword = (req.query.keyword || "").trim();
+  const radius = req.query.radius; // motor clampa (default 3000, máx 25000)
   if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
 
   try {
-    const snap = await fetchCompetitorsSnapshot({ placeId, keyword });
+    const snap = await fetchCompetitorsSnapshot({ placeId, keyword, radius });
 
     // Negócio achado, mas sem concorrentes suficientes pra ranquear
     if (!snap.enough) {
@@ -36,6 +37,7 @@ export default async function handler(req, res) {
         rating: snap.me?.rating ?? null,
         reviews: snap.me?.reviews ?? 0,
         category: snap.category || null,
+        radius: snap.radius || null,
         total: snap.total || 0
       });
     }
@@ -80,6 +82,7 @@ export default async function handler(req, res) {
       rating: myRating,
       reviews: myReviews,
       category: snap.category || null,
+      radius: snap.radius || null,
       rank,
       total,
       reviewsToNext,

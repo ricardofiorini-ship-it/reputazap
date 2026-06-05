@@ -65,6 +65,13 @@
   .rank-hero .of{font-size:14px;opacity:.9;margin-top:6px;}
   .rank-hero .cat{font-size:12px;text-transform:uppercase;letter-spacing:0.08em;opacity:.85;margin-top:10px;}
 
+  /* Botões de raio de comparação */
+  .radius-bar{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
+  .radius-bar .lbl{font-size:12.5px;color:#5F6368;margin-right:2px;}
+  .radius-bar button{border:1.5px solid #DADCE0;background:#fff;color:#5F6368;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;}
+  .radius-bar button:hover{border-color:#1A73E8;color:#1A73E8;}
+  .radius-bar button.active{background:#1A73E8;border-color:#1A73E8;color:#fff;}
+
   .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
   .kpi{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:18px;text-align:center;}
   .kpi .v{font-size:28px;font-weight:800;letter-spacing:-0.02em;}
@@ -156,6 +163,14 @@
       <div class="pos" id="repPos">#—</div>
       <div class="of" id="repOf">—</div>
       <div class="cat" id="repCat"></div>
+    </div>
+
+    <div class="radius-bar" id="radiusBar">
+      <span class="lbl">📍 Raio:</span>
+      <button type="button" data-r="1000">1 km</button>
+      <button type="button" data-r="3000">3 km</button>
+      <button type="button" data-r="10000">10 km</button>
+      <button type="button" data-r="20000">20 km</button>
     </div>
 
     <div class="kpis">
@@ -311,12 +326,25 @@ function escapeHtml(s) {
 }
 
 // ── RELATÓRIO ──────────────────────────────────────────
-let currentPlaceId = null;
-async function loadReport(placeId, keyword) {
+let currentPlaceId = null, currentKeyword = "", currentRadius = "";
+
+// Monta URL do diagnóstico preservando keyword + raio entre recargas
+function diagUrl(placeId, keyword, radius) {
+  let u = `/diagnostico?place_id=${encodeURIComponent(placeId)}`;
+  if (keyword) u += `&keyword=${encodeURIComponent(keyword)}`;
+  if (radius) u += `&radius=${encodeURIComponent(radius)}`;
+  return u;
+}
+
+async function loadReport(placeId, keyword, radius) {
   currentPlaceId = placeId;
+  currentKeyword = keyword || "";
+  currentRadius = radius || "";
   showOnly("loadingMode");
   try {
-    const url = `/api/diagnostico?place_id=${encodeURIComponent(placeId)}` + (keyword ? `&keyword=${encodeURIComponent(keyword)}` : "");
+    let url = `/api/diagnostico?place_id=${encodeURIComponent(placeId)}`;
+    if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+    if (radius) url += `&radius=${encodeURIComponent(radius)}`;
     const r = await fetch(url);
     const d = await r.json();
     if (!d.ok) { showEmpty("⚠️", "Não conseguimos analisar", "Tente novamente em instantes ou busque outro negócio."); return; }
@@ -344,6 +372,12 @@ function renderReport(d) {
   $("repCat").textContent = "";
   $("catLabel").textContent = d.category || "categoria geral";
   $("catInput").value = d.category || "";
+
+  // Destaca o botão do raio ativo
+  const activeR = String(d.radius || 3000);
+  document.querySelectorAll("#radiusBar button").forEach(b => {
+    b.classList.toggle("active", b.dataset.r === activeR);
+  });
 
   $("repRating").textContent = (typeof d.rating === "number" ? d.rating.toFixed(1) : "—");
   $("repReviews").textContent = d.reviews;
@@ -393,15 +427,16 @@ function rowHtml(pos, name, rating, reviews, isMe) {
 function applyCategory() {
   const kw = $("catInput").value.trim();
   if (!kw || !currentPlaceId) return;
-  window.location.href = `/diagnostico?place_id=${encodeURIComponent(currentPlaceId)}&keyword=${encodeURIComponent(kw)}`;
+  window.location.href = diagUrl(currentPlaceId, kw, currentRadius);
 }
 
 (function init() {
   const placeId = params.get("place_id") || params.get("place");
   const keyword = params.get("keyword") || "";
+  const radius = params.get("radius") || "";
   const q = params.get("q");
   if (placeId) {
-    loadReport(placeId, keyword);
+    loadReport(placeId, keyword, radius);
     // Controle de trocar categoria (disponível no relatório)
     $("catToggle").addEventListener("click", () => {
       $("catForm").classList.toggle("hidden");
@@ -409,6 +444,12 @@ function applyCategory() {
     });
     $("catApply").addEventListener("click", applyCategory);
     $("catInput").addEventListener("keydown", e => { if (e.key === "Enter") applyCategory(); });
+    // Botões de raio — recarregam preservando keyword
+    document.querySelectorAll("#radiusBar button").forEach(b => {
+      b.addEventListener("click", () => {
+        window.location.href = diagUrl(currentPlaceId, currentKeyword, b.dataset.r);
+      });
+    });
   } else {
     showOnly("searchMode");
     if (q) { $("q").value = q.slice(0, 80); doSearch(); }
