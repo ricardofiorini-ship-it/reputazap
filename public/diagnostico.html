@@ -4,229 +4,326 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Diagnóstico — StarTouch</title>
+<meta name="description" content="Veja a posição do seu negócio no ranking do Google, quem está na sua frente e quanto falta pra subir. Grátis."/>
 <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/startouch-vars.css"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <link rel="apple-touch-icon" href="/startouch-logo.png"/>
-<meta name="robots" content="noindex,nofollow"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="StarTouch — Diagnóstico"/>
-<meta property="og:description" content="Análise gratuita da posição do seu negócio no Google."/>
-<meta property="og:image" content="https://startouch.com.br/og-image.png"/>
+<meta property="og:title" content="StarTouch — Diagnóstico gratuito"/>
+<meta property="og:description" content="Descubra a posição do seu negócio no Google e como subir no ranking."/>
 <meta property="og:url" content="https://startouch.com.br/diagnostico"/>
 <link rel="canonical" href="https://startouch.com.br/diagnostico"/>
+<meta name="twitter:card" content="summary_large_image"/>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { font-family: 'Inter', 'General Sans', sans-serif; background: #F8F9FA; color: #0F0F0F; min-height: 100vh; }
-  a { text-decoration: none; color: inherit; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter','General Sans',sans-serif;background:#F8F9FA;color:#0F0F0F;min-height:100vh;}
+  a{text-decoration:none;color:inherit;}
 
-  header {
-    position: sticky; top: 0; z-index: 50;
-    background: rgba(247,247,244,0.82);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid rgba(32,33,36,0.08);
-  }
-  .header-inner {
-    max-width: 1152px; margin: 0 auto;
-    padding: 14px 20px;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px;
-  }
-  @media (min-width: 768px) { .header-inner { padding: 18px 32px; } }
-  .logo { display: flex; align-items: center; }
-  .logo img { height: 40px; width: auto; display: block; }
-  @media (min-width: 768px) { .logo img { height: 46px; } }
-  .header-cta {
-    background: #1A73E8;
-    color: #fff;
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-size: 14px; font-weight: 600;
-    white-space: nowrap;
-    transition: background .15s;
-  }
-  .header-cta:hover { background: #174EA6; }
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;max-width:880px;margin:0 auto;}
+  .logo img{height:34px;width:auto;display:block;}
+  .header-cta{background:#1A73E8;color:#fff;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:600;white-space:nowrap;transition:background .15s;}
+  .header-cta:hover{background:#174EA6;}
 
-  .wrap {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 80px 24px 64px;
-    text-align: center;
-  }
-  @media (min-width: 768px) { .wrap { padding: 120px 32px 80px; } }
+  .wrap{max-width:600px;margin:0 auto;padding:40px 20px 80px;}
+  @media(min-width:768px){.wrap{padding:64px 24px 96px;}}
 
-  .badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 8px 14px;
-    background: rgba(26,115,232,0.10);
-    border: 1px solid rgba(26,115,232,0.25);
-    border-radius: 999px;
-    font-size: 12px; font-weight: 600;
-    color: #1A73E8;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    margin-bottom: 24px;
-  }
-  .badge-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #1A73E8;
-    box-shadow: 0 0 0 0 rgba(26,115,232,0.6);
-    animation: pulseDot 2s infinite;
-  }
-  @keyframes pulseDot {
-    0% { box-shadow: 0 0 0 0 rgba(26,115,232,0.55); }
-    70% { box-shadow: 0 0 0 8px rgba(26,115,232,0); }
-    100% { box-shadow: 0 0 0 0 rgba(26,115,232,0); }
-  }
+  .badge{display:inline-flex;align-items:center;gap:8px;padding:7px 13px;background:rgba(26,115,232,0.10);border:1px solid rgba(26,115,232,0.22);border-radius:999px;font-size:11.5px;font-weight:700;color:#1A73E8;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:18px;}
+  .badge-dot{width:8px;height:8px;border-radius:50%;background:#1A73E8;animation:pulseDot 2s infinite;}
+  @keyframes pulseDot{0%{box-shadow:0 0 0 0 rgba(26,115,232,0.55);}70%{box-shadow:0 0 0 8px rgba(26,115,232,0);}100%{box-shadow:0 0 0 0 rgba(26,115,232,0);}}
 
-  h1 {
-    font-family: 'Inter', 'General Sans', sans-serif;
-    font-size: 32px;
-    font-weight: 700;
-    line-height: 1.15;
-    letter-spacing: -0.01em;
-    color: #0F0F0F;
-    margin-bottom: 16px;
-    text-wrap: balance;
-  }
-  @media (min-width: 768px) { h1 { font-size: 44px; } }
-  .term { color: #1A73E8; font-style: italic; }
+  h1{font-size:28px;font-weight:800;line-height:1.15;letter-spacing:-0.02em;margin-bottom:12px;text-wrap:balance;}
+  @media(min-width:768px){h1{font-size:38px;}}
+  .sub{font-size:15.5px;color:#5F6368;line-height:1.6;margin-bottom:28px;text-wrap:balance;}
 
-  .sub {
-    font-size: 16px;
-    color: #6B7280;
-    line-height: 1.6;
-    max-width: 520px;
-    margin: 0 auto 32px;
-    text-wrap: balance;
-  }
-  @media (min-width: 768px) { .sub { font-size: 18px; } }
+  /* Busca */
+  .search-card{background:#fff;border:1px solid #E5E7EB;border-radius:16px;padding:22px;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:#5F6368;margin-bottom:6px;}
+  .field input{width:100%;border:1.5px solid #DADCE0;border-radius:10px;padding:13px 14px;font-size:15px;font-family:inherit;outline:none;transition:border-color .15s;}
+  .field input:focus{border-color:#1A73E8;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;border:none;transition:background .15s,transform .1s;}
+  .btn-primary{background:#1A73E8;color:#fff;}
+  .btn-primary:hover:not(:disabled){background:#174EA6;}
+  .btn-primary:disabled{opacity:.55;cursor:not-allowed;}
+  .btn-ghost{background:#fff;color:#1A73E8;border:1.5px solid #DADCE0;margin-top:12px;}
+  .btn-ghost:hover{background:#E8F0FE;border-color:#1A73E8;}
 
-  .card {
-    background: #fff;
-    border: 1px solid #E5E7EB;
-    border-radius: 16px;
-    padding: 28px 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    margin: 0 auto 32px;
-    max-width: 480px;
-    text-align: left;
-  }
-  .card-title {
-    font-size: 13px; font-weight: 700;
-    color: #6B7280;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 12px;
-  }
-  .card-list {
-    display: flex; flex-direction: column; gap: 12px;
-    list-style: none;
-  }
-  .card-list li {
-    display: flex; align-items: flex-start; gap: 10px;
-    font-size: 14px;
-    color: #0F0F0F;
-    line-height: 1.5;
-  }
-  .card-list li::before {
-    content: "•"; color: #1A73E8; font-weight: 700; flex-shrink: 0;
-  }
+  /* Resultados da busca */
+  .results{margin-top:16px;display:flex;flex-direction:column;gap:8px;}
+  .result{display:flex;flex-direction:column;gap:2px;text-align:left;border:1.5px solid #E5E7EB;border-radius:12px;padding:13px 15px;background:#fff;cursor:pointer;transition:border-color .15s,background .15s;width:100%;font-family:inherit;}
+  .result:hover{border-color:#1A73E8;background:#F8FAFF;}
+  .result .nm{font-size:14.5px;font-weight:700;color:#0F0F0F;}
+  .result .ad{font-size:12px;color:#80868B;line-height:1.4;}
+  .result .mt{font-size:12px;color:#5F6368;margin-top:2px;}
 
-  .actions {
-    display: flex; align-items: center; justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 12px 22px;
-    border-radius: 10px;
-    font-family: 'Inter', 'General Sans', sans-serif;
-    font-size: 14px; font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: background .15s, transform .1s;
-  }
-  .btn-primary { background: #1A73E8; color: #fff; }
-  .btn-primary:hover { background: #174EA6; }
-  .btn-ghost {
-    background: #fff;
-    color: #0F0F0F;
-    border: 1px solid #E5E7EB;
-  }
-  .btn-ghost:hover { background: #F5F7F9; }
+  /* Relatório */
+  .rank-hero{background:linear-gradient(135deg,#1A73E8,#0F4DAE);color:#fff;border-radius:18px;padding:28px 24px;text-align:center;margin-bottom:18px;}
+  .rank-hero .pos{font-size:52px;font-weight:800;letter-spacing:-0.03em;line-height:1;}
+  @media(min-width:768px){.rank-hero .pos{font-size:64px;}}
+  .rank-hero .of{font-size:14px;opacity:.9;margin-top:6px;}
+  .rank-hero .cat{font-size:12px;text-transform:uppercase;letter-spacing:0.08em;opacity:.85;margin-top:10px;}
+
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:18px;text-align:center;}
+  .kpi .v{font-size:28px;font-weight:800;letter-spacing:-0.02em;}
+  .kpi .l{font-size:12px;color:#80868B;margin-top:4px;}
+
+  .insight{background:#FEF7E0;border:1px solid #FDE68A;border-radius:14px;padding:18px 20px;margin-bottom:18px;}
+  .insight h3{font-size:14px;font-weight:800;color:#7A5900;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+  .insight p{font-size:13.5px;color:#92722A;line-height:1.55;}
+  .insight .shortcut{margin-top:10px;background:#E6F4EA;border:1px solid #A8DAB5;border-radius:10px;padding:11px 13px;color:#137333;font-size:13px;font-weight:600;line-height:1.5;}
+
+  .ranklist{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:8px 8px;margin-bottom:24px;}
+  .ranklist .title{font-size:12px;font-weight:700;color:#5F6368;text-transform:uppercase;letter-spacing:0.06em;padding:12px 12px 8px;}
+  .row{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;}
+  .row + .row{border-top:1px solid #F1F3F4;}
+  .row.me{background:#E8F0FE;border-top:1px solid #E8F0FE;}
+  .row .rk{font-size:14px;font-weight:800;color:#5F6368;width:30px;flex-shrink:0;text-align:center;}
+  .row .nm{flex:1;min-width:0;font-size:14px;font-weight:600;color:#0F0F0F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .row .nm .tag{display:inline-block;font-size:10.5px;font-weight:800;color:#1A73E8;background:#fff;border:1px solid #1A73E8;border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:middle;}
+  .row .st{font-size:12.5px;color:#5F6368;white-space:nowrap;flex-shrink:0;}
+  .row .ellipsis{text-align:center;color:#BDC1C6;font-size:14px;padding:4px 0;width:100%;}
+
+  .cta-final{margin-top:8px;}
+  .cta-note{font-size:12px;color:#80868B;text-align:center;margin-top:10px;}
+
+  .state{text-align:center;padding:48px 12px;color:#5F6368;}
+  .state .ico{font-size:48px;margin-bottom:14px;}
+  .state h2{font-size:20px;font-weight:700;color:#0F0F0F;margin-bottom:8px;}
+  .state p{font-size:14px;line-height:1.6;max-width:420px;margin:0 auto 20px;}
+  .spinner{width:34px;height:34px;border:3px solid #E5E7EB;border-top-color:#1A73E8;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .hidden{display:none;}
+
+  .wa-float{position:fixed;bottom:20px;right:20px;background:#25D366;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.22);z-index:50;}
+  .wa-float svg{width:30px;height:30px;fill:#fff;}
 </style>
 </head>
 <body>
-
-<header>
-  <div class="header-inner">
-    <a class="logo" href="/landing" aria-label="StarTouch">
-      <img src="/startouch-logo-dark.png" alt="StarTouch"/>
-    </a>
-    <a class="header-cta" href="/ativar?from=web">Começar grátis</a>
-  </div>
-</header>
+<div class="topbar">
+  <a class="logo" href="/landing" aria-label="StarTouch"><img src="/startouch-logo-dark.png" alt="StarTouch"/></a>
+  <a class="header-cta" href="/ativar?from=web">Começar grátis</a>
+</div>
 
 <main class="wrap">
-  <div class="badge"><span class="badge-dot"></span>Preparando seu diagnóstico</div>
-  <h1>Buscando <span class="term" id="term">seu negócio</span>...</h1>
-  <p class="sub">
-    Estamos preparando seu diagnóstico. Esta página está em desenvolvimento — em breve você verá a posição do seu negócio no Google e como subir no ranking.
-  </p>
 
-  <div class="card">
-    <div class="card-title">No diagnóstico completo você vai ver</div>
-    <ul class="card-list">
-      <li>Sua posição atual entre concorrentes da mesma categoria</li>
-      <li>Nota média e total de avaliações</li>
-      <li>Top 3 concorrentes à sua frente</li>
-      <li>Quantas avaliações faltam pra subir uma posição</li>
-    </ul>
-  </div>
+  <!-- MODO BUSCA -->
+  <section id="searchMode">
+    <div class="badge"><span class="badge-dot"></span>Diagnóstico gratuito</div>
+    <h1>Onde seu negócio está no Google?</h1>
+    <p class="sub">Veja sua posição no ranking da sua categoria, quem está na sua frente e quanto falta pra subir — de graça, em segundos.</p>
+    <div class="search-card">
+      <div class="field">
+        <label for="q">Nome do negócio</label>
+        <input id="q" type="text" placeholder="Ex: Pizzaria do João" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label for="cep">Cidade ou CEP <span style="font-weight:400;color:#9AA0A6;">(opcional, ajuda a achar a unidade certa)</span></label>
+        <input id="cep" type="text" placeholder="Ex: São Paulo ou 04567-000" autocomplete="off"/>
+      </div>
+      <button class="btn btn-primary" id="searchBtn" type="button">🔍 Ver meu diagnóstico</button>
+      <div class="results" id="results"></div>
+    </div>
+  </section>
 
-  <div class="actions">
-    <a class="btn btn-primary" href="/ativar?from=web">Criar minha conta agora</a>
-    <a class="btn btn-ghost" href="/landing">← Voltar pra home</a>
-  </div>
+  <!-- LOADING -->
+  <section id="loadingMode" class="hidden">
+    <div class="state">
+      <div class="spinner"></div>
+      <h2>Analisando seu negócio…</h2>
+      <p>Buscando sua posição e seus concorrentes no Google.</p>
+    </div>
+  </section>
+
+  <!-- RELATÓRIO -->
+  <section id="reportMode" class="hidden">
+    <div class="badge" id="repBadge"><span class="badge-dot"></span>Seu diagnóstico</div>
+    <h1 id="repName" style="font-size:24px;">—</h1>
+
+    <div class="rank-hero">
+      <div class="pos" id="repPos">#—</div>
+      <div class="of" id="repOf">—</div>
+      <div class="cat" id="repCat"></div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="v" id="repRating">—</div><div class="l">Nota no Google</div></div>
+      <div class="kpi"><div class="v" id="repReviews">—</div><div class="l">Avaliações</div></div>
+    </div>
+
+    <div class="insight" id="repInsight">
+      <h3 id="repInsightTitle">🎯 Como subir</h3>
+      <p id="repInsightText">—</p>
+      <div class="shortcut hidden" id="repShortcut"></div>
+    </div>
+
+    <div class="ranklist">
+      <div class="title">Ranking da sua categoria</div>
+      <div id="repRanking"></div>
+    </div>
+
+    <a class="btn btn-primary cta-final" href="/ativar?from=web">Quero subir no ranking — criar conta grátis</a>
+    <p class="cta-note">Grátis pra sempre no plano free. Ative uma placa e comece a coletar avaliações.</p>
+    <button class="btn btn-ghost" type="button" onclick="window.location.href='/diagnostico'">Diagnosticar outro negócio</button>
+  </section>
+
+  <!-- ESTADOS DE ERRO / SEM DADOS -->
+  <section id="emptyMode" class="hidden">
+    <div class="state">
+      <div class="ico" id="emptyIco">🔍</div>
+      <h2 id="emptyTitle">Não encontramos seu negócio</h2>
+      <p id="emptyText">Confira o nome ou tente adicionar a cidade.</p>
+      <button class="btn btn-ghost" type="button" onclick="window.location.href='/diagnostico'" style="max-width:280px;margin:0 auto;">← Buscar de novo</button>
+    </div>
+  </section>
+
 </main>
 
-<script>
-  (function() {
-    var params = new URLSearchParams(window.location.search);
-    var q = (params.get('q') || '').trim();
-    if (q && q.length > 0 && q.length <= 80) {
-      var el = document.getElementById('term');
-      if (el) {
-        el.textContent = '"' + q + '"';
-      }
-    }
-  })();
-</script>
-
-<!-- WhatsApp de suporte StarTouch — botão flutuante -->
-<a href="https://wa.me/5511976944026?text=Oi!%20Quero%20ajuda%20com%20o%20diagnostico%20do%20meu%20negocio."
-   target="_blank" rel="noreferrer"
-   aria-label="Falar com StarTouch no WhatsApp (11) 97694-4026"
-   title="StarTouch · WhatsApp (11) 97694-4026"
-   id="st-wa-fab"
-   style="position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:50%;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(37,211,102,0.38),0 2px 6px rgba(0,0,0,0.10);z-index:9999;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease;">
-  <span aria-hidden="true" id="st-wa-halo" style="position:absolute;inset:0;border-radius:50%;background:#25D366;opacity:0.35;animation:stWaPulse 1.8s ease-out infinite;"></span>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="34" height="34" aria-hidden="true" style="position:relative;">
-    <path fill="currentColor" d="M16.001 3C9.373 3 4 8.373 4 15c0 2.252.624 4.36 1.706 6.165L4 29l8.06-1.667A11.94 11.94 0 0 0 16.001 27C22.628 27 28 21.627 28 15S22.628 3 16.001 3Zm0 21.6c-1.747 0-3.4-.46-4.825-1.293l-.345-.205-4.78.988.999-4.654-.225-.359A9.55 9.55 0 0 1 6.4 15c0-5.293 4.308-9.6 9.601-9.6 5.293 0 9.6 4.307 9.6 9.6 0 5.293-4.307 9.6-9.6 9.6Zm5.522-7.182c-.302-.151-1.792-.884-2.07-.985-.279-.101-.481-.151-.683.151-.202.302-.783.985-.96 1.187-.176.202-.353.227-.655.076-.302-.151-1.276-.47-2.43-1.5-.898-.8-1.504-1.79-1.681-2.093-.176-.302-.019-.466.132-.616.135-.135.302-.353.453-.53.151-.176.202-.302.302-.504.101-.202.05-.378-.025-.53-.076-.151-.683-1.647-.936-2.256-.247-.594-.498-.513-.683-.523l-.581-.01c-.202 0-.53.076-.806.378-.279.302-1.061 1.037-1.061 2.528 0 1.49 1.087 2.93 1.238 3.132.151.202 2.14 3.27 5.187 4.586.725.313 1.29.5 1.731.64.727.231 1.388.198 1.91.12.583-.087 1.792-.732 2.045-1.439.252-.706.252-1.31.176-1.439-.076-.126-.279-.202-.581-.353Z"/>
-  </svg>
+<a class="wa-float" href="https://wa.me/5511976944026?text=Oi!%20Quero%20ajuda%20com%20o%20diagn%C3%B3stico%20do%20meu%20neg%C3%B3cio." target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.8 14.01c-.24.68-1.42 1.31-1.95 1.35-.5.05-.96.24-3.23-.67-2.73-1.08-4.45-3.88-4.58-4.06-.13-.18-1.1-1.47-1.1-2.8 0-1.33.7-1.98.95-2.25.24-.27.53-.34.71-.34.18 0 .36 0 .51.01.16.01.39-.06.6.46.24.59.81 2.04.88 2.19.07.15.12.32.02.5-.09.18-.14.29-.27.45-.14.16-.29.36-.41.48-.14.14-.28.29-.12.56.16.27.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.21 1.37.27.14.43.12.59-.07.16-.18.68-.79.86-1.07.18-.27.36-.22.6-.13.24.09 1.55.73 1.81.86.27.13.45.2.51.31.07.11.07.63-.17 1.31z"/></svg>
 </a>
-<style>
-  @keyframes stWaPulse { 0%{transform:scale(1);opacity:.35} 70%{transform:scale(1.65);opacity:0} 100%{transform:scale(1.65);opacity:0} }
-  #st-wa-fab:hover { transform: translateY(-2px) scale(1.05); box-shadow:0 14px 30px rgba(37,211,102,0.48),0 4px 12px rgba(0,0,0,0.12); }
-  @media (prefers-reduced-motion: reduce) { #st-wa-halo { display:none; } }
-</style>
-<script>
-  setTimeout(function(){ var h=document.getElementById('st-wa-halo'); if(h) h.style.display='none'; }, 8000);
-</script>
 
+<script>
+const $ = (id) => document.getElementById(id);
+const params = new URLSearchParams(window.location.search);
+
+function showOnly(id) {
+  ["searchMode","loadingMode","reportMode","emptyMode"].forEach(s => $(s).classList.toggle("hidden", s !== id));
+}
+
+function showEmpty(ico, title, text) {
+  $("emptyIco").textContent = ico;
+  $("emptyTitle").textContent = title;
+  $("emptyText").textContent = text;
+  showOnly("emptyMode");
+}
+
+// ── BUSCA ──────────────────────────────────────────────
+async function doSearch() {
+  const q = $("q").value.trim();
+  const cep = $("cep").value.trim();
+  if (q.length < 2) { $("q").focus(); return; }
+  const btn = $("searchBtn");
+  btn.disabled = true; btn.textContent = "Buscando…";
+  $("results").innerHTML = "";
+  try {
+    const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(q)}&cep=${encodeURIComponent(cep)}`);
+    const d = await r.json();
+    const list = d.results || [];
+    if (!list.length) {
+      $("results").innerHTML = '<p style="font-size:13px;color:#80868B;padding:8px 2px;">Nada encontrado. Tente o nome completo ou adicione a cidade.</p>';
+    } else {
+      $("results").innerHTML = list.map(b => `
+        <button class="result" type="button" onclick="goReport('${b.place_id}')">
+          <span class="nm">${escapeHtml(b.name)}</span>
+          <span class="ad">${escapeHtml(b.address || "")}</span>
+          <span class="mt">⭐ ${b.rating || "—"} · ${b.total || 0} avaliações</span>
+        </button>`).join("");
+    }
+  } catch {
+    $("results").innerHTML = '<p style="font-size:13px;color:#EA4335;padding:8px 2px;">Erro ao buscar. Tente de novo.</p>';
+  } finally {
+    btn.disabled = false; btn.textContent = "🔍 Ver meu diagnóstico";
+  }
+}
+
+function goReport(placeId) {
+  window.location.href = `/diagnostico?place_id=${encodeURIComponent(placeId)}`;
+}
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ── RELATÓRIO ──────────────────────────────────────────
+async function loadReport(placeId) {
+  showOnly("loadingMode");
+  try {
+    const r = await fetch(`/api/diagnostico?place_id=${encodeURIComponent(placeId)}`);
+    const d = await r.json();
+    if (!d.ok) { showEmpty("⚠️", "Não conseguimos analisar", "Tente novamente em instantes ou busque outro negócio."); return; }
+
+    if (!d.enough) {
+      $("repName").textContent = d.name || "Seu negócio";
+      showEmpty("🗺️", "Poucos concorrentes por perto",
+        `Encontramos ${d.name || "seu negócio"}, mas não há concorrentes suficientes na mesma categoria pra montar um ranking. Crie sua conta pra acompanhar mesmo assim.`);
+      return;
+    }
+
+    renderReport(d);
+    showOnly("reportMode");
+  } catch {
+    showEmpty("⚠️", "Erro ao gerar diagnóstico", "Tente novamente em instantes.");
+  }
+}
+
+function renderReport(d) {
+  $("repName").textContent = d.name || "Seu negócio";
+  $("repPos").textContent = `#${d.rank}`;
+  $("repOf").textContent = `de ${d.total} negócios na sua região`;
+  $("repCat").textContent = d.category ? `Categoria: ${d.category}` : "";
+
+  $("repRating").textContent = (typeof d.rating === "number" ? d.rating.toFixed(1) : "—");
+  $("repReviews").textContent = d.reviews;
+
+  // Insight principal
+  const insTitle = $("repInsightTitle");
+  const insText = $("repInsightText");
+  const sc = $("repShortcut");
+  sc.classList.add("hidden");
+
+  if (d.rank <= 1) {
+    insTitle.textContent = "🏆 Você lidera!";
+    insText.textContent = "Você é o nº 1 da sua categoria na região. O desafio agora é manter — quem para de coletar avaliações acaba ultrapassado.";
+  } else {
+    const alvo = d.aheadName ? `a ${escapeHtml(d.aheadName)}` : `a ${d.rank - 1}ª posição`;
+    insTitle.textContent = "🎯 Como subir uma posição";
+    insText.innerHTML = d.reviewsToNext > 0
+      ? `Faltam cerca de <strong>${d.reviewsToNext} ${d.reviewsToNext === 1 ? "avaliação" : "avaliações"}</strong> pra você alcançar ${alvo}. Coletar avaliações de quem já é seu cliente é o caminho mais rápido.`
+      : `Você está quase lá — empatado em volume com ${alvo}. A diferença está na nota.`;
+    if (d.ratingShortcut) {
+      sc.classList.remove("hidden");
+      sc.innerHTML = `💡 Atalho: subindo sua nota de <strong>${d.rating.toFixed(1)}</strong> pra <strong>${d.ratingShortcut.toFixed(1)}</strong>, você passa ${alvo} sem precisar de tantas avaliações novas.`;
+    }
+  }
+
+  // Ranking (top 5 + você, se fora do top)
+  const rows = (d.top || []).map(c => rowHtml(c.pos, c.name, c.rating, c.reviews, c.isMe));
+  const meInTop = (d.top || []).some(c => c.isMe);
+  if (!meInTop) {
+    rows.push('<div class="row"><span class="ellipsis">⋯</span></div>');
+    rows.push(rowHtml(d.rank, d.name, d.rating, d.reviews, true));
+  }
+  $("repRanking").innerHTML = rows.join("");
+}
+
+function rowHtml(pos, name, rating, reviews, isMe) {
+  const medal = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : `${pos}º`;
+  const nm = isMe ? `${escapeHtml(name || "Você")}<span class="tag">VOCÊ</span>` : escapeHtml(name || "Concorrente");
+  return `<div class="row${isMe ? " me" : ""}">
+    <span class="rk">${medal}</span>
+    <span class="nm">${nm}</span>
+    <span class="st">⭐ ${rating ?? "—"} · ${reviews}</span>
+  </div>`;
+}
+
+// ── INIT ───────────────────────────────────────────────
+(function init() {
+  const placeId = params.get("place_id") || params.get("place");
+  const q = params.get("q");
+  if (placeId) {
+    loadReport(placeId);
+  } else {
+    showOnly("searchMode");
+    if (q) { $("q").value = q.slice(0, 80); doSearch(); }
+    $("searchBtn").addEventListener("click", doSearch);
+    $("q").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+    $("cep").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+  }
+})();
+</script>
 </body>
 </html>
