@@ -157,8 +157,8 @@ function renderResults(d) {
       <td>⭐ ${p.rating || "—"}</td>
       <td>${p.reviews}</td>
       <td><div class="row-actions">
-        <a class="mini mini-primary" href="${ORIGIN}${p.diagnostico}" target="_blank" rel="noopener">Diagnóstico ↗</a>
-        <button class="mini" type="button" onclick="copyLink('${ORIGIN}${p.diagnostico}', this)">Copiar link</button>
+        <button class="mini mini-primary" type="button" onclick="copyMessage('${p.place_id}', this)">💬 Copiar mensagem</button>
+        <a class="mini" href="${ORIGIN}${p.diagnostico}" target="_blank" rel="noopener">Diagnóstico ↗</a>
       </div></td>
     </tr>`).join("");
 
@@ -198,20 +198,46 @@ function setSort(key) {
 }
 function setFilter(mode) { filterMode = mode; renderResults(); }
 
-function copyLink(url, btn) {
-  navigator.clipboard.writeText(url).then(() => {
-    const t = btn.textContent; btn.textContent = "Copiado!";
-    setTimeout(() => btn.textContent = t, 1400);
+// Monta a mensagem de WhatsApp customizada com o diagnóstico do negócio.
+function buildMessage(p) {
+  const termo = lastTerm || "seu segmento";
+  const L = [];
+  L.push(`Oi! Tudo bem? 👋 Vi a ${p.name} aqui no Google.`);
+  if (p.rank <= 1) {
+    L.push(`Quando alguém busca "${termo}" na sua região, vocês aparecem em 1º lugar 🏆 Parabéns!`);
+    L.push(`Montei um diagnóstico grátis com o ranking da sua categoria e como manter a liderança 👇`);
+  } else {
+    let l2 = `Quando alguém busca "${termo}" na sua região, vocês aparecem em ${p.rank}º lugar 📍`;
+    if (p.aheadName) l2 += ` — logo atrás da ${p.aheadName}.`;
+    L.push(l2);
+    if (p.aheadRating != null && p.rating > p.aheadRating && p.aheadName) {
+      L.push(`E olha que interessante: a nota de vocês (${p.rating.toFixed(1)}) é melhor que a da ${p.aheadName} (${p.aheadRating.toFixed(1)}). O que segura vocês atrás é só o número de avaliações.`);
+    } else if (p.reviewsToNext > 0 && p.aheadName) {
+      L.push(`A diferença é avaliação: faltam cerca de ${p.reviewsToNext} pra alcançar a ${p.aheadName}.`);
+    }
+    L.push(`Montei um diagnóstico grátis mostrando o ranking completo e o que falta pra subir 👇`);
+  }
+  L.push(`${ORIGIN}${p.diagnostico}`);
+  L.push(`Dá uma olhada, sem compromisso 🙂`);
+  return L.join("\n\n");
+}
+
+function copyMessage(placeId, btn) {
+  const p = allProspects.find(x => x.place_id === placeId);
+  if (!p) return;
+  navigator.clipboard.writeText(buildMessage(p)).then(() => {
+    const t = btn.textContent; btn.textContent = "✓ Copiado!";
+    setTimeout(() => btn.textContent = t, 1500);
   }).catch(() => {});
 }
 
 function exportCSV() {
   const list = visibleList();
-  const header = ["nome","nota","avaliacoes","alvo_quente","endereco","place_id","link_diagnostico"];
+  const header = ["posicao","nome","nota","avaliacoes","alvo_quente","endereco","place_id","link_diagnostico"];
   const lines = [header.join(",")];
   for (const p of list) {
     const row = [
-      p.name, p.rating, p.reviews, p.isTarget ? "sim" : "nao",
+      p.rank, p.name, p.rating, p.reviews, p.isTarget ? "sim" : "nao",
       p.address || "", p.place_id, ORIGIN + p.diagnostico
     ].map(csvCell).join(",");
     lines.push(row);

@@ -453,12 +453,21 @@ async function handleProspects(req, res) {
     seen.add(p.place_id);
     const rating = p.rating || 0;
     const reviews = p.user_ratings_total || 0;
+    // A ordem do Google PARA ESTE TERMO é o ranking: posição = ordem na lista,
+    // e quem está logo acima é o item anterior. Permite montar a mensagem
+    // customizada sem chamadas extras.
+    const rank = prospects.length + 1;
+    const ahead = prospects.length ? prospects[prospects.length - 1] : null;
     prospects.push({
       place_id: p.place_id,
       name: p.name,
       address: p.formatted_address || "",
       rating,
       reviews,
+      rank,
+      aheadName: ahead ? ahead.name : null,
+      aheadRating: ahead ? ahead.rating : null,
+      reviewsToNext: ahead ? Math.max(0, ahead.reviews - reviews) : 0,
       // "Alvo quente": bom produto (nota >= 4.0) mas coletando pouco
       isTarget: rating >= 4.0 && reviews >= 3 && reviews <= 150,
       diagnostico: `/diagnostico?place_id=${encodeURIComponent(p.place_id)}&keyword=${encodeURIComponent(q)}`
