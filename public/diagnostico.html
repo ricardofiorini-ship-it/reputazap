@@ -269,7 +269,7 @@ async function doSearch() {
       $("results").innerHTML = '<p style="font-size:13px;color:#80868B;padding:8px 2px;">Nada encontrado. Tente o nome completo ou adicione a cidade.</p>';
     } else {
       $("results").innerHTML = list.map(b => `
-        <button class="result" type="button" onclick="goReport('${b.place_id}', '${escapeHtml(b.name)}')">
+        <button class="result" type="button" onclick="goReport('${b.place_id}')">
           <span class="nm">${escapeHtml(b.name)}</span>
           <span class="ad">${escapeHtml(b.address || "")}</span>
           <span class="mt">⭐ ${b.rating || "—"} · ${b.total || 0} avaliações</span>
@@ -282,41 +282,9 @@ async function doSearch() {
   }
 }
 
-// Adivinha a categoria pelo nome do negócio (resolve "Pizzaria X" caindo em "bar").
-// Conservador: só palavras-categoria claras. Sem match → deixa o Google decidir.
-const KEYWORD_DICT = [
-  ["pizzaria","pizzaria"],["pizza","pizzaria"],
-  ["hamburgueria","hamburgueria"],["burger","hamburgueria"],["burguer","hamburgueria"],["smash","hamburgueria"],
-  ["padaria","padaria"],["panificadora","padaria"],
-  ["açaí","açaí"],["acai","açaí"],
-  ["cafeteria","cafeteria"],["café","cafeteria"],["coffee","cafeteria"],
-  ["barbearia","barbearia"],["barber","barbearia"],
-  ["salão","salão de beleza"],["salao","salão de beleza"],["beleza","salão de beleza"],["estética","estética"],["estetica","estética"],
-  ["petshop","petshop"],["pet shop","petshop"],
-  ["farmácia","farmácia"],["farmacia","farmácia"],["drogaria","farmácia"],
-  ["lanchonete","lanchonete"],["lanches","lanchonete"],
-  ["sushi","restaurante japonês"],["japonês","restaurante japonês"],["japones","restaurante japonês"],["temaki","restaurante japonês"],
-  ["churrascaria","churrascaria"],["churrasco","churrascaria"],
-  ["sorveteria","sorveteria"],["gelateria","sorveteria"],
-  ["confeitaria","confeitaria"],["doceria","confeitaria"],["bolos","confeitaria"],
-  ["academia","academia"],["crossfit","academia"],
-  ["mercado","mercado"],["mercearia","mercado"],["hortifruti","hortifruti"],
-  ["restaurante","restaurante"],["rodízio","restaurante"],["rodizio","restaurante"],
-  ["pastelaria","pastelaria"],["esfiha","esfiharia"],["esfiharia","esfiharia"],
-  ["clínica","clínica"],["clinica","clínica"],["odonto","clínica odontológica"],["dentista","clínica odontológica"]
-];
-function detectKeyword(name) {
-  const n = (name || "").toLowerCase();
-  for (const [token, kw] of KEYWORD_DICT) {
-    if (n.includes(token)) return kw;
-  }
-  return "";
-}
-
-function goReport(placeId, name) {
-  const kw = detectKeyword(name);
-  const q = `/diagnostico?place_id=${encodeURIComponent(placeId)}` + (kw ? `&keyword=${encodeURIComponent(kw)}` : "");
-  window.location.href = q;
+function goReport(placeId) {
+  // O termo de busca é detectado no servidor (pelo nome do negócio).
+  window.location.href = `/diagnostico?place_id=${encodeURIComponent(placeId)}`;
 }
 
 function escapeHtml(s) {

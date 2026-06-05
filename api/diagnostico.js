@@ -22,6 +22,46 @@ const BROAD = new Set([
   "store", "food", "health", "finance", "general_contractor", "home_goods_store", "shopping_mall"
 ]);
 
+// Detecção de termo pelo NOME do negócio. Casa o termo MAIS ESPECÍFICO
+// (token mais longo vence) — ex: "Padaria Artesanal Le Moulin" → "padaria
+// artesanal", não só "padaria".
+const KEYWORD_DICT = [
+  ["padaria artesanal","padaria artesanal"],
+  ["cervejaria artesanal","cervejaria artesanal"],["cerveja artesanal","cervejaria artesanal"],
+  ["sorveteria artesanal","sorveteria artesanal"],
+  ["hamburgueria artesanal","hamburgueria artesanal"],
+  ["pizzaria napolitana","pizzaria napolitana"],["pizza napolitana","pizzaria napolitana"],
+  ["comida japonesa","restaurante japonês"],["comida árabe","restaurante árabe"],["comida arabe","restaurante árabe"],
+  ["comida italiana","restaurante italiano"],
+  ["pizzaria","pizzaria"],["pizza","pizzaria"],
+  ["hamburgueria","hamburgueria"],["burger","hamburgueria"],["burguer","hamburgueria"],["smash","hamburgueria"],
+  ["panificadora","padaria"],["padaria","padaria"],
+  ["confeitaria","confeitaria"],["doceria","confeitaria"],
+  ["cafeteria","cafeteria"],["coffee","cafeteria"],["café","cafeteria"],
+  ["açaiteria","açaí"],["açaí","açaí"],["acai","açaí"],
+  ["barbearia","barbearia"],["barber","barbearia"],
+  ["salão de beleza","salão de beleza"],["salão","salão de beleza"],["salao","salão de beleza"],["estética","estética"],["estetica","estética"],
+  ["pet shop","petshop"],["petshop","petshop"],
+  ["farmácia","farmácia"],["farmacia","farmácia"],["drogaria","farmácia"],
+  ["lanchonete","lanchonete"],
+  ["sushi","restaurante japonês"],["temaki","restaurante japonês"],
+  ["churrascaria","churrascaria"],["churrasco","churrascaria"],
+  ["gelateria","gelateria"],["sorveteria","sorveteria"],
+  ["academia","academia"],["crossfit","academia"],
+  ["hortifruti","hortifruti"],["mercearia","mercado"],["mercado","mercado"],
+  ["pastelaria","pastelaria"],["esfiharia","esfiharia"],
+  ["rodízio","restaurante"],["rodizio","restaurante"],["restaurante","restaurante"],
+  ["clínica odontológica","clínica odontológica"],["odonto","clínica odontológica"],["dentista","clínica odontológica"],["clínica","clínica"],["clinica","clínica"]
+];
+function detectFromName(name) {
+  const n = (name || "").toLowerCase();
+  let best = "", bestLen = 0;
+  for (const [tok, term] of KEYWORD_DICT) {
+    if (n.includes(tok) && tok.length > bestLen) { best = term; bestLen = tok.length; }
+  }
+  return best;
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Cache-Control", "public, max-age=600");
@@ -49,8 +89,10 @@ export default async function handler(req, res) {
     const myRating = typeof me.rating === "number" ? me.rating : 0;
     const myReviews = me.user_ratings_total || 0;
 
-    // 2. Termo de busca (o que o cliente digita). keyword > tipo específico.
+    // 2. Termo de busca (o que o cliente digita).
+    //    keyword explícito > termo detectado no NOME (mais específico) > tipo do Google
     let term = keyword;
+    if (!term) term = detectFromName(me.name);
     if (!term) {
       const types = me.types || [];
       const specific = types.filter(t => !GENERIC.has(t) && !BROAD.has(t));
