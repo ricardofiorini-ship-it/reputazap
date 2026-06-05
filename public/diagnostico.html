@@ -220,6 +220,24 @@ function showEmpty(ico, title, text) {
 }
 
 // ── BUSCA ──────────────────────────────────────────────
+// Resolve CEP -> cidade/UF via ViaCEP. É isso que evita resultado dos EUA:
+// a busca passa a incluir "São Paulo SP" e o Google ancora no Brasil.
+// Mesmo mecanismo do /ativar.
+async function resolveLocation(locRaw) {
+  const cepDigits = (locRaw || "").replace(/\D/g, "");
+  if (cepDigits.length === 8) {
+    try {
+      const v = await fetch(`https://viacep.com.br/ws/${cepDigits}/json/`).then(r => r.json());
+      if (v && !v.erro) {
+        return { parts: [cepDigits, v.localidade, v.uf].filter(Boolean), cep: cepDigits };
+      }
+    } catch {}
+    return { parts: [cepDigits], cep: cepDigits };
+  }
+  // Texto livre (cidade) — usa como veio
+  return { parts: locRaw ? [locRaw] : [], cep: "" };
+}
+
 async function doSearch() {
   const q = $("q").value.trim();
   const loc = $("cep").value.trim();
@@ -228,11 +246,10 @@ async function doSearch() {
   btn.disabled = true; btn.textContent = "Buscando…";
   $("results").innerHTML = "";
   try {
-    // Junta a localização (cidade OU CEP) na própria query — é o que faz o Google
-    // narrar a busca. O cep separado ainda serve pra reordenar por proximidade
-    // quando é um CEP de verdade (8 dígitos). Mesmo padrão do /ativar.
-    const fullQ = [q, loc].filter(Boolean).join(" ");
-    const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(fullQ)}&cep=${encodeURIComponent(loc)}`);
+    // Resolve CEP -> cidade/UF e bota tudo na query (nome + CEP + cidade + UF).
+    const locInfo = await resolveLocation(loc);
+    const fullQ = [q, ...locInfo.parts].filter(Boolean).join(" ");
+    const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(fullQ)}&cep=${encodeURIComponent(locInfo.cep)}`);
     const d = await r.json();
     const list = d.results || [];
     if (!list.length) {
