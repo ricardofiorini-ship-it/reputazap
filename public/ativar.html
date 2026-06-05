@@ -727,27 +727,33 @@ function selectBusiness(biz){
   setTimeout(()=>goToStep3(),700);
 }
 
-// Veio do /diagnostico com place_id: busca o negocio e ja seleciona, pulando
-// a etapa de busca. Cai pro screen2 (busca) como fallback se algo falhar.
+// Veio do /diagnostico com place_id: vai DIRETO pro cadastro (screen1), sem
+// passar pela tela de busca (evita o "flash" + pulo). O nome do negocio
+// carrega ali mesmo no resumo. Fallback pra busca manual se o bizinfo falhar.
 async function prefillFromPlaceId(placeId){
-  goToStep(2);
-  const status = document.getElementById("searchStatus");
-  if (status) { status.textContent = "Carregando seu negócio…"; status.className = "status-msg loading"; }
+  // Monta o cadastro ja com o resumo em "carregando"
+  document.getElementById("bizSummaryName").textContent = "Carregando seu negócio…";
+  document.getElementById("bizSummary").style.display = "flex";
+  document.getElementById("screen1Back").style.display = "flex";
+  document.getElementById("screen1Title").textContent = "Quase lá — crie sua conta";
+  document.getElementById("screen1Sub").textContent = "Em seguida você monta o kit do seu negócio.";
+  goToStep(1);
   try {
     const r = await fetch(`/api/bizinfo?place_id=${encodeURIComponent(placeId)}`);
     const d = await r.json();
-    if (!d || !d.name) {
-      if (status) { status.textContent = "Não conseguimos carregar — busque seu negócio abaixo."; status.className = "status-msg error"; }
-      return;
-    }
-    selectBusiness({
+    if (!d || !d.name) throw new Error("biz nao encontrado");
+    state.business = {
       place_id: placeId,
       name: d.name,
       address: d.address || "",
       rating: d.rating || 0,
       total: d.total || 0
-    });
+    };
+    document.getElementById("bizSummaryName").textContent = d.name;
   } catch {
+    // Fallback: nao carregou -> manda pra busca manual
+    goToStep(2);
+    const status = document.getElementById("searchStatus");
     if (status) { status.textContent = "Não conseguimos carregar — busque seu negócio abaixo."; status.className = "status-msg error"; }
   }
 }
