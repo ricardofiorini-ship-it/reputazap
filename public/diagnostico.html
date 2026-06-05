@@ -75,6 +75,15 @@
   .insight p{font-size:13.5px;color:#92722A;line-height:1.55;}
   .insight .shortcut{margin-top:10px;background:#E6F4EA;border:1px solid #A8DAB5;border-radius:10px;padding:11px 13px;color:#137333;font-size:13px;font-weight:600;line-height:1.5;}
 
+  /* Controle de categoria (corrigir comparação errada, ex: pizzaria caindo em bar) */
+  .cat-control{font-size:12.5px;color:#5F6368;text-align:center;margin:-4px 0 18px;line-height:1.5;}
+  .cat-control strong{color:#0F0F0F;}
+  .cat-control .toggle{background:none;border:none;color:#1A73E8;font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;padding:0 0 0 4px;}
+  .cat-form{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap;}
+  .cat-form input{border:1.5px solid #DADCE0;border-radius:8px;padding:9px 11px;font-size:13.5px;font-family:inherit;outline:none;max-width:200px;}
+  .cat-form input:focus{border-color:#1A73E8;}
+  .cat-form button{background:#1A73E8;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+
   .ranklist{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:8px 8px;margin-bottom:24px;}
   .ranklist .title{font-size:12px;font-weight:700;color:#5F6368;text-transform:uppercase;letter-spacing:0.06em;padding:12px 12px 8px;}
   .row{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;}
@@ -154,6 +163,15 @@
       <div class="kpi"><div class="v" id="repReviews">—</div><div class="l">Avaliações</div></div>
     </div>
 
+    <div class="cat-control">
+      Comparando como <strong id="catLabel">—</strong>.
+      <button type="button" class="toggle" id="catToggle">Não é isso? Trocar categoria</button>
+      <div class="cat-form hidden" id="catForm">
+        <input id="catInput" type="text" placeholder="Ex: pizzaria"/>
+        <button type="button" id="catApply">Recalcular</button>
+      </div>
+    </div>
+
     <div class="insight" id="repInsight">
       <h3 id="repInsightTitle">🎯 Como subir</h3>
       <p id="repInsightText">—</p>
@@ -217,7 +235,7 @@ async function doSearch() {
       $("results").innerHTML = '<p style="font-size:13px;color:#80868B;padding:8px 2px;">Nada encontrado. Tente o nome completo ou adicione a cidade.</p>';
     } else {
       $("results").innerHTML = list.map(b => `
-        <button class="result" type="button" onclick="goReport('${b.place_id}')">
+        <button class="result" type="button" onclick="goReport('${b.place_id}', '${escapeHtml(b.name)}')">
           <span class="nm">${escapeHtml(b.name)}</span>
           <span class="ad">${escapeHtml(b.address || "")}</span>
           <span class="mt">⭐ ${b.rating || "—"} · ${b.total || 0} avaliações</span>
@@ -230,8 +248,41 @@ async function doSearch() {
   }
 }
 
-function goReport(placeId) {
-  window.location.href = `/diagnostico?place_id=${encodeURIComponent(placeId)}`;
+// Adivinha a categoria pelo nome do negócio (resolve "Pizzaria X" caindo em "bar").
+// Conservador: só palavras-categoria claras. Sem match → deixa o Google decidir.
+const KEYWORD_DICT = [
+  ["pizzaria","pizzaria"],["pizza","pizzaria"],
+  ["hamburgueria","hamburgueria"],["burger","hamburgueria"],["burguer","hamburgueria"],["smash","hamburgueria"],
+  ["padaria","padaria"],["panificadora","padaria"],
+  ["açaí","açaí"],["acai","açaí"],
+  ["cafeteria","cafeteria"],["café","cafeteria"],["coffee","cafeteria"],
+  ["barbearia","barbearia"],["barber","barbearia"],
+  ["salão","salão de beleza"],["salao","salão de beleza"],["beleza","salão de beleza"],["estética","estética"],["estetica","estética"],
+  ["petshop","petshop"],["pet shop","petshop"],
+  ["farmácia","farmácia"],["farmacia","farmácia"],["drogaria","farmácia"],
+  ["lanchonete","lanchonete"],["lanches","lanchonete"],
+  ["sushi","restaurante japonês"],["japonês","restaurante japonês"],["japones","restaurante japonês"],["temaki","restaurante japonês"],
+  ["churrascaria","churrascaria"],["churrasco","churrascaria"],
+  ["sorveteria","sorveteria"],["gelateria","sorveteria"],
+  ["confeitaria","confeitaria"],["doceria","confeitaria"],["bolos","confeitaria"],
+  ["academia","academia"],["crossfit","academia"],
+  ["mercado","mercado"],["mercearia","mercado"],["hortifruti","hortifruti"],
+  ["restaurante","restaurante"],["rodízio","restaurante"],["rodizio","restaurante"],
+  ["pastelaria","pastelaria"],["esfiha","esfiharia"],["esfiharia","esfiharia"],
+  ["clínica","clínica"],["clinica","clínica"],["odonto","clínica odontológica"],["dentista","clínica odontológica"]
+];
+function detectKeyword(name) {
+  const n = (name || "").toLowerCase();
+  for (const [token, kw] of KEYWORD_DICT) {
+    if (n.includes(token)) return kw;
+  }
+  return "";
+}
+
+function goReport(placeId, name) {
+  const kw = detectKeyword(name);
+  const q = `/diagnostico?place_id=${encodeURIComponent(placeId)}` + (kw ? `&keyword=${encodeURIComponent(kw)}` : "");
+  window.location.href = q;
 }
 
 function escapeHtml(s) {
@@ -239,10 +290,13 @@ function escapeHtml(s) {
 }
 
 // ── RELATÓRIO ──────────────────────────────────────────
-async function loadReport(placeId) {
+let currentPlaceId = null;
+async function loadReport(placeId, keyword) {
+  currentPlaceId = placeId;
   showOnly("loadingMode");
   try {
-    const r = await fetch(`/api/diagnostico?place_id=${encodeURIComponent(placeId)}`);
+    const url = `/api/diagnostico?place_id=${encodeURIComponent(placeId)}` + (keyword ? `&keyword=${encodeURIComponent(keyword)}` : "");
+    const r = await fetch(url);
     const d = await r.json();
     if (!d.ok) { showEmpty("⚠️", "Não conseguimos analisar", "Tente novamente em instantes ou busque outro negócio."); return; }
 
@@ -264,7 +318,9 @@ function renderReport(d) {
   $("repName").textContent = d.name || "Seu negócio";
   $("repPos").textContent = `#${d.rank}`;
   $("repOf").textContent = `de ${d.total} negócios na sua região`;
-  $("repCat").textContent = d.category ? `Categoria: ${d.category}` : "";
+  $("repCat").textContent = "";
+  $("catLabel").textContent = d.category || "categoria geral";
+  $("catInput").value = d.category || "";
 
   $("repRating").textContent = (typeof d.rating === "number" ? d.rating.toFixed(1) : "—");
   $("repReviews").textContent = d.reviews;
@@ -311,11 +367,25 @@ function rowHtml(pos, name, rating, reviews, isMe) {
 }
 
 // ── INIT ───────────────────────────────────────────────
+function applyCategory() {
+  const kw = $("catInput").value.trim();
+  if (!kw || !currentPlaceId) return;
+  window.location.href = `/diagnostico?place_id=${encodeURIComponent(currentPlaceId)}&keyword=${encodeURIComponent(kw)}`;
+}
+
 (function init() {
   const placeId = params.get("place_id") || params.get("place");
+  const keyword = params.get("keyword") || "";
   const q = params.get("q");
   if (placeId) {
-    loadReport(placeId);
+    loadReport(placeId, keyword);
+    // Controle de trocar categoria (disponível no relatório)
+    $("catToggle").addEventListener("click", () => {
+      $("catForm").classList.toggle("hidden");
+      $("catInput").focus();
+    });
+    $("catApply").addEventListener("click", applyCategory);
+    $("catInput").addEventListener("keydown", e => { if (e.key === "Enter") applyCategory(); });
   } else {
     showOnly("searchMode");
     if (q) { $("q").value = q.slice(0, 80); doSearch(); }
