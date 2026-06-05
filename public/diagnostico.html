@@ -222,13 +222,17 @@ function showEmpty(ico, title, text) {
 // ── BUSCA ──────────────────────────────────────────────
 async function doSearch() {
   const q = $("q").value.trim();
-  const cep = $("cep").value.trim();
+  const loc = $("cep").value.trim();
   if (q.length < 2) { $("q").focus(); return; }
   const btn = $("searchBtn");
   btn.disabled = true; btn.textContent = "Buscando…";
   $("results").innerHTML = "";
   try {
-    const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(q)}&cep=${encodeURIComponent(cep)}`);
+    // Junta a localização (cidade OU CEP) na própria query — é o que faz o Google
+    // narrar a busca. O cep separado ainda serve pra reordenar por proximidade
+    // quando é um CEP de verdade (8 dígitos). Mesmo padrão do /ativar.
+    const fullQ = [q, loc].filter(Boolean).join(" ");
+    const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(fullQ)}&cep=${encodeURIComponent(loc)}`);
     const d = await r.json();
     const list = d.results || [];
     if (!list.length) {
