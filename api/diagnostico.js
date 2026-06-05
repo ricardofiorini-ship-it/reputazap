@@ -62,6 +62,59 @@ function detectFromName(name) {
   return best;
 }
 
+// Sugestões de termo relacionadas — viram botões clicáveis no diagnóstico,
+// pra o dono refinar sem digitar (ex: padaria → padaria artesanal/confeitaria).
+// Inclui chaves de tipos do Google em inglês (fallback quando o nome não diz).
+const SUGGESTIONS = {
+  "padaria": ["padaria", "padaria artesanal", "confeitaria"],
+  "padaria artesanal": ["padaria artesanal", "padaria", "confeitaria"],
+  "confeitaria": ["confeitaria", "doceria", "padaria"],
+  "cafeteria": ["cafeteria", "padaria", "confeitaria"],
+  "restaurante": ["restaurante", "restaurante japonês", "churrascaria", "pizzaria"],
+  "restaurante japonês": ["restaurante japonês", "sushi", "restaurante"],
+  "restaurante árabe": ["restaurante árabe", "esfiharia", "restaurante"],
+  "restaurante italiano": ["restaurante italiano", "pizzaria", "restaurante"],
+  "pizzaria": ["pizzaria", "pizzaria napolitana", "restaurante"],
+  "pizzaria napolitana": ["pizzaria napolitana", "pizzaria"],
+  "hamburgueria": ["hamburgueria", "hamburgueria artesanal", "lanchonete"],
+  "hamburgueria artesanal": ["hamburgueria artesanal", "hamburgueria", "lanchonete"],
+  "lanchonete": ["lanchonete", "hamburgueria", "pastelaria"],
+  "churrascaria": ["churrascaria", "restaurante"],
+  "açaí": ["açaí", "sorveteria"],
+  "sorveteria": ["sorveteria", "gelateria", "açaí"],
+  "gelateria": ["gelateria", "sorveteria"],
+  "barbearia": ["barbearia", "salão de beleza"],
+  "salão de beleza": ["salão de beleza", "barbearia", "estética"],
+  "estética": ["estética", "salão de beleza"],
+  "petshop": ["petshop", "pet shop"],
+  "farmácia": ["farmácia", "drogaria"],
+  "academia": ["academia", "crossfit"],
+  "mercado": ["mercado", "hortifruti", "mercearia"],
+  "hortifruti": ["hortifruti", "mercado"],
+  "pastelaria": ["pastelaria", "lanchonete"],
+  "esfiharia": ["esfiharia", "restaurante árabe"],
+  "clínica": ["clínica", "clínica odontológica"],
+  "clínica odontológica": ["clínica odontológica", "dentista"],
+  // Tipos do Google (inglês) — fallback quando o nome não revela o nicho
+  "bakery": ["padaria", "padaria artesanal", "confeitaria"],
+  "restaurant": ["restaurante", "restaurante japonês", "pizzaria"],
+  "bar": ["bar", "boteco", "pub", "restaurante"],
+  "cafe": ["cafeteria", "padaria"],
+  "beauty_salon": ["salão de beleza", "estética"],
+  "hair_care": ["barbearia", "salão de beleza"],
+  "gym": ["academia"],
+  "pharmacy": ["farmácia", "drogaria"],
+  "meal_takeaway": ["lanchonete", "restaurante"],
+  "meal_delivery": ["lanchonete", "restaurante"],
+  "supermarket": ["mercado", "hortifruti"],
+  "grocery_or_supermarket": ["mercado", "hortifruti"]
+};
+function suggestFor(term) {
+  const base = SUGGESTIONS[term] || SUGGESTIONS[(term || "").toLowerCase()] || [];
+  if (!base.length) return [];
+  return [...new Set([term, ...base])].slice(0, 4);
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Cache-Control", "public, max-age=600");
@@ -160,6 +213,7 @@ export default async function handler(req, res) {
       reviewsToNext,
       aheadName,
       ratingShortcut: null,
+      suggestions: suggestFor(term),
       top
     });
   } catch (err) {
