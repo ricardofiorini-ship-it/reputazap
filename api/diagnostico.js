@@ -22,7 +22,10 @@ export default async function handler(req, res) {
 
   const placeId = req.query.place_id || req.query.place;
   const keyword = (req.query.keyword || "").trim();
-  const radius = req.query.radius; // motor clampa (default 3000, máx 25000)
+  // Diagnóstico trava em até 3km (recorte mais fiel ao que o cliente vê).
+  // Ausente/inválido → undefined (motor usa default 3000).
+  const rIn = parseInt(req.query.radius, 10);
+  const radius = Number.isFinite(rIn) ? Math.min(rIn, 3000) : undefined;
   if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
 
   try {
