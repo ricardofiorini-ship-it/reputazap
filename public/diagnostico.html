@@ -365,8 +365,13 @@ function renderReport(d) {
   $("repName").textContent = d.name || "Seu negócio";
   // CTA já leva o negócio escolhido — /ativar pula a busca e vai pro cadastro
   if (currentPlaceId) $("repCta").href = `/ativar?from=web&place_id=${encodeURIComponent(currentPlaceId)}`;
-  $("repPos").textContent = `#${d.rank}`;
-  $("repOf").textContent = `de ${d.total} negócios na sua região`;
+  if (d.inResults && d.rank) {
+    $("repPos").textContent = `#${d.rank}`;
+    $("repOf").textContent = `entre ${d.total} que aparecem quando buscam "${d.category}"`;
+  } else {
+    $("repPos").textContent = "😕";
+    $("repOf").textContent = `Você não aparece no top ${d.total} quando buscam "${d.category}" por aqui`;
+  }
   $("repCat").textContent = "";
   $("catLabel").textContent = d.category || "categoria geral";
   $("catInput").value = d.category || "";
@@ -386,19 +391,18 @@ function renderReport(d) {
   const sc = $("repShortcut");
   sc.classList.add("hidden");
 
-  if (d.rank <= 1) {
+  if (!d.inResults) {
+    insTitle.textContent = "🎯 Você está invisível pra esse termo";
+    insText.innerHTML = `Quando alguém busca <strong>"${escapeHtml(d.category)}"</strong> aqui perto, você não aparece no top ${d.total} — e quem aparece está levando esses clientes. Coletar avaliações é o primeiro passo pra entrar no mapa.`;
+  } else if (d.rank <= 1) {
     insTitle.textContent = "🏆 Você lidera!";
-    insText.textContent = "Você é o nº 1 da sua categoria na região. O desafio agora é manter — quem para de coletar avaliações acaba ultrapassado.";
+    insText.innerHTML = `Você é o nº 1 quando buscam <strong>"${escapeHtml(d.category)}"</strong> na sua região. O desafio agora é manter — quem para de coletar avaliações acaba ultrapassado.`;
   } else {
     const alvo = d.aheadName ? `a ${escapeHtml(d.aheadName)}` : `a ${d.rank - 1}ª posição`;
     insTitle.textContent = "🎯 Como subir uma posição";
     insText.innerHTML = d.reviewsToNext > 0
-      ? `Faltam cerca de <strong>${d.reviewsToNext} ${d.reviewsToNext === 1 ? "avaliação" : "avaliações"}</strong> pra você alcançar ${alvo}. Coletar avaliações de quem já é seu cliente é o caminho mais rápido.`
-      : `Você está quase lá — empatado em volume com ${alvo}. A diferença está na nota.`;
-    if (d.ratingShortcut) {
-      sc.classList.remove("hidden");
-      sc.innerHTML = `💡 Atalho: subindo sua nota de <strong>${d.rating.toFixed(1)}</strong> pra <strong>${d.ratingShortcut.toFixed(1)}</strong>, você passa ${alvo} sem precisar de tantas avaliações novas.`;
-    }
+      ? `O <strong>${escapeHtml(d.aheadName || "concorrente logo acima")}</strong> tem cerca de <strong>${d.reviewsToNext} ${d.reviewsToNext === 1 ? "avaliação" : "avaliações"}</strong> a mais que você. Coletar avaliações de quem já é seu cliente é o caminho mais rápido pra passar ${alvo}.`
+      : `Você está logo atrás ${alvo}. Coletar mais avaliações ajuda a passar à frente.`;
   }
 
   // Ranking (top 5 + você, se fora do top)
@@ -406,7 +410,11 @@ function renderReport(d) {
   const meInTop = (d.top || []).some(c => c.isMe);
   if (!meInTop) {
     rows.push('<div class="row"><span class="ellipsis">⋯</span></div>');
-    rows.push(rowHtml(d.rank, d.name, d.rating, d.reviews, true));
+    if (d.inResults && d.rank) {
+      rows.push(rowHtml(d.rank, d.name, d.rating, d.reviews, true));
+    } else {
+      rows.push(`<div class="row me"><span class="rk">—</span><span class="nm">${escapeHtml(d.name || "Você")}<span class="tag">VOCÊ</span></span><span class="st">fora do top ${d.total}</span></div>`);
+    }
   }
   $("repRanking").innerHTML = rows.join("");
 }

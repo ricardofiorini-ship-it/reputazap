@@ -1,96 +1,123 @@
 // ============================================================
 // StarTouch — Diagnóstico público (isca de captação)
 // ============================================================
-// Endpoint PÚBLICO (sem auth): dado um place_id, devolve o
-// diagnóstico competitivo do negócio — posição no ranking,
-// nota, avaliações, líderes da categoria e quanto falta pra subir.
-// Reusa o mesmo motor do produto (fetchCompetitorsSnapshot →
-// gscore = nota × log10(avaliações+1)).
+// Endpoint PÚBLICO (sem auth). Emula a busca do CLIENTE:
+//   "[termo] perto do negócio" via Google Text Search, e lê a
+//   POSIÇÃO na ordem que o Google devolveu (sem re-ranquear).
+// É o número honesto — o mesmo que o dono vê ao buscar no Google.
 //
-// Uso: /api/diagnostico?place_id=XXX  (opcional &keyword=)
-// É marketing/demo — por isso mostra nomes dos líderes (diferente
-// do paywall do app, onde nome de concorrente é Pro).
+// (Difere do motor do app, que usa Nearby Search + gscore; ver
+//  _lib/competitors.js. Aqui priorizamos fidelidade ao Google.)
+//
+// Uso: /api/diagnostico?place_id=XXX  (opcional &keyword= &radius=)
 // ============================================================
-import { fetchCompetitorsSnapshot } from "./_lib/competitors.js";
+import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 
-const gscore = (rt, rv) => (rt || 0) * Math.log10((rv || 0) + 1);
+const API_KEY = process.env.PLACES_API_KEY;
+
+const GENERIC = new Set([
+  "point_of_interest", "establishment", "premise", "geocode", "political", "store_storage"
+]);
+const BROAD = new Set([
+  "store", "food", "health", "finance", "general_contractor", "home_goods_store", "shopping_mall"
+]);
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Cache-Control", "public, max-age=600"); // 10 min
+  res.setHeader("Cache-Control", "public, max-age=600");
   if (req.method !== "GET") return res.status(405).json({ error: "Método não permitido" });
 
   const placeId = req.query.place_id || req.query.place;
   const keyword = (req.query.keyword || "").trim();
-  // Diagnóstico trava em até 3km (recorte mais fiel ao que o cliente vê).
-  // Ausente/inválido → undefined (motor usa default 3000).
+  // Diagnóstico trava em até 3km (recorte fiel ao que o cliente percorre).
   const rIn = parseInt(req.query.radius, 10);
-  const radius = Number.isFinite(rIn) ? Math.min(rIn, 3000) : undefined;
+  const radius = Number.isFinite(rIn) ? Math.min(Math.max(rIn, 500), 3000) : 3000;
   if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
+  if (!API_KEY) return res.status(500).json({ error: "PLACES_API_KEY ausente" });
 
   try {
-    const snap = await fetchCompetitorsSnapshot({ placeId, keyword, radius });
+    // 1. Detalhes do negócio: localização, nota, avaliações, tipos
+    const det = await fetchWithTimeout(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,user_ratings_total,geometry,types&language=pt-BR&key=${API_KEY}`,
+      {}, 6000
+    ).then(r => r.json());
+    const me = det.result;
+    if (!me?.geometry?.location) {
+      return res.json({ ok: true, enough: false, name: me?.name || null, rating: me?.rating ?? null, reviews: me?.user_ratings_total ?? 0, category: null, radius, total: 0 });
+    }
+    const { lat, lng } = me.geometry.location;
+    const myRating = typeof me.rating === "number" ? me.rating : 0;
+    const myReviews = me.user_ratings_total || 0;
 
-    // Negócio achado, mas sem concorrentes suficientes pra ranquear
-    if (!snap.enough) {
-      return res.json({
-        ok: true,
-        enough: false,
-        name: snap.me?.name || null,
-        rating: snap.me?.rating ?? null,
-        reviews: snap.me?.reviews ?? 0,
-        category: snap.category || null,
-        radius: snap.radius || null,
-        total: snap.total || 0
-      });
+    // 2. Termo de busca (o que o cliente digita). keyword > tipo específico.
+    let term = keyword;
+    if (!term) {
+      const types = me.types || [];
+      const specific = types.filter(t => !GENERIC.has(t) && !BROAD.has(t));
+      const broad = types.filter(t => !GENERIC.has(t) && BROAD.has(t));
+      term = specific[0] || broad[0] || "";
+    }
+    if (!term) {
+      return res.json({ ok: true, enough: false, name: me.name, rating: myRating, reviews: myReviews, category: null, radius, total: 0 });
     }
 
-    const rank = snap.myRank;
-    const total = snap.total;
-    const myRating = snap.me?.rating || 0;
-    const myReviews = snap.me?.reviews || 0;
+    // 3. Emula a busca do cliente: Text Search do termo, ancorado no local.
+    //    Lê a ORDEM do Google (relevância/proeminência) — sem re-ranquear.
+    const tsUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(term)}&location=${lat},${lng}&radius=${radius}&language=pt-BR&region=br&key=${API_KEY}`;
+    const ts = await fetchWithTimeout(tsUrl, {}, 8000).then(r => r.json());
 
-    // Concorrente diretamente à frente (uma posição acima)
-    const ahead = snap.ahead; // { reviews, rating } | null
-    // Nome do "à frente" só se ele estiver no top 5 retornado
-    let aheadName = null;
-    if (rank > 1 && Array.isArray(snap.top) && snap.top[rank - 2]) {
-      aheadName = snap.top[rank - 2].name || null;
+    // Filtra fechados/sem nota e deduplica preservando a ordem do Google
+    const seen = new Set();
+    const ordered = [];
+    for (const p of (ts.results || [])) {
+      if (seen.has(p.place_id)) continue;
+      if (p.business_status && p.business_status !== "OPERATIONAL") continue;
+      if (typeof p.rating !== "number") continue;
+      seen.add(p.place_id);
+      ordered.push(p);
     }
 
-    // Quanto falta em avaliações pra alcançar quem está à frente
-    const reviewsToNext = ahead ? Math.max(0, (ahead.reviews || 0) - myReviews) : 0;
-
-    // Atalho da nota: que nota empataria com o "à frente" mantendo as avaliações atuais
-    let ratingShortcut = null;
-    if (ahead) {
-      const needed = gscore(ahead.rating, ahead.reviews) / Math.log10(myReviews + 1);
-      if (needed > myRating && needed <= 5 && (needed - myRating) <= 0.3) {
-        ratingShortcut = Math.ceil(needed * 10) / 10;
-      }
+    const total = ordered.length;
+    if (total < 2) {
+      return res.json({ ok: true, enough: false, name: me.name, rating: myRating, reviews: myReviews, category: term, radius, total });
     }
 
-    const top = (snap.top || []).map((c, i) => ({
+    // 4. Posição do alvo NA ORDEM DO GOOGLE
+    const idx = ordered.findIndex(p => p.place_id === placeId);
+    const inResults = idx >= 0;
+    const rank = inResults ? idx + 1 : null;
+
+    // 5. Top 5 na ordem do Google
+    const top = ordered.slice(0, 5).map((p, i) => ({
       pos: i + 1,
-      name: c.name || null,
-      rating: c.rating ?? null,
-      reviews: c.reviews ?? 0,
-      isMe: !!c.is_me
+      name: p.name || null,
+      rating: p.rating ?? null,
+      reviews: p.user_ratings_total || 0,
+      isMe: p.place_id === placeId
     }));
+
+    // 6. Quem está logo acima (se o alvo aparece na lista)
+    let aheadName = null, reviewsToNext = 0;
+    if (inResults && idx > 0) {
+      const ahead = ordered[idx - 1];
+      aheadName = ahead.name || null;
+      reviewsToNext = Math.max(0, (ahead.user_ratings_total || 0) - myReviews);
+    }
 
     return res.json({
       ok: true,
       enough: true,
-      name: snap.me?.name || null,
+      name: me.name,
       rating: myRating,
       reviews: myReviews,
-      category: snap.category || null,
-      radius: snap.radius || null,
+      category: term,
+      radius,
       rank,
       total,
+      inResults,
       reviewsToNext,
       aheadName,
-      ratingShortcut,
+      ratingShortcut: null,
       top
     });
   } catch (err) {
