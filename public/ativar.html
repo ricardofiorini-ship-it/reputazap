@@ -430,7 +430,13 @@ window.addEventListener("load", () => {
   // Web flow: invertido — busca empresa primeiro, cadastro depois
   if (state.from === "web") {
     document.getElementById("progressBar").style.display = "none";
-    goToStep(2);
+    // Veio do diagnóstico já com o negócio escolhido? Pula a busca.
+    const prePlaceId = params.get("place_id") || params.get("place");
+    if (prePlaceId) {
+      prefillFromPlaceId(prePlaceId);
+    } else {
+      goToStep(2);
+    }
     return;
   }
 
@@ -719,6 +725,31 @@ function selectBusiness(biz){
     return;
   }
   setTimeout(()=>goToStep3(),700);
+}
+
+// Veio do /diagnostico com place_id: busca o negocio e ja seleciona, pulando
+// a etapa de busca. Cai pro screen2 (busca) como fallback se algo falhar.
+async function prefillFromPlaceId(placeId){
+  goToStep(2);
+  const status = document.getElementById("searchStatus");
+  if (status) { status.textContent = "Carregando seu negócio…"; status.className = "status-msg loading"; }
+  try {
+    const r = await fetch(`/api/bizinfo?place_id=${encodeURIComponent(placeId)}`);
+    const d = await r.json();
+    if (!d || !d.name) {
+      if (status) { status.textContent = "Não conseguimos carregar — busque seu negócio abaixo."; status.className = "status-msg error"; }
+      return;
+    }
+    selectBusiness({
+      place_id: placeId,
+      name: d.name,
+      address: d.address || "",
+      rating: d.rating || 0,
+      total: d.total || 0
+    });
+  } catch {
+    if (status) { status.textContent = "Não conseguimos carregar — busque seu negócio abaixo."; status.className = "status-msg error"; }
+  }
 }
 
 // Apos confirmar o negocio: cria conta como Free e roteia conforme origem.

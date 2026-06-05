@@ -183,7 +183,7 @@
       <div id="repRanking"></div>
     </div>
 
-    <a class="btn btn-primary cta-final" href="/ativar?from=web">Quero subir no ranking — criar conta grátis</a>
+    <a class="btn btn-primary cta-final" id="repCta" href="/ativar?from=web">Quero subir no ranking — criar conta grátis</a>
     <p class="cta-note">Grátis pra sempre no plano free. Ative uma placa e comece a coletar avaliações.</p>
     <button class="btn btn-ghost" type="button" onclick="window.location.href='/diagnostico'">Diagnosticar outro negócio</button>
   </section>
@@ -337,6 +337,8 @@ async function loadReport(placeId, keyword) {
 
 function renderReport(d) {
   $("repName").textContent = d.name || "Seu negócio";
+  // CTA já leva o negócio escolhido — /ativar pula a busca e vai pro cadastro
+  if (currentPlaceId) $("repCta").href = `/ativar?from=web&place_id=${encodeURIComponent(currentPlaceId)}`;
   $("repPos").textContent = `#${d.rank}`;
   $("repOf").textContent = `de ${d.total} negócios na sua região`;
   $("repCat").textContent = "";
