@@ -186,6 +186,15 @@ const KEYWORD_DICT = [
   ["pizzaria napolitana","pizzaria napolitana"],["pizza napolitana","pizzaria napolitana"],
   ["comida japonesa","restaurante japonês"],["comida árabe","restaurante árabe"],["comida arabe","restaurante árabe"],
   ["comida italiana","restaurante italiano"],
+  // Cozinhas específicas no nome ("Restaurante Árabe", "Comida Japonesa"...) —
+  // vencem o genérico "restaurante" e fazem o negócio ranquear no nicho certo.
+  ["restaurante árabe","restaurante árabe"],["restaurante arabe","restaurante árabe"],
+  ["restaurante japonês","restaurante japonês"],["restaurante japones","restaurante japonês"],
+  ["restaurante italiano","restaurante italiano"],
+  ["restaurante mexicano","restaurante mexicano"],
+  ["restaurante chinês","restaurante chinês"],["restaurante chines","restaurante chinês"],
+  ["restaurante vegetariano","restaurante vegetariano"],["restaurante vegano","restaurante vegano"],
+  ["comida caseira","comida caseira"],["marmitaria","marmitaria"],["marmita","marmitaria"],
   ["pizzaria","pizzaria"],["pizza","pizzaria"],
   ["hamburgueria","hamburgueria"],["burger","hamburgueria"],["burguer","hamburgueria"],["smash","hamburgueria"],
   ["panificadora","padaria"],["padaria","padaria"],
