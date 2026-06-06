@@ -1109,7 +1109,9 @@ function CompetitorStats({ youPos, total, reviewsToNext, risingCount, isMobile }
   return (
     <Card padded={false} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow:'hidden' }}>
       <Item label="Sua posição" value={`#${youPos}`} sub={`de ${total} empresas`} accent={T.blue}/>
-      <Item label="Falta pra subir" value={`${reviewsToNext} ${reviewsToNext === 1 ? 'avaliação' : 'avaliações'}`} sub={`pra alcançar a #${youPos - 1}`} accent={T.amber}/>
+      {youPos <= 1
+        ? <Item label="Liderança" value="🏆 1º lugar" sub="ninguém à sua frente" accent={T.green}/>
+        : <Item label="Falta pra subir" value={reviewsToNext > 0 ? `${reviewsToNext} ${reviewsToNext === 1 ? 'avaliação' : 'avaliações'}` : '—'} sub={`pra alcançar a #${youPos - 1}`} accent={T.amber}/>}
       <Item label="Em alta na sua categoria" value={`${risingCount} concorrente${risingCount > 1 ? 's' : ''}`} sub="cresceu essa semana" accent={T.green}/>
     </Card>
   )
@@ -1486,12 +1488,12 @@ function CompetitorMap({ list, isMobile }) {
 // ─────────────────────────────────────────────────────────────
 // Linha de concorrente premium — com distância, alvo e CTA
 // ─────────────────────────────────────────────────────────────
-function EnhancedCompetitorRow({ comp, youReviews, isMobile }) {
-  const diff = comp.reviews - youReviews
-  const aheadOfYou = diff > 0
+function EnhancedCompetitorRow({ comp, youPos, isMobile }) {
+  const posDiff = comp.pos - youPos        // negativo = à frente de você
+  const aheadOfYou = posDiff < 0
   const isYou = comp.isYou
   const isLocked = comp.locked
-  const closeTarget = aheadOfYou && diff <= 3 && !isLocked
+  const closeTarget = posDiff === -1 && !isLocked   // logo na sua frente
   const distance = comp.distance != null
     ? (comp.distance < 1000 ? `${comp.distance}m` : `${(comp.distance/1000).toFixed(1)}km`)
     : null
@@ -1554,14 +1556,12 @@ function EnhancedCompetitorRow({ comp, youReviews, isMobile }) {
           )}
         </div>
 
-        {/* Diff vs você */}
+        {/* Diff vs você — por posição no ranking */}
         {!isYou && (
           <div style={{ fontSize: 12.5, color: T.textMid }}>
             {aheadOfYou
-              ? <>Falta{diff === 1 ? '' : 'm'} <strong style={{ color: T.text }}>{diff} {diff === 1 ? 'avaliação' : 'avaliações'}</strong> pra ultrapassar</>
-              : diff === 0
-              ? <>Empatados em avaliações</>
-              : <>Você está <strong style={{ color: T.text }}>{Math.abs(diff)} {Math.abs(diff) === 1 ? 'avaliação' : 'avaliações'} à frente</strong></>
+              ? <><strong style={{ color: T.text }}>{Math.abs(posDiff)} {Math.abs(posDiff) === 1 ? 'posição' : 'posições'}</strong> à sua frente</>
+              : <>Você está <strong style={{ color: T.text }}>{posDiff} {posDiff === 1 ? 'posição' : 'posições'} à frente</strong></>
             }
           </div>
         )}
@@ -1590,15 +1590,18 @@ function GrowthSimulator({ data, list, isMobile }) {
     growth: c.weekGrowth
   }))
 
-  // Projeta posição em N semanas — para cada concorrente, sua média + nosso perWeek
+  // Projeta posição em N semanas ANCORANDO na posição real atual (ordem do
+  // Google) e ajustando pelo movimento de avaliações — evita contradizer o
+  // ranking atual (ex: #1 com poucas reviews "caindo" pra 3º na simulação).
   function projectPos(weeks) {
     const myFuture = youReviews + perWeek * weeks
-    let pos = 1
+    let pos = youPos
     for (const o of allOthers) {
       const theirFuture = o.reviews + (o.growth || 0) * weeks
-      if (theirFuture > myFuture) pos++
+      if (o.pos < youPos && myFuture > theirFuture) pos--      // passei alguém da frente
+      if (o.pos > youPos && theirFuture > myFuture) pos++      // alguém de trás me passou
     }
-    return { pos, my: myFuture }
+    return { pos: Math.max(1, pos), my: myFuture }
   }
 
   const w4  = projectPos(4)   // ~30 dias
@@ -1685,19 +1688,22 @@ function OpportunitiesPanel({ data, list, isMobile }) {
   if (!list.length) return null
   const youPos = data.kpis.rankingPos
   const youReviews = data.kpis.reviewCount
-  const ahead = list.filter(c => !c.isYou && !c.locked && c.reviews > youReviews).sort((a,b) => a.reviews - b.reviews)
-  const rising = list.filter(c => !c.isYou && !c.locked && c.weekGrowth >= 2 && c.reviews <= youReviews + 5)
-  const closeUp = ahead.find(c => c.reviews - youReviews <= 3)
+  const rising = list.filter(c => !c.isYou && !c.locked && c.weekGrowth >= 2)
+  // Concorrente logo na sua frente (posição imediatamente acima)
+  const closeUp = list.find(c => !c.isYou && c.pos === youPos - 1)
   const top1 = list.find(c => c.pos === 1)
 
   const ops = []
   if (closeUp) {
+    const gap = (closeUp.reviews || 0) - youReviews
     ops.push({
       icon:'🎯',
       color: T.green,
       bg: T.greenSoft,
-      title:`Subir pro Top ${closeUp.pos} está perto`,
-      text:`Faltam ${closeUp.reviews - youReviews} ${closeUp.reviews - youReviews === 1 ? 'avaliação' : 'avaliações'} pra ultrapassar ${closeUp.locked ? 'o próximo' : closeUp.name}. Em 1-2 semanas com captação consistente.`,
+      title:`Subir pro ${youPos - 1}º lugar está ao seu alcance`,
+      text: gap > 0
+        ? `${closeUp.locked ? 'O concorrente logo à sua frente' : 'A ' + closeUp.name} tem ${gap} ${gap === 1 ? 'avaliação' : 'avaliações'} a mais que você. Coletar mais avaliações é o caminho pra passar.`
+        : `Você tem volume parecido com ${closeUp.locked ? 'o concorrente à sua frente' : 'a ' + closeUp.name} — foque em avaliações 5★ pra ultrapassar.`,
       cta:{ label:'Ativar mais dispositivos', href:'/ativar-codigo' }
     })
   }
@@ -1708,7 +1714,7 @@ function OpportunitiesPanel({ data, list, isMobile }) {
       color: T.red,
       bg:'#FEF2F2',
       title:`${r.locked ? 'Um concorrente' : r.name} está acelerando`,
-      text:`Cresce ${r.weekGrowth} ${r.weekGrowth === 1 ? 'avaliação' : 'avaliações'} por semana — o dobro da média da categoria. Pode passar você em ${Math.ceil((youReviews - r.reviews + 1) / Math.max(1, r.weekGrowth - 1))} semanas se não reagir.`,
+      text:`Cresce ${r.weekGrowth} ${r.weekGrowth === 1 ? 'avaliação' : 'avaliações'} por semana${r.pos > youPos ? ' e pode te alcançar' : ''}. Fique de olho e mantenha o ritmo de coleta pra não perder posição.`,
       cta:{ label:'Ver simulador', href:'#simulador' }
     })
   }
@@ -1808,8 +1814,10 @@ function CompetitorsScreen({ data, isMobile }) {
 
   // Filtros: cada filtro mostra SÓ os concorrentes da categoria — sem injetar "você" no topo.
   // Quem quer ver "você no contexto" usa o filtro Todos (que preserva a ordem do ranking).
-  const ahead  = list.filter(c => !c.isYou && c.reviews >  youReviews)
-  const behind = list.filter(c => !c.isYou && c.reviews <= youReviews)
+  // À frente / atrás é por POSIÇÃO no ranking (ordem do Google), não por nº de
+  // avaliações — senão um #1 com poucas reviews mostra concorrentes "à frente".
+  const ahead  = list.filter(c => !c.isYou && c.pos < youPos)
+  const behind = list.filter(c => !c.isYou && c.pos > youPos)
   const rising = list.filter(c => !c.isYou && c.weekGrowth != null && c.weekGrowth >= 2)
 
   let visible = filter === 'ahead'  ? ahead
@@ -1857,16 +1865,10 @@ function CompetitorsScreen({ data, isMobile }) {
         />
       </Section>
 
-      {/* BENCHMARK + METAS no topo (Ricardo: metas devem estar mais acima) */}
+      {/* BENCHMARK da categoria (MyGoalsCard removido — era MOCK; metas reais
+          virão do modelo de posição depois) */}
       <Section>
-        <div style={{
-          display:'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) 380px',
-          gap: isMobile ? 16 : 20
-        }}>
-          <CategoryBenchmark data={data} list={list} isMobile={isMobile}/>
-          <MyGoalsCard goals={data.goals}/>
-        </div>
+        <CategoryBenchmark data={data} list={list} isMobile={isMobile}/>
       </Section>
 
       {/* MAPA + LISTA + SIMULADOR/OPORTUNIDADES */}
@@ -1918,7 +1920,7 @@ function CompetitorsScreen({ data, isMobile }) {
               ) : (
                 <div style={{ display:'flex', flexDirection:'column', gap: 8 }}>
                   {visible.map(c => (
-                    <EnhancedCompetitorRow key={c.id} comp={c} youReviews={youReviews} isMobile={isMobile}/>
+                    <EnhancedCompetitorRow key={c.id} comp={c} youPos={youPos} isMobile={isMobile}/>
                   ))}
                 </div>
               )}
