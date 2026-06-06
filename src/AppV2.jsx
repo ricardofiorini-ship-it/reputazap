@@ -454,9 +454,9 @@ function buildData(real, user, demoMode) {
       totalCompetitors: competitors.total,
       reviewsToNext: competitors.ahead ? Math.max(0, competitors.ahead.reviews - (competitors.me?.reviews || 0)) : 0,
       list,
-      // Mini ranking pro Painel (top 5)
+      // Mini ranking pro Painel (top 5) — inclui weekGrowth pro teaser de movimento
       rankingMini: list.slice(0, 5).map(c => ({
-        pos: c.pos, medal: c.medal, name: c.name, rating: c.rating, reviews: c.reviews, you: c.isYou
+        pos: c.pos, medal: c.medal, name: c.name, rating: c.rating, reviews: c.reviews, you: c.isYou, weekGrowth: c.weekGrowth ?? null
       }))
     }
   })() : null
@@ -3733,6 +3733,14 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
                   <span>{r.reviews} avaliações</span>
                 </div>
               </div>
+              {/* Teaser de movimento — 🔥 concorrente acelerando / ▲ seu crescimento */}
+              {(typeof r.weekGrowth === 'number' && r.weekGrowth >= 1) && (
+                r.you
+                  ? <span style={{ flexShrink:0, fontSize:11, fontWeight:700, color:'#137333', background:T.greenSoft, borderRadius:6, padding:'3px 7px', whiteSpace:'nowrap' }}>▲ +{r.weekGrowth}</span>
+                  : r.weekGrowth >= 2
+                    ? <span style={{ flexShrink:0, fontSize:11, fontWeight:700, color:'#B45309', background:'#FEF3C7', border:'1px solid #FDE68A', borderRadius:6, padding:'3px 7px', whiteSpace:'nowrap' }}>🔥 +{r.weekGrowth}/sem</span>
+                    : <span style={{ flexShrink:0, fontSize:11, fontWeight:600, color:T.textMid, whiteSpace:'nowrap' }}>▲ +{r.weekGrowth}</span>
+              )}
             </li>
           )
         })}
