@@ -3415,6 +3415,49 @@ function realWeekActions(d) {
   return actions.slice(0, 3)
 }
 
+// Gatilho de conversão pro Pro no Painel Free — FOMO baseado em movimento REAL
+// dos concorrentes (weekGrowth dos snapshots). Sem dados ainda → pitch de vigilância.
+function ProTriggerCard({ data, isMobile }) {
+  const comps = (data.competitors || []).filter(c => !c.isYou)
+  const rising = comps.filter(c => (c.weekGrowth || 0) >= 2)
+  const anyMovement = comps.some(c => typeof c.weekGrowth === 'number' && c.weekGrowth !== 0)
+  const threat = comps.filter(c => (c.weekGrowth || 0) >= 1).sort((a, b) => (b.weekGrowth || 0) - (a.weekGrowth || 0))[0]
+
+  let headline, sub
+  if (rising.length > 0) {
+    headline = `🔥 ${rising.length} concorrente${rising.length > 1 ? 's' : ''} acelerando essa semana`
+    sub = (threat && threat.weekGrowth)
+      ? `Um deles ganhou ${threat.weekGrowth} ${threat.weekGrowth === 1 ? 'avaliação' : 'avaliações'} e está se aproximando de você. Veja quem — e seja avisado na hora que te passar.`
+      : 'Veja quem está crescendo e seja avisado quando te ultrapassarem.'
+  } else if (anyMovement) {
+    headline = '🔔 Teve movimentação no seu ranking essa semana'
+    sub = 'Concorrentes se mexeram. Acompanhe quem subiu e seja avisado quando algo te ameaçar.'
+  } else {
+    headline = '🔔 A gente vigia seus concorrentes toda semana'
+    sub = 'Seja avisado na hora em que um concorrente te ultrapassar, sair do Top ou disparar em avaliações.'
+  }
+
+  return (
+    <Card style={{
+      background: 'linear-gradient(135deg,#FFF8E1,#FFFFFF)',
+      border: '1px solid #FDE68A',
+      display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+      alignItems: isMobile ? 'flex-start' : 'center', gap: 14
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: "'Inter',sans-serif", fontSize: 15.5, fontWeight: 800, color: '#78350F', marginBottom: 4, lineHeight: 1.3 }}>{headline}</div>
+        <div style={{ fontSize: 13, color: '#92722A', lineHeight: 1.5 }}>{sub}</div>
+      </div>
+      <a href="/plano-pro" style={{
+        flexShrink: 0, background: '#1A73E8', color: '#fff', textDecoration: 'none',
+        padding: '12px 18px', borderRadius: 10, fontSize: 13.5, fontWeight: 700,
+        whiteSpace: 'nowrap', boxShadow: '0 4px 14px rgba(26,115,232,0.28)',
+        width: isMobile ? '100%' : 'auto', textAlign: 'center'
+      }}>🔓 Ativar alertas (Pro)</a>
+    </Card>
+  )
+}
+
 // Sugestões da semana (push de direção pro dono)
 function WeekActions({ items, isMobile }) {
   return (
@@ -3711,13 +3754,12 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
             <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', background:'#FBBC04', color:'#78350F', padding:'3px 8px', borderRadius: 5 }}>PRO</span>
             </div>
-            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 10, lineHeight: 1.25 }}>🔒 Quem está à sua frente?</div>
+            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 10, lineHeight: 1.25 }}>🔔 Nunca seja pego de surpresa</div>
             <ul style={{ listStyle:'none', padding: 0, margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.6 }}>
-              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Quem ocupa cada posição</span></li>
-              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Quantas avaliações cada concorrente possui</span></li>
-              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Quanto falta para ultrapassá-los</span></li>
-              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Quem está crescendo mais rápido</span></li>
-              <li style={{ display:'flex', alignItems:'flex-start', gap: 8 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Alertas de mudanças no ranking</span></li>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}><strong>Aviso na hora</strong> quando um concorrente te ultrapassar</span></li>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Quem está crescendo mais rápido que você</span></li>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Os <strong>nomes</strong> de quem está na sua frente</span></li>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Evolução do seu ranking, semana a semana</span></li>
             </ul>
             <a href="/plano-pro" style={{
               display:'inline-flex', alignItems:'center', gap: 8,
@@ -3727,18 +3769,12 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
               boxShadow: '0 4px 14px rgba(251,188,4,0.35)',
               width: '100%', justifyContent: 'center'
             }}>
-              Desbloquear Inteligência Competitiva →
+              Ativar vigilância (Pro) →
             </a>
           </div>
         </div>
       )}
 
-      {!locked && (
-        <div style={{ marginTop: 16, padding:'12px 14px', borderRadius: 10, background: T.greenSoft, fontSize: 13, color:'#065F46', display:'flex', alignItems:'center', gap: 8 }}>
-          <span>🎯</span>
-          <span><strong>Você está a apenas 2 avaliações</strong> do segundo colocado.</span>
-        </div>
-      )}
     </Card>
   )
 }
@@ -4897,6 +4933,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
             <KpiCard icon="🏅" label="Score StarTouch" value={`${calcStarTouchScore(d)}`} sub="Sua presença local · 0–100" />
           </div>
         </Section>
+
+        {/* GATILHO PRO (FOMO) — só no Free, quando há concorrentes. Move o "alívio"
+            (vigilância/alertas) pro Pro e deixa o Free incomodado de propósito. */}
+        {(demoMode || hasComp) && plan === 'free' && (
+        <Section>
+          <ProTriggerCard data={d} isMobile={isMobile} />
+        </Section>
+        )}
 
         {/* SUGESTÕES DA SEMANA (push de direção).
             Demo: itens MOCK. Real: calculadas do estado competitivo (realWeekActions).
