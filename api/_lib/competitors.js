@@ -195,6 +195,11 @@ const KEYWORD_DICT = [
   ["restaurante chinês","restaurante chinês"],["restaurante chines","restaurante chinês"],
   ["restaurante vegetariano","restaurante vegetariano"],["restaurante vegano","restaurante vegano"],
   ["comida caseira","comida caseira"],["marmitaria","marmitaria"],["marmita","marmitaria"],
+  // Varejo comum cujo nicho não vem do tipo do Google (genérico "store")
+  ["produtos de limpeza","produtos de limpeza"],["material de limpeza","produtos de limpeza"],["loja de limpeza","produtos de limpeza"],["limpeza","produtos de limpeza"],
+  ["material de construção","material de construção"],["materiais de construção","material de construção"],
+  ["papelaria","papelaria"],["floricultura","floricultura"],["ótica","ótica"],["otica","ótica"],
+  ["loja de roupas","loja de roupas"],["loja de calçados","loja de calçados"],["loja de calcados","loja de calçados"],
   ["pizzaria","pizzaria"],["pizza","pizzaria"],
   ["hamburgueria","hamburgueria"],["burger","hamburgueria"],["burguer","hamburgueria"],["smash","hamburgueria"],
   ["panificadora","padaria"],["padaria","padaria"],

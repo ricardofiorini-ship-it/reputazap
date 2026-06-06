@@ -213,6 +213,12 @@
       <div class="ico" id="emptyIco">🔍</div>
       <h2 id="emptyTitle">Não encontramos seu negócio</h2>
       <p id="emptyText">Confira o nome ou tente adicionar a cidade.</p>
+      <div id="emptyRetry" class="hidden" style="max-width:380px;margin:0 auto 16px;">
+        <div class="cat-form" style="margin-top:0;">
+          <input id="emptyTermInput" type="text" placeholder="Ex: produtos de limpeza" onkeydown="if(event.key==='Enter')retryWithTerm()"/>
+          <button type="button" onclick="retryWithTerm()">Ver diagnóstico</button>
+        </div>
+      </div>
       <button class="btn btn-ghost" type="button" onclick="window.location.href='/diagnostico'" style="max-width:280px;margin:0 auto;">← Buscar de novo</button>
     </div>
   </section>
@@ -231,11 +237,20 @@ function showOnly(id) {
   ["searchMode","loadingMode","reportMode","emptyMode"].forEach(s => $(s).classList.toggle("hidden", s !== id));
 }
 
-function showEmpty(ico, title, text) {
+function showEmpty(ico, title, text, canRetry) {
   $("emptyIco").textContent = ico;
   $("emptyTitle").textContent = title;
   $("emptyText").textContent = text;
+  $("emptyRetry").classList.toggle("hidden", !canRetry);
   showOnly("emptyMode");
+}
+
+// Re-tenta o diagnóstico com o termo digitado pelo dono (rede de segurança
+// quando a categoria detectada não achou concorrentes).
+function retryWithTerm() {
+  const t = $("emptyTermInput").value.trim();
+  if (!t || !currentPlaceId) return;
+  window.location.href = diagUrl(currentPlaceId, t, currentRadius);
 }
 
 // ── BUSCA ──────────────────────────────────────────────
@@ -322,9 +337,9 @@ async function loadReport(placeId, keyword, radius) {
     if (!d.ok) { showEmpty("⚠️", "Não conseguimos analisar", "Tente novamente em instantes ou busque outro negócio."); return; }
 
     if (!d.enough) {
-      $("repName").textContent = d.name || "Seu negócio";
-      showEmpty("🗺️", "Poucos concorrentes por perto",
-        `Encontramos ${d.name || "seu negócio"}, mas não há concorrentes suficientes na mesma categoria pra montar um ranking. Crie sua conta pra acompanhar mesmo assim.`);
+      const termo = d.category ? `"${d.category}"` : "a categoria detectada";
+      showEmpty("🗺️", "Não achamos concorrentes pra esse termo",
+        `Achamos ${d.name || "seu negócio"}, mas não encontramos concorrentes em ${termo}. Diga o que seu cliente digita pra te achar no Google e tente de novo:`, true);
       return;
     }
 
