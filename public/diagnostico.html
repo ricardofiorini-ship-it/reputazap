@@ -72,6 +72,9 @@
   .radius-bar button:hover{border-color:#1A73E8;color:#1A73E8;}
   .radius-bar button.active{background:#1A73E8;border-color:#1A73E8;color:#fff;}
 
+  .stat-strip{background:#E8F0FE;border:1px solid #C6DAFC;border-radius:12px;padding:11px 14px;text-align:center;font-size:12.5px;color:#174EA6;line-height:1.5;margin-bottom:18px;}
+  .stat-strip strong{color:#0F4DAE;}
+
   .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
   .kpi{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:18px;text-align:center;}
   .kpi .v{font-size:28px;font-weight:800;letter-spacing:-0.02em;}
@@ -168,6 +171,10 @@
       <div class="pos" id="repPos">#—</div>
       <div class="of" id="repOf">—</div>
       <div class="cat" id="repCat"></div>
+    </div>
+
+    <div class="stat-strip">
+      📍 <strong>46%</strong> das buscas no Google são locais · <strong>75%</strong> de quem busca "perto de mim" visita um negócio em <strong>24h</strong>
     </div>
 
     <div class="radius-bar" id="radiusBar">
@@ -356,10 +363,10 @@ function renderReport(d) {
   if (currentPlaceId) $("repCta").href = `/ativar?from=web&place_id=${encodeURIComponent(currentPlaceId)}`;
   if (d.inResults && d.rank) {
     $("repPos").textContent = `#${d.rank}`;
-    $("repOf").textContent = `entre ${d.total} que aparecem quando buscam "${d.category}"`;
+    $("repOf").textContent = `de ${d.total} quando buscam "${d.category} perto de mim"`;
   } else {
     $("repPos").textContent = "😕";
-    $("repOf").textContent = `Você não aparece no top ${d.total} quando buscam "${d.category}" por aqui`;
+    $("repOf").textContent = `Você não aparece quando buscam "${d.category} perto de mim" por aqui`;
   }
   $("repCat").textContent = "";
   $("catLabel").textContent = d.category || "categoria geral";
@@ -399,16 +406,16 @@ function renderReport(d) {
 
   if (!d.inResults) {
     insTitle.textContent = "🎯 Você está invisível pra esse termo";
-    insText.innerHTML = `Quando alguém busca <strong>"${escapeHtml(d.category)}"</strong> aqui perto, você não aparece no top ${d.total} — e quem aparece está levando esses clientes. Coletar avaliações é o primeiro passo pra entrar no mapa.`;
+    insText.innerHTML = `Quando alguém busca <strong>"${escapeHtml(d.category)} perto de mim"</strong>, você não aparece — e quem aparece está levando esses clientes (75% visitam um negócio em 24h). Coletar avaliações é o primeiro passo pra entrar no mapa.`;
   } else if (d.rank <= 1) {
     insTitle.textContent = "🏆 Você lidera!";
-    insText.innerHTML = `Você é o nº 1 quando buscam <strong>"${escapeHtml(d.category)}"</strong> na sua região. O desafio agora é manter — quem para de coletar avaliações acaba ultrapassado.`;
+    insText.innerHTML = `Você é o nº 1 quando buscam <strong>"${escapeHtml(d.category)} perto de mim"</strong>. É a melhor posição pra capturar quem decide na hora — quem para de coletar avaliações acaba ultrapassado.`;
   } else {
     const aFrente = d.rank - 1;
     insTitle.textContent = "🎯 Como subir uma posição";
     insText.innerHTML = d.reviewsToNext > 0
-      ? `Há <strong>${aFrente} ${aFrente === 1 ? "empresa" : "empresas"}</strong> na sua frente. A primeira acima de você tem cerca de <strong>${d.reviewsToNext} ${d.reviewsToNext === 1 ? "avaliação" : "avaliações"}</strong> a mais — coletar avaliações é o caminho mais rápido pra passar.`
-      : `Há <strong>${aFrente} ${aFrente === 1 ? "empresa" : "empresas"}</strong> na sua frente. Coletar mais avaliações ajuda a subir.`;
+      ? `Há <strong>${aFrente} ${aFrente === 1 ? "empresa" : "empresas"}</strong> na sua frente quando buscam <strong>"${escapeHtml(d.category)} perto de mim"</strong>. A primeira acima tem ~<strong>${d.reviewsToNext} ${d.reviewsToNext === 1 ? "avaliação" : "avaliações"}</strong> a mais — e cada posição que sobe captura mais clientes (75% visitam em 24h).`
+      : `Há <strong>${aFrente} ${aFrente === 1 ? "empresa" : "empresas"}</strong> na sua frente. Coletar mais avaliações ajuda a subir e capturar quem busca "${escapeHtml(d.category)} perto de mim".`;
   }
 
   // Ranking (top 5 + você, se fora do top)
