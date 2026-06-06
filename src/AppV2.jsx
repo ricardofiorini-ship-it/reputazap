@@ -1583,36 +1583,14 @@ function EnhancedCompetitorRow({ comp, youPos, isMobile }) {
 function GrowthSimulator({ data, list, isMobile }) {
   const [perWeek, setPerWeek] = React.useState(2)
   const youReviews = data.kpis.reviewCount
-  const youPos = data.kpis.rankingPos
-  const allOthers = list.filter(c => !c.isYou && !c.locked).map(c => ({
-    pos: c.pos,
-    reviews: c.reviews,
-    growth: c.weekGrowth
-  }))
 
-  // Projeta posição em N semanas ANCORANDO na posição real atual (ordem do
-  // Google) e ajustando pelo movimento de avaliações — evita contradizer o
-  // ranking atual (ex: #1 com poucas reviews "caindo" pra 3º na simulação).
-  function projectPos(weeks) {
-    const myFuture = youReviews + perWeek * weeks
-    let pos = youPos
-    for (const o of allOthers) {
-      const theirFuture = o.reviews + (o.growth || 0) * weeks
-      if (o.pos < youPos && myFuture > theirFuture) pos--      // passei alguém da frente
-      if (o.pos > youPos && theirFuture > myFuture) pos++      // alguém de trás me passou
-    }
-    return { pos: Math.max(1, pos), my: myFuture }
-  }
-
-  const w4  = projectPos(4)   // ~30 dias
-  const w8  = projectPos(8)   // ~60 dias
-  const w12 = projectPos(12)  // ~90 dias
-
-  const positionChange = (p) => {
-    if (p === youPos) return { txt:'Mantém posição', color: T.textMid }
-    if (p < youPos) return { txt:`Sobe pra ${p}º`, color: T.green }
-    return { txt:`Cai pra ${p}º`, color: T.red }
-  }
+  // Projeta o VOLUME de avaliações (real). Não dá pra prever a posição exata do
+  // Google só por reviews (o ranking não é só volume) — então projetamos o ganho
+  // de avaliações, que é honesto e motivador. Mais avaliações = posição mais forte.
+  const proj = (weeks) => ({ total: youReviews + perWeek * weeks, add: perWeek * weeks })
+  const w4  = proj(4)   // ~30 dias
+  const w8  = proj(8)   // ~60 dias
+  const w12 = proj(12)  // ~90 dias
 
   return (
     <Card>
@@ -1642,33 +1620,34 @@ function GrowthSimulator({ data, list, isMobile }) {
       {/* Projeções */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap: 10 }}>
         {[
-          { label:'Em 30 dias', proj: w4,  d:'+30d' },
-          { label:'Em 60 dias', proj: w8,  d:'+60d' },
-          { label:'Em 90 dias', proj: w12, d:'+90d' }
-        ].map((it, i) => {
-          const change = positionChange(it.proj.pos)
-          return (
-            <div key={i} style={{
-              padding: isMobile ? 12 : 14, borderRadius: 10,
-              background: T.bg, border:'1px solid '+T.border, textAlign:'center'
-            }}>
-              <div style={{ fontSize: 10.5, color: T.textDim, fontWeight: 600, letterSpacing:'.04em', textTransform:'uppercase', marginBottom: 4 }}>{it.label}</div>
-              <div style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 20 : 26, fontWeight: 800, color: T.text, letterSpacing:'-0.02em', lineHeight: 1, marginBottom: 4 }}>
-                #{it.proj.pos}
-              </div>
-              <div style={{ fontSize: 11, color: change.color, fontWeight: 600, marginBottom: 4 }}>
-                {change.txt}
-              </div>
-              <div style={{ fontSize: 11, color: T.textDim }}>
-                {it.proj.my} avaliações totais
-              </div>
+          { label:'Em 30 dias', p: w4 },
+          { label:'Em 60 dias', p: w8 },
+          { label:'Em 90 dias', p: w12 }
+        ].map((it, i) => (
+          <div key={i} style={{
+            padding: isMobile ? 12 : 14, borderRadius: 10,
+            background: T.bg, border:'1px solid '+T.border, textAlign:'center'
+          }}>
+            <div style={{ fontSize: 10.5, color: T.textDim, fontWeight: 600, letterSpacing:'.04em', textTransform:'uppercase', marginBottom: 4 }}>{it.label}</div>
+            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 20 : 26, fontWeight: 800, color: T.text, letterSpacing:'-0.02em', lineHeight: 1, marginBottom: 4 }}>
+              {it.p.total}
             </div>
-          )
-        })}
+            <div style={{ fontSize: 11, color: T.green, fontWeight: 700, marginBottom: 4 }}>
+              +{it.p.add} avaliações
+            </div>
+            <div style={{ fontSize: 11, color: T.textDim }}>
+              total acumulado
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ marginTop: 12, fontSize: 12, color: T.textMid, textAlign:'center', lineHeight: 1.5 }}>
+        📈 Volume constante de avaliações fortalece sua posição no Google ao longo do tempo.
       </div>
 
       <div style={{
-        marginTop: 14, padding: 12, background: T.blueSoft, borderRadius: 8,
+        marginTop: 12, padding: 12, background: T.blueSoft, borderRadius: 8,
         fontSize: 12.5, color: T.blueDk, lineHeight: 1.5
       }}>
         💡 <b>Como capitar {perWeek}/semana?</b> {
