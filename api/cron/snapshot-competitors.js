@@ -16,7 +16,7 @@
 // ============================================================
 
 import { createClient } from "@supabase/supabase-js";
-import { fetchCompetitorsSnapshot } from "../_lib/competitors.js";
+import { fetchRankingByTerm } from "../_lib/competitors.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -90,8 +90,9 @@ export default async function handler(req, res) {
         continue;
       }
 
-      // Busca dados frescos do Google
-      const snap = await fetchCompetitorsSnapshot({
+      // Busca dados frescos do Google — ordem real do Google (mesmo motor
+      // do diagnóstico e do app), pra os números baterem em todo lugar.
+      const snap = await fetchRankingByTerm({
         placeId: biz.place_id,
         keyword: biz.category_override || "",
         radius: 3000
@@ -110,7 +111,7 @@ export default async function handler(req, res) {
           category: snap.category,
           radius_meters: snap.radius,
           competitors: snap.enough ? snap.top : [snap.me].filter(Boolean),
-          raw_response: snap.raw || null
+          raw_response: null
         });
 
       if (insErr) {

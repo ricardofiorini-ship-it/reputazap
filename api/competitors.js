@@ -12,7 +12,7 @@
 // ============================================================
 
 import { createClient } from "@supabase/supabase-js";
-import { fetchCompetitorsSnapshot, applyNameLocking } from "./_lib/competitors.js";
+import { fetchRankingByTerm, applyNameLocking } from "./_lib/competitors.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -101,76 +101,26 @@ export default async function handler(req, res) {
 
   const radius = Math.min(parseInt(req.query.radius, 10) || 3000, 25000);
   const keyword = (req.query.keyword || biz.category_override || "").trim();
-  const forceFresh = req.query.fresh === "1" && isAdmin(user);
   const paid = biz.plan === "pro" || isAdmin(user);
 
   try {
-    let snap = null;
-    let fromSnapshot = false;
-    let snapshotDate = null;
+    // Ranking pela ORDEM REAL do Google (mesmo motor do diagnóstico) — ao vivo,
+    // pra o número do app bater com o que o cliente viu no diagnóstico.
+    const snap = await fetchRankingByTerm({ placeId: biz.place_id, keyword, radius });
 
-    // 3. Tenta servir do último snapshot (a menos que ?fresh=1)
-    if (!forceFresh) {
-      const { data: last } = await supabase
-        .from("competitor_snapshots")
-        .select("snapshot_date, my_rating, my_reviews, my_rank, total_competitors, category, radius_meters, competitors")
-        .eq("business_id", biz.id)
-        .order("snapshot_date", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      // Snapshot precisa ter no máx 8 dias (margem do cron semanal)
-      if (last) {
-        const ageDays = (Date.now() - new Date(last.snapshot_date).getTime()) / 86400000;
-        if (ageDays <= 8) {
-          fromSnapshot = true;
-          snapshotDate = last.snapshot_date;
-          snap = {
-            enough: (last.total_competitors || 0) >= 2,
-            total: last.total_competitors || 0,
-            category: last.category,
-            radius: last.radius_meters,
-            myRank: last.my_rank,
-            me: {
-              place_id: biz.place_id,
-              name: biz.name,
-              rating: last.my_rating,
-              reviews: last.my_reviews
-            },
-            top: last.competitors || [],
-            ahead: null  // calculado abaixo se enough
-          };
-          // Recalcula `ahead` (concorrente uma posição acima) a partir do top
-          if (snap.enough && snap.myRank > 1 && snap.top.length >= snap.myRank - 1) {
-            const aheadEntry = snap.top[snap.myRank - 2];
-            if (aheadEntry) snap.ahead = { reviews: aheadEntry.reviews, rating: aheadEntry.rating };
-          }
-        }
-      }
-    }
-
-    // 4. Sem snapshot recente? Busca live no Google
-    if (!snap) {
-      snap = await fetchCompetitorsSnapshot({
-        placeId: biz.place_id,
-        keyword,
-        radius
-      });
-    }
-
-    if (!snap.enough) {
+    // Sem concorrentes suficientes OU negócio não aparece pra esse termo:
+    // UI honesta (esconde ranking).
+    if (!snap.enough || !snap.inResults) {
       return res.json({
         enough: false,
         total: snap.total,
         category: snap.category,
         radius: snap.radius,
-        me: snap.me,
-        snapshot_date: snapshotDate,
-        from_snapshot: fromSnapshot
+        me: snap.me
       });
     }
 
-    // 5. Enriquece top com weekGrowth + history (a partir do banco)
+    // Enriquece top com weekGrowth + history (a partir dos snapshots)
     const enrichment = await enrichWithHistory(biz.id);
     const enrichedTop = snap.top.map(c => {
       const extra = enrichment.get(c.place_id);
@@ -181,8 +131,19 @@ export default async function handler(req, res) {
       };
     });
 
-    // 6. Aplica paywall de nome (free → null)
+    // Paywall de nome (free → null)
     const topLocked = applyNameLocking(enrichedTop, paid);
+
+    // Data do último snapshot só pra exibir "última atualização" (histórico)
+    let snapshotDate = null;
+    const { data: last } = await supabase
+      .from("competitor_snapshots")
+      .select("snapshot_date")
+      .eq("business_id", biz.id)
+      .order("snapshot_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (last) snapshotDate = last.snapshot_date;
 
     return res.json({
       enough: true,
@@ -195,7 +156,7 @@ export default async function handler(req, res) {
       names_locked: !paid,
       top: topLocked,
       snapshot_date: snapshotDate,
-      from_snapshot: fromSnapshot
+      from_snapshot: false
     });
   } catch (err) {
     console.error("[competitors] erro:", err);

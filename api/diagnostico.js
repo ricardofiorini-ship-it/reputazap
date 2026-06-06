@@ -1,70 +1,19 @@
 // ============================================================
 // StarTouch — Diagnóstico público (isca de captação)
 // ============================================================
-// Endpoint PÚBLICO (sem auth). Emula a busca do CLIENTE:
-//   "[termo] perto do negócio" via Google Text Search, e lê a
-//   POSIÇÃO na ordem que o Google devolveu (sem re-ranquear).
-// É o número honesto — o mesmo que o dono vê ao buscar no Google.
-//
-// (Difere do motor do app, que usa Nearby Search + gscore; ver
-//  _lib/competitors.js. Aqui priorizamos fidelidade ao Google.)
+// Endpoint PÚBLICO (sem auth). Usa o MESMO motor do app
+// (fetchRankingByTerm) — ranqueia pela ordem real do Google
+// (Text Search do termo). Assim o número do diagnóstico bate
+// com o que o cliente vê depois de virar usuário.
 //
 // Uso: /api/diagnostico?place_id=XXX  (opcional &keyword= &radius=)
+// É marketing — mostra nomes dos líderes (diferente do paywall do app).
 // ============================================================
-import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
+import { fetchRankingByTerm } from "./_lib/competitors.js";
 
-const API_KEY = process.env.PLACES_API_KEY;
+const gscore = (rt, rv) => (rt || 0) * Math.log10((rv || 0) + 1);
 
-const GENERIC = new Set([
-  "point_of_interest", "establishment", "premise", "geocode", "political", "store_storage"
-]);
-const BROAD = new Set([
-  "store", "food", "health", "finance", "general_contractor", "home_goods_store", "shopping_mall"
-]);
-
-// Detecção de termo pelo NOME do negócio. Casa o termo MAIS ESPECÍFICO
-// (token mais longo vence) — ex: "Padaria Artesanal Le Moulin" → "padaria
-// artesanal", não só "padaria".
-const KEYWORD_DICT = [
-  ["padaria artesanal","padaria artesanal"],
-  ["cervejaria artesanal","cervejaria artesanal"],["cerveja artesanal","cervejaria artesanal"],
-  ["sorveteria artesanal","sorveteria artesanal"],
-  ["hamburgueria artesanal","hamburgueria artesanal"],
-  ["pizzaria napolitana","pizzaria napolitana"],["pizza napolitana","pizzaria napolitana"],
-  ["comida japonesa","restaurante japonês"],["comida árabe","restaurante árabe"],["comida arabe","restaurante árabe"],
-  ["comida italiana","restaurante italiano"],
-  ["pizzaria","pizzaria"],["pizza","pizzaria"],
-  ["hamburgueria","hamburgueria"],["burger","hamburgueria"],["burguer","hamburgueria"],["smash","hamburgueria"],
-  ["panificadora","padaria"],["padaria","padaria"],
-  ["confeitaria","confeitaria"],["doceria","confeitaria"],
-  ["cafeteria","cafeteria"],["coffee","cafeteria"],["café","cafeteria"],
-  ["açaiteria","açaí"],["açaí","açaí"],["acai","açaí"],
-  ["barbearia","barbearia"],["barber","barbearia"],
-  ["salão de beleza","salão de beleza"],["salão","salão de beleza"],["salao","salão de beleza"],["estética","estética"],["estetica","estética"],
-  ["pet shop","petshop"],["petshop","petshop"],
-  ["farmácia","farmácia"],["farmacia","farmácia"],["drogaria","farmácia"],
-  ["lanchonete","lanchonete"],
-  ["sushi","restaurante japonês"],["temaki","restaurante japonês"],
-  ["churrascaria","churrascaria"],["churrasco","churrascaria"],
-  ["gelateria","gelateria"],["sorveteria","sorveteria"],
-  ["academia","academia"],["crossfit","academia"],
-  ["hortifruti","hortifruti"],["mercearia","mercado"],["mercado","mercado"],
-  ["pastelaria","pastelaria"],["esfiharia","esfiharia"],
-  ["rodízio","restaurante"],["rodizio","restaurante"],["restaurante","restaurante"],
-  ["clínica odontológica","clínica odontológica"],["odonto","clínica odontológica"],["dentista","clínica odontológica"],["clínica","clínica"],["clinica","clínica"]
-];
-function detectFromName(name) {
-  const n = (name || "").toLowerCase();
-  let best = "", bestLen = 0;
-  for (const [tok, term] of KEYWORD_DICT) {
-    if (n.includes(tok) && tok.length > bestLen) { best = term; bestLen = tok.length; }
-  }
-  return best;
-}
-
-// Sugestões de termo relacionadas — viram botões clicáveis no diagnóstico,
-// pra o dono refinar sem digitar (ex: padaria → padaria artesanal/confeitaria).
-// Inclui chaves de tipos do Google em inglês (fallback quando o nome não diz).
+// Sugestões de termo relacionadas — viram botões clicáveis no diagnóstico.
 const SUGGESTIONS = {
   "padaria": ["padaria", "padaria artesanal", "confeitaria"],
   "padaria artesanal": ["padaria artesanal", "padaria", "confeitaria"],
@@ -95,7 +44,6 @@ const SUGGESTIONS = {
   "esfiharia": ["esfiharia", "restaurante árabe"],
   "clínica": ["clínica", "clínica odontológica"],
   "clínica odontológica": ["clínica odontológica", "dentista"],
-  // Tipos do Google (inglês) — fallback quando o nome não revela o nicho
   "bakery": ["padaria", "padaria artesanal", "confeitaria"],
   "restaurant": ["restaurante", "restaurante japonês", "pizzaria"],
   "bar": ["bar", "boteco", "pub", "restaurante"],
@@ -126,94 +74,50 @@ export default async function handler(req, res) {
   const rIn = parseInt(req.query.radius, 10);
   const radius = Number.isFinite(rIn) ? Math.min(Math.max(rIn, 500), 3000) : 3000;
   if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
-  if (!API_KEY) return res.status(500).json({ error: "PLACES_API_KEY ausente" });
 
   try {
-    // 1. Detalhes do negócio: localização, nota, avaliações, tipos
-    const det = await fetchWithTimeout(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,user_ratings_total,geometry,types&language=pt-BR&key=${API_KEY}`,
-      {}, 6000
-    ).then(r => r.json());
-    const me = det.result;
-    if (!me?.geometry?.location) {
-      return res.json({ ok: true, enough: false, name: me?.name || null, rating: me?.rating ?? null, reviews: me?.user_ratings_total ?? 0, category: null, radius, total: 0 });
-    }
-    const { lat, lng } = me.geometry.location;
-    const myRating = typeof me.rating === "number" ? me.rating : 0;
-    const myReviews = me.user_ratings_total || 0;
+    const snap = await fetchRankingByTerm({ placeId, keyword, radius });
 
-    // 2. Termo de busca (o que o cliente digita).
-    //    keyword explícito > termo detectado no NOME (mais específico) > tipo do Google
-    let term = keyword;
-    if (!term) term = detectFromName(me.name);
-    if (!term) {
-      const types = me.types || [];
-      const specific = types.filter(t => !GENERIC.has(t) && !BROAD.has(t));
-      const broad = types.filter(t => !GENERIC.has(t) && BROAD.has(t));
-      term = specific[0] || broad[0] || "";
-    }
-    if (!term) {
-      return res.json({ ok: true, enough: false, name: me.name, rating: myRating, reviews: myReviews, category: null, radius, total: 0 });
+    if (!snap.enough) {
+      return res.json({
+        ok: true,
+        enough: false,
+        name: snap.me?.name || null,
+        rating: snap.me?.rating ?? null,
+        reviews: snap.me?.reviews ?? 0,
+        category: snap.category || null,
+        radius: snap.radius,
+        total: snap.total || 0
+      });
     }
 
-    // 3. Emula a busca do cliente: Text Search do termo, ancorado no local.
-    //    Lê a ORDEM do Google (relevância/proeminência) — sem re-ranquear.
-    const tsUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(term)}&location=${lat},${lng}&radius=${radius}&language=pt-BR&region=br&key=${API_KEY}`;
-    const ts = await fetchWithTimeout(tsUrl, {}, 8000).then(r => r.json());
+    const myReviews = snap.me?.reviews || 0;
+    const ahead = snap.ahead; // { reviews, rating, name } | null
+    const reviewsToNext = ahead ? Math.max(0, (ahead.reviews || 0) - myReviews) : 0;
 
-    // Filtra fechados/sem nota e deduplica preservando a ordem do Google
-    const seen = new Set();
-    const ordered = [];
-    for (const p of (ts.results || [])) {
-      if (seen.has(p.place_id)) continue;
-      if (p.business_status && p.business_status !== "OPERATIONAL") continue;
-      if (typeof p.rating !== "number") continue;
-      seen.add(p.place_id);
-      ordered.push(p);
-    }
-
-    const total = ordered.length;
-    if (total < 2) {
-      return res.json({ ok: true, enough: false, name: me.name, rating: myRating, reviews: myReviews, category: term, radius, total });
-    }
-
-    // 4. Posição do alvo NA ORDEM DO GOOGLE
-    const idx = ordered.findIndex(p => p.place_id === placeId);
-    const inResults = idx >= 0;
-    const rank = inResults ? idx + 1 : null;
-
-    // 5. Top 5 na ordem do Google
-    const top = ordered.slice(0, 5).map((p, i) => ({
+    const top = (snap.top || []).slice(0, 5).map((c, i) => ({
       pos: i + 1,
-      name: p.name || null,
-      rating: p.rating ?? null,
-      reviews: p.user_ratings_total || 0,
-      isMe: p.place_id === placeId
+      name: c.name || null,
+      rating: c.rating ?? null,
+      reviews: c.reviews ?? 0,
+      isMe: !!c.is_me
     }));
-
-    // 6. Quem está logo acima (se o alvo aparece na lista)
-    let aheadName = null, reviewsToNext = 0;
-    if (inResults && idx > 0) {
-      const ahead = ordered[idx - 1];
-      aheadName = ahead.name || null;
-      reviewsToNext = Math.max(0, (ahead.user_ratings_total || 0) - myReviews);
-    }
 
     return res.json({
       ok: true,
       enough: true,
-      name: me.name,
-      rating: myRating,
+      name: snap.me?.name || null,
+      rating: snap.me?.rating ?? 0,
       reviews: myReviews,
-      category: term,
-      radius,
-      rank,
-      total,
-      inResults,
+      category: snap.category || null,
+      radius: snap.radius,
+      rank: snap.myRank,
+      total: snap.total,
+      inResults: snap.inResults,
       reviewsToNext,
-      aheadName,
+      aheadName: ahead ? (ahead.name || null) : null,
       ratingShortcut: null,
-      suggestions: suggestFor(term),
+      suggestions: suggestFor(snap.category),
       top
     });
   } catch (err) {

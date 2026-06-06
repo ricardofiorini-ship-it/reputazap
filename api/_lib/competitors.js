@@ -174,6 +174,130 @@ export async function fetchCompetitorsSnapshot({ placeId, keyword, radius }) {
   };
 }
 
+// ============================================================
+// Detecção de termo pelo NOME (termo mais específico vence) —
+// compartilhada entre diagnóstico e ranking do app.
+// ============================================================
+const KEYWORD_DICT = [
+  ["padaria artesanal","padaria artesanal"],
+  ["cervejaria artesanal","cervejaria artesanal"],["cerveja artesanal","cervejaria artesanal"],
+  ["sorveteria artesanal","sorveteria artesanal"],
+  ["hamburgueria artesanal","hamburgueria artesanal"],
+  ["pizzaria napolitana","pizzaria napolitana"],["pizza napolitana","pizzaria napolitana"],
+  ["comida japonesa","restaurante japonês"],["comida árabe","restaurante árabe"],["comida arabe","restaurante árabe"],
+  ["comida italiana","restaurante italiano"],
+  ["pizzaria","pizzaria"],["pizza","pizzaria"],
+  ["hamburgueria","hamburgueria"],["burger","hamburgueria"],["burguer","hamburgueria"],["smash","hamburgueria"],
+  ["panificadora","padaria"],["padaria","padaria"],
+  ["confeitaria","confeitaria"],["doceria","confeitaria"],
+  ["cafeteria","cafeteria"],["coffee","cafeteria"],["café","cafeteria"],
+  ["açaiteria","açaí"],["açaí","açaí"],["acai","açaí"],
+  ["barbearia","barbearia"],["barber","barbearia"],
+  ["salão de beleza","salão de beleza"],["salão","salão de beleza"],["salao","salão de beleza"],["estética","estética"],["estetica","estética"],
+  ["pet shop","petshop"],["petshop","petshop"],
+  ["farmácia","farmácia"],["farmacia","farmácia"],["drogaria","farmácia"],
+  ["lanchonete","lanchonete"],
+  ["sushi","restaurante japonês"],["temaki","restaurante japonês"],
+  ["churrascaria","churrascaria"],["churrasco","churrascaria"],
+  ["gelateria","gelateria"],["sorveteria","sorveteria"],
+  ["academia","academia"],["crossfit","academia"],
+  ["hortifruti","hortifruti"],["mercearia","mercado"],["mercado","mercado"],
+  ["pastelaria","pastelaria"],["esfiharia","esfiharia"],
+  ["rodízio","restaurante"],["rodizio","restaurante"],["restaurante","restaurante"],
+  ["clínica odontológica","clínica odontológica"],["odonto","clínica odontológica"],["dentista","clínica odontológica"],["clínica","clínica"],["clinica","clínica"]
+];
+export function detectFromName(name) {
+  const n = (name || "").toLowerCase();
+  let best = "", bestLen = 0;
+  for (const [tok, term] of KEYWORD_DICT) {
+    if (n.includes(tok) && tok.length > bestLen) { best = term; bestLen = tok.length; }
+  }
+  return best;
+}
+
+/**
+ * Ranqueia como o GOOGLE de verdade: Text Search do termo (o que o cliente
+ * digita) ancorado no local, lendo a ORDEM do Google — SEM re-ranquear.
+ * Usado pelo diagnóstico E pelo app (mesmo número nos dois).
+ *
+ * Termo: keyword explícito > detectado no nome > tipo do Google.
+ *
+ * Retorno (compatível com fetchCompetitorsSnapshot p/ o cron):
+ * { enough, total, category, radius, me, myRank, inResults, ahead, top }
+ *   - top: lista na ORDEM do Google, cada item { place_id, name, rating,
+ *     reviews, lat, lng, is_me }
+ *   - ahead: { reviews, rating, name } | null  (quem está 1 posição acima)
+ */
+export async function fetchRankingByTerm({ placeId, keyword, radius }) {
+  if (!placeId) throw new Error("placeId obrigatório");
+  if (!API_KEY) throw new Error("PLACES_API_KEY ausente no ambiente");
+  const safeRadius = Math.min(parseInt(radius, 10) || 3000, 25000);
+
+  // 1. Detalhes do negócio
+  const detRes = await fetchWithTimeout(
+    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,user_ratings_total,geometry,types&language=pt-BR&key=${API_KEY}`,
+    {}, 6000
+  );
+  const det = await detRes.json();
+  const meR = det.result;
+  if (!meR?.geometry?.location) throw new Error("Localização do negócio não encontrada no Google");
+  const { lat, lng } = meR.geometry.location;
+  const myRating = typeof meR.rating === "number" ? meR.rating : 0;
+  const myReviews = meR.user_ratings_total || 0;
+  const me = { place_id: placeId, name: meR.name, rating: myRating, reviews: myReviews, lat, lng };
+
+  // 2. Termo (o que o cliente digita)
+  let term = (keyword || "").trim();
+  if (!term) term = detectFromName(meR.name);
+  if (!term) {
+    const types = meR.types || [];
+    const specific = types.filter(t => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t));
+    const broad = types.filter(t => !GENERIC_TYPES.has(t) && BROAD_TYPES.has(t));
+    term = specific[0] || broad[0] || "";
+  }
+  if (!term) {
+    return { enough: false, total: 0, category: null, radius: safeRadius, me, myRank: null, inResults: false, ahead: null, top: [] };
+  }
+
+  // 3. Text Search do termo ancorado no local — ordem do Google
+  const tsUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(term)}&location=${lat},${lng}&radius=${safeRadius}&language=pt-BR&region=br&key=${API_KEY}`;
+  const ts = await (await fetchWithTimeout(tsUrl, {}, 8000)).json();
+
+  const seen = new Set();
+  const ordered = [];
+  for (const p of (ts.results || [])) {
+    if (seen.has(p.place_id)) continue;
+    if (p.business_status && p.business_status !== "OPERATIONAL") continue;
+    if (typeof p.rating !== "number") continue;
+    seen.add(p.place_id);
+    ordered.push({
+      place_id: p.place_id,
+      name: p.name,
+      rating: p.rating,
+      reviews: p.user_ratings_total || 0,
+      lat: p.geometry?.location?.lat ?? null,
+      lng: p.geometry?.location?.lng ?? null
+    });
+  }
+
+  const total = ordered.length;
+  if (total < 2) {
+    return { enough: false, total, category: term, radius: safeRadius, me, myRank: null, inResults: false, ahead: null, top: [] };
+  }
+
+  const idx = ordered.findIndex(p => p.place_id === placeId);
+  const inResults = idx >= 0;
+  const myRank = inResults ? idx + 1 : null;
+  const top = ordered.slice(0, 20).map(p => ({ ...p, is_me: p.place_id === placeId }));
+  let ahead = null;
+  if (inResults && idx > 0) {
+    const a = ordered[idx - 1];
+    ahead = { reviews: a.reviews, rating: a.rating, name: a.name };
+  }
+
+  return { enough: true, total, category: term, radius: safeRadius, me, myRank, inResults, ahead, top };
+}
+
 /**
  * Aplica paywall de nome de concorrente (oculta nomes pra free).
  * Usado SÓ pelo endpoint público; cron grava nomes reais no banco.
