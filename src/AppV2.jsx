@@ -736,12 +736,11 @@ function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen }) {
         return (
           <a
             key={tab.id}
-            href={isLocked ? '/plano-pro' : '#'}
+            href="#"
             onClick={(e) => {
-              if (isLocked) return
               e.preventDefault()
               if (isMore) { onOpenMore(); return }
-              onChange(tab.id)
+              onChange(tab.id)  // Pro pro Free abre o preview borrado (upsell dentro)
             }}
             style={{
               flex: 1, minWidth: 0, maxWidth:'25%',
@@ -855,7 +854,7 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
             const isLocked = it.pro && plan === 'free'
             // Item com link externo (ex: Central de ajuda → /ajuda em nova aba)
             const isExternal = !!it.external
-            const targetHref = isExternal ? it.href : (isLocked ? '/plano-pro' : '#')
+            const targetHref = isExternal ? it.href : '#'
             return (
               <a
                 key={i}
@@ -864,9 +863,8 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
                 rel={isExternal ? 'noopener' : undefined}
                 onClick={(e) => {
                   if (isExternal) { onClose(); return }                    // deixa o link abrir em nova aba
-                  if (isLocked) return
                   e.preventDefault()
-                  onPick(it.tabId, it.hash)
+                  onPick(it.tabId, it.hash)   // Pro pro Free abre o preview borrado
                   onClose()
                 }}
                 style={{
@@ -980,9 +978,10 @@ function TopTabs({ active, onChange, plan, isMobile }) {
             <a
               key={tab.id}
               ref={isActive ? activeRef : null}
-              href={isLocked ? '/plano-pro' : '#'}
+              href="#"
               onClick={(e) => {
-                if (isLocked) return // deixa o href levar
+                // Aba Pro pro Free agora abre o PREVIEW borrado (com upsell dentro),
+                // em vez de redirecionar pra /plano-pro.
                 e.preventDefault()
                 onChange(tab.id)
               }}
