@@ -444,3 +444,70 @@ export function negativeReviewEmail({ bizName, author, rating, text, placeId }) 
     })
   };
 }
+
+// ─────────────────────────────────────────────────────────────
+// 9. RESUMO SEMANAL (Pro) — cobre "te ultrapassou", "nota caiu", digest
+// ─────────────────────────────────────────────────────────────
+export function weeklyReportEmail({ bizName, ratingNow, ratingDelta, reviewsDelta, rankNow, rankDelta, total, aheadName }) {
+  const biz = escapeHtml(bizName || "seu negócio");
+  const r = (n) => (typeof n === "number" ? n : 0);
+
+  // Título se adapta ao evento mais importante da semana
+  let title, headerColor, h1, lead;
+  if (r(rankDelta) < 0) {
+    title = "⚠️ VOCÊ PERDEU POSIÇÃO"; headerColor = "#C5221F";
+    h1 = `Você caiu ${Math.abs(rankDelta)} ${Math.abs(rankDelta) === 1 ? "posição" : "posições"} essa semana`;
+    lead = aheadName ? `A <strong>${escapeHtml(aheadName)}</strong> está logo na sua frente agora. Dá pra reagir — veja como abaixo.` : `Um concorrente passou na sua frente. Dá pra reagir — veja como abaixo.`;
+  } else if (r(rankDelta) > 0) {
+    title = "🎉 VOCÊ SUBIU NO RANKING"; headerColor = "#137333";
+    h1 = `Você subiu ${rankDelta} ${rankDelta === 1 ? "posição" : "posições"} essa semana!`;
+    lead = `Seu trabalho de coletar avaliações está dando resultado. Continue no ritmo pra manter (e subir mais).`;
+  } else if (r(ratingDelta) < 0) {
+    title = "⚠️ SUA NOTA CAIU"; headerColor = "#C5221F";
+    h1 = `Sua nota caiu essa semana`;
+    lead = `Vale dar uma olhada nas últimas avaliações e responder. Avaliações 5★ novas trazem a média de volta pra cima.`;
+  } else {
+    title = "📊 SEU RESUMO DA SEMANA"; headerColor = "#1A73E8";
+    h1 = `Como ${biz} foi essa semana`;
+    lead = `Aqui está o que mudou nos últimos 7 dias.`;
+  }
+
+  const arrow = (n, goodWhenPositive = true) => {
+    if (!n) return `<span style="color:#5F6368;">— sem mudança</span>`;
+    const up = n > 0;
+    const good = goodWhenPositive ? up : !up;
+    const color = good ? "#137333" : "#C5221F";
+    const sign = up ? "▲ +" : "▼ ";
+    return `<span style="color:${color};font-weight:700;">${sign}${Math.abs(n) % 1 === 0 ? Math.abs(n) : Math.abs(n).toFixed(1)}</span>`;
+  };
+  // rank: subir = número menor (delta positivo na nossa convenção = subiu)
+  const rankArrow = !rankDelta ? `<span style="color:#5F6368;">— manteve</span>`
+    : rankDelta > 0 ? `<span style="color:#137333;font-weight:700;">▲ subiu ${rankDelta}</span>`
+    : `<span style="color:#C5221F;font-weight:700;">▼ caiu ${Math.abs(rankDelta)}</span>`;
+
+  const row = (label, value, delta) => `
+    <tr>
+      <td style="padding:10px 0;border-bottom:1px solid #eef0f3;font-size:14px;color:#5F6368;">${label}</td>
+      <td style="padding:10px 0;border-bottom:1px solid #eef0f3;font-size:14px;color:#202124;font-weight:700;text-align:right;">${value}</td>
+      <td style="padding:10px 0 10px 14px;border-bottom:1px solid #eef0f3;font-size:13px;text-align:right;white-space:nowrap;">${delta}</td>
+    </tr>`;
+
+  return {
+    subject: `${r(rankDelta) < 0 ? "⚠️" : r(rankDelta) > 0 ? "🎉" : "📊"} Resumo da semana — ${biz}`,
+    html: shell({
+      title, headerColor,
+      body: `
+        <h1 style="margin:0 0 8px;font-size:22px;color:#202124;line-height:1.3;">${h1}</h1>
+        <p style="font-size:14.5px;color:#5F6368;line-height:1.6;margin:0 0 16px;">${lead}</p>
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:6px 16px;margin:14px 0;">
+          ${row("Posição no ranking", `#${rankNow}${total ? ` de ${total}` : ""}`, rankArrow)}
+          ${row("Sua nota", r(ratingNow).toFixed(1), arrow(ratingDelta, true))}
+          ${row("Avaliações na semana", `${reviewsDelta > 0 ? "+" : ""}${r(reviewsDelta)}`, arrow(reviewsDelta, true))}
+        </table>
+
+        ${cta("https://startouch.com.br/app?tab=concorrentes", "Ver detalhes no painel →", headerColor)}
+      `
+    })
+  };
+}

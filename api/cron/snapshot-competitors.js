@@ -17,6 +17,8 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { fetchRankingByTerm } from "../_lib/competitors.js";
+import { sendTransactionalEmail } from "../_lib/email-sender.js";
+import { weeklyReportEmail } from "../_lib/email-templates.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -50,6 +52,7 @@ export default async function handler(req, res) {
     processed: 0,
     snapshots_created: 0,
     skipped_already_exists: 0,
+    reports_sent: 0,
     errors: [],
     took_ms: 0
   };
@@ -63,13 +66,23 @@ export default async function handler(req, res) {
   // 2. Busca todos os businesses com place_id
   const { data: businesses, error: bizErr } = await supabase
     .from("businesses")
-    .select("id, place_id, name, category_override")
+    .select("id, place_id, name, category_override, user_id, plan")
     .not("place_id", "is", null);
 
   if (bizErr) {
     console.error("[cron/snapshot] erro ao listar businesses:", bizErr);
     return res.status(500).json({ error: bizErr.message });
   }
+
+  // Emails dos donos + preferências (pro resumo semanal, só Pro)
+  const { data: usersList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const emailById = new Map((usersList?.users || []).map(u => [u.id, u.email]));
+  const userIds = [...new Set((businesses || []).map(b => b.user_id))];
+  const { data: prefsRows } = await supabase
+    .from("alert_preferences")
+    .select("user_id, email_enabled, email_to")
+    .in("user_id", userIds);
+  const prefsById = new Map((prefsRows || []).map(p => [p.user_id, p]));
 
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
@@ -119,6 +132,60 @@ export default async function handler(req, res) {
         console.error("[cron/snapshot] erro ao inserir snapshot:", biz.id, insErr);
       } else {
         stats.snapshots_created++;
+
+        // ── RESUMO SEMANAL (Pro) — compara com o snapshot anterior ──────
+        // Cobre "te ultrapassou", "nota caiu" e o digest, num email só por semana.
+        try {
+          if (biz.plan === "pro" && snap.enough && snap.myRank) {
+            const prefs = prefsById.get(biz.user_id);
+            const to = (prefs?.email_to || "").trim() || emailById.get(biz.user_id);
+            const emailOff = prefs && prefs.email_enabled === false;
+
+            if (to && !emailOff) {
+              // Snapshot anterior (mais recente antes de hoje)
+              const { data: prevRows } = await supabase
+                .from("competitor_snapshots")
+                .select("my_rating, my_reviews, my_rank, snapshot_date")
+                .eq("business_id", biz.id)
+                .lt("snapshot_date", today)
+                .order("snapshot_date", { ascending: false })
+                .limit(1);
+              const prev = prevRows?.[0];
+
+              // Só envia a partir do 2º snapshot (precisa de comparação)
+              if (prev) {
+                const ratingDelta = Number(((snap.me?.rating || 0) - (prev.my_rating || 0)).toFixed(1));
+                const reviewsDelta = (snap.me?.reviews || 0) - (prev.my_reviews || 0);
+                // convenção: rankDelta positivo = SUBIU (número da posição diminuiu)
+                const rankDelta = (prev.my_rank && snap.myRank) ? (prev.my_rank - snap.myRank) : 0;
+                const aheadName = snap.myRank > 1 ? (snap.top?.[snap.myRank - 2]?.name || null) : null;
+
+                const tmpl = weeklyReportEmail({
+                  bizName: biz.name,
+                  ratingNow: snap.me?.rating || 0,
+                  ratingDelta,
+                  reviewsDelta,
+                  rankNow: snap.myRank,
+                  rankDelta,
+                  total: snap.total,
+                  aheadName
+                });
+                const r = await sendTransactionalEmail({
+                  userId: biz.user_id,
+                  emailType: "weekly_report",
+                  to,
+                  subject: tmpl.subject,
+                  html: tmpl.html,
+                  metadata: { snapshot_date: today, rank: snap.myRank },
+                  dedupeByMetadata: { key: "snapshot_date", value: today }
+                });
+                if (r?.sent) stats.reports_sent++;
+              }
+            }
+          }
+        } catch (e) {
+          console.error("[cron/snapshot] erro no resumo semanal:", biz.id, e);
+        }
       }
 
       // Rate limit local
