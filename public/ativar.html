@@ -285,13 +285,8 @@
     </div>
     <div class="form-group"><label>Nome do negócio</label><input type="text" id="bizSearch" placeholder="Ex: Café Bello Vista" oninput="clearResults()"/></div>
     <div class="form-group">
-      <label>CEP do negócio</label>
-      <input type="text" id="bizCep" placeholder="00000-000" inputmode="numeric" maxlength="9" oninput="maskCep(this); lookupCep()" autocomplete="postal-code"/>
-      <p id="cepFeedback" style="margin:6px 0 0;font-size:12px;color:#6b7280;line-height:1.4;"></p>
-    </div>
-    <div class="form-group"><label>Qual o ramo de atuação?</label><input type="text" id="bizActivity" placeholder="Ex.: Pizzaria, Clínica, Salão de Beleza, Loja de Roupas..."/></div>
-    <div style="display:flex;gap:8px;align-items:flex-start;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin:-2px 0 16px;font-size:12.5px;color:#1e40af;line-height:1.45;">
-      <span>📍</span><span>O <strong>CEP</strong> nos diz a cidade e o estado automaticamente — busca certeira na sua região.</span>
+      <label>Cidade ou CEP <span style="font-weight:400;color:#9ca3af;">(opcional, ajuda a achar a unidade certa)</span></label>
+      <input type="text" id="bizCep" placeholder="Ex: São Paulo ou 04567-000" autocomplete="off"/>
     </div>
     <p class="legal-text">Ao continuar, você concorda com os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>.</p>
     <button class="btn-primary" onclick="searchBusiness()" id="searchBtn">Buscar empresa</button>
@@ -506,11 +501,6 @@ function maskPhone(el) {
   el.value = "(" + d.slice(0,2) + ") " + d.slice(2,7) + "-" + d.slice(7);
 }
 
-function maskCep(el) {
-  let d = el.value.replace(/\D/g, "").slice(0, 8);
-  el.value = d.length > 5 ? d.slice(0,5) + "-" + d.slice(5) : d;
-}
-
 function togglePass(id, btn) {
   const input = document.getElementById(id);
   const visible = input.type === "text";
@@ -610,53 +600,27 @@ function clearResults(){
   state.business=null;
 }
 
-// Cache do último lookup ViaCEP — evita re-fetch desnecessário
-let cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
-
-// Lookup ViaCEP em background quando o user termina de digitar o CEP (8 dígitos)
-async function lookupCep(){
-  const raw = document.getElementById("bizCep").value.replace(/\D/g, "");
-  const fb = document.getElementById("cepFeedback");
-  if(raw.length < 8){
-    fb.textContent = "";
-    fb.style.color = "#6b7280";
-    cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
-    return;
+// Resolve CEP -> cidade/UF via ViaCEP. Mesma régua do /diagnostico.
+async function resolveLoc(locRaw){
+  const digits=(locRaw||"").replace(/\D/g,"");
+  if(digits.length===8){
+    try{
+      const v=await fetch(`https://viacep.com.br/ws/${digits}/json/`).then(r=>r.json());
+      if(v && !v.erro) return { parts:[digits, v.localidade, v.uf].filter(Boolean), cep:digits };
+    }catch{}
+    return { parts:[digits], cep:digits };
   }
-  if(raw === cepCache.cep) return; // já buscou esse CEP
-  fb.textContent = "Buscando CEP…";
-  fb.style.color = "#6b7280";
-  try{
-    const r = await fetch(`https://viacep.com.br/ws/${raw}/json/`);
-    const d = await r.json();
-    if(d.erro){
-      fb.textContent = "⚠️ CEP não encontrado — confira os números";
-      fb.style.color = "#dc2626";
-      cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
-      return;
-    }
-    cepCache = { cep: raw, city: d.localidade || "", uf: d.uf || "", neighborhood: d.bairro || "" };
-    fb.innerHTML = `<span style="color:#137333;font-weight:600;">📍 ${d.localidade}/${d.uf}${d.bairro ? " · " + d.bairro : ""}</span>`;
-  } catch {
-    fb.textContent = "Não conseguimos consultar o CEP. Você pode buscar mesmo assim.";
-    fb.style.color = "#6b7280";
-  }
+  return { parts: locRaw?[locRaw]:[], cep:"" };
 }
 
 async function searchBusiness(){
   const query=document.getElementById("bizSearch").value.trim();
-  const cep=document.getElementById("bizCep").value.replace(/\D/g, "");
-  const activity=document.getElementById("bizActivity").value.trim();
-  state.activity=activity; // atividade -> keyword do ranking
+  const loc=document.getElementById("bizCep").value.trim();
 
   if(!query){alert("Digite o nome do negócio.");return;}
-  if(cep.length < 8){alert("Informe o CEP do negócio (8 dígitos).");return;}
-  if(!activity){alert("Diga o ramo de atuação — é essencial pra achar os concorrentes certos.");return;}
 
-  // Pega cidade/UF do ViaCEP (ou faz lookup agora, caso o user nem tenha esperado)
-  if(cepCache.cep !== cep){ await lookupCep(); }
-  const city = cepCache.city;
-  const uf = cepCache.uf;
+  // Localização (cidade OU CEP, opcional) — ViaCEP resolve o CEP em cidade/UF
+  const locInfo = await resolveLoc(loc);
 
   const btn=document.getElementById("searchBtn");
   const status=document.getElementById("searchStatus");
@@ -665,7 +629,7 @@ async function searchBusiness(){
   status.textContent="Buscando no Google Maps...";
   status.className="status-msg loading";
   try{
-    const res=await fetch(`/api/searchbiz?q=${encodeURIComponent([query,cep,city,uf].filter(Boolean).join(" "))}&cep=${encodeURIComponent(cep)}`);
+    const res=await fetch(`/api/searchbiz?q=${encodeURIComponent([query,...locInfo.parts].filter(Boolean).join(" "))}&cep=${encodeURIComponent(locInfo.cep)}`);
     const data=await res.json();
     if(!data.results?.length){
       status.innerHTML='Não encontramos sua empresa no Google. Tente outro nome ou cidade. Se você ainda não tem um perfil no Google Meu Negócio, <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#1A73E8;font-weight:600;text-decoration:underline">crie um aqui</a> antes de continuar.';
