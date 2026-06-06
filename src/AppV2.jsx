@@ -1762,8 +1762,8 @@ function ProPreview({ tab, isMobile, children }) {
   const C = {
     concorrentes: { icon:'🏆', title:'Inteligência Competitiva', sub:'Veja quem disputa o ranking com você — e nunca seja pego de surpresa.',
       bullets:['Os nomes de quem está na sua frente','Aviso na hora quando alguém te ultrapassar','Quem está crescendo mais rápido','Evolução semana a semana'] },
-    alertas: { icon:'🔔', title:'Alertas em tempo real', sub:'Saiba na hora quando algo muda no seu ranking.',
-      bullets:['Quando um concorrente te ultrapassa','Quando alguém dispara em avaliações','Quando você sobe ou cai de posição','Aviso direto no seu email'] },
+    alertas: { icon:'🔔', title:'Alertas em tempo real', sub:'Os avisos que protegem sua reputação e seu lugar no ranking — no email e no painel.',
+      bullets:['Avaliação negativa? Você sabe na hora, pra responder e recuperar o cliente','Um concorrente te ultrapassou no ranking','Sua nota caiu — ou bateu um novo recorde','Resumo toda segunda: o que mudou e o que fazer'] },
     relatorios: { icon:'📈', title:'Relatórios semanais', sub:'Toda segunda no seu email: sua evolução e o que fazer.',
       bullets:['Evolução de nota e posição','Comparativo com os concorrentes','Oportunidades pra crescer mais rápido'] }
   }[tab] || { icon:'🔒', title:'Recurso Pro', sub:'', bullets:[] }
