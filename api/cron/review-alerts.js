@@ -1,8 +1,8 @@
 // ============================================================
-// StarTouch — Cron: alerta de avaliação negativa nova (Pro)
+// StarTouch — Cron: alerta de avaliação negativa nova (GRÁTIS p/ todos)
 // ============================================================
 // Schedule: a cada 6h (vercel.json). Verifica as avaliações mais
-// recentes de cada negócio Pro e, se houver uma NOVA com nota baixa
+// recentes de cada negócio e, se houver uma NOVA com nota baixa
 // (<=2★) nas últimas 48h, dispara email pro dono na hora.
 //
 // Sem alteração de schema: idempotência via email_log (dedupe por
@@ -48,14 +48,14 @@ export default async function handler(req, res) {
   if (!checkAuth(req)) return res.status(401).json({ error: "Não autorizado" });
   if (!API_KEY) return res.status(500).json({ error: "PLACES_API_KEY ausente" });
 
-  // 1. Negócios Pro com place_id (alerta é recurso Pro)
+  // 1. Todos os negócios com place_id — alerta de avaliação negativa é GRÁTIS
+  //    (motor de valor/retenção; os alertas de ranking é que são Pro).
   const { data: bizs, error: bizErr } = await supabase
     .from("businesses")
-    .select("id, place_id, name, user_id, plan")
-    .eq("plan", "pro")
+    .select("id, place_id, name, user_id")
     .not("place_id", "is", null);
   if (bizErr) return res.status(500).json({ error: bizErr.message });
-  if (!bizs?.length) { stats.took_ms = Date.now() - t0; return res.json({ ...stats, note: "nenhum negócio Pro" }); }
+  if (!bizs?.length) { stats.took_ms = Date.now() - t0; return res.json({ ...stats, note: "nenhum negócio" }); }
 
   // 2. Email dos donos (auth.users) — 1 chamada, vira mapa
   const { data: usersList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
