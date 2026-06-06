@@ -664,7 +664,8 @@ function showResults(results){
       <span style="font-weight:700;">⚠️ Nome ou endereço diferente do real?</span>
       Os dados vêm direto do <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#854d0e;font-weight:600;text-decoration:underline;">Google Meu Negócio</a> do dono. Se estiver desatualizado, escolha mesmo assim e atualize no Google depois — a correção propaga aqui em 1-2 dias.
     </div>`;
-  container.innerHTML = cards + disclaimer;
+  const hint = '<p style="font-size:13px;color:#1A73E8;font-weight:600;margin:0 0 10px;">👇 Toque na sua empresa pra continuar</p>';
+  container.innerHTML = hint + cards + disclaimer;
   // Rola suave ate os resultados — eles apareciam abaixo da dobra e o usuario
   // achava que a busca nao tinha encontrado nada.
   requestAnimationFrame(()=>{
