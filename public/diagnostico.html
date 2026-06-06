@@ -102,6 +102,7 @@
   .row.me{background:#E8F0FE;border-top:1px solid #E8F0FE;}
   .row .rk{font-size:14px;font-weight:800;color:#5F6368;width:30px;flex-shrink:0;text-align:center;}
   .row .nm{flex:1;min-width:0;font-size:14px;font-weight:600;color:#0F0F0F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .row .nm .blur{filter:blur(5px);user-select:none;}
   .row .nm .tag{display:inline-block;font-size:10.5px;font-weight:800;color:#1A73E8;background:#fff;border:1px solid #1A73E8;border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:middle;}
   .row .st{font-size:12.5px;color:#5F6368;white-space:nowrap;flex-shrink:0;}
   .row .ellipsis{text-align:center;color:#BDC1C6;font-size:14px;padding:4px 0;width:100%;}
@@ -197,7 +198,7 @@
     </div>
 
     <div class="ranklist">
-      <div class="title">Ranking da sua categoria</div>
+      <div class="title">Ranking da sua categoria <span style="font-weight:400;color:#9AA0A6;text-transform:none;letter-spacing:0;">· 🔒 nomes ocultos</span></div>
       <div id="repRanking"></div>
     </div>
 
@@ -388,11 +389,11 @@ function renderReport(d) {
     insTitle.textContent = "🏆 Você lidera!";
     insText.innerHTML = `Você é o nº 1 quando buscam <strong>"${escapeHtml(d.category)}"</strong> na sua região. O desafio agora é manter — quem para de coletar avaliações acaba ultrapassado.`;
   } else {
-    const alvo = d.aheadName ? `a ${escapeHtml(d.aheadName)}` : `a ${d.rank - 1}ª posição`;
+    const aFrente = d.rank - 1;
     insTitle.textContent = "🎯 Como subir uma posição";
     insText.innerHTML = d.reviewsToNext > 0
-      ? `O <strong>${escapeHtml(d.aheadName || "concorrente logo acima")}</strong> tem cerca de <strong>${d.reviewsToNext} ${d.reviewsToNext === 1 ? "avaliação" : "avaliações"}</strong> a mais que você. Coletar avaliações de quem já é seu cliente é o caminho mais rápido pra passar ${alvo}.`
-      : `Você está logo atrás ${alvo}. Coletar mais avaliações ajuda a passar à frente.`;
+      ? `Há <strong>${aFrente} ${aFrente === 1 ? "empresa" : "empresas"}</strong> na sua frente. A primeira acima de você tem cerca de <strong>${d.reviewsToNext} ${d.reviewsToNext === 1 ? "avaliação" : "avaliações"}</strong> a mais — coletar avaliações é o caminho mais rápido pra passar.`
+      : `Há <strong>${aFrente} ${aFrente === 1 ? "empresa" : "empresas"}</strong> na sua frente. Coletar mais avaliações ajuda a subir.`;
   }
 
   // Ranking (top 5 + você, se fora do top)
@@ -411,7 +412,10 @@ function renderReport(d) {
 
 function rowHtml(pos, name, rating, reviews, isMe) {
   const medal = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : `${pos}º`;
-  const nm = isMe ? `${escapeHtml(name || "Você")}<span class="tag">VOCÊ</span>` : escapeHtml(name || "Concorrente");
+  let nm;
+  if (isMe) nm = `${escapeHtml(name || "Você")}<span class="tag">VOCÊ</span>`;
+  else if (!name) nm = `<span class="blur">Empresa concorrente</span>`; // nome travado (Pro)
+  else nm = escapeHtml(name);
   return `<div class="row${isMe ? " me" : ""}">
     <span class="rk">${medal}</span>
     <span class="nm">${nm}</span>

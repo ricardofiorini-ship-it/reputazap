@@ -9,7 +9,7 @@
 // Uso: /api/diagnostico?place_id=XXX  (opcional &keyword= &radius=)
 // É marketing — mostra nomes dos líderes (diferente do paywall do app).
 // ============================================================
-import { fetchRankingByTerm } from "./_lib/competitors.js";
+import { fetchRankingByTerm, applyNameLocking } from "./_lib/competitors.js";
 
 const gscore = (rt, rv) => (rt || 0) * Math.log10((rv || 0) + 1);
 
@@ -95,9 +95,12 @@ export default async function handler(req, res) {
     const ahead = snap.ahead; // { reviews, rating, name } | null
     const reviewsToNext = ahead ? Math.max(0, (ahead.reviews || 0) - myReviews) : 0;
 
-    const top = (snap.top || []).slice(0, 5).map((c, i) => ({
+    // Nomes de concorrente são recurso Pro — trava no público (mesmo paywall do app).
+    // Mostra posição, nota e nº de avaliações; nome vem null (front borra).
+    const lockedTop = applyNameLocking(snap.top || [], false);
+    const top = lockedTop.slice(0, 5).map((c, i) => ({
       pos: i + 1,
-      name: c.name || null,
+      name: c.name || null,   // null = concorrente (borrado no front)
       rating: c.rating ?? null,
       reviews: c.reviews ?? 0,
       isMe: !!c.is_me
@@ -115,7 +118,7 @@ export default async function handler(req, res) {
       total: snap.total,
       inResults: snap.inResults,
       reviewsToNext,
-      aheadName: ahead ? (ahead.name || null) : null,
+      aheadName: null,         // nome do concorrente à frente não é revelado (Pro)
       ratingShortcut: null,
       suggestions: suggestFor(snap.category),
       top
