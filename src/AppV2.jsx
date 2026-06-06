@@ -1757,6 +1757,54 @@ function OpportunitiesPanel({ data, list, isMobile }) {
   )
 }
 
+// Preview Pro borrado — Free vê a tela cheia (com dados de demonstração) atrás
+// de um vidro fosco + card de upsell, pra entender o que está perdendo.
+function ProPreview({ tab, isMobile, children }) {
+  const C = {
+    concorrentes: { icon:'🏆', title:'Inteligência Competitiva', sub:'Veja quem disputa o ranking com você — e nunca seja pego de surpresa.',
+      bullets:['Os nomes de quem está na sua frente','Aviso na hora quando alguém te ultrapassar','Quem está crescendo mais rápido','Evolução semana a semana'] },
+    alertas: { icon:'🔔', title:'Alertas em tempo real', sub:'Saiba na hora quando algo muda no seu ranking.',
+      bullets:['Quando um concorrente te ultrapassa','Quando alguém dispara em avaliações','Quando você sobe ou cai de posição','Aviso direto no seu email'] },
+    relatorios: { icon:'📈', title:'Relatórios semanais', sub:'Toda segunda no seu email: sua evolução e o que fazer.',
+      bullets:['Evolução de nota e posição','Comparativo com os concorrentes','Oportunidades pra crescer mais rápido'] }
+  }[tab] || { icon:'🔒', title:'Recurso Pro', sub:'', bullets:[] }
+
+  return (
+    <div style={{ position:'relative', maxHeight: 820, overflow:'hidden' }}>
+      <div aria-hidden="true" style={{ filter:'blur(6px)', pointerEvents:'none', userSelect:'none', opacity:0.9 }}>
+        {children}
+      </div>
+      <div style={{
+        position:'absolute', inset:0, display:'flex', alignItems:'flex-start', justifyContent:'center',
+        padding: isMobile ? '36px 16px' : '60px 24px',
+        background:'linear-gradient(180deg, rgba(247,248,250,0.45) 0%, rgba(247,248,250,0.88) 55%)'
+      }}>
+        <Card style={{ maxWidth: 440, textAlign:'center', padding: isMobile ? '28px 22px' : '34px 30px', boxShadow:'0 16px 48px rgba(15,23,42,0.20)' }}>
+          <span style={{ display:'inline-block', fontSize: 11, fontWeight: 800, letterSpacing:'0.08em', background:'#FBBC04', color:'#78350F', padding:'3px 9px', borderRadius: 6, marginBottom: 12 }}>PRO</span>
+          <div style={{ fontSize: 42, lineHeight: 1, marginBottom: 10 }}>{C.icon}</div>
+          <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 21, fontWeight: 800, color: T.text, margin:'0 0 8px', letterSpacing:'-0.02em' }}>{C.title}</h2>
+          <p style={{ fontSize: 14, color: T.textMid, lineHeight: 1.55, margin:'0 0 16px' }}>{C.sub}</p>
+          <ul style={{ listStyle:'none', padding: 0, margin:'0 0 20px', textAlign:'left', display:'inline-block' }}>
+            {C.bullets.map((b, i) => (
+              <li key={i} style={{ display:'flex', alignItems:'flex-start', gap: 8, fontSize: 13.5, color: T.text, marginBottom: 8 }}>
+                <span style={{ color: T.green, flexShrink: 0, fontWeight: 700 }}>✓</span><span>{b}</span>
+              </li>
+            ))}
+          </ul>
+          <div>
+            <a href="/plano-pro" style={{
+              display:'inline-flex', alignItems:'center', gap: 8, background: T.blue, color:'#fff',
+              padding:'13px 26px', borderRadius: 11, fontSize: 14.5, fontWeight: 700, textDecoration:'none',
+              boxShadow:'0 6px 18px rgba(26,115,232,0.32)'
+            }}>🔓 Desbloquear no Plano Pro</a>
+          </div>
+          <p style={{ fontSize: 11.5, color: T.textDim, marginTop: 12 }}>Tudo isso com os dados reais do seu negócio.</p>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
 function CompetitorsScreen({ data, isMobile }) {
   const [filter, setFilter] = React.useState('all')
   const [sortMode, setSortMode] = React.useState('position') // 'position' | 'distance' | 'growth'
@@ -4821,19 +4869,22 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={onLogout} demoMode={demoMode} />
       {!isMobile && <TopTabs active={tab} onChange={setTab} plan={plan} isMobile={false} />}
 
-      {/* Aba: CONCORRENTES (Pro) — Inteligência Competitiva FUNCIONAL */}
-      {tab === 'concorrentes' && plan === 'pro' && (
-        <CompetitorsScreen data={d} isMobile={isMobile}/>
+      {/* Aba: CONCORRENTES (Pro) — funcional pro Pro, preview borrado pro Free */}
+      {tab === 'concorrentes' && (plan === 'pro'
+        ? <CompetitorsScreen data={d} isMobile={isMobile}/>
+        : <ProPreview tab="concorrentes" isMobile={isMobile}><CompetitorsScreen data={MOCK} isMobile={isMobile}/></ProPreview>
       )}
 
-      {/* Aba: ALERTAS (Pro) — feed + canais (dados ainda em demonstração) */}
-      {tab === 'alertas' && plan === 'pro' && (
-        <AlertsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness} userEmail={user?.email}/>
+      {/* Aba: ALERTAS (Pro) — funcional pro Pro, preview borrado pro Free */}
+      {tab === 'alertas' && (plan === 'pro'
+        ? <AlertsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness} userEmail={user?.email}/>
+        : <ProPreview tab="alertas" isMobile={isMobile}><AlertsScreen data={MOCK} isMobile={isMobile} isReal={false} userEmail={user?.email}/></ProPreview>
       )}
 
-      {/* Aba: RELATÓRIOS (Pro) — newsletter semanal/mensal (dados ainda em demonstração) */}
-      {tab === 'relatorios' && plan === 'pro' && (
-        <ReportsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness}/>
+      {/* Aba: RELATÓRIOS (Pro) — funcional pro Pro, preview borrado pro Free */}
+      {tab === 'relatorios' && (plan === 'pro'
+        ? <ReportsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness}/>
+        : <ProPreview tab="relatorios" isMobile={isMobile}><ReportsScreen data={MOCK} isMobile={isMobile} isReal={false}/></ProPreview>
       )}
 
       {/* Aba: LOJA — vitrine de produtos NFC (free + pro) */}
@@ -4851,8 +4902,8 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
         <ConfigScreen data={d} isMobile={isMobile} plan={plan} isReal={!demoMode && real.hasBusiness} isAdmin={isAdminUser(user)}/>
       )}
 
-      {/* Outras abas ainda em construção */}
-      {tab !== 'painel' && !(tab === 'concorrentes' && plan === 'pro') && !(tab === 'alertas' && plan === 'pro') && !(tab === 'relatorios' && plan === 'pro') && tab !== 'loja' && tab !== 'avaliacoes' && tab !== 'config' && (
+      {/* Fallback p/ abas desconhecidas (as Pro já são tratadas acima com preview) */}
+      {tab !== 'painel' && tab !== 'concorrentes' && tab !== 'alertas' && tab !== 'relatorios' && tab !== 'loja' && tab !== 'avaliacoes' && tab !== 'config' && (
         <ComingSoon
           icon={tab === 'concorrentes' ? '🏆' : tab === 'alertas' ? '🔔' : tab === 'relatorios' ? '📈' : '⭐'}
           title={
