@@ -46,6 +46,7 @@
     { "source": "/app-legacy", "destination": "/index.html" }
   ],
   "crons": [
-    { "path": "/api/cron/snapshot-competitors", "schedule": "0 4 * * 1" }
+    { "path": "/api/cron/snapshot-competitors", "schedule": "0 4 * * 1" },
+    { "path": "/api/cron/review-alerts", "schedule": "0 */6 * * *" }
   ]
 }

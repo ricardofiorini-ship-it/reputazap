@@ -403,3 +403,44 @@ export function additionalDeviceEmail({ userName, bizName, code, channelName, to
     })
   };
 }
+
+// ─────────────────────────────────────────────────────────────
+// 8. ALERTA: AVALIAÇÃO NEGATIVA NOVA (Pro)
+// ─────────────────────────────────────────────────────────────
+export function negativeReviewEmail({ bizName, author, rating, text, placeId }) {
+  const biz = escapeHtml(bizName || "seu negócio");
+  const who = escapeHtml(author || "Um cliente");
+  const r = Math.max(0, Math.min(5, rating || 0));
+  const stars = "★".repeat(r) + "☆".repeat(5 - r);
+  const comment = escapeHtml((text || "").slice(0, 400));
+  const url = placeId
+    ? `https://search.google.com/local/reviews?placeid=${encodeURIComponent(placeId)}`
+    : "https://business.google.com/";
+  return {
+    subject: `⚠️ ${biz} recebeu uma avaliação ${r}★ no Google`,
+    html: shell({
+      title: "⚠️ AVALIAÇÃO NEGATIVA",
+      headerColor: "#C5221F",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
+          Uma avaliação ${r}★ acabou de aparecer
+        </h1>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          <strong>${who}</strong> avaliou <strong>${biz}</strong> no Google. Responder rápido e com educação mostra pros próximos clientes que você se importa — e muitas vezes recupera quem reclamou.
+        </p>
+
+        <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:16px;margin:14px 0;">
+          <div style="font-size:16px;color:#C5221F;margin-bottom:6px;">${stars}</div>
+          <div style="font-size:13px;color:#202124;font-weight:600;margin-bottom:${comment ? "8px" : "0"};">${who}</div>
+          ${comment ? `<p style="font-size:14px;color:#5F6368;line-height:1.6;margin:0;font-style:italic;">"${comment}"</p>` : ""}
+        </div>
+
+        ${cta(url, "Responder no Google →", "#C5221F")}
+
+        <p style="font-size:13px;color:#5F6368;line-height:1.55;margin:18px 0 0;">
+          <strong>Dica:</strong> agradeça o feedback, reconheça o ponto e ofereça resolver no privado. Uma boa resposta pública vale mais que a própria avaliação.
+        </p>
+      `
+    })
+  };
+}

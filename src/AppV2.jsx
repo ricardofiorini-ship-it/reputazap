@@ -1762,8 +1762,8 @@ function ProPreview({ tab, isMobile, children }) {
   const C = {
     concorrentes: { icon:'🏆', title:'Inteligência Competitiva', sub:'Veja quem disputa o ranking com você — e nunca seja pego de surpresa.',
       bullets:['Os nomes de quem está na sua frente','Aviso na hora quando alguém te ultrapassar','Quem está crescendo mais rápido','Evolução semana a semana'] },
-    alertas: { icon:'🔔', title:'Alertas em tempo real', sub:'Os avisos que protegem sua reputação e seu lugar no ranking — no email e no painel.',
-      bullets:['Avaliação negativa? Você sabe na hora, pra responder e recuperar o cliente','Um concorrente te ultrapassou no ranking','Sua nota caiu — ou bateu um novo recorde','Resumo toda segunda: o que mudou e o que fazer'] },
+    alertas: { icon:'🔔', title:'Alertas que protegem seu negócio', sub:'Os avisos que protegem sua reputação e seu lugar no ranking — direto no seu email.',
+      bullets:['Avaliação negativa nova? Avisamos por email pra você responder e recuperar o cliente','Um concorrente te ultrapassou no ranking','Sua nota caiu — ou bateu um novo recorde','Resumo toda segunda: o que mudou e o que fazer'] },
     relatorios: { icon:'📈', title:'Relatórios semanais', sub:'Toda segunda no seu email: sua evolução e o que fazer.',
       bullets:['Evolução de nota e posição','Comparativo com os concorrentes','Oportunidades pra crescer mais rápido'] }
   }[tab] || { icon:'🔒', title:'Recurso Pro', sub:'', bullets:[] }
@@ -2301,24 +2301,24 @@ function AlertsScreen({ data, isMobile, isReal, userEmail }) {
         {/* COLUNA ESQUERDA: feed ou empty state */}
         <div>
           {isReal ? (
-            // Em modo real, ainda não temos cron diário detectando mudanças.
-            // Em vez de mostrar alertas falsos com "Empresa A/C", mostramos empty state honesto.
+            // Estado honesto: o alerta de avaliação negativa JÁ está ativo (por email);
+            // os de ranking/concorrente estão chegando. Sem alertas falsos no feed.
             <Card style={{ textAlign:'center', padding: 40 }}>
               <div style={{ fontSize: 56, marginBottom: 14 }}>🔔</div>
               <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin:'0 0 8px' }}>
-                Coletando dados pra você
+                Você está protegido
               </h2>
-              <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, margin:'0 auto 18px', maxWidth: 480 }}>
-                Estamos preparando o sistema pra detectar movimentações nos concorrentes da sua região.
-                Você receberá o primeiro alerta assim que algo mudar no ranking — em geral nos primeiros 7 dias depois que ativar.
-              </p>
               <div style={{
                 display:'inline-flex', alignItems:'center', gap: 6,
-                fontSize: 11.5, fontWeight: 700, color: '#92400E',
-                background:'#FEF3C7', padding:'5px 10px', borderRadius: 6
-              }}>🔬 BETA · alertas começarão em breve</div>
-              <p style={{ fontSize: 12, color: T.textDim, lineHeight: 1.5, marginTop: 22 }}>
-                Enquanto isso, configure no card ao lado por onde você quer receber os alertas (email/WhatsApp).
+                fontSize: 12, fontWeight: 700, color: '#137333',
+                background: T.greenSoft, padding:'6px 12px', borderRadius: 999, marginBottom: 14
+              }}>✓ Alerta de avaliação negativa ativo</div>
+              <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, margin:'0 auto 18px', maxWidth: 480 }}>
+                Assim que aparecer uma avaliação ruim no seu Google, a gente te avisa <strong>por email</strong> em poucas horas — pra você responder e recuperar o cliente.
+                Os alertas de ranking e concorrentes estão chegando.
+              </p>
+              <p style={{ fontSize: 12, color: T.textDim, lineHeight: 1.5 }}>
+                Confira no card ao lado se o email de alertas está ligado.
               </p>
             </Card>
           ) : (
