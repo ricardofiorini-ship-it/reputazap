@@ -45,7 +45,34 @@ export default async function handler(req, res) {
   const stats = { started_at: new Date().toISOString(), processed: 0, alerts_sent: 0, skipped: 0, errors: [], took_ms: 0 };
   const t0 = Date.now();
 
-  if (!checkAuth(req)) return res.status(401).json({ error: "Não autorizado" });
+  // Auth: header do cron OU ?secret=CRON_SECRET (permite teste pelo navegador)
+  const secretOk = CRON_SECRET && req.query.secret === CRON_SECRET;
+  if (!secretOk && !checkAuth(req)) return res.status(401).json({ error: "Não autorizado" });
+
+  // ── GATILHO DE TESTE: ?test=1&secret=...&to=email ──────────────
+  // Manda 1 email de EXEMPLO de avaliação negativa pro endereço informado.
+  // Isolado: 1 destinatário, não toca em nenhum negócio. Pra validar template+entrega.
+  if (req.query.test === "1") {
+    const to = (req.query.to || process.env.ADMIN_NOTIFICATIONS_EMAIL || "").trim();
+    if (!to) return res.status(400).json({ error: "Informe ?to=seuemail@dominio.com" });
+    const tmpl = negativeReviewEmail({
+      bizName: req.query.biz || "Seu Negócio (exemplo)",
+      author: "Cliente Teste",
+      rating: 1,
+      text: "Demorei muito pra ser atendido e o pedido veio errado. (avaliação de exemplo — teste do StarTouch)",
+      placeId: null
+    });
+    const result = await sendTransactionalEmail({
+      userId: "00000000-0000-0000-0000-000000000000",
+      emailType: "negative_review_test",
+      to,
+      subject: "[TESTE] " + tmpl.subject,
+      html: tmpl.html,
+      metadata: { test: true }
+    });
+    return res.json({ ok: true, test: true, to, result });
+  }
+
   if (!API_KEY) return res.status(500).json({ error: "PLACES_API_KEY ausente" });
 
   // 1. Todos os negócios com place_id — alerta de avaliação negativa é GRÁTIS
