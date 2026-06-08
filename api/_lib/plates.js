@@ -43,11 +43,16 @@ export async function generateBatchCodes(supabase, n) {
   while (set.size < n) set.add(generatePlateCode());
   const arr = [...set];
 
-  // Checa colisões com o banco numa query só
-  const { data: existing } = await supabase
+  // Checa colisões com o banco numa query só. Se ESSA query falhar, não dá
+  // pra assumir "sem colisão" (poderia tentar inserir duplicata e derrubar o
+  // lote inteiro com erro críptico) — aborta cedo com mensagem clara.
+  const { data: existing, error: collErr } = await supabase
     .from("plates")
     .select("code")
     .in("code", arr);
+  if (collErr) {
+    throw new Error("Falha ao verificar colisão de códigos no banco: " + collErr.message);
+  }
   const existingSet = new Set((existing || []).map((r) => r.code));
 
   const final = [];

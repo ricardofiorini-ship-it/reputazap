@@ -63,11 +63,23 @@ async function handleCreateBatch(req, res, user) {
     .single();
   if (batchErr) return res.status(500).json({ error: "Erro ao criar lote: " + batchErr.message });
 
+  // Desfaz o lote recém-criado se um passo seguinte falhar (evita lote órfão
+  // sem placas sujando o painel de produção). Best-effort: loga se a limpeza
+  // em si falhar, mas o erro original é o que importa pro admin.
+  async function rollbackBatch() {
+    const { error: delErr } = await supabase
+      .from("production_batches")
+      .delete()
+      .eq("id", batch.id);
+    if (delErr) console.error("[plates.create-batch] falha ao desfazer lote órfão:", delErr.message);
+  }
+
   // 2. gera N códigos únicos
   let codes;
   try {
     codes = await generateBatchCodes(supabase, qty);
   } catch (e) {
+    await rollbackBatch();
     return res.status(500).json({ error: e.message });
   }
 
@@ -80,7 +92,10 @@ async function handleCreateBatch(req, res, user) {
     source: "site"
   }));
   const { error: platesErr } = await supabase.from("plates").insert(rows);
-  if (platesErr) return res.status(500).json({ error: "Erro ao criar placas: " + platesErr.message });
+  if (platesErr) {
+    await rollbackBatch();
+    return res.status(500).json({ error: "Erro ao criar placas: " + platesErr.message });
+  }
 
   return res.json({ ok: true, batch, codes });
 }
