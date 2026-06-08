@@ -161,6 +161,15 @@ function showError(title, msg) {
   show("stepError");
 }
 
+// Busca com timeout: o redirect pro Google NÃO pode ficar refém de uma
+// chamada lenta. Se estourar o tempo, seguimos sem o cabeçalho enriquecido.
+function fetchWithTimeout(url, ms) {
+  return Promise.race([
+    fetch(url).then(r => r.json()),
+    new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))
+  ]);
+}
+
 async function loadBusiness() {
   if (isPreview) {
     document.body.classList.add("has-preview");
@@ -169,33 +178,35 @@ async function loadBusiness() {
     banner.innerHTML = "🔍 Modo simulação <span>— você será levado ao Google, igual ao cliente real</span>";
     document.body.prepend(banner);
   }
+  // Sem place_id não há pra onde mandar — esse sim é um erro real.
   if (!placeId) {
     showError("Link inválido", "Esse link não tem identificação do negócio. Peça um novo ao estabelecimento.");
     return;
   }
-  try {
-    const res = await fetch(`/api/bizinfo?place_id=${placeId}`);
-    const data = await res.json();
-    if (!data?.name) {
-      showError("Negócio não encontrado", "Esse link não está mais ativo ou o negócio não foi encontrado no Google.");
-      return;
-    }
-    document.getElementById("bizName").textContent = data.name;
-    document.getElementById("bizSub").textContent = `⭐ ${data.rating ?? "—"} · ${data.total ?? 0} avaliações no Google`;
 
-    const googleUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
+  // O destino só depende do place_id, que já temos em mãos. Constrói já.
+  const googleUrl = `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`;
 
-    if (checkDuplicate()) {
-      showThanks("Você já avaliou esse negócio recentemente. Obrigado!");
-      return;
-    }
-
-    // Vai direto pro Google Meu Negócio pra avaliar (sem menu/peneira).
-    markReviewed();
-    window.location.href = googleUrl;
-  } catch {
-    showError("Erro ao carregar", "Tente novamente em instantes ou peça um novo link ao estabelecimento.");
+  // Já avaliou nos últimos 30 dias? Decisão 100% local, não precisa de rede.
+  if (checkDuplicate()) {
+    showThanks("Você já avaliou esse negócio recentemente. Obrigado!");
+    return;
   }
+
+  // bizinfo é SÓ pra enfeitar o cabeçalho (nome/nota). Uma falha ou lentidão
+  // dele NUNCA pode impedir a avaliação — por isso tem timeout e seguimos
+  // pro Google mesmo que ele falhe.
+  try {
+    const data = await fetchWithTimeout(`/api/bizinfo?place_id=${encodeURIComponent(placeId)}`, 2500);
+    if (data?.name) {
+      document.getElementById("bizName").textContent = data.name;
+      document.getElementById("bizSub").textContent = `⭐ ${data.rating ?? "—"} · ${data.total ?? 0} avaliações no Google`;
+    }
+  } catch { /* sem cabeçalho enriquecido — segue pro Google do mesmo jeito */ }
+
+  // Vai direto pro Google Meu Negócio pra avaliar (sem menu/peneira).
+  markReviewed();
+  window.location.href = googleUrl;
 }
 loadBusiness();
 
