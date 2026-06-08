@@ -14,6 +14,13 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
+  // NUNCA cachear: o destino da placa muda com o status (estoque→ativa).
+  // Sem isso, o celular memoriza o redirect antigo (ex: tocou antes de ativar
+  // → guardou "vai pra /ativar-codigo") e fica preso nele mesmo após ativação.
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
   const raw = req.query.code || "";
   const code = String(raw).trim().toUpperCase();
 
