@@ -81,6 +81,15 @@
     <a class="btn btn-primary" href="/landing">Voltar pro início</a>
   </div>
 
+  <!-- INSTÁVEL (falha de conexão, NÃO código inválido) -->
+  <div class="card hidden" id="screenInstavel">
+    <div class="icon-circle">🔄</div>
+    <h1>Tente de novo num instante</h1>
+    <p class="sub">Tivemos uma instabilidade momentânea de conexão — não é problema no seu dispositivo. Toque de novo na placa ou clique abaixo.</p>
+    <button class="btn btn-primary" id="instavelRetry">Tentar de novo</button>
+    <p style="font-size:11.5px;color:#9AA0A6;text-align:center;margin:14px 0 0;line-height:1.5;">Se continuar, fale com a gente no WhatsApp ali no canto. 👇</p>
+  </div>
+
   <!-- ESCOLHA: novo vs existente -->
   <div class="card hidden" id="screenChoice">
     <h1>Ativar seu dispositivo</h1>
@@ -327,7 +336,7 @@ async function handleGoogleCredential(response){
 }
 
 function show(id){
-  ["screenError","screenChoice","screenNew","screenLogin","screenLink","screenDone"]
+  ["screenError","screenInstavel","screenChoice","screenNew","screenLogin","screenLink","screenDone"]
     .forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id));
   window.scrollTo(0,0);
   // Renderiza botão Google nas telas que oferecem (assincrono — GSI carrega lazy)
@@ -382,7 +391,14 @@ function maskPhone(el){
 }
 
 // Estado inicial
-if (ERROR === "invalida") {
+if (ERROR === "instavel") {
+  // Falha transitória de conexão no /r/CODE — re-tocar a placa costuma resolver.
+  const retry = document.getElementById("instavelRetry");
+  if (retry) retry.onclick = () => {
+    location.href = CODE ? ("/r/" + encodeURIComponent(CODE)) : "/landing";
+  };
+  show("screenInstavel");
+} else if (ERROR === "invalida") {
   document.getElementById("errTitle").textContent="Código inválido";
   document.getElementById("errMsg").textContent="Esse código não foi encontrado. Confira o dispositivo ou peça um novo ao estabelecimento.";
   show("screenError");

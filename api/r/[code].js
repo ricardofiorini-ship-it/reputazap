@@ -13,6 +13,21 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
+// Tenta uma consulta ao Supabase até `tries` vezes antes de desistir.
+// Crucial pro fluxo de placa: uma falha transitória de banco NÃO pode ser
+// confundida com "placa não existe" — senão uma placa ativa, no balcão do
+// cliente, seria jogada pra reativação por causa de um soluço de rede.
+async function queryWithRetry(buildQuery, tries = 3) {
+  let last = { data: null, error: null };
+  for (let i = 0; i < tries; i++) {
+    last = await buildQuery();
+    if (!last.error) return last;
+    console.error(`[r/code] tentativa ${i + 1}/${tries} falhou:`, last.error?.message || last.error);
+    if (i < tries - 1) await new Promise((r) => setTimeout(r, 150 * (i + 1)));
+  }
+  return last;
+}
+
 export default async function handler(req, res) {
   // NUNCA cachear: o destino da placa muda com o status (estoque→ativa).
   // Sem isso, o celular memoriza o redirect antigo (ex: tocou antes de ativar
@@ -27,14 +42,24 @@ export default async function handler(req, res) {
   if (!code) return res.redirect(302, "/ativar-codigo?error=invalida");
 
   try {
-    const { data: plate, error } = await supabase
-      .from("plates")
-      .select("id, code, status, business_id, total_taps, channel_name")
-      .eq("code", code)
-      .maybeSingle();
+    const { data: plate, error } = await queryWithRetry(() =>
+      supabase
+        .from("plates")
+        .select("id, code, status, business_id, total_taps, channel_name")
+        .eq("code", code)
+        .maybeSingle()
+    );
 
-    // 1. Placa não existe
-    if (error || !plate) {
+    // 1a. Erro de infra (banco fora / timeout) APÓS retries → NÃO é "inválido".
+    // A placa pode estar ativa; mandar pra reativar/erro seria mentira. Pede
+    // pro cliente tocar de novo em vez de descartar uma placa boa.
+    if (error) {
+      console.error("[r/code] busca de placa falhou após retries:", error.message || error);
+      return res.redirect(302, `/ativar-codigo?error=instavel&code=${encodeURIComponent(code)}`);
+    }
+
+    // 1b. Banco respondeu, mas placa realmente não existe (0 linhas)
+    if (!plate) {
       return res.redirect(302, "/ativar-codigo?error=invalida");
     }
 
@@ -51,15 +76,23 @@ export default async function handler(req, res) {
     // 4. Placa ativa → captura review. Resolve place_id do negócio vinculado.
     let placeId = null;
     if (plate.business_id) {
-      const { data: biz } = await supabase
-        .from("businesses")
-        .select("place_id")
-        .eq("id", plate.business_id)
-        .maybeSingle();
+      const { data: biz, error: bizErr } = await queryWithRetry(() =>
+        supabase
+          .from("businesses")
+          .select("place_id")
+          .eq("id", plate.business_id)
+          .maybeSingle()
+      );
+      // Falha de banco ao resolver o negócio → instável, não "reativar".
+      // A placa está ativa; o negócio existe; foi só o banco que tropeçou.
+      if (bizErr) {
+        console.error("[r/code] busca de negócio falhou após retries:", bizErr.message || bizErr);
+        return res.redirect(302, `/ativar-codigo?error=instavel&code=${encodeURIComponent(plate.code)}`);
+      }
       placeId = biz?.place_id || null;
     }
 
-    // Sem place_id resolvido (edge case) → manda pra reativar
+    // Sem place_id resolvido de verdade (negócio sem place_id) → manda pra reativar
     if (!placeId) {
       return res.redirect(302, `/ativar-codigo?code=${encodeURIComponent(plate.code)}`);
     }
@@ -112,7 +145,8 @@ export default async function handler(req, res) {
 
     return res.redirect(302, `/avaliar?place_id=${encodeURIComponent(placeId)}&plate=${encodeURIComponent(plate.code)}`);
   } catch (err) {
+    // Exceção inesperada = problema nosso, não código inválido do cliente.
     console.error("[r/code] erro:", err);
-    return res.redirect(302, "/ativar-codigo?error=invalida");
+    return res.redirect(302, `/ativar-codigo?error=instavel&code=${encodeURIComponent(code)}`);
   }
 }
