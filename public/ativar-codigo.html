@@ -73,6 +73,12 @@
 <div class="wrap">
   <div class="logo"><a href="/landing"><img src="/startouch-logo-dark.png" alt="StarTouch"/></a></div>
 
+  <!-- LOADING (enquanto checa se a placa já está ativa) -->
+  <div class="card hidden" id="screenLoading">
+    <div class="icon-circle">⏳</div>
+    <p class="sub" style="margin:0;">Um instante…</p>
+  </div>
+
   <!-- ERRO -->
   <div class="card hidden" id="screenError">
     <div class="icon-circle">⚠️</div>
@@ -336,7 +342,7 @@ async function handleGoogleCredential(response){
 }
 
 function show(id){
-  ["screenError","screenInstavel","screenChoice","screenNew","screenLogin","screenLink","screenDone"]
+  ["screenLoading","screenError","screenInstavel","screenChoice","screenNew","screenLogin","screenLink","screenDone"]
     .forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id));
   window.scrollTo(0,0);
   // Renderiza botão Google nas telas que oferecem (assincrono — GSI carrega lazy)
@@ -412,6 +418,32 @@ if (ERROR === "instavel") {
 } else {
   document.getElementById("choiceBadge").textContent = "✓ Código: " + CODE;
   document.getElementById("linkBadge").textContent = "✓ Código: " + CODE;
+  // Antes de mostrar a ativação, confere se a placa JÁ está ativa.
+  // Resgata os dispositivos cujo NFC foi gravado com a URL errada
+  // (/ativar-codigo?code= em vez de /r/): um chip de placa ativa cairia aqui
+  // e deve ir pro Google avaliar, não pra reativação.
+  routeByStatus();
+}
+
+async function routeByStatus(){
+  show("screenLoading");
+  try{
+    const r = await fetch(`/api/r/${encodeURIComponent(CODE)}?check=1`);
+    const d = await r.json();
+    if(d && d.reviewReady){
+      // Placa ativa e pronta → manda pro porteiro, que conta o toque e
+      // redireciona pro Google. replace() pra não deixar essa URL no histórico.
+      location.replace(`/r/${encodeURIComponent(CODE)}`);
+      return;
+    }
+    if(d && d.status === "disabled"){
+      document.getElementById("errTitle").textContent = "Dispositivo desabilitado";
+      document.getElementById("errMsg").textContent = "Esse dispositivo foi desabilitado e não está mais ativo.";
+      show("screenError");
+      return;
+    }
+  }catch{ /* falha transitória na checagem → segue pra ativação normal */ }
+  // Placa nova / não-ativa (ou checagem falhou) → fluxo de ativação normal.
   show("screenChoice");
 }
 

@@ -39,7 +39,17 @@ export default async function handler(req, res) {
   const raw = req.query.code || "";
   const code = String(raw).trim().toUpperCase();
 
-  if (!code) return res.redirect(302, "/ativar-codigo?error=invalida");
+  // Modo consulta: responde o status em JSON, sem redirect e SEM contar toque.
+  // Usado pela tela /ativar-codigo pra resgatar dispositivos cujo NFC foi
+  // gravado com a URL errada (/ativar-codigo?code= em vez de /r/): um chip de
+  // placa ATIVA cairia na ativação e deveria ir pro Google. A tela consulta
+  // aqui e, se reviewReady, reencaminha pro /r/CODE (fluxo de avaliação).
+  const checkOnly = req.query.check === "1";
+
+  if (!code) {
+    if (checkOnly) return res.status(200).json({ ok: true, status: "not_found", reviewReady: false });
+    return res.redirect(302, "/ativar-codigo?error=invalida");
+  }
 
   try {
     const { data: plate, error } = await queryWithRetry(() =>
@@ -49,6 +59,22 @@ export default async function handler(req, res) {
         .eq("code", code)
         .maybeSingle()
     );
+
+    // Modo consulta: resolve status (+ se está pronta pra avaliação) e retorna JSON.
+    if (checkOnly) {
+      if (error) return res.status(200).json({ ok: false, transient: true });
+      if (!plate) return res.status(200).json({ ok: true, status: "not_found", reviewReady: false });
+      let reviewReady = false;
+      if (plate.status === "active" && plate.business_id) {
+        const { data: biz } = await supabase
+          .from("businesses")
+          .select("place_id")
+          .eq("id", plate.business_id)
+          .maybeSingle();
+        reviewReady = !!(biz?.place_id);
+      }
+      return res.status(200).json({ ok: true, status: plate.status, reviewReady });
+    }
 
     // 1a. Erro de infra (banco fora / timeout) APÓS retries → NÃO é "inválido".
     // A placa pode estar ativa; mandar pra reativar/erro seria mentira. Pede
