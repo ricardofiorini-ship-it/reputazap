@@ -59,6 +59,17 @@
   <h1>Produção de placas</h1>
   <p class="sub">Crie lotes de produção. Cada lote gera N códigos únicos prontos pra gravar no NFC + imprimir QR.</p>
 
+  <!-- AVISO CRÍTICO DE GRAVAÇÃO — erro de 2026-06-08: chips gravados com /ativar-codigo -->
+  <div style="background:#FCE8E6;border:1.5px solid #F5B5B0;border-radius:12px;padding:14px 16px;margin:0 0 18px;font-size:13.5px;color:#202124;line-height:1.55;">
+    <div style="font-weight:800;color:#C5221F;margin-bottom:6px;font-size:14.5px;">⚠️ Atenção ao gravar o NFC — leia antes de mandar pra gráfica</div>
+    Grave no chip NFC <b>exatamente a URL da coluna <code style="background:#fff;padding:1px 5px;border-radius:4px;border:1px solid #F5B5B0;">nfc_url</code> do CSV</b>, que é
+    <code style="background:#fff;padding:1px 5px;border-radius:4px;border:1px solid #F5B5B0;">https://startouch.com.br/r/STAR-XXXXX</code>.
+    <br>
+    <b style="color:#C5221F;">NÃO grave</b> <code style="background:#fff;padding:1px 5px;border-radius:4px;border:1px solid #F5B5B0;">/ativar-codigo?code=…</code> — essa URL faz a placa <b>ativa</b> cair na tela de ativação em vez de ir pro Google avaliar.
+    <br>
+    O NFC e o QR Code apontam pra <b>mesma URL</b> (<code style="background:#fff;padding:1px 5px;border-radius:4px;border:1px solid #F5B5B0;">/r/</code>). O QR sai certo do PDF; o cuidado é só na gravação manual do chip.
+  </div>
+
   <div id="authGate" class="loading">Verificando acesso…</div>
 
   <div id="content" style="display:none;">
@@ -102,6 +113,9 @@
         <strong id="codesCount"></strong>
         <div class="codes-grid" id="codesGrid"></div>
         <button class="btn btn-ghost" onclick="exportCSV()">⬇ Exportar CSV (pra gráfica)</button>
+        <p style="margin:10px 0 0;font-size:12.5px;color:#C5221F;font-weight:600;line-height:1.5;">
+          ⚠️ Ao gravar o NFC, use a coluna <code style="background:#FCE8E6;padding:1px 5px;border-radius:4px;">nfc_url</code> (<code style="background:#FCE8E6;padding:1px 5px;border-radius:4px;">…/r/STAR-XXXXX</code>). Nunca <code style="background:#FCE8E6;padding:1px 5px;border-radius:4px;">/ativar-codigo</code>.
+        </p>
       </div>
     </div>
 
