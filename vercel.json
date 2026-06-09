@@ -19,7 +19,8 @@
     { "source": "/diagnostico.html", "destination": "/diagnostico", "permanent": true },
     { "source": "/plano-pro.html", "destination": "/plano-pro", "permanent": true },
     { "source": "/ajuda.html", "destination": "/ajuda", "permanent": true },
-    { "source": "/sobre.html", "destination": "/sobre", "permanent": true }
+    { "source": "/sobre.html", "destination": "/sobre", "permanent": true },
+    { "source": "/ranking.html", "destination": "/ranking", "permanent": true }
   ],
   "rewrites": [
     { "source": "/landing", "destination": "/landing.html" },
@@ -38,6 +39,7 @@
     { "source": "/plano-pro", "destination": "/plano-pro.html" },
     { "source": "/ajuda", "destination": "/ajuda.html" },
     { "source": "/sobre", "destination": "/sobre.html" },
+    { "source": "/ranking", "destination": "/ranking.html" },
     { "source": "/r/:code", "destination": "/api/r/:code" },
     { "source": "/artigos", "destination": "/artigos/index.html" },
     { "source": "/artigos/:slug", "destination": "/artigos/:slug.html" },

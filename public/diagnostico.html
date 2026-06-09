@@ -475,6 +475,10 @@ function applyCategory() {
     });
   } else {
     showOnly("searchMode");
+    // Localização vinda da /ranking (ou link direto): pré-preenche o campo de
+    // cidade/CEP pra busca ancorar no Brasil antes de auto-buscar.
+    const loc0 = params.get("loc");
+    if (loc0) $("cep").value = loc0.slice(0, 80);
     if (q) { $("q").value = q.slice(0, 80); doSearch(); }
     $("searchBtn").addEventListener("click", doSearch);
     $("q").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
