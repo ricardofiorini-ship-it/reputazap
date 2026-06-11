@@ -314,6 +314,13 @@ export default function StarTouch({ user, onLogout }) {
     return () => clearTimeout(t);
   }, [toast]);
 
+  // GA4 — marca que um cliente logado abriu o painel. Permite ver "acessos ao dashboard por dia".
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "dashboard_view");
+    }
+  }, []);
+
   // Sistema de placas — carrega placas + negócios do usuário
   async function loadPlates() {
     const token = localStorage.getItem("rz_token");
