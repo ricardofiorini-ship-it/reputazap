@@ -247,6 +247,17 @@ fbq('track', 'PageView');
     </div>
   </section>
 
+  <!-- TRAVA: limite de diagnósticos grátis por dia (vira convite pra cadastro) -->
+  <section id="gateMode" class="hidden">
+    <div class="state">
+      <div class="ico">🔓</div>
+      <h2>Você já viu 3 diagnósticos hoje</h2>
+      <p>Crie sua conta grátis pra continuar analisando negócios. Leva 1 minuto e é de graça pra sempre no plano free.</p>
+      <a class="btn btn-primary" href="/ativar?from=web" onclick="if(window.gtag)gtag('event','generate_lead',{method:'gate'})" style="max-width:320px;margin:8px auto 0;display:block;">Criar conta grátis →</a>
+      <button class="btn btn-ghost" type="button" onclick="window.location.href='/diagnostico'" style="max-width:280px;margin:10px auto 0;">← Voltar</button>
+    </div>
+  </section>
+
 </main>
 
 <a class="wa-float" href="https://wa.me/5511976944026?text=Oi!%20Quero%20ajuda%20com%20o%20diagn%C3%B3stico%20do%20meu%20neg%C3%B3cio." target="_blank" rel="noopener" aria-label="Falar no WhatsApp" onclick="if(window.gtag)gtag('event','generate_lead',{method:'whatsapp'})">
@@ -258,7 +269,7 @@ const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(window.location.search);
 
 function showOnly(id) {
-  ["searchMode","loadingMode","reportMode","emptyMode"].forEach(s => $(s).classList.toggle("hidden", s !== id));
+  ["searchMode","loadingMode","reportMode","emptyMode","gateMode"].forEach(s => $(s).classList.toggle("hidden", s !== id));
 }
 
 function showEmpty(ico, title, text, canRetry) {
@@ -349,10 +360,30 @@ function diagUrl(placeId, keyword, radius) {
   return u;
 }
 
+// ── TRAVA (anti "ficar mudando de empresa") ────────────
+// Conta negócios DISTINTOS diagnosticados por dia (guardado no aparelho).
+// Passou do limite → em vez de bloquear seco, empurra pro cadastro (vira lead).
+// Rever o MESMO negócio (trocar termo/raio) não conta nem trava.
+// Roda ANTES da chamada da API, então também protege custo do Places.
+const DIAG_LIMIT = 3;
+function diagGate(placeId) {
+  if (!placeId) return true;
+  const today = new Date().toISOString().slice(0, 10);
+  let rec;
+  try { rec = JSON.parse(localStorage.getItem("rz_diag_seen") || "{}"); } catch { rec = {}; }
+  if (rec.date !== today || !Array.isArray(rec.ids)) rec = { date: today, ids: [] };
+  if (rec.ids.includes(placeId)) return true;            // já viu esse — relê de graça
+  if (rec.ids.length >= DIAG_LIMIT) { showOnly("gateMode"); return false; }
+  rec.ids.push(placeId);
+  localStorage.setItem("rz_diag_seen", JSON.stringify(rec));
+  return true;
+}
+
 async function loadReport(placeId, keyword, radius) {
   currentPlaceId = placeId;
   currentKeyword = keyword || "";
   currentRadius = radius || "";
+  if (!diagGate(placeId)) return;
   showOnly("loadingMode");
   try {
     let url = `/api/diagnostico?place_id=${encodeURIComponent(placeId)}`;
