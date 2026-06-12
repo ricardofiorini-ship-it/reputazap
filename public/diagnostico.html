@@ -226,7 +226,7 @@ fbq('track', 'PageView');
       <div id="repRanking"></div>
     </div>
 
-    <a class="btn btn-primary cta-final" id="repCta" href="/ativar?from=web">Quero subir no ranking — criar conta grátis</a>
+    <a class="btn btn-primary cta-final" id="repCta" href="/ativar?from=web" onclick="if(window.gtag)gtag('event','generate_lead',{method:'signup'})">Quero subir no ranking — criar conta grátis</a>
     <p class="cta-note">Grátis pra sempre no plano free. Ative uma placa e comece a coletar avaliações.</p>
     <button class="btn btn-ghost" type="button" onclick="window.location.href='/diagnostico'">Diagnosticar outro negócio</button>
   </section>
@@ -249,7 +249,7 @@ fbq('track', 'PageView');
 
 </main>
 
-<a class="wa-float" href="https://wa.me/5511976944026?text=Oi!%20Quero%20ajuda%20com%20o%20diagn%C3%B3stico%20do%20meu%20neg%C3%B3cio." target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+<a class="wa-float" href="https://wa.me/5511976944026?text=Oi!%20Quero%20ajuda%20com%20o%20diagn%C3%B3stico%20do%20meu%20neg%C3%B3cio." target="_blank" rel="noopener" aria-label="Falar no WhatsApp" onclick="if(window.gtag)gtag('event','generate_lead',{method:'whatsapp'})">
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.8 14.01c-.24.68-1.42 1.31-1.95 1.35-.5.05-.96.24-3.23-.67-2.73-1.08-4.45-3.88-4.58-4.06-.13-.18-1.1-1.47-1.1-2.8 0-1.33.7-1.98.95-2.25.24-.27.53-.34.71-.34.18 0 .36 0 .51.01.16.01.39-.06.6.46.24.59.81 2.04.88 2.19.07.15.12.32.02.5-.09.18-.14.29-.27.45-.14.16-.29.36-.41.48-.14.14-.28.29-.12.56.16.27.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.21 1.37.27.14.43.12.59-.07.16-.18.68-.79.86-1.07.18-.27.36-.22.6-.13.24.09 1.55.73 1.81.86.27.13.45.2.51.31.07.11.07.63-.17 1.31z"/></svg>
 </a>
 
@@ -300,6 +300,7 @@ async function doSearch() {
   const q = $("q").value.trim();
   const loc = $("cep").value.trim();
   if (q.length < 2) { $("q").focus(); return; }
+  if (window.gtag) gtag('event', 'diag_search');
   const btn = $("searchBtn");
   btn.disabled = true; btn.textContent = "Buscando…";
   $("results").innerHTML = "";
@@ -370,6 +371,7 @@ async function loadReport(placeId, keyword, radius) {
 
     renderReport(d);
     showOnly("reportMode");
+    if (window.gtag) gtag('event', 'diag_report');
   } catch {
     showEmpty("⚠️", "Erro ao gerar diagnóstico", "Tente novamente em instantes.");
   }
