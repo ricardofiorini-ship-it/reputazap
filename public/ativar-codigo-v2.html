@@ -191,7 +191,7 @@ fbq('track', 'PageView');
 
       <input type="text" id="nName" placeholder="Seu nome"/>
       <input type="email" id="nEmail" placeholder="Seu email"/>
-      <input type="tel" id="nPhone" placeholder="WhatsApp (11) 99999-9999" maxlength="15" oninput="maskPhone(this)"/>
+      <input type="tel" id="nPhone" placeholder="Celular (11) 99999-9999" maxlength="15" oninput="maskPhone(this)"/>
       <input type="password" id="nPass" placeholder="Senha (mín. 8 caracteres)" minlength="8" autocomplete="new-password"/>
       <input type="password" id="nPass2" placeholder="Confirme a senha" minlength="8" autocomplete="new-password"/>
       <!-- Honeypot anti-bot -->
@@ -644,7 +644,7 @@ function nValidateStep1(){
   if (!name || !email){ return { ok:false, error:"Preencha nome e email." }; }
   // Se veio via Google, pula validação de senha
   if (googleAuthed) return { ok:true };
-  if (!phone || !pass){ return { ok:false, error:"Preencha WhatsApp e senha." }; }
+  if (!phone || !pass){ return { ok:false, error:"Preencha celular e senha." }; }
   if (pass.length < 8){ return { ok:false, error:"Senha precisa de pelo menos 8 caracteres." }; }
   if (pass !== pass2){ return { ok:false, error:"As senhas não batem. Confira a confirmação." }; }
   return { ok:true };
@@ -672,7 +672,7 @@ async function submitNew(){
   if(!name||!email){ msg.className="msg error"; msg.textContent="Preencha nome e email."; return; }
   if(!googleAuthed){
     // Cadastro via email/senha — exige senha+confirmação+phone
-    if(!phone||!pass){ msg.className="msg error"; msg.textContent="Preencha WhatsApp e senha."; return; }
+    if(!phone||!pass){ msg.className="msg error"; msg.textContent="Preencha celular e senha."; return; }
     if(pass.length<8){ msg.className="msg error"; msg.textContent="Senha precisa de pelo menos 8 caracteres."; return; }
     if(pass !== pass2){ msg.className="msg error"; msg.textContent="As senhas não batem. Confira a confirmação."; return; }
   }
