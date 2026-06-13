@@ -235,6 +235,8 @@ fbq('track', 'PageView');
       <h1>Quase lá!</h1>
       <p class="sub">Seu dispositivo vai capturar avaliações automaticamente. Coloque num lugar visível pros seus clientes.</p>
 
+      <div class="code-badge" id="nStep3Badge" style="margin-top:0;">✓ Código sendo ativado: —</div>
+
       <label>Apelido do dispositivo <span style="color:#9aa0a6;font-weight:400;">(opcional)</span></label>
       <input type="text" id="nNickname" placeholder="Ex: Balcão Principal, Mesa 5, Garçom João…"/>
       <p style="font-size:11.5px;color:#5F6368;margin:-8px 0 12px;line-height:1.4;">
@@ -614,6 +616,8 @@ function nGoToStep(step){
       return;
     }
     document.getElementById("nMsg2").className = "msg";
+    // Repete o código sendo ativado no passo 3
+    document.getElementById("nStep3Badge").textContent = "✓ Código sendo ativado: " + (CODE || "STAR-DEMO");
   }
   // Esconde todos, mostra o atual
   ["nStep1","nStep2","nStep3"].forEach(id => {
