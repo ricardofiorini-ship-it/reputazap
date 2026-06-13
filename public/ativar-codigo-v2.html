@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '767972996338904');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=767972996338904&ev=PageView&noscript=1"/></noscript>
+<!-- End Meta Pixel Code -->
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18229338581"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-18229338581');
+  gtag('config', 'G-HCLV0Z640L');
+</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ativar dispositivo — StarTouch</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:#F8F9FA;color:#202124;min-height:100vh;padding:32px 18px 60px;}
+  .wrap{max-width:440px;margin:0 auto;}
+  .logo{display:flex;justify-content:center;margin-bottom:24px;}
+  .logo img{height:46px;width:auto;}
+  .card{background:#fff;border:1px solid #DADCE0;border-radius:18px;padding:28px 24px;box-shadow:0 1px 2px rgba(60,64,67,0.06),0 8px 24px -12px rgba(60,64,67,0.12);}
+  h1{font-size:22px;font-weight:800;letter-spacing:-0.02em;text-align:center;margin-bottom:6px;}
+  .sub{font-size:14px;color:#5F6368;text-align:center;line-height:1.55;margin-bottom:22px;}
+  .code-badge{display:flex;align-items:center;justify-content:center;gap:8px;background:#E6F4EA;border:1px solid #CEEAD6;color:#137333;font-weight:700;font-size:14px;border-radius:10px;padding:10px;margin-bottom:22px;font-family:monospace;}
+  label{display:block;font-size:13px;font-weight:600;color:#5F6368;margin-bottom:6px;}
+  input,select{width:100%;border:1.5px solid #DADCE0;border-radius:10px;padding:12px 14px;font-size:14px;font-family:inherit;color:#202124;outline:none;transition:border-color .15s;background:#fff;margin-bottom:14px;}
+  input:focus,select:focus{border-color:#1A73E8;}
+  .btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,border-color .15s;}
+  .btn-primary{background:#1A73E8;color:#fff;}
+  .btn-primary:hover:not(:disabled){background:#174EA6;}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-outline{background:#fff;color:#1A73E8;border:1.5px solid #DADCE0;margin-top:12px;}
+  .btn-outline:hover{background:#E8F0FE;border-color:#1A73E8;}
+  .linklike{display:block;width:100%;text-align:center;background:none;border:none;color:#5F6368;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:10px;margin-top:14px;}
+  .linklike:hover{color:#1A73E8;}
+  .linklike b{color:#1A73E8;}
+  .msg{font-size:13px;margin-top:6px;margin-bottom:12px;padding:10px 12px;border-radius:8px;display:none;}
+  .msg.error{display:block;background:#FCE8E6;color:#C5221F;}
+  .msg.success{display:block;background:#E6F4EA;color:#137333;}
+  .hidden{display:none;}
+  .result-item{border:1.5px solid #DADCE0;border-radius:10px;padding:12px 14px;cursor:pointer;margin-bottom:8px;transition:border-color .15s,background .15s;}
+  .result-item:hover{border-color:#1A73E8;background:#E8F0FE;}
+  .result-name{font-size:14px;font-weight:600;}
+  .result-addr{font-size:12px;color:#5F6368;margin-top:2px;}
+  .biz-confirm{background:#E8F0FE;border:1px solid #D2E3FC;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .biz-confirm .nm{font-size:14px;font-weight:600;}
+  .biz-confirm button{background:none;border:none;color:#1A73E8;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit;}
+  .back{background:none;border:none;color:#5F6368;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:14px;display:inline-flex;gap:6px;}
+  .back:hover{color:#202124;}
+  .icon-circle{width:64px;height:64px;border-radius:50%;background:#E8F0FE;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:30px;}
+  .foot{text-align:center;font-size:12px;color:#9AA0A6;margin-top:18px;}
+  /* Boas-vindas (tela 1 — "Recebi") */
+  .welcome-hero{text-align:center;margin-bottom:18px;}
+  .welcome-hero .icon-circle{width:72px;height:72px;font-size:36px;margin-bottom:14px;}
+  .welcome-steps{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:18px 0 6px;font-size:11.5px;color:#9AA0A6;font-weight:600;}
+  .welcome-steps span{white-space:nowrap;}
+  .welcome-steps i{color:#DADCE0;font-style:normal;}
+  /* Ajuda recolhível ("caiu aqui mas já funciona?") */
+  details.help{margin-top:16px;border-top:1px solid #F1F3F4;padding-top:12px;}
+  details.help summary{font-size:12px;color:#9AA0A6;cursor:pointer;text-align:center;list-style:none;font-weight:600;}
+  details.help summary::-webkit-details-marker{display:none;}
+  details.help summary:hover{color:#5F6368;}
+  details.help p{font-size:11.5px;color:#9AA0A6;line-height:1.55;margin-top:10px;text-align:center;}
+  /* Stepper 3 passos */
+  .stepper{display:flex;align-items:center;gap:0;margin:0 -4px 18px;padding:0 4px;}
+  .step-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;}
+  .step-dot{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #DADCE0;color:#9AA0A6;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .15s;z-index:1;}
+  .step-dot.active{background:#1A73E8;border-color:#1A73E8;color:#fff;box-shadow:0 0 0 4px rgba(26,115,232,.12);}
+  .step-dot.done{background:#137333;border-color:#137333;color:#fff;}
+  .step-label{font-size:10.5px;font-weight:600;color:#9AA0A6;text-align:center;letter-spacing:.04em;text-transform:uppercase;}
+  .step-item.active .step-label{color:#1A73E8;}
+  .step-item.done .step-label{color:#137333;}
+  .step-line{position:absolute;top:15px;left:50%;right:-50%;height:2px;background:#DADCE0;z-index:0;}
+  .step-item.done .step-line{background:#137333;}
+  .step-item:last-child .step-line{display:none;}
+  /* Cards de produto na fase 3 (mini propaganda) */
+  .product-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 14px;}
+  .product-tile{background:#F8F9FA;border:1px solid #E8EAED;border-radius:10px;padding:12px 6px;text-align:center;}
+  .product-tile img{height:54px;width:auto;object-fit:contain;display:block;margin:0 auto 4px;}
+  .product-tile-label{font-size:10.5px;color:#5F6368;font-weight:600;}
+  /* Divisor "ou com email" */
+  .or-div{display:flex;align-items:center;gap:10px;margin:6px 0 14px;font-size:11.5px;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+  .or-div div{flex:1;height:1px;background:#DADCE0;}
+  /* Ações de navegação entre passos */
+  .step-actions{display:flex;gap:10px;margin-top:6px;}
+  .step-actions .btn{flex:1;margin-top:0;padding:14px;font-size:14px;min-width:0;white-space:nowrap;}
+  .step-actions .btn-back{background:#fff;color:#5F6368;border:1.5px solid #DADCE0;flex:0 0 110px;}
+  .step-actions .btn-back:hover{background:#F8F9FA;}
+  /* Banner de prévia (modo demo) */
+  .demo-banner{position:sticky;top:0;z-index:900;background:#FEF7E0;border:1px solid #FDE293;color:#7B5800;font-size:12px;font-weight:600;text-align:center;padding:8px 12px;border-radius:10px;max-width:440px;margin:0 auto 16px;line-height:1.4;}
+  @media (max-width: 360px) {
+    .step-actions .btn-back{flex:0 0 90px;font-size:13px;}
+    .step-actions .btn{font-size:13px;}
+  }
+</style>
+</head>
+<body>
+<div id="demoBanner" class="demo-banner hidden">👀 Prévia do novo fluxo — nada é salvo. Adicione <b>?demo=1</b> pra revisar; remova pra usar de verdade.</div>
+<div class="wrap">
+  <div class="logo"><a href="/landing"><img src="/startouch-logo-dark.png" alt="StarTouch"/></a></div>
+
+  <!-- LOADING (enquanto checa se a placa já está ativa) -->
+  <div class="card hidden" id="screenLoading">
+    <div class="icon-circle">⏳</div>
+    <p class="sub" style="margin:0;">Um instante…</p>
+  </div>
+
+  <!-- ERRO -->
+  <div class="card hidden" id="screenError">
+    <div class="icon-circle">⚠️</div>
+    <h1 id="errTitle">Código inválido</h1>
+    <p class="sub" id="errMsg">Esse código não foi encontrado ou está desabilitado. Confira o dispositivo ou peça um novo.</p>
+    <a class="btn btn-primary" href="/landing">Voltar pro início</a>
+  </div>
+
+  <!-- INSTÁVEL (falha de conexão, NÃO código inválido) -->
+  <div class="card hidden" id="screenInstavel">
+    <div class="icon-circle">🔄</div>
+    <h1>Tente de novo num instante</h1>
+    <p class="sub">Tivemos uma instabilidade momentânea de conexão — não é problema no seu dispositivo. Toque de novo na placa ou clique abaixo.</p>
+    <button class="btn btn-primary" id="instavelRetry">Tentar de novo</button>
+    <p style="font-size:11.5px;color:#9AA0A6;text-align:center;margin:14px 0 0;line-height:1.5;">Se continuar, fale com a gente no WhatsApp ali no canto. 👇</p>
+  </div>
+
+  <!-- ─── TELA 1: BOAS-VINDAS ("Recebi") ─── -->
+  <div class="card hidden" id="screenWelcome">
+    <div class="welcome-hero">
+      <div class="icon-circle">🎉</div>
+      <h1>Seu StarTouch chegou!</h1>
+      <p class="sub" style="margin-bottom:0;">Vamos deixar ele pronto pra captar avaliações. Leva 1 minuto.</p>
+    </div>
+    <div class="code-badge" id="welcomeBadge">✓ Código reconhecido: —</div>
+    <button class="btn btn-primary" onclick="startNew()">Começar →</button>
+    <div class="welcome-steps">
+      <span>Sua conta</span><i>›</i><span>Sua empresa</span><i>›</i><span>Pronto</span>
+    </div>
+    <button class="linklike" onclick="goToExisting()">Já tenho conta StarTouch · <b>Entrar</b></button>
+
+    <details class="help">
+      <summary>Caiu aqui mas seu dispositivo já funciona?</summary>
+      <p>É só o navegador lembrando da página antiga. Abra a placa em uma <strong>aba anônima</strong> (ou limpe o cache) que ela vai direto pra avaliação.</p>
+    </details>
+  </div>
+
+  <!-- CLIENTE NOVO: cadastro em 3 passos -->
+  <div class="card hidden" id="screenNew">
+    <button class="back" onclick="show('screenWelcome')">← Voltar</button>
+
+    <!-- Stepper visual -->
+    <div class="stepper" id="nStepper">
+      <div class="step-item active" data-step="1">
+        <div class="step-dot">1</div>
+        <div class="step-label">Conta</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-item" data-step="2">
+        <div class="step-dot">2</div>
+        <div class="step-label">Empresa</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-item" data-step="3">
+        <div class="step-dot">3</div>
+        <div class="step-label">Ativar</div>
+      </div>
+    </div>
+
+    <!-- ─── PASSO 1: identificação + senha ─── -->
+    <div id="nStep1">
+      <h1>Quem é você?</h1>
+      <p class="sub">Crie sua conta StarTouch — é onde seus relatórios vão ficar.</p>
+
+      <!-- Atalho Google (cobre cadastro novo num toque) -->
+      <div id="nGoogleBlock">
+        <div id="googleBtnNew" style="display:flex;justify-content:center;margin-bottom:6px;min-height:44px;"></div>
+        <p style="font-size:11.5px;color:#9AA0A6;text-align:center;margin:0 0 12px;line-height:1.45;">Sua conta StarTouch é separada da conta do Google Meu Negócio.</p>
+        <div class="or-div"><div></div>OU COM EMAIL<div></div></div>
+      </div>
+
+      <input type="text" id="nName" placeholder="Seu nome"/>
+      <input type="email" id="nEmail" placeholder="Seu email"/>
+      <input type="tel" id="nPhone" placeholder="WhatsApp (11) 99999-9999" maxlength="15" oninput="maskPhone(this)"/>
+      <input type="password" id="nPass" placeholder="Senha (mín. 8 caracteres)" minlength="8" autocomplete="new-password"/>
+      <input type="password" id="nPass2" placeholder="Confirme a senha" minlength="8" autocomplete="new-password"/>
+      <!-- Honeypot anti-bot -->
+      <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+        <label>Não preencher (campo de segurança)</label>
+        <input type="text" id="nWebsite" name="website" tabindex="-1" autocomplete="off"/>
+      </div>
+      <div class="msg" id="nMsg1"></div>
+      <button class="btn btn-primary" style="margin-top:8px" onclick="nGoToStep(2)">Continuar →</button>
+    </div>
+
+    <!-- ─── PASSO 2: busca de negócio ─── -->
+    <div id="nStep2" class="hidden">
+      <h1>Qual sua empresa?</h1>
+      <p class="sub">A gente busca no Google pra vincular seu dispositivo ao perfil certo.</p>
+      <div id="nBizConfirm" class="hidden"></div>
+      <div id="nBizSearchWrap">
+        <input type="text" id="nBizSearch" placeholder="Nome do negócio"/>
+        <input type="text" id="nBizCep" placeholder="CEP do negócio (00000-000)" inputmode="numeric" maxlength="9" oninput="maskCep(this); lookupCep()" autocomplete="postal-code"/>
+        <p id="nCepFeedback" style="margin:-6px 0 8px;font-size:12px;color:#5F6368;line-height:1.4;"></p>
+        <input type="text" id="nBizActivity" placeholder="Ramo (ex: cafeteria, pizzaria, salão)"/>
+        <button class="btn btn-outline" style="margin-top:0" onclick="searchBiz('n')">Buscar no Google</button>
+        <div id="nResults" style="margin-top:10px;"></div>
+      </div>
+      <div class="msg" id="nMsg2"></div>
+      <div class="step-actions">
+        <button class="btn btn-back" onclick="nGoToStep(1)">← Voltar</button>
+        <button class="btn btn-primary" id="nStep2Continue" onclick="nGoToStep(3)" disabled style="opacity:.5;cursor:not-allowed;">Continuar →</button>
+      </div>
+    </div>
+
+    <!-- ─── PASSO 3: propaganda + código + apelido ─── -->
+    <div id="nStep3" class="hidden">
+      <h1>Quase lá!</h1>
+      <p class="sub">Seu dispositivo vai capturar avaliações automaticamente. Coloque num lugar visível pros seus clientes.</p>
+
+      <!-- Mini propaganda dos produtos -->
+      <div class="product-strip">
+        <div class="product-tile">
+          <img src="/gadget-placa.png" alt="Placa de balcão"/>
+          <div class="product-tile-label">Placa de balcão</div>
+        </div>
+        <div class="product-tile">
+          <img src="/gadget-cartao.png" alt="Cartão NFC"/>
+          <div class="product-tile-label">Cartão NFC</div>
+        </div>
+        <div class="product-tile">
+          <img src="/gadget-pulseira.png" alt="Pulseira NFC"/>
+          <div class="product-tile-label">Pulseira NFC</div>
+        </div>
+      </div>
+
+      <!-- Código sendo ativado -->
+      <div class="code-badge" id="nStep3Badge" style="margin-top:0;">✓ Código sendo ativado: —</div>
+
+      <label style="margin-top:6px;">Apelido do dispositivo <span style="color:#9aa0a6;font-weight:400;">(opcional)</span></label>
+      <input type="text" id="nNickname" placeholder="Ex: Balcão Principal, Mesa 5, Garçom João…"/>
+      <p style="font-size:11.5px;color:#5F6368;margin:-8px 0 12px;line-height:1.4;">
+        Vai aparecer nos seus relatórios pra você saber qual ponto traz mais avaliações.
+      </p>
+
+      <div class="msg" id="nMsg"></div>
+      <div class="step-actions">
+        <button class="btn btn-back" onclick="nGoToStep(2)">← Voltar</button>
+        <button class="btn btn-primary" id="nSubmit" onclick="submitNew()">✓ Ativar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JÁ TENHO CONTA: login -->
+  <div class="card hidden" id="screenLogin">
+    <button class="back" onclick="show('screenWelcome')">← Voltar</button>
+    <h1>Entrar</h1>
+    <p class="sub">Entre pra ativar o dispositivo na sua conta.</p>
+    <div id="googleBtnLogin" style="display:flex;justify-content:center;margin-bottom:6px;min-height:44px;"></div>
+    <p style="font-size:11.5px;color:#9AA0A6;text-align:center;margin:0 0 10px;line-height:1.45;">Sua conta StarTouch é separada da sua conta do Google Meu Negócio.</p>
+    <div class="or-div"><div></div>OU COM EMAIL<div></div></div>
+    <input type="email" id="lEmail" placeholder="Seu email"/>
+    <input type="password" id="lPass" placeholder="Sua senha"/>
+    <div class="msg" id="lMsg"></div>
+    <button class="btn btn-primary" id="lSubmit" onclick="submitLogin()">Entrar</button>
+  </div>
+
+  <!-- VINCULAR: escolher negócio + apelido (cliente logado) -->
+  <div class="card hidden" id="screenLink">
+    <h1>Vincular dispositivo</h1>
+    <p class="sub">Escolha o negócio e dê um apelido pra esse dispositivo.</p>
+    <div class="code-badge" id="linkBadge">✓ Código: —</div>
+    <div id="linkBizArea"></div>
+    <input type="text" id="linkNickname" placeholder="Apelido (ex: Balcão Principal)"/>
+    <div class="msg" id="linkMsg"></div>
+    <button class="btn btn-primary" id="linkSubmit" onclick="submitLink()">Ativar</button>
+  </div>
+
+  <!-- SUCESSO ("Pronto") -->
+  <div class="card hidden" id="screenDone">
+    <div class="icon-circle" style="background:#E6F4EA;">✅</div>
+    <h1>Tudo pronto! 🎉</h1>
+    <p class="sub">Seu dispositivo está ativo e já pode capturar avaliações. Agora é só posicionar num lugar visível pros seus clientes.</p>
+    <a class="btn btn-primary" href="/app#pontos-de-captacao">Ver meus dispositivos</a>
+  </div>
+
+  <div class="foot">StarTouch · Reputação no piloto automático</div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const CODE = (params.get("code") || "").trim().toUpperCase();
+const ERROR = params.get("error");
+const DEMO = params.get("demo") === "1";   // modo prévia: não chama backend, não salva nada
+let token = localStorage.getItem("rz_token");
+let selectedBiz = null;       // {place_id, name, address, rating, total} pro cadastro novo
+let myBusinesses = [];        // negócios do usuário logado
+let googleAuthed = false;     // true se chegou aqui via login Google (pula senha)
+
+// ── Google Sign-In (atalho que cobre cadastro novo + login) ──
+const GOOGLE_CLIENT_ID = "215106300952-pb5ucf4l8jd8ls9q6ff059b41mo26gkt.apps.googleusercontent.com";
+let gsiScriptLoaded = false;
+function loadGsiScript(){
+  return new Promise((resolve)=>{
+    if(gsiScriptLoaded||window.google?.accounts?.id){gsiScriptLoaded=true;return resolve();}
+    const s=document.createElement("script");
+    s.src="https://accounts.google.com/gsi/client";
+    s.async=true; s.defer=true;
+    s.onload=()=>{gsiScriptLoaded=true;resolve();};
+    document.head.appendChild(s);
+  });
+}
+async function renderGoogleButton(containerId){
+  if(DEMO){ // na prévia o Google não funciona (origin não autorizado) — esconde o bloco
+    const block = document.getElementById("nGoogleBlock");
+    if(containerId==="googleBtnNew" && block) block.style.display="none";
+    const c = document.getElementById(containerId);
+    if(c) c.style.display="none";
+    return;
+  }
+  await loadGsiScript();
+  if(!window.google?.accounts?.id) return;
+  const container=document.getElementById(containerId);
+  if(!container) return;
+  window.google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleGoogleCredential,
+    auto_select: false
+  });
+  container.innerHTML="";
+  window.google.accounts.id.renderButton(container, {
+    theme:"outline", size:"large", text:"continue_with",
+    shape:"rectangular", logo_alignment:"left", width: Math.min(320, container.clientWidth || 320),
+    locale:"pt-BR"
+  });
+}
+async function handleGoogleCredential(response){
+  const idToken=response?.credential;
+  if(!idToken){alert("Falha no login Google.");return;}
+  try{
+    const r=await fetch("/api/login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      // allow_signup: aqui (ativacao) o Google PODE criar a conta — o negocio
+      // e vinculado logo depois. A trava de "so login" vale so no /app.
+      body:JSON.stringify({action:"google",id_token:idToken,allow_signup:true})
+    });
+    const d=await r.json();
+    // Fallback: se por algum motivo voltar no_account, manda pro cadastro manual.
+    if(r.status===404 && d.error==="no_account"){
+      alert(d.message || "Você ainda não tem conta StarTouch. Vamos criar a sua agora — leva 1 minuto.");
+      show("screenNew");
+      return;
+    }
+    if(!r.ok||!d.token){alert(d.error||"Erro no login Google.");return;}
+    token=d.token;
+    localStorage.setItem("rz_token",token);
+    if(d.user) localStorage.setItem("rz_user",JSON.stringify(d.user));
+    googleAuthed = true;
+
+    // Se já tem negócio cadastrado, pula direto pra vincular
+    if(d.business){
+      myBusinesses=[d.business];
+      renderLinkArea();
+      show("screenLink");
+      return;
+    }
+    // Sem negócio — vai pro form de cadastro com nome/email pre-preenchidos
+    document.getElementById("nName").value = d.user?.name || "";
+    document.getElementById("nEmail").value = d.user?.email || "";
+    document.getElementById("nName").readOnly = true;
+    document.getElementById("nEmail").readOnly = true;
+    document.getElementById("nName").style.background = "#F1F3F4";
+    document.getElementById("nEmail").style.background = "#F1F3F4";
+    // Esconde senha + WhatsApp + confirmação (autenticado via Google)
+    ["nPhone","nPass","nPass2"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = "none";
+    });
+    document.getElementById("nSubmit").textContent = "✓ Ativar";
+    show("screenNew");
+    // Pula direto pro passo 2 (busca de negócio) — já temos identidade
+    nGoToStep(2);
+  }catch{
+    alert("Erro de conexão.");
+  }
+}
+
+function show(id){
+  ["screenLoading","screenError","screenInstavel","screenWelcome","screenNew","screenLogin","screenLink","screenDone"]
+    .forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id));
+  window.scrollTo(0,0);
+  // Renderiza botão Google nas telas que oferecem (assincrono — GSI carrega lazy)
+  if(id==="screenNew")   renderGoogleButton("googleBtnNew");
+  if(id==="screenLogin") renderGoogleButton("googleBtnLogin");
+}
+
+// "Começar" na tela de boas-vindas → cadastro do passo 1
+function startNew(){
+  show("screenNew");
+  nGoToStep(1);
+}
+
+function maskCep(el){
+  let d=el.value.replace(/\D/g,"").slice(0,8);
+  if(d.length>5) d=d.slice(0,5)+"-"+d.slice(5);
+  el.value=d;
+}
+
+// ── ViaCEP: lookup automático ao terminar de digitar (mesmo padrão do /ativar) ──
+let cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
+async function lookupCep(){
+  const raw = document.getElementById("nBizCep").value.replace(/\D/g, "");
+  const fb = document.getElementById("nCepFeedback");
+  if(raw.length < 8){
+    fb.textContent = "";
+    fb.style.color = "#5F6368";
+    cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
+    return;
+  }
+  if(raw === cepCache.cep) return;
+  fb.textContent = "Buscando CEP…";
+  fb.style.color = "#5F6368";
+  try{
+    const r = await fetch(`https://viacep.com.br/ws/${raw}/json/`);
+    const d = await r.json();
+    if(d.erro){
+      fb.textContent = "⚠️ CEP não encontrado — confira os números";
+      fb.style.color = "#C5221F";
+      cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
+      return;
+    }
+    cepCache = { cep: raw, city: d.localidade || "", uf: d.uf || "", neighborhood: d.bairro || "" };
+    fb.innerHTML = `<span style="color:#137333;font-weight:600;">📍 ${d.localidade}/${d.uf}${d.bairro ? " · " + d.bairro : ""}</span>`;
+  } catch {
+    fb.textContent = "Não conseguimos consultar o CEP. Você pode buscar mesmo assim.";
+    fb.style.color = "#5F6368";
+  }
+}
+
+function maskPhone(el){
+  let d=el.value.replace(/\D/g,"").slice(0,11);
+  if(d.length===0){el.value="";return;}
+  if(d.length<=2){el.value="("+d;return;}
+  if(d.length<=6){el.value="("+d.slice(0,2)+") "+d.slice(2);return;}
+  if(d.length<=10){el.value="("+d.slice(0,2)+") "+d.slice(2,6)+"-"+d.slice(6);return;}
+  el.value="("+d.slice(0,2)+") "+d.slice(2,7)+"-"+d.slice(7);
+}
+
+// Estado inicial
+if (DEMO) {
+  // Modo prévia: mostra o banner, finge um código e abre direto nas boas-vindas.
+  document.getElementById("demoBanner").classList.remove("hidden");
+  const fakeCode = CODE || "STAR-DEMO";
+  document.getElementById("welcomeBadge").textContent = "✓ Código reconhecido: " + fakeCode;
+  document.getElementById("linkBadge").textContent = "✓ Código: " + fakeCode;
+  show("screenWelcome");
+} else if (ERROR === "instavel") {
+  // Falha transitória de conexão no /r/CODE — re-tocar a placa costuma resolver.
+  const retry = document.getElementById("instavelRetry");
+  if (retry) retry.onclick = () => {
+    location.href = CODE ? ("/r/" + encodeURIComponent(CODE)) : "/landing";
+  };
+  show("screenInstavel");
+} else if (ERROR === "invalida") {
+  document.getElementById("errTitle").textContent="Código inválido";
+  document.getElementById("errMsg").textContent="Esse código não foi encontrado. Confira o dispositivo ou peça um novo ao estabelecimento.";
+  show("screenError");
+} else if (ERROR === "desabilitada") {
+  document.getElementById("errTitle").textContent="Dispositivo desabilitado";
+  document.getElementById("errMsg").textContent="Esse dispositivo foi desabilitado e não está mais ativo.";
+  show("screenError");
+} else if (!CODE) {
+  document.getElementById("errMsg").textContent="Faltou o código do dispositivo. Toque novamente ou digite o código manualmente.";
+  show("screenError");
+} else {
+  document.getElementById("welcomeBadge").textContent = "✓ Código reconhecido: " + CODE;
+  document.getElementById("linkBadge").textContent = "✓ Código: " + CODE;
+  // Antes de mostrar a ativação, confere se a placa JÁ está ativa.
+  // Resgata os dispositivos cujo NFC foi gravado com a URL errada
+  // (/ativar-codigo?code= em vez de /r/): um chip de placa ativa cairia aqui
+  // e deve ir pro Google avaliar, não pra reativação.
+  routeByStatus();
+}
+
+async function routeByStatus(){
+  show("screenLoading");
+  try{
+    const r = await fetch(`/api/r/${encodeURIComponent(CODE)}?check=1`);
+    const d = await r.json();
+    if(d && d.reviewReady){
+      // Placa ativa e pronta → manda pro porteiro, que conta o toque e
+      // redireciona pro Google. replace() pra não deixar essa URL no histórico.
+      location.replace(`/r/${encodeURIComponent(CODE)}`);
+      return;
+    }
+    if(d && d.status === "disabled"){
+      document.getElementById("errTitle").textContent = "Dispositivo desabilitado";
+      document.getElementById("errMsg").textContent = "Esse dispositivo foi desabilitado e não está mais ativo.";
+      show("screenError");
+      return;
+    }
+  }catch{ /* falha transitória na checagem → segue pra ativação normal */ }
+  // Placa nova / não-ativa (ou checagem falhou) → fluxo de ativação normal.
+  show("screenWelcome");
+}
+
+// ── Busca de negócio (Google Places) ──
+async function searchBiz(prefix){
+  const box = document.getElementById(prefix+"Results");
+
+  // Modo prévia: devolve resultados fictícios pra você ver a tela de escolha.
+  if(DEMO){
+    const demoResults = [
+      {name:"Cafeteria do Centro", rating:4.6, total:128, distance_meters:240, address:"Rua das Flores, 100 — Centro", place_id:"demo1"},
+      {name:"Cafeteria do Centro (Filial)", rating:4.3, total:54, distance_meters:1800, address:"Av. Brasil, 900 — Jardim", place_id:"demo2"}
+    ];
+    box.innerHTML = demoResults.map((r,i)=>`
+      <div class="result-item" onclick='pickBiz(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
+        <div class="result-name">${r.name}${i===0 ? ' <span style="font-size:10px;font-weight:700;background:#E6F4EA;color:#137333;padding:2px 6px;border-radius:4px;margin-left:6px;letter-spacing:.04em;">MAIS PRÓXIMA</span>' : ''}</div>
+        <div class="result-addr">⭐ ${r.rating} · ${r.total} avaliações · 📍 ${(r.distance_meters/1000).toFixed(1)} km do CEP · ${r.address}</div>
+      </div>`).join("");
+    return;
+  }
+
+  const q = document.getElementById(prefix+"BizSearch").value.trim();
+  const cep = document.getElementById(prefix+"BizCep").value.replace(/\D/g, "");
+  const activity = document.getElementById(prefix+"BizActivity").value.trim();
+
+  if(!q){ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Digite o nome do negócio.</p>'; return; }
+  if(cep.length<8){ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Informe o CEP (8 dígitos).</p>'; return; }
+  if(!activity){ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Diga o ramo de atuação.</p>'; return; }
+
+  // Garante lookup do CEP (se user submeteu antes do ViaCEP responder)
+  if(cepCache.cep !== cep){ await lookupCep(); }
+  const city = cepCache.city;
+  const uf = cepCache.uf;
+
+  box.innerHTML = '<p style="font-size:13px;color:#5F6368;">Buscando no Google Maps…</p>';
+  try{
+    const searchQ = [q, cep, city, uf].filter(Boolean).join(" ");
+    const res = await fetch(`/api/searchbiz?q=${encodeURIComponent(searchQ)}&cep=${encodeURIComponent(cep)}`);
+    const data = await res.json();
+    if(!data.results?.length){
+      box.innerHTML = '<p style="font-size:13px;color:#5F6368;">Não encontramos sua empresa no Google. Confira o nome ou peça pro Google Meu Negócio cadastrar.</p>';
+      return;
+    }
+    const fmtDistance = (m) => {
+      if (m == null) return "";
+      if (m < 1000) return `${m} m`;
+      return `${(m/1000).toFixed(1)} km`;
+    };
+    const cards = data.results.map((r,i)=>`
+      <div class="result-item" onclick='pickBiz(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
+        <div class="result-name">${r.name}${i===0 && r.distance_meters!=null ? ' <span style="font-size:10px;font-weight:700;background:#E6F4EA;color:#137333;padding:2px 6px;border-radius:4px;margin-left:6px;letter-spacing:.04em;">MAIS PRÓXIMA</span>' : ''}</div>
+        <div class="result-addr">⭐ ${r.rating||"?"} · ${r.total||0} avaliações${r.distance_meters!=null ? ' · 📍 '+fmtDistance(r.distance_meters)+' do CEP' : ''} · ${r.address}</div>
+      </div>`).join("");
+    const disclaimer = `
+      <div style="margin-top:10px;padding:9px 11px;background:#FEFCE8;border:1px solid #FEF08A;border-radius:8px;font-size:11.5px;color:#854D0E;line-height:1.45;">
+        <span style="font-weight:700;">⚠️ Nome ou endereço diferente do real?</span>
+        Os dados vêm do <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#854D0E;font-weight:600;text-decoration:underline;">Google Meu Negócio</a> do dono. Se estiver desatualizado, escolha mesmo assim e atualize depois — a correção propaga aqui em 1-2 dias.
+      </div>`;
+    box.innerHTML = cards + disclaimer;
+  }catch{ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Erro na busca.</p>'; }
+}
+function pickBiz(biz){
+  selectedBiz = biz;
+  document.getElementById("nBizSearchWrap").classList.add("hidden");
+  const c = document.getElementById("nBizConfirm");
+  c.classList.remove("hidden");
+  c.className = "biz-confirm";
+  c.innerHTML = `<span class="nm">${biz.name}</span><button onclick="resetBiz()">Trocar</button>`;
+  // Habilita botão Continuar do passo 2
+  const cont = document.getElementById("nStep2Continue");
+  if (cont){ cont.disabled = false; cont.style.opacity = "1"; cont.style.cursor = "pointer"; }
+}
+function resetBiz(){
+  selectedBiz=null;
+  document.getElementById("nBizConfirm").classList.add("hidden");
+  document.getElementById("nBizSearchWrap").classList.remove("hidden");
+  document.getElementById("nResults").innerHTML="";
+  // Desabilita botão Continuar do passo 2
+  const cont = document.getElementById("nStep2Continue");
+  if (cont){ cont.disabled = true; cont.style.opacity = ".5"; cont.style.cursor = "not-allowed"; }
+}
+
+// Navegação entre os 3 sub-passos do cadastro novo
+function nGoToStep(step){
+  // Validação ao avançar
+  if (step === 2){
+    const v = nValidateStep1();
+    if (!v.ok){
+      const msg = document.getElementById("nMsg1");
+      msg.className = "msg error"; msg.textContent = v.error;
+      return;
+    }
+    document.getElementById("nMsg1").className = "msg";
+  } else if (step === 3){
+    if (!selectedBiz){
+      const msg = document.getElementById("nMsg2");
+      msg.className = "msg error"; msg.textContent = "Busque e selecione seu negócio antes de continuar.";
+      return;
+    }
+    document.getElementById("nMsg2").className = "msg";
+    // Atualiza badge do código na fase 3
+    document.getElementById("nStep3Badge").textContent = "✓ Código sendo ativado: " + (CODE || "STAR-DEMO");
+  }
+  // Esconde todos, mostra o atual
+  ["nStep1","nStep2","nStep3"].forEach(id => {
+    document.getElementById(id).classList.toggle("hidden", id !== "nStep"+step);
+  });
+  // Atualiza visual do stepper
+  document.querySelectorAll("#nStepper .step-item").forEach(el => {
+    const n = parseInt(el.getAttribute("data-step"), 10);
+    el.classList.toggle("active", n === step);
+    el.classList.toggle("done", n < step);
+    const dot = el.querySelector(".step-dot");
+    if (n < step){ dot.textContent = "✓"; }
+    else { dot.textContent = String(n); }
+  });
+  window.scrollTo(0, 0);
+}
+
+// Valida passo 1 (dados pessoais + senha)
+function nValidateStep1(){
+  if (DEMO) return { ok:true }; // na prévia, avança sem exigir preenchimento
+  const name = document.getElementById("nName").value.trim();
+  const email = document.getElementById("nEmail").value.trim();
+  const phone = document.getElementById("nPhone").value.trim();
+  const pass = document.getElementById("nPass").value;
+  const pass2 = document.getElementById("nPass2").value;
+  const honeypot = document.getElementById("nWebsite").value;
+  if (honeypot) return { ok:false, error:"Tente de novo em alguns segundos." };
+  if (!name || !email){ return { ok:false, error:"Preencha nome e email." }; }
+  // Se veio via Google, pula validação de senha
+  if (googleAuthed) return { ok:true };
+  if (!phone || !pass){ return { ok:false, error:"Preencha WhatsApp e senha." }; }
+  if (pass.length < 8){ return { ok:false, error:"Senha precisa de pelo menos 8 caracteres." }; }
+  if (pass !== pass2){ return { ok:false, error:"As senhas não batem. Confira a confirmação." }; }
+  return { ok:true };
+}
+
+// ── CLIENTE NOVO: cadastro + savebiz + activate ──
+// Se chegou via Google (googleAuthed=true), pula o register — só precisa do negócio.
+async function submitNew(){
+  const msg=document.getElementById("nMsg");
+  msg.className="msg";
+
+  // Modo prévia: pula o backend e mostra direto a tela de sucesso.
+  if(DEMO){ show("screenDone"); return; }
+
+  const name=document.getElementById("nName").value.trim();
+  const email=document.getElementById("nEmail").value.trim();
+  const phone=document.getElementById("nPhone").value.trim();
+  const pass=document.getElementById("nPass").value;
+  const pass2=document.getElementById("nPass2")?.value || "";
+  const honeypot=document.getElementById("nWebsite")?.value || "";
+
+  // Honeypot: bot preencheu campo invisível → bloqueia silenciosamente
+  if(honeypot){ msg.className="msg error"; msg.textContent="Tente de novo em alguns segundos."; return; }
+
+  if(!name||!email){ msg.className="msg error"; msg.textContent="Preencha nome e email."; return; }
+  if(!googleAuthed){
+    // Cadastro via email/senha — exige senha+confirmação+phone
+    if(!phone||!pass){ msg.className="msg error"; msg.textContent="Preencha WhatsApp e senha."; return; }
+    if(pass.length<8){ msg.className="msg error"; msg.textContent="Senha precisa de pelo menos 8 caracteres."; return; }
+    if(pass !== pass2){ msg.className="msg error"; msg.textContent="As senhas não batem. Confira a confirmação."; return; }
+  }
+  if(!selectedBiz){ msg.className="msg error"; msg.textContent="Busque e selecione seu negócio."; return; }
+
+  const btn=document.getElementById("nSubmit");
+  btn.disabled=true;
+  btn.textContent = googleAuthed ? "Salvando negócio…" : "Criando conta…";
+
+  try{
+    // Se NÃO autenticado via Google, faz register tradicional primeiro
+    if(!googleAuthed){
+      const rReg = await fetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,email,phone,password:pass})});
+      const dReg = await rReg.json();
+      if(!rReg.ok){ msg.className="msg error"; msg.textContent=dReg.error||"Erro ao criar conta."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
+      token = dReg.token;
+      if(!token){
+        const rLog=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})});
+        const dLog=await rLog.json(); token=dLog.token;
+      }
+      localStorage.setItem("rz_token",token);
+      if(dReg.user) localStorage.setItem("rz_user",JSON.stringify(dReg.user));
+    }
+    // Se autenticado via Google, token já foi setado em handleGoogleCredential
+
+    // 2. salva negócio
+    btn.textContent="Salvando negócio…";
+    const rBiz = await fetch("/api/savebiz",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({place_id:selectedBiz.place_id,name:selectedBiz.name,address:selectedBiz.address,rating:selectedBiz.rating,total:selectedBiz.total,plan:"free"})});
+    const dBiz = await rBiz.json();
+    if(!rBiz.ok||!dBiz.business){ msg.className="msg error"; msg.textContent=dBiz.error||"Erro ao salvar negócio."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
+
+    // 3. ativa placa
+    btn.textContent="Ativando…";
+    const nickname = document.getElementById("nNickname").value.trim() || null;
+    const rAct = await fetch("/api/plates?action=activate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({code:CODE,business_id:dBiz.business.id,channel_name:nickname})});
+    const dAct = await rAct.json();
+    if(!rAct.ok){ msg.className="msg error"; msg.textContent=dAct.error||"Erro ao ativar o dispositivo."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
+
+    show("screenDone");
+  }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="✓ Ativar"; }
+}
+
+// ── JÁ TENHO CONTA: login → vincular ──
+async function submitLogin(){
+  const msg=document.getElementById("lMsg");
+  msg.className="msg";
+
+  if(DEMO){ // na prévia, finge login e vai pra tela de vincular
+    myBusinesses=[{id:"demo1", name:"Cafeteria do Centro"}];
+    renderLinkArea();
+    show("screenLink");
+    return;
+  }
+
+  const email=document.getElementById("lEmail").value.trim();
+  const pass=document.getElementById("lPass").value;
+  if(!email||!pass){ msg.className="msg error"; msg.textContent="Preencha email e senha."; return; }
+
+  const btn=document.getElementById("lSubmit");
+  btn.disabled=true; btn.textContent="Entrando…";
+  try{
+    const rLog=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})});
+    const dLog=await rLog.json();
+    if(!rLog.ok||!dLog.token){ msg.className="msg error"; msg.textContent=dLog.error||"Email ou senha incorretos."; btn.disabled=false; btn.textContent="Entrar"; return; }
+    token=dLog.token;
+    localStorage.setItem("rz_token",token);
+    if(dLog.user) localStorage.setItem("rz_user",JSON.stringify(dLog.user));
+    await goToLink();
+  }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Entrar"; }
+}
+
+// "Já tenho conta": se já logado, pula direto pra vincular
+async function goToExisting(){
+  if(DEMO){ show("screenLogin"); return; }
+  if(token){
+    try{
+      const test=await fetch("/api/plates?action=my-businesses",{headers:{"Authorization":`Bearer ${token}`}});
+      if(test.ok){ const d=await test.json(); myBusinesses=d.businesses||[]; renderLinkArea(); show("screenLink"); return; }
+    }catch{}
+    // token inválido → cai pro login
+    localStorage.removeItem("rz_token");
+    token=null;
+  }
+  show("screenLogin");
+}
+
+function renderLinkArea(){
+  const area=document.getElementById("linkBizArea");
+  if(!myBusinesses.length){
+    area.innerHTML='<p class="msg error" style="display:block">Você ainda não tem um negócio cadastrado. Use a opção "Sou cliente novo".</p>';
+  } else if(myBusinesses.length===1){
+    area.innerHTML=`<div class="biz-confirm"><span class="nm">${myBusinesses[0].name}</span></div>`;
+  } else {
+    area.innerHTML='<label>Qual negócio?</label><select id="linkBizSelect">'+myBusinesses.map(b=>`<option value="${b.id}">${b.name}</option>`).join("")+'</select>';
+  }
+}
+
+async function goToLink(){
+  const r=await fetch("/api/plates?action=my-businesses",{headers:{"Authorization":`Bearer ${token}`}});
+  const d=await r.json();
+  myBusinesses=d.businesses||[];
+  renderLinkArea();
+  show("screenLink");
+}
+
+async function submitLink(){
+  const msg=document.getElementById("linkMsg");
+  msg.className="msg";
+
+  if(DEMO){ show("screenDone"); return; }
+
+  if(!myBusinesses.length){ msg.className="msg error"; msg.textContent="Sem negócio pra vincular."; return; }
+  const business_id = myBusinesses.length===1 ? myBusinesses[0].id : document.getElementById("linkBizSelect").value;
+  const nickname = document.getElementById("linkNickname").value.trim();
+
+  const btn=document.getElementById("linkSubmit");
+  btn.disabled=true; btn.textContent="Ativando…";
+  try{
+    const r=await fetch("/api/plates?action=activate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({code:CODE,business_id,channel_name:nickname||null})});
+    const d=await r.json();
+    if(!r.ok){ msg.className="msg error"; msg.textContent=d.error||"Erro ao ativar."; btn.disabled=false; btn.textContent="Ativar"; return; }
+    show("screenDone");
+  }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Ativar"; }
+}
+
+</script>
+
+<!-- WhatsApp de suporte StarTouch — flutuante, presente em toda a página -->
+<a href="https://wa.me/5511976944026?text=Oi!%20Preciso%20de%20ajuda%20pra%20ativar%20meu%20StarTouch."
+   target="_blank" rel="noreferrer"
+   aria-label="Falar com suporte StarTouch no WhatsApp (11) 97694-4026"
+   title="Suporte StarTouch · WhatsApp (11) 97694-4026"
+   style="position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(37,211,102,0.35),0 2px 6px rgba(0,0,0,0.10);z-index:1000;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease;"
+   onmouseover="this.style.transform='translateY(-2px) scale(1.04)';this.style.boxShadow='0 12px 28px rgba(37,211,102,0.45),0 4px 12px rgba(0,0,0,0.12)';"
+   onmouseout="this.style.transform='translateY(0) scale(1)';this.style.boxShadow='0 8px 20px rgba(37,211,102,0.35),0 2px 6px rgba(0,0,0,0.10)';">
+  <span aria-hidden="true" style="position:absolute;inset:0;border-radius:50%;background:#25D366;opacity:0.35;animation:stFabPulse 1.6s ease-out infinite;"></span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="position:relative;">
+    <path fill="currentColor" d="M16.001 3C9.373 3 4 8.373 4 15c0 2.252.624 4.36 1.706 6.165L4 29l8.06-1.667A11.94 11.94 0 0 0 16.001 27C22.628 27 28 21.627 28 15S22.628 3 16.001 3Zm0 21.6c-1.747 0-3.4-.46-4.825-1.293l-.345-.205-4.78.988.999-4.654-.225-.359A9.55 9.55 0 0 1 6.4 15c0-5.293 4.308-9.6 9.601-9.6 5.293 0 9.6 4.307 9.6 9.6 0 5.293-4.307 9.6-9.6 9.6Zm5.522-7.182c-.302-.151-1.792-.884-2.07-.985-.279-.101-.481-.151-.683.151-.202.302-.783.985-.96 1.187-.176.202-.353.227-.655.076-.302-.151-1.276-.47-2.43-1.5-.898-.8-1.504-1.79-1.681-2.093-.176-.302-.019-.466.132-.616.135-.135.302-.353.453-.53.151-.176.202-.302.302-.504.101-.202.05-.378-.025-.53-.076-.151-.683-1.647-.936-2.256-.247-.594-.498-.513-.683-.523l-.581-.01c-.202 0-.53.076-.806.378-.279.302-1.061 1.037-1.061 2.528 0 1.49 1.087 2.93 1.238 3.132.151.202 2.14 3.27 5.187 4.586.725.313 1.29.5 1.731.64.727.231 1.388.198 1.91.12.583-.087 1.792-.732 2.045-1.439.252-.706.252-1.31.176-1.439-.076-.126-.279-.202-.581-.353Z"/>
+  </svg>
+</a>
+<style>
+  @keyframes stFabPulse { 0%{transform:scale(1);opacity:.35} 70%{transform:scale(1.55);opacity:0} 100%{transform:scale(1.55);opacity:0} }
+  /* some o halo depois de 6s — vira só botão estático */
+  @media (prefers-reduced-motion: reduce) { span[aria-hidden="true"]{ display:none; } }
+</style>
+<script>
+  // Esconde o halo após 6s pra não distrair o resto do onboarding
+  setTimeout(function(){
+    var halo = document.querySelector('a[href*="wa.me/5511976944026"] span[aria-hidden="true"]');
+    if (halo) halo.style.display = 'none';
+  }, 6000);
+</script>
+
+</body>
+</html>
