@@ -43,6 +43,16 @@ fbq('track', 'PageView');
   .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
   .btn-outline{background:#fff;color:#1A73E8;border:1.5px solid #DADCE0;margin-top:12px;}
   .btn-outline:hover{background:#E8F0FE;border-color:#1A73E8;}
+  .btn-whats{background:#25D366;color:#fff;margin-top:12px;}
+  .btn-whats:hover:not(:disabled){background:#1FB855;}
+  /* Bloco de indicação (tela de sucesso) */
+  .refer{margin-top:20px;border-top:1px solid #F1F3F4;padding-top:18px;text-align:center;}
+  .refer-icon{font-size:26px;margin-bottom:6px;}
+  .refer-title{font-size:15px;font-weight:700;color:#202124;margin-bottom:4px;}
+  .refer-sub{font-size:12.5px;color:#5F6368;line-height:1.5;margin-bottom:6px;}
+  .linklike{display:block;width:100%;text-align:center;background:none;border:none;color:#5F6368;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:10px;margin-top:14px;}
+  .linklike:hover{color:#1A73E8;}
+  .linklike b{color:#1A73E8;}
   .msg{font-size:13px;margin-top:6px;margin-bottom:12px;padding:10px 12px;border-radius:8px;display:none;}
   .msg.error{display:block;background:#FCE8E6;color:#C5221F;}
   .msg.success{display:block;background:#E6F4EA;color:#137333;}
@@ -58,6 +68,19 @@ fbq('track', 'PageView');
   .back:hover{color:#202124;}
   .icon-circle{width:64px;height:64px;border-radius:50%;background:#E8F0FE;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:30px;}
   .foot{text-align:center;font-size:12px;color:#9AA0A6;margin-top:18px;}
+  /* Boas-vindas (tela 1 — "Recebi") */
+  .welcome-hero{text-align:center;margin-bottom:18px;}
+  .welcome-hero .icon-circle{width:72px;height:72px;font-size:36px;margin-bottom:14px;}
+  .welcome-img{display:block;width:100%;max-width:192px;height:auto;margin:0 auto 18px;}
+  .welcome-steps{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:18px 0 6px;font-size:11.5px;color:#9AA0A6;font-weight:600;}
+  .welcome-steps span{white-space:nowrap;}
+  .welcome-steps i{color:#DADCE0;font-style:normal;}
+  /* Ajuda recolhível ("caiu aqui mas já funciona?") */
+  details.help{margin-top:16px;border-top:1px solid #F1F3F4;padding-top:12px;}
+  details.help summary{font-size:12px;color:#9AA0A6;cursor:pointer;text-align:center;list-style:none;font-weight:600;}
+  details.help summary::-webkit-details-marker{display:none;}
+  details.help summary:hover{color:#5F6368;}
+  details.help p{font-size:11.5px;color:#9AA0A6;line-height:1.55;margin-top:10px;text-align:center;}
   /* Stepper 3 passos */
   .stepper{display:flex;align-items:center;gap:0;margin:0 -4px 18px;padding:0 4px;}
   .step-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;}
@@ -75,11 +98,16 @@ fbq('track', 'PageView');
   .product-tile{background:#F8F9FA;border:1px solid #E8EAED;border-radius:10px;padding:12px 6px;text-align:center;}
   .product-tile img{height:54px;width:auto;object-fit:contain;display:block;margin:0 auto 4px;}
   .product-tile-label{font-size:10.5px;color:#5F6368;font-weight:600;}
-  /* Ações de navegação entre passos — ambos botões com mesma altura/largura */
+  /* Divisor "ou com email" */
+  .or-div{display:flex;align-items:center;gap:10px;margin:6px 0 14px;font-size:11.5px;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+  .or-div div{flex:1;height:1px;background:#DADCE0;}
+  /* Ações de navegação entre passos */
   .step-actions{display:flex;gap:10px;margin-top:6px;}
   .step-actions .btn{flex:1;margin-top:0;padding:14px;font-size:14px;min-width:0;white-space:nowrap;}
   .step-actions .btn-back{background:#fff;color:#5F6368;border:1.5px solid #DADCE0;flex:0 0 110px;}
   .step-actions .btn-back:hover{background:#F8F9FA;}
+  /* Banner de prévia (modo demo) */
+  .demo-banner{position:sticky;top:0;z-index:900;background:#FEF7E0;border:1px solid #FDE293;color:#7B5800;font-size:12px;font-weight:600;text-align:center;padding:8px 12px;border-radius:10px;max-width:440px;margin:0 auto 16px;line-height:1.4;}
   @media (max-width: 360px) {
     .step-actions .btn-back{flex:0 0 90px;font-size:13px;}
     .step-actions .btn{font-size:13px;}
@@ -87,6 +115,7 @@ fbq('track', 'PageView');
 </style>
 </head>
 <body>
+<div id="demoBanner" class="demo-banner hidden">👀 Prévia do novo fluxo — nada é salvo. Adicione <b>?demo=1</b> pra revisar; remova pra usar de verdade.</div>
 <div class="wrap">
   <div class="logo"><a href="/landing"><img src="/startouch-logo-dark.png" alt="StarTouch"/></a></div>
 
@@ -113,53 +142,63 @@ fbq('track', 'PageView');
     <p style="font-size:11.5px;color:#9AA0A6;text-align:center;margin:14px 0 0;line-height:1.5;">Se continuar, fale com a gente no WhatsApp ali no canto. 👇</p>
   </div>
 
-  <!-- ESCOLHA: novo vs existente -->
-  <div class="card hidden" id="screenChoice">
-    <h1>Ativar seu dispositivo</h1>
-    <p class="sub">Primeira vez aqui? Crie sua conta StarTouch. Já ativou um dispositivo antes? Entre na sua conta StarTouch.</p>
-    <div class="code-badge" id="choiceBadge">✓ Código: —</div>
-    <div id="googleBtnChoice" style="display:flex;justify-content:center;margin-bottom:6px;min-height:44px;"></div>
-    <p style="font-size:11.5px;color:#9AA0A6;text-align:center;margin:0 0 14px;line-height:1.45;">Sua conta StarTouch é separada da sua conta do Google Meu Negócio.</p>
-    <div style="display:flex;align-items:center;gap:10px;margin:10px 0 14px;font-size:11.5px;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">
-      <div style="flex:1;height:1px;background:#DADCE0;"></div>OU<div style="flex:1;height:1px;background:#DADCE0;"></div>
+  <!-- ─── TELA 1: BOAS-VINDAS ("Recebi") ─── -->
+  <div class="card hidden" id="screenWelcome">
+    <div class="welcome-hero">
+      <img class="welcome-img" src="/hero-header.png" alt="Dispositivos StarTouch: placa de balcão, cartão NFC e pulseira"/>
+      <h1>Seu StarTouch chegou!</h1>
+      <p class="sub" style="margin-bottom:0;">Vamos deixar ele pronto pra captar avaliações. Leva 1 minuto.</p>
     </div>
-    <button class="btn btn-primary" onclick="show('screenNew')">Sou cliente novo (email/senha)</button>
-    <button class="btn btn-outline" onclick="goToExisting()">Já tenho conta StarTouch (email/senha)</button>
-    <p style="font-size:11.5px;color:#9AA0A6;text-align:center;margin:16px 0 0;line-height:1.5;border-top:1px solid #F1F3F4;padding-top:14px;">
-      Esse dispositivo <strong>já está ativo</strong> e você caiu aqui de novo? É só o navegador lembrando da página antiga.
-      Abra a placa em uma <strong>aba anônima</strong> (ou limpe o cache do navegador) que ela vai direto pra avaliação.
-    </p>
+    <div class="code-badge" id="welcomeBadge">✓ Código reconhecido: —</div>
+    <button class="btn btn-primary" onclick="startNew()">Começar →</button>
+    <div class="welcome-steps">
+      <span>Sua conta</span><i>›</i><span>Sua empresa</span><i>›</i><span>Pronto</span>
+    </div>
+    <button class="linklike" onclick="goToExisting()">Já tenho conta StarTouch · <b>Entrar</b></button>
+
+    <details class="help">
+      <summary>Caiu aqui mas seu dispositivo já funciona?</summary>
+      <p>É só o navegador lembrando da página antiga. Abra a placa em uma <strong>aba anônima</strong> (ou limpe o cache) que ela vai direto pra avaliação.</p>
+    </details>
   </div>
 
   <!-- CLIENTE NOVO: cadastro em 3 passos -->
   <div class="card hidden" id="screenNew">
-    <button class="back" onclick="show('screenChoice')">← Voltar</button>
+    <button class="back" onclick="show('screenWelcome')">← Voltar</button>
 
     <!-- Stepper visual -->
     <div class="stepper" id="nStepper">
       <div class="step-item active" data-step="1">
         <div class="step-dot">1</div>
-        <div class="step-label">Você</div>
+        <div class="step-label">Conta</div>
         <div class="step-line"></div>
       </div>
       <div class="step-item" data-step="2">
         <div class="step-dot">2</div>
-        <div class="step-label">Negócio</div>
+        <div class="step-label">Empresa</div>
         <div class="step-line"></div>
       </div>
       <div class="step-item" data-step="3">
         <div class="step-dot">3</div>
-        <div class="step-label">Dispositivo</div>
+        <div class="step-label">Ativar</div>
       </div>
     </div>
 
     <!-- ─── PASSO 1: identificação + senha ─── -->
     <div id="nStep1">
-      <h1>Crie sua conta</h1>
-      <p class="sub">É rapidinho. Em 3 passos seu dispositivo fica ativo.</p>
+      <h1>Vamos criar sua conta</h1>
+      <p class="sub">É aqui que seus relatórios e dispositivos vão ficar guardados.</p>
+
+      <!-- Atalho Google (cobre cadastro novo num toque) -->
+      <div id="nGoogleBlock">
+        <div id="googleBtnNew" style="display:flex;justify-content:center;margin-bottom:6px;min-height:44px;"></div>
+        <p style="font-size:11.5px;color:#9AA0A6;text-align:center;margin:0 0 12px;line-height:1.45;">Sua conta StarTouch é separada da conta do Google Meu Negócio.</p>
+        <div class="or-div"><div></div>OU COM EMAIL<div></div></div>
+      </div>
+
       <input type="text" id="nName" placeholder="Seu nome"/>
       <input type="email" id="nEmail" placeholder="Seu email"/>
-      <input type="tel" id="nPhone" placeholder="WhatsApp (11) 99999-9999" maxlength="15" oninput="maskPhone(this)"/>
+      <input type="tel" id="nPhone" placeholder="Celular (11) 99999-9999" maxlength="15" oninput="maskPhone(this)"/>
       <input type="password" id="nPass" placeholder="Senha (mín. 8 caracteres)" minlength="8" autocomplete="new-password"/>
       <input type="password" id="nPass2" placeholder="Confirme a senha" minlength="8" autocomplete="new-password"/>
       <!-- Honeypot anti-bot -->
@@ -173,7 +212,7 @@ fbq('track', 'PageView');
 
     <!-- ─── PASSO 2: busca de negócio ─── -->
     <div id="nStep2" class="hidden">
-      <h1>Qual seu negócio?</h1>
+      <h1>Qual sua empresa?</h1>
       <p class="sub">A gente busca no Google pra vincular seu dispositivo ao perfil certo.</p>
       <div id="nBizConfirm" class="hidden"></div>
       <div id="nBizSearchWrap">
@@ -196,26 +235,9 @@ fbq('track', 'PageView');
       <h1>Quase lá!</h1>
       <p class="sub">Seu dispositivo vai capturar avaliações automaticamente. Coloque num lugar visível pros seus clientes.</p>
 
-      <!-- Mini propaganda dos produtos -->
-      <div class="product-strip">
-        <div class="product-tile">
-          <img src="/gadget-placa.png" alt="Placa de balcão"/>
-          <div class="product-tile-label">Placa de balcão</div>
-        </div>
-        <div class="product-tile">
-          <img src="/gadget-cartao.png" alt="Cartão NFC"/>
-          <div class="product-tile-label">Cartão NFC</div>
-        </div>
-        <div class="product-tile">
-          <img src="/gadget-pulseira.png" alt="Pulseira NFC"/>
-          <div class="product-tile-label">Pulseira NFC</div>
-        </div>
-      </div>
-
-      <!-- Código sendo ativado -->
       <div class="code-badge" id="nStep3Badge" style="margin-top:0;">✓ Código sendo ativado: —</div>
 
-      <label style="margin-top:6px;">Apelido do dispositivo <span style="color:#9aa0a6;font-weight:400;">(opcional)</span></label>
+      <label>Apelido do dispositivo <span style="color:#9aa0a6;font-weight:400;">(opcional)</span></label>
       <input type="text" id="nNickname" placeholder="Ex: Balcão Principal, Mesa 5, Garçom João…"/>
       <p style="font-size:11.5px;color:#5F6368;margin:-8px 0 12px;line-height:1.4;">
         Vai aparecer nos seus relatórios pra você saber qual ponto traz mais avaliações.
@@ -231,14 +253,12 @@ fbq('track', 'PageView');
 
   <!-- JÁ TENHO CONTA: login -->
   <div class="card hidden" id="screenLogin">
-    <button class="back" onclick="show('screenChoice')">← Voltar</button>
+    <button class="back" onclick="show('screenWelcome')">← Voltar</button>
     <h1>Entrar</h1>
     <p class="sub">Entre pra ativar o dispositivo na sua conta.</p>
     <div id="googleBtnLogin" style="display:flex;justify-content:center;margin-bottom:6px;min-height:44px;"></div>
     <p style="font-size:11.5px;color:#9AA0A6;text-align:center;margin:0 0 10px;line-height:1.45;">Sua conta StarTouch é separada da sua conta do Google Meu Negócio.</p>
-    <div style="display:flex;align-items:center;gap:10px;margin:6px 0 14px;font-size:11.5px;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">
-      <div style="flex:1;height:1px;background:#DADCE0;"></div>OU COM EMAIL<div style="flex:1;height:1px;background:#DADCE0;"></div>
-    </div>
+    <div class="or-div"><div></div>OU COM EMAIL<div></div></div>
     <input type="email" id="lEmail" placeholder="Seu email"/>
     <input type="password" id="lPass" placeholder="Sua senha"/>
     <div class="msg" id="lMsg"></div>
@@ -256,12 +276,26 @@ fbq('track', 'PageView');
     <button class="btn btn-primary" id="linkSubmit" onclick="submitLink()">Ativar</button>
   </div>
 
-  <!-- SUCESSO -->
+  <!-- SUCESSO ("Pronto") -->
   <div class="card hidden" id="screenDone">
     <div class="icon-circle" style="background:#E6F4EA;">✅</div>
-    <h1>Dispositivo ativado!</h1>
-    <p class="sub">Está pronto pra capturar avaliações. Posicione no seu negócio.</p>
-    <a class="btn btn-primary" href="/app#pontos-de-captacao">Ver meus dispositivos</a>
+    <h1>Tudo pronto! 🎉</h1>
+    <p class="sub">Seu dispositivo está ativo e já pode capturar avaliações. Agora é só posicionar num lugar visível pros seus clientes.</p>
+    <a class="btn btn-primary" href="/app#pontos-de-captacao" target="_blank" rel="noopener">Ver meus dispositivos</a>
+
+    <!-- Indicação -->
+    <div class="refer">
+      <div class="refer-icon">💚</div>
+      <div class="refer-title">Conhece outro dono de negócio?</div>
+      <p class="refer-sub">Indique o StarTouch e ajude outro comércio da sua região a receber mais avaliações no Google.</p>
+      <button class="btn btn-whats" onclick="shareReferral()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="20" height="20" aria-hidden="true">
+          <path fill="currentColor" d="M16.001 3C9.373 3 4 8.373 4 15c0 2.252.624 4.36 1.706 6.165L4 29l8.06-1.667A11.94 11.94 0 0 0 16.001 27C22.628 27 28 21.627 28 15S22.628 3 16.001 3Zm0 21.6c-1.747 0-3.4-.46-4.825-1.293l-.345-.205-4.78.988.999-4.654-.225-.359A9.55 9.55 0 0 1 6.4 15c0-5.293 4.308-9.6 9.601-9.6 5.293 0 9.6 4.307 9.6 9.6 0 5.293-4.307 9.6-9.6 9.6Zm5.522-7.182c-.302-.151-1.792-.884-2.07-.985-.279-.101-.481-.151-.683.151-.202.302-.783.985-.96 1.187-.176.202-.353.227-.655.076-.302-.151-1.276-.47-2.43-1.5-.898-.8-1.504-1.79-1.681-2.093-.176-.302-.019-.466.132-.616.135-.135.302-.353.453-.53.151-.176.202-.302.302-.504.101-.202.05-.378-.025-.53-.076-.151-.683-1.647-.936-2.256-.247-.594-.498-.513-.683-.523l-.581-.01c-.202 0-.53.076-.806.378-.279.302-1.061 1.037-1.061 2.528 0 1.49 1.087 2.93 1.238 3.132.151.202 2.14 3.27 5.187 4.586.725.313 1.29.5 1.731.64.727.231 1.388.198 1.91.12.583-.087 1.792-.732 2.045-1.439.252-.706.252-1.31.176-1.439-.076-.126-.279-.202-.581-.353Z"/>
+        </svg>
+        Indicar no WhatsApp
+      </button>
+      <button class="linklike" id="copyRefBtn" onclick="copyReferral()">ou copiar o link</button>
+    </div>
   </div>
 
   <div class="foot">StarTouch · Reputação no piloto automático</div>
@@ -271,6 +305,7 @@ fbq('track', 'PageView');
 const params = new URLSearchParams(location.search);
 const CODE = (params.get("code") || "").trim().toUpperCase();
 const ERROR = params.get("error");
+const DEMO = params.get("demo") === "1";   // modo prévia: não chama backend, não salva nada
 let token = localStorage.getItem("rz_token");
 let selectedBiz = null;       // {place_id, name, address, rating, total} pro cadastro novo
 let myBusinesses = [];        // negócios do usuário logado
@@ -290,6 +325,13 @@ function loadGsiScript(){
   });
 }
 async function renderGoogleButton(containerId){
+  if(DEMO){ // na prévia o Google não funciona (origin não autorizado) — esconde o bloco
+    const block = document.getElementById("nGoogleBlock");
+    if(containerId==="googleBtnNew" && block) block.style.display="none";
+    const c = document.getElementById(containerId);
+    if(c) c.style.display="none";
+    return;
+  }
   await loadGsiScript();
   if(!window.google?.accounts?.id) return;
   const container=document.getElementById(containerId);
@@ -359,12 +401,18 @@ async function handleGoogleCredential(response){
 }
 
 function show(id){
-  ["screenLoading","screenError","screenInstavel","screenChoice","screenNew","screenLogin","screenLink","screenDone"]
+  ["screenLoading","screenError","screenInstavel","screenWelcome","screenNew","screenLogin","screenLink","screenDone"]
     .forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id));
   window.scrollTo(0,0);
   // Renderiza botão Google nas telas que oferecem (assincrono — GSI carrega lazy)
-  if(id==="screenChoice") renderGoogleButton("googleBtnChoice");
-  if(id==="screenLogin")  renderGoogleButton("googleBtnLogin");
+  if(id==="screenNew")   renderGoogleButton("googleBtnNew");
+  if(id==="screenLogin") renderGoogleButton("googleBtnLogin");
+}
+
+// "Começar" na tela de boas-vindas → cadastro do passo 1
+function startNew(){
+  show("screenNew");
+  nGoToStep(1);
 }
 
 function maskCep(el){
@@ -414,7 +462,14 @@ function maskPhone(el){
 }
 
 // Estado inicial
-if (ERROR === "instavel") {
+if (DEMO) {
+  // Modo prévia: mostra o banner, finge um código e abre direto nas boas-vindas.
+  document.getElementById("demoBanner").classList.remove("hidden");
+  const fakeCode = CODE || "STAR-DEMO";
+  document.getElementById("welcomeBadge").textContent = "✓ Código reconhecido: " + fakeCode;
+  document.getElementById("linkBadge").textContent = "✓ Código: " + fakeCode;
+  show("screenWelcome");
+} else if (ERROR === "instavel") {
   // Falha transitória de conexão no /r/CODE — re-tocar a placa costuma resolver.
   const retry = document.getElementById("instavelRetry");
   if (retry) retry.onclick = () => {
@@ -433,7 +488,7 @@ if (ERROR === "instavel") {
   document.getElementById("errMsg").textContent="Faltou o código do dispositivo. Toque novamente ou digite o código manualmente.";
   show("screenError");
 } else {
-  document.getElementById("choiceBadge").textContent = "✓ Código: " + CODE;
+  document.getElementById("welcomeBadge").textContent = "✓ Código reconhecido: " + CODE;
   document.getElementById("linkBadge").textContent = "✓ Código: " + CODE;
   // Antes de mostrar a ativação, confere se a placa JÁ está ativa.
   // Resgata os dispositivos cujo NFC foi gravado com a URL errada
@@ -461,15 +516,30 @@ async function routeByStatus(){
     }
   }catch{ /* falha transitória na checagem → segue pra ativação normal */ }
   // Placa nova / não-ativa (ou checagem falhou) → fluxo de ativação normal.
-  show("screenChoice");
+  show("screenWelcome");
 }
 
 // ── Busca de negócio (Google Places) ──
 async function searchBiz(prefix){
+  const box = document.getElementById(prefix+"Results");
+
+  // Modo prévia: devolve resultados fictícios pra você ver a tela de escolha.
+  if(DEMO){
+    const demoResults = [
+      {name:"Cafeteria do Centro", rating:4.6, total:128, distance_meters:240, address:"Rua das Flores, 100 — Centro", place_id:"demo1"},
+      {name:"Cafeteria do Centro (Filial)", rating:4.3, total:54, distance_meters:1800, address:"Av. Brasil, 900 — Jardim", place_id:"demo2"}
+    ];
+    box.innerHTML = demoResults.map((r,i)=>`
+      <div class="result-item" onclick='pickBiz(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
+        <div class="result-name">${r.name}${i===0 ? ' <span style="font-size:10px;font-weight:700;background:#E6F4EA;color:#137333;padding:2px 6px;border-radius:4px;margin-left:6px;letter-spacing:.04em;">MAIS PRÓXIMA</span>' : ''}</div>
+        <div class="result-addr">⭐ ${r.rating} · ${r.total} avaliações · 📍 ${(r.distance_meters/1000).toFixed(1)} km do CEP · ${r.address}</div>
+      </div>`).join("");
+    return;
+  }
+
   const q = document.getElementById(prefix+"BizSearch").value.trim();
   const cep = document.getElementById(prefix+"BizCep").value.replace(/\D/g, "");
   const activity = document.getElementById(prefix+"BizActivity").value.trim();
-  const box = document.getElementById(prefix+"Results");
 
   if(!q){ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Digite o nome do negócio.</p>'; return; }
   if(cep.length<8){ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Informe o CEP (8 dígitos).</p>'; return; }
@@ -546,8 +616,8 @@ function nGoToStep(step){
       return;
     }
     document.getElementById("nMsg2").className = "msg";
-    // Atualiza badge do código na fase 3
-    document.getElementById("nStep3Badge").textContent = "✓ Código sendo ativado: " + CODE;
+    // Repete o código sendo ativado no passo 3
+    document.getElementById("nStep3Badge").textContent = "✓ Código sendo ativado: " + (CODE || "STAR-DEMO");
   }
   // Esconde todos, mostra o atual
   ["nStep1","nStep2","nStep3"].forEach(id => {
@@ -567,6 +637,7 @@ function nGoToStep(step){
 
 // Valida passo 1 (dados pessoais + senha)
 function nValidateStep1(){
+  if (DEMO) return { ok:true }; // na prévia, avança sem exigir preenchimento
   const name = document.getElementById("nName").value.trim();
   const email = document.getElementById("nEmail").value.trim();
   const phone = document.getElementById("nPhone").value.trim();
@@ -577,7 +648,7 @@ function nValidateStep1(){
   if (!name || !email){ return { ok:false, error:"Preencha nome e email." }; }
   // Se veio via Google, pula validação de senha
   if (googleAuthed) return { ok:true };
-  if (!phone || !pass){ return { ok:false, error:"Preencha WhatsApp e senha." }; }
+  if (!phone || !pass){ return { ok:false, error:"Preencha celular e senha." }; }
   if (pass.length < 8){ return { ok:false, error:"Senha precisa de pelo menos 8 caracteres." }; }
   if (pass !== pass2){ return { ok:false, error:"As senhas não batem. Confira a confirmação." }; }
   return { ok:true };
@@ -586,14 +657,18 @@ function nValidateStep1(){
 // ── CLIENTE NOVO: cadastro + savebiz + activate ──
 // Se chegou via Google (googleAuthed=true), pula o register — só precisa do negócio.
 async function submitNew(){
+  const msg=document.getElementById("nMsg");
+  msg.className="msg";
+
+  // Modo prévia: pula o backend e mostra direto a tela de sucesso.
+  if(DEMO){ show("screenDone"); return; }
+
   const name=document.getElementById("nName").value.trim();
   const email=document.getElementById("nEmail").value.trim();
   const phone=document.getElementById("nPhone").value.trim();
   const pass=document.getElementById("nPass").value;
   const pass2=document.getElementById("nPass2")?.value || "";
   const honeypot=document.getElementById("nWebsite")?.value || "";
-  const msg=document.getElementById("nMsg");
-  msg.className="msg";
 
   // Honeypot: bot preencheu campo invisível → bloqueia silenciosamente
   if(honeypot){ msg.className="msg error"; msg.textContent="Tente de novo em alguns segundos."; return; }
@@ -601,7 +676,7 @@ async function submitNew(){
   if(!name||!email){ msg.className="msg error"; msg.textContent="Preencha nome e email."; return; }
   if(!googleAuthed){
     // Cadastro via email/senha — exige senha+confirmação+phone
-    if(!phone||!pass){ msg.className="msg error"; msg.textContent="Preencha WhatsApp e senha."; return; }
+    if(!phone||!pass){ msg.className="msg error"; msg.textContent="Preencha celular e senha."; return; }
     if(pass.length<8){ msg.className="msg error"; msg.textContent="Senha precisa de pelo menos 8 caracteres."; return; }
     if(pass !== pass2){ msg.className="msg error"; msg.textContent="As senhas não batem. Confira a confirmação."; return; }
   }
@@ -646,10 +721,18 @@ async function submitNew(){
 
 // ── JÁ TENHO CONTA: login → vincular ──
 async function submitLogin(){
-  const email=document.getElementById("lEmail").value.trim();
-  const pass=document.getElementById("lPass").value;
   const msg=document.getElementById("lMsg");
   msg.className="msg";
+
+  if(DEMO){ // na prévia, finge login e vai pra tela de vincular
+    myBusinesses=[{id:"demo1", name:"Cafeteria do Centro"}];
+    renderLinkArea();
+    show("screenLink");
+    return;
+  }
+
+  const email=document.getElementById("lEmail").value.trim();
+  const pass=document.getElementById("lPass").value;
   if(!email||!pass){ msg.className="msg error"; msg.textContent="Preencha email e senha."; return; }
 
   const btn=document.getElementById("lSubmit");
@@ -667,6 +750,7 @@ async function submitLogin(){
 
 // "Já tenho conta": se já logado, pula direto pra vincular
 async function goToExisting(){
+  if(DEMO){ show("screenLogin"); return; }
   if(token){
     try{
       const test=await fetch("/api/plates?action=my-businesses",{headers:{"Authorization":`Bearer ${token}`}});
@@ -701,6 +785,9 @@ async function goToLink(){
 async function submitLink(){
   const msg=document.getElementById("linkMsg");
   msg.className="msg";
+
+  if(DEMO){ show("screenDone"); return; }
+
   if(!myBusinesses.length){ msg.className="msg error"; msg.textContent="Sem negócio pra vincular."; return; }
   const business_id = myBusinesses.length===1 ? myBusinesses[0].id : document.getElementById("linkBizSelect").value;
   const nickname = document.getElementById("linkNickname").value.trim();
@@ -713,6 +800,38 @@ async function submitLink(){
     if(!r.ok){ msg.className="msg error"; msg.textContent=d.error||"Erro ao ativar."; btn.disabled=false; btn.textContent="Ativar"; return; }
     show("screenDone");
   }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Ativar"; }
+}
+
+// ── Indicação (tela de sucesso) ──
+// UTM no link pra medir no GA4 quantas visitas vêm de indicação (sem precisar de backend).
+const REFERRAL_URL = "https://startouch.com.br/?utm_source=indicacao&utm_medium=whatsapp";
+const REFERRAL_MSG = "Oi! Comecei a usar o StarTouch pra receber mais avaliações no Google — tá ajudando demais. Acho que ia ser útil pro seu negócio também 👉 " + REFERRAL_URL;
+function trackReferral(method){
+  try{ if(typeof gtag==="function") gtag("event","referral_share",{method:method}); }catch{}
+  try{ if(typeof fbq==="function") fbq("trackCustom","ReferralShare",{method:method}); }catch{}
+}
+function shareReferral(){
+  trackReferral("whatsapp");
+  // Em celular, usa o compartilhamento nativo se existir (mais opções); senão abre o WhatsApp direto.
+  if(navigator.share){
+    navigator.share({ text: REFERRAL_MSG }).catch(()=>{
+      window.open("https://wa.me/?text=" + encodeURIComponent(REFERRAL_MSG), "_blank");
+    });
+    return;
+  }
+  window.open("https://wa.me/?text=" + encodeURIComponent(REFERRAL_MSG), "_blank");
+}
+async function copyReferral(){
+  const btn=document.getElementById("copyRefBtn");
+  trackReferral("copy_link");
+  try{
+    await navigator.clipboard.writeText(REFERRAL_URL);
+    const original = btn.textContent;
+    btn.textContent = "✓ link copiado!";
+    setTimeout(()=>{ btn.textContent = original; }, 2500);
+  }catch{
+    window.prompt("Copie o link do StarTouch:", REFERRAL_URL);
+  }
 }
 
 </script>
