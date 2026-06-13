@@ -43,6 +43,13 @@ fbq('track', 'PageView');
   .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
   .btn-outline{background:#fff;color:#1A73E8;border:1.5px solid #DADCE0;margin-top:12px;}
   .btn-outline:hover{background:#E8F0FE;border-color:#1A73E8;}
+  .btn-whats{background:#25D366;color:#fff;margin-top:12px;}
+  .btn-whats:hover:not(:disabled){background:#1FB855;}
+  /* Bloco de indicação (tela de sucesso) */
+  .refer{margin-top:20px;border-top:1px solid #F1F3F4;padding-top:18px;text-align:center;}
+  .refer-icon{font-size:26px;margin-bottom:6px;}
+  .refer-title{font-size:15px;font-weight:700;color:#202124;margin-bottom:4px;}
+  .refer-sub{font-size:12.5px;color:#5F6368;line-height:1.5;margin-bottom:6px;}
   .linklike{display:block;width:100%;text-align:center;background:none;border:none;color:#5F6368;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:10px;margin-top:14px;}
   .linklike:hover{color:#1A73E8;}
   .linklike b{color:#1A73E8;}
@@ -273,6 +280,20 @@ fbq('track', 'PageView');
     <h1>Tudo pronto! 🎉</h1>
     <p class="sub">Seu dispositivo está ativo e já pode capturar avaliações. Agora é só posicionar num lugar visível pros seus clientes.</p>
     <a class="btn btn-primary" href="/app#pontos-de-captacao">Ver meus dispositivos</a>
+
+    <!-- Indicação -->
+    <div class="refer">
+      <div class="refer-icon">💚</div>
+      <div class="refer-title">Conhece outro dono de negócio?</div>
+      <p class="refer-sub">Indique o StarTouch e ajude outro comércio da sua região a receber mais avaliações no Google.</p>
+      <button class="btn btn-whats" onclick="shareReferral()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="20" height="20" aria-hidden="true">
+          <path fill="currentColor" d="M16.001 3C9.373 3 4 8.373 4 15c0 2.252.624 4.36 1.706 6.165L4 29l8.06-1.667A11.94 11.94 0 0 0 16.001 27C22.628 27 28 21.627 28 15S22.628 3 16.001 3Zm0 21.6c-1.747 0-3.4-.46-4.825-1.293l-.345-.205-4.78.988.999-4.654-.225-.359A9.55 9.55 0 0 1 6.4 15c0-5.293 4.308-9.6 9.601-9.6 5.293 0 9.6 4.307 9.6 9.6 0 5.293-4.307 9.6-9.6 9.6Zm5.522-7.182c-.302-.151-1.792-.884-2.07-.985-.279-.101-.481-.151-.683.151-.202.302-.783.985-.96 1.187-.176.202-.353.227-.655.076-.302-.151-1.276-.47-2.43-1.5-.898-.8-1.504-1.79-1.681-2.093-.176-.302-.019-.466.132-.616.135-.135.302-.353.453-.53.151-.176.202-.302.302-.504.101-.202.05-.378-.025-.53-.076-.151-.683-1.647-.936-2.256-.247-.594-.498-.513-.683-.523l-.581-.01c-.202 0-.53.076-.806.378-.279.302-1.061 1.037-1.061 2.528 0 1.49 1.087 2.93 1.238 3.132.151.202 2.14 3.27 5.187 4.586.725.313 1.29.5 1.731.64.727.231 1.388.198 1.91.12.583-.087 1.792-.732 2.045-1.439.252-.706.252-1.31.176-1.439-.076-.126-.279-.202-.581-.353Z"/>
+        </svg>
+        Indicar no WhatsApp
+      </button>
+      <button class="linklike" id="copyRefBtn" onclick="copyReferral()">ou copiar o link</button>
+    </div>
   </div>
 
   <div class="foot">StarTouch · Reputação no piloto automático</div>
@@ -775,6 +796,38 @@ async function submitLink(){
     if(!r.ok){ msg.className="msg error"; msg.textContent=d.error||"Erro ao ativar."; btn.disabled=false; btn.textContent="Ativar"; return; }
     show("screenDone");
   }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Ativar"; }
+}
+
+// ── Indicação (tela de sucesso) ──
+// UTM no link pra medir no GA4 quantas visitas vêm de indicação (sem precisar de backend).
+const REFERRAL_URL = "https://startouch.com.br/?utm_source=indicacao&utm_medium=whatsapp";
+const REFERRAL_MSG = "Oi! Comecei a usar o StarTouch pra receber mais avaliações no Google — tá ajudando demais. Acho que ia ser útil pro seu negócio também 👉 " + REFERRAL_URL;
+function trackReferral(method){
+  try{ if(typeof gtag==="function") gtag("event","referral_share",{method:method}); }catch{}
+  try{ if(typeof fbq==="function") fbq("trackCustom","ReferralShare",{method:method}); }catch{}
+}
+function shareReferral(){
+  trackReferral("whatsapp");
+  // Em celular, usa o compartilhamento nativo se existir (mais opções); senão abre o WhatsApp direto.
+  if(navigator.share){
+    navigator.share({ text: REFERRAL_MSG }).catch(()=>{
+      window.open("https://wa.me/?text=" + encodeURIComponent(REFERRAL_MSG), "_blank");
+    });
+    return;
+  }
+  window.open("https://wa.me/?text=" + encodeURIComponent(REFERRAL_MSG), "_blank");
+}
+async function copyReferral(){
+  const btn=document.getElementById("copyRefBtn");
+  trackReferral("copy_link");
+  try{
+    await navigator.clipboard.writeText(REFERRAL_URL);
+    const original = btn.textContent;
+    btn.textContent = "✓ link copiado!";
+    setTimeout(()=>{ btn.textContent = original; }, 2500);
+  }catch{
+    window.prompt("Copie o link do StarTouch:", REFERRAL_URL);
+  }
 }
 
 </script>
