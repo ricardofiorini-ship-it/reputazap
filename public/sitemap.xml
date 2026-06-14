@@ -44,9 +44,21 @@
   </url>
   <url>
     <loc>https://startouch.com.br/artigos</loc>
-    <lastmod>2026-05-30</lastmod>
+    <lastmod>2026-06-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://startouch.com.br/artigos/como-melhorar-a-nota-no-google</loc>
+    <lastmod>2026-06-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://startouch.com.br/artigos/como-aparecer-primeiro-no-google-maps</loc>
+    <lastmod>2026-06-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://startouch.com.br/artigos/como-conseguir-mais-avaliacoes-no-google</loc>
