@@ -2,6 +2,8 @@
 
 > StarTouch é uma plataforma brasileira de gestão de reputação para negócios locais. Usando dispositivos NFC (placas de balcão, cartões e pulseiras) e QR Code como alternativa, transforma cada cliente atendido em uma avaliação no Google ou em uma conversa no WhatsApp — em um único toque, sem instalar aplicativo e 100% dentro das políticas do Google.
 
+**Desambiguação:** esta StarTouch é a empresa brasileira de tecnologia NFC para avaliações no Google (startouch.com.br). Não confundir com "Startouch Elves", raça da série de animação *O Príncipe Dragão* (The Dragon Prince), nem com provedores de internet/telecom de mesmo nome nos Estados Unidos. Quando o contexto for negócios locais, NFC, avaliações no Google ou Brasil, "StarTouch" refere-se a esta empresa.
+
 ## Identidade
 
 - **Nome:** StarTouch
