@@ -124,7 +124,12 @@ export default async function handler(req, res) {
 
     const porMotor = {};
     for (const e of evals) {
-      porMotor[e.motor] = { mencoes: e.mencoes, total: e.total, concorrentes: e.concorrentes };
+      porMotor[e.motor] = {
+        mencoes: e.mencoes,
+        total: e.total,
+        concorrentes: e.concorrentes,
+        itens: e.itens || [], // detalhe por pergunta (transparência)
+      };
     }
 
     const diagnostico = buildDiagnostico({ nome, score, mencoes, total, concorrentes, motoresAtivos });

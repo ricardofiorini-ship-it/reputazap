@@ -81,10 +81,23 @@ fbq('track', 'PageView');
 
   /* Motores */
   .engines{display:flex;flex-direction:column;gap:8px;margin-bottom:22px;}
-  .engine{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:13px 15px;}
-  .engine .name{flex:1;font-size:14px;font-weight:700;color:#0F0F0F;}
-  .engine .val{font-size:13px;color:#5F6368;font-weight:600;}
-  .engine .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .engine-block{background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;}
+  .engine-row{display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;font-family:inherit;text-align:left;padding:13px 15px;cursor:pointer;}
+  .engine-row .name{flex:1;font-size:14px;font-weight:700;color:#0F0F0F;}
+  .engine-row .val{font-size:13px;color:#5F6368;font-weight:600;}
+  .engine-row .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .engine-row .chev{color:#9AA0A6;font-size:12px;transition:transform .2s;}
+  .engine-block.open .chev{transform:rotate(180deg);}
+  .engine-detail{border-top:1px solid #F1F3F4;padding:6px 15px 12px;}
+  .qa{padding:12px 0;}
+  .qa + .qa{border-top:1px solid #F1F3F4;}
+  .qa-q{font-size:13.5px;font-weight:600;color:#0F0F0F;line-height:1.45;display:flex;gap:8px;align-items:flex-start;}
+  .qa-flag{flex-shrink:0;font-size:11px;font-weight:800;border-radius:6px;padding:2px 7px;margin-top:1px;}
+  .qa-flag.ok{background:#E6F4EA;color:#137333;}
+  .qa-flag.no{background:#FCE8E6;color:#A50E0E;}
+  .qa-a{font-size:12.5px;color:#5F6368;line-height:1.55;margin-top:7px;padding-left:2px;font-style:italic;}
+  .qa-comp{font-size:12px;color:#174EA6;margin-top:6px;}
+  .qa-comp strong{font-weight:700;}
 
   /* Concorrentes */
   .comp-list{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:8px;margin-bottom:24px;}
@@ -166,7 +179,7 @@ fbq('track', 'PageView');
       <p id="repDiag">—</p>
     </div>
 
-    <p class="section-title">Por motor de IA</p>
+    <p class="section-title">Por motor de IA · toque pra ver perguntas e respostas</p>
     <div class="engines" id="repEngines"></div>
 
     <div id="repCompWrap">
@@ -199,6 +212,7 @@ fbq('track', 'PageView');
   };
 
   function scoreColor(s){ return s < 34 ? "#D93025" : s < 67 ? "#F9AB00" : "#1E8E3E"; }
+  function esc(s){ const d = document.createElement("div"); d.textContent = (s == null ? "" : String(s)); return d.innerHTML; }
 
   function renderReport(d, nome){
     $("repName").textContent = nome;
@@ -208,19 +222,46 @@ fbq('track', 'PageView');
     requestAnimationFrame(() => { bar.style.width = Math.max(2, d.score) + "%"; });
     $("repDiag").textContent = d.diagnostico || "";
 
-    // Motores que de fato rodaram (transparência: só esses).
+    // Motores que de fato rodaram (transparência: só esses). Cada um expande
+    // pra mostrar as perguntas, se foi citado e o trecho da resposta da IA.
     const eng = $("repEngines"); eng.innerHTML = "";
     const motores = Object.keys(d.porMotor || {});
     motores.forEach(m => {
       const pm = d.porMotor[m];
       const pct = pm.total ? Math.round((pm.mencoes / pm.total) * 100) : 0;
-      const row = document.createElement("div");
-      row.className = "engine";
-      row.innerHTML =
-        '<span class="dot" style="background:' + scoreColor(pct) + '"></span>' +
-        '<span class="name">' + (ENGINE_LABELS[m] || m) + '</span>' +
-        '<span class="val">' + pm.mencoes + ' de ' + pm.total + ' buscas</span>';
-      eng.appendChild(row);
+      const itens = pm.itens || [];
+
+      const detail = itens.map(it => {
+        const flag = it.mencionado
+          ? '<span class="qa-flag ok">✓ citado</span>'
+          : '<span class="qa-flag no">✗ ausente</span>';
+        const comp = (it.concorrentes && it.concorrentes.length)
+          ? '<div class="qa-comp"><strong>Citou no seu lugar:</strong> ' + it.concorrentes.map(esc).join(", ") + '</div>'
+          : '';
+        const resp = it.resposta ? '<div class="qa-a">"' + esc(it.resposta) + '"</div>' : '';
+        return '<div class="qa"><div class="qa-q">' + flag + '<span>' + esc(it.pergunta) + '</span></div>' + resp + comp + '</div>';
+      }).join("");
+
+      const block = document.createElement("div");
+      block.className = "engine-block";
+      block.innerHTML =
+        '<button class="engine-row" type="button">' +
+          '<span class="dot" style="background:' + scoreColor(pct) + '"></span>' +
+          '<span class="name">' + (ENGINE_LABELS[m] || m) + '</span>' +
+          '<span class="val">' + pm.mencoes + ' de ' + pm.total + ' buscas</span>' +
+          (itens.length ? '<span class="chev">▾</span>' : '') +
+        '</button>' +
+        (itens.length ? '<div class="engine-detail hidden">' + detail + '</div>' : '');
+
+      if (itens.length) {
+        const btn = block.querySelector(".engine-row");
+        const det = block.querySelector(".engine-detail");
+        btn.addEventListener("click", () => {
+          det.classList.toggle("hidden");
+          block.classList.toggle("open");
+        });
+      }
+      eng.appendChild(block);
     });
 
     // Concorrentes: largura da barra por frequência de menção entre os motores.

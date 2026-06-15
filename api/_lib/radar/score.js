@@ -20,48 +20,65 @@ export function buildQuestions(categoria, cidade) {
 // Remove cercas de markdown e tenta achar o objeto JSON na string.
 function parseJsonLoose(text) {
   if (!text) return null;
-  let t = text.trim();
-  t = t.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
-  const start = t.indexOf("{");
-  const end = t.lastIndexOf("}");
-  if (start !== -1 && end !== -1 && end > start) t = t.slice(start, end + 1);
-  try {
-    return JSON.parse(t);
-  } catch {
-    return null;
-  }
+  let t = text.trim().replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+  try { return JSON.parse(t); } catch { /* tenta extrair abaixo */ }
+  // Extrai array [...] ou objeto {...} de dentro de texto solto.
+  const a1 = t.indexOf("["), a2 = t.lastIndexOf("]");
+  if (a1 !== -1 && a2 > a1) { try { return JSON.parse(t.slice(a1, a2 + 1)); } catch { /* */ } }
+  const o1 = t.indexOf("{"), o2 = t.lastIndexOf("}");
+  if (o1 !== -1 && o2 > o1) { try { return JSON.parse(t.slice(o1, o2 + 1)); } catch { /* */ } }
+  return null;
+}
+
+// Encurta um texto pra caber no payload (transparência sem peso).
+function excerpt(s, max = 480) {
+  const t = (s || "").trim();
+  return t.length > max ? t.slice(0, max).trimEnd() + "…" : t;
 }
 
 const sameName = (a, b) =>
   (a || "").trim().toLowerCase() === (b || "").trim().toLowerCase();
 
-// 2) Avalia as respostas de UM motor: o negócio foi citado? quais concorrentes?
-// Usa Gemini (barato), pede JSON puro. Parse defensivo.
-// total é determinístico (nº de respostas), não confiamos na contagem do modelo.
+// Limpa uma lista de concorrentes (strings), removendo vazios e o próprio nome.
+function cleanCompetitors(arr, nome) {
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .map((x) => (typeof x === "string" ? x.trim() : ""))
+    .filter((x) => x && !sameName(x, nome));
+}
+
+// 2) Avalia as respostas de UM motor, PERGUNTA A PERGUNTA: o negócio foi citado?
+// quais concorrentes? Usa Gemini (barato) numa única chamada que devolve um array.
+// Retorna { mencoes, total, concorrentes, itens } — itens tem o detalhe por
+// pergunta (pergunta, mencionado, concorrentes, resposta resumida) p/ transparência.
 export async function evaluateEngine({ nome, categoria, cidade, respostas }) {
   const total = respostas.length;
-  if (total === 0) return { mencoes: 0, total: 0, concorrentes: [] };
+  if (total === 0) return { mencoes: 0, total: 0, concorrentes: [], itens: [] };
 
-  // Heurística de base: conta respostas onde o nome aparece textualmente.
-  // Serve de fallback se o Gemini não estiver disponível ou o parse falhar.
-  const heuristicaMencoes = respostas.filter((r) =>
-    (r.resposta || "").toLowerCase().includes((nome || "").toLowerCase())
-  ).length;
+  // Base com heurística textual — usada como fallback (sem Gemini ou parse falho).
+  const baseItens = respostas.map((r) => ({
+    pergunta: r.pergunta,
+    resposta: excerpt(r.resposta),
+    mencionado: (r.resposta || "").toLowerCase().includes((nome || "").toLowerCase()),
+    concorrentes: [],
+  }));
+  const fallback = () => {
+    const mencoes = baseItens.filter((i) => i.mencionado).length;
+    return { mencoes, total, concorrentes: [], itens: baseItens };
+  };
 
-  if (!hasGemini()) {
-    return { mencoes: heuristicaMencoes, total, concorrentes: [] };
-  }
+  if (!hasGemini()) return fallback();
 
   const bloco = respostas
-    .map((r, i) => `--- Resposta ${i + 1} (pergunta: ${r.pergunta}) ---\n${r.resposta}`)
+    .map((r, i) => `[${i}] Pergunta: ${r.pergunta}\nResposta: ${r.resposta}`)
     .join("\n\n");
 
   const prompt = `Analise as respostas abaixo. Negócio em foco: "${nome}" (${categoria} em ${cidade}).
-Para CADA resposta, diga se "${nome}" foi mencionado (mesmo com pequena variação de grafia) e liste os nomes de concorrentes (outros negócios da mesma categoria) citados.
-Responda SOMENTE em JSON, sem markdown, no formato exato:
-{"mencoes": <numero de respostas em que "${nome}" aparece>, "concorrentes": ["nome1","nome2"]}
+Para CADA item, diga se "${nome}" foi mencionado (mesmo com pequena variação de grafia) e liste os concorrentes (outros negócios da mesma categoria) citados naquela resposta.
+Responda SOMENTE em JSON (sem markdown): um array com um objeto por item, na MESMA ordem, no formato exato:
+[{"i":0,"mencionado":true,"concorrentes":["nome1"]}, {"i":1,"mencionado":false,"concorrentes":[]}]
 
-Respostas:
+Itens:
 ${bloco}`;
 
   let parsed = null;
@@ -71,15 +88,22 @@ ${bloco}`;
     console.warn("[radar] falha na avaliação Gemini:", err.message);
   }
 
-  if (!parsed) return { mencoes: heuristicaMencoes, total, concorrentes: [] };
+  const arr = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.itens) ? parsed.itens : null;
+  if (!arr) return fallback();
 
-  const mencoes = Math.max(0, Math.min(total, parseInt(parsed.mencoes, 10) || 0));
-  const concorrentes = Array.isArray(parsed.concorrentes)
-    ? parsed.concorrentes
-        .map((x) => (typeof x === "string" ? x.trim() : ""))
-        .filter((x) => x && !sameName(x, nome))
-    : [];
-  return { mencoes, total, concorrentes };
+  const itens = baseItens.map((it, idx) => {
+    const e = arr.find((x) => Number(x?.i) === idx) || arr[idx] || {};
+    return {
+      pergunta: it.pergunta,
+      resposta: it.resposta,
+      mencionado: typeof e.mencionado === "boolean" ? e.mencionado : it.mencionado,
+      concorrentes: cleanCompetitors(e.concorrentes, nome),
+    };
+  });
+
+  const mencoes = itens.filter((i) => i.mencionado).length;
+  const concorrentes = consolidateCompetitors(itens.map((i) => i.concorrentes));
+  return { mencoes, total, concorrentes, itens };
 }
 
 // 3) Consolida concorrentes: dedup (case-insensitive), top 5 por frequência.
