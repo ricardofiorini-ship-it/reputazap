@@ -2,7 +2,7 @@
 // StarTouch — IA Radar: motores de IA com busca real (grounding)
 // ============================================================
 // 3 motores baratos, cada um pesquisando na web:
-//   - Gemini  (gemini-2.0-flash + Google Search)
+//   - Gemini  (gemini-2.5-flash + Google Search)
 //   - OpenAI  (gpt-4o-mini + web_search via Responses API; fallback chat)
 //   - Perplexity (sonar — grounding nativo, fetch direto)
 //
@@ -50,7 +50,7 @@ async function askGemini(pergunta) {
   // mais cota do plano gratuito. Propaga o erro pra falhar rápido.
   try {
     const model = genai().getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       tools: [{ googleSearch: {} }], // grounding nativo
     });
     const r = await model.generateContent(pergunta);
@@ -58,7 +58,7 @@ async function askGemini(pergunta) {
   } catch (err) {
     if (isQuotaError(err)) throw err;
     console.warn("[radar] gemini grounding indisponível, fallback sem grounding:", err.message);
-    const model = genai().getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genai().getGenerativeModel({ model: "gemini-2.5-flash" });
     const r = await model.generateContent(pergunta);
     return r.response.text();
   }
@@ -72,7 +72,7 @@ function isQuotaError(err) {
 
 // Geração simples (sem grounding) — usada na etapa de avaliação. Mais barata.
 export async function geminiEval(prompt) {
-  const model = genai().getGenerativeModel({ model: "gemini-2.0-flash" });
+  const model = genai().getGenerativeModel({ model: "gemini-2.5-flash" });
   const r = await model.generateContent(prompt);
   return r.response.text();
 }
