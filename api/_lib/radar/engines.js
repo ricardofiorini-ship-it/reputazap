@@ -46,6 +46,8 @@ async function askGemini(pergunta) {
   // Caminho preferido: com grounding (Google Search). Se a versão do SDK
   // @google/generative-ai não aceitar a tool nesse modelo, cai pra geração
   // sem grounding (ainda responde — melhor que derrubar o motor inteiro).
+  // EXCEÇÃO: em erro de cota (429), NÃO faz fallback — retentar só queima
+  // mais cota do plano gratuito. Propaga o erro pra falhar rápido.
   try {
     const model = genai().getGenerativeModel({
       model: "gemini-2.0-flash",
@@ -54,11 +56,18 @@ async function askGemini(pergunta) {
     const r = await model.generateContent(pergunta);
     return r.response.text();
   } catch (err) {
+    if (isQuotaError(err)) throw err;
     console.warn("[radar] gemini grounding indisponível, fallback sem grounding:", err.message);
     const model = genai().getGenerativeModel({ model: "gemini-2.0-flash" });
     const r = await model.generateContent(pergunta);
     return r.response.text();
   }
+}
+
+// Detecta erro de cota/limite (429 / RESOURCE_EXHAUSTED) pra não retentar à toa.
+function isQuotaError(err) {
+  const msg = (err?.message || "").toLowerCase();
+  return err?.status === 429 || /\b429\b|quota|resource_exhausted|rate limit|too many requests/.test(msg);
 }
 
 // Geração simples (sem grounding) — usada na etapa de avaliação. Mais barata.
@@ -122,18 +131,26 @@ async function askWithCache({ motor, categoria, cidade, pergunta }) {
   return { pergunta, resposta, cached: false };
 }
 
-// Roda TODAS as perguntas de UM motor (em paralelo). Perguntas que falham são
-// descartadas; o total reflete só as que responderam.
-// Retorna { motor, respostas: [{pergunta,resposta}], total, falhas }.
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Roda as perguntas de UM motor de forma SEQUENCIAL, com pausa entre elas,
+// pra não estourar o limite por minuto (free tier do Gemini é apertado).
+// Respostas em cache não contam pausa (são instantâneas). Em erro de cota,
+// aborta as perguntas seguintes do motor (não adianta insistir no mesmo minuto).
+// Retorna { motor, respostas, total, falhas, erros }.
 export async function runEngine({ motor, categoria, cidade, perguntas }) {
-  const settled = await Promise.allSettled(
-    perguntas.map((pergunta) => askWithCache({ motor, categoria, cidade, pergunta }))
-  );
   const respostas = [];
   const erros = [];
-  for (const s of settled) {
-    if (s.status === "fulfilled" && s.value?.resposta) respostas.push(s.value);
-    else erros.push(s.status === "rejected" ? (s.reason?.message || String(s.reason)) : "resposta vazia");
+  for (let i = 0; i < perguntas.length; i++) {
+    try {
+      const v = await askWithCache({ motor, categoria, cidade, pergunta: perguntas[i] });
+      if (v?.resposta) respostas.push(v);
+      else erros.push("resposta vazia");
+      if (!v?.cached && i < perguntas.length - 1) await sleep(400); // gentil com o RPM
+    } catch (err) {
+      erros.push(err?.message || String(err));
+      if (isQuotaError(err)) break; // cota estourada: para de insistir neste motor
+    }
   }
   return { motor, respostas, total: respostas.length, falhas: erros.length, erros };
 }

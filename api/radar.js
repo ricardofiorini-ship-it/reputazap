@@ -98,8 +98,11 @@ export default async function handler(req, res) {
     });
 
     if (ran.length === 0) {
+      const isQuota = debug.some((d) => /429|quota|resource_exhausted|rate limit|too many/i.test(d));
       return res.status(502).json({
-        error: "Os motores de IA não responderam agora. Tente novamente em instantes.",
+        error: isQuota
+          ? "Limite de uso da IA atingido (cota do plano gratuito). Aguarde um minuto e tente de novo — ou ative o faturamento na chave do Gemini pra liberar o limite."
+          : "Os motores de IA não responderam agora. Tente novamente em instantes.",
         debug,
       });
     }
