@@ -146,7 +146,11 @@ fbq('track', 'PageView');
       </div>
       <div class="field">
         <label for="cidade">Cidade</label>
-        <input id="cidade" type="text" placeholder="Ex: Sorocaba, SP" autocomplete="off"/>
+        <input id="cidade" type="text" placeholder="Ex: São Paulo, SP" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label for="cep">CEP <span style="font-weight:400;color:#9AA0A6;">(opcional — mira no seu bairro)</span></label>
+        <input id="cep" type="text" inputmode="numeric" placeholder="Ex: 01530-000" autocomplete="off"/>
       </div>
       <button class="btn btn-primary" id="goBtn" type="button">🛰️ Rodar meu IA Radar</button>
       <p class="form-note">Consultamos as IAs em tempo real — leva alguns segundos.</p>
@@ -167,6 +171,7 @@ fbq('track', 'PageView');
   <section id="reportMode" class="hidden">
     <div class="badge"><span class="badge-dot"></span>Seu IA Radar</div>
     <h1 id="repName" style="font-size:24px;">—</h1>
+    <p id="repLocal" class="sub" style="margin-top:-4px;margin-bottom:18px;font-size:14px;"></p>
 
     <div class="score-hero">
       <div class="num"><span id="repScore">0</span><small>/100</small></div>
@@ -216,6 +221,10 @@ fbq('track', 'PageView');
 
   function renderReport(d, nome){
     $("repName").textContent = nome;
+    const loc = d.local || {};
+    $("repLocal").textContent = loc.bairro
+      ? "📍 Buscas focadas no bairro " + loc.bairro + " · " + (loc.cidade || "")
+      : (loc.cidade ? "📍 " + loc.cidade : "");
     $("repScore").textContent = d.score;
     const bar = $("repScoreBar");
     bar.style.width = "0%";
@@ -300,9 +309,10 @@ fbq('track', 'PageView');
     const nome = $("nome").value.trim();
     const categoria = $("categoria").value.trim();
     const cidade = $("cidade").value.trim();
+    const cep = $("cep").value.trim();
     $("searchErr").innerHTML = "";
-    if (!nome || !categoria || !cidade) {
-      $("searchErr").innerHTML = '<div class="err">Preencha nome, categoria e cidade.</div>';
+    if (!nome || !categoria || (!cidade && !cep)) {
+      $("searchErr").innerHTML = '<div class="err">Preencha nome, categoria e a cidade (ou um CEP).</div>';
       return;
     }
     $("goBtn").disabled = true;
@@ -311,7 +321,7 @@ fbq('track', 'PageView');
       const r = await fetch("/api/radar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, categoria, cidade }),
+        body: JSON.stringify({ nome, categoria, cidade, cep }),
       });
       const data = await r.json();
       if (!r.ok) {

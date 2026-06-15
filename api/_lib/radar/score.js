@@ -4,9 +4,24 @@
 import { geminiEval, hasGemini } from "./engines.js";
 
 // 1) Perguntas no estilo do consumidor real (6 por motor).
-export function buildQuestions(categoria, cidade) {
+// Se o bairro for conhecido (via CEP), a maioria das perguntas mira no BAIRRO
+// — buscas locais reais são por bairro ("pizza na Aclimação"), não por cidade.
+export function buildQuestions(categoria, cidade, bairro) {
   const c = (categoria || "").trim();
   const cid = (cidade || "").trim();
+  const b = (bairro || "").trim();
+
+  if (b) {
+    return [
+      `Qual a melhor ${c} na ${b}, em ${cid}?`,
+      `Onde tem uma boa ${c} na ${b}?`,
+      `Me indica ${c} de confiança perto da ${b}, ${cid}.`,
+      `Estou na ${b} (${cid}) e quero ${c}. O que você sugere?`,
+      `${c} bem avaliada em ${cid}?`,
+      `Quais as ${c}s mais recomendadas em ${cid}?`,
+    ];
+  }
+
   return [
     `Qual a melhor ${c} em ${cid}?`,
     `Onde encontrar ${c} bem avaliada em ${cid}?`,

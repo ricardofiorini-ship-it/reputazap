@@ -18,6 +18,7 @@ import {
   buildDiagnostico,
 } from "./_lib/radar/score.js";
 import { saveDiagnostic } from "./_lib/radar/cache.js";
+import { lookupCep } from "./_lib/radar/cep.js";
 
 // ---- Rate limit simples por IP/hora (best-effort; instância quente da Vercel) ----
 const RATE_LIMIT = 5;
@@ -57,13 +58,28 @@ export default async function handler(req, res) {
 
   const nome = (body.nome || "").toString().trim();
   const categoria = (body.categoria || "").toString().trim();
-  const cidade = (body.cidade || "").toString().trim();
-  if (!nome || !categoria || !cidade) {
-    return res.status(400).json({ error: "Informe nome, categoria e cidade." });
+  let cidade = (body.cidade || "").toString().trim();
+  const cep = (body.cep || "").toString().trim();
+  if (!nome || !categoria) {
+    return res.status(400).json({ error: "Informe nome e categoria." });
   }
 
   if (rateLimited(getIp(req))) {
     return res.status(429).json({ error: "Muitos diagnósticos seguidos. Tente novamente em alguns minutos." });
+  }
+
+  // CEP (opcional) → descobre o bairro pra refinar as perguntas; se faltar
+  // cidade, deriva da resposta do ViaCEP.
+  let bairro = null;
+  if (cep) {
+    const geo = await lookupCep(cep);
+    if (geo) {
+      bairro = geo.bairro;
+      if (!cidade && geo.cidade) cidade = geo.uf ? `${geo.cidade}, ${geo.uf}` : geo.cidade;
+    }
+  }
+  if (!cidade) {
+    return res.status(400).json({ error: "Informe a cidade ou um CEP válido." });
   }
 
   const engines = availableEngines();
@@ -74,7 +90,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const perguntas = buildQuestions(categoria, cidade);
+    const perguntas = buildQuestions(categoria, cidade, bairro);
 
     // Roda os motores ativos em paralelo. Cada um roda suas 6 perguntas (com cache).
     const settled = await Promise.allSettled(
@@ -135,9 +151,12 @@ export default async function handler(req, res) {
     const diagnostico = buildDiagnostico({ nome, score, mencoes, total, concorrentes, motoresAtivos });
 
     // Histórico (best-effort).
-    await saveDiagnostic({ nome, categoria, cidade, score, mencoes, total, concorrentes, detalhe: porMotor });
+    await saveDiagnostic({
+      nome, categoria, cidade, score, mencoes, total, concorrentes,
+      detalhe: { local: { cidade, bairro }, porMotor },
+    });
 
-    return res.json({ score, mencoes, total, concorrentes, diagnostico, porMotor });
+    return res.json({ score, mencoes, total, concorrentes, diagnostico, porMotor, local: { cidade, bairro } });
   } catch (err) {
     console.error("[radar] erro:", err);
     return res.status(500).json({ error: err.message || "Erro ao gerar o diagnóstico de IA." });
