@@ -43,12 +43,22 @@ function openai() {
 
 // ---------- Gemini ----------
 async function askGemini(pergunta) {
-  const model = genai().getGenerativeModel({
-    model: "gemini-2.0-flash",
-    tools: [{ googleSearch: {} }], // grounding nativo
-  });
-  const r = await model.generateContent(pergunta);
-  return r.response.text();
+  // Caminho preferido: com grounding (Google Search). Se a versão do SDK
+  // @google/generative-ai não aceitar a tool nesse modelo, cai pra geração
+  // sem grounding (ainda responde — melhor que derrubar o motor inteiro).
+  try {
+    const model = genai().getGenerativeModel({
+      model: "gemini-2.0-flash",
+      tools: [{ googleSearch: {} }], // grounding nativo
+    });
+    const r = await model.generateContent(pergunta);
+    return r.response.text();
+  } catch (err) {
+    console.warn("[radar] gemini grounding indisponível, fallback sem grounding:", err.message);
+    const model = genai().getGenerativeModel({ model: "gemini-2.0-flash" });
+    const r = await model.generateContent(pergunta);
+    return r.response.text();
+  }
 }
 
 // Geração simples (sem grounding) — usada na etapa de avaliação. Mais barata.
@@ -120,10 +130,10 @@ export async function runEngine({ motor, categoria, cidade, perguntas }) {
     perguntas.map((pergunta) => askWithCache({ motor, categoria, cidade, pergunta }))
   );
   const respostas = [];
-  let falhas = 0;
+  const erros = [];
   for (const s of settled) {
     if (s.status === "fulfilled" && s.value?.resposta) respostas.push(s.value);
-    else falhas++;
+    else erros.push(s.status === "rejected" ? (s.reason?.message || String(s.reason)) : "resposta vazia");
   }
-  return { motor, respostas, total: respostas.length, falhas };
+  return { motor, respostas, total: respostas.length, falhas: erros.length, erros };
 }

@@ -83,13 +83,25 @@ export default async function handler(req, res) {
 
     // Mantém só motores que produziram ao menos 1 resposta (regra de transparência).
     const ran = [];
+    const debug = [];
     settled.forEach((s, i) => {
-      if (s.status === "fulfilled" && s.value.total > 0) ran.push(s.value);
-      else console.warn(`[radar] motor ${engines[i]} não rodou:`, s.status === "rejected" ? s.reason?.message : "0 respostas");
+      if (s.status === "fulfilled" && s.value.total > 0) {
+        ran.push(s.value);
+      } else {
+        const why =
+          s.status === "rejected"
+            ? s.reason?.message || String(s.reason)
+            : `0/${perguntas.length} respostas — ${(s.value?.erros || []).slice(0, 2).join(" | ") || "sem detalhe"}`;
+        debug.push(`${engines[i]}: ${why}`);
+        console.warn(`[radar] motor ${engines[i]} não rodou:`, why);
+      }
     });
 
     if (ran.length === 0) {
-      return res.status(502).json({ error: "Os motores de IA não responderam agora. Tente novamente em instantes." });
+      return res.status(502).json({
+        error: "Os motores de IA não responderam agora. Tente novamente em instantes.",
+        debug,
+      });
     }
 
     // Avalia cada motor (menções + concorrentes), em paralelo.

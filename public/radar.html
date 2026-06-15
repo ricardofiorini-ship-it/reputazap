@@ -273,11 +273,20 @@ fbq('track', 'PageView');
         body: JSON.stringify({ nome, categoria, cidade }),
       });
       const data = await r.json();
-      if (!r.ok) throw new Error(data.error || "Erro ao gerar o diagnóstico.");
+      if (!r.ok) {
+        const err = new Error(data.error || "Erro ao gerar o diagnóstico.");
+        err.debug = data.debug;
+        throw err;
+      }
       renderReport(data, nome);
     } catch (e) {
       show("searchMode");
-      $("searchErr").innerHTML = '<div class="err">' + (e.message || "Não foi possível rodar o radar agora. Tente de novo em instantes.") + '</div>';
+      let html = '<div class="err">' + (e.message || "Não foi possível rodar o radar agora. Tente de novo em instantes.");
+      if (e.debug && e.debug.length) {
+        html += '<br><br><strong>Detalhe técnico:</strong><br>' + e.debug.map(d => '• ' + d).join('<br>');
+      }
+      html += '</div>';
+      $("searchErr").innerHTML = html;
     } finally {
       $("goBtn").disabled = false;
     }
