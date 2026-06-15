@@ -31,9 +31,9 @@ CREATE INDEX IF NOT EXISTS idx_businesses_stripe_customer ON businesses(stripe_c
 ## Endpoints (`api/`)
 
 Vercel **Pro** (limite de funções já não é gargalo). Funções:
-`register`, `login` (aceita `?action=google`/`id_token` pro login Google), `forgot-password`, `reset-password`, `savebiz`, `mybiz`, `reviews` (aceita `?place_id=`), `searchbiz`, `bizinfo` (retorna `plan` + `photoUrl`), `placeid`, `feedback` (GET lista pendentes / POST cria/atualiza, envia email via Resend), `billing` (Stripe — dispatcher por `?action=checkout|checkout-kit|portal|webhook`), `plates` (dispatcher por `?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates`), `r/[code]` (redirect universal de placa).
+`register`, `login` (aceita `?action=google`/`id_token` pro login Google), `forgot-password`, `reset-password`, `savebiz`, `mybiz`, `reviews` (aceita `?place_id=`), `searchbiz`, `bizinfo` (retorna `plan` + `photoUrl`), `placeid`, `feedback` (GET lista pendentes / POST cria/atualiza, envia email via Resend), `billing` (Stripe — dispatcher por `?action=checkout|checkout-kit|portal|webhook`), `plates` (dispatcher por `?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates`), `r/[code]` (redirect universal de placa), `radar` (POST — IA Radar, ver seção abaixo).
 
-Helpers em `api/_lib/` (prefixo `_` = não vira function): `plates.js` (geração de códigos).
+Helpers em `api/_lib/` (prefixo `_` = não vira function): `plates.js` (geração de códigos), `radar/` (motores de IA, cache e score do IA Radar).
 
 ## Status atual
 
@@ -87,9 +87,20 @@ Modelo "TrustHero adapted" — **FLUXO ÚNICO de ativação independente de cana
 
 **Produção física:** gráfica/fornecedor grava o NFC (chip NTAG213+, NDEF/URL) e imprime o QR a partir do CSV — ambos apontam pra mesma URL `/r/CODE`.
 
+## IA Radar (diagnóstico de presença em IA)
+
+Feature de **GEO/medição**: o usuário informa nome + categoria + cidade; o backend pergunta a 3 motores de IA com busca real (Gemini Flash, GPT-4o-mini, Perplexity Sonar) "qual a melhor {categoria} em {cidade}?" (6 perguntas/motor), mede em quantas respostas o negócio é citado e quais concorrentes aparecem, e devolve um **score 0-100** (taxa de menção) + concorrentes + diagnóstico em texto.
+
+- **Página:** `/radar` (`public/radar.html`) — form → `fetch POST /api/radar` → score + barras de concorrentes + diagnóstico. Só mostra motores que rodaram.
+- **Rota:** `api/radar.js`. Helpers em `api/_lib/radar/`: `engines.js` (3 motores + grounding + cache), `score.js` (perguntas, avaliação via Gemini com fallback heurístico, score), `cache.js` (radar_cache + radar_diagnostics).
+- **SQL:** rodar `supabase/schema-radar.sql` uma vez (tabelas `radar_cache` e `radar_diagnostics`).
+- **Custo controlado:** cache de 7 dias por `motor|categoria|cidade|hash(pergunta)` (perguntas genéricas → negócios da mesma categoria/cidade reaproveitam respostas), modelos baratos, rate limit 5/IP/hora. `maxDuration` 60s no `vercel.json`.
+- **Transparência (regra de negócio):** só reporta motores que de fato rodaram; score é rotulado como taxa de menção, não ranking garantido. Falha de um motor não derruba o diagnóstico.
+- **Env vars necessárias:** `GEMINI_API_KEY`, `OPENAI_API_KEY`, `PERPLEXITY_API_KEY` (reusa `SUPABASE_SERVICE_KEY`). Sem nenhuma chave, a rota responde 503; com pelo menos uma, roda só os motores disponíveis. **Avaliação usa Gemini** — sem `GEMINI_API_KEY` cai pro fallback heurístico (só conta menção textual, sem extrair concorrentes).
+
 ## Variáveis de ambiente (Vercel)
 
-`PLACES_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY` (opcional), `RESEND_FROM` (opcional — ex: `"StarTouch <feedback@startouch.com.br>"`; sem isso usa `onboarding@resend.dev`), **`MP_ACCESS_TOKEN`** (Mercado Pago — provedor ativo), `MP_WEBHOOK_SECRET` (opcional, validação HMAC do webhook MP). Stripe dormente: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET` (não usadas atualmente, manter setadas só se planejar reativar Stripe).
+`PLACES_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY` (opcional), `RESEND_FROM` (opcional — ex: `"StarTouch <feedback@startouch.com.br>"`; sem isso usa `onboarding@resend.dev`), **`MP_ACCESS_TOKEN`** (Mercado Pago — provedor ativo), `MP_WEBHOOK_SECRET` (opcional, validação HMAC do webhook MP). **IA Radar:** `GEMINI_API_KEY`, `OPENAI_API_KEY`, `PERPLEXITY_API_KEY` (todas opcionais — a feature roda só os motores cuja chave existe; sem nenhuma, `/api/radar` responde 503). Stripe dormente: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET` (não usadas atualmente, manter setadas só se planejar reativar Stripe).
 
 ## Links
 
