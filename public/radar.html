@@ -274,6 +274,25 @@ fbq('track', 'PageView');
   const ENGINE_LABELS = { gemini: "Gemini (Google)", openai: "ChatGPT (OpenAI)", perplexity: "Perplexity" };
   let lastReport = {}; // contexto do negócio diagnosticado (pro fechamento)
 
+  // Conversão do Google Ads (lead): dispara e SÓ DEPOIS redireciona, pra não
+  // cancelar o registro. Usa event_callback + timeout de segurança (padrão Google).
+  const ADS_LEAD_CONVERSION = "AW-18239737019/CY03CJqo8b4cELuZsflD";
+  function redirectWithConversion(url) {
+    let done = false;
+    const go = () => { if (!done) { done = true; window.location.href = url; } };
+    if (window.gtag) {
+      gtag("event", "conversion", {
+        send_to: ADS_LEAD_CONVERSION,
+        value: 1.0,
+        currency: "BRL",
+        event_callback: go,
+      });
+      setTimeout(go, 1200); // fallback se o callback não vier
+    } else {
+      go();
+    }
+  }
+
   const show = (id) => {
     ["searchMode","loadingMode","reportMode"].forEach(s => $(s).classList.toggle("hidden", s !== id));
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -473,7 +492,7 @@ fbq('track', 'PageView');
       });
       const data = await r.json();
       if (!r.ok || !data.url) throw new Error(data.error || "Não foi possível gerar o pagamento.");
-      window.location.href = data.url;
+      redirectWithConversion(data.url); // registra o lead no Google Ads e vai pro pagamento
     } catch (e) {
       $("leadErr").innerHTML = '<div class="err">' + (e.message || "Erro ao gerar o pagamento.") + '</div>';
       btn.disabled = false;
