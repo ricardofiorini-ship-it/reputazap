@@ -596,13 +596,18 @@ fbq('track', 'PageView');
       "Medição feita em " + motores.length + " motor(es) consultado(s): " + nomes +
       ". O score é a taxa de vezes em que seu negócio foi citado — não é um ranking garantido.";
 
+    maxStepSeen = 0;                            // reinicia o funil deste diagnóstico
+    track("radar_resultado", { score: d.score }); // rodou o diagnóstico com sucesso
     goToStep(1);          // sempre começa a apresentação do passo 1
     show("reportMode");
   }
 
   // ===== Apresentação em passos (funil gradual) =====
   const TOTAL_STEPS = 9;
+  const STEP_NAMES = { 1:"negocio", 2:"diagnostico", 3:"solucao", 4:"brinde", 5:"valor", 6:"desconto", 7:"parcelado", 8:"prazo", 9:"checkout" };
   let curStep = 1;
+  let maxStepSeen = 0;
+  function track(name, params){ if (window.gtag) gtag("event", name, params || {}); }
   function goToStep(n){
     curStep = Math.max(1, Math.min(TOTAL_STEPS, n));
     document.querySelectorAll("#reportMode .step").forEach(el => {
@@ -613,6 +618,11 @@ fbq('track', 'PageView');
     $("stepBarFill").style.width = Math.round((curStep / TOTAL_STEPS) * 100) + "%";
     $("stepBack").classList.toggle("hidden", curStep === 1);
     $("stepNext").classList.toggle("hidden", curStep === TOTAL_STEPS);
+    // Evento de funil: conta "alcançou o passo N" 1x por diagnóstico (só ao avançar).
+    if (curStep > maxStepSeen) {
+      maxStepSeen = curStep;
+      track("radar_passo", { passo: curStep, nome_passo: STEP_NAMES[curStep] });
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -706,6 +716,7 @@ fbq('track', 'PageView');
       });
       const data = await r.json();
       if (!r.ok || !data.url) throw new Error(data.error || "Não foi possível gerar o pagamento.");
+      track("radar_lead", { valor: 599 });       // lead no GA4 (complementa a conversao do Ads)
       redirectWithConversion(data.url); // registra o lead no Google Ads e vai pro pagamento
     } catch (e) {
       $("leadErr").innerHTML = '<div class="err">' + (e.message || "Erro ao gerar o pagamento.") + '</div>';
