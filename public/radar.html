@@ -39,7 +39,7 @@ fbq('track', 'PageView');
   a{text-decoration:none;color:inherit;}
 
   .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;max-width:880px;margin:0 auto;}
-  .logo img{height:34px;width:auto;display:block;}
+  .logo img{height:46px;width:auto;display:block;}
   .header-cta{background:#1A73E8;color:#fff;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:600;white-space:nowrap;transition:background .15s;}
   .header-cta:hover{background:#174EA6;}
 
@@ -144,6 +144,35 @@ fbq('track', 'PageView');
   .err{background:#FCE8E6;border:1px solid #F5C6C0;border-radius:12px;padding:14px 16px;color:#A50E0E;font-size:13.5px;line-height:1.5;margin-top:14px;}
 
   .transparency{font-size:11.5px;color:#9AA0A6;line-height:1.5;margin-top:20px;text-align:center;}
+  /* Faixa de confiança + como funciona (preenchem a tela de busca) */
+  .trust-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;}
+  .trust-chips span{font-size:12.5px;color:#5F6368;background:#fff;border:1px solid #E5E7EB;border-radius:999px;padding:7px 13px;font-weight:600;}
+  .trust-sub{text-align:center;font-size:12px;color:#9AA0A6;margin-top:12px;}
+  .howit{margin-top:36px;}
+  .howit h2{font-size:17px;font-weight:800;text-align:center;color:#0F0F0F;margin-bottom:18px;}
+  .howit-steps{display:grid;grid-template-columns:1fr;gap:12px;}
+  @media(min-width:640px){.howit-steps{grid-template-columns:repeat(3,1fr);}}
+  .howit-step{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:18px;text-align:center;}
+  .howit-step .n{width:30px;height:30px;border-radius:50%;background:#1A73E8;color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
+  .howit-step h3{font-size:14px;font-weight:700;margin-bottom:5px;color:#0F0F0F;}
+  .howit-step p{font-size:12.5px;color:#5F6368;line-height:1.5;}
+
+  /* Rodapé estilo landing (escuro) */
+  .rdr-footer{background:#0B1A33;color:#fff;margin-top:48px;}
+  .rdr-footer-inner{max-width:880px;margin:0 auto;padding:40px 24px 24px;display:grid;grid-template-columns:1fr;gap:28px;}
+  @media(min-width:700px){.rdr-footer-inner{grid-template-columns:1.5fr 1fr 1.2fr;}}
+  .rdr-foot-brand img{height:40px;width:auto;display:block;margin-bottom:14px;}
+  .rdr-foot-tag{font-size:15px;font-weight:700;margin-bottom:6px;}
+  .rdr-foot-sub{font-size:13px;color:#A9B6CC;line-height:1.6;max-width:300px;}
+  .rdr-foot-social{margin-top:14px;display:flex;gap:10px;}
+  .rdr-foot-social a{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;color:#fff;transition:background .15s;}
+  .rdr-foot-social a:hover{background:rgba(255,255,255,0.16);}
+  .rdr-foot-social svg{width:20px;height:20px;}
+  .rdr-foot-col h4{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:#7C8BA5;margin-bottom:12px;}
+  .rdr-foot-col a,.rdr-foot-col p{display:block;font-size:13.5px;color:#D6DEEC;margin-bottom:9px;line-height:1.4;}
+  .rdr-foot-col a:hover{color:#fff;}
+  .rdr-foot-bottom{border-top:1px solid rgba(255,255,255,0.1);text-align:center;font-size:12px;color:#7C8BA5;padding:16px 24px;line-height:1.6;}
+
   .hidden{display:none;}
 </style>
 </head>
@@ -180,6 +209,34 @@ fbq('track', 'PageView');
       <button class="btn btn-primary" id="goBtn" type="button">🛰️ Rodar meu IA Radar</button>
       <p class="form-note">Consultamos as IAs em tempo real — leva alguns segundos.</p>
       <div id="searchErr"></div>
+    </div>
+
+    <div class="trust-chips">
+      <span>✓ Grátis</span>
+      <span>✓ Leva 30 segundos</span>
+      <span>✓ Sem instalar nada</span>
+    </div>
+    <p class="trust-sub">Consultamos ChatGPT, Gemini e Perplexity em tempo real.</p>
+
+    <div class="howit">
+      <h2>Como funciona</h2>
+      <div class="howit-steps">
+        <div class="howit-step">
+          <div class="n">1</div>
+          <h3>Você informa</h3>
+          <p>Nome, categoria e cidade — e o CEP, se quiser mirar no seu bairro.</p>
+        </div>
+        <div class="howit-step">
+          <div class="n">2</div>
+          <h3>A gente pergunta às IAs</h3>
+          <p>Fazemos as buscas que seus clientes fariam no ChatGPT, Gemini e Perplexity.</p>
+        </div>
+        <div class="howit-step">
+          <div class="n">3</div>
+          <h3>Você vê o resultado</h3>
+          <p>Sua taxa de menção, quem aparece e o que fazer pra subir nas IAs.</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -271,6 +328,35 @@ fbq('track', 'PageView');
   </section>
 
 </main>
+
+<footer class="rdr-footer">
+  <div class="rdr-footer-inner">
+    <div class="rdr-foot-brand">
+      <img src="/startouch-logo.png" alt="StarTouch"/>
+      <p class="rdr-foot-tag">Conecte. Avalie. Cresça.</p>
+      <p class="rdr-foot-sub">Transformamos a experiência dos seus clientes em crescimento real para o seu negócio.</p>
+      <div class="rdr-foot-social">
+        <a href="https://instagram.com/startouch_br" target="_blank" rel="noopener" aria-label="Instagram da StarTouch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="rdr-foot-col">
+      <h4>StarTouch</h4>
+      <a href="/landing">Início</a>
+      <a href="/ativar?from=radar">Monte seu kit</a>
+      <a href="/artigos">Artigos</a>
+      <a href="/sobre">Sobre</a>
+    </div>
+    <div class="rdr-foot-col">
+      <h4>Fale conosco</h4>
+      <a href="https://wa.me/5511976944026?text=Oi!%20Quero%20saber%20mais%20sobre%20o%20StarTouch." target="_blank" rel="noopener">WhatsApp (11) 97694-4026</a>
+      <a href="mailto:contato@startouch.com.br">contato@startouch.com.br</a>
+      <a href="https://startouch.com.br" target="_blank" rel="noopener">startouch.com.br</a>
+    </div>
+  </div>
+  <div class="rdr-foot-bottom">© 2026 StarTouch · Vargem Grande Paulista, SP · Tecnologia para negócios locais aparecerem no Google e nas IAs.</div>
+</footer>
 
 <script>
 (function(){
