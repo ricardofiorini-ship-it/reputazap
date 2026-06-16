@@ -32,8 +32,26 @@ create table if not exists radar_diagnostics (
 );
 create index if not exists idx_radar_diagnostics_created on radar_diagnostics(created_at);
 
--- Observação de RLS: ambas as tabelas são acessadas SOMENTE pelo backend
+-- Leads do fluxo de fechamento (Pacote Presença em IA). Captura quem demonstra
+-- interesse — mesmo que não conclua o pagamento — pra follow-up comercial.
+create table if not exists radar_leads (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  email text not null,
+  whatsapp text,
+  biz_name text,
+  cidade text,
+  bairro text,
+  score int,
+  want_kit boolean default false,
+  status text default 'novo',        -- novo | pago (atualizado manualmente/futuro)
+  created_at timestamptz default now()
+);
+create index if not exists idx_radar_leads_created on radar_leads(created_at);
+
+-- Observação de RLS: as tabelas são acessadas SOMENTE pelo backend
 -- via SUPABASE_SERVICE_KEY (service role, ignora RLS). Não há acesso do client.
 -- Por segurança, deixe RLS habilitado sem policies públicas:
 alter table radar_cache enable row level security;
 alter table radar_diagnostics enable row level security;
+alter table radar_leads enable row level security;

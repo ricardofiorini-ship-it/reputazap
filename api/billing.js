@@ -231,6 +231,79 @@ async function handleCheckoutKitMP(req, res) {
   }
 }
 
+// Pacote Presença em IA — checkout PÚBLICO (sem login). Lead vem do Radar.
+// R$ 599 total, parcelável em até 6x no cartão. Captura o lead antes de pagar.
+const IA_PACKAGE = {
+  title: "Pacote Presença em IA — Programa de 6 meses",
+  description: "Diagnóstico mensal no IA Radar + diretrizes de otimização do Google e estratégia de avaliações. Em até 6x.",
+  price_cents: 59900,
+  max_installments: 6,
+};
+
+async function handleCheckoutServicoMP(req, res) {
+  try {
+    const b = parseJson(await getRawBody(req));
+    const nome = (b.nome || "").toString().trim();
+    const email = (b.email || "").toString().trim();
+    const whatsapp = (b.whatsapp || "").toString().trim();
+    const biz_name = (b.biz_name || "").toString().trim();
+    const cidade = (b.cidade || "").toString().trim();
+    const bairro = (b.bairro || "").toString().trim();
+    const want_kit = !!b.want_kit;
+    const scoreInt = parseInt(b.score, 10);
+    const score = Number.isFinite(scoreInt) ? scoreInt : null;
+
+    if (!nome || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({ error: "Informe nome e um email válido." });
+    }
+
+    // Captura do lead (best-effort — não derruba o checkout se a tabela faltar).
+    try {
+      await supabase.from("radar_leads").insert({ nome, email, whatsapp, biz_name, cidade, bairro, score, want_kit });
+    } catch (e) {
+      console.warn("[mp/checkout-ia] lead insert falhou:", e?.message);
+    }
+
+    const mp = getMP();
+    const preference = new Preference(mp);
+    const origin = req.headers.origin || `https://${req.headers.host}`;
+    const [first_name, ...rest] = nome.split(/\s+/).filter(Boolean);
+    const last_name = rest.join(" ") || first_name || "";
+
+    const result = await preference.create({
+      body: {
+        items: [{
+          id: "presenca-ia-6m",
+          title: IA_PACKAGE.title,
+          description: IA_PACKAGE.description,
+          category_id: "services",
+          quantity: 1,
+          unit_price: Number((IA_PACKAGE.price_cents / 100).toFixed(2)),
+          currency_id: "BRL",
+        }],
+        payer: { email, ...(first_name && { name: first_name, surname: last_name }) },
+        back_urls: {
+          success: `${origin}/radar?contratado=1`,
+          pending: `${origin}/radar?contratado=pending`,
+          failure: `${origin}/radar?contratado=0`,
+        },
+        auto_return: "approved",
+        payment_methods: { installments: IA_PACKAGE.max_installments },
+        external_reference: `ia_${Date.now()}`,
+        notification_url: `${origin}/api/billing?action=webhook`,
+        metadata: { tipo: "presenca_ia", nome, email, whatsapp, biz_name, cidade, bairro, score, want_kit },
+        statement_descriptor: "STARTOUCH",
+        additional_info: `Pacote Presença em IA (6 meses) — ${biz_name || nome}`,
+      },
+    });
+
+    return res.json({ url: result.init_point });
+  } catch (err) {
+    console.error("[mp/checkout-ia] erro:", err);
+    return res.status(500).json({ error: err?.message || "Erro ao criar checkout do pacote" });
+  }
+}
+
 // Cancela a assinatura Pro do usuario logado (substitui o portal do Stripe).
 async function handlePortalMP(req, res) {
   const auth = await authUser(req);
@@ -690,8 +763,9 @@ export default async function handler(req, res) {
   try {
     if (action === "checkout") return await handleCheckoutMP(req, res);
     if (action === "checkout-kit") return await handleCheckoutKitMP(req, res);
+    if (action === "checkout-ia") return await handleCheckoutServicoMP(req, res);
     if (action === "portal") return await handlePortalMP(req, res);
-    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|portal|webhook|debug" });
+    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|checkout-ia|portal|webhook|debug" });
   } catch (err) {
     console.error("[billing] erro nao tratado:", err);
     if (!res.headersSent) return res.status(500).json({ error: err?.message || "Erro interno" });
