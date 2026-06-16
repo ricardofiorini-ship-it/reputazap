@@ -106,8 +106,11 @@ fbq('track', 'PageView');
   .comp{display:flex;align-items:center;gap:12px;padding:11px 12px;}
   .comp + .comp{border-top:1px solid #F1F3F4;}
   .comp .rk{font-size:13px;font-weight:800;color:#5F6368;width:22px;text-align:center;flex-shrink:0;}
-  .comp .nm{flex:1;min-width:0;font-size:14px;font-weight:600;color:#0F0F0F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .comp .bar{width:90px;height:7px;background:#E8F0FE;border-radius:999px;overflow:hidden;flex-shrink:0;}
+  .comp-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+  .comp .nm{font-size:14px;font-weight:600;color:#0F0F0F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .comp-meta{font-size:11.5px;color:#80868B;}
+  .comp .bar{width:84px;height:7px;background:#E8F0FE;border-radius:999px;overflow:hidden;flex-shrink:0;}
+  .comp-note{font-size:11.5px;color:#9AA0A6;line-height:1.5;margin:8px 4px 0;}
   .comp .bar > span{display:block;height:100%;background:#1A73E8;border-radius:999px;}
 
   .cta-final{margin-top:8px;}
@@ -210,8 +213,9 @@ fbq('track', 'PageView');
     <div class="engines" id="repEngines"></div>
 
     <div id="repCompWrap">
-      <p class="section-title">Quem apareceu no seu lugar</p>
+      <p class="section-title">Quem as IAs mais citaram na sua categoria</p>
       <div class="comp-list" id="repComp"></div>
+      <p class="comp-note">A barra mostra em quantas buscas cada um foi citado. Aparecer aqui não significa que você ficou de fora — às vezes vocês aparecem na mesma resposta.</p>
     </div>
 
     <div class="convert">
@@ -343,7 +347,7 @@ fbq('track', 'PageView');
           ? '<span class="qa-flag ok">✓ citado</span>'
           : '<span class="qa-flag no">✗ ausente</span>';
         const comp = (it.concorrentes && it.concorrentes.length)
-          ? '<div class="qa-comp"><strong>Citou no seu lugar:</strong> ' + it.concorrentes.map(esc).join(", ") + '</div>'
+          ? '<div class="qa-comp"><strong>Também citou:</strong> ' + it.concorrentes.map(esc).join(", ") + '</div>'
           : '';
         let body = esc(it.resposta);
         body = highlight(body, it.concorrentes, "hl");  // concorrentes em negrito
@@ -374,26 +378,35 @@ fbq('track', 'PageView');
       eng.appendChild(block);
     });
 
-    // Concorrentes: largura da barra por frequência de menção entre os motores.
+    // Concorrentes: frequência por nº de BUSCAS em que cada um apareceu (varia
+    // de verdade, mesmo com 1 motor). Não implica que você ficou de fora.
     const comp = $("repComp"); comp.innerHTML = "";
-    const lista = d.concorrentes || [];
-    if (!lista.length) {
+    const totalBuscas = d.total || 0;
+    const freq = {}; // chave -> { name, n }
+    motores.forEach(m => (d.porMotor[m].itens || []).forEach(it => {
+      (it.concorrentes || []).forEach(c => {
+        const k = (c || "").trim().toLowerCase(); if (!k) return;
+        if (!freq[k]) freq[k] = { name: c.trim(), n: 0 };
+        freq[k].n += 1;
+      });
+    }));
+    let ranked = Object.values(freq).sort((a, b) => b.n - a.n).slice(0, 5);
+    if (!ranked.length) ranked = (d.concorrentes || []).slice(0, 5).map(n => ({ name: n, n: 0 })); // fallback
+
+    if (!ranked.length) {
       $("repCompWrap").style.display = "none";
     } else {
       $("repCompWrap").style.display = "";
-      const freq = {};
-      motores.forEach(m => (d.porMotor[m].concorrentes || []).forEach(c => {
-        const k = c.trim().toLowerCase(); freq[k] = (freq[k] || 0) + 1;
-      }));
-      const maxF = Math.max(1, ...lista.map(c => freq[c.trim().toLowerCase()] || 1));
-      lista.forEach((c, i) => {
-        const f = freq[c.trim().toLowerCase()] || 1;
+      ranked.forEach((c, i) => {
+        const pct = (totalBuscas && c.n) ? Math.round((c.n / totalBuscas) * 100) : 0;
+        const meta = c.n ? ("apareceu em " + c.n + " de " + totalBuscas + " buscas") : "";
         const row = document.createElement("div");
         row.className = "comp";
         row.innerHTML =
           '<span class="rk">' + (i + 1) + '</span>' +
-          '<span class="nm">' + c + '</span>' +
-          '<span class="bar"><span style="width:' + Math.round((f / maxF) * 100) + '%"></span></span>';
+          '<div class="comp-main"><span class="nm">' + esc(c.name) + '</span>' +
+            (meta ? '<span class="comp-meta">' + meta + '</span>' : '') + '</div>' +
+          '<span class="bar"><span style="width:' + Math.max(6, pct) + '%"></span></span>';
         comp.appendChild(row);
       });
     }

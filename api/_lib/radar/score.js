@@ -159,7 +159,7 @@ export function buildDiagnostico({ nome, score, mencoes, total, concorrentes, mo
     txt += " Boa presença, mas dá pra consolidar a liderança e aparecer em mais respostas.";
   }
   if (concorrentes.length) {
-    txt += ` Os nomes que mais apareceram no seu lugar: ${concorrentes.join(", ")}.`;
+    txt += ` Os nomes que as IAs mais citaram na sua categoria: ${concorrentes.join(", ")}.`;
   }
   return txt;
 }
