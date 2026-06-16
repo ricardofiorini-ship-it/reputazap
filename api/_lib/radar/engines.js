@@ -131,26 +131,19 @@ async function askWithCache({ motor, categoria, cidade, pergunta }) {
   return { pergunta, resposta, cached: false };
 }
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-// Roda as perguntas de UM motor de forma SEQUENCIAL, com pausa entre elas,
-// pra não estourar o limite por minuto (free tier do Gemini é apertado).
-// Respostas em cache não contam pausa (são instantâneas). Em erro de cota,
-// aborta as perguntas seguintes do motor (não adianta insistir no mesmo minuto).
+// Roda as perguntas de UM motor EM PARALELO (rápido — evita timeout da função).
+// Em conta paga do Gemini o limite por minuto é alto, então não há motivo pra
+// serializar. Perguntas que falham viram erro; o total reflete só as que vieram.
 // Retorna { motor, respostas, total, falhas, erros }.
 export async function runEngine({ motor, categoria, cidade, perguntas }) {
+  const settled = await Promise.allSettled(
+    perguntas.map((pergunta) => askWithCache({ motor, categoria, cidade, pergunta }))
+  );
   const respostas = [];
   const erros = [];
-  for (let i = 0; i < perguntas.length; i++) {
-    try {
-      const v = await askWithCache({ motor, categoria, cidade, pergunta: perguntas[i] });
-      if (v?.resposta) respostas.push(v);
-      else erros.push("resposta vazia");
-      if (!v?.cached && i < perguntas.length - 1) await sleep(400); // gentil com o RPM
-    } catch (err) {
-      erros.push(err?.message || String(err));
-      if (isQuotaError(err)) break; // cota estourada: para de insistir neste motor
-    }
+  for (const s of settled) {
+    if (s.status === "fulfilled" && s.value?.resposta) respostas.push(s.value);
+    else erros.push(s.status === "rejected" ? (s.reason?.message || String(s.reason)) : "resposta vazia");
   }
   return { motor, respostas, total: respostas.length, falhas: erros.length, erros };
 }

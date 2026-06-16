@@ -405,7 +405,14 @@ fbq('track', 'PageView');
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome, categoria, cidade, cep }),
       });
-      const data = await r.json();
+      const raw = await r.text();
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        // Resposta não-JSON (timeout/erro de plataforma): mensagem amigável.
+        throw new Error("O diagnóstico demorou mais que o esperado. Tente de novo em instantes.");
+      }
       if (!r.ok) {
         const err = new Error(data.error || "Erro ao gerar o diagnóstico.");
         err.debug = data.debug;

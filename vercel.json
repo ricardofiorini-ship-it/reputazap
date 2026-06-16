@@ -50,7 +50,7 @@
     { "source": "/app-legacy", "destination": "/index.html" }
   ],
   "functions": {
-    "api/radar.js": { "maxDuration": 60 }
+    "api/radar.js": { "maxDuration": 90 }
   },
   "crons": [
     { "path": "/api/cron/snapshot-competitors", "schedule": "0 4 * * 1" },
