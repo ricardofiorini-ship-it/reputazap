@@ -95,7 +95,9 @@ fbq('track', 'PageView');
   .qa-flag{flex-shrink:0;font-size:11px;font-weight:800;border-radius:6px;padding:2px 7px;margin-top:1px;}
   .qa-flag.ok{background:#E6F4EA;color:#137333;}
   .qa-flag.no{background:#FCE8E6;color:#A50E0E;}
-  .qa-a{font-size:12.5px;color:#5F6368;line-height:1.55;margin-top:7px;padding-left:2px;font-style:italic;}
+  .qa-a{font-size:12.5px;color:#5F6368;line-height:1.7;margin-top:7px;padding-left:2px;font-style:italic;}
+  .qa-a .hl{font-weight:800;font-size:14px;color:#0F0F0F;font-style:normal;}
+  .qa-a .hl-me{font-weight:800;font-size:14px;color:#1A73E8;font-style:normal;background:#E8F0FE;border-radius:4px;padding:0 4px;}
   .qa-comp{font-size:12px;color:#174EA6;margin-top:6px;}
   .qa-comp strong{font-weight:700;}
 
@@ -218,6 +220,18 @@ fbq('track', 'PageView');
 
   function scoreColor(s){ return s < 34 ? "#D93025" : s < 67 ? "#F9AB00" : "#1E8E3E"; }
   function esc(s){ const d = document.createElement("div"); d.textContent = (s == null ? "" : String(s)); return d.innerHTML; }
+  function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  // Destaca, no texto JÁ escapado, os nomes da lista com a classe cls.
+  // Nomes mais longos primeiro (evita destaque parcial). Uma passada só.
+  function highlight(escapedText, names, cls){
+    const list = (names || [])
+      .map(n => esc((n || "").trim()))
+      .filter(Boolean)
+      .sort((a, b) => b.length - a.length);
+    if (!list.length) return escapedText;
+    const re = new RegExp("(" + list.map(escRe).join("|") + ")", "gi");
+    return escapedText.replace(re, '<span class="' + cls + '">$1</span>');
+  }
 
   function renderReport(d, nome){
     $("repName").textContent = nome;
@@ -247,7 +261,10 @@ fbq('track', 'PageView');
         const comp = (it.concorrentes && it.concorrentes.length)
           ? '<div class="qa-comp"><strong>Citou no seu lugar:</strong> ' + it.concorrentes.map(esc).join(", ") + '</div>'
           : '';
-        const resp = it.resposta ? '<div class="qa-a">"' + esc(it.resposta) + '"</div>' : '';
+        let body = esc(it.resposta);
+        body = highlight(body, it.concorrentes, "hl");  // concorrentes em negrito
+        body = highlight(body, [nome], "hl-me");          // seu negócio em azul
+        const resp = it.resposta ? '<div class="qa-a">"' + body + '"</div>' : '';
         return '<div class="qa"><div class="qa-q">' + flag + '<span>' + esc(it.pergunta) + '</span></div>' + resp + comp + '</div>';
       }).join("");
 
