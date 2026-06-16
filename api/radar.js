@@ -82,6 +82,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Informe a cidade ou um CEP válido." });
   }
 
+  // Produtos/serviços-chave (opcional) → perguntas de nicho mais relevantes.
+  let produtos = [];
+  if (Array.isArray(body.produtos)) produtos = body.produtos;
+  else if (typeof body.produtos === "string") produtos = body.produtos.split(",");
+  produtos = produtos.map((p) => (p || "").toString().trim()).filter(Boolean).slice(0, 3);
+
   const engines = availableEngines();
   if (engines.length === 0) {
     return res.status(503).json({
@@ -90,7 +96,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const perguntas = buildQuestions(categoria, cidade, bairro);
+    const perguntas = buildQuestions(categoria, cidade, bairro, produtos);
 
     // Roda os motores ativos em paralelo. Cada um roda suas 6 perguntas (com cache).
     const settled = await Promise.allSettled(
@@ -153,7 +159,7 @@ export default async function handler(req, res) {
     // Histórico (best-effort).
     await saveDiagnostic({
       nome, categoria, cidade, score, mencoes, total, concorrentes,
-      detalhe: { local: { cidade, bairro }, porMotor },
+      detalhe: { local: { cidade, bairro }, produtos, porMotor },
     });
 
     return res.json({ score, mencoes, total, concorrentes, diagnostico, porMotor, local: { cidade, bairro } });

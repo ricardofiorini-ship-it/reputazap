@@ -57,6 +57,10 @@ fbq('track', 'PageView');
   .search-card{background:#fff;border:1px solid #E5E7EB;border-radius:16px;padding:22px;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
   .field{margin-bottom:12px;}
   .field label{display:block;font-size:12px;font-weight:600;color:#5F6368;margin-bottom:6px;}
+  .hint{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#E8F0FE;color:#1A73E8;font-size:11px;font-weight:800;cursor:help;position:relative;margin-left:6px;vertical-align:middle;outline:none;}
+  .hint-bubble{display:none;position:absolute;left:50%;bottom:calc(100% + 9px);transform:translateX(-50%);width:210px;background:#0B1A33;color:#fff;font-size:12px;font-weight:500;line-height:1.45;padding:9px 11px;border-radius:8px;z-index:20;box-shadow:0 6px 18px rgba(0,0,0,0.22);text-align:left;white-space:normal;}
+  .hint-bubble::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#0B1A33;}
+  .hint:hover .hint-bubble,.hint:focus .hint-bubble{display:block;}
   .field input{width:100%;border:1.5px solid #DADCE0;border-radius:10px;padding:13px 14px;font-size:15px;font-family:inherit;outline:none;transition:border-color .15s;}
   .field input:focus{border-color:#1A73E8;}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;border:none;transition:background .15s;}
@@ -189,34 +193,6 @@ fbq('track', 'PageView');
     <div class="badge"><span class="badge-dot"></span>IA Radar</div>
     <h1>Seu negócio aparece nas IAs?</h1>
     <p class="sub">Cada vez mais gente pergunta ao ChatGPT, ao Gemini e ao Perplexity onde comer, onde se cuidar, onde comprar. Descubra se as IAs recomendam o <strong>seu</strong> negócio — ou o concorrente.</p>
-    <div class="search-card">
-      <div class="field">
-        <label for="nome">Nome do negócio</label>
-        <input id="nome" type="text" placeholder="Ex: Barbearia do João" autocomplete="off"/>
-      </div>
-      <div class="field">
-        <label for="categoria">Categoria</label>
-        <input id="categoria" type="text" placeholder="Ex: barbearia, pizzaria, clínica odontológica" autocomplete="off"/>
-      </div>
-      <div class="field">
-        <label for="cidade">Cidade</label>
-        <input id="cidade" type="text" placeholder="Ex: São Paulo, SP" autocomplete="off"/>
-      </div>
-      <div class="field">
-        <label for="cep">CEP <span style="font-weight:400;color:#9AA0A6;">(opcional — mira no seu bairro)</span></label>
-        <input id="cep" type="text" inputmode="numeric" placeholder="Ex: 01530-000" autocomplete="off"/>
-      </div>
-      <button class="btn btn-primary" id="goBtn" type="button">🛰️ Rodar meu IA Radar</button>
-      <p class="form-note">Consultamos as IAs em tempo real — leva alguns segundos.</p>
-      <div id="searchErr"></div>
-    </div>
-
-    <div class="trust-chips">
-      <span>✓ Grátis</span>
-      <span>✓ Leva 30 segundos</span>
-      <span>✓ Sem instalar nada</span>
-    </div>
-    <p class="trust-sub">Consultamos ChatGPT, Gemini e Perplexity em tempo real.</p>
 
     <div class="howit">
       <h2>Como funciona</h2>
@@ -238,6 +214,39 @@ fbq('track', 'PageView');
         </div>
       </div>
     </div>
+
+    <div class="search-card">
+      <div class="field">
+        <label for="nome">Nome do negócio<span class="hint" tabindex="0" role="button" aria-label="ajuda">?<span class="hint-bubble">O nome do seu negócio exatamente como aparece no Google.</span></span></label>
+        <input id="nome" type="text" placeholder="Ex: Barbearia do João" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label for="categoria">Categoria<span class="hint" tabindex="0" role="button" aria-label="ajuda">?<span class="hint-bubble">O tipo do seu negócio. Ex: pizzaria, salão de beleza, clínica odontológica.</span></span></label>
+        <input id="categoria" type="text" placeholder="Ex: barbearia, pizzaria, clínica odontológica" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label for="cidade">Cidade<span class="hint" tabindex="0" role="button" aria-label="ajuda">?<span class="hint-bubble">Cidade e estado onde você atende. Ex: São Paulo, SP.</span></span></label>
+        <input id="cidade" type="text" placeholder="Ex: São Paulo, SP" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label for="cep">CEP <span style="font-weight:400;color:#9AA0A6;">(opcional)</span><span class="hint" tabindex="0" role="button" aria-label="ajuda">?<span class="hint-bubble">Com o CEP a gente foca as buscas no seu bairro — onde o cliente realmente procura.</span></span></label>
+        <input id="cep" type="text" inputmode="numeric" placeholder="Ex: 01530-000" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label for="produtos">Produtos/serviços principais <span style="font-weight:400;color:#9AA0A6;">(opcional)</span><span class="hint" tabindex="0" role="button" aria-label="ajuda">?<span class="hint-bubble">O que você mais vende. Deixa o diagnóstico mais preciso — testamos buscas pelo seu nicho. Ex: sobrancelha, corte masculino.</span></span></label>
+        <input id="produtos" type="text" placeholder="Ex: sobrancelha, corte masculino (separe por vírgula)" autocomplete="off"/>
+      </div>
+      <button class="btn btn-primary" id="goBtn" type="button">🛰️ Rodar meu IA Radar</button>
+      <p class="form-note">Consultamos as IAs em tempo real — leva alguns segundos.</p>
+      <div id="searchErr"></div>
+    </div>
+
+    <div class="trust-chips">
+      <span>✓ Grátis</span>
+      <span>✓ Leva 30 segundos</span>
+      <span>✓ Sem instalar nada</span>
+    </div>
+    <p class="trust-sub">Consultamos ChatGPT, Gemini e Perplexity em tempo real.</p>
   </section>
 
   <!-- LOADING -->
@@ -510,6 +519,7 @@ fbq('track', 'PageView');
     const categoria = $("categoria").value.trim();
     const cidade = $("cidade").value.trim();
     const cep = $("cep").value.trim();
+    const produtos = $("produtos").value.trim();
     $("searchErr").innerHTML = "";
     if (!nome || !categoria || (!cidade && !cep)) {
       $("searchErr").innerHTML = '<div class="err">Preencha nome, categoria e a cidade (ou um CEP).</div>';
@@ -521,7 +531,7 @@ fbq('track', 'PageView');
       const r = await fetch("/api/radar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, categoria, cidade, cep }),
+        body: JSON.stringify({ nome, categoria, cidade, cep, produtos }),
       });
       const raw = await r.text();
       let data;
@@ -557,7 +567,7 @@ fbq('track', 'PageView');
     show("searchMode");
     setTimeout(() => $("nome").focus(), 300);
   });
-  ["nome","categoria","cidade","cep"].forEach(id =>
+  ["nome","categoria","cidade","cep","produtos"].forEach(id =>
     $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") run(); })
   );
 

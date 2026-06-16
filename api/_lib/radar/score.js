@@ -6,30 +6,44 @@ import { geminiEval, hasGemini } from "./engines.js";
 // 1) Perguntas no estilo do consumidor real (6 por motor).
 // Se o bairro for conhecido (via CEP), a maioria das perguntas mira no BAIRRO
 // — buscas locais reais são por bairro ("pizza na Aclimação"), não por cidade.
-export function buildQuestions(categoria, cidade, bairro) {
+export function buildQuestions(categoria, cidade, bairro, produtos) {
   const c = (categoria || "").trim();
   const cid = (cidade || "").trim();
   const b = (bairro || "").trim();
+  const local = b ? `${b}, ${cid}` : cid;
 
-  if (b) {
-    return [
-      `Qual a melhor ${c} na ${b}, em ${cid}?`,
-      `Onde tem uma boa ${c} na ${b}?`,
-      `Me indica ${c} de confiança perto da ${b}, ${cid}.`,
-      `Estou na ${b} (${cid}) e quero ${c}. O que você sugere?`,
-      `${c} bem avaliada em ${cid}?`,
-      `Quais as ${c}s mais recomendadas em ${cid}?`,
-    ];
-  }
+  const perguntas = b
+    ? [
+        `Qual a melhor ${c} na ${b}, em ${cid}?`,
+        `Onde tem uma boa ${c} na ${b}?`,
+        `Me indica ${c} de confiança perto da ${b}, ${cid}.`,
+        `Estou na ${b} (${cid}) e quero ${c}. O que você sugere?`,
+        `${c} bem avaliada em ${cid}?`,
+        `Quais as ${c}s mais recomendadas em ${cid}?`,
+      ]
+    : [
+        `Qual a melhor ${c} em ${cid}?`,
+        `Onde encontrar ${c} bem avaliada em ${cid}?`,
+        `Me indica ${c} de confiança em ${cid}.`,
+        `${c} em ${cid} com boas avaliações no Google?`,
+        `Quais as ${c}s mais recomendadas perto de ${cid}?`,
+        `Estou em ${cid} e preciso de ${c}. O que você sugere?`,
+      ];
 
-  return [
-    `Qual a melhor ${c} em ${cid}?`,
-    `Onde encontrar ${c} bem avaliada em ${cid}?`,
-    `Me indica ${c} de confiança em ${cid}.`,
-    `${c} em ${cid} com boas avaliações no Google?`,
-    `Quais as ${c}s mais recomendadas perto de ${cid}?`,
-    `Estou em ${cid} e preciso de ${c}. O que você sugere?`,
+  // Perguntas de NICHO (produtos/serviços específicos) — opcionais.
+  // Capturam onde o negócio realmente pode aparecer (ex: "design de sobrancelha").
+  const lista = Array.isArray(produtos) ? produtos : [];
+  const tpl = [
+    (p) => `Onde encontrar ${p} em ${local}?`,
+    (p) => `Qual o melhor lugar pra ${p} em ${local}?`,
+    (p) => `Me indica ${p} de confiança em ${local}.`,
   ];
+  lista.slice(0, 3).forEach((p, i) => {
+    const prod = (p || "").trim();
+    if (prod) perguntas.push(tpl[i % tpl.length](prod));
+  });
+
+  return perguntas;
 }
 
 // Remove cercas de markdown e tenta achar o objeto JSON na string.
