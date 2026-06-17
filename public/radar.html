@@ -725,6 +725,13 @@ fbq('track', 'PageView');
     }
   });
 
+  // Nome vindo da land do Radar (?nome=) — preenche e foca o próximo campo.
+  const nomeParam = new URLSearchParams(location.search).get("nome");
+  if (nomeParam) {
+    $("nome").value = nomeParam.slice(0, 120);
+    setTimeout(() => $("categoria").focus(), 200);
+  }
+
   // Retorno do Mercado Pago (?contratado=1)
   if (new URLSearchParams(location.search).get("contratado") === "1") {
     const b = document.createElement("div");
