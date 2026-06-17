@@ -82,6 +82,62 @@ fbq('track', 'PageView');
   .rl-trust{display:flex;align-items:center;justify-content:space-between;gap:8px;}
   .rl-trust span{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);font-weight:500;}
   .rl-trust svg{width:15px;height:15px;color:#1E8E3E;flex-shrink:0;}
+
+  /* ===== Bloco 2: As buscas estão mudando ===== */
+  .b2{max-width:1040px;margin:0 auto;padding:48px 24px 8px;}
+  .b2-title{font-size:26px;font-weight:800;letter-spacing:-0.02em;text-align:center;color:var(--ink);margin-bottom:28px;text-wrap:balance;}
+  @media(min-width:820px){ .b2-title{font-size:32px;margin-bottom:36px;} }
+
+  /* alterna experiências (recriadas, não adaptadas) */
+  .b2-desktop{display:none;}
+  .b2-mobile{display:block;max-width:520px;margin:0 auto;}
+  @media(min-width:820px){ .b2-desktop{display:block;} .b2-mobile{display:none;} }
+
+  /* --- desktop: comparação lado a lado --- */
+  .b2-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+  .b2-col{border:1px solid var(--border);border-radius:18px;padding:22px;background:#fff;}
+  .b2-antes{background:#F8F9FA;}
+  .b2-col-head{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:16px;}
+  .b2-col-head small{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-top:3px;}
+  .b2-steps{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:8px;}
+  .b2-steps li{font-size:13.5px;color:var(--ink-2);display:flex;gap:8px;align-items:flex-start;}
+  .b2-steps li::before{content:"→";color:var(--blue);font-weight:800;}
+
+  /* mock Google (resultados genéricos) */
+  .mock-google{display:flex;flex-direction:column;gap:11px;}
+  .mock-searchbar{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:999px;padding:9px 14px;font-size:12.5px;color:#80868B;background:#fff;}
+  .mock-result .u{height:8px;width:110px;background:rgba(30,142,62,0.35);border-radius:4px;margin-bottom:6px;}
+  .mock-result .t{height:11px;width:78%;background:rgba(26,115,232,0.35);border-radius:4px;margin-bottom:6px;}
+  .mock-result .s{height:7px;width:95%;background:#E5E7EB;border-radius:4px;margin-bottom:4px;}
+  .mock-result .s.short{width:68%;}
+  .mock-more{font-size:11.5px;color:#9AA0A6;text-align:center;margin-top:2px;}
+
+  /* mock conversa (IA recomenda poucas) */
+  .mock-chat{display:flex;flex-direction:column;gap:10px;}
+  .bubble{max-width:90%;padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.45;}
+  .bubble.user{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:5px;}
+  .bubble.ai{align-self:flex-start;background:#F1F3F4;color:var(--ink);border-bottom-left-radius:5px;}
+  .bubble.ai b{color:var(--blue);}
+
+  /* faixa central + alerta (desktop) */
+  .b2-band{margin:24px auto 0;max-width:780px;text-align:center;font-size:19px;font-weight:700;line-height:1.4;color:var(--ink);background:var(--blue-soft);border-radius:14px;padding:20px 24px;}
+  .b2-band s{color:#9AA0A6;text-decoration-thickness:2px;}
+  .b2-band strong{color:var(--blue);}
+  .b2-alert{margin:16px auto 0;max-width:780px;background:#FEF7E0;border:1px solid #FDE68A;border-radius:14px;padding:16px 18px;font-size:14px;line-height:1.55;color:#7A5900;}
+
+  /* --- mobile: cards verticais --- */
+  .b2-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:12px;}
+  .b2-card-eyebrow{font-size:14px;font-weight:800;color:var(--ink);margin-bottom:8px;}
+  .b2-card > p{font-size:14px;color:var(--ink-2);line-height:1.55;}
+  .b2-card > p strong{color:var(--ink);}
+  .b2-card .mini{margin-top:14px;}
+  .b2-card.band{background:var(--blue-soft);text-align:center;font-size:16px;font-weight:700;color:var(--ink);line-height:1.45;}
+  .b2-card.band s{color:#9AA0A6;} .b2-card.band strong{color:var(--blue);}
+  .b2-card.alert{background:#FEF7E0;border-color:#FDE68A;color:#7A5900;font-size:13.5px;line-height:1.55;}
+  .b2-card .qh{font-size:16px;font-weight:800;color:var(--ink);margin-bottom:12px;}
+  .b2-check{display:flex;flex-direction:column;gap:10px;}
+  .b2-check span{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--ink);font-weight:500;}
+  .b2-check svg{width:16px;height:16px;color:#1E8E3E;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -128,6 +184,86 @@ fbq('track', 'PageView');
     <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Sem cartão</span>
   </div>
 </main>
+
+<!-- ===== Bloco 2: As buscas estão mudando ===== -->
+<section class="b2" id="como-funciona">
+  <h2 class="b2-title">As buscas estão mudando</h2>
+
+  <!-- DESKTOP: comparação lado a lado -->
+  <div class="b2-desktop">
+    <div class="b2-cols">
+      <div class="b2-col b2-antes">
+        <div class="b2-col-head">🔍 ANTES<small>Google</small></div>
+        <div class="mock-google">
+          <div class="mock-searchbar">🔍&nbsp;&nbsp;melhor pizzaria na minha região</div>
+          <div class="mock-result"><div class="u"></div><div class="t"></div><div class="s"></div><div class="s short"></div></div>
+          <div class="mock-result"><div class="u"></div><div class="t"></div><div class="s"></div><div class="s short"></div></div>
+          <div class="mock-result"><div class="u"></div><div class="t"></div><div class="s"></div><div class="s short"></div></div>
+          <div class="mock-more">+ dezenas de resultados</div>
+        </div>
+        <ul class="b2-steps">
+          <li>O usuário pesquisava</li>
+          <li>Recebia dezenas de resultados</li>
+          <li>Escolhia sozinho</li>
+        </ul>
+      </div>
+
+      <div class="b2-col b2-agora">
+        <div class="b2-col-head">🤖 AGORA<small>ChatGPT · Gemini · Google AI</small></div>
+        <div class="mock-chat">
+          <div class="bubble user">Qual a melhor pizzaria aqui perto?</div>
+          <div class="bubble ai">As mais recomendadas são a <b>Pizzaria A</b> e a <b>Pizzaria B</b> — boas avaliações e muito faladas na sua região.</div>
+        </div>
+        <ul class="b2-steps">
+          <li>O usuário pergunta</li>
+          <li>A IA responde</li>
+          <li>A IA recomenda poucas empresas</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="b2-band">Antes você disputava <s>cliques</s>. Agora você disputa <strong>recomendações</strong>.</div>
+    <div class="b2-alert">⚠️ Se sua empresa não aparece nas respostas das IAs, ela pode nem entrar na consideração do cliente.</div>
+  </div>
+
+  <!-- MOBILE: narrativa vertical em cards -->
+  <div class="b2-mobile">
+    <div class="b2-card">
+      <div class="b2-card-eyebrow">🔍 ANTES</div>
+      <p>O Google mostrava <strong>dezenas</strong> de empresas. O cliente escolhia sozinho.</p>
+      <div class="mini mock-google">
+        <div class="mock-searchbar">🔍&nbsp;&nbsp;melhor pizzaria perto de mim</div>
+        <div class="mock-result"><div class="t"></div><div class="s"></div><div class="s short"></div></div>
+        <div class="mock-result"><div class="t"></div><div class="s"></div><div class="s short"></div></div>
+        <div class="mock-more">+ dezenas de resultados</div>
+      </div>
+    </div>
+
+    <div class="b2-card">
+      <div class="b2-card-eyebrow">🤖 AGORA</div>
+      <p>As pessoas perguntam ao ChatGPT, Gemini e Google AI. A IA responde e recomenda <strong>poucas</strong> empresas.</p>
+      <div class="mini mock-chat">
+        <div class="bubble user">Qual a melhor pizzaria aqui perto?</div>
+        <div class="bubble ai">As mais recomendadas são a <b>Pizzaria A</b> e a <b>Pizzaria B</b>.</div>
+      </div>
+    </div>
+
+    <div class="b2-card band">Antes você disputava <s>cliques</s>.<br>Agora você disputa <strong>recomendações</strong>.</div>
+
+    <div class="b2-card alert">⚠️ Se sua empresa não aparece nas respostas das IAs, ela pode nem entrar na consideração do cliente.</div>
+
+    <div class="b2-card q">
+      <div class="qh">Sua empresa fala a língua das IAs?</div>
+      <div class="b2-check">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Avaliações</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Site</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Conteúdo</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Presença local</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Linguagem para IA</span>
+      </div>
+    </div>
+  </div>
+</section>
 
 <script>
 (function(){
