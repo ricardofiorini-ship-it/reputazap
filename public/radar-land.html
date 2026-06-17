@@ -138,6 +138,39 @@ fbq('track', 'PageView');
   .b2-check{display:flex;flex-direction:column;gap:10px;}
   .b2-check span{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--ink);font-weight:500;}
   .b2-check svg{width:16px;height:16px;color:#1E8E3E;flex-shrink:0;}
+
+  /* Bloco 2 — versão rica (match do mockup) */
+  .b2-eyebrow{text-align:center;font-size:12px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#9AA0A6;margin-bottom:10px;}
+  .b2-lead{text-align:center;font-size:15px;color:var(--ink-2);line-height:1.6;max-width:560px;margin:-16px auto 32px;}
+  @media(min-width:820px){ .b2-lead{font-size:16px;} }
+  .b2-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;padding:5px 11px;border-radius:999px;margin-bottom:14px;}
+  .b2-tag-grey{background:#EDEFF2;color:#5F6368;}
+  .b2-tag-blue{background:var(--blue-soft);color:var(--blue);}
+  .b2-brand-google{font-size:26px;font-weight:700;letter-spacing:-1px;margin-bottom:10px;font-family:Arial,Helvetica,sans-serif;}
+  .b2-brand-google .c1{color:#4285F4;}.b2-brand-google .c2{color:#EA4335;}.b2-brand-google .c3{color:#FBBC05;}.b2-brand-google .c4{color:#4285F4;}.b2-brand-google .c5{color:#34A853;}.b2-brand-google .c6{color:#EA4335;}
+  .b2-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}
+  .b2-chips span{font-size:11.5px;font-weight:700;color:var(--ink);background:#fff;border:1px solid var(--border);border-radius:8px;padding:5px 9px;}
+  .b2-col-desc{font-size:13.5px;color:var(--ink-2);line-height:1.5;margin-bottom:14px;}
+  .b2-col-desc strong{color:var(--ink);}
+  .mock-tabs{display:flex;gap:16px;border-bottom:1px solid var(--border);margin-bottom:12px;}
+  .mock-tabs span{font-size:12px;color:#80868B;padding-bottom:8px;}
+  .mock-tabs span.on{color:var(--blue);border-bottom:2px solid var(--blue);font-weight:600;}
+  .mock-list{display:flex;flex-direction:column;gap:11px;}
+  .mock-item{display:flex;gap:9px;align-items:flex-start;}
+  .mock-item .pin{font-size:14px;flex-shrink:0;line-height:1.3;}
+  .mock-item .nm{font-size:13px;font-weight:600;color:#1A0DAB;}
+  .mock-item .ln{height:6px;width:62%;background:#E5E7EB;border-radius:4px;margin-top:5px;}
+  .rec-card{display:flex;align-items:center;gap:10px;background:var(--blue-soft);border:1px solid #C6DAFC;border-radius:12px;padding:11px 13px;margin-top:2px;}
+  .rec-card .star{font-size:18px;}
+  .rec-card .nm{font-size:14px;font-weight:700;color:var(--ink);}
+  .rec-card .mt{font-size:11.5px;color:var(--blue);font-weight:600;}
+  .b2-col-foot{font-size:13.5px;font-weight:600;color:var(--ink);margin-top:16px;display:flex;gap:7px;align-items:flex-start;}
+  .b2-col-foot::before{content:"→";color:var(--blue);font-weight:800;}
+  .b2-bigline{text-align:center;margin:28px auto 0;max-width:680px;}
+  .b2-bigline span{display:block;font-size:24px;font-weight:800;line-height:1.3;letter-spacing:-0.02em;}
+  .b2-bigline .grey{color:#9AA0A6;}
+  .b2-bigline .blue{color:var(--blue);}
+  @media(min-width:820px){ .b2-bigline span{font-size:30px;} }
 </style>
 </head>
 <body>
@@ -187,43 +220,49 @@ fbq('track', 'PageView');
 
 <!-- ===== Bloco 2: As buscas estão mudando ===== -->
 <section class="b2" id="como-funciona">
-  <h2 class="b2-title">As buscas estão mudando</h2>
+  <p class="b2-eyebrow">As buscas estão mudando</p>
+  <h2 class="b2-title">As buscas estão mudando.</h2>
+  <p class="b2-lead">A forma como seus clientes encontram e escolhem empresas já não é mais a mesma.</p>
 
   <!-- DESKTOP: comparação lado a lado -->
   <div class="b2-desktop">
     <div class="b2-cols">
       <div class="b2-col b2-antes">
-        <div class="b2-col-head">🔍 ANTES<small>Google</small></div>
-        <div class="mock-google">
-          <div class="mock-searchbar">🔍&nbsp;&nbsp;melhor pizzaria na minha região</div>
-          <div class="mock-result"><div class="u"></div><div class="t"></div><div class="s"></div><div class="s short"></div></div>
-          <div class="mock-result"><div class="u"></div><div class="t"></div><div class="s"></div><div class="s short"></div></div>
-          <div class="mock-result"><div class="u"></div><div class="t"></div><div class="s"></div><div class="s short"></div></div>
-          <div class="mock-more">+ dezenas de resultados</div>
+        <span class="b2-tag b2-tag-grey">🔍 Antes</span>
+        <div class="b2-brand-google"><span class="c1">G</span><span class="c2">o</span><span class="c3">o</span><span class="c4">g</span><span class="c5">l</span><span class="c6">e</span></div>
+        <p class="b2-col-desc">O cliente pesquisava e recebia <strong>dezenas</strong> de opções.</p>
+        <div class="mock-searchbar">🔍&nbsp;&nbsp;melhor pizzaria na minha região</div>
+        <div class="mock-tabs"><span class="on">Todos</span><span>Mapas</span><span>Imagens</span><span>Notícias</span></div>
+        <div class="mock-list">
+          <div class="mock-item"><span class="pin">📍</span><div><div class="nm">Pizzaria Bella Massa</div><div class="ln"></div></div></div>
+          <div class="mock-item"><span class="pin">📍</span><div><div class="nm">Forno &amp; Lenha</div><div class="ln"></div></div></div>
+          <div class="mock-item"><span class="pin">📍</span><div><div class="nm">Dom Giovanni Pizzas</div><div class="ln"></div></div></div>
+          <div class="mock-item"><span class="pin">📍</span><div><div class="nm">Nonna Rosa</div><div class="ln"></div></div></div>
+          <div class="mock-item"><span class="pin">📍</span><div><div class="nm">Pizza Prime</div><div class="ln"></div></div></div>
         </div>
-        <ul class="b2-steps">
-          <li>O usuário pesquisava</li>
-          <li>Recebia dezenas de resultados</li>
-          <li>Escolhia sozinho</li>
-        </ul>
+        <div class="mock-more">+ dezenas de resultados</div>
+        <p class="b2-col-foot">O cliente escolhia sozinho.</p>
       </div>
 
       <div class="b2-col b2-agora">
-        <div class="b2-col-head">🤖 AGORA<small>ChatGPT · Gemini · Google AI</small></div>
+        <span class="b2-tag b2-tag-blue">🤖 Agora</span>
+        <div class="b2-chips"><span>ChatGPT</span><span>Gemini</span><span>Google AI</span></div>
+        <p class="b2-col-desc">O cliente pergunta. A IA responde e recomenda <strong>poucas</strong> empresas.</p>
         <div class="mock-chat">
-          <div class="bubble user">Qual a melhor pizzaria aqui perto?</div>
-          <div class="bubble ai">As mais recomendadas são a <b>Pizzaria A</b> e a <b>Pizzaria B</b> — boas avaliações e muito faladas na sua região.</div>
+          <div class="bubble user">Qual a melhor pizzaria em São Paulo?</div>
+          <div class="bubble ai">Com base em avaliações, qualidade dos produtos e experiência do cliente, uma das mais recomendadas é a <b>Pizza Paulista</b>.</div>
+          <div class="rec-card"><span class="star">⭐</span><div><div class="nm">Pizza Paulista</div><div class="mt">Recomendada pela IA</div></div></div>
         </div>
-        <ul class="b2-steps">
-          <li>O usuário pergunta</li>
-          <li>A IA responde</li>
-          <li>A IA recomenda poucas empresas</li>
-        </ul>
+        <p class="b2-col-foot">O cliente confia na resposta e segue a recomendação.</p>
       </div>
     </div>
 
-    <div class="b2-band">Antes você disputava <s>cliques</s>. Agora você disputa <strong>recomendações</strong>.</div>
-    <div class="b2-alert">⚠️ Se sua empresa não aparece nas respostas das IAs, ela pode nem entrar na consideração do cliente.</div>
+    <div class="b2-alert">⚠️ Se sua empresa <strong>não aparece nas respostas das IAs</strong>, ela pode nem entrar na consideração do cliente.</div>
+
+    <div class="b2-bigline">
+      <span class="grey">Antes você disputava cliques.</span>
+      <span class="blue">Agora você disputa recomendações.</span>
+    </div>
   </div>
 
   <!-- MOBILE: narrativa vertical em cards -->
