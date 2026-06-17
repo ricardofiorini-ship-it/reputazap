@@ -61,6 +61,7 @@ fbq('track', 'PageView');
   .rl-badge svg{width:14px;height:14px;}
 
   .rl-h1{font-size:32px;font-weight:800;line-height:1.15;letter-spacing:-0.025em;color:var(--ink);margin-bottom:16px;text-wrap:balance;}
+  .rl-h1 .hl{color:var(--blue);}
   @media(min-width:600px){.rl-h1{font-size:38px;}}
 
   .rl-sub{font-size:15px;line-height:1.6;color:var(--ink-2);margin-bottom:24px;}
@@ -97,6 +98,7 @@ fbq('track', 'PageView');
   .b2-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
   .b2-col{border:1px solid var(--border);border-radius:18px;padding:22px;background:#fff;}
   .b2-antes{background:#F8F9FA;}
+  .b2-agora{background:#E8F0FE;border-color:#1A73E8;}
   .b2-col-head{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:16px;}
   .b2-col-head small{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-top:3px;}
   .b2-steps{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:8px;}
@@ -126,7 +128,7 @@ fbq('track', 'PageView');
   .b2-alert{margin:16px auto 0;max-width:780px;background:#FEF7E0;border:1px solid #FDE68A;border-radius:14px;padding:16px 18px;font-size:14px;line-height:1.55;color:#7A5900;}
 
   /* --- mobile: cards verticais --- */
-  .b2-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:12px;}
+  .b2-card{background:#FAFBFF;border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:12px;}
   .b2-card-eyebrow{font-size:14px;font-weight:800;color:var(--ink);margin-bottom:8px;}
   .b2-card > p{font-size:14px;color:var(--ink-2);line-height:1.55;}
   .b2-card > p strong{color:var(--ink);}
@@ -167,10 +169,11 @@ fbq('track', 'PageView');
   .b2-col-foot{font-size:13.5px;font-weight:600;color:var(--ink);margin-top:16px;display:flex;gap:7px;align-items:flex-start;}
   .b2-col-foot::before{content:"→";color:var(--blue);font-weight:800;}
   .b2-bigline{text-align:center;margin:28px auto 0;max-width:680px;}
-  .b2-bigline span{display:block;font-size:24px;font-weight:800;line-height:1.3;letter-spacing:-0.02em;}
-  .b2-bigline .grey{color:#9AA0A6;}
+  .b2-bigline{margin:40px auto 0;}
+  .b2-bigline span{display:block;font-size:27px;font-weight:800;line-height:1.25;letter-spacing:-0.02em;}
+  .b2-bigline .grey{color:#80868B;}
   .b2-bigline .blue{color:var(--blue);}
-  @media(min-width:820px){ .b2-bigline span{font-size:30px;} }
+  @media(min-width:820px){ .b2-bigline span{font-size:48px;} }
 
   /* ===== Bloco 3: Sua empresa fala a língua das IAs? ===== */
   .b3{max-width:1000px;margin:0 auto;padding:48px 24px;}
@@ -183,11 +186,11 @@ fbq('track', 'PageView');
   .b3-grid-title{text-align:center;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink);margin-bottom:18px;}
   .b3-grid{display:grid;grid-template-columns:1fr;gap:14px;}
   @media(min-width:760px){ .b3-grid{grid-template-columns:1fr 1fr;} }
-  .b3-item{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;}
+  .b3-item{background:#FAFBFF;border:1px solid var(--border);border-radius:18px;padding:24px;}
   .b3-ico{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;font-size:22px;margin-bottom:12px;}
   .b3-item h4{font-size:15.5px;font-weight:700;color:var(--ink);margin-bottom:6px;}
   .b3-item > p{font-size:13.5px;color:var(--ink-2);line-height:1.5;margin-bottom:14px;}
-  .b3-bar{height:6px;border-radius:999px;background:#EDEFF2;overflow:hidden;}
+  .b3-bar{height:9px;border-radius:999px;background:#EDEFF2;overflow:hidden;}
   .b3-bar > span{display:block;height:100%;border-radius:999px;}
   .b3-impact{display:grid;grid-template-columns:1fr;gap:14px;margin-top:24px;}
   @media(min-width:760px){ .b3-impact{grid-template-columns:1fr 1fr;} }
@@ -197,12 +200,15 @@ fbq('track', 'PageView');
   .b3-impact-ico{font-size:22px;flex-shrink:0;line-height:1.2;}
   .b3-impact-card h4{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px;}
   .b3-impact-card p{font-size:13px;color:var(--ink-2);line-height:1.5;}
-  .b3-final{background:#0B1A33;border-radius:18px;padding:32px 24px;text-align:center;margin-top:28px;}
-  .b3-final-ico{width:38px;height:38px;color:#8AB4F8;margin-bottom:14px;}
-  .b3-final-h{font-size:20px;font-weight:800;line-height:1.35;color:#fff;max-width:640px;margin:0 auto;letter-spacing:-0.01em;text-wrap:balance;}
+  .b3-final{background:#0B1A33;border-radius:24px;padding:48px 24px;text-align:center;margin-top:32px;}
+  .b3-final-ico{width:42px;height:42px;color:#8AB4F8;margin-bottom:16px;}
+  .b3-final-h{font-size:23px;font-weight:800;line-height:1.3;color:#fff;max-width:680px;margin:0 auto;letter-spacing:-0.015em;text-wrap:balance;}
   .b3-final-h span{color:#8AB4F8;}
-  @media(min-width:820px){ .b3-final-h{font-size:25px;} }
-  .b3-final-sub{font-size:14px;color:#A9B6CC;line-height:1.6;max-width:520px;margin:12px auto 0;}
+  @media(min-width:820px){ .b3-final-h{font-size:32px;} }
+  .b3-final-sub{font-size:14.5px;color:#A9B6CC;line-height:1.6;max-width:520px;margin:14px auto 0;}
+  .b3-final-cta{display:inline-flex;align-items:center;gap:9px;margin-top:24px;background:#fff;color:var(--blue);font-size:15px;font-weight:700;padding:14px 26px;border-radius:12px;border:none;cursor:pointer;font-family:inherit;transition:background .15s;}
+  .b3-final-cta:hover{background:#E8F0FE;}
+  .b3-final-cta svg{width:18px;height:18px;}
 </style>
 </head>
 <body>
@@ -226,7 +232,7 @@ fbq('track', 'PageView');
     Diagnóstico gratuito
   </span>
 
-  <h1 class="rl-h1">As IAs estão indicando sua empresa?</h1>
+  <h1 class="rl-h1">As <span class="hl">IAs</span> estão indicando sua <span class="hl">empresa</span>?</h1>
 
   <div class="rl-sub">
     <p>Milhões de pessoas já perguntam ao ChatGPT, Gemini e Google qual empresa escolher.</p>
@@ -394,7 +400,11 @@ fbq('track', 'PageView');
   <div class="b3-final">
     <svg class="b3-final-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5" opacity="0.6"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>
     <p class="b3-final-h">Se as IAs não entendem sua empresa, <span>elas não recomendam</span> sua empresa.</p>
-    <p class="b3-final-sub">A boa notícia: dá pra mudar isso — e o primeiro passo é medir como você está hoje.</p>
+    <p class="b3-final-sub">A boa notícia: isso pode ser medido e melhorado. Veja como sua empresa está hoje.</p>
+    <button class="b3-final-cta" id="b3FinalCta" type="button">
+      Ver meu diagnóstico
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
   </div>
 </section>
 
@@ -414,6 +424,13 @@ fbq('track', 'PageView');
 
   cta.addEventListener("click", descobrir);
   nome.addEventListener("keydown", function(e){ if (e.key === "Enter") descobrir(); });
+
+  // Botão da faixa escura → volta pro topo (a barra/isca) e foca o campo.
+  var finalCta = document.getElementById("b3FinalCta");
+  if (finalCta) finalCta.addEventListener("click", function(){
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setTimeout(function(){ nome.focus(); }, 400);
+  });
 })();
 </script>
 </body>
