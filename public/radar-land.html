@@ -44,7 +44,7 @@ fbq('track', 'PageView');
   a{text-decoration:none;color:inherit;}
 
   /* Header */
-  .rl-header{display:flex;align-items:center;justify-content:space-between;max-width:520px;margin:0 auto;padding:18px 24px;}
+  .rl-header{display:flex;align-items:center;justify-content:space-between;max-width:1040px;margin:0 auto;padding:18px 24px;}
   .rl-logo{display:flex;align-items:center;gap:9px;}
   .rl-logo svg{width:30px;height:30px;flex-shrink:0;}
   .rl-logo-txt{line-height:1;}
@@ -54,8 +54,30 @@ fbq('track', 'PageView');
   .rl-howto:hover{color:var(--blue-hover);}
 
   /* Hero */
-  .rl-hero{max-width:520px;margin:0 auto;padding:24px 24px 40px;}
-  @media(min-width:600px){.rl-hero{padding-top:40px;}}
+  .rl-hero{max-width:1040px;margin:0 auto;padding:24px 24px 40px;}
+  .rl-hero-text{max-width:520px;margin:0 auto;}
+  .rl-hero-visual{display:none;}
+  @media(min-width:900px){
+    .rl-hero{display:grid;grid-template-columns:1.05fr 0.95fr;gap:48px;align-items:center;padding-top:48px;}
+    .rl-hero-text{margin:0;}
+    .rl-hero-visual{display:flex;align-items:center;justify-content:center;}
+  }
+  /* Radar (visual do hero — desktop) */
+  .radar{position:relative;width:340px;height:340px;flex-shrink:0;}
+  .radar-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border:1px solid rgba(26,115,232,0.22);border-radius:50%;}
+  .radar-ring.r1{width:100%;height:100%;}
+  .radar-ring.r2{width:66%;height:66%;}
+  .radar-ring.r3{width:33%;height:33%;}
+  .radar-sweep{position:absolute;top:50%;left:50%;width:100%;height:100%;border-radius:50%;background:conic-gradient(from 0deg, rgba(26,115,232,0.30), rgba(26,115,232,0) 28%);transform:translate(-50%,-50%);animation:radarSpin 4s linear infinite;}
+  @keyframes radarSpin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+  .radar-center{position:absolute;top:50%;left:50%;width:12px;height:12px;border-radius:50%;background:var(--blue);transform:translate(-50%,-50%);box-shadow:0 0 0 6px rgba(26,115,232,0.15);}
+  .radar-node{position:absolute;display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:8px 13px;font-size:12.5px;font-weight:600;color:var(--ink);box-shadow:0 6px 18px rgba(15,27,51,0.12);white-space:nowrap;}
+  .radar-node::before{content:"";width:7px;height:7px;border-radius:50%;background:#1E8E3E;flex-shrink:0;}
+  .radar-node.n1{top:2%;left:-4%;}
+  .radar-node.n2{top:24%;right:-10%;}
+  .radar-node.n3{bottom:22%;left:-12%;}
+  .radar-node.n4{bottom:0;right:2%;}
+  @media(prefers-reduced-motion:reduce){ .radar-sweep{animation:none;} }
 
   .rl-badge{display:inline-flex;align-items:center;gap:7px;background:var(--blue-soft);color:var(--blue);font-size:11.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:7px 12px;border-radius:999px;margin-bottom:16px;}
   .rl-badge svg{width:14px;height:14px;}
@@ -234,6 +256,7 @@ fbq('track', 'PageView');
 </header>
 
 <main class="rl-hero">
+  <div class="rl-hero-text">
   <span class="rl-badge">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.4h7.6z"/></svg>
     Diagnóstico gratuito
@@ -260,6 +283,21 @@ fbq('track', 'PageView');
     <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Gratuito</span>
     <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Menos de 1 minuto</span>
     <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Sem cartão</span>
+  </div>
+  </div><!-- /rl-hero-text -->
+
+  <div class="rl-hero-visual" aria-hidden="true">
+    <div class="radar">
+      <div class="radar-ring r1"></div>
+      <div class="radar-ring r2"></div>
+      <div class="radar-ring r3"></div>
+      <div class="radar-sweep"></div>
+      <div class="radar-center"></div>
+      <span class="radar-node n1">ChatGPT</span>
+      <span class="radar-node n2">Gemini</span>
+      <span class="radar-node n3">Google AI</span>
+      <span class="radar-node n4">Perplexity</span>
+    </div>
   </div>
 </main>
 
