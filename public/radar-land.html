@@ -171,6 +171,38 @@ fbq('track', 'PageView');
   .b2-bigline .grey{color:#9AA0A6;}
   .b2-bigline .blue{color:var(--blue);}
   @media(min-width:820px){ .b2-bigline span{font-size:30px;} }
+
+  /* ===== Bloco 3: Sua empresa fala a língua das IAs? ===== */
+  .b3{max-width:1000px;margin:0 auto;padding:48px 24px;}
+  .b3-eyebrow{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);margin-bottom:12px;}
+  .b3-eyebrow svg{width:16px;height:16px;}
+  .b3-title{text-align:center;font-size:28px;font-weight:800;letter-spacing:-0.02em;line-height:1.15;color:var(--ink);margin-bottom:14px;text-wrap:balance;}
+  .b3-title .blue{color:var(--blue);}
+  @media(min-width:820px){ .b3-title{font-size:36px;} }
+  .b3-sub{text-align:center;font-size:15px;color:var(--ink-2);line-height:1.6;max-width:600px;margin:0 auto 32px;}
+  .b3-grid-title{text-align:center;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink);margin-bottom:18px;}
+  .b3-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media(min-width:760px){ .b3-grid{grid-template-columns:1fr 1fr;} }
+  .b3-item{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;}
+  .b3-ico{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;font-size:22px;margin-bottom:12px;}
+  .b3-item h4{font-size:15.5px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .b3-item > p{font-size:13.5px;color:var(--ink-2);line-height:1.5;margin-bottom:14px;}
+  .b3-bar{height:6px;border-radius:999px;background:#EDEFF2;overflow:hidden;}
+  .b3-bar > span{display:block;height:100%;border-radius:999px;}
+  .b3-impact{display:grid;grid-template-columns:1fr;gap:14px;margin-top:24px;}
+  @media(min-width:760px){ .b3-impact{grid-template-columns:1fr 1fr;} }
+  .b3-impact-card{display:flex;gap:13px;align-items:flex-start;border-radius:16px;padding:18px 20px;}
+  .b3-impact-card.neg{background:#FCE8E6;border:1px solid #F5C6C0;}
+  .b3-impact-card.pos{background:#E6F4EA;border:1px solid #A8DAB5;}
+  .b3-impact-ico{font-size:22px;flex-shrink:0;line-height:1.2;}
+  .b3-impact-card h4{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+  .b3-impact-card p{font-size:13px;color:var(--ink-2);line-height:1.5;}
+  .b3-final{background:#0B1A33;border-radius:18px;padding:32px 24px;text-align:center;margin-top:28px;}
+  .b3-final-ico{width:38px;height:38px;color:#8AB4F8;margin-bottom:14px;}
+  .b3-final-h{font-size:20px;font-weight:800;line-height:1.35;color:#fff;max-width:640px;margin:0 auto;letter-spacing:-0.01em;text-wrap:balance;}
+  .b3-final-h span{color:#8AB4F8;}
+  @media(min-width:820px){ .b3-final-h{font-size:25px;} }
+  .b3-final-sub{font-size:14px;color:#A9B6CC;line-height:1.6;max-width:520px;margin:12px auto 0;}
 </style>
 </head>
 <body>
@@ -290,17 +322,79 @@ fbq('track', 'PageView');
     <div class="b2-card band">Antes você disputava <s>cliques</s>.<br>Agora você disputa <strong>recomendações</strong>.</div>
 
     <div class="b2-card alert">⚠️ Se sua empresa não aparece nas respostas das IAs, ela pode nem entrar na consideração do cliente.</div>
+  </div>
+</section>
 
-    <div class="b2-card q">
-      <div class="qh">Sua empresa fala a língua das IAs?</div>
-      <div class="b2-check">
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Avaliações</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Site</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Conteúdo</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Presença local</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Linguagem para IA</span>
+<!-- ===== Bloco 3: Sua empresa fala a língua das IAs? ===== -->
+<section class="b3">
+  <p class="b3-eyebrow">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5" opacity="0.6"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>
+    Compreensão pela IA
+  </p>
+  <h2 class="b3-title">Sua empresa fala <span class="blue">a língua das IAs?</span></h2>
+  <p class="b3-sub">As inteligências artificiais não recomendam empresas aleatoriamente. Elas procuram sinais de confiança, autoridade e relevância.</p>
+
+  <p class="b3-grid-title">O que as IAs analisam</p>
+  <div class="b3-grid">
+    <div class="b3-item">
+      <span class="b3-ico" style="background:#FEF7E0;">⭐</span>
+      <h4>Avaliações recentes</h4>
+      <p>Empresas bem avaliadas tendem a ser mais recomendadas.</p>
+      <div class="b3-bar"><span style="width:62%;background:#F9AB00;"></span></div>
+    </div>
+    <div class="b3-item">
+      <span class="b3-ico" style="background:#E8F0FE;">🌐</span>
+      <h4>Site atualizado</h4>
+      <p>As IAs usam informações do seu site para entender seu negócio.</p>
+      <div class="b3-bar"><span style="width:45%;background:#1A73E8;"></span></div>
+    </div>
+    <div class="b3-item">
+      <span class="b3-ico" style="background:#E6F4EA;">📍</span>
+      <h4>Presença local consistente</h4>
+      <p>Dados corretos e consistentes aumentam a confiança da IA.</p>
+      <div class="b3-bar"><span style="width:40%;background:#1E8E3E;"></span></div>
+    </div>
+    <div class="b3-item">
+      <span class="b3-ico" style="background:#F3E8FD;">📰</span>
+      <h4>Conteúdo relevante</h4>
+      <p>Empresas que produzem conteúdo demonstram autoridade.</p>
+      <div class="b3-bar"><span style="width:35%;background:#9334E6;"></span></div>
+    </div>
+    <div class="b3-item">
+      <span class="b3-ico" style="background:#E0F2F1;">🏷️</span>
+      <h4>Linguagem para IA</h4>
+      <p>Estruturações especiais ajudam as IAs a interpretar sua empresa corretamente.</p>
+      <div class="b3-bar"><span style="width:25%;background:#00897B;"></span></div>
+    </div>
+    <div class="b3-item">
+      <span class="b3-ico" style="background:#FEEFE3;">🏆</span>
+      <h4>Autoridade digital</h4>
+      <p>Quanto mais confiável você parece na internet, maior sua chance de ser citado.</p>
+      <div class="b3-bar"><span style="width:30%;background:#E8710A;"></span></div>
+    </div>
+  </div>
+
+  <div class="b3-impact">
+    <div class="b3-impact-card neg">
+      <span class="b3-impact-ico">🚫</span>
+      <div>
+        <h4>Não basta existir online.</h4>
+        <p>Estar na internet não garante que as IAs vão recomendar você.</p>
       </div>
     </div>
+    <div class="b3-impact-card pos">
+      <span class="b3-impact-ico">✅</span>
+      <div>
+        <h4>Sua empresa precisa ser compreendida pelas IAs.</h4>
+        <p>As IAs só recomendam o que elas conseguem entender.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="b3-final">
+    <svg class="b3-final-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5" opacity="0.6"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>
+    <p class="b3-final-h">Se as IAs não entendem sua empresa, <span>elas não recomendam</span> sua empresa.</p>
+    <p class="b3-final-sub">A boa notícia: dá pra mudar isso — e o primeiro passo é medir como você está hoje.</p>
   </div>
 </section>
 
