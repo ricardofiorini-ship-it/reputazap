@@ -144,6 +144,10 @@ fbq('track', 'PageView');
   .bubble.user{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:5px;}
   .bubble.ai{align-self:flex-start;background:#F1F3F4;color:var(--ink);border-bottom-left-radius:5px;}
   .bubble.ai b{color:var(--blue);}
+  .chat-turn{display:flex;flex-direction:column;gap:5px;}
+  .chat-turn.user{align-items:flex-end;}
+  .chat-turn.ai{align-items:flex-start;}
+  .chat-role{font-size:11px;font-weight:700;color:#80868B;text-transform:uppercase;letter-spacing:0.04em;display:flex;align-items:center;gap:5px;}
 
   /* faixa central + alerta (desktop) */
   .b2-band{margin:24px auto 0;max-width:780px;text-align:center;font-size:19px;font-weight:700;line-height:1.4;color:var(--ink);background:var(--blue-soft);border-radius:14px;padding:20px 24px;}
@@ -330,9 +334,15 @@ fbq('track', 'PageView');
         <div class="b2-chips"><span>ChatGPT</span><span>Gemini</span><span>Google AI</span></div>
         <p class="b2-col-desc">O cliente pergunta. A IA responde e recomenda <strong>poucas</strong> empresas.</p>
         <div class="mock-chat">
-          <div class="bubble user">Qual a melhor pizzaria em São Paulo?</div>
-          <div class="bubble ai">Com base em avaliações, qualidade dos produtos e experiência do cliente, uma das mais recomendadas é a <b>Pizza Paulista</b>.</div>
-          <div class="rec-card"><span class="star">⭐</span><div><div class="nm">Pizza Paulista</div><div class="mt">Recomendada pela IA</div></div></div>
+          <div class="chat-turn user">
+            <span class="chat-role">🧑 Humano pergunta</span>
+            <div class="bubble user">Qual a melhor pizzaria em São Paulo?</div>
+          </div>
+          <div class="chat-turn ai">
+            <span class="chat-role">🤖 IA responde</span>
+            <div class="bubble ai">Com base em avaliações, qualidade dos produtos e experiência do cliente, uma das mais recomendadas é a <b>Pizza Paulista</b>.</div>
+            <div class="rec-card"><span class="star">⭐</span><div><div class="nm">Pizza Paulista</div><div class="mt">Recomendada pela IA</div></div></div>
+          </div>
         </div>
         <p class="b2-col-foot">O cliente confia na resposta e segue a recomendação.</p>
       </div>
@@ -363,8 +373,14 @@ fbq('track', 'PageView');
       <div class="b2-card-eyebrow">🤖 AGORA</div>
       <p>As pessoas perguntam ao ChatGPT, Gemini e Google AI. A IA responde e recomenda <strong>poucas</strong> empresas.</p>
       <div class="mini mock-chat">
-        <div class="bubble user">Qual a melhor pizzaria aqui perto?</div>
-        <div class="bubble ai">As mais recomendadas são a <b>Pizzaria A</b> e a <b>Pizzaria B</b>.</div>
+        <div class="chat-turn user">
+          <span class="chat-role">🧑 Humano pergunta</span>
+          <div class="bubble user">Qual a melhor pizzaria aqui perto?</div>
+        </div>
+        <div class="chat-turn ai">
+          <span class="chat-role">🤖 IA responde</span>
+          <div class="bubble ai">As mais recomendadas são a <b>Pizzaria A</b> e a <b>Pizzaria B</b>.</div>
+        </div>
       </div>
     </div>
 
