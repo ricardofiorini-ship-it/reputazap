@@ -28,6 +28,8 @@ ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS sender_name TEXT;
 CREATE INDEX IF NOT EXISTS idx_businesses_stripe_customer ON businesses(stripe_customer_id);
 ```
 
+**Pedidos:** rodar `supabase/schema-orders.sql` uma vez (tabela `orders`). O pedido de kit é salvo como `pending` ao criar o checkout (com os itens) e o webhook MP marca `paid` quando aprovado, disparando email pro admin (`ADMIN_NOTIFICATIONS_EMAIL`). Pagamento do Pacote IA também é registrado em `orders` + notifica. Idempotente (não reenvia email se o MP repetir o webhook).
+
 ## Endpoints (`api/`)
 
 Vercel **Pro** (limite de funções já não é gargalo). Funções:
@@ -100,7 +102,7 @@ Feature de **GEO/medição**: o usuário informa nome + categoria + cidade; o ba
 
 ## Variáveis de ambiente (Vercel)
 
-`PLACES_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY` (opcional), `RESEND_FROM` (opcional — ex: `"StarTouch <feedback@startouch.com.br>"`; sem isso usa `onboarding@resend.dev`), **`MP_ACCESS_TOKEN`** (Mercado Pago — provedor ativo), `MP_WEBHOOK_SECRET` (opcional, validação HMAC do webhook MP). **IA Radar:** `GEMINI_API_KEY`, `OPENAI_API_KEY`, `PERPLEXITY_API_KEY` (todas opcionais — a feature roda só os motores cuja chave existe; sem nenhuma, `/api/radar` responde 503). Stripe dormente: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET` (não usadas atualmente, manter setadas só se planejar reativar Stripe).
+`PLACES_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY` (opcional), `RESEND_FROM` (opcional — ex: `"StarTouch <feedback@startouch.com.br>"`; sem isso usa `onboarding@resend.dev`), **`MP_ACCESS_TOKEN`** (Mercado Pago — provedor ativo), `MP_WEBHOOK_SECRET` (opcional, validação HMAC do webhook MP), `ADMIN_NOTIFICATIONS_EMAIL` (email do admin pra receber aviso de **pedido pago** e **cliente novo**; sem ela, o aviso é pulado com log). **IA Radar:** `GEMINI_API_KEY`, `OPENAI_API_KEY`, `PERPLEXITY_API_KEY` (todas opcionais — a feature roda só os motores cuja chave existe; sem nenhuma, `/api/radar` responde 503). Stripe dormente: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET` (não usadas atualmente, manter setadas só se planejar reativar Stripe).
 
 ## Links
 

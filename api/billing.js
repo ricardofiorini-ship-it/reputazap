@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 import { MercadoPagoConfig, PreApproval, Preference, Payment } from "mercadopago";
 import crypto from "crypto";
+import { sendTransactionalEmail } from "./_lib/email-sender.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -73,6 +74,56 @@ const KIT_CATALOG = {
 
 // Preço do plano Pro mensal (em reais, NUMBER)
 const PRO_MONTHLY_PRICE = 19.90;
+
+// ── Notificação de pedido pago pro admin ──────────────────────
+const fmtBRL = (cents) => "R$ " + (Number(cents || 0) / 100).toFixed(2).replace(".", ",");
+const escapeHtmlLite = (s) =>
+  String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+async function sendOrderEmail({ userId, subject, html }) {
+  const to = process.env.ADMIN_NOTIFICATIONS_EMAIL;
+  if (!to) {
+    console.warn("[mp/webhook] ADMIN_NOTIFICATIONS_EMAIL não setado — email de pedido pulado");
+    return;
+  }
+  try {
+    await sendTransactionalEmail({ userId: userId || "admin", emailType: "admin_new_order", to, subject, html });
+  } catch (e) {
+    console.warn("[mp/webhook] email de pedido falhou:", e?.message);
+  }
+}
+
+async function notifyAdminKitOrder({ order, pay, userId }) {
+  const email = order?.email || pay?.payer?.email || "—";
+  const biz = order?.biz_name || "—";
+  const totalCents = order?.total_cents != null ? order.total_cents : Math.round((pay?.transaction_amount || 0) * 100);
+  const items = Array.isArray(order?.items) ? order.items : [];
+  const itemsHtml = items.length
+    ? "<ul>" + items.map((i) => `<li>${i.qty || 1}× ${escapeHtmlLite(i.name)} — ${fmtBRL(Math.round(Number(i.unit_price || 0) * 100))}</li>`).join("") + "</ul>"
+    : "<p>(itens não registrados — confira no painel do Mercado Pago)</p>";
+  const html =
+    `<h2>🛒 Novo pedido pago na StarTouch</h2>` +
+    `<p><strong>Cliente:</strong> ${escapeHtmlLite(biz)} &lt;${escapeHtmlLite(email)}&gt;</p>` +
+    `<p><strong>Itens:</strong></p>${itemsHtml}` +
+    `<p><strong>Total:</strong> ${fmtBRL(totalCents)}</p>` +
+    `<p><strong>Pagamento (MP):</strong> ${pay?.id || ""} · ${pay?.status}</p>` +
+    `<p>Veja o cliente em <a href="https://startouch.com.br/admin/clientes">/admin/clientes</a> e despache pelo painel do Mercado Pago.</p>`;
+  await sendOrderEmail({ userId, subject: `🛒 Novo pedido StarTouch — ${fmtBRL(totalCents)}`, html });
+}
+
+async function notifyAdminIaOrder({ pay }) {
+  const m = pay?.metadata || {};
+  const totalCents = Math.round((pay?.transaction_amount || 0) * 100);
+  const html =
+    `<h2>🎯 Nova contratação — Pacote Presença em IA</h2>` +
+    `<p><strong>Cliente:</strong> ${escapeHtmlLite(m.nome || "—")} &lt;${escapeHtmlLite(m.email || pay?.payer?.email || "—")}&gt;</p>` +
+    `<p><strong>WhatsApp:</strong> ${escapeHtmlLite(m.whatsapp || "—")}</p>` +
+    `<p><strong>Negócio:</strong> ${escapeHtmlLite(m.biz_name || "—")}</p>` +
+    `<p><strong>Total:</strong> ${fmtBRL(totalCents)}</p>` +
+    `<p><strong>Pagamento (MP):</strong> ${pay?.id || ""} · ${pay?.status}</p>` +
+    `<p>O contato também está salvo na tabela <code>radar_leads</code> do Supabase.</p>`;
+  await sendOrderEmail({ userId: "admin", subject: `🎯 Contratação Pacote IA — ${fmtBRL(totalCents)}`, html });
+}
 
 // ─────────────────────────────────────────────────────────────
 // MERCADO PAGO — provedor ativo
@@ -199,6 +250,7 @@ async function handleCheckoutKitMP(req, res) {
     const [first_name, ...rest] = fullName.split(/\s+/).filter(Boolean);
     const last_name = rest.join(" ") || first_name || "";
 
+    const extRef = `kit_${auth.user.id}_${Date.now()}`;
     const result = await preference.create({
       body: {
         items: mpItems,
@@ -212,7 +264,7 @@ async function handleCheckoutKitMP(req, res) {
           failure: `${origin}/kit?biz=${encodeURIComponent(biz_name)}&cancelled=1`
         },
         auto_return: "approved",
-        external_reference: `kit_${auth.user.id}_${Date.now()}`,
+        external_reference: extRef,
         notification_url: `${origin}/api/billing?action=webhook`,
         metadata: {
           user_id: auth.user.id,
@@ -223,6 +275,22 @@ async function handleCheckoutKitMP(req, res) {
         additional_info: `Pedido do kit StarTouch — ${mpItems.length} item(ns), total R$ ${(totalCents / 100).toFixed(2)}`
       }
     });
+
+    // Salva o pedido (pending) — itens confiáveis no momento da criação.
+    // O webhook marca como 'paid' e notifica quando o pagamento é aprovado.
+    try {
+      await supabase.from("orders").insert({
+        external_reference: extRef,
+        user_id: auth.user.id,
+        email: auth.user.email,
+        biz_name,
+        items: mpItems.map((i) => ({ id: i.id, name: i.title, qty: i.quantity, unit_price: i.unit_price })),
+        total_cents: totalCents,
+        status: "pending",
+      });
+    } catch (e) {
+      console.warn("[checkout-kit] order insert falhou:", e?.message);
+    }
 
     return res.json({ url: result.init_point });
   } catch (err) {
@@ -440,9 +508,49 @@ async function handleWebhookMP(req, res) {
         console.log(
           `[mp/webhook] pagamento kit ${id} status=${pay.status} user=${userId} valor=${pay.transaction_amount}`
         );
-        // Aqui no futuro: criar registro em "orders" ou marcar status do pedido.
-        // Por enquanto, só log; o envio fisico é manual via painel.
+        if (pay.status === "approved") {
+          // Marca o pedido como pago SÓ se ainda estiver 'pending' — isso torna
+          // o webhook idempotente: se o MP reenviar, não acha pendente e não
+          // reenvia o email. Só notifica quando de fato virou pago agora.
+          let order = null;
+          try {
+            const r = await supabase
+              .from("orders")
+              .update({ status: "paid", mp_payment_id: String(id), paid_at: new Date().toISOString() })
+              .eq("external_reference", externalRef)
+              .eq("status", "pending")
+              .select()
+              .maybeSingle();
+            order = r.data;
+          } catch (e) {
+            console.warn("[mp/webhook] update order falhou:", e?.message);
+          }
+          if (order) await notifyAdminKitOrder({ order, pay, userId });
+        }
         return res.json({ ok: true, type: "payment-kit", id, status: pay.status });
+      }
+
+      // Pagamento do Pacote Presença em IA (ia_) — registra e notifica.
+      // Idempotência via insert único por external_reference (conflito = já notificado).
+      if (externalRef.startsWith("ia_") && pay.status === "approved") {
+        const m = pay.metadata || {};
+        let isNew = false;
+        try {
+          const r = await supabase.from("orders").insert({
+            external_reference: externalRef,
+            email: m.email || pay?.payer?.email || null,
+            biz_name: m.biz_name || null,
+            items: [{ name: "Pacote Presença em IA", qty: 1, unit_price: pay.transaction_amount || 599 }],
+            total_cents: Math.round((pay.transaction_amount || 0) * 100),
+            status: "paid",
+            mp_payment_id: String(id),
+            paid_at: new Date().toISOString(),
+          }).select().maybeSingle();
+          isNew = !!(r && r.data && !r.error);
+        } catch (e) {
+          console.warn("[mp/webhook] insert ia order:", e?.message);
+        }
+        if (isNew) await notifyAdminIaOrder({ pay });
       }
 
       // Pagamento mensal da assinatura (recurring) — log pra rastreio
