@@ -4628,13 +4628,13 @@ function GuestSearch({ isMobile }) {
 function GuestBanner({ url, isMobile }) {
   return (
     <div style={{
-      background: T.blue, color:'#fff',
+      background: T.red, color:'#fff',
       display:'flex', alignItems:'center', justifyContent:'center', gap: isMobile?8:12, flexWrap:'wrap',
       padding: isMobile ? '9px 14px' : '10px 18px', fontSize: isMobile?12:13.5, fontWeight:600, textAlign:'center'
     }}>
       <span>👀 Você está vendo uma <b>prévia</b> do seu painel — crie sua conta grátis pra salvar e receber alertas.</span>
       <a href={url} style={{
-        background:'#fff', color: T.blue, textDecoration:'none', fontWeight:700,
+        background:'#fff', color: T.red, textDecoration:'none', fontWeight:700,
         padding:'6px 14px', borderRadius: 8, fontSize: isMobile?12.5:13, whiteSpace:'nowrap'
       }}>Criar conta grátis →</a>
     </div>
