@@ -766,13 +766,40 @@ export default async function handler(req, res) {
       ordersTable = { ok: false, error: e?.message || "exceção ao consultar orders" };
     }
 
+    // Verificação do domínio do remetente no Resend — pergunta à API quais
+    // domínios estão verificados. Sem domínio verificado, o envio de RESEND_FROM
+    // customizado falha (precisa cair pro onboarding@resend.dev).
+    const fromAddr = process.env.RESEND_FROM || "onboarding@resend.dev (default)";
+    const fromDomain = (fromAddr.match(/@([^>\s]+)/) || [])[1] || null;
+    let resendDomains = { checked: false };
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const r = await fetch("https://api.resend.com/domains", {
+          headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` }
+        });
+        const body = await r.json();
+        const list = Array.isArray(body?.data) ? body.data : [];
+        const match = fromDomain ? list.find((d) => d?.name === fromDomain) : null;
+        resendDomains = {
+          checked: true,
+          from_domain: fromDomain,
+          from_domain_status: match ? match.status : "NÃO ENCONTRADO no Resend",
+          from_domain_verified: match?.status === "verified",
+          all_domains: list.map((d) => ({ name: d?.name, status: d?.status }))
+        };
+      } catch (e) {
+        resendDomains = { checked: true, error: e?.message || "falha ao consultar Resend" };
+      }
+    }
+
     return res.json({
       order_notifications: {
         orders_table_exists: ordersTable.ok,
         orders_table_error: ordersTable.error,
         admin_email_set: !!process.env.ADMIN_NOTIFICATIONS_EMAIL,
         resend_api_key_set: !!process.env.RESEND_API_KEY,
-        resend_from: process.env.RESEND_FROM || "onboarding@resend.dev (default)",
+        resend_from: fromAddr,
+        resend_domain: resendDomains,
         ready: ordersTable.ok && !!process.env.ADMIN_NOTIFICATIONS_EMAIL && !!process.env.RESEND_API_KEY
       },
       mp: {
