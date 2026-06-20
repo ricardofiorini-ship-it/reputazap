@@ -206,11 +206,10 @@ fbq('track', 'PageView');
     </div>
 
     <div class="cat-control">
-      Comparando como <strong id="catLabel">—</strong>
+      Ranking de quem busca <strong id="catLabel">—</strong>. <strong>É assim que seus clientes te procuram?</strong> Se não, ajuste o termo:
       <div class="cat-chips" id="catChips"></div>
-      <button type="button" class="toggle" id="catToggle">Outro termo…</button>
-      <div class="cat-form hidden" id="catForm">
-        <input id="catInput" type="text" placeholder="Ex: pizzaria"/>
+      <div class="cat-form" id="catForm">
+        <input id="catInput" type="text" placeholder="Ex: loja de bicicletas"/>
         <button type="button" id="catApply">Recalcular</button>
       </div>
     </div>
@@ -410,8 +409,14 @@ async function loadReport(placeId, keyword, radius) {
 
 function renderReport(d) {
   $("repName").textContent = d.name || "Seu negócio";
-  // CTA já leva o negócio escolhido — /ativar pula a busca e vai pro cadastro
-  if (currentPlaceId) $("repCta").href = `/ativar?from=web&place_id=${encodeURIComponent(currentPlaceId)}`;
+  // CTA já leva o negócio escolhido + o termo confirmado — /ativar pula a busca,
+  // vai pro cadastro e salva o termo (category_override) certo desde o início.
+  if (currentPlaceId) {
+    const term = currentKeyword || d.category || "";
+    let cta = `/ativar?from=web&place_id=${encodeURIComponent(currentPlaceId)}`;
+    if (term) cta += `&keyword=${encodeURIComponent(term)}`;
+    $("repCta").href = cta;
+  }
   if (d.inResults && d.rank) {
     $("repPos").textContent = `#${d.rank}`;
     $("repOf").textContent = `de ${d.total} quando buscam "${d.category} perto de mim"`;
@@ -510,11 +515,7 @@ function applyCategory() {
   const q = params.get("q");
   if (placeId) {
     loadReport(placeId, keyword, radius);
-    // Controle de trocar categoria (disponível no relatório)
-    $("catToggle").addEventListener("click", () => {
-      $("catForm").classList.toggle("hidden");
-      $("catInput").focus();
-    });
+    // Controle de termo (sempre visível no relatório)
     $("catApply").addEventListener("click", applyCategory);
     $("catInput").addEventListener("keydown", e => { if (e.key === "Enter") applyCategory(); });
     // Botões de raio — recarregam preservando keyword

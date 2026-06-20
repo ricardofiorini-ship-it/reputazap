@@ -26,6 +26,31 @@ const BROAD_TYPES = new Set([
   "home_goods_store", "shopping_mall"
 ]);
 
+// Tradução tipo do Google → termo natural em PT-BR. Sem isso, o fallback
+// faria um Text Search da string técnica (ex: "bicycle_store"), furando o
+// ranking. O ideal é o dono informar o termo (category_override); isto é a
+// rede de segurança pra quem ainda não informou.
+const TYPE_TO_TERM = {
+  bakery: "padaria", restaurant: "restaurante", bar: "bar", cafe: "cafeteria",
+  meal_takeaway: "lanchonete", meal_delivery: "lanchonete", pharmacy: "farmácia",
+  drugstore: "farmácia", supermarket: "mercado", grocery_or_supermarket: "mercado",
+  convenience_store: "mercado", beauty_salon: "salão de beleza", hair_care: "barbearia",
+  spa: "spa", gym: "academia", pet_store: "petshop", veterinary_care: "veterinário",
+  bicycle_store: "loja de bicicletas", clothing_store: "loja de roupas",
+  shoe_store: "loja de calçados", furniture_store: "loja de móveis",
+  hardware_store: "loja de ferragens", electronics_store: "loja de eletrônicos",
+  book_store: "livraria", florist: "floricultura", jewelry_store: "joalheria",
+  liquor_store: "adega", car_repair: "oficina mecânica", car_dealer: "concessionária",
+  car_wash: "lava-rápido", dentist: "dentista", doctor: "clínica médica",
+  hospital: "hospital", physiotherapist: "fisioterapia", lodging: "hotel",
+  gas_station: "posto de gasolina", laundry: "lavanderia", bicycle: "loja de bicicletas",
+  clothing: "loja de roupas", optician: "ótica", hardware: "loja de ferragens"
+};
+function typeToTerm(rawType) {
+  if (!rawType) return "";
+  return TYPE_TO_TERM[rawType] || rawType.replace(/_/g, " ");
+}
+
 /**
  * Busca concorrentes do negócio dado.
  *
@@ -267,7 +292,8 @@ export async function fetchRankingByTerm({ placeId, keyword, radius }) {
     const types = meR.types || [];
     const specific = types.filter(t => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t));
     const broad = types.filter(t => !GENERIC_TYPES.has(t) && BROAD_TYPES.has(t));
-    term = specific[0] || broad[0] || "";
+    // Traduz o tipo do Google pra termo natural (bicycle_store → "loja de bicicletas")
+    term = typeToTerm(specific[0] || broad[0] || "");
   }
   if (!term) {
     return { enough: false, total: 0, category: null, radius: safeRadius, me, myRank: null, inResults: false, ahead: null, top: [] };

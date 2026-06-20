@@ -79,7 +79,10 @@ export default async function handler(req, res) {
       address,
       rating,
       total_reviews: total,
-      plan: plan || "free"
+      plan: plan || "free",
+      // Termo de busca informado no onboarding (ex: "loja de bicicletas").
+      // Só inclui se veio preenchido — não sobrescreve um override existente com vazio.
+      ...(((category_override || "").trim()) && { category_override: category_override.trim() })
     };
     console.log("[savebiz] Tentando inserir:", insertPayload);
 
