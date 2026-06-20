@@ -32,8 +32,16 @@ function Root() {
   const guestPlaceId = params?.get('place_id') || params?.get('place') || null
   const guestKeyword = params?.get('keyword') || ''
 
+  // ?next= sinaliza ação que EXIGE conta (ex: assinar Pro). Mostra Login (que
+  // tem link "criar conta") e, após autenticar, manda pro destino. Só paths
+  // internos (começam com / mas não //) — evita open redirect.
+  const rawNext = params?.get('next') || ''
+  const nextUrl = (rawNext.startsWith('/') && !rawNext.startsWith('//')) ? rawNext : null
+
   if (!user && !isDemo) {
-    if (forceLogin) return <Login onLogin={setUser} />
+    if (forceLogin || nextUrl) {
+      return <Login onLogin={(u) => { if (nextUrl) { window.location.href = nextUrl; return } setUser(u) }} />
+    }
     return <AppV2
       user={null}
       onLogout={handleLogout}
