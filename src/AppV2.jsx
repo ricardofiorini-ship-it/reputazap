@@ -4567,67 +4567,121 @@ function GuestSearch({ isMobile }) {
 
   return (
     <div style={{ background:T.bg, minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', padding:'32px 18px 80px' }}>
-      <img src="/startouch-logo-dark.png" alt="StarTouch" style={{ height: isMobile?40:48, width:'auto', marginBottom: 26 }}/>
-      <div style={{ width:'100%', maxWidth: 460, background:T.surface, border:`1px solid ${T.border}`, borderRadius:18, boxShadow:T.shadow, padding: isMobile?'24px 20px':'32px 28px' }}>
-        <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile?22:26, fontWeight:800, color:T.text, letterSpacing:'-0.02em', margin:'0 0 8px', lineHeight:1.15 }}>
-          Veja sua posição no Google <span style={{ color:T.blue }}>grátis</span>
-        </h1>
-        <p style={{ fontSize:14, color:T.textMid, lineHeight:1.55, margin:'0 0 22px' }}>
-          Descubra seu ranking, quem está na sua frente e seus concorrentes — sem cadastro.
-        </p>
-        <form onSubmit={doSearch}>
-          <div style={{ marginBottom:14 }}>
-            <label style={labelStyle}>Nome do negócio</label>
-            <input style={inputStyle} value={q} onChange={e=>setQ(e.target.value)} placeholder="Ex: Padaria do João" autoFocus/>
-          </div>
-          <div style={{ marginBottom:14 }}>
-            <label style={labelStyle}>Cidade ou CEP</label>
-            <input style={inputStyle} value={loc} onChange={e=>setLoc(e.target.value)} placeholder="Ex: São Paulo ou 04567-000"/>
-          </div>
-          <div style={{ marginBottom:18 }}>
-            <label style={labelStyle}>O que você vende / como te procuram no Google</label>
-            <input style={inputStyle} value={term} onChange={e=>setTerm(e.target.value)} placeholder="Ex: trattoria italiana, aluguel de roupas"/>
-            <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
-              É esse termo que usamos pra achar os concorrentes certos — quanto mais específico, melhor.
-            </span>
-          </div>
-          <button type="submit" disabled={!canSearch} style={{
-            width:'100%', padding:'13px', background: canSearch?T.blue:T.textDim, color:'#fff',
-            border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
-            cursor: canSearch?'pointer':'not-allowed'
-          }}>{loading ? 'Buscando…' : '🔍 Ver minha posição'}</button>
-        </form>
+      <style>{`
+        .gs-grid { width:100%; max-width:1040px; display:flex; flex-direction:column; align-items:center; gap:40px; }
+        @media(min-width:880px){ .gs-grid{ display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; } }
+        .gs-illustration { display:none; }
+        @media(min-width:880px){ .gs-illustration{ display:flex; align-items:center; justify-content:center; } }
+        .gs-phone { width:260px; height:480px; background:#fff; border:1.5px solid #e5e7eb; border-radius:36px; box-shadow:0 24px 60px -16px rgba(60,64,67,0.20); padding:18px 14px; display:flex; flex-direction:column; gap:14px; position:relative; }
+        .gs-phone::before { content:""; position:absolute; top:6px; left:50%; transform:translateX(-50%); width:60px; height:5px; background:#e5e7eb; border-radius:999px; }
+        .gs-glogo { font-family:'Inter',sans-serif; font-weight:700; font-size:20px; text-align:center; margin-top:14px; letter-spacing:-0.01em; }
+        .gs-glogo .g1{color:#4285f4;} .gs-glogo .g2{color:#ea4335;} .gs-glogo .g3{color:#fbbc04;} .gs-glogo .g4{color:#4285f4;} .gs-glogo .g5{color:#34a853;} .gs-glogo .g6{color:#ea4335;}
+        .gs-psearch { background:#f1f3f4; border-radius:999px; padding:10px 16px; font-size:11px; color:#9aa0a6; }
+        .gs-presult { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px; display:flex; gap:10px; box-shadow:0 4px 12px -2px rgba(60,64,67,0.10); margin-top:6px; }
+        .gs-pimg { width:52px; height:52px; border-radius:8px; background:linear-gradient(135deg,#fbbc04,#ea4335); flex-shrink:0; }
+        .gs-pinfo { flex:1; min-width:0; }
+        .gs-pname { font-size:11px; font-weight:600; color:#202124; line-height:1.3; }
+        .gs-pmeta { font-size:9px; color:#5f6368; margin-top:2px; }
+        .gs-pstars { color:#fbbc04; font-size:11px; letter-spacing:1px; line-height:1; margin-top:4px; }
+        .gs-pline { height:1px; background:#e5e7eb; margin:4px 0; }
+        .gs-picons { display:flex; justify-content:space-around; padding:8px 0; }
+        .gs-picon { width:32px; height:32px; border-radius:50%; background:#f1f3f4; display:flex; align-items:center; justify-content:center; color:#5f6368; font-size:12px; }
+        .gs-pbar { height:6px; background:#e5e7eb; border-radius:3px; width:80%; }
+        .gs-pbar.short { width:60%; }
+        .gs-form { width:100%; max-width:460px; }
+        @media(min-width:880px){ .gs-form{ max-width:none; } }
+      `}</style>
 
-        {error && <p style={{ fontSize:13, color:T.red, marginTop:12 }}>{error}</p>}
+      <img src="/startouch-logo-dark.png" alt="StarTouch" style={{ height: isMobile?40:48, width:'auto', marginBottom: 30 }}/>
 
-        {results && (
-          <div style={{ marginTop:18 }}>
-            {results.length === 0 ? (
-              <p style={{ fontSize:13, color:T.textMid }}>Nada encontrado. Tente o nome completo ou adicione a cidade.</p>
-            ) : (
-              <>
-                <p style={{ fontSize:13, color:T.blue, fontWeight:600, margin:'0 0 8px' }}>👇 Toque no seu negócio</p>
-                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  {results.map(b => (
-                    <button key={b.place_id} type="button" onClick={()=>pick(b.place_id)} style={{
-                      textAlign:'left', background:'#fff', border:`1.5px solid ${T.border}`, borderRadius:11,
-                      padding:'12px 14px', cursor:'pointer', display:'flex', flexDirection:'column', gap:3
-                    }}>
-                      <span style={{ fontSize:14.5, fontWeight:700, color:T.text }}>{b.name}</span>
-                      <span style={{ fontSize:12.5, color:T.textMid }}>{b.address || ''}</span>
-                      <span style={{ fontSize:12, color:T.textDim }}>⭐ {b.rating || '—'} · {b.total || 0} avaliações</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
+      <div className="gs-grid">
+        {/* Celular do Google ao lado (só desktop) */}
+        <div className="gs-illustration" aria-hidden="true">
+          <div className="gs-phone">
+            <div className="gs-glogo"><span className="g1">G</span><span className="g2">o</span><span className="g3">o</span><span className="g4">g</span><span className="g5">l</span><span className="g6">e</span></div>
+            <div className="gs-psearch">🔍 Seu negócio</div>
+            <div className="gs-pline"></div>
+            <div className="gs-presult">
+              <div className="gs-pimg"></div>
+              <div className="gs-pinfo">
+                <div className="gs-pname">Café Bello Vista</div>
+                <div className="gs-pmeta">Cafeteria · Aberto agora</div>
+                <div className="gs-pstars">★★★★★</div>
+              </div>
+            </div>
+            <div className="gs-picons"><div className="gs-picon">📍</div><div className="gs-picon">📞</div><div className="gs-picon">🔖</div><div className="gs-picon">↗</div></div>
+            <div className="gs-pbar"></div>
+            <div className="gs-pbar short"></div>
+            <div className="gs-pbar"></div>
           </div>
-        )}
+        </div>
+
+        {/* Form */}
+        <div className="gs-form">
+          <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile?24:30, fontWeight:800, color:T.text, letterSpacing:'-0.02em', margin:'0 0 8px', lineHeight:1.15 }}>
+            Veja sua posição no Google <span style={{ color:T.blue }}>grátis</span>
+          </h1>
+          <p style={{ fontSize:14.5, color:T.textMid, lineHeight:1.55, margin:'0 0 16px' }}>
+            Informe seu negócio e descubra na hora como você está vs. os concorrentes — sem cadastro.
+          </p>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#E6F4EA', border:'1px solid #CEEAD6', color:'#137333', borderRadius:999, padding:'7px 14px', fontSize:13, fontWeight:600, marginBottom:22, lineHeight:1.3 }}>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}><polyline points="20 6 9 17 4 12"/></svg>
+            Ver seu ranking é <span style={{ fontWeight:800, margin:'0 3px' }}>100% grátis</span> · sem cartão
+          </div>
+          <form onSubmit={doSearch}>
+            <div style={{ marginBottom:14 }}>
+              <label style={labelStyle}>Nome do negócio</label>
+              <input style={inputStyle} value={q} onChange={e=>setQ(e.target.value)} placeholder="Ex: Padaria do João" autoFocus/>
+            </div>
+            <div style={{ marginBottom:14 }}>
+              <label style={labelStyle}>Cidade ou CEP</label>
+              <input style={inputStyle} value={loc} onChange={e=>setLoc(e.target.value)} placeholder="Ex: São Paulo ou 04567-000"/>
+            </div>
+            <div style={{ marginBottom:18 }}>
+              <label style={labelStyle}>O que você vende / como te procuram no Google</label>
+              <input style={inputStyle} value={term} onChange={e=>setTerm(e.target.value)} placeholder="Ex: trattoria italiana, aluguel de roupas"/>
+              <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
+                É esse termo que usamos pra achar os concorrentes certos — quanto mais específico, melhor.
+              </span>
+            </div>
+            <button type="submit" disabled={!canSearch} style={{
+              width:'100%', padding:'13px', background: canSearch?T.blue:T.textDim, color:'#fff',
+              border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
+              cursor: canSearch?'pointer':'not-allowed'
+            }}>{loading ? 'Buscando…' : '🔍 Ver minha posição'}</button>
+          </form>
+
+          {error && <p style={{ fontSize:13, color:T.red, marginTop:12 }}>{error}</p>}
+
+          {results && (
+            <div style={{ marginTop:18 }}>
+              {results.length === 0 ? (
+                <p style={{ fontSize:13, color:T.textMid }}>Nada encontrado. Tente o nome completo ou adicione a cidade.</p>
+              ) : (
+                <>
+                  <p style={{ fontSize:13, color:T.blue, fontWeight:600, margin:'0 0 8px' }}>👇 Toque no seu negócio</p>
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {results.map(b => (
+                      <button key={b.place_id} type="button" onClick={()=>pick(b.place_id)} style={{
+                        textAlign:'left', background:'#fff', border:`1.5px solid ${T.border}`, borderRadius:11,
+                        padding:'12px 14px', cursor:'pointer', display:'flex', flexDirection:'column', gap:3
+                      }}>
+                        <span style={{ fontSize:14.5, fontWeight:700, color:T.text }}>{b.name}</span>
+                        <span style={{ fontSize:12.5, color:T.textMid }}>{b.address || ''}</span>
+                        <span style={{ fontSize:12, color:T.textDim }}>⭐ {b.rating || '—'} · {b.total || 0} avaliações</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          <p style={{ fontSize:13, color:T.textMid, marginTop:18 }}>
+            Já tem conta? <a href="/app?login=1" style={{ color:T.blue, fontWeight:600, textDecoration:'none' }}>Entrar</a>
+          </p>
+        </div>
       </div>
-
-      <p style={{ fontSize:13, color:T.textMid, marginTop:20 }}>
-        Já tem conta? <a href="/app?login=1" style={{ color:T.blue, fontWeight:600, textDecoration:'none' }}>Entrar</a>
-      </p>
     </div>
   )
 }
