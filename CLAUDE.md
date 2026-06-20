@@ -30,10 +30,12 @@ CREATE INDEX IF NOT EXISTS idx_businesses_stripe_customer ON businesses(stripe_c
 
 **Pedidos:** rodar `supabase/schema-orders.sql` uma vez (tabela `orders`). O pedido de kit é salvo como `pending` ao criar o checkout (com os itens) e o webhook MP marca `paid` quando aprovado, disparando email pro admin (`ADMIN_NOTIFICATIONS_EMAIL`). Pagamento do Pacote IA também é registrado em `orders` + notifica. Idempotente (não reenvia email se o MP repetir o webhook).
 
+**Aviso de pedido pago — LIVE (validado 2026-06-20).** Cadeia de 3 elos, toda verde em produção: (1) tabela `orders` criada no Supabase; (2) `ADMIN_NOTIFICATIONS_EMAIL` setada na Vercel; (3) `RESEND_API_KEY` setada + domínio `startouch.com.br` **verified** no Resend (envia de `alertas@startouch.com.br`). Diagnóstico self-service no `billing.js`: `?action=debug` mostra `order_notifications.ready` (checa tabela `orders` + envs + status do domínio no Resend); `?action=test-email` dispara um email de teste pro admin e devolve a resposta crua do Resend. **Nota Resend:** manter o recurso **"Enable Receiving" DESLIGADO** — ele pede um MX `inbound-smtp…amazonaws.com` no `@` que não é usado pra envio e, se adicionado, sequestraria o recebimento de email do domínio. Com ele ligado o domínio fica `partially_failed` (envio ainda funciona, mas reporta sujo).
+
 ## Endpoints (`api/`)
 
 Vercel **Pro** (limite de funções já não é gargalo). Funções:
-`register`, `login` (aceita `?action=google`/`id_token` pro login Google), `forgot-password`, `reset-password`, `savebiz`, `mybiz`, `reviews` (aceita `?place_id=`), `searchbiz`, `bizinfo` (retorna `plan` + `photoUrl`), `placeid`, `feedback` (GET lista pendentes / POST cria/atualiza, envia email via Resend), `billing` (Stripe — dispatcher por `?action=checkout|checkout-kit|portal|webhook`), `plates` (dispatcher por `?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates`), `r/[code]` (redirect universal de placa), `radar` (POST — IA Radar, ver seção abaixo).
+`register`, `login` (aceita `?action=google`/`id_token` pro login Google), `forgot-password`, `reset-password`, `savebiz`, `mybiz`, `reviews` (aceita `?place_id=`), `searchbiz`, `bizinfo` (retorna `plan` + `photoUrl`), `placeid`, `feedback` (GET lista pendentes / POST cria/atualiza, envia email via Resend), `billing` (Mercado Pago — dispatcher por `?action=checkout|checkout-kit|checkout-ia|portal|webhook`; diagnósticos GET: `debug`, `test-email`, `mp-probe`), `plates` (dispatcher por `?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates`), `r/[code]` (redirect universal de placa), `radar` (POST — IA Radar, ver seção abaixo).
 
 Helpers em `api/_lib/` (prefixo `_` = não vira function): `plates.js` (geração de códigos), `radar/` (motores de IA, cache e score do IA Radar).
 
@@ -47,9 +49,10 @@ Fluxo end-to-end funcionando:
 ## Pendências
 
 1. Hardware NFC: os 4 cards do dashboard apontam pro mesmo SKU Mercado Livre placeholder. Trocar por links específicos quando tiver SKU por produto.
-2. `RESEND_API_KEY` precisa ser setada na Vercel pros emails transacionais (boas-vindas, dispositivo ativado, notificações admin) funcionarem (sem ela, o envio é skipado com log). Obs: não é mais usada pra peneira — ela foi removida.
-3. Deploy backend no Railway (avaliar se ainda faz sentido com Vercel functions).
-4. Setup Mercado Pago (ver seção abaixo) — provedor ativo.
+2. Deploy backend no Railway (avaliar se ainda faz sentido com Vercel functions).
+3. Setup Mercado Pago (ver seção abaixo) — provedor ativo.
+
+**Resolvido (2026-06-20):** `RESEND_API_KEY` setada na Vercel + domínio verificado no Resend. Emails transacionais (boas-vindas, dispositivo ativado, notificações admin, **aviso de pedido pago**) funcionando em produção. Ver seção "Aviso de pedido pago — LIVE" acima.
 
 ## Setup Mercado Pago (provedor ativo)
 
