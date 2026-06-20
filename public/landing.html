@@ -2416,6 +2416,68 @@ fbq('track', 'PageView');
   .eco-vitrine-price.is-soldout .eco-price-value {
     color: var(--st-gray-text); text-decoration: line-through; text-decoration-thickness: 2px;
   }
+  /* === Galeria de produto estilo e-commerce (foto principal + miniaturas) === */
+  .eco-gallery-card {
+    background: var(--st-bg-secondary);
+    border: 1px solid var(--st-gray-light);
+    border-radius: 18px; overflow: hidden;
+    display: grid; grid-template-columns: 1fr;
+  }
+  @media (min-width: 880px) { .eco-gallery-card { grid-template-columns: 1fr 1fr; } }
+  .eco-gallery-media {
+    padding: 20px;
+    border-bottom: 1px solid var(--st-gray-light);
+    background: radial-gradient(ellipse 80% 70% at 50% 40%, #FFFFFF 0%, #EEF1F4 70%, #E6EAEE 100%);
+  }
+  @media (min-width: 880px) { .eco-gallery-media { border-bottom: none; border-right: 1px solid var(--st-gray-light); } }
+  .eco-gallery-main {
+    position: relative; aspect-ratio: 4 / 5;
+    border-radius: 12px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; background: #fff;
+  }
+  .eco-gallery-main img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .eco-gallery-thumbs {
+    display: flex; gap: 10px; margin-top: 14px;
+    overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin;
+  }
+  .eco-gallery-thumb {
+    flex: 0 0 auto; width: 60px; height: 60px;
+    border-radius: 9px; overflow: hidden;
+    border: 2px solid var(--st-gray-light); background: #fff; cursor: pointer; padding: 0;
+    transition: border-color .15s;
+  }
+  @media (min-width: 1024px) { .eco-gallery-thumb { width: 66px; height: 66px; } }
+  .eco-gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .eco-gallery-thumb.is-active, .eco-gallery-thumb:hover { border-color: var(--st-blue-primary); }
+  .eco-gallery-body {
+    padding: 24px; display: flex; flex-direction: column; gap: 14px; justify-content: center;
+  }
+  @media (min-width: 1024px) { .eco-gallery-body { padding: 32px 36px; } }
+  .eco-gallery-tag {
+    display: inline-block; align-self: flex-start;
+    font-family: var(--st-font-sans); font-size: 10.5px; font-weight: 700;
+    color: var(--st-blue-primary); letter-spacing: 0.16em; text-transform: uppercase;
+    background: var(--st-blue-soft); padding: 4px 10px; border-radius: 6px;
+  }
+  .eco-gallery-title {
+    font-family: var(--st-font-sans); font-size: 22px; font-weight: 700;
+    color: var(--st-black-strong); letter-spacing: -0.01em; line-height: 1.2; margin: 0;
+  }
+  @media (min-width: 1024px) { .eco-gallery-title { font-size: 25px; } }
+  .eco-gallery-desc {
+    font-family: var(--st-font-sans); font-size: 14.5px; color: var(--st-gray-text); line-height: 1.55; margin: 0;
+  }
+  .eco-gallery-specs { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  .eco-gallery-specs li {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-family: var(--st-font-sans); font-size: 13.5px; color: var(--st-black-strong); line-height: 1.45;
+  }
+  .eco-gallery-specs li svg { flex: 0 0 auto; width: 17px; height: 17px; color: var(--st-blue-primary); margin-top: 1px; }
+  .eco-gallery-specs li strong { font-weight: 600; }
+  .eco-gallery-buy {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    margin-top: 6px; padding-top: 18px; border-top: 1px solid var(--st-gray-light);
+  }
   /* === FAQ da vitrine (vfaq-*, isolado do FAQ legado mais abaixo) === */
   .vfaq-section { background: var(--st-bg-primary); padding: 64px 24px 88px; }
   @media (min-width: 1024px) { .vfaq-section { padding: 84px 32px 104px; } }
@@ -4121,23 +4183,35 @@ fbq('track', 'PageView');
     </div>
 
     <div class="eco-vitrine">
-      <div class="eco-vitrine-card">
-        <div class="eco-vitrine-image">
-          <img class="eco-img-lg" src="/gadget-placa.png" alt="Placa de balcão StarTouch — acrílico com chamada AVALIE AQUI" loading="lazy" width="750" height="768"/>
-        </div>
-        <div class="eco-vitrine-body">
-          <span class="eco-vitrine-tag">Placa NFC</span>
-          <h3 class="eco-vitrine-title">Ideal para mesas, balcões e recepções</h3>
-          <p class="eco-vitrine-desc">Acrílico premium com NFC integrado. Coloque no balcão ou na mesa do cliente e ative com um toque.</p>
-          <div class="eco-vitrine-features">
-            <span class="eco-vitrine-feature">Acrílico premium</span>
-            <span class="eco-vitrine-feature">Base estável</span>
-            <span class="eco-vitrine-feature">Cabe em qualquer balcão</span>
+      <!-- Galeria Placa G (estilo e-commerce: foto principal + miniaturas) -->
+      <div class="eco-gallery-card" data-gallery>
+        <div class="eco-gallery-media">
+          <div class="eco-gallery-main">
+            <img id="pg-main" src="/gadget-placa.png" alt="Placa de Balcão G StarTouch — acrílico com chamada AVALIE AQUI" width="750" height="768"/>
           </div>
-          <div class="eco-vitrine-buy">
+          <div class="eco-gallery-thumbs">
+            <button class="eco-gallery-thumb is-active" type="button" data-full="/gadget-placa.png" aria-label="Ver foto 1 — produto"><img src="/gadget-placa.png" alt="Placa de Balcão G — produto" loading="lazy"/></button>
+            <button class="eco-gallery-thumb" type="button" data-full="/placa-g-2.png" aria-label="Ver foto 2 — dimensões"><img src="/placa-g-2.png" alt="Placa de Balcão G — dimensões 21 x 15 cm" loading="lazy"/></button>
+            <button class="eco-gallery-thumb" type="button" data-full="/placa-g-3.png" aria-label="Ver foto 3 — no balcão"><img src="/placa-g-3.png" alt="Placa de Balcão G no balcão de um café" loading="lazy"/></button>
+            <button class="eco-gallery-thumb" type="button" data-full="/placa-g-4.png" aria-label="Ver foto 4 — aproximando o celular"><img src="/placa-g-4.png" alt="Cliente aproximando o celular da Placa de Balcão G" loading="lazy"/></button>
+            <button class="eco-gallery-thumb" type="button" data-full="/placa-g-5.png" aria-label="Ver foto 5 — antes e depois"><img src="/placa-g-5.png" alt="Antes e depois: mais avaliações no Google com a Placa G" loading="lazy"/></button>
+          </div>
+        </div>
+        <div class="eco-gallery-body">
+          <span class="eco-gallery-tag">Placa NFC · Tamanho G</span>
+          <h3 class="eco-gallery-title">Placa de Balcão G</h3>
+          <p class="eco-gallery-desc">Acrílico premium com NFC integrado e QR Code. Ideal para balcões, recepções e caixas — o cliente toca o celular e avalia no Google em segundos.</p>
+          <ul class="eco-gallery-specs">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Material:</strong> acrílico cristal premium com base inclinada</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Dimensões:</strong> 21 × 15 cm (display de mesa)</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Tecnologia:</strong> NFC + QR Code de fallback impresso</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Compatível:</strong> iPhone (7+) e Android com NFC; QR para qualquer celular</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Sem app:</strong> o cliente não instala nada nem se cadastra</span></li>
+          </ul>
+          <div class="eco-gallery-buy">
             <div class="eco-vitrine-price">
-              <span class="eco-price-from">a partir de</span>
-              <span class="eco-price-value">R$ 49,90</span>
+              <span class="eco-price-from">unidade</span>
+              <span class="eco-price-value">R$ 79,90</span>
             </div>
             <a class="eco-vitrine-cta" href="/kit?add=placa-balcao">
               Comprar
@@ -4200,8 +4274,22 @@ fbq('track', 'PageView');
   </div>
 </section>
 
-<!-- CARROSSEL DE GADGETS — placeholder. Inserir aqui o carrossel de imagens
-     (com specs) + texto técnico detalhado quando os arquivos estiverem em /public. -->
+<!-- Galeria de produto: clique na miniatura troca a foto principal -->
+<script>
+  document.querySelectorAll('.eco-gallery-card').forEach(function (card) {
+    var main = card.querySelector('.eco-gallery-main img');
+    if (!main) return;
+    card.querySelectorAll('.eco-gallery-thumb').forEach(function (thumb) {
+      thumb.addEventListener('click', function () {
+        var img = thumb.querySelector('img');
+        main.src = thumb.getAttribute('data-full') || (img && img.src) || main.src;
+        if (img) main.alt = img.alt;
+        card.querySelectorAll('.eco-gallery-thumb').forEach(function (t) { t.classList.remove('is-active'); });
+        thumb.classList.add('is-active');
+      });
+    });
+  });
+</script>
 
 <!-- FAQ da vitrine — diferenciais (acordeão, classes vfaq-* isoladas) -->
 <section class="vfaq-section" id="faq-vitrine">
