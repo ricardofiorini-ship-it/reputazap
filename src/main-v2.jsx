@@ -25,20 +25,24 @@ function Root() {
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
   const isDemo = params?.get('demo') === '1'
 
-  // Modo convidado: visitante chega do /diagnostico com ?place_id= (sem conta).
-  // Vê o painel com dados REAIS do próprio negócio, read-only, com tarja de cadastro.
+  // Porta única: visitante sem conta entra no /app em modo CONVIDADO.
+  // Sem place_id → tela de busca de negócio; com place_id → painel guest read-only.
+  // Login fica como porta secundária via ?login=1 ("já tenho conta").
+  const forceLogin = params?.get('login') === '1'
   const guestPlaceId = params?.get('place_id') || params?.get('place') || null
   const guestKeyword = params?.get('keyword') || ''
-  const isGuest = !user && !isDemo && !!guestPlaceId
 
-  if (!user && !isDemo && !isGuest) return <Login onLogin={setUser} />
-  return <AppV2
-    user={user}
-    onLogout={handleLogout}
-    demoMode={isDemo}
-    guestMode={isGuest}
-    guestContext={isGuest ? { placeId: guestPlaceId, keyword: guestKeyword } : null}
-  />
+  if (!user && !isDemo) {
+    if (forceLogin) return <Login onLogin={setUser} />
+    return <AppV2
+      user={null}
+      onLogout={handleLogout}
+      demoMode={false}
+      guestMode={true}
+      guestContext={{ placeId: guestPlaceId, keyword: guestKeyword }}
+    />
+  }
+  return <AppV2 user={user} onLogout={handleLogout} demoMode={isDemo} />
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<Root />)

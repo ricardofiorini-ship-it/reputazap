@@ -330,7 +330,12 @@ function useRealData(user, demoMode, guestMode = false, guestContext = null) {
 
     ;(async () => {
       // ── Modo CONVIDADO: só endpoints públicos (place_id), sem token ──
-      if (guestMode && guestContext?.placeId) {
+      if (guestMode) {
+        // Sem negócio escolhido ainda → tela de busca (não busca dados)
+        if (!guestContext?.placeId) {
+          if (!cancelled) setState(s => ({ ...s, loading: false, hasBusiness: false }))
+          return
+        }
         try {
           const pid = guestContext.placeId
           const kw = (guestContext.keyword || '').trim()
@@ -4499,6 +4504,126 @@ function ReviewsScreen({ data, isMobile }) {
 // ─────────────────────────────────────────────────────────────
 // Estados especiais: loading, erro, sem-negócio
 // ─────────────────────────────────────────────────────────────
+
+// Porta única do modo convidado: busca o negócio (nome + cidade/CEP + termo)
+// e leva pro painel guest (/app?place_id=&keyword=). Substitui o /diagnostico.
+function GuestSearch({ isMobile }) {
+  const [q, setQ] = React.useState('')
+  const [loc, setLoc] = React.useState('')
+  const [term, setTerm] = React.useState('')
+  const [results, setResults] = React.useState(null)
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState('')
+
+  async function resolveLocation(locRaw) {
+    const cepDigits = (locRaw || '').replace(/\D/g, '')
+    if (cepDigits.length === 8) {
+      try {
+        const v = await fetch(`https://viacep.com.br/ws/${cepDigits}/json/`).then(r => r.json())
+        if (v && !v.erro) return { parts: [cepDigits, v.localidade, v.uf].filter(Boolean), cep: cepDigits }
+      } catch {}
+      return { parts: [cepDigits], cep: cepDigits }
+    }
+    return { parts: locRaw ? [locRaw] : [], cep: '' }
+  }
+
+  async function doSearch(e) {
+    if (e) e.preventDefault()
+    if (q.trim().length < 2) return
+    setLoading(true); setError(''); setResults(null)
+    try {
+      const locInfo = await resolveLocation(loc.trim())
+      const fullQ = [q.trim(), ...locInfo.parts].filter(Boolean).join(' ')
+      const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(fullQ)}&cep=${encodeURIComponent(locInfo.cep)}`)
+      const d = await r.json()
+      setResults(d.results || [])
+    } catch {
+      setError('Erro ao buscar. Tente de novo.')
+    } finally { setLoading(false) }
+  }
+
+  function pick(placeId) {
+    const kw = term.trim()
+    let url = `/app?place_id=${encodeURIComponent(placeId)}`
+    if (kw) url += `&keyword=${encodeURIComponent(kw)}`
+    window.location.href = url
+  }
+
+  const inputStyle = {
+    width:'100%', padding:'12px 14px', fontSize:15, color:T.text,
+    border:`1.5px solid ${T.border}`, borderRadius:10, outline:'none', boxSizing:'border-box',
+    fontFamily:"'Inter', sans-serif", background:'#fff'
+  }
+  const labelStyle = { display:'block', fontSize:13, fontWeight:600, color:T.textMid, margin:'0 0 6px' }
+  const canSearch = q.trim().length >= 2 && !loading
+
+  return (
+    <div style={{ background:T.bg, minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', padding:'32px 18px 80px' }}>
+      <img src="/startouch-logo-dark.png" alt="StarTouch" style={{ height: isMobile?40:48, width:'auto', marginBottom: 26 }}/>
+      <div style={{ width:'100%', maxWidth: 460, background:T.surface, border:`1px solid ${T.border}`, borderRadius:18, boxShadow:T.shadow, padding: isMobile?'24px 20px':'32px 28px' }}>
+        <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile?22:26, fontWeight:800, color:T.text, letterSpacing:'-0.02em', margin:'0 0 8px', lineHeight:1.15 }}>
+          Veja sua posição no Google <span style={{ color:T.blue }}>grátis</span>
+        </h1>
+        <p style={{ fontSize:14, color:T.textMid, lineHeight:1.55, margin:'0 0 22px' }}>
+          Descubra seu ranking, quem está na sua frente e seus concorrentes — sem cadastro.
+        </p>
+        <form onSubmit={doSearch}>
+          <div style={{ marginBottom:14 }}>
+            <label style={labelStyle}>Nome do negócio</label>
+            <input style={inputStyle} value={q} onChange={e=>setQ(e.target.value)} placeholder="Ex: Padaria do João" autoFocus/>
+          </div>
+          <div style={{ marginBottom:14 }}>
+            <label style={labelStyle}>Cidade ou CEP</label>
+            <input style={inputStyle} value={loc} onChange={e=>setLoc(e.target.value)} placeholder="Ex: São Paulo ou 04567-000"/>
+          </div>
+          <div style={{ marginBottom:18 }}>
+            <label style={labelStyle}>O que você vende / como te procuram no Google</label>
+            <input style={inputStyle} value={term} onChange={e=>setTerm(e.target.value)} placeholder="Ex: trattoria italiana, aluguel de roupas"/>
+            <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
+              É esse termo que usamos pra achar os concorrentes certos — quanto mais específico, melhor.
+            </span>
+          </div>
+          <button type="submit" disabled={!canSearch} style={{
+            width:'100%', padding:'13px', background: canSearch?T.blue:T.textDim, color:'#fff',
+            border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
+            cursor: canSearch?'pointer':'not-allowed'
+          }}>{loading ? 'Buscando…' : '🔍 Ver minha posição'}</button>
+        </form>
+
+        {error && <p style={{ fontSize:13, color:T.red, marginTop:12 }}>{error}</p>}
+
+        {results && (
+          <div style={{ marginTop:18 }}>
+            {results.length === 0 ? (
+              <p style={{ fontSize:13, color:T.textMid }}>Nada encontrado. Tente o nome completo ou adicione a cidade.</p>
+            ) : (
+              <>
+                <p style={{ fontSize:13, color:T.blue, fontWeight:600, margin:'0 0 8px' }}>👇 Toque no seu negócio</p>
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  {results.map(b => (
+                    <button key={b.place_id} type="button" onClick={()=>pick(b.place_id)} style={{
+                      textAlign:'left', background:'#fff', border:`1.5px solid ${T.border}`, borderRadius:11,
+                      padding:'12px 14px', cursor:'pointer', display:'flex', flexDirection:'column', gap:3
+                    }}>
+                      <span style={{ fontSize:14.5, fontWeight:700, color:T.text }}>{b.name}</span>
+                      <span style={{ fontSize:12.5, color:T.textMid }}>{b.address || ''}</span>
+                      <span style={{ fontSize:12, color:T.textDim }}>⭐ {b.rating || '—'} · {b.total || 0} avaliações</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      <p style={{ fontSize:13, color:T.textMid, marginTop:20 }}>
+        Já tem conta? <a href="/app?login=1" style={{ color:T.blue, fontWeight:600, textDecoration:'none' }}>Entrar</a>
+      </p>
+    </div>
+  )
+}
+
 function LoadingScreen() {
   return (
     <div style={{ display:'grid', placeItems:'center', minHeight:'calc(100vh - 80px)', padding: 40 }}>
@@ -4880,6 +5005,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
 
   // Header usa nome do negócio real
   const headerBizName = d.biz.name
+
+  // Modo convidado SEM negócio escolhido → tela de busca (porta única, sem login)
+  if (guestMode && !guestContext?.placeId) {
+    return <GuestSearch isMobile={isMobile} />
+  }
 
   // Estados especiais — early return mantém Header pra usuário não ficar perdido
   if (real.loading) {
