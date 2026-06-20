@@ -4515,6 +4515,14 @@ function GuestSearch({ isMobile }) {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
 
+  // Analytics: abriu a busca sem cadastro (topo do funil convidado)
+  React.useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && window.gtag) window.gtag('event', 'guest_search_view')
+      if (typeof window !== 'undefined' && window.fbq) window.fbq('trackCustom', 'GuestSearchView')
+    } catch {}
+  }, [])
+
   async function resolveLocation(locRaw) {
     const cepDigits = (locRaw || '').replace(/\D/g, '')
     if (cepDigits.length === 8) {
@@ -5013,6 +5021,24 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
 
   // Carrega dados reais via API (skipa em demoMode ou sem user/convidado)
   const real = useRealData(user, demoMode, guestMode, guestContext)
+
+  // Analytics: dispara 1x quando o painel é visto em modo CONVIDADO (sem cadastro).
+  // Identifica esse fluxo no GA4 (evento "guest_panel_view") e Meta Pixel.
+  const guestPanelViewed = guestMode && !!guestContext?.placeId && real.hasBusiness && !real.loading
+  React.useEffect(() => {
+    if (!guestPanelViewed) return
+    try {
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'guest_panel_view', {
+          place_id: guestContext?.placeId || '',
+          keyword: guestContext?.keyword || ''
+        })
+      }
+      if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('trackCustom', 'GuestPanelView', { place_id: guestContext?.placeId || '' })
+      }
+    } catch {}
+  }, [guestPanelViewed])
 
   // Scroll automático pro elemento do hash quando muda de aba ou termina o loading
   // (DEPOIS do `real` ser declarado pra evitar temporal dead zone)
