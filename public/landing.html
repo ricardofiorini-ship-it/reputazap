@@ -2432,13 +2432,13 @@ fbq('track', 'PageView');
   .eco-vitrine-price.is-soldout .eco-price-value {
     color: var(--st-gray-text); text-decoration: line-through; text-decoration-thickness: 2px;
   }
-  /* === FAQ (acordeão nativo <details>) === */
-  .faq-section { background: var(--st-bg-primary); padding: 64px 24px 88px; }
-  @media (min-width: 1024px) { .faq-section { padding: 84px 32px 104px; } }
-  .faq-inner { max-width: 760px; margin: 0 auto; }
-  .faq-head { text-align: center; margin-bottom: 36px; }
-  @media (min-width: 1024px) { .faq-head { margin-bottom: 48px; } }
-  .faq-eyebrow {
+  /* === FAQ da vitrine (vfaq-*, isolado do FAQ legado mais abaixo) === */
+  .vfaq-section { background: var(--st-bg-primary); padding: 64px 24px 88px; }
+  @media (min-width: 1024px) { .vfaq-section { padding: 84px 32px 104px; } }
+  .vfaq-inner { max-width: 760px; margin: 0 auto; }
+  .vfaq-head { text-align: center; margin-bottom: 36px; }
+  @media (min-width: 1024px) { .vfaq-head { margin-bottom: 48px; } }
+  .vfaq-eyebrow {
     display: inline-flex; align-items: center; gap: 8px;
     font-family: var(--st-font-sans);
     font-size: 11.5px; font-weight: 700;
@@ -2446,46 +2446,47 @@ fbq('track', 'PageView');
     margin-bottom: 18px; padding: 8px 16px;
     background: var(--st-blue-soft); border-radius: 999px;
   }
-  .faq-eyebrow svg { width: 14px; height: 14px; flex-shrink: 0; }
-  .faq-h2 {
+  .vfaq-eyebrow svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .vfaq-h2 {
     font-family: var(--st-font-sans);
     font-size: clamp(28px, 5vw, 42px); font-weight: 800; line-height: 1.12;
     letter-spacing: -0.02em; color: var(--st-black-strong); margin: 0; text-wrap: balance;
   }
-  .faq-h2 .accent { color: var(--st-blue-primary); }
-  .faq-list { display: flex; flex-direction: column; gap: 12px; }
-  .faq-item {
+  .vfaq-h2 .accent { color: var(--st-blue-primary); }
+  .vfaq-list { display: flex; flex-direction: column; gap: 12px; }
+  .vfaq-item {
     background: var(--st-bg-secondary);
     border: 1px solid var(--st-gray-light); border-radius: 14px;
     overflow: hidden; transition: border-color .15s, box-shadow .15s;
   }
-  .faq-item[open] { border-color: var(--st-blue-primary); box-shadow: var(--st-shadow-md); }
-  .faq-item summary {
+  .vfaq-item[open] { border-color: var(--st-blue-primary); box-shadow: var(--st-shadow-md); }
+  .vfaq-item summary {
     list-style: none; cursor: pointer;
     padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
     font-family: var(--st-font-sans);
     font-size: 15.5px; font-weight: 600; color: var(--st-black-strong);
   }
-  @media (min-width: 1024px) { .faq-item summary { font-size: 16.5px; padding: 20px 24px; } }
-  .faq-item summary::-webkit-details-marker { display: none; }
-  .faq-item summary:hover { color: var(--st-blue-primary); }
-  .faq-icon {
+  @media (min-width: 1024px) { .vfaq-item summary { font-size: 16.5px; padding: 20px 24px; } }
+  .vfaq-item summary::-webkit-details-marker { display: none; }
+  .vfaq-item summary:hover { color: var(--st-blue-primary); }
+  .vfaq-q { flex: 1; }
+  .vfaq-icon {
     flex-shrink: 0; width: 24px; height: 24px; position: relative;
     transition: transform .22s ease;
   }
-  .faq-icon::before, .faq-icon::after {
+  .vfaq-icon::before, .vfaq-icon::after {
     content: ""; position: absolute; top: 50%; left: 50%;
     width: 13px; height: 2.2px; background: var(--st-blue-primary); border-radius: 2px;
     transform: translate(-50%, -50%);
   }
-  .faq-icon::after { transform: translate(-50%, -50%) rotate(90deg); transition: opacity .22s ease; }
-  .faq-item[open] .faq-icon::after { opacity: 0; }
-  .faq-a {
+  .vfaq-icon::after { transform: translate(-50%, -50%) rotate(90deg); transition: opacity .22s ease; }
+  .vfaq-item[open] .vfaq-icon::after { opacity: 0; }
+  .vfaq-a {
     padding: 0 20px 20px; font-family: var(--st-font-sans);
     font-size: 14.5px; color: var(--st-gray-text); line-height: 1.62; margin: 0;
   }
-  @media (min-width: 1024px) { .faq-a { padding: 0 24px 22px; font-size: 15px; } }
-  .faq-a a { color: var(--st-blue-primary); font-weight: 600; }
+  @media (min-width: 1024px) { .vfaq-a { padding: 0 24px 22px; font-size: 15px; } }
+  .vfaq-a a { color: var(--st-blue-primary); font-weight: 600; }
   /* FINAL CTA SECTION — dark "Transforme seu negócio" */
   .final-cta-section {
     background: #0A0F0D;
@@ -4218,36 +4219,36 @@ fbq('track', 'PageView');
 <!-- CARROSSEL DE GADGETS — placeholder. Inserir aqui o carrossel de imagens
      (com specs) + texto técnico detalhado quando os arquivos estiverem em /public. -->
 
-<!-- FAQ — perguntas frequentes (acordeão) -->
-<section class="faq-section" id="faq">
-  <div class="faq-inner">
-    <div class="faq-head">
-      <div class="faq-eyebrow">
+<!-- FAQ da vitrine — diferenciais (acordeão, classes vfaq-* isoladas) -->
+<section class="vfaq-section" id="faq-vitrine">
+  <div class="vfaq-inner">
+    <div class="vfaq-head">
+      <div class="vfaq-eyebrow">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.5 6L20 9.5l-6 1.5L12 17l-1.5-6L4 9.5l6.5-1.5z"/></svg>
         Perguntas frequentes
       </div>
-      <h2 class="faq-h2">Ainda com <span class="accent">dúvidas</span>?</h2>
+      <h2 class="vfaq-h2">Por que a placa <span class="accent">StarTouch</span>?</h2>
     </div>
-    <div class="faq-list">
-      <details class="faq-item">
-        <summary><span class="faq-q">Quanto tempo leva pra chegar? Tem frete?</span><span class="faq-icon" aria-hidden="true"></span></summary>
-        <p class="faq-a">O <strong>frete é grátis pra todo o Brasil</strong>. Despachamos assim que o pagamento é confirmado e a entrega leva, em média, <strong>5 a 10 dias úteis</strong> conforme a sua região. Você recebe o código de rastreio por email.</p>
+    <div class="vfaq-list">
+      <details class="vfaq-item">
+        <summary><span class="vfaq-q">O que diferencia a placa StarTouch das outras placas NFC do mercado?</span><span class="vfaq-icon" aria-hidden="true"></span></summary>
+        <p class="vfaq-a">A maioria das placas do mercado é só um <strong>link estático</strong> colado num adesivo — toca e abre o Google, fim. A StarTouch é uma <strong>plataforma completa</strong>: o destino é <strong>editável a qualquer momento</strong>, você acompanha tudo num <strong>painel de gestão</strong> (avaliações, ranking local e concorrentes), tem o <strong>IA Radar</strong> pra medir se o seu negócio aparece nas respostas das IAs, e é <strong>100% dentro das regras do Google</strong>. Acrílico premium, chip NFC de qualidade e QR Code de fallback inclusos.</p>
       </details>
-      <details class="faq-item">
-        <summary><span class="faq-q">Como funciona depois que eu recebo o dispositivo?</span><span class="faq-icon" aria-hidden="true"></span></summary>
-        <p class="faq-a">É simples: ao receber, você acessa <a href="/ativar-codigo">startouch.com.br</a>, busca o seu negócio no Google e ativa o código que vem na embalagem. <strong>Leva poucos minutos</strong> e o suporte acompanha se precisar. Você <strong>não precisa criar conta antes de comprar</strong> — só na hora de ativar.</p>
+      <details class="vfaq-item">
+        <summary><span class="vfaq-q">A placa é só um link pro Google ou vem com painel de verdade?</span><span class="vfaq-icon" aria-hidden="true"></span></summary>
+        <p class="vfaq-a">Vem com painel de verdade. Além de levar o cliente direto pra avaliação no Google, você acompanha suas avaliações, sua <strong>posição no ranking local e seus concorrentes</strong>, e roda o <strong>IA Radar</strong> — o diagnóstico que mostra se você é citado quando alguém pergunta a uma IA pela melhor opção da sua cidade. É <strong>gestão de reputação</strong>, não só um adesivo com link.</p>
       </details>
-      <details class="faq-item">
-        <summary><span class="faq-q">Precisa instalar aplicativo? Funciona em iPhone e Android?</span><span class="faq-icon" aria-hidden="true"></span></summary>
-        <p class="faq-a">Não precisa instalar nada. Funciona direto pelo <strong>navegador do celular</strong> — nem você nem o cliente baixam app. O NFC funciona em <strong>iPhone (a partir do 7) e em praticamente qualquer Android moderno</strong>, e todo produto traz <strong>QR Code de fallback</strong> pra celulares sem NFC.</p>
+      <details class="vfaq-item">
+        <summary><span class="vfaq-q">Precisa instalar aplicativo? Funciona em iPhone e Android?</span><span class="vfaq-icon" aria-hidden="true"></span></summary>
+        <p class="vfaq-a">Não precisa instalar nada. Funciona direto pelo <strong>navegador do celular</strong> — nem você nem o cliente baixam app. O NFC funciona em <strong>iPhone (a partir do 7) e em praticamente qualquer Android moderno</strong>, e todo produto traz <strong>QR Code de fallback</strong> pra celulares sem NFC.</p>
       </details>
-      <details class="faq-item">
-        <summary><span class="faq-q">Posso mudar o destino do link depois de ativar?</span><span class="faq-icon" aria-hidden="true"></span></summary>
-        <p class="faq-a">Sim, quando quiser. Pelo painel você troca o <strong>perfil do Google ou o número do WhatsApp em segundos</strong> — sem precisar trocar a placa, o cartão ou a pulseira. O dispositivo é físico, mas o destino é 100% editável.</p>
+      <details class="vfaq-item">
+        <summary><span class="vfaq-q">Posso mudar o destino do link depois de ativar?</span><span class="vfaq-icon" aria-hidden="true"></span></summary>
+        <p class="vfaq-a">Sim, quando quiser. Pelo painel você troca o <strong>perfil do Google de destino em segundos</strong> — sem precisar trocar a placa. O dispositivo é físico, mas o destino é 100% editável: se você muda de endereço ou abre uma filial, a <strong>mesma placa continua valendo</strong>.</p>
       </details>
-      <details class="faq-item">
-        <summary><span class="faq-q">Quais as formas de pagamento e tem garantia?</span><span class="faq-icon" aria-hidden="true"></span></summary>
-        <p class="faq-a">O pagamento é via <strong>Mercado Pago</strong>: PIX, boleto ou cartão (com opção de parcelar). Todos os dispositivos têm <strong>30 dias de garantia</strong> e suporte humano em português. Qualquer problema, a gente resolve.</p>
+      <details class="vfaq-item">
+        <summary><span class="vfaq-q">Frete, formas de pagamento e garantia?</span><span class="vfaq-icon" aria-hidden="true"></span></summary>
+        <p class="vfaq-a"><strong>Frete grátis pra todo o Brasil</strong>, entrega em 5 a 10 dias úteis após a confirmação do pagamento. Pagamento via <strong>Mercado Pago</strong> (PIX, boleto ou cartão parcelado). Todos os dispositivos têm <strong>30 dias de garantia</strong> e suporte humano em português.</p>
       </details>
     </div>
   </div>
