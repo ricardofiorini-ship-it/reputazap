@@ -472,6 +472,16 @@ async function handleCheckout() {
       body: JSON.stringify({ items, biz_name: bizName || "" })
     });
     const data = await res.json();
+    // Token expirado/inválido: limpa e segue como visitante (guest), sem erro.
+    if (res.status === 401) {
+      localStorage.removeItem("rz_token");
+      btn.disabled = false;
+      btnMobile.disabled = false;
+      btn.textContent = origLabel;
+      btnMobile.textContent = origLabelMobile;
+      openGuestModal();
+      return;
+    }
     if (!res.ok || !data.url) {
       alert(data.error || "Erro ao iniciar o checkout. Tente novamente.");
       btn.disabled = false;
