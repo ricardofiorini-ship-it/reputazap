@@ -282,6 +282,11 @@ fbq('track', 'PageView');
           <input name="phone" required inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999"/>
         </label>
       </div>
+      <div class="co-row">
+        <label>CPF ou CNPJ <span class="co-cep-status" id="coDocStatus"></span>
+          <input name="cpf_cnpj" required inputmode="numeric" autocomplete="off" placeholder="000.000.000-00"/>
+        </label>
+      </div>
       <div class="co-row co-2">
         <label>CEP <span class="co-cep-status" id="coCepStatus"></span>
           <input name="cep" required inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"/>
@@ -556,6 +561,51 @@ cepInput.addEventListener("blur", async () => {
   }
 });
 
+// CPF/CNPJ — máscara automática (alterna CPF<->CNPJ) + validação
+const docInput = coForm.querySelector('input[name="cpf_cnpj"]');
+const docStatus = document.getElementById("coDocStatus");
+function maskDoc(value) {
+  const d = value.replace(/\D/g, "").slice(0, 14);
+  if (d.length <= 11) {
+    let out = d.slice(0, 3);
+    if (d.length > 3) out += "." + d.slice(3, 6);
+    if (d.length > 6) out += "." + d.slice(6, 9);
+    if (d.length > 9) out += "-" + d.slice(9, 11);
+    return out;
+  }
+  let out = d.slice(0, 2) + "." + d.slice(2, 5) + "." + d.slice(5, 8) + "/" + d.slice(8, 12);
+  if (d.length > 12) out += "-" + d.slice(12, 14);
+  return out;
+}
+function isValidCPF(c) {
+  c = c.replace(/\D/g, "");
+  if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
+  let s = 0; for (let i = 0; i < 9; i++) s += parseInt(c[i]) * (10 - i);
+  let d1 = 11 - (s % 11); if (d1 >= 10) d1 = 0; if (d1 !== parseInt(c[9])) return false;
+  s = 0; for (let i = 0; i < 10; i++) s += parseInt(c[i]) * (11 - i);
+  let d2 = 11 - (s % 11); if (d2 >= 10) d2 = 0; return d2 === parseInt(c[10]);
+}
+function isValidCNPJ(c) {
+  c = c.replace(/\D/g, "");
+  if (c.length !== 14 || /^(\d)\1{13}$/.test(c)) return false;
+  const calc = (len) => {
+    let n = 0, pos = len - 7;
+    for (let i = len; i >= 1; i--) { n += parseInt(c[len - i]) * pos--; if (pos < 2) pos = 9; }
+    const r = n % 11; return r < 2 ? 0 : 11 - r;
+  };
+  if (calc(12) !== parseInt(c[12])) return false;
+  return calc(13) === parseInt(c[13]);
+}
+function isValidDoc(digits) {
+  return digits.length === 11 ? isValidCPF(digits) : digits.length === 14 ? isValidCNPJ(digits) : false;
+}
+docInput.addEventListener("input", () => {
+  docInput.value = maskDoc(docInput.value);
+  const digits = docInput.value.replace(/\D/g, "");
+  docStatus.textContent = (digits.length === 11 || digits.length === 14)
+    ? (isValidDoc(digits) ? "✓" : "inválido") : "";
+});
+
 coForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const items = Object.keys(cart).map(id => ({ id, qty: cart[id] }));
@@ -566,6 +616,7 @@ coForm.addEventListener("submit", async (e) => {
     name: (fd.get("name") || "").trim(),
     email: (fd.get("email") || "").trim(),
     phone: (fd.get("phone") || "").trim(),
+    cpf_cnpj: (fd.get("cpf_cnpj") || "").replace(/\D/g, ""),
     cep: (fd.get("cep") || "").trim(),
     address: (fd.get("address") || "").trim(),
     number: (fd.get("number") || "").trim(),
@@ -577,6 +628,9 @@ coForm.addEventListener("submit", async (e) => {
 
   if (!customer.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customer.email)) {
     alert("Informe seu nome e um email válido."); return;
+  }
+  if (!isValidDoc(customer.cpf_cnpj)) {
+    alert("Informe um CPF ou CNPJ válido."); return;
   }
   if (!customer.cep || !customer.address || !customer.number || !customer.city || !customer.state) {
     alert("Preencha o endereço completo (CEP, rua, número, cidade e estado)."); return;

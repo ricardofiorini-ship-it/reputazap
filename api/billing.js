@@ -113,6 +113,7 @@ async function notifyAdminKitOrder({ order, pay, userId }) {
       `<h3>📦 Entrega</h3>` +
       `<p><strong>${escapeHtmlLite(ship.name || "—")}</strong>` +
       (ship.phone ? ` · ${escapeHtmlLite(ship.phone)}` : "") + `</p>` +
+      (ship.cpf_cnpj ? `<p><strong>${ship.cpf_cnpj.length === 14 ? "CNPJ" : "CPF"}:</strong> ${escapeHtmlLite(ship.cpf_cnpj)}</p>` : "") +
       `<p>${escapeHtmlLite(linha)}${compl}<br/>` +
       `${escapeHtmlLite(cidade)}<br/>` +
       `CEP ${escapeHtmlLite(ship.cep || "—")}</p>`;
@@ -334,6 +335,7 @@ async function handleCheckoutKitGuestMP(req, res) {
       name: (customer.name || "").toString().trim(),
       email: (customer.email || "").toString().trim(),
       phone: (customer.phone || "").toString().trim(),
+      cpf_cnpj: (customer.cpf_cnpj || "").toString().replace(/\D/g, ""),
       cep: (customer.cep || "").toString().trim(),
       address: (customer.address || "").toString().trim(),
       number: (customer.number || "").toString().trim(),
@@ -344,6 +346,9 @@ async function handleCheckoutKitGuestMP(req, res) {
     };
     if (!c.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)) {
       return res.status(400).json({ error: "Informe nome e um email válido." });
+    }
+    if (c.cpf_cnpj.length !== 11 && c.cpf_cnpj.length !== 14) {
+      return res.status(400).json({ error: "Informe um CPF ou CNPJ válido." });
     }
     if (!c.cep || !c.address || !c.number || !c.city || !c.state) {
       return res.status(400).json({ error: "Preencha o endereço de entrega completo (CEP, rua, número, cidade e estado)." });
@@ -393,6 +398,7 @@ async function handleCheckoutKitGuestMP(req, res) {
           name: first_name,
           surname: last_name,
           email: c.email,
+          identification: { type: c.cpf_cnpj.length === 14 ? "CNPJ" : "CPF", number: c.cpf_cnpj },
           ...(phoneDigits.length >= 10 && { phone: { area_code, number: phoneNumber } }),
           ...(cepDigits && {
             address: { zip_code: cepDigits, street_name: c.address, street_number: c.number }
