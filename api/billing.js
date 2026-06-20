@@ -754,7 +754,27 @@ export default async function handler(req, res) {
     const proLink = process.env.MP_PRO_PAYMENT_LINK || "";
     let proLinkHost = null;
     try { if (proLink) proLinkHost = new URL(proLink).host; } catch {}
+
+    // Cadeia do aviso de pedido pago: tabela orders + email admin + Resend.
+    // Faz um select real na orders pra confirmar que a tabela existe (o SQL foi rodado).
+    let ordersTable = { ok: false, error: null };
+    try {
+      const { error } = await supabase.from("orders").select("id", { count: "exact", head: true });
+      if (error) ordersTable = { ok: false, error: error.message };
+      else ordersTable = { ok: true, error: null };
+    } catch (e) {
+      ordersTable = { ok: false, error: e?.message || "exceção ao consultar orders" };
+    }
+
     return res.json({
+      order_notifications: {
+        orders_table_exists: ordersTable.ok,
+        orders_table_error: ordersTable.error,
+        admin_email_set: !!process.env.ADMIN_NOTIFICATIONS_EMAIL,
+        resend_api_key_set: !!process.env.RESEND_API_KEY,
+        resend_from: process.env.RESEND_FROM || "onboarding@resend.dev (default)",
+        ready: ordersTable.ok && !!process.env.ADMIN_NOTIFICATIONS_EMAIL && !!process.env.RESEND_API_KEY
+      },
       mp: {
         access_token_set: !!mpToken,
         access_token_type: mpType,
