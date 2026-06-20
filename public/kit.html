@@ -146,6 +146,42 @@ fbq('track', 'PageView');
   }
 
   .pop{animation:pop 0.25s ease;}
+
+  /* Aviso "volte pra ativar" */
+  .activate-note{margin-top:12px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:12px 14px;font-size:12.5px;color:#1e3a5f;line-height:1.5;display:flex;gap:8px;align-items:flex-start;}
+  .activate-note strong{font-weight:700;}
+
+  /* Banner de sucesso pós-pagamento */
+  .success-banner{max-width:1100px;margin:0 auto 22px;background:#ECFDF5;border:1.5px solid #A7F3D0;border-radius:16px;padding:20px 22px;display:flex;gap:14px;align-items:flex-start;}
+  .success-banner .sb-icon{font-size:26px;line-height:1;}
+  .success-banner h2{font-size:17px;font-weight:700;color:#065F46;margin-bottom:4px;}
+  .success-banner p{font-size:13.5px;color:#047857;line-height:1.55;}
+
+  /* Modal de checkout guest */
+  .checkout-modal{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(15,23,42,0.55);backdrop-filter:blur(2px);padding:0;}
+  @media(min-width:640px){.checkout-modal{align-items:center;padding:24px;}}
+  .checkout-modal[hidden]{display:none;}
+  .checkout-sheet{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:26px 22px 28px;position:relative;animation:fadeUp .3s ease;}
+  @media(min-width:640px){.checkout-sheet{border-radius:20px;padding:30px 30px 30px;}}
+  .checkout-close{position:absolute;top:16px;right:16px;width:34px;height:34px;border:none;background:#f1f5f9;border-radius:50%;font-size:20px;color:#475569;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;}
+  .checkout-close:hover{background:#e2e8f0;}
+  .checkout-sheet h2{font-size:20px;font-weight:700;color:#0f172a;margin-bottom:6px;padding-right:30px;}
+  .checkout-intro{font-size:13px;color:#64748b;line-height:1.55;margin-bottom:18px;}
+  .checkout-intro strong{color:#0f172a;}
+  #coForm{display:flex;flex-direction:column;gap:12px;}
+  .co-row{display:flex;flex-direction:column;gap:12px;}
+  @media(min-width:520px){.co-row.co-2{flex-direction:row;}.co-row.co-2>label{flex:1;}}
+  #coForm label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:#334155;}
+  #coForm input{font-family:inherit;font-size:15px;color:#0f172a;padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;transition:border-color .15s;width:100%;}
+  #coForm input:focus{outline:none;border-color:#1A73E8;}
+  #coForm input:invalid:not(:placeholder-shown){border-color:#fca5a5;}
+  .co-summary{font-size:14px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;margin-top:4px;display:flex;justify-content:space-between;align-items:center;}
+  .co-summary strong{font-size:18px;color:#0f172a;font-weight:700;}
+  .co-submit{margin-top:6px;width:100%;padding:14px;background:#1A73E8;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:background .15s,transform .1s;}
+  .co-submit:hover:not(:disabled){background:#174EA6;transform:translateY(-1px);}
+  .co-submit:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+  .co-secure{text-align:center;font-size:11.5px;color:#94a3b8;margin-top:4px;}
+  .co-cep-status{font-size:11.5px;font-weight:500;color:#64748b;}
 </style>
 </head>
 <body>
@@ -160,6 +196,14 @@ fbq('track', 'PageView');
 <a class="logo" href="/landing" aria-label="StarTouch — voltar pro início">
   <img src="/startouch-logo-dark.png" alt="StarTouch"/>
 </a>
+
+<div class="success-banner" id="successBanner" style="display:none;">
+  <span class="sb-icon" aria-hidden="true">✅</span>
+  <div>
+    <h2>Pagamento recebido! Obrigado 🎉</h2>
+    <p>Seu pedido está confirmado e vamos despachar em breve. <strong>Quando os dispositivos chegarem, volte em startouch.com.br pra ativar</strong> — é rapidinho e o suporte te ajuda se precisar.</p>
+  </div>
+</div>
 
 <div class="kit-wrap">
   <header class="kit-head">
@@ -186,6 +230,10 @@ fbq('track', 'PageView');
       <div class="cart-total"><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div>
       <button class="btn-checkout" id="checkoutBtn" type="button" disabled>Finalizar compra →</button>
       <p class="cart-secure">🔒 Pagamento seguro via Mercado Pago</p>
+      <div class="activate-note">
+        <span aria-hidden="true">📦</span>
+        <span>Assim que receber seus dispositivos, você <strong>volta aqui pra ativar</strong> — leva 2 minutos. Não precisa criar conta agora.</span>
+      </div>
     </aside>
   </div>
 
@@ -212,6 +260,62 @@ fbq('track', 'PageView');
     <p style="margin:0 0 4px;"><strong style="color:#374151;font-weight:600;">GT6 Brasil Comércio Varejista de Produtos Diversos Ltda</strong> · CNPJ 31.556.596/0001-34</p>
     <p style="margin:0;">Rua Cristovan de Vita, 260 — Galpão 17 e 18, Sala F · Jardim Elias · Vargem Grande Paulista/SP · CEP 06734-452</p>
   </footer>
+</div>
+
+<!-- Modal de checkout guest (compra sem login) -->
+<div class="checkout-modal" id="checkoutModal" hidden>
+  <div class="checkout-sheet" role="dialog" aria-modal="true" aria-labelledby="coTitle">
+    <button class="checkout-close" id="coClose" type="button" aria-label="Fechar">×</button>
+    <h2 id="coTitle">Dados para entrega</h2>
+    <p class="checkout-intro">Preencha pra receber seus dispositivos. <strong>Você não precisa criar conta agora</strong> — depois de receber, é só voltar aqui pra ativar (leva 2 min).</p>
+    <form id="coForm" novalidate>
+      <div class="co-row">
+        <label>Nome completo
+          <input name="name" required autocomplete="name" placeholder="Seu nome"/>
+        </label>
+      </div>
+      <div class="co-row co-2">
+        <label>Email
+          <input name="email" type="email" required autocomplete="email" placeholder="voce@email.com"/>
+        </label>
+        <label>WhatsApp
+          <input name="phone" required inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999"/>
+        </label>
+      </div>
+      <div class="co-row co-2">
+        <label>CEP <span class="co-cep-status" id="coCepStatus"></span>
+          <input name="cep" required inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"/>
+        </label>
+        <label>Número
+          <input name="number" required placeholder="123"/>
+        </label>
+      </div>
+      <div class="co-row">
+        <label>Endereço (rua)
+          <input name="address" required autocomplete="address-line1" placeholder="Rua / Avenida"/>
+        </label>
+      </div>
+      <div class="co-row co-2">
+        <label>Bairro
+          <input name="neighborhood" autocomplete="address-level3" placeholder="Bairro"/>
+        </label>
+        <label>Complemento <span style="font-weight:400;color:#94a3b8;">(opcional)</span>
+          <input name="complement" placeholder="Apto, bloco…"/>
+        </label>
+      </div>
+      <div class="co-row co-2">
+        <label>Cidade
+          <input name="city" required autocomplete="address-level2" placeholder="Cidade"/>
+        </label>
+        <label>Estado (UF)
+          <input name="state" required maxlength="2" autocomplete="address-level1" placeholder="SP" style="text-transform:uppercase;"/>
+        </label>
+      </div>
+      <div class="co-summary"><span id="coSummaryItems">Seu kit</span><strong id="coSummaryTotal">R$ 0,00</strong></div>
+      <button type="submit" class="co-submit" id="coSubmit">Ir para o pagamento →</button>
+      <p class="co-secure">🔒 Pagamento seguro via Mercado Pago · 🚚 Frete grátis pra todo Brasil</p>
+    </form>
+  </div>
 </div>
 
 <!-- Barra fixa mobile -->
@@ -344,8 +448,8 @@ async function handleCheckout() {
 
   const token = localStorage.getItem("rz_token");
   if (!token) {
-    alert("Sua sessão expirou. Vamos te levar pro cadastro novamente.");
-    window.location.href = "/ativar?from=web";
+    // Visitante (sem login): abre o formulário de entrega e segue como guest.
+    openGuestModal();
     return;
   }
 
@@ -390,7 +494,136 @@ async function handleCheckout() {
 document.getElementById("checkoutBtn").addEventListener("click", handleCheckout);
 document.getElementById("checkoutBtnMobile").addEventListener("click", handleCheckout);
 
+// ── Checkout GUEST (visitante sem login) ────────────────────────
+const modal = document.getElementById("checkoutModal");
+const coForm = document.getElementById("coForm");
+
+function cartTotalValue() {
+  return Object.keys(cart).reduce((sum, id) => sum + PRODUCTS.find(p => p.id === id).price * cart[id], 0);
+}
+
+function openGuestModal() {
+  const ids = Object.keys(cart);
+  const itemCount = ids.reduce((s, id) => s + cart[id], 0);
+  document.getElementById("coSummaryItems").textContent = itemCount === 1 ? "1 item" : `${itemCount} itens`;
+  document.getElementById("coSummaryTotal").textContent = fmt(cartTotalValue());
+  modal.hidden = false;
+  document.body.style.overflow = "hidden";
+  setTimeout(() => coForm.querySelector('input[name="name"]')?.focus(), 50);
+}
+function closeGuestModal() {
+  modal.hidden = true;
+  document.body.style.overflow = "";
+}
+document.getElementById("coClose").addEventListener("click", closeGuestModal);
+modal.addEventListener("click", (e) => { if (e.target === modal) closeGuestModal(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closeGuestModal(); });
+
+// Máscara leve de CEP + busca ViaCEP no blur
+const cepInput = coForm.querySelector('input[name="cep"]');
+const cepStatus = document.getElementById("coCepStatus");
+cepInput.addEventListener("input", () => {
+  let v = cepInput.value.replace(/\D/g, "").slice(0, 8);
+  if (v.length > 5) v = v.slice(0, 5) + "-" + v.slice(5);
+  cepInput.value = v;
+});
+cepInput.addEventListener("blur", async () => {
+  const cep = cepInput.value.replace(/\D/g, "");
+  if (cep.length !== 8) return;
+  cepStatus.textContent = "buscando…";
+  try {
+    const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const d = await r.json();
+    if (d.erro) { cepStatus.textContent = "CEP não encontrado"; return; }
+    if (d.logradouro) coForm.querySelector('input[name="address"]').value = d.logradouro;
+    if (d.bairro) coForm.querySelector('input[name="neighborhood"]').value = d.bairro;
+    if (d.localidade) coForm.querySelector('input[name="city"]').value = d.localidade;
+    if (d.uf) coForm.querySelector('input[name="state"]').value = d.uf;
+    cepStatus.textContent = "✓";
+    coForm.querySelector('input[name="number"]').focus();
+  } catch {
+    cepStatus.textContent = "";
+  }
+});
+
+coForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const items = Object.keys(cart).map(id => ({ id, qty: cart[id] }));
+  if (items.length === 0) { closeGuestModal(); return; }
+
+  const fd = new FormData(coForm);
+  const customer = {
+    name: (fd.get("name") || "").trim(),
+    email: (fd.get("email") || "").trim(),
+    phone: (fd.get("phone") || "").trim(),
+    cep: (fd.get("cep") || "").trim(),
+    address: (fd.get("address") || "").trim(),
+    number: (fd.get("number") || "").trim(),
+    complement: (fd.get("complement") || "").trim(),
+    neighborhood: (fd.get("neighborhood") || "").trim(),
+    city: (fd.get("city") || "").trim(),
+    state: (fd.get("state") || "").trim().toUpperCase(),
+  };
+
+  if (!customer.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customer.email)) {
+    alert("Informe seu nome e um email válido."); return;
+  }
+  if (!customer.cep || !customer.address || !customer.number || !customer.city || !customer.state) {
+    alert("Preencha o endereço completo (CEP, rua, número, cidade e estado)."); return;
+  }
+
+  const submitBtn = document.getElementById("coSubmit");
+  const orig = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Redirecionando…";
+  try {
+    const res = await fetch("/api/billing?action=checkout-kit-guest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items, customer })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.url) {
+      alert(data.error || "Erro ao iniciar o checkout. Tente novamente.");
+      submitBtn.disabled = false;
+      submitBtn.textContent = orig;
+      return;
+    }
+    window.location.href = data.url;
+  } catch (err) {
+    console.error("[checkout-kit-guest] erro:", err);
+    alert("Erro de conexão. Tente novamente.");
+    submitBtn.disabled = false;
+    submitBtn.textContent = orig;
+  }
+});
+
+// Banner de sucesso pós-pagamento (?compra=sucesso)
+if (params.get("compra") === "sucesso") {
+  const sb = document.getElementById("successBanner");
+  if (sb) { sb.style.display = "flex"; sb.scrollIntoView({ behavior: "smooth", block: "center" }); }
+}
+
+// Pré-seleção via ?add=<id> (vindo da vitrine da landing). Seta o carrinho
+// ANTES do render e sincroniza o display DEPOIS (o render recria os cards).
+const addParam = params.get("add");
+if (addParam) {
+  for (const id of addParam.split(",")) {
+    const p = PRODUCTS.find(x => x.id === id);
+    if (p && !p.soldOut) cart[id] = (cart[id] || 0) + 1;
+  }
+}
+
 renderProducts();
+
+if (addParam) {
+  for (const id of Object.keys(cart)) {
+    const qtyEl = document.getElementById(`qty-${id}`);
+    if (qtyEl) qtyEl.textContent = cart[id];
+    document.getElementById(`card-${id}`)?.classList.add("selected");
+  }
+}
+
 renderCart();
 </script>
 

@@ -94,20 +94,38 @@ async function sendOrderEmail({ userId, subject, html }) {
 }
 
 async function notifyAdminKitOrder({ order, pay, userId }) {
-  const email = order?.email || pay?.payer?.email || "—";
+  const ship = order?.shipping || null;
+  const email = order?.email || ship?.email || pay?.payer?.email || "—";
   const biz = order?.biz_name || "—";
   const totalCents = order?.total_cents != null ? order.total_cents : Math.round((pay?.transaction_amount || 0) * 100);
   const items = Array.isArray(order?.items) ? order.items : [];
   const itemsHtml = items.length
     ? "<ul>" + items.map((i) => `<li>${i.qty || 1}× ${escapeHtmlLite(i.name)} — ${fmtBRL(Math.round(Number(i.unit_price || 0) * 100))}</li>`).join("") + "</ul>"
     : "<p>(itens não registrados — confira no painel do Mercado Pago)</p>";
+
+  // Bloco de entrega (só pra pedidos guest, que coletam endereço no nosso form).
+  let shippingHtml = "";
+  if (ship && (ship.address || ship.cep || ship.name)) {
+    const linha = [ship.address, ship.number].filter(Boolean).join(", ");
+    const compl = ship.complement ? ` — ${escapeHtmlLite(ship.complement)}` : "";
+    const cidade = [ship.neighborhood, ship.city, ship.state].filter(Boolean).join(" · ");
+    shippingHtml =
+      `<h3>📦 Entrega</h3>` +
+      `<p><strong>${escapeHtmlLite(ship.name || "—")}</strong>` +
+      (ship.phone ? ` · ${escapeHtmlLite(ship.phone)}` : "") + `</p>` +
+      `<p>${escapeHtmlLite(linha)}${compl}<br/>` +
+      `${escapeHtmlLite(cidade)}<br/>` +
+      `CEP ${escapeHtmlLite(ship.cep || "—")}</p>`;
+  }
+
   const html =
     `<h2>🛒 Novo pedido pago na StarTouch</h2>` +
     `<p><strong>Cliente:</strong> ${escapeHtmlLite(biz)} &lt;${escapeHtmlLite(email)}&gt;</p>` +
     `<p><strong>Itens:</strong></p>${itemsHtml}` +
     `<p><strong>Total:</strong> ${fmtBRL(totalCents)}</p>` +
+    shippingHtml +
     `<p><strong>Pagamento (MP):</strong> ${pay?.id || ""} · ${pay?.status}</p>` +
-    `<p>Veja o cliente em <a href="https://startouch.com.br/admin/clientes">/admin/clientes</a> e despache pelo painel do Mercado Pago.</p>`;
+    `<p>Despache pelo painel do Mercado Pago (endereço também consta lá).</p>`;
   await sendOrderEmail({ userId, subject: `🛒 Novo pedido StarTouch — ${fmtBRL(totalCents)}`, html });
 }
 
@@ -295,6 +313,135 @@ async function handleCheckoutKitMP(req, res) {
     return res.json({ url: result.init_point });
   } catch (err) {
     console.error("[mp/checkout-kit] erro:", err);
+    return res.status(500).json({ error: err?.message || "Erro ao criar checkout do kit" });
+  }
+}
+
+// Kit GUEST — checkout PÚBLICO (sem login), compra direto da landing.
+// Coleta dados pessoais + endereço de entrega no nosso form e passa pro MP.
+// O cliente cria conta depois, ao ativar a placa recebida.
+async function handleCheckoutKitGuestMP(req, res) {
+  try {
+    const body = parseJson(await getRawBody(req));
+    const { items = [], customer = {} } = body;
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "Carrinho vazio" });
+    }
+
+    // Validação dos dados do cliente/entrega
+    const c = {
+      name: (customer.name || "").toString().trim(),
+      email: (customer.email || "").toString().trim(),
+      phone: (customer.phone || "").toString().trim(),
+      cep: (customer.cep || "").toString().trim(),
+      address: (customer.address || "").toString().trim(),
+      number: (customer.number || "").toString().trim(),
+      complement: (customer.complement || "").toString().trim(),
+      neighborhood: (customer.neighborhood || "").toString().trim(),
+      city: (customer.city || "").toString().trim(),
+      state: (customer.state || "").toString().trim(),
+    };
+    if (!c.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)) {
+      return res.status(400).json({ error: "Informe nome e um email válido." });
+    }
+    if (!c.cep || !c.address || !c.number || !c.city || !c.state) {
+      return res.status(400).json({ error: "Preencha o endereço de entrega completo (CEP, rua, número, cidade e estado)." });
+    }
+
+    // Valida itens contra o catálogo (mesma lógica do checkout logado)
+    const mpItems = [];
+    let totalCents = 0;
+    for (const item of items) {
+      const product = KIT_CATALOG[item?.id];
+      if (!product) return res.status(400).json({ error: `Produto desconhecido: ${item?.id}` });
+      if (product.soldOut) return res.status(400).json({ error: `${product.name} está esgotado no momento.` });
+      const qty = parseInt(item.qty, 10);
+      if (!Number.isFinite(qty) || qty < 1 || qty > 99) {
+        return res.status(400).json({ error: `Quantidade inválida pra ${product.name}` });
+      }
+      mpItems.push({
+        id: item.id,
+        title: product.name,
+        description: product.description,
+        picture_url: product.image,
+        category_id: product.category_id || "electronics",
+        quantity: qty,
+        unit_price: Number((product.price_cents / 100).toFixed(2)),
+        currency_id: "BRL"
+      });
+      totalCents += product.price_cents * qty;
+    }
+    if (totalCents === 0) return res.status(400).json({ error: "Total zerado" });
+
+    const mp = getMP();
+    const preference = new Preference(mp);
+    const origin = req.headers.origin || `https://${req.headers.host}`;
+
+    const [first_name, ...rest] = c.name.split(/\s+/).filter(Boolean);
+    const last_name = rest.join(" ") || first_name || "";
+    const cepDigits = c.cep.replace(/\D/g, "");
+    const phoneDigits = c.phone.replace(/\D/g, "");
+    const area_code = phoneDigits.slice(0, 2);
+    const phoneNumber = phoneDigits.slice(2);
+
+    const extRef = `kit_guest_${Date.now()}`;
+    const result = await preference.create({
+      body: {
+        items: mpItems,
+        payer: {
+          name: first_name,
+          surname: last_name,
+          email: c.email,
+          ...(phoneDigits.length >= 10 && { phone: { area_code, number: phoneNumber } }),
+          ...(cepDigits && {
+            address: { zip_code: cepDigits, street_name: c.address, street_number: c.number }
+          })
+        },
+        shipments: {
+          receiver_address: {
+            zip_code: cepDigits,
+            street_name: c.address,
+            street_number: c.number,
+            ...(c.complement && { apartment: c.complement }),
+            city_name: c.city,
+            state_name: c.state
+          }
+        },
+        back_urls: {
+          success: `${origin}/kit?compra=sucesso`,
+          pending: `${origin}/kit?compra=pendente`,
+          failure: `${origin}/kit?compra=falhou`
+        },
+        auto_return: "approved",
+        external_reference: extRef,
+        notification_url: `${origin}/api/billing?action=webhook`,
+        metadata: { tipo: "kit_guest", kit_total_cents: String(totalCents) },
+        statement_descriptor: "STARTOUCH",
+        additional_info: `Pedido do kit StarTouch (guest) — ${mpItems.length} item(ns), total R$ ${(totalCents / 100).toFixed(2)}`
+      }
+    });
+
+    // Salva o pedido (pending) com o endereço de entrega. O webhook marca 'paid'
+    // e notifica o admin (com o endereço) quando o pagamento é aprovado.
+    try {
+      await supabase.from("orders").insert({
+        external_reference: extRef,
+        user_id: null,
+        email: c.email,
+        biz_name: null,
+        items: mpItems.map((i) => ({ id: i.id, name: i.title, qty: i.quantity, unit_price: i.unit_price })),
+        total_cents: totalCents,
+        status: "pending",
+        shipping: c,
+      });
+    } catch (e) {
+      console.warn("[checkout-kit-guest] order insert falhou:", e?.message);
+    }
+
+    return res.json({ url: result.init_point });
+  } catch (err) {
+    console.error("[mp/checkout-kit-guest] erro:", err);
     return res.status(500).json({ error: err?.message || "Erro ao criar checkout do kit" });
   }
 }
@@ -991,9 +1138,10 @@ export default async function handler(req, res) {
   try {
     if (action === "checkout") return await handleCheckoutMP(req, res);
     if (action === "checkout-kit") return await handleCheckoutKitMP(req, res);
+    if (action === "checkout-kit-guest") return await handleCheckoutKitGuestMP(req, res);
     if (action === "checkout-ia") return await handleCheckoutServicoMP(req, res);
     if (action === "portal") return await handlePortalMP(req, res);
-    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|checkout-ia|portal|webhook|debug" });
+    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|checkout-kit-guest|checkout-ia|portal|webhook|debug" });
   } catch (err) {
     console.error("[billing] erro nao tratado:", err);
     if (!res.headersSent) return res.status(500).json({ error: err?.message || "Erro interno" });

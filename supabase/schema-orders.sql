@@ -14,10 +14,15 @@ create table if not exists orders (
   total_cents int,
   status text default 'pending',         -- pending | paid
   mp_payment_id text,
+  shipping jsonb,                         -- guest: {name,email,phone,cep,address,number,complement,neighborhood,city,state}
   created_at timestamptz default now(),
   paid_at timestamptz
 );
 create index if not exists idx_orders_created on orders(created_at);
 create index if not exists idx_orders_status on orders(status);
+
+-- Coluna de entrega pra pedidos guest (compra direto da landing, sem login).
+-- Idempotente: roda de novo sem erro mesmo que a tabela já exista.
+alter table orders add column if not exists shipping jsonb;
 
 alter table orders enable row level security;
