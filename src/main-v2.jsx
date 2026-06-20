@@ -25,8 +25,20 @@ function Root() {
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
   const isDemo = params?.get('demo') === '1'
 
-  if (!user && !isDemo) return <Login onLogin={setUser} />
-  return <AppV2 user={user} onLogout={handleLogout} demoMode={isDemo} />
+  // Modo convidado: visitante chega do /diagnostico com ?place_id= (sem conta).
+  // Vê o painel com dados REAIS do próprio negócio, read-only, com tarja de cadastro.
+  const guestPlaceId = params?.get('place_id') || params?.get('place') || null
+  const guestKeyword = params?.get('keyword') || ''
+  const isGuest = !user && !isDemo && !!guestPlaceId
+
+  if (!user && !isDemo && !isGuest) return <Login onLogin={setUser} />
+  return <AppV2
+    user={user}
+    onLogout={handleLogout}
+    demoMode={isDemo}
+    guestMode={isGuest}
+    guestContext={isGuest ? { placeId: guestPlaceId, keyword: guestKeyword } : null}
+  />
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<Root />)

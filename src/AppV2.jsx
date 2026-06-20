@@ -272,11 +272,43 @@ function relativeDate(unixOrIso) {
   return `há ${Math.floor(diffDays/30)} meses`
 }
 
-// Hook que carrega dados reais do user logado.
+// Adapta a resposta do /api/diagnostico (público) pro shape que o buildData
+// espera do /api/competitors. Usado no modo CONVIDADO (sem login) — o ranking
+// vem do endpoint público (nomes de concorrente já bloqueados).
+function diagnosticoToCompetitors(diag, placeId) {
+  if (!diag || !diag.enough) return null
+  const top = (diag.top || []).map(c => ({
+    place_id: c.isMe ? placeId : null,
+    name: c.name,            // null pros concorrentes (locked no público)
+    rating: c.rating,
+    reviews: c.reviews,
+    lat: null, lng: null,
+    is_me: !!c.isMe,
+    weekGrowth: null,
+    history: null
+  }))
+  const meReviews = diag.reviews || 0
+  const ahead = (diag.rank && diag.rank > 1)
+    ? { reviews: meReviews + (diag.reviewsToNext || 0), rating: null }
+    : null
+  return {
+    enough: true,
+    total: diag.total,
+    category: diag.category,
+    radius: diag.radius,
+    me: { place_id: placeId, name: diag.name, rating: diag.rating, reviews: meReviews },
+    rank_google: diag.rank,
+    ahead,
+    names_locked: true,
+    top
+  }
+}
+
+// Hook que carrega dados reais do user logado (ou do convidado, via place_id).
 // Retorna { loading, error, authExpired, biz, reviews, bizInfo, competitors, plates, hasBusiness }
-function useRealData(user, demoMode) {
+function useRealData(user, demoMode, guestMode = false, guestContext = null) {
   const [state, setState] = React.useState({
-    loading: !demoMode && !!user,
+    loading: !demoMode && (!!user || guestMode),
     error: null,
     authExpired: false,
     biz: null,
@@ -289,7 +321,7 @@ function useRealData(user, demoMode) {
   })
 
   React.useEffect(() => {
-    if (demoMode || !user) {
+    if (demoMode || (!user && !guestMode)) {
       setState(s => ({ ...s, loading: false }))
       return
     }
@@ -297,6 +329,45 @@ function useRealData(user, demoMode) {
     setState(s => ({ ...s, loading: true, error: null, authExpired: false }))
 
     ;(async () => {
+      // ── Modo CONVIDADO: só endpoints públicos (place_id), sem token ──
+      if (guestMode && guestContext?.placeId) {
+        try {
+          const pid = guestContext.placeId
+          const kw = (guestContext.keyword || '').trim()
+          const diagUrl = `/api/diagnostico?place_id=${encodeURIComponent(pid)}` + (kw ? `&keyword=${encodeURIComponent(kw)}` : '')
+          const [bizInfoRes, reviewsRes, diagRes] = await Promise.all([
+            fetch(`/api/bizinfo?place_id=${encodeURIComponent(pid)}`).then(r => r.json()).catch(() => ({})),
+            fetch(`/api/reviews?place_id=${encodeURIComponent(pid)}`).then(r => r.json()).catch(() => ({})),
+            fetch(diagUrl).then(r => r.json()).catch(() => ({}))
+          ])
+          if (cancelled) return
+          const name = reviewsRes.name || bizInfoRes.name || diagRes.name || 'Seu negócio'
+          const biz = { id: null, place_id: pid, name, category_override: kw, plan: 'free' }
+          setState({
+            loading: false, error: null, authExpired: false,
+            biz,
+            reviews: reviewsRes.reviews || [],
+            bizInfo: {
+              rating: reviewsRes.rating ?? bizInfoRes.rating ?? diagRes.rating ?? null,
+              total: reviewsRes.total ?? bizInfoRes.total ?? diagRes.reviews ?? null,
+              name,
+              address: bizInfoRes.address || null,
+              phone: bizInfoRes.phone || null,
+              gmapsUrl: bizInfoRes.gmapsUrl || null,
+              category: bizInfoRes.category || null,
+              photoUrl: bizInfoRes.photoUrl || null
+            },
+            competitors: diagnosticoToCompetitors(diagRes, pid),
+            plates: [],
+            alertPreferences: null,
+            hasBusiness: true
+          })
+        } catch (e) {
+          if (!cancelled) setState(s => ({ ...s, loading: false, error: e.message || 'Erro ao carregar' }))
+        }
+        return
+      }
+
       try {
         // Cache-buster: garante que browser/CDN não devolvam resposta antiga sem colunas novas
         const cb = '?_t=' + Date.now()
@@ -360,7 +431,7 @@ function useRealData(user, demoMode) {
     })()
 
     return () => { cancelled = true }
-  }, [user, demoMode])
+  }, [user, demoMode, guestMode, guestContext?.placeId, guestContext?.keyword])
 
   return state
 }
@@ -4731,7 +4802,7 @@ function calcStarTouchScore(d) {
 // ─────────────────────────────────────────────────────────────
 // Main layout
 // ─────────────────────────────────────────────────────────────
-export default function AppV2({ user = null, onLogout, demoMode = false } = {}) {
+export default function AppV2({ user = null, onLogout, demoMode = false, guestMode = false, guestContext = null } = {}) {
   const isMobile = useIsMobile(768)
   // Deep-link inicial: ?tab=X (vence) OU hash #conta|#negocio|#plano (vai pra config) OU painel
   const initialTab = (() => {
@@ -4778,8 +4849,8 @@ export default function AppV2({ user = null, onLogout, demoMode = false } = {}) 
     setTab(newTab)
   }, [])
 
-  // Carrega dados reais via API (skipa em demoMode ou sem user)
-  const real = useRealData(user, demoMode)
+  // Carrega dados reais via API (skipa em demoMode ou sem user/convidado)
+  const real = useRealData(user, demoMode, guestMode, guestContext)
 
   // Scroll automático pro elemento do hash quando muda de aba ou termina o loading
   // (DEPOIS do `real` ser declarado pra evitar temporal dead zone)
