@@ -823,6 +823,42 @@ export default async function handler(req, res) {
     });
   }
 
+  // Teste de envio real — dispara um email pro ADMIN_NOTIFICATIONS_EMAIL e
+  // devolve a resposta crua do Resend. Confirma de vez se o envio passa
+  // (200 + id) ou é recusado (ex: 403 domínio não verificado).
+  if (action === "test-email") {
+    const to = process.env.ADMIN_NOTIFICATIONS_EMAIL;
+    const apiKey = process.env.RESEND_API_KEY;
+    const from = process.env.RESEND_FROM || "StarTouch <onboarding@resend.dev>";
+    if (!apiKey) return res.status(400).json({ ok: false, error: "RESEND_API_KEY não setada" });
+    if (!to) return res.status(400).json({ ok: false, error: "ADMIN_NOTIFICATIONS_EMAIL não setado" });
+    try {
+      const r = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from,
+          to: [to],
+          subject: "✅ Teste StarTouch — aviso de pedido",
+          html: "<p>Se você recebeu este email, o aviso de pedido pago está funcionando.</p>"
+        })
+      });
+      const body = await r.json();
+      return res.json({
+        ok: r.ok,
+        http_status: r.status,
+        from,
+        to,
+        resend_response: body,
+        hint: r.ok
+          ? "Email aceito pelo Resend. Confira a caixa (e o spam) do destinatário."
+          : "Resend recusou. Provável domínio não verificado — veja resend_response."
+      });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e?.message || "falha no envio de teste" });
+    }
+  }
+
   // Diagnostico profundo do MP — chama API real e retorna o que MP diz da conta + tentativa de PreApproval
   if (action === "mp-probe") {
     const token = process.env.MP_ACCESS_TOKEN;
