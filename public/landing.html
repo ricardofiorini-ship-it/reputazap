@@ -2324,7 +2324,7 @@ fbq('track', 'PageView');
   .eco-vitrine-body {
     padding: 24px 24px;
     display: flex; flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 10px;
   }
   @media (min-width: 1024px) { .eco-vitrine-body { padding: 32px 36px; gap: 12px; } }
@@ -2450,7 +2450,7 @@ fbq('track', 'PageView');
   .eco-gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .eco-gallery-thumb.is-active, .eco-gallery-thumb:hover { border-color: var(--st-blue-primary); }
   .eco-gallery-body {
-    padding: 24px; display: flex; flex-direction: column; gap: 14px; justify-content: center;
+    padding: 24px; display: flex; flex-direction: column; gap: 14px; justify-content: flex-start;
   }
   @media (min-width: 1024px) { .eco-gallery-body { padding: 32px 36px; } }
   .eco-gallery-tag {
@@ -4214,6 +4214,38 @@ fbq('track', 'PageView');
               <span class="eco-price-value">R$ 79,90</span>
             </div>
             <a class="eco-vitrine-cta" href="/kit?add=placa-balcao">
+              Comprar
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Galeria Placa M (foto provisória — aguardando imagens próprias da M) -->
+      <div class="eco-gallery-card" data-gallery>
+        <div class="eco-gallery-media">
+          <div class="eco-gallery-main">
+            <img src="/gadget-placa.png" alt="Placa de Balcão M StarTouch — versão compacta" width="750" height="768"/>
+          </div>
+          <!-- miniaturas da Placa M entram aqui quando as imagens forem enviadas -->
+        </div>
+        <div class="eco-gallery-body">
+          <span class="eco-gallery-tag">Placa NFC · Tamanho M</span>
+          <h3 class="eco-gallery-title">Placa de Balcão M</h3>
+          <p class="eco-gallery-desc">A mesma placa NFC + QR Code, em versão compacta — perfeita para balcões menores e mesas de atendimento.</p>
+          <ul class="eco-gallery-specs">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Material:</strong> acrílico cristal premium com base inclinada</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Formato:</strong> compacto, ideal para mesas e balcões menores</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Tecnologia:</strong> NFC + QR Code de fallback impresso</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Compatível:</strong> iPhone (7+) e Android com NFC; QR para qualquer celular</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Sem app:</strong> o cliente não instala nada nem se cadastra</span></li>
+          </ul>
+          <div class="eco-gallery-buy">
+            <div class="eco-vitrine-price">
+              <span class="eco-price-from">unidade</span>
+              <span class="eco-price-value">R$ 49,90</span>
+            </div>
+            <a class="eco-vitrine-cta" href="/kit?add=placa-mesa">
               Comprar
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </a>
