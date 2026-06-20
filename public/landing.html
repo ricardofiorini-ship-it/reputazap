@@ -2433,6 +2433,7 @@ fbq('track', 'PageView');
   }
   @media (min-width: 880px) { .eco-gallery-card { grid-template-columns: 1fr 1fr; } }
   .eco-gallery-media {
+    min-width: 0;            /* deixa o item da grid encolher (senão as thumbs estouram o card no mobile) */
     padding: 20px;
     border-bottom: 1px solid var(--st-gray-light);
     background: radial-gradient(ellipse 80% 70% at 50% 40%, #FFFFFF 0%, #EEF1F4 70%, #E6EAEE 100%);
@@ -2458,6 +2459,7 @@ fbq('track', 'PageView');
   .eco-gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .eco-gallery-thumb.is-active, .eco-gallery-thumb:hover { border-color: var(--st-blue-primary); }
   .eco-gallery-body {
+    min-width: 0;            /* idem: permite encolher no mobile */
     padding: 24px; display: flex; flex-direction: column; gap: 14px; justify-content: flex-start;
   }
   @media (min-width: 1024px) { .eco-gallery-body { padding: 32px 36px; } }
