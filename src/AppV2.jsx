@@ -4624,6 +4624,43 @@ function GuestSearch({ isMobile }) {
   )
 }
 
+// Tarja fixa do modo convidado — CTA de cadastro (conversão).
+function GuestBanner({ url, isMobile }) {
+  return (
+    <div style={{
+      background: T.blue, color:'#fff',
+      display:'flex', alignItems:'center', justifyContent:'center', gap: isMobile?8:12, flexWrap:'wrap',
+      padding: isMobile ? '9px 14px' : '10px 18px', fontSize: isMobile?12:13.5, fontWeight:600, textAlign:'center'
+    }}>
+      <span>👀 Você está vendo uma <b>prévia</b> do seu painel — crie sua conta grátis pra salvar e receber alertas.</span>
+      <a href={url} style={{
+        background:'#fff', color: T.blue, textDecoration:'none', fontWeight:700,
+        padding:'6px 14px', borderRadius: 8, fontSize: isMobile?12.5:13, whiteSpace:'nowrap'
+      }}>Criar conta grátis →</a>
+    </div>
+  )
+}
+
+// Tela de bloqueio pra recursos que exigem conta (settings, etc.) no modo convidado.
+function GuestGate({ url, feature, isMobile }) {
+  return (
+    <main style={{ maxWidth: 520, margin: isMobile?'40px auto':'60px auto', padding:'0 24px', textAlign:'center' }}>
+      <div style={{ background:T.surface, border:`1px solid ${T.border}`, borderRadius:16, boxShadow:T.shadow, padding: isMobile?24:32 }}>
+        <div style={{ fontSize:44, marginBottom:12 }}>🔒</div>
+        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize:20, fontWeight:700, color:T.text, margin:'0 0 8px' }}>
+          Crie sua conta pra acessar {feature}
+        </h2>
+        <p style={{ fontSize:14, color:T.textMid, lineHeight:1.55, margin:'0 0 20px' }}>
+          Você está numa prévia gratuita. Crie sua conta (também grátis) pra salvar seu negócio, configurar e receber alertas.
+        </p>
+        <a href={url} style={{ display:'inline-block', background:T.blue, color:'#fff', textDecoration:'none', fontWeight:700, padding:'12px 24px', borderRadius:11, fontSize:15 }}>
+          Criar conta grátis →
+        </a>
+      </div>
+    </main>
+  )
+}
+
 function LoadingScreen() {
   return (
     <div style={{ display:'grid', placeItems:'center', minHeight:'calc(100vh - 80px)', padding: 40 }}>
@@ -5060,13 +5097,21 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     )
   }
 
+  // Convidado vendo o painel (place_id presente) — tarja + gating de ações.
+  const isGuest = guestMode && !!guestContext?.placeId
+  const guestSignupUrl = isGuest
+    ? `/ativar?from=web&place_id=${encodeURIComponent(guestContext.placeId)}` +
+      (guestContext.keyword ? `&keyword=${encodeURIComponent(guestContext.keyword)}` : '')
+    : null
+
   return (
     <div style={{
       background: T.bg, minHeight:'100vh',
       // Espaço pro bottom tab bar não cobrir o conteúdo final (só mobile)
       paddingBottom: isMobile ? 'calc(72px + env(safe-area-inset-bottom, 0))' : 0
     }}>
-      <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={onLogout} demoMode={demoMode} />
+      {isGuest && <GuestBanner url={guestSignupUrl} isMobile={isMobile} />}
+      <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} />
       {!isMobile && <TopTabs active={tab} onChange={setTab} plan={plan} isMobile={false} />}
 
       {/* Aba: CONCORRENTES (Pro) — funcional pro Pro, preview borrado pro Free */}
@@ -5097,9 +5142,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <ReviewsScreen data={d} isMobile={isMobile}/>
       )}
 
-      {/* Tela: CONFIGURAÇÕES — acessível via dropdown do avatar */}
+      {/* Tela: CONFIGURAÇÕES — acessível via dropdown do avatar (convidado vê gate) */}
       {tab === 'config' && (
-        <ConfigScreen data={d} isMobile={isMobile} plan={plan} isReal={!demoMode && real.hasBusiness} isAdmin={isAdminUser(user)}/>
+        isGuest
+          ? <GuestGate url={guestSignupUrl} feature="as configurações" isMobile={isMobile}/>
+          : <ConfigScreen data={d} isMobile={isMobile} plan={plan} isReal={!demoMode && real.hasBusiness} isAdmin={isAdminUser(user)}/>
       )}
 
       {/* Fallback p/ abas desconhecidas (as Pro já são tratadas acima com preview) */}
@@ -5201,7 +5248,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             isMobile={isMobile}
             placeId={d.biz.placeId}
             bizName={d.biz.name}
-            onActivatePlate={() => setActivatePlateOpen(true)}
+            onActivatePlate={() => { if (isGuest) { window.location.href = guestSignupUrl; return } setActivatePlateOpen(true) }}
           />
         </Section>
         )}
