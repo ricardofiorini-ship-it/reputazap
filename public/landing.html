@@ -119,7 +119,7 @@ fbq('track', 'PageView');
           "name": "O que diferencia a placa StarTouch das outras placas NFC do mercado?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "A maioria das placas do mercado é só um link estático colado num adesivo. A StarTouch é uma plataforma completa: o destino é editável a qualquer momento, você acompanha tudo num painel de gestão (avaliações, ranking local e concorrentes), tem o IA Radar para medir se o seu negócio aparece nas respostas das IAs, e é 100% dentro das regras do Google. Acrílico premium, chip NFC de qualidade e QR Code de fallback inclusos."
+            "text": "A maioria das placas do mercado é só um link estático colado num adesivo. A StarTouch é uma plataforma completa, já inclusa na compra e sem mensalidade: o destino é editável a qualquer momento e você acompanha tudo num painel de gestão — avaliações, ranking local e concorrentes. Tudo 100% dentro das regras do Google, em acrílico premium, com chip NFC de qualidade e QR Code de fallback."
           }
         },
         {
@@ -127,7 +127,15 @@ fbq('track', 'PageView');
           "name": "A placa é só um link pro Google ou vem com painel de verdade?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Vem com painel de verdade. Além de levar o cliente direto para a avaliação no Google, você acompanha suas avaliações, sua posição no ranking local e seus concorrentes, e roda o IA Radar — o diagnóstico que mostra se você é citado quando alguém pergunta a uma IA pela melhor opção da sua cidade. É gestão de reputação, não só um adesivo com link."
+            "text": "Vem com painel de verdade, incluso na compra e sem mensalidade. Além de levar o cliente direto para a avaliação no Google, você acompanha suas avaliações, sua posição no ranking local e seus concorrentes. É gestão de reputação, não só um adesivo com link. Em breve teremos também o IA Radar, um recurso premium opcional que mede sua presença nas inteligências artificiais."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Tem mensalidade?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Para usar o essencial, não. Ao comprar o dispositivo, você já leva a plataforma StarTouch inclusa — painel de avaliações, ranking local, concorrentes e link editável — sem mensalidade. Recursos premium opcionais, como o IA Radar (em breve), são contratados à parte; mas o básico é sem mensalidade."
           }
         },
         {
@@ -2478,6 +2486,29 @@ fbq('track', 'PageView');
     display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
     margin-top: 6px; padding-top: 18px; border-top: 1px solid var(--st-gray-light);
   }
+  /* === Bloco "Incluso x Premium" === */
+  .incl-section { background: var(--st-bg-secondary); padding: 56px 24px 8px; }
+  @media (min-width: 1024px) { .incl-section { padding: 72px 32px 16px; } }
+  .incl-inner { max-width: 980px; margin: 0 auto; }
+  .incl-head { text-align: center; margin-bottom: 32px; }
+  .incl-h2 { font-family: var(--st-font-sans); font-size: clamp(24px, 4.5vw, 36px); font-weight: 800; letter-spacing: -0.02em; color: var(--st-black-strong); margin: 0 0 10px; text-wrap: balance; }
+  .incl-h2 .accent { color: var(--st-blue-primary); }
+  .incl-sub { font-family: var(--st-font-sans); font-size: 15px; color: var(--st-gray-text); margin: 0 auto; max-width: 520px; line-height: 1.55; }
+  .incl-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  @media (min-width: 760px) { .incl-grid { grid-template-columns: 1fr 1fr; } }
+  .incl-card { border: 1px solid var(--st-gray-light); border-radius: 16px; padding: 24px; }
+  .incl-card.is-free { border-color: #A7E3C0; background: #F2FBF6; }
+  .incl-card.is-premium { border-color: #BBD3F7; background: #F4F8FF; }
+  .incl-card-tag { display: inline-flex; align-items: center; gap: 7px; font-family: var(--st-font-sans); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 12px; border-radius: 999px; margin-bottom: 14px; }
+  .incl-card.is-free .incl-card-tag { background: #DCF5E7; color: #1B7A45; }
+  .incl-card.is-premium .incl-card-tag { background: var(--st-blue-soft); color: var(--st-blue-primary); }
+  .incl-card h3 { font-family: var(--st-font-sans); font-size: 18px; font-weight: 700; color: var(--st-black-strong); margin: 0 0 14px; }
+  .incl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .incl-list li { display: flex; gap: 10px; align-items: flex-start; font-family: var(--st-font-sans); font-size: 14px; color: var(--st-black-strong); line-height: 1.45; }
+  .incl-list li svg { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 1px; }
+  .incl-card.is-free .incl-list li svg { color: #1B7A45; }
+  .incl-card.is-premium .incl-list li svg { color: var(--st-blue-primary); }
+  .incl-note { font-family: var(--st-font-sans); font-size: 12.5px; color: var(--st-gray-text); margin: 14px 0 0; line-height: 1.5; }
   /* === FAQ da vitrine (vfaq-*, isolado do FAQ legado mais abaixo) === */
   .vfaq-section { background: var(--st-bg-primary); padding: 64px 24px 88px; }
   @media (min-width: 1024px) { .vfaq-section { padding: 84px 32px 104px; } }
@@ -4340,6 +4371,37 @@ fbq('track', 'PageView');
   });
 </script>
 
+<!-- Incluso x Premium — posicionamento honesto (free vs pago) -->
+<section class="incl-section" id="incluso">
+  <div class="incl-inner">
+    <div class="incl-head">
+      <h2 class="incl-h2">Não é só uma placa. É uma <span class="accent">plataforma</span>.</h2>
+      <p class="incl-sub">Cada dispositivo já vem com o painel StarTouch — sem mensalidade pra começar.</p>
+    </div>
+    <div class="incl-grid">
+      <div class="incl-card is-free">
+        <span class="incl-card-tag">✓ Incluso na compra · sem mensalidade</span>
+        <h3>A plataforma vem junto</h3>
+        <ul class="incl-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>Painel pra acompanhar suas avaliações no Google</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>Ranking local e comparação com concorrentes</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>Link de destino editável quando quiser, sem trocar a placa</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>NFC + QR Code, 100% dentro das regras do Google</span></li>
+        </ul>
+      </div>
+      <div class="incl-card is-premium">
+        <span class="incl-card-tag">✦ Premium · opcional</span>
+        <h3>IA Radar <span style="font-weight:600;color:var(--st-blue-primary);font-size:13px;">· em breve</span></h3>
+        <ul class="incl-list">
+          <li><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.5 6L20 9.5l-6 1.5L12 17l-1.5-6L4 9.5l6.5-1.5z"/></svg><span>Diagnóstico que mede se o seu negócio aparece nas respostas das IAs (ChatGPT, Gemini…)</span></li>
+          <li><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.5 6L20 9.5l-6 1.5L12 17l-1.5-6L4 9.5l6.5-1.5z"/></svg><span>Recurso avançado, contratado à parte</span></li>
+        </ul>
+        <p class="incl-note">Em desenvolvimento — será um recurso pago. Avisamos assim que lançar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- FAQ da vitrine — diferenciais (acordeão, classes vfaq-* isoladas) -->
 <section class="vfaq-section" id="faq-vitrine">
   <div class="vfaq-inner">
@@ -4353,11 +4415,15 @@ fbq('track', 'PageView');
     <div class="vfaq-list">
       <details class="vfaq-item">
         <summary><span class="vfaq-q">O que diferencia a placa StarTouch das outras placas NFC do mercado?</span><span class="vfaq-icon" aria-hidden="true"></span></summary>
-        <p class="vfaq-a">A maioria das placas do mercado é só um <strong>link estático</strong> colado num adesivo — toca e abre o Google, fim. A StarTouch é uma <strong>plataforma completa</strong>: o destino é <strong>editável a qualquer momento</strong>, você acompanha tudo num <strong>painel de gestão</strong> (avaliações, ranking local e concorrentes), tem o <strong>IA Radar</strong> pra medir se o seu negócio aparece nas respostas das IAs, e é <strong>100% dentro das regras do Google</strong>. Acrílico premium, chip NFC de qualidade e QR Code de fallback inclusos.</p>
+        <p class="vfaq-a">A maioria das placas do mercado é só um <strong>link estático</strong> colado num adesivo — toca e abre o Google, fim. A StarTouch é uma <strong>plataforma completa, já inclusa na compra e sem mensalidade</strong>: o destino é <strong>editável a qualquer momento</strong> e você acompanha tudo num <strong>painel de gestão</strong> — avaliações, ranking local e concorrentes. Tudo <strong>100% dentro das regras do Google</strong>, em acrílico premium, com chip NFC de qualidade e QR Code de fallback.</p>
       </details>
       <details class="vfaq-item">
         <summary><span class="vfaq-q">A placa é só um link pro Google ou vem com painel de verdade?</span><span class="vfaq-icon" aria-hidden="true"></span></summary>
-        <p class="vfaq-a">Vem com painel de verdade. Além de levar o cliente direto pra avaliação no Google, você acompanha suas avaliações, sua <strong>posição no ranking local e seus concorrentes</strong>, e roda o <strong>IA Radar</strong> — o diagnóstico que mostra se você é citado quando alguém pergunta a uma IA pela melhor opção da sua cidade. É <strong>gestão de reputação</strong>, não só um adesivo com link.</p>
+        <p class="vfaq-a">Vem com painel de verdade, <strong>incluso na compra e sem mensalidade</strong>. Além de levar o cliente direto pra avaliação no Google, você acompanha suas avaliações, sua <strong>posição no ranking local e seus concorrentes</strong>. É <strong>gestão de reputação</strong>, não só um adesivo com link. <em>Em breve teremos também o IA Radar — um recurso premium opcional que mede sua presença nas inteligências artificiais.</em></p>
+      </details>
+      <details class="vfaq-item">
+        <summary><span class="vfaq-q">Tem mensalidade?</span><span class="vfaq-icon" aria-hidden="true"></span></summary>
+        <p class="vfaq-a">Pra usar o essencial, não. Ao comprar o dispositivo, você já leva a <strong>plataforma StarTouch inclusa</strong> — painel de avaliações, ranking local, concorrentes e link editável — <strong>sem mensalidade</strong>. Temos recursos premium opcionais, como o <strong>IA Radar</strong> (em breve), contratados à parte; mas o básico é sem mensalidade.</p>
       </details>
       <details class="vfaq-item">
         <summary><span class="vfaq-q">Precisa instalar aplicativo? Funciona em iPhone e Android?</span><span class="vfaq-icon" aria-hidden="true"></span></summary>
