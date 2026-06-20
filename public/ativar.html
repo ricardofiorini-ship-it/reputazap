@@ -379,6 +379,11 @@ const params = new URLSearchParams(window.location.search);
 const fromSource = params.get("from") === "web" ? "web" : "nfc";
 const state = { user:{}, business:null, plan:null, nfcLink:null, from:fromSource, tagCount:0, bizSaved:false };
 
+// Destino pós-cadastro (ex: ?next=/plano-pro pra ir direto pro checkout Pro).
+// Só paths internos (começam com / mas não //) — evita open redirect.
+const NEXT_RAW = params.get("next") || "";
+const NEXT_URL = (NEXT_RAW.startsWith("/") && !NEXT_RAW.startsWith("//")) ? NEXT_RAW : null;
+
 // Google Sign-In — Client ID public, ok hardcodar
 const GOOGLE_CLIENT_ID = "215106300952-pb5ucf4l8jd8ls9q6ff059b41mo26gkt.apps.googleusercontent.com";
 function initGoogleSignIn() {
@@ -872,12 +877,15 @@ async function goToSuccess(){
   document.getElementById("successBizName").textContent=state.business?.name||"Negócio";
   document.getElementById("successPlan").textContent="Plano Gratuito" + (state.tagCount > 0 ? ` · ${state.tagCount} placa(s) ativada(s)` : "");
 
-  // Todos caem no dashboard (funil do ranking): web e NFC vao pra /app
-  const dest = "/app";
+  // Destino: ?next= (ex: /plano-pro) vence; senão cai no painel /app.
+  const goingPro = !!NEXT_URL && NEXT_URL.indexOf("plano-pro") !== -1;
+  const dest = NEXT_URL || "/app";
   const cta = document.getElementById("successCta");
   cta.href = dest;
-  cta.textContent = "Ver meu resultado →";
-  document.getElementById("successSub").textContent = "Tudo certo! Veja agora sua posição vs. concorrentes no Google.";
+  cta.textContent = goingPro ? "Continuar pro Plano Pro →" : "Ver meu resultado →";
+  document.getElementById("successSub").textContent = goingPro
+    ? "Conta criada! Vamos te levar pra concluir sua assinatura Pro."
+    : "Tudo certo! Veja agora sua posição vs. concorrentes no Google.";
   document.getElementById("successRedirectMsg").textContent = "Redirecionando automaticamente em 3 segundos...";
 
   goToStep(5);

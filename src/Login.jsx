@@ -15,6 +15,15 @@ function loadGsiScript() {
   });
 }
 
+// Link de cadastro preservando o ?next= (ex: assinar Pro) — só paths internos.
+function signupHrefWithNext() {
+  try {
+    const n = new URLSearchParams(window.location.search).get("next");
+    const ok = n && n.startsWith("/") && !n.startsWith("//");
+    return "/ativar?from=web" + (ok ? "&next=" + encodeURIComponent(n) : "");
+  } catch { return "/ativar?from=web"; }
+}
+
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -219,7 +228,7 @@ export default function Login({ onLogin }) {
             </form>
 
             <div style={{marginTop:20,textAlign:"center",fontSize:13,color:"#6b7280"}}>
-              Ainda não tem conta? <a href="/ativar?from=web" style={{color:"#1A73E8",fontWeight:600,textDecoration:"none"}}>Criar conta grátis →</a>
+              Ainda não tem conta? <a href={signupHrefWithNext()} style={{color:"#1A73E8",fontWeight:600,textDecoration:"none"}}>Criar conta grátis →</a>
             </div>
           </>
         )}
