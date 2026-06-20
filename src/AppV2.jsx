@@ -5027,6 +5027,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   const guestPanelViewed = guestMode && !!guestContext?.placeId && real.hasBusiness && !real.loading
   React.useEffect(() => {
     if (!guestPanelViewed) return
+    // Persiste o negócio do convidado — o /ativar lê isto pra NÃO pedir a
+    // empresa de novo, independente do caminho até o cadastro (banner/Login/Pro).
+    try {
+      localStorage.setItem('rz_guest_biz', JSON.stringify({
+        placeId: guestContext?.placeId || '',
+        keyword: guestContext?.keyword || ''
+      }))
+    } catch {}
     try {
       if (typeof window !== 'undefined' && window.gtag) {
         window.gtag('event', 'guest_panel_view', {

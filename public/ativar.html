@@ -448,9 +448,16 @@ window.addEventListener("load", () => {
   if (state.from === "web") {
     document.getElementById("progressBar").style.display = "none";
     // Veio do diagnóstico já com o negócio escolhido? Pula a busca.
-    const prePlaceId = params.get("place_id") || params.get("place");
-    // Termo de busca vindo do /diagnostico — pré-preenche pro cliente confirmar.
-    const preKeyword = params.get("keyword") || "";
+    let prePlaceId = params.get("place_id") || params.get("place");
+    let preKeyword = params.get("keyword") || "";
+    // Fallback: negócio escolhido no painel CONVIDADO (salvo no localStorage).
+    // Evita pedir a empresa de novo quando o cadastro vem pelo Login/Pro.
+    if (!prePlaceId) {
+      try {
+        const g = JSON.parse(localStorage.getItem("rz_guest_biz") || "null");
+        if (g && g.placeId) { prePlaceId = g.placeId; if (!preKeyword) preKeyword = g.keyword || ""; }
+      } catch {}
+    }
     if (preKeyword) { const el = document.getElementById("searchTerm"); if (el) el.value = preKeyword; }
     if (prePlaceId) {
       prefillFromPlaceId(prePlaceId);
@@ -849,6 +856,8 @@ async function saveBiz(){
     });
     const d = await r.json();
     console.log("Savebiz response:", d);
+    // Negócio salvo na conta — limpa o contexto guest do localStorage.
+    try { localStorage.removeItem("rz_guest_biz"); } catch {}
   } catch(e){
     console.error("Erro ao salvar negócio:", e);
   }
