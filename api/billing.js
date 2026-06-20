@@ -823,6 +823,43 @@ export default async function handler(req, res) {
     });
   }
 
+  // Detalhes DNS do domínio no Resend — lista cada registro (type, name,
+  // value, status) pra saber exatamente qual está falhando e o valor a colar.
+  if (action === "resend-dns") {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) return res.status(400).json({ ok: false, error: "RESEND_API_KEY não setada" });
+    const fromAddr = process.env.RESEND_FROM || "onboarding@resend.dev";
+    const wantDomain = (fromAddr.match(/@([^>\s]+)/) || [])[1] || null;
+    try {
+      const listR = await fetch("https://api.resend.com/domains", {
+        headers: { Authorization: `Bearer ${apiKey}` }
+      });
+      const listBody = await listR.json();
+      const list = Array.isArray(listBody?.data) ? listBody.data : [];
+      const dom = (wantDomain && list.find((d) => d?.name === wantDomain)) || list[0];
+      if (!dom?.id) return res.json({ ok: false, error: "Nenhum domínio encontrado no Resend", all_domains: list });
+
+      const detR = await fetch(`https://api.resend.com/domains/${dom.id}`, {
+        headers: { Authorization: `Bearer ${apiKey}` }
+      });
+      const det = await detR.json();
+      const records = Array.isArray(det?.records) ? det.records : [];
+      return res.json({
+        ok: true,
+        domain: det?.name,
+        region: det?.region,
+        status: det?.status,
+        failing: records.filter((r) => r?.status && r.status !== "verified"),
+        records: records.map((r) => ({
+          status: r?.status, record: r?.record, type: r?.type,
+          name: r?.name, value: r?.value, ttl: r?.ttl, priority: r?.priority
+        }))
+      });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e?.message || "falha ao consultar domínio" });
+    }
+  }
+
   // Teste de envio real — dispara um email pro ADMIN_NOTIFICATIONS_EMAIL e
   // devolve a resposta crua do Resend. Confirma de vez se o envio passa
   // (200 + id) ou é recusado (ex: 403 domínio não verificado).
