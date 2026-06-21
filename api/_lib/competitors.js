@@ -267,7 +267,7 @@ export function detectFromName(name) {
  *     reviews, lat, lng, is_me }
  *   - ahead: { reviews, rating, name } | null  (quem está 1 posição acima)
  */
-export async function fetchRankingByTerm({ placeId, keyword, radius }) {
+export async function fetchRankingByTerm({ placeId, keyword, radius, cep }) {
   if (!placeId) throw new Error("placeId obrigatório");
   if (!API_KEY) throw new Error("PLACES_API_KEY ausente no ambiente");
   const safeRadius = Math.min(parseInt(radius, 10) || 3000, 25000);
@@ -299,8 +299,13 @@ export async function fetchRankingByTerm({ placeId, keyword, radius }) {
     return { enough: false, total: 0, category: null, radius: safeRadius, me, myRank: null, inResults: false, ahead: null, top: [] };
   }
 
+  // Âncora: centro do CEP (igual às lentes de visibilidade). Sem CEP, ponto do negócio.
+  const cepCoordR = await geocodeCep(cep);
+  const aLat = cepCoordR?.lat ?? lat;
+  const aLng = cepCoordR?.lng ?? lng;
+
   // 3. Text Search do termo ancorado no local — ordem do Google
-  const tsUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(term)}&location=${lat},${lng}&radius=${safeRadius}&language=pt-BR&region=br&key=${API_KEY}`;
+  const tsUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(term)}&location=${aLat},${aLng}&radius=${safeRadius}&language=pt-BR&region=br&key=${API_KEY}`;
   const ts = await (await fetchWithTimeout(tsUrl, {}, 8000)).json();
 
   const seen = new Set();

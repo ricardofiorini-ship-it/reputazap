@@ -339,7 +339,10 @@ function useRealData(user, demoMode, guestMode = false, guestContext = null) {
         try {
           const pid = guestContext.placeId
           const kw = (guestContext.keyword || '').trim()
-          const diagUrl = `/api/diagnostico?place_id=${encodeURIComponent(pid)}` + (kw ? `&keyword=${encodeURIComponent(kw)}` : '')
+          const gcep = (guestContext.cep || '').trim()
+          const diagUrl = `/api/diagnostico?place_id=${encodeURIComponent(pid)}`
+            + (kw ? `&keyword=${encodeURIComponent(kw)}` : '')
+            + (gcep ? `&cep=${encodeURIComponent(gcep)}` : '')
           const [bizInfoRes, reviewsRes, diagRes] = await Promise.all([
             fetch(`/api/bizinfo?place_id=${encodeURIComponent(pid)}`).then(r => r.json()).catch(() => ({})),
             fetch(`/api/reviews?place_id=${encodeURIComponent(pid)}`).then(r => r.json()).catch(() => ({})),
