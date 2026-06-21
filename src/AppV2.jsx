@@ -340,7 +340,7 @@ function useRealData(user, demoMode, guestMode = false, guestContext = null) {
           const pid = guestContext.placeId
           const kw = (guestContext.keyword || '').trim()
           const gcep = (guestContext.cep || '').trim()
-          const diagUrl = `/api/diagnostico?place_id=${encodeURIComponent(pid)}`
+          const diagUrl = `/api/diagnostico?place_id=${encodeURIComponent(pid)}&radius=1000`
             + (kw ? `&keyword=${encodeURIComponent(kw)}` : '')
             + (gcep ? `&cep=${encodeURIComponent(gcep)}` : '')
           const [bizInfoRes, reviewsRes, diagRes] = await Promise.all([
@@ -393,8 +393,8 @@ function useRealData(user, demoMode, guestMode = false, guestContext = null) {
         }
         const keyword = (biz.category_override || '').trim()
         const competitorsUrl = keyword
-          ? `/api/competitors?keyword=${encodeURIComponent(keyword)}`
-          : '/api/competitors'
+          ? `/api/competitors?radius=1000&keyword=${encodeURIComponent(keyword)}`
+          : '/api/competitors?radius=1000'
 
         // 5 chamadas em paralelo: reviews + bizinfo (públicas), competitors + plates + alert prefs (auth)
         const [reviewsRes, bizInfoRes, competitorsRes, platesRes, alertPrefsRes] = await Promise.all([
