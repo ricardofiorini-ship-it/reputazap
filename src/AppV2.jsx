@@ -4807,10 +4807,10 @@ function VisibilityLenses({ placeId, term, cep, isMobile }) {
     <Card>
       <div style={{ marginBottom: 12 }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'flex', alignItems:'center', gap: 8 }}>
-          📍 Sua visibilidade na busca
+          🔎 Concorrentes da sua categoria por perto
         </h3>
         <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.5 }}>
-          Onde você aparece quando buscam <b>"{term || 'sua categoria'}"</b> — a posição muda conforme a distância de quem procura.
+          Negócios de <b>"{term || 'sua categoria'}"</b> que o Google mostra na sua região — uma amostra pra você se comparar. <b>Não é sua posição exata no Google Maps.</b>
         </div>
       </div>
 
@@ -4855,8 +4855,7 @@ function VisibilityLenses({ placeId, term, cep, isMobile }) {
       )}
 
       <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.5 }}>
-        {data && data.anchoredAtCep ? 'Ancorado no centro do seu CEP (como na busca "termo + CEP" do Google). ' : ''}
-        Estimativa pela busca do Google. A posição real varia conforme a localização exata e o que cada pessoa digita.
+        Amostra da concorrência na sua região (via Google Places), filtrada pela sua categoria.{data && data.anchoredAtCep ? ' Ancorada no centro do seu CEP.' : ''} Não é o ranking exato do Google Maps — esse varia conforme quem busca e de onde. Estamos finalizando a medição exata.
       </div>
     </Card>
   )

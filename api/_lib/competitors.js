@@ -390,7 +390,8 @@ async function runTextSearch(term, lat, lng, radius) {
       rating: p.rating,
       reviews: p.user_ratings_total || 0,
       lat: p.geometry?.location?.lat ?? null,
-      lng: p.geometry?.location?.lng ?? null
+      lng: p.geometry?.location?.lng ?? null,
+      types: p.types || []
     });
   }
   return ordered;
@@ -434,10 +435,26 @@ export async function fetchVisibilityLenses({ placeId, keyword, cep }) {
   const aLng = cepCoord?.lng ?? lng;
   const anchoredAtCep = !!cepCoord;
 
+  // Categoria primária do próprio negócio (pra filtrar fora intenção diferente,
+  // ex: serviço de ALUGUEL de bike numa busca por LOJA de bike). Usa o type que
+  // o Google atribuiu ao negócio. Se for genérico demais, não filtra.
+  const myTypes = meR.types || [];
+  const matchType = myTypes.find(t => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t)) || null;
+
   // 2. Roda cada lente (ordem real do Google) — em paralelo
   const lenses = await Promise.all(VISIBILITY_LENSES.map(async (L) => {
-    let ordered = [];
-    try { ordered = await runTextSearch(term, aLat, aLng, L.radius); } catch { ordered = []; }
+    let raw = [];
+    try { raw = await runTextSearch(term, aLat, aLng, L.radius); } catch { raw = []; }
+
+    // Filtro de categoria (de graça — types já vêm no Text Search). Só aplica se
+    // sobrar lista suficiente, pra não zerar em categoria mal-classificada.
+    let ordered = raw;
+    let filtered = false;
+    if (matchType) {
+      const f = raw.filter(p => p.place_id === placeId || (p.types || []).includes(matchType));
+      if (f.length >= 3) { ordered = f; filtered = true; }
+    }
+
     const idx = ordered.findIndex(p => p.place_id === placeId);
     const top = ordered.slice(0, 10).map(p => ({ ...p, is_me: p.place_id === placeId }));
     return {
@@ -447,11 +464,12 @@ export async function fetchVisibilityLenses({ placeId, keyword, cep }) {
       total: ordered.length,
       rank: idx >= 0 ? idx + 1 : null,
       inResults: idx >= 0,
+      filtered,
       top
     };
   }));
 
-  return { term, me, lenses, anchoredAtCep };
+  return { term, me, lenses, anchoredAtCep, category: matchType };
 }
 
 /**
