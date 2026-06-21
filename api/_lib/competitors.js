@@ -51,6 +51,56 @@ function typeToTerm(rawType) {
   return TYPE_TO_TERM[rawType] || rawType.replace(/_/g, " ");
 }
 
+// ── Filtro de categoria/intenção (compartilhado) ──────────────
+// O tipo do Google é grosseiro (marca "loja de bicicleta" e "aluguel de
+// bicicleta" como bicycle_store). Combinamos: (1) mesmo tipo primário
+// específico + (2) guard por nome que tira intenção diferente (aluguel,
+// locação) quando o negócio do cliente NÃO é desse tipo.
+const DIFFERENT_INTENT_WORDS = [
+  "aluguel", "aluguer", "locacao", "locação", "locadora", "rental",
+  "bike tour", "passeio", "tour "
+];
+function normalizeName(s) {
+  return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+function nameHasIntent(name) {
+  const n = normalizeName(name);
+  return DIFFERENT_INTENT_WORDS.some(w => n.includes(normalizeName(w)));
+}
+function primarySpecificType(types) {
+  return (types || []).find(t => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t)) || null;
+}
+// Retorna uma função keep(candidate) — true se o candidato compete de verdade.
+function makeCategoryFilter(meR, placeId) {
+  const clientType = primarySpecificType(meR.types);
+  const clientHasIntent = nameHasIntent(meR.name);
+  return function keep(p) {
+    if (p.place_id === placeId) return true; // o próprio negócio sempre entra
+    if (clientType) {
+      const pt = primarySpecificType(p.types);
+      if (pt && pt !== clientType) return false; // categoria primária diferente
+    }
+    // Cliente é loja/venda mas o candidato é aluguel/serviço → fora.
+    if (!clientHasIntent && nameHasIntent(p.name)) return false;
+    return true;
+  };
+}
+
+// Garante o próprio negócio na lista: o Google nem sempre retorna a própria
+// empresa na busca (raio/relevância), e aí ela sumia do próprio ranking. Se
+// faltar, insere pela prominência aproximada (rating × log(avaliações)).
+function ensureMe(ordered, me) {
+  if (!me?.place_id) return ordered;
+  if (ordered.some(p => p.place_id === me.place_id)) return ordered;
+  const g = (p) => (p.rating || 0) * Math.log10((p.reviews || 0) + 1);
+  const meEntry = { ...me, types: me.types || [] };
+  const out = ordered.slice();
+  let i = out.findIndex(p => g(p) < g(meEntry));
+  if (i < 0) i = out.length;
+  out.splice(i, 0, meEntry);
+  return out;
+}
+
 /**
  * Busca concorrentes do negócio dado.
  *
@@ -326,16 +376,14 @@ export async function fetchRankingByTerm({ placeId, keyword, radius, cep }) {
     });
   }
 
-  // Filtro de categoria — mesma regra das lentes de visibilidade: mantém só
-  // negócios da MESMA categoria primária do cliente (+ o próprio). Tira intenção
-  // diferente (ex: ALUGUEL numa busca por LOJA). De graça (types já vêm). Só
-  // aplica se sobrar >=3, pra não zerar em categoria mal-classificada.
-  const myTypesR = meR.types || [];
-  const matchTypeR = myTypesR.find(t => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t)) || null;
-  if (matchTypeR) {
-    const f = ordered.filter(p => p.place_id === placeId || (p.types || []).includes(matchTypeR));
-    if (f.length >= 3) { ordered.length = 0; ordered.push(...f); }
-  }
+  // Filtro de categoria/intenção (mesma regra das lentes). Só aplica se sobrar
+  // >=2, pra não zerar em categoria mal-classificada.
+  const keepR = makeCategoryFilter(meR, placeId);
+  const fR = ordered.filter(keepR);
+  if (fR.length >= 2) { ordered.length = 0; ordered.push(...fR); }
+  // Garante o próprio negócio na lista (sempre aparece no próprio ranking).
+  const withMeR = ensureMe(ordered, me);
+  ordered.length = 0; ordered.push(...withMeR);
 
   const total = ordered.length;
   if (total < 2) {
@@ -451,25 +499,20 @@ export async function fetchVisibilityLenses({ placeId, keyword, cep }) {
   const aLng = cepCoord?.lng ?? lng;
   const anchoredAtCep = !!cepCoord;
 
-  // Categoria primária do próprio negócio (pra filtrar fora intenção diferente,
-  // ex: serviço de ALUGUEL de bike numa busca por LOJA de bike). Usa o type que
-  // o Google atribuiu ao negócio. Se for genérico demais, não filtra.
-  const myTypes = meR.types || [];
-  const matchType = myTypes.find(t => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t)) || null;
+  // Filtro de categoria/intenção (tipo primário igual + guard de nome).
+  const keep = makeCategoryFilter(meR, placeId);
 
   // 2. Roda cada lente (ordem real do Google) — em paralelo
   const lenses = await Promise.all(VISIBILITY_LENSES.map(async (L) => {
     let raw = [];
     try { raw = await runTextSearch(term, aLat, aLng, L.radius); } catch { raw = []; }
 
-    // Filtro de categoria (de graça — types já vêm no Text Search). Só aplica se
-    // sobrar lista suficiente, pra não zerar em categoria mal-classificada.
+    // Filtra (só aplica se sobrar >=2). Depois garante o próprio negócio.
     let ordered = raw;
     let filtered = false;
-    if (matchType) {
-      const f = raw.filter(p => p.place_id === placeId || (p.types || []).includes(matchType));
-      if (f.length >= 3) { ordered = f; filtered = true; }
-    }
+    const f = raw.filter(keep);
+    if (f.length >= 2) { ordered = f; filtered = true; }
+    ordered = ensureMe(ordered, me);
 
     const idx = ordered.findIndex(p => p.place_id === placeId);
     const top = ordered.slice(0, 10).map(p => ({ ...p, is_me: p.place_id === placeId }));
