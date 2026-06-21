@@ -84,8 +84,17 @@ fbq('track', 'PageView');
   .product-card.sold-out:hover{transform:none;border-color:#e5e7eb;box-shadow:none;}
   .product-card.sold-out .product-price{color:#94a3b8;}
   .product-name{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:4px;}
-  .product-desc{font-size:13px;color:#6b7280;line-height:1.5;margin-bottom:14px;flex:1;}
-  .product-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .product-desc{font-size:13px;color:#6b7280;line-height:1.5;margin-bottom:12px;}
+  /* Miniaturas estilo e-commerce (clicar troca a foto principal) */
+  .product-thumbs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;}
+  .product-thumb{width:44px;height:44px;border-radius:8px;overflow:hidden;padding:0;cursor:pointer;border:1.5px solid #e5e7eb;background:#fff;transition:border-color .15s;}
+  .product-thumb.is-active,.product-thumb:hover{border-color:#1A73E8;}
+  .product-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  /* Especificações técnicas (checklist) */
+  .product-specs{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:7px;}
+  .product-specs li{font-size:12.5px;color:#475569;display:flex;gap:8px;align-items:flex-start;line-height:1.45;}
+  .product-specs li .ps-check{color:#10B981;font-weight:800;flex-shrink:0;}
+  .product-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;}
   .product-price{font-size:18px;font-weight:700;color:#0f172a;letter-spacing:-0.01em;}
   .product-price small{display:block;font-size:11px;color:#9ca3af;font-weight:500;letter-spacing:0;margin-top:1px;}
 
@@ -335,10 +344,34 @@ fbq('track', 'PageView');
 
 <script>
 const PRODUCTS = [
-  { id: "placa-balcao", name: "Placa de Balcão G", descTemplate: "Ideal para balcões, recepções e caixas. Avaliações no Google em poucos segundos.",       price: 79.90,  image: "/gadget-placa.png",    small: false },
-  { id: "placa-mesa",   name: "Placa de Balcão M", descTemplate: "Compacta, elegante e perfeita para balcões menores e mesas de atendimento.",              price: 49.90,  image: "/gadget-placa.png",    small: true  },
-  { id: "cartao-nfc",   name: "Cartão de Avaliação NFC", descTemplate: "Ideal para atendimento, networking e aproximação rápida do cliente.",               price: 29.90,  image: "/gadget-cartao.png",   small: true  },
-  { id: "pulseira",     name: "Pulseira NFC",      descTemplate: "Para os atendentes {biz}. Ranking por funcionário no painel.",                            price: 109.90, image: "/gadget-pulseira.png", small: false, soldOut: true }
+  {
+    id: "placa-balcao", name: "Placa de Balcão G", price: 79.90, small: false,
+    descTemplate: "Acrílico premium com NFC + QR Code. O cliente toca o celular e avalia no Google em segundos.",
+    image: "/gadget-placa.png",
+    images: ["/gadget-placa.png", "/placa-g-2.png", "/placa-g-3.png", "/placa-g-4.png", "/placa-g-5.png"],
+    specs: ["Acrílico cristal premium com base inclinada", "21 × 15 cm (display de balcão)", "NFC + QR Code de fallback impresso", "Sem app — o cliente não instala nada"]
+  },
+  {
+    id: "placa-mesa", name: "Placa de Balcão M", price: 49.90, small: true,
+    descTemplate: "A mesma placa NFC + QR Code, em versão compacta — pra balcões menores, mesas e recepções.",
+    image: "/placa-m-1.png",
+    images: ["/placa-m-1.png", "/placa-m-2.png", "/placa-m-3.png", "/placa-m-4.png"],
+    specs: ["10 × 15 cm — compacta", "Acrílico cristal premium", "Proteção UV (não amarela)", "NFC + QR Code de fallback"]
+  },
+  {
+    id: "cartao-nfc", name: "Cartão de Avaliação NFC", price: 29.90, small: true,
+    descTemplate: "Do tamanho de um cartão de crédito. Ideal pra atendimento e um cartão por vendedor.",
+    image: "/cartao-1.png",
+    images: ["/cartao-1.png", "/cartao-2.png", "/cartao-3.png", "/cartao-4.png", "/cartao-5.png", "/cartao-6.png"],
+    specs: ["8,5 × 5,4 cm — cabe na carteira", "PVC fosco premium", "NFC + QR Code de fallback", "Avaliação em menos de 30 segundos"]
+  },
+  {
+    id: "pulseira", name: "Pulseira NFC", price: 109.90, small: false, soldOut: true,
+    descTemplate: "Pro atendente usar no pulso — toca no celular do cliente após o atendimento.",
+    image: "/gadget-pulseira.png",
+    images: ["/gadget-pulseira.png"],
+    specs: ["Silicone resistente", "À prova d'água", "Ajuste universal"]
+  }
 ];
 
 // Retorna "do/da/pra Nome do Negócio" — fallback pra "do seu negócio" se vazio.
@@ -367,14 +400,26 @@ function fmt(v) {
 function renderProducts() {
   const grid = document.getElementById("productsGrid");
   const biz = bizPhrase(bizName);
-  grid.innerHTML = PRODUCTS.map(p => `
+  grid.innerHTML = PRODUCTS.map(p => {
+    const imgs = (p.images && p.images.length) ? p.images : [p.image];
+    const thumbs = imgs.length > 1 ? `
+      <div class="product-thumbs">
+        ${imgs.map((src, i) => `<button class="product-thumb${i === 0 ? ' is-active' : ''}" type="button" data-main="main-${p.id}" data-full="${src}" aria-label="Ver foto ${i + 1}"><img src="${src}" alt="" loading="lazy"/></button>`).join("")}
+      </div>` : "";
+    const specs = (p.specs && p.specs.length) ? `
+      <ul class="product-specs">
+        ${p.specs.map(s => `<li><span class="ps-check">✓</span><span>${s}</span></li>`).join("")}
+      </ul>` : "";
+    return `
     <article class="product-card${p.soldOut ? ' sold-out' : ''}" id="card-${p.id}">
       <div class="product-image${p.small ? ' small' : ''}">
-        <img src="${p.image}" alt="${p.name}" loading="lazy"/>
+        <img id="main-${p.id}" src="${imgs[0]}" alt="${p.name}" loading="lazy"/>
         ${p.soldOut ? '<span class="product-badge-soldout">ESGOTADO</span>' : ''}
       </div>
+      ${thumbs}
       <div class="product-name">${p.name}</div>
       <div class="product-desc">${p.descTemplate.replace("{biz}", biz)}</div>
+      ${specs}
       <div class="product-bottom">
         <div class="product-price">${fmt(p.price)}<small>${p.id === "adesivo" ? "kit com 3" : "unidade"}</small></div>
         <div class="qty">
@@ -384,7 +429,19 @@ function renderProducts() {
         </div>
       </div>
     </article>
-  `).join("");
+  `;
+  }).join("");
+
+  // Miniaturas: clicar troca a foto principal do card
+  grid.querySelectorAll(".product-thumb").forEach(thumb => {
+    thumb.addEventListener("click", () => {
+      const main = document.getElementById(thumb.dataset.main);
+      if (main) main.src = thumb.dataset.full;
+      const card = thumb.closest(".product-card");
+      card.querySelectorAll(".product-thumb").forEach(t => t.classList.remove("is-active"));
+      thumb.classList.add("is-active");
+    });
+  });
 
   grid.querySelectorAll(".qty-btn").forEach(btn => {
     btn.addEventListener("click", () => {

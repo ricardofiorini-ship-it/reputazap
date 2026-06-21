@@ -176,11 +176,41 @@ const MOCK = {
     monthlyDay: 1          // dia do mês
   },
 
-  // Loja — produtos reais StarTouch (catálogo + preços oficiais em /kit)
+  // Loja — produtos reais StarTouch (catálogo + preços oficiais em /kit).
+  // Galeria (images) + specs espelham a vitrine da landing.
   products: [
-    { id:'placa-balcao', img:'/gadget-placa.png',    name:'Placa de balcão', desc:'Acrílico premium pro caixa. Cliente toca pra avaliar ao pagar.',          buyUrl:'/kit' },
-    { id:'cartao-nfc',   img:'/gadget-cartao.png',   name:'Cartão NFC',      desc:'Pro garçom carregar — toca no celular do cliente após o atendimento.', buyUrl:'/kit' },
-    { id:'pulseira-nfc', img:'/gadget-pulseira.png', name:'Pulseira NFC',    desc:'Pro garçom usar no pulso — toca no cliente após o atendimento.',         buyUrl:'/kit' }
+    {
+      id:'placa-balcao', name:'Placa de Balcão G', price:'R$ 79,90',
+      img:'/gadget-placa.png',
+      images:['/gadget-placa.png','/placa-g-2.png','/placa-g-3.png','/placa-g-4.png','/placa-g-5.png'],
+      desc:'Acrílico premium com NFC + QR Code. O cliente toca o celular e avalia no Google em segundos.',
+      specs:['Acrílico cristal premium com base inclinada','21 × 15 cm (display de balcão)','NFC + QR Code de fallback impresso','Sem app — o cliente não instala nada'],
+      buyUrl:'/kit?add=placa-balcao'
+    },
+    {
+      id:'placa-mesa', name:'Placa de Balcão M', price:'R$ 49,90',
+      img:'/placa-m-1.png',
+      images:['/placa-m-1.png','/placa-m-2.png','/placa-m-3.png','/placa-m-4.png'],
+      desc:'A mesma placa NFC + QR Code, em versão compacta — pra balcões menores, mesas e recepções.',
+      specs:['10 × 15 cm — compacta','Acrílico cristal premium','Proteção UV (não amarela)','NFC + QR Code de fallback'],
+      buyUrl:'/kit?add=placa-mesa'
+    },
+    {
+      id:'cartao-nfc', name:'Cartão de Avaliação NFC', price:'R$ 29,90',
+      img:'/cartao-1.png',
+      images:['/cartao-1.png','/cartao-2.png','/cartao-3.png','/cartao-4.png','/cartao-5.png','/cartao-6.png'],
+      desc:'Do tamanho de um cartão de crédito. Ideal pra atendimento e um cartão por vendedor.',
+      specs:['8,5 × 5,4 cm — cabe na carteira','PVC fosco premium','NFC + QR Code de fallback','Avaliação em menos de 30 segundos'],
+      buyUrl:'/kit?add=cartao-nfc'
+    },
+    {
+      id:'pulseira-nfc', name:'Pulseira NFC', price:'R$ 109,90', soldOut:true,
+      img:'/gadget-pulseira.png',
+      images:['/gadget-pulseira.png'],
+      desc:'Pro atendente usar no pulso — toca no celular do cliente após o atendimento.',
+      specs:['Silicone resistente','À prova d\'água','Ajuste universal'],
+      buyUrl:'/kit'
+    }
   ],
   kit: {
     icon: '🎁',
@@ -2830,23 +2860,64 @@ function ReportsScreen({ data, isMobile, isReal }) {
 // LOJA — vitrine de produtos NFC
 // ─────────────────────────────────────────────────────────────
 function ProductCard({ p }) {
+  const imgs = (p.images && p.images.length) ? p.images : [p.img]
+  const [active, setActive] = React.useState(imgs[0])
   return (
-    <Card padded={false} style={{ padding: 0, display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
+    <Card padded={false} style={{ padding: 0, display:'flex', flexDirection:'column', height:'100%', overflow:'hidden', opacity: p.soldOut ? 0.9 : 1 }}>
+      {/* Foto principal */}
       <div style={{
-        height: 160, background:'#fff',
+        position:'relative', height: 190, background:'#fff',
         display:'flex', alignItems:'center', justifyContent:'center',
-        borderBottom:'1px solid '+T.border, padding: 10
+        borderBottom:'1px solid '+T.border, padding: 12
       }}>
-        <img src={p.img} alt={p.name} style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain' }}/>
+        <img src={active} alt={p.name} style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain', filter: p.soldOut ? 'grayscale(.3)' : 'none' }}/>
+        {p.soldOut && (
+          <span style={{ position:'absolute', top: 10, left: 10, background: T.text, color:'#fff', fontSize: 10, fontWeight: 800, letterSpacing:'.06em', padding:'4px 8px', borderRadius: 6 }}>ESGOTADO</span>
+        )}
       </div>
+      {/* Miniaturas */}
+      {imgs.length > 1 && (
+        <div style={{ display:'flex', gap: 6, padding:'10px 12px 0', flexWrap:'wrap' }}>
+          {imgs.map((src, i) => (
+            <button key={i} type="button" onClick={() => setActive(src)} aria-label={`Ver foto ${i + 1}`} style={{
+              width: 44, height: 44, borderRadius: 8, overflow:'hidden', padding: 0, cursor:'pointer',
+              border:`1.5px solid ${active === src ? T.blue : T.border}`, background:'#fff', transition:'border-color .15s'
+            }}>
+              <img src={src} alt="" loading="lazy" style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}/>
+            </button>
+          ))}
+        </div>
+      )}
+      {/* Corpo */}
       <div style={{ padding: 16, display:'flex', flexDirection:'column', flex: 1 }}>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 15, fontWeight: 700, color: T.text, margin:'0 0 6px' }}>{p.name}</h3>
-        <p style={{ fontSize: 12.5, color: T.textMid, margin:'0 0 14px', lineHeight: 1.5, flex: 1 }}>{p.desc}</p>
-        <a href={p.buyUrl} style={{
-          display:'block', background: T.blue, color:'#fff', textDecoration:'none',
-          borderRadius: 9, padding:'10px 14px', fontSize: 13, fontWeight: 700,
-          textAlign:'center'
-        }}>Comprar →</a>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 15, fontWeight: 700, color: T.text, margin:'0 0 4px' }}>{p.name}</h3>
+        {p.price && (
+          <div style={{ fontSize: 17, fontWeight: 800, color: T.text, margin:'0 0 8px', letterSpacing:'-0.01em' }}>
+            {p.price}<span style={{ fontSize: 11, fontWeight: 500, color: T.textDim }}> / unidade</span>
+          </div>
+        )}
+        <p style={{ fontSize: 12.5, color: T.textMid, margin:'0 0 12px', lineHeight: 1.5 }}>{p.desc}</p>
+        {p.specs?.length > 0 && (
+          <ul style={{ listStyle:'none', margin:'0 0 14px', padding: 0, display:'flex', flexDirection:'column', gap: 6 }}>
+            {p.specs.map((s, i) => (
+              <li key={i} style={{ fontSize: 12, color: T.textMid, display:'flex', gap: 7, alignItems:'flex-start', lineHeight: 1.4 }}>
+                <span style={{ color: T.green, fontWeight: 800, flexShrink: 0 }}>✓</span><span>{s}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div style={{ flex: 1 }}/>
+        {p.soldOut ? (
+          <span style={{
+            display:'block', background: T.bg, color: T.textDim, borderRadius: 9,
+            padding:'10px 14px', fontSize: 13, fontWeight: 700, textAlign:'center', border:`1px solid ${T.border}`
+          }}>Esgotado</span>
+        ) : (
+          <a href={p.buyUrl} style={{
+            display:'block', background: T.blue, color:'#fff', textDecoration:'none',
+            borderRadius: 9, padding:'10px 14px', fontSize: 13, fontWeight: 700, textAlign:'center'
+          }}>Comprar →</a>
+        )}
       </div>
     </Card>
   )
