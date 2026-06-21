@@ -5176,10 +5176,14 @@ function calcStarTouchScore(d) {
 export default function AppV2({ user = null, onLogout, demoMode = false, guestMode = false, guestContext = null } = {}) {
   const isMobile = useIsMobile(768)
   // Deep-link inicial: ?tab=X (vence) OU hash #conta|#negocio|#plano (vai pra config) OU painel
+  // Abas Pro escondidas temporariamente — bloqueadas também por acesso direto
+  // (?tab=concorrentes etc cai no painel). Reexibir: esvaziar HIDDEN_TABS.
+  const HIDDEN_TABS = ['concorrentes', 'alertas', 'relatorios']
   const initialTab = (() => {
     if (typeof window === 'undefined') return 'painel'
     const qsTab = new URLSearchParams(window.location.search).get('tab')
-    if (qsTab) return qsTab
+    if (qsTab && !HIDDEN_TABS.includes(qsTab)) return qsTab
+    if (qsTab && HIDDEN_TABS.includes(qsTab)) return 'painel'
     const hash = window.location.hash.replace('#', '')
     if (['conta', 'negocio', 'plano'].includes(hash)) return 'config'
     return 'painel'
