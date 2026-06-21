@@ -4777,7 +4777,7 @@ function GuestSearch({ isMobile }) {
               width:'100%', padding:'13px', background: canSearch?T.blue:T.textDim, color:'#fff',
               border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
               cursor: canSearch?'pointer':'not-allowed'
-            }}>{loading ? 'Buscando…' : '🔍 Ver minha posição'}</button>
+            }}>{loading ? 'Buscando…' : '🔍 Ver minha presença'}</button>
           </form>
 
           {error && <p style={{ fontSize:13, color:T.red, marginTop:12 }}>{error}</p>}
