@@ -3477,19 +3477,23 @@ function realWeekActions(d) {
   const comp = d.competitors || []
   const toNext = d.kpis.nextGoal?.reviewsToNext ?? 0
   const targetPos = d.kpis.nextGoal?.targetPosition ?? Math.max(1, pos - 1)
+  // Tem alguém à frente com MENOS avaliações que você? Então a posição é
+  // dominada por proximidade/relevância, não por volume — avaliações não resolvem.
+  const aheadWithFewer = comp.filter(c => !c.isYou && c.pos < pos && (c.reviews || 0) < reviews)
 
   // 1) Como subir de posição (ou manter o topo).
   // O ranking vem da ORDEM REAL do Google (relevância + proximidade + prominência),
   // não de uma fórmula nota×reviews — então NUNCA aconselhamos "aumentar a nota"
-  // (até porque pode já estar no teto). O caminho acionável é volume + perfil.
+  // (até porque pode já estar no teto).
   if (pos <= 1) {
     actions.push({ icon: '🏆', text: 'Você é #1 na sua categoria. Continue coletando avaliações toda semana pra manter a liderança — quem para de coletar acaba ultrapassado.', kind: 'goal' })
+  } else if (aheadWithFewer.length > 0) {
+    // Caso da SAIF: gente na frente com menos avaliações → é proximidade/relevância.
+    actions.push({ icon: '📍', text: `Tem negócio na sua frente com MENOS avaliações que você — sinal de que aqui o ranking é dominado por proximidade (quão perto você está de quem busca) e relevância pro termo, não pelo volume de avaliações. O acionável: confira se a categoria do seu Google é a certa pra esse termo e deixe o perfil completo (fotos, horário, descrição, produtos).`, kind: 'goal' })
   } else if (toNext > 0) {
     actions.push({ icon: '🎯', text: `Faltam ~${toNext} ${toNext === 1 ? 'avaliação' : 'avaliações'} pra alcançar a ${targetPos}ª posição. Foque em coletar no atendimento essa semana.`, kind: 'goal' })
   } else {
-    // Volume parecido (ou maior) e ainda atrás: não é a nota. No ranking local
-    // o Google também pesa proximidade e relevância.
-    actions.push({ icon: '🎯', text: `Você já tem volume de avaliações parecido com quem está na sua frente${rating >= 4.8 ? ' (e nota no topo)' : ''}. No ranking do Google também pesam proximidade e relevância, não só a nota — siga coletando avaliações e mantenha seu perfil completo: categoria certa, fotos e horário atualizados.`, kind: 'goal' })
+    actions.push({ icon: '🎯', text: `Você já tem volume de avaliações parecido com quem está na sua frente${rating >= 4.8 ? ' (e nota no topo)' : ''}. No ranking do Google também pesam proximidade e relevância, não só a nota — siga coletando e mantenha o perfil completo: categoria certa, fotos e horário.`, kind: 'goal' })
   }
 
   // 2) Coleta ligada aos pontos de captação (placas)
