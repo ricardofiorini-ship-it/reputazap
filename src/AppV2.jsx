@@ -5495,11 +5495,22 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
 
   // Helper pra navegar de bottom sheet "Mais" → tab + anchor opcional
   const navigateFromMore = React.useCallback((newTab, hash) => {
+    // A Loja é uma página única (/kit): vitrine + carrinho + checkout.
+    // Clicar em "Loja" em qualquer nav abre o /kit direto (sem aba interna).
+    if (newTab === 'loja') {
+      if (typeof window !== 'undefined') window.location.href = '/kit'
+      return
+    }
     if (typeof window !== 'undefined' && hash) {
       window.location.hash = hash
     }
     setTab(newTab)
   }, [])
+
+  // Deep-link ?tab=loja (ou estado herdado): redireciona pro /kit.
+  React.useEffect(() => {
+    if (tab === 'loja' && typeof window !== 'undefined') window.location.href = '/kit'
+  }, [tab])
 
   // Carrega dados reais via API (skipa em demoMode ou sem user/convidado)
   const real = useRealData(user, demoMode, guestMode, guestContext)
@@ -5628,7 +5639,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     }}>
       {isGuest && <GuestBanner url={guestSignupUrl} isMobile={isMobile} />}
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl} />
-      {!isMobile && <TopTabs active={tab} onChange={setTab} plan={plan} isMobile={false} />}
+      {!isMobile && <TopTabs active={tab} onChange={navigateFromMore} plan={plan} isMobile={false} />}
 
       {/* Aba: CONCORRENTES (Pro) — funcional pro Pro, preview borrado pro Free */}
       {tab === 'concorrentes' && (plan === 'pro'
@@ -5648,10 +5659,8 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         : <ProPreview tab="relatorios" isMobile={isMobile}><ReportsScreen data={MOCK} isMobile={isMobile} isReal={false}/></ProPreview>
       )}
 
-      {/* Aba: LOJA — vitrine de produtos NFC (free + pro) */}
-      {tab === 'loja' && (
-        <LojaScreen data={d} isMobile={isMobile} plan={plan}/>
-      )}
+      {/* Aba LOJA virou página única (/kit) — clicar em "Loja" abre o /kit
+          (vitrine + carrinho + checkout). Sem render interno; ver navigateFromMore. */}
 
       {/* Aba: AVALIAÇÕES — lista todas as reviews do Google (free + pro) */}
       {tab === 'avaliacoes' && (
@@ -5833,7 +5842,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <>
           <BottomTabBar
             active={tab}
-            onChange={setTab}
+            onChange={navigateFromMore}
             plan={plan}
             onOpenMore={() => setMoreOpen(true)}
             moreOpen={moreOpen}
