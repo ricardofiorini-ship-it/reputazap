@@ -3477,30 +3477,19 @@ function realWeekActions(d) {
   const comp = d.competitors || []
   const toNext = d.kpis.nextGoal?.reviewsToNext ?? 0
   const targetPos = d.kpis.nextGoal?.targetPosition ?? Math.max(1, pos - 1)
-  const gscore = (rt, rv) => (rt || 0) * Math.log10((rv || 0) + 1)
 
-  // 1) Como subir de posição (ou manter o topo)
+  // 1) Como subir de posição (ou manter o topo).
+  // O ranking vem da ORDEM REAL do Google (relevância + proximidade + prominência),
+  // não de uma fórmula nota×reviews — então NUNCA aconselhamos "aumentar a nota"
+  // (até porque pode já estar no teto). O caminho acionável é volume + perfil.
   if (pos <= 1) {
     actions.push({ icon: '🏆', text: 'Você é #1 na sua categoria. Continue coletando avaliações toda semana pra manter a liderança — quem para de coletar acaba ultrapassado.', kind: 'goal' })
+  } else if (toNext > 0) {
+    actions.push({ icon: '🎯', text: `Faltam ~${toNext} ${toNext === 1 ? 'avaliação' : 'avaliações'} pra alcançar a ${targetPos}ª posição. Foque em coletar no atendimento essa semana.`, kind: 'goal' })
   } else {
-    const ahead = comp.find(c => c.pos === pos - 1)
-    // Alavanca "nota": que nota te empataria com quem está à frente, mantendo as avaliações atuais
-    let ratingShortcut = null
-    if (ahead) {
-      const ratingNeeded = gscore(ahead.rating, ahead.reviews) / Math.log10(reviews + 1)
-      if (ratingNeeded > rating && ratingNeeded <= 5 && (ratingNeeded - rating) <= 0.3) {
-        ratingShortcut = Math.ceil(ratingNeeded * 10) / 10
-      }
-    }
-    if (toNext <= 0 && ahead) {
-      // Mesmo volume de avaliações, atrás por nota → o único caminho é a nota
-      actions.push({ icon: '🎯', text: `Você tem volume parecido com a ${targetPos}ª posição, mas perde na nota. Foque em avaliações 5★ pra subir de ${rating.toFixed(1)} e ultrapassar.`, kind: 'goal' })
-    } else if (ratingShortcut && toNext > 5) {
-      // Quando faltam muitas avaliações, subir a nota é o atalho
-      actions.push({ icon: '🎯', text: `Atalho: suba sua nota de ${rating.toFixed(1)} pra ${ratingShortcut.toFixed(1)} e você passa pra ${targetPos}ª posição — bem mais rápido do que coletar ~${toNext} avaliações.`, kind: 'goal' })
-    } else {
-      actions.push({ icon: '🎯', text: `Faltam ~${toNext} ${toNext === 1 ? 'avaliação' : 'avaliações'} pra alcançar a ${targetPos}ª posição. Foque em coletar no atendimento essa semana.`, kind: 'goal' })
-    }
+    // Volume parecido (ou maior) e ainda atrás: não é a nota. No ranking local
+    // o Google também pesa proximidade e relevância.
+    actions.push({ icon: '🎯', text: `Você já tem volume de avaliações parecido com quem está na sua frente${rating >= 4.8 ? ' (e nota no topo)' : ''}. No ranking do Google também pesam proximidade e relevância, não só a nota — siga coletando avaliações e mantenha seu perfil completo: categoria certa, fotos e horário atualizados.`, kind: 'goal' })
   }
 
   // 2) Coleta ligada aos pontos de captação (placas)
