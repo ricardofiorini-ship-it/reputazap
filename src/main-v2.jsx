@@ -31,6 +31,7 @@ function Root() {
   const forceLogin = params?.get('login') === '1'
   const guestPlaceId = params?.get('place_id') || params?.get('place') || null
   const guestKeyword = params?.get('keyword') || ''
+  const guestCep = params?.get('cep') || ''
 
   // ?next= sinaliza ação que EXIGE conta (ex: assinar Pro). Mostra Login (que
   // tem link "criar conta") e, após autenticar, manda pro destino. Só paths
@@ -47,7 +48,7 @@ function Root() {
       onLogout={handleLogout}
       demoMode={false}
       guestMode={true}
-      guestContext={{ placeId: guestPlaceId, keyword: guestKeyword }}
+      guestContext={{ placeId: guestPlaceId, keyword: guestKeyword, cep: guestCep }}
     />
   }
   return <AppV2 user={user} onLogout={handleLogout} demoMode={isDemo} />

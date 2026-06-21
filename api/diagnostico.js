@@ -79,7 +79,8 @@ export default async function handler(req, res) {
   // diferentes. Nomes de concorrente bloqueados (público), como no resto.
   if (req.query.lenses) {
     try {
-      const vis = await fetchVisibilityLenses({ placeId, keyword });
+      const cep = (req.query.cep || "").toString();
+      const vis = await fetchVisibilityLenses({ placeId, keyword, cep });
       const lenses = (vis.lenses || []).map((L) => ({
         key: L.key,
         label: L.label,
@@ -97,7 +98,7 @@ export default async function handler(req, res) {
           isMe: !!c.is_me
         }))
       }));
-      return res.json({ ok: true, term: vis.term, name: vis.me?.name || null, lenses });
+      return res.json({ ok: true, term: vis.term, name: vis.me?.name || null, anchoredAtCep: !!vis.anchoredAtCep, lenses });
     } catch (err) {
       console.error("[diagnostico/lenses] erro:", err);
       return res.status(500).json({ error: err.message || "Erro ao gerar lentes" });

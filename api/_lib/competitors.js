@@ -359,6 +359,20 @@ function resolveTerm(keyword, meR) {
   return term;
 }
 
+// Geocodifica um CEP brasileiro → coordenadas do CENTRO do CEP (o que o Google
+// usa quando você busca "termo + CEP"). Sem CEP válido, retorna null.
+async function geocodeCep(cep) {
+  const digits = (cep || "").replace(/\D/g, "");
+  if (digits.length !== 8) return null;
+  try {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${digits}&components=country:BR&key=${API_KEY}`;
+    const r = await (await fetchWithTimeout(url, {}, 6000)).json();
+    const loc = r.results?.[0]?.geometry?.location;
+    if (loc && typeof loc.lat === "number") return { lat: loc.lat, lng: loc.lng };
+  } catch {}
+  return null;
+}
+
 // Roda um Text Search ancorado e devolve a ORDEM do Google (sem re-ranquear).
 async function runTextSearch(term, lat, lng, radius) {
   const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(term)}&location=${lat},${lng}&radius=${radius}&language=pt-BR&region=br&key=${API_KEY}`;
@@ -389,7 +403,7 @@ export const VISIBILITY_LENSES = [
   { key: "ampliada", label: "Área ampliada", radius: 5000 },
 ];
 
-export async function fetchVisibilityLenses({ placeId, keyword }) {
+export async function fetchVisibilityLenses({ placeId, keyword, cep }) {
   if (!placeId) throw new Error("placeId obrigatório");
   if (!API_KEY) throw new Error("PLACES_API_KEY ausente no ambiente");
 
@@ -413,10 +427,17 @@ export async function fetchVisibilityLenses({ placeId, keyword }) {
   const term = resolveTerm(keyword, meR);
   if (!term) return { term: null, me, lenses: [] };
 
+  // Âncora: centro do CEP (igual à busca manual "termo + CEP" no Google).
+  // Sem CEP válido, cai pro ponto do próprio negócio.
+  const cepCoord = await geocodeCep(cep);
+  const aLat = cepCoord?.lat ?? lat;
+  const aLng = cepCoord?.lng ?? lng;
+  const anchoredAtCep = !!cepCoord;
+
   // 2. Roda cada lente (ordem real do Google) — em paralelo
   const lenses = await Promise.all(VISIBILITY_LENSES.map(async (L) => {
     let ordered = [];
-    try { ordered = await runTextSearch(term, lat, lng, L.radius); } catch { ordered = []; }
+    try { ordered = await runTextSearch(term, aLat, aLng, L.radius); } catch { ordered = []; }
     const idx = ordered.findIndex(p => p.place_id === placeId);
     const top = ordered.slice(0, 10).map(p => ({ ...p, is_me: p.place_id === placeId }));
     return {
@@ -430,7 +451,7 @@ export async function fetchVisibilityLenses({ placeId, keyword }) {
     };
   }));
 
-  return { term, me, lenses };
+  return { term, me, lenses, anchoredAtCep };
 }
 
 /**

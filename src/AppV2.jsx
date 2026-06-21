@@ -4545,8 +4545,10 @@ function GuestSearch({ isMobile }) {
 
   function pick(placeId) {
     const kw = term.trim()
+    const cepDigits = (loc || '').replace(/\D/g, '')
     let url = `/app?place_id=${encodeURIComponent(placeId)}`
     if (kw) url += `&keyword=${encodeURIComponent(kw)}`
+    if (cepDigits.length === 8) url += `&cep=${cepDigits}`
     window.location.href = url
   }
 
@@ -4784,17 +4786,19 @@ function TermBar({ term, isGuest, placeId, isMobile }) {
 
 // Visibilidade multi-lente: a MESMA busca (ordem real do Google) em raios
 // diferentes. Mostra que a posição varia conforme a distância de quem busca.
-function VisibilityLenses({ placeId, term, isMobile }) {
+function VisibilityLenses({ placeId, term, cep, isMobile }) {
   const [data, setData] = React.useState(null)
   const [loading, setLoading] = React.useState(true)
   React.useEffect(() => {
     if (!placeId) { setLoading(false); return }
     let cancelled = false
     setLoading(true)
-    const url = `/api/diagnostico?lenses=1&place_id=${encodeURIComponent(placeId)}` + (term ? `&keyword=${encodeURIComponent(term)}` : '')
+    const url = `/api/diagnostico?lenses=1&place_id=${encodeURIComponent(placeId)}`
+      + (term ? `&keyword=${encodeURIComponent(term)}` : '')
+      + (cep ? `&cep=${encodeURIComponent(cep)}` : '')
     fetch(url).then(r => r.json()).then(d => { if (!cancelled) setData(d) }).catch(() => {}).finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [placeId, term])
+  }, [placeId, term, cep])
 
   const lenses = (data && data.lenses) || []
   if (!loading && !lenses.length) return null
@@ -4851,7 +4855,8 @@ function VisibilityLenses({ placeId, term, isMobile }) {
       )}
 
       <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.5 }}>
-        Estimativa pela busca do Google na sua região. A posição real varia conforme a localização exata e o que cada pessoa digita.
+        {data && data.anchoredAtCep ? 'Ancorado no centro do seu CEP (como na busca "termo + CEP" do Google). ' : ''}
+        Estimativa pela busca do Google. A posição real varia conforme a localização exata e o que cada pessoa digita.
       </div>
     </Card>
   )
@@ -5457,6 +5462,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           <VisibilityLenses
             placeId={guestContext?.placeId || d.biz?.placeId}
             term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
+            cep={guestContext?.cep || ''}
             isMobile={isMobile}
           />
         </Section>
