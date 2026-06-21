@@ -101,6 +101,31 @@ function ensureMe(ordered, me) {
   return out;
 }
 
+// Limpa o termo de busca se o usuário colou o NOME do negócio junto (ex:
+// "Cicloarte loja de bicicletas"). Sem isso, o Google buscaria pelo nome e
+// retornaria só o próprio negócio — ranking furado. Estratégia: se o termo
+// contém o nome, extrai a categoria conhecida; senão remove as palavras do
+// nome; se sobrar nada, retorna "" (cai pra detecção por tipo do Google).
+function sanitizeKeyword(keyword, businessName) {
+  const kw = (keyword || "").trim();
+  if (!kw) return "";
+  // 1. Categoria conhecida dentro do termo? Pega "produtos de limpeza" em
+  //    "SAIF produtos de limpeza" sem mexer no resto. Resolve a maioria.
+  const detected = detectFromName(kw);
+  if (detected) return detected;
+  // 2. Remove o NOME do negócio só quando ele aparece inteiro e contíguo no
+  //    termo (ex: "Cicloarte loja de bicicletas" → "loja de bicicletas").
+  //    Conservador de propósito: não fatia palavra a palavra (evitaria tirar
+  //    "limpeza" de um nome tipo "Loja da Limpeza").
+  const nameNorm = normalizeName(businessName).trim();
+  const kwNorm = normalizeName(kw);
+  if (nameNorm.length >= 3 && kwNorm.includes(nameNorm)) {
+    const cleaned = kwNorm.split(nameNorm).join(" ").replace(/\s+/g, " ").trim();
+    return cleaned.length >= 3 ? cleaned : "";
+  }
+  return kw; // sem certeza → respeita o que o usuário digitou
+}
+
 /**
  * Busca concorrentes do negócio dado.
  *
@@ -335,16 +360,8 @@ export async function fetchRankingByTerm({ placeId, keyword, radius, cep }) {
   const myReviews = meR.user_ratings_total || 0;
   const me = { place_id: placeId, name: meR.name, rating: myRating, reviews: myReviews, lat, lng };
 
-  // 2. Termo (o que o cliente digita)
-  let term = (keyword || "").trim();
-  if (!term) term = detectFromName(meR.name);
-  if (!term) {
-    const types = meR.types || [];
-    const specific = types.filter(t => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t));
-    const broad = types.filter(t => !GENERIC_TYPES.has(t) && BROAD_TYPES.has(t));
-    // Traduz o tipo do Google pra termo natural (bicycle_store → "loja de bicicletas")
-    term = typeToTerm(specific[0] || broad[0] || "");
-  }
+  // 2. Termo (o que o cliente digita) — limpo do nome do negócio se vier colado
+  const term = resolveTerm(keyword, meR);
   if (!term) {
     return { enough: false, total: 0, category: null, radius: safeRadius, me, myRank: null, inResults: false, ahead: null, top: [] };
   }
@@ -411,9 +428,9 @@ export async function fetchRankingByTerm({ placeId, keyword, radius, cep }) {
 // aqui a pergunta é "onde eu apareço de verdade", não "quem são meus pares".
 // ============================================================
 
-// Resolve o termo (keyword explícito > detecção pelo nome > tipo traduzido).
+// Resolve o termo (keyword limpo > detecção pelo nome > tipo traduzido).
 function resolveTerm(keyword, meR) {
-  let term = (keyword || "").trim();
+  let term = sanitizeKeyword(keyword, meR.name);
   if (!term) term = detectFromName(meR.name);
   if (!term) {
     const types = meR.types || [];

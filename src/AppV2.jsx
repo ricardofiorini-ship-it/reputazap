@@ -4643,9 +4643,9 @@ function GuestSearch({ isMobile }) {
             </div>
             <div style={{ marginBottom:18 }}>
               <label style={labelStyle}>O que seus clientes digitam no Google pra te achar?</label>
-              <input style={inputStyle} value={term} onChange={e=>setTerm(e.target.value)} placeholder="Ex: trattoria italiana, aluguel de roupas"/>
+              <input style={inputStyle} value={term} onChange={e=>setTerm(e.target.value)} placeholder="Ex: padaria, loja de bicicletas, salão de beleza"/>
               <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
-                É esse termo que usamos pra achar os concorrentes certos — quanto mais específico, melhor.
+                Use o <b>tipo/categoria</b> do negócio — <b>não o nome da empresa</b>. É isso que mostra os concorrentes certos.
               </span>
             </div>
             <button type="submit" disabled={!canSearch} style={{
