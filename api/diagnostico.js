@@ -87,9 +87,11 @@ export default async function handler(req, res) {
         rank: L.rank,
         total: L.total,
         inResults: L.inResults,
-        top: applyNameLocking(L.top || [], false).slice(0, 5).map((c, i) => ({
+        // Nomes liberados (sem blur) — concorrentes são free no projeto e o dono
+        // precisa ver pra validar a fidelidade do ranking.
+        top: (L.top || []).slice(0, 6).map((c, i) => ({
           pos: i + 1,
-          name: c.name || null,   // null = concorrente (borrado no front)
+          name: c.name || null,
           rating: c.rating ?? null,
           reviews: c.reviews ?? 0,
           isMe: !!c.is_me

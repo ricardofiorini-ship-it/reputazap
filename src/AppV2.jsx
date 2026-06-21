@@ -4813,21 +4813,37 @@ function VisibilityLenses({ placeId, term, isMobile }) {
       {loading ? (
         <div style={{ fontSize: 13, color: T.textDim, padding: '8px 0' }}>Calculando…</div>
       ) : (
-        <div style={{ display:'flex', flexDirection:'column', gap: 10 }}>
+        <div style={{ display:'flex', flexDirection:'column', gap: 14 }}>
           {lenses.map(L => (
-            <div key={L.key} style={{
-              display:'flex', alignItems:'center', justifyContent:'space-between', gap: 12,
-              padding:'12px 14px', borderRadius: 10, background: T.bg, border:`1px solid ${T.border}`
-            }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{L.label}</div>
-                <div style={{ fontSize: 12, color: T.textMid }}>raio de ~{L.radiusKm} km · {L.total} negócios</div>
+            <div key={L.key} style={{ border:`1px solid ${T.border}`, borderRadius: 10, overflow:'hidden' }}>
+              <div style={{
+                display:'flex', alignItems:'center', justifyContent:'space-between', gap: 12,
+                padding:'10px 14px', background: T.bg, borderBottom:`1px solid ${T.border}`
+              }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{L.label}</div>
+                  <div style={{ fontSize: 12, color: T.textMid }}>raio ~{L.radiusKm} km · {L.total} negócios</div>
+                </div>
+                <div style={{ textAlign:'right', flexShrink: 0 }}>
+                  {L.inResults
+                    ? <span style={{ fontSize: 20, fontWeight: 800, color: L.rank <= 3 ? T.green : T.text, letterSpacing:'-0.02em' }}>#{L.rank}</span>
+                    : <span style={{ fontSize: 12.5, fontWeight: 700, color: T.amber }}>fora do top</span>}
+                  <span style={{ fontSize: 11, color: T.textDim }}> de {L.total}</span>
+                </div>
               </div>
-              <div style={{ textAlign:'right', flexShrink: 0 }}>
-                {L.inResults
-                  ? <div style={{ fontSize: 22, fontWeight: 800, color: L.rank <= 3 ? T.green : T.text, letterSpacing:'-0.02em' }}>#{L.rank}</div>
-                  : <div style={{ fontSize: 13, fontWeight: 700, color: T.amber }}>fora do top</div>}
-                <div style={{ fontSize: 11, color: T.textDim }}>de {L.total}</div>
+              <div style={{ padding: '6px 8px 8px' }}>
+                {(L.top || []).map((c, i) => (
+                  <div key={i} style={{
+                    display:'flex', alignItems:'center', gap: 8, padding:'6px 8px',
+                    background: c.isMe ? T.blueSoft : 'transparent', borderRadius: 7
+                  }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: T.textDim, width: 22, flexShrink: 0 }}>{c.pos}º</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: c.isMe ? 700 : 500, color: c.isMe ? T.blueDk : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                      {c.isMe ? `${c.name || 'Você'} (você)` : (c.name || 'Concorrente')}
+                    </span>
+                    <span style={{ fontSize: 12, color: T.textMid, flexShrink: 0 }}>⭐ {c.rating ?? '—'} · {c.reviews}</span>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
