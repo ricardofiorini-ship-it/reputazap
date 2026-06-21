@@ -5468,9 +5468,9 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         </Section>
         )}
 
-        {/* GATILHO PRO (FOMO) — só no Free, quando há concorrentes. Move o "alívio"
-            (vigilância/alertas) pro Pro e deixa o Free incomodado de propósito. */}
-        {(demoMode || hasComp) && plan === 'free' && (
+        {/* GATILHO PRO (FOMO) — ESCONDIDO TEMPORARIAMENTE (sem segurança pra
+            vender Pro ainda). Pra reexibir, troque `false &&` por `(demoMode || hasComp)`. */}
+        {false && plan === 'free' && (
         <Section>
           <ProTriggerCard data={d} isMobile={isMobile} />
         </Section>

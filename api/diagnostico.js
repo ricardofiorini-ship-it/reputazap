@@ -125,9 +125,9 @@ export default async function handler(req, res) {
     const ahead = snap.ahead; // { reviews, rating, name } | null
     const reviewsToNext = ahead ? Math.max(0, (ahead.reviews || 0) - myReviews) : 0;
 
-    // Nomes de concorrente são recurso Pro — trava no público (mesmo paywall do app).
-    // Mostra posição, nota e nº de avaliações; nome vem null (front borra).
-    const lockedTop = applyNameLocking(snap.top || [], false);
+    // Concorrentes são FREE no projeto — nomes liberados (sem blur). Pra
+    // reativar o paywall: applyNameLocking(snap.top || [], false).
+    const lockedTop = applyNameLocking(snap.top || [], true);
     const top = lockedTop.slice(0, 5).map((c, i) => ({
       pos: i + 1,
       name: c.name || null,   // null = concorrente (borrado no front)

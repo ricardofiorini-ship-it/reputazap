@@ -101,7 +101,9 @@ export default async function handler(req, res) {
 
   const radius = Math.min(parseInt(req.query.radius, 10) || 3000, 25000);
   const keyword = (req.query.keyword || biz.category_override || "").trim();
-  const paid = biz.plan === "pro" || isAdmin(user);
+  // Concorrentes são FREE no projeto — nomes liberados pra todos (sem paywall).
+  // Pra reativar o paywall de nome: paid = biz.plan === "pro" || isAdmin(user).
+  const paid = true;
 
   try {
     // Ranking pela ORDEM REAL do Google (mesmo motor do diagnóstico) — ao vivo,
