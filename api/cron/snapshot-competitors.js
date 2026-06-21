@@ -1,7 +1,13 @@
 // ============================================================
 // StarTouch — Cron: snapshot semanal de concorrentes
 // ============================================================
-// Schedule: Vercel Cron — segunda-feira 04:00 UTC (vercel.json)
+// ⏸️ PAUSADO (2026-06-21): removido do "crons" do vercel.json enquanto as
+// features Pro (Concorrentes/Relatórios) estão escondidas. Pra REATIVAR,
+// re-adicione no vercel.json:
+//   { "path": "/api/cron/snapshot-competitors", "schedule": "0 4 * * 1" }
+// E alinhe o raio aqui (hoje 3000) com o do painel (1000) antes de religar.
+//
+// Schedule (quando ativo): Vercel Cron — segunda-feira 04:00 UTC (vercel.json)
 //
 // Itera todos os businesses com place_id, busca concorrentes via
 // Google Places (helper compartilhado) e grava 1 snapshot por
