@@ -710,10 +710,12 @@ function Trend({ value, suffix = '' }) {
 // ─────────────────────────────────────────────────────────────
 const TABS = [
   { id: 'painel',       icon: '📊', label: 'Painel',       pro: false },
-  { id: 'concorrentes', icon: '🏆', label: 'Concorrentes', pro: true },
-  { id: 'alertas',      icon: '🔔', label: 'Alertas',      pro: true },
+  // TEMPORÁRIO: Concorrentes/Alertas/Relatórios (Pro) escondidos até termos
+  // segurança pra vender. Pra reexibir, descomente as 3 linhas abaixo.
+  // { id: 'concorrentes', icon: '🏆', label: 'Concorrentes', pro: true },
+  // { id: 'alertas',      icon: '🔔', label: 'Alertas',      pro: true },
   { id: 'avaliacoes',   icon: '⭐', label: 'Avaliações',   pro: false },
-  { id: 'relatorios',   icon: '📈', label: 'Relatórios',   pro: true },
+  // { id: 'relatorios',   icon: '📈', label: 'Relatórios',   pro: true },
   { id: 'loja',         icon: '🛍️', label: 'Loja',         pro: false }
 ]
 
@@ -724,7 +726,9 @@ const TABS = [
 const MOBILE_PRIMARY_TABS = [
   { id: 'painel',       icon: '🏠', label: 'Painel'       },
   { id: 'avaliacoes',   icon: '⭐', label: 'Avaliações'   },
-  { id: 'concorrentes', icon: '🏆', label: 'Concorrentes', pro: true },
+  { id: 'loja',         icon: '🛍️', label: 'Loja'         },
+  // TEMPORÁRIO: Concorrentes (Pro) escondido. Reexibir trocando 'loja' acima
+  // por { id:'concorrentes', icon:'🏆', label:'Concorrentes', pro:true }.
   { id: 'more',         icon: '☰',  label: 'Mais'         }
 ]
 
@@ -866,8 +870,10 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
   if (!open) return null
 
   const items = [
-    { label:'Alertas',     icon:'🔔', tabId:'alertas',    pro: true  },
-    { label:'Relatórios',  icon:'📊', tabId:'relatorios', pro: true  },
+    // TEMPORÁRIO: Alertas/Relatórios (Pro) escondidos até termos segurança
+    // pra vender. Pra reexibir, descomente as 2 linhas abaixo.
+    // { label:'Alertas',     icon:'🔔', tabId:'alertas',    pro: true  },
+    // { label:'Relatórios',  icon:'📊', tabId:'relatorios', pro: true  },
     { label:'Loja',        icon:'🛒', tabId:'loja'                   },
     { label:'Configurações', icon:'⚙️', tabId:'config', hash:'negocio' },
     { label:'Minha conta', icon:'👤', tabId:'config', hash:'conta' },
