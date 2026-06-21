@@ -528,7 +528,7 @@ export async function fetchVisibilityLenses({ placeId, keyword, cep }) {
     };
   }));
 
-  return { term, me, lenses, anchoredAtCep, category: matchType };
+  return { term, me, lenses, anchoredAtCep, category: primarySpecificType(meR.types) };
 }
 
 /**
