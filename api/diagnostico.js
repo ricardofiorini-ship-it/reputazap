@@ -9,7 +9,7 @@
 // Uso: /api/diagnostico?place_id=XXX  (opcional &keyword= &radius=)
 // É marketing — mostra nomes dos líderes (diferente do paywall do app).
 // ============================================================
-import { fetchRankingByTerm, applyNameLocking } from "./_lib/competitors.js";
+import { fetchRankingByTerm, fetchVisibilityLenses, applyNameLocking } from "./_lib/competitors.js";
 
 const gscore = (rt, rv) => (rt || 0) * Math.log10((rv || 0) + 1);
 
@@ -74,6 +74,33 @@ export default async function handler(req, res) {
   const rIn = parseInt(req.query.radius, 10);
   const radius = Number.isFinite(rIn) ? Math.min(Math.max(rIn, 500), 3000) : 3000;
   if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
+
+  // Modo VISIBILIDADE MULTI-LENTE: mesma busca (ordem real do Google) em raios
+  // diferentes. Nomes de concorrente bloqueados (público), como no resto.
+  if (req.query.lenses) {
+    try {
+      const vis = await fetchVisibilityLenses({ placeId, keyword });
+      const lenses = (vis.lenses || []).map((L) => ({
+        key: L.key,
+        label: L.label,
+        radiusKm: L.radiusKm,
+        rank: L.rank,
+        total: L.total,
+        inResults: L.inResults,
+        top: applyNameLocking(L.top || [], false).slice(0, 5).map((c, i) => ({
+          pos: i + 1,
+          name: c.name || null,   // null = concorrente (borrado no front)
+          rating: c.rating ?? null,
+          reviews: c.reviews ?? 0,
+          isMe: !!c.is_me
+        }))
+      }));
+      return res.json({ ok: true, term: vis.term, name: vis.me?.name || null, lenses });
+    } catch (err) {
+      console.error("[diagnostico/lenses] erro:", err);
+      return res.status(500).json({ error: err.message || "Erro ao gerar lentes" });
+    }
+  }
 
   try {
     const snap = await fetchRankingByTerm({ placeId, keyword, radius });

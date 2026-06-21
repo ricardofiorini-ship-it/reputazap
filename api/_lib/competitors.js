@@ -338,6 +338,100 @@ export async function fetchRankingByTerm({ placeId, keyword, radius }) {
   return { enough: true, total, category: term, radius: safeRadius, me, myRank, inResults, ahead, top };
 }
 
+// ============================================================
+// VISIBILIDADE MULTI-LENTE
+// A MESMA busca (Text Search, ordem REAL do Google — NÃO re-ranqueia),
+// rodada em raios diferentes. Mostra que a posição varia conforme o alcance
+// de quem busca. Sem filtro de comparáveis e sem score próprio (de propósito):
+// aqui a pergunta é "onde eu apareço de verdade", não "quem são meus pares".
+// ============================================================
+
+// Resolve o termo (keyword explícito > detecção pelo nome > tipo traduzido).
+function resolveTerm(keyword, meR) {
+  let term = (keyword || "").trim();
+  if (!term) term = detectFromName(meR.name);
+  if (!term) {
+    const types = meR.types || [];
+    const specific = types.filter(t => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t));
+    const broad = types.filter(t => !GENERIC_TYPES.has(t) && BROAD_TYPES.has(t));
+    term = typeToTerm(specific[0] || broad[0] || "");
+  }
+  return term;
+}
+
+// Roda um Text Search ancorado e devolve a ORDEM do Google (sem re-ranquear).
+async function runTextSearch(term, lat, lng, radius) {
+  const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(term)}&location=${lat},${lng}&radius=${radius}&language=pt-BR&region=br&key=${API_KEY}`;
+  const ts = await (await fetchWithTimeout(url, {}, 8000)).json();
+  const seen = new Set();
+  const ordered = [];
+  for (const p of (ts.results || [])) {
+    if (seen.has(p.place_id)) continue;
+    if (p.business_status && p.business_status !== "OPERATIONAL") continue;
+    if (typeof p.rating !== "number") continue;
+    seen.add(p.place_id);
+    ordered.push({
+      place_id: p.place_id,
+      name: p.name,
+      rating: p.rating,
+      reviews: p.user_ratings_total || 0,
+      lat: p.geometry?.location?.lat ?? null,
+      lng: p.geometry?.location?.lng ?? null
+    });
+  }
+  return ordered;
+}
+
+// Lentes padrão: mesma busca, raios diferentes.
+export const VISIBILITY_LENSES = [
+  { key: "perto",  label: "Bem perto de você", radius: 1500 },
+  { key: "regiao", label: "Na sua região",     radius: 6000 },
+];
+
+export async function fetchVisibilityLenses({ placeId, keyword }) {
+  if (!placeId) throw new Error("placeId obrigatório");
+  if (!API_KEY) throw new Error("PLACES_API_KEY ausente no ambiente");
+
+  // 1. Detalhes do negócio (uma vez)
+  const detRes = await fetchWithTimeout(
+    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,user_ratings_total,geometry,types&language=pt-BR&key=${API_KEY}`,
+    {}, 6000
+  );
+  const det = await detRes.json();
+  const meR = det.result;
+  if (!meR?.geometry?.location) throw new Error("Localização do negócio não encontrada no Google");
+  const { lat, lng } = meR.geometry.location;
+  const me = {
+    place_id: placeId,
+    name: meR.name,
+    rating: typeof meR.rating === "number" ? meR.rating : 0,
+    reviews: meR.user_ratings_total || 0,
+    lat, lng
+  };
+
+  const term = resolveTerm(keyword, meR);
+  if (!term) return { term: null, me, lenses: [] };
+
+  // 2. Roda cada lente (ordem real do Google) — em paralelo
+  const lenses = await Promise.all(VISIBILITY_LENSES.map(async (L) => {
+    let ordered = [];
+    try { ordered = await runTextSearch(term, lat, lng, L.radius); } catch { ordered = []; }
+    const idx = ordered.findIndex(p => p.place_id === placeId);
+    const top = ordered.slice(0, 10).map(p => ({ ...p, is_me: p.place_id === placeId }));
+    return {
+      key: L.key,
+      label: L.label,
+      radiusKm: L.radius / 1000,
+      total: ordered.length,
+      rank: idx >= 0 ? idx + 1 : null,
+      inResults: idx >= 0,
+      top
+    };
+  }));
+
+  return { term, me, lenses };
+}
+
 /**
  * Aplica paywall de nome de concorrente (oculta nomes pra free).
  * Usado SÓ pelo endpoint público; cron grava nomes reais no banco.

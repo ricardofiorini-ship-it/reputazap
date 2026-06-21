@@ -4782,6 +4782,65 @@ function TermBar({ term, isGuest, placeId, isMobile }) {
   )
 }
 
+// Visibilidade multi-lente: a MESMA busca (ordem real do Google) em raios
+// diferentes. Mostra que a posição varia conforme a distância de quem busca.
+function VisibilityLenses({ placeId, term, isMobile }) {
+  const [data, setData] = React.useState(null)
+  const [loading, setLoading] = React.useState(true)
+  React.useEffect(() => {
+    if (!placeId) { setLoading(false); return }
+    let cancelled = false
+    setLoading(true)
+    const url = `/api/diagnostico?lenses=1&place_id=${encodeURIComponent(placeId)}` + (term ? `&keyword=${encodeURIComponent(term)}` : '')
+    fetch(url).then(r => r.json()).then(d => { if (!cancelled) setData(d) }).catch(() => {}).finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [placeId, term])
+
+  const lenses = (data && data.lenses) || []
+  if (!loading && !lenses.length) return null
+
+  return (
+    <Card>
+      <div style={{ marginBottom: 12 }}>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'flex', alignItems:'center', gap: 8 }}>
+          📍 Sua visibilidade na busca
+        </h3>
+        <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.5 }}>
+          Onde você aparece quando buscam <b>"{term || 'sua categoria'}"</b> — a posição muda conforme a distância de quem procura.
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ fontSize: 13, color: T.textDim, padding: '8px 0' }}>Calculando…</div>
+      ) : (
+        <div style={{ display:'flex', flexDirection:'column', gap: 10 }}>
+          {lenses.map(L => (
+            <div key={L.key} style={{
+              display:'flex', alignItems:'center', justifyContent:'space-between', gap: 12,
+              padding:'12px 14px', borderRadius: 10, background: T.bg, border:`1px solid ${T.border}`
+            }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{L.label}</div>
+                <div style={{ fontSize: 12, color: T.textMid }}>raio de ~{L.radiusKm} km · {L.total} negócios</div>
+              </div>
+              <div style={{ textAlign:'right', flexShrink: 0 }}>
+                {L.inResults
+                  ? <div style={{ fontSize: 22, fontWeight: 800, color: L.rank <= 3 ? T.green : T.text, letterSpacing:'-0.02em' }}>#{L.rank}</div>
+                  : <div style={{ fontSize: 13, fontWeight: 700, color: T.amber }}>fora do top</div>}
+                <div style={{ fontSize: 11, color: T.textDim }}>de {L.total}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.5 }}>
+        Estimativa pela busca do Google na sua região. A posição real varia conforme a localização exata e o que cada pessoa digita.
+      </div>
+    </Card>
+  )
+}
+
 function LoadingScreen() {
   return (
     <div style={{ display:'grid', placeItems:'center', minHeight:'calc(100vh - 80px)', padding: 40 }}>
@@ -5375,6 +5434,17 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             <KpiCard icon="🏅" label="Score StarTouch" value={`${calcStarTouchScore(d)}`} sub="Sua presença local · 0–100" />
           </div>
         </Section>
+
+        {/* VISIBILIDADE MULTI-LENTE — posição real do Google em raios diferentes */}
+        {!demoMode && real.hasBusiness && (guestContext?.placeId || d.biz?.placeId) && (
+        <Section>
+          <VisibilityLenses
+            placeId={guestContext?.placeId || d.biz?.placeId}
+            term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
+            isMobile={isMobile}
+          />
+        </Section>
+        )}
 
         {/* GATILHO PRO (FOMO) — só no Free, quando há concorrentes. Move o "alívio"
             (vigilância/alertas) pro Pro e deixa o Free incomodado de propósito. */}
