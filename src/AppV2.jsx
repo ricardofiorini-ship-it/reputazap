@@ -5338,14 +5338,6 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     }}>
       {isGuest && <GuestBanner url={guestSignupUrl} isMobile={isMobile} />}
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} />
-      {(tab === 'painel' || tab === 'concorrentes') && real.hasBusiness && (
-        <TermBar
-          term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
-          isGuest={isGuest}
-          placeId={guestContext?.placeId || d.biz?.placeId}
-          isMobile={isMobile}
-        />
-      )}
       {!isMobile && <TopTabs active={tab} onChange={setTab} plan={plan} isMobile={false} />}
 
       {/* Aba: CONCORRENTES (Pro) — funcional pro Pro, preview borrado pro Free */}
