@@ -592,6 +592,7 @@ function buildData(real, user, demoMode) {
       category: bizInfo?.category || null,        // categoria do Google (types)
       address: bizInfo?.address || null,          // formatted_address real do Google
       phone: bizInfo?.phone || null,              // telefone real do Google
+      photoUrl: bizInfo?.photoUrl || null,        // foto de capa real do Google (perfil completo)
       gmapsUrl: bizInfo?.gmapsUrl || `https://www.google.com/maps/place/?q=place_id:${biz.place_id}`
     },
     // Categoria ativa do ranking — override no banco vence sobre a do Google
@@ -665,9 +666,9 @@ function getPlan(realBiz, demoMode, user) {
 // ─────────────────────────────────────────────────────────────
 // Primitives
 // ─────────────────────────────────────────────────────────────
-function Card({ children, style, padded = true, accent }) {
+function Card({ children, style, padded = true, accent, onClick }) {
   return (
-    <div style={{
+    <div onClick={onClick} style={{
       background: T.surface,
       borderRadius: 16,
       border: `1px solid ${T.border}`,
@@ -675,6 +676,7 @@ function Card({ children, style, padded = true, accent }) {
       padding: padded ? 24 : 0,
       position: 'relative',
       overflow: 'hidden',
+      ...(onClick && { cursor: 'pointer' }),
       ...(accent && { borderTop: `3px solid ${accent}` }),
       ...style
     }}>{children}</div>
@@ -3458,9 +3460,9 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode 
 // ─────────────────────────────────────────────────────────────
 // KPI Cards
 // ─────────────────────────────────────────────────────────────
-function KpiCard({ icon, label, value, sub, trend }) {
+function KpiCard({ icon, label, value, sub, trend, onClick }) {
   return (
-    <Card style={{ padding: 20 }}>
+    <Card style={{ padding: 20 }} onClick={onClick}>
       <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 12 }}>
         <span style={{ fontSize: 16 }}>{icon}</span>
         <span style={{ fontSize: 12.5, fontWeight: 500, color: T.textMid }}>{label}</span>
@@ -3469,7 +3471,7 @@ function KpiCard({ icon, label, value, sub, trend }) {
         <span style={{ fontFamily:"'Inter', sans-serif", fontSize: 32, fontWeight: 700, color: T.text, letterSpacing:'-0.025em', lineHeight: 1 }}>{value}</span>
         {trend != null && <Trend value={trend} />}
       </div>
-      <p style={{ fontSize: 12, color: T.textDim, margin: 0 }}>{sub}</p>
+      <p style={{ fontSize: 12, color: onClick ? T.blue : T.textDim, margin: 0, fontWeight: onClick ? 600 : 400 }}>{sub}</p>
     </Card>
   )
 }
@@ -5165,18 +5167,157 @@ function inpStyle() {
 // Composição: nota Google (50pts) + volume de avaliações (30pts) + posição relativa (20pts)
 // Mostra o esforço total — quem só tem nota 5 com 3 reviews não vence quem tem 4.7 com 500.
 // ─────────────────────────────────────────────────────────────
-function calcStarTouchScore(d) {
+// Score StarTouch — fórmula 35/30/20/15 (definida com o dono em 2026-06-21).
+// Só usa dado que temos de verdade (nada de taxa de resposta, que o Google não
+// expõe). Retorna {score, factors} pra o card abrir o detalhamento "o que falta
+// pros 100?". Cada fator traz earned/max + uma ação acionável pra fechar o gap.
+//   • Nota Google       — 35 pts  (nota/5 × 35)
+//   • Volume avaliações — 30 pts  (satura em 100 avaliações)
+//   • Posição categoria — 20 pts  (melhor posição = mais pts)
+//   • Perfil completo   — 15 pts  (5 cada: foto · telefone · categoria no Google)
+function scoreBreakdown(d) {
   const rating  = d.kpis?.rating || 0
   const reviews = d.kpis?.reviewCount || 0
   const total   = d.kpis?.totalCompetitors || 0
   const pos     = d.kpis?.rankingPos || total
+  const bi = d.businessInfo || {}
 
-  const ratingPart   = (rating / 5) * 50                         // 0-50
-  const reviewsPart  = Math.min(reviews / 100, 1) * 30           // satura em 100 reviews
-  const positionPart = total > 0
-    ? ((total - pos + 1) / total) * 20
-    : 10                                                          // sem ranking ainda: meio termo
-  return Math.max(0, Math.min(100, Math.round(ratingPart + reviewsPart + positionPart)))
+  // 1) Nota — 35
+  const notaPts = (rating / 5) * 35
+  // 2) Volume — 30 (satura em 100 avaliações)
+  const volPts = Math.min(reviews / 100, 1) * 30
+  // 3) Posição — 20 (sem ranking ainda: meio termo de 10)
+  const hasRank = total > 0
+  const posPts = hasRank ? ((total - pos + 1) / total) * 20 : 10
+  // 4) Perfil completo — 15 (5 cada: foto, telefone, categoria)
+  const hasPhoto = !!bi.photoUrl
+  const hasPhone = !!(bi.phone && String(bi.phone).trim())
+  const hasCat   = !!(bi.category && String(bi.category).trim())
+  const perfilPts = (hasPhoto ? 5 : 0) + (hasPhone ? 5 : 0) + (hasCat ? 5 : 0)
+  const faltando = [!hasPhoto && 'foto', !hasPhone && 'telefone', !hasCat && 'categoria'].filter(Boolean)
+
+  const score = Math.max(0, Math.min(100, Math.round(notaPts + volPts + posPts + perfilPts)))
+
+  const factors = [
+    {
+      key: 'nota', icon: '⭐', label: 'Nota no Google',
+      earned: Math.round(notaPts), max: 35,
+      detail: rating ? `Sua nota é ${rating.toFixed(1).replace('.', ',')}.` : 'Você ainda não tem nota.',
+      hint: rating >= 4.8
+        ? 'Quase no teto — mantenha o atendimento nota 5.'
+        : 'Capriche no atendimento: cada estrela a mais vale pontos aqui.'
+    },
+    {
+      key: 'volume', icon: '💬', label: 'Volume de avaliações',
+      earned: Math.round(volPts), max: 30,
+      detail: `${reviews} ${reviews === 1 ? 'avaliação' : 'avaliações'}${reviews < 100 ? ' (pontuação cheia em 100)' : ''}.`,
+      hint: reviews >= 100
+        ? 'Volume no topo — continue coletando pra não perder posição.'
+        : `Colete mais avaliações com as placas e cartões NFC${reviews < 100 ? ` (faltam ~${100 - reviews} pra a pontuação cheia)` : ''}.`
+    },
+    {
+      key: 'posicao', icon: '📍', label: 'Posição na sua categoria',
+      earned: Math.round(posPts), max: 20,
+      detail: hasRank ? `#${pos} de ${total} negócios por perto.` : 'Ainda sem dados de concorrentes por perto.',
+      hint: hasRank
+        ? 'Suba coletando mais avaliações que os vizinhos da mesma categoria.'
+        : 'Assim que houver concorrentes mapeados, sua posição entra na conta.'
+    },
+    {
+      key: 'perfil', icon: '🪪', label: 'Perfil completo no Google',
+      earned: perfilPts, max: 15,
+      detail: faltando.length ? `Falta: ${faltando.join(', ')}.` : 'Foto, telefone e categoria preenchidos. ✓',
+      hint: faltando.length
+        ? 'Complete seu perfil no Google Meu Negócio — leva minutos e fecha esses pontos hoje.'
+        : 'Perfil completo — nada a fazer aqui.'
+    },
+  ]
+  return { score, factors }
+}
+
+function calcStarTouchScore(d) {
+  return scoreBreakdown(d).score
+}
+
+// Detalhamento do Score — modal "Por que {score}? O que falta pros 100?".
+// Mostra cada fator (ganho/máximo + barra) e a ação acionável pra fechar o gap.
+// Honestidade: explicita o que NÃO entra na conta hoje (taxa de resposta e
+// recência — não temos esse dado do Google ainda).
+function ScoreModal({ d, onClose }) {
+  const { score, factors } = scoreBreakdown(d)
+  const faltam = 100 - score
+
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  const scoreColor = score >= 80 ? T.green : score >= 55 ? T.amber : T.red
+
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      style={{
+        position:'fixed', inset: 0, background:'rgba(15,23,42,.55)',
+        display:'grid', placeItems:'center', zIndex: 100, padding: 16,
+        animation:'fadeIn .15s ease-out', overflowY:'auto'
+      }}>
+      <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
+      <Card padded={false} style={{ padding: 24, maxWidth: 480, width:'100%', position:'relative', margin:'auto' }}>
+        <button onClick={onClose} aria-label="Fechar" style={{
+          position:'absolute', top: 12, right: 12, width: 32, height: 32, borderRadius: 8,
+          border:'none', background:'transparent', color: T.textMid, fontSize: 20, cursor:'pointer'
+        }}>×</button>
+
+        {/* Cabeçalho — score grande + leitura */}
+        <div style={{ display:'flex', alignItems:'center', gap: 14, marginBottom: 6 }}>
+          <span style={{ fontSize: 26 }}>🏅</span>
+          <div style={{ display:'flex', alignItems:'baseline', gap: 6 }}>
+            <span style={{ fontFamily:"'Inter', sans-serif", fontSize: 40, fontWeight: 700, color: scoreColor, lineHeight: 1, letterSpacing:'-0.03em' }}>{score}</span>
+            <span style={{ fontSize: 16, fontWeight: 600, color: T.textDim }}>/ 100</span>
+          </div>
+        </div>
+        <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 18px', lineHeight: 1.5 }}>
+          {faltam > 0
+            ? <>Seu Score StarTouch é <b>{score}</b>. Veja de onde vêm os pontos e o que falta pros <b>{faltam}</b> que sobram.</>
+            : <>Score máximo. 🎉 Seu negócio tá com a presença local completa pela nossa fórmula.</>}
+        </p>
+
+        {/* Fatores */}
+        <div style={{ display:'flex', flexDirection:'column', gap: 14 }}>
+          {factors.map((f) => {
+            const pct = f.max > 0 ? Math.round((f.earned / f.max) * 100) : 0
+            const full = f.earned >= f.max
+            const barColor = full ? T.green : pct >= 50 ? T.blue : T.amber
+            return (
+              <div key={f.key} style={{ padding: 14, background: T.bg, borderRadius: 12, border:`1px solid ${T.border}` }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 8, marginBottom: 8 }}>
+                  <span style={{ fontSize: 13.5, fontWeight: 600, color: T.text, display:'flex', alignItems:'center', gap: 7 }}>
+                    <span style={{ fontSize: 15 }}>{f.icon}</span>{f.label}
+                  </span>
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: full ? T.green : T.textMid, whiteSpace:'nowrap' }}>
+                    {f.earned}<span style={{ color: T.textDim, fontWeight: 500 }}> / {f.max} pts</span>
+                  </span>
+                </div>
+                {/* Barra */}
+                <div style={{ height: 6, background: T.border, borderRadius: 99, overflow:'hidden', marginBottom: 8 }}>
+                  <div style={{ width: `${pct}%`, height:'100%', background: barColor, borderRadius: 99, transition:'width .3s' }} />
+                </div>
+                <p style={{ fontSize: 12.5, color: T.textMid, margin:'0 0 2px', lineHeight: 1.45 }}>{f.detail}</p>
+                {!full && <p style={{ fontSize: 12.5, color: T.blueDk, margin: 0, lineHeight: 1.45, fontWeight: 500 }}>→ {f.hint}</p>}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Rodapé honesto — o que ainda não entra na conta */}
+        <p style={{ fontSize: 11.5, color: T.textDim, margin:'16px 0 0', lineHeight: 1.5, borderTop:`1px solid ${T.border}`, paddingTop: 12 }}>
+          Ainda não contamos <b>taxa de resposta às avaliações</b> nem <b>recência</b> — o Google não expõe esses dados de forma confiável hoje. Quando der, entram na fórmula.
+        </p>
+      </Card>
+    </div>
+  )
 }
 
 // Subtítulo HONESTO da saudação — só afirma o que tem base (sem "está
@@ -5212,6 +5353,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   const [tab, setTab] = React.useState(initialTab)
   const [moreOpen, setMoreOpen] = React.useState(false)
   const [activatePlateOpen, setActivatePlateOpen] = React.useState(false)
+  const [scoreOpen, setScoreOpen] = React.useState(false)  // detalhamento do Score StarTouch
 
   // Hashes válidos por aba (preservados ao trocar de aba — outros são limpos)
   const VALID_HASHES_BY_TAB = {
@@ -5477,7 +5619,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             {(demoMode || hasComp) && <KpiCard icon="🏆" label="Ranking local"   value={`#${d.kpis.rankingPos}`}  sub={`Entre ${d.kpis.totalCompetitors} empresas`} trend={demoMode ? +2 : undefined} />}
             {demoMode && <KpiCard icon="📈" label="Últimos 30 dias" value={`+${d.kpis.newLast30Days}`} sub="Novas avaliações"             trend={+3} />}
             {(demoMode || hasComp) && <KpiCard icon="🎯" label="Próxima Meta"    value={`${d.kpis.nextGoal.reviewsToNext} ${d.kpis.nextGoal.reviewsToNext === 1 ? 'avaliação' : 'avaliações'}`} sub={`Para o Top ${d.kpis.nextGoal.targetPosition}`} />}
-            <KpiCard icon="🏅" label="Score StarTouch" value={`${calcStarTouchScore(d)}`} sub="Sua presença local · 0–100" />
+            <KpiCard icon="🏅" label="Score StarTouch" value={`${calcStarTouchScore(d)}`} sub={`Por que ${calcStarTouchScore(d)}? Ver o que falta →`} onClick={() => setScoreOpen(true)} />
           </div>
         </Section>
 
@@ -5599,6 +5741,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           businessId={d.biz.id}
           onClose={() => setActivatePlateOpen(false)}
         />
+      )}
+
+      {/* Detalhamento do Score StarTouch — "Por que {score}? O que falta?" */}
+      {scoreOpen && (
+        <ScoreModal d={d} onClose={() => setScoreOpen(false)} />
       )}
 
       {/* WhatsApp de suporte — flutuante em todas as telas do /app */}
