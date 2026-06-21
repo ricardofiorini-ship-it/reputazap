@@ -127,13 +127,13 @@ function populateBatchFilter() {
 async function init() {
   if (!token) {
     document.getElementById("authGate").innerHTML =
-      'Você precisa estar logado como admin. <a href="/app" style="color:#1A73E8;font-weight:600">Entrar →</a>';
+      'Você precisa estar logado como admin. <a href="/app?login=1" style="color:#1A73E8;font-weight:600">Entrar →</a>';
     return;
   }
   try {
     const res = await fetch("/api/plates?action=list-stock", { headers: { "Authorization": `Bearer ${token}` } });
     if (res.status === 403) { document.getElementById("authGate").textContent = "Acesso restrito ao admin."; return; }
-    if (!res.ok) { document.getElementById("authGate").innerHTML = 'Sessão expirada. <a href="/app" style="color:#1A73E8;font-weight:600">Entrar →</a>'; return; }
+    if (!res.ok) { document.getElementById("authGate").innerHTML = 'Sessão expirada. <a href="/app?login=1" style="color:#1A73E8;font-weight:600">Entrar →</a>'; return; }
     const data = await res.json();
     document.getElementById("authGate").style.display = "none";
     document.getElementById("content").style.display = "block";

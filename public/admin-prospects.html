@@ -101,7 +101,7 @@ let lastTerm = "";
 function init() {
   if (!token) {
     document.getElementById("authGate").innerHTML =
-      'Você precisa estar logado como admin. <a href="/app" style="color:#1A73E8;font-weight:600">Entrar →</a>';
+      'Você precisa estar logado como admin. <a href="/app?login=1" style="color:#1A73E8;font-weight:600">Entrar →</a>';
     return;
   }
   // Mostra o conteúdo; a validação real de admin acontece no endpoint.
@@ -124,7 +124,7 @@ async function generate() {
     const r = await fetch(`/api/admin?action=prospects&q=${encodeURIComponent(q)}&loc=${encodeURIComponent(loc)}`,
       { headers: { "Authorization": `Bearer ${token}` } });
     if (r.status === 403) { document.getElementById("resultsArea").innerHTML = '<div class="card empty">Acesso restrito ao admin.</div>'; return; }
-    if (r.status === 401) { document.getElementById("resultsArea").innerHTML = '<div class="card empty">Sessão expirada. <a href="/app" style="color:#1A73E8;font-weight:600">Entrar →</a></div>'; return; }
+    if (r.status === 401) { document.getElementById("resultsArea").innerHTML = '<div class="card empty">Sessão expirada. <a href="/app?login=1" style="color:#1A73E8;font-weight:600">Entrar →</a></div>'; return; }
     const d = await r.json();
     if (!d.ok) { document.getElementById("resultsArea").innerHTML = `<div class="card empty">${d.error || "Erro ao buscar."}</div>`; return; }
     allProspects = d.prospects || [];

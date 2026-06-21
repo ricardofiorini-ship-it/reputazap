@@ -142,7 +142,7 @@ const TYPE_LABELS = {
 async function init() {
   if (!token) {
     document.getElementById("authGate").innerHTML =
-      'Você precisa estar logado como admin. <a href="/app" style="color:#1A73E8;font-weight:600">Entrar →</a>';
+      'Você precisa estar logado como admin. <a href="/app?login=1" style="color:#1A73E8;font-weight:600">Entrar →</a>';
     return;
   }
   // Testa acesso admin com list-batches
@@ -156,7 +156,7 @@ async function init() {
     }
     if (!res.ok) {
       document.getElementById("authGate").innerHTML =
-        'Sessão expirada. <a href="/app" style="color:#1A73E8;font-weight:600">Entrar de novo →</a>';
+        'Sessão expirada. <a href="/app?login=1" style="color:#1A73E8;font-weight:600">Entrar de novo →</a>';
       return;
     }
     document.getElementById("authGate").style.display = "none";
