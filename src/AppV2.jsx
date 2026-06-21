@@ -3569,12 +3569,14 @@ function WeekActions({ items, isMobile }) {
   return (
     <Card>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 14, gap: 8 }}>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color: T.text, margin: 0 }}>🎯 Sugestões pra essa semana</h3>
-        <span style={{ fontSize: 11.5, color: T.textDim }}>{items.length} {items.length === 1 ? 'ação' : 'ações'}</span>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color: T.text, margin: 0 }}>
+          {items.length === 1 ? '🎯 Sua ação de hoje' : '🎯 Sugestões pra essa semana'}
+        </h3>
+        {items.length > 1 && <span style={{ fontSize: 11.5, color: T.textDim }}>{items.length} ações</span>}
       </div>
       <div style={{
         display:'grid',
-        gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+        gridTemplateColumns: isMobile || items.length === 1 ? '1fr' : 'repeat(3, 1fr)',
         gap: 10
       }}>
         {items.map((a, i) => (
@@ -4060,7 +4062,9 @@ function RecentReviews({ items, trend, isMobile, onSeeAll }) {
                 <Stars rating={r.rating} size={11} />
                 <span style={{ fontSize: 11.5, color: T.textDim, marginLeft:'auto' }}>{r.date}</span>
               </div>
-              <p style={{ fontSize: 13, color: T.textMid, margin: 0, lineHeight: 1.55 }}>"{r.comment}"</p>
+              {r.comment
+                ? <p style={{ fontSize: 13, color: T.textMid, margin: 0, lineHeight: 1.55 }}>"{r.comment}"</p>
+                : <p style={{ fontSize: 13, color: T.textDim, margin: 0, lineHeight: 1.55, fontStyle:'italic' }}>(sem comentário)</p>}
             </div>
           </li>
         ))}
@@ -4211,12 +4215,13 @@ const PRODUCT_ICONS = {
   cartao_nfc:   '💳'
 }
 
-function CapturePoints({ items, plates, businessId, isAdmin }) {
+function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [showCode, setShowCode] = React.useState(false)
   const platesList = (plates || []).slice().sort((a,b) => (b.total_taps || 0) - (a.total_taps || 0))
   const total = platesList.reduce((s, p) => s + (p.total_taps || 0), 0)
   const isEmpty = platesList.length === 0
+  const hasReviews = (reviewCount || 0) > 0  // tom de ACELERADOR (não "falta pré-requisito")
   // Detecta a placa mais usada — útil pra "estrela" visual
   const topPlate = platesList[0]
   const hasMultiple = platesList.length > 1
@@ -4224,21 +4229,25 @@ function CapturePoints({ items, plates, businessId, isAdmin }) {
   return (
     <Card>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 4, gap: 8, flexWrap:'wrap' }}>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>📍 Onde seus clientes avaliam</h3>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>
+          {isEmpty && hasReviews ? '🚀 Capte ainda mais avaliações no automático' : '📍 Onde seus clientes avaliam'}
+        </h3>
       </div>
 
       {isEmpty ? (
         <>
           <p style={{ fontSize: 13, color: T.textMid, margin:'0 0 18px' }}>
-            Você ainda não tem dispositivos ativos. Coloque uma placa no balcão ou um cartão NFC pra começar a captar avaliações no piloto automático.
+            {hasReviews
+              ? `Você já tem ${reviewCount} avaliações — ótimo! Com uma placa no balcão ou cartão NFC, cada cliente vira avaliação sem você precisar pedir.`
+              : 'Coloque uma placa no balcão ou um cartão NFC pra começar a captar avaliações no piloto automático.'}
           </p>
           <div style={{
             padding: 24, borderRadius: 12, background: T.bg, border:`1px dashed ${T.border}`,
             textAlign:'center'
           }}>
-            <div style={{ fontSize: 36, marginBottom: 8 }}>📡</div>
+            <div style={{ fontSize: 36, marginBottom: 8 }}>{hasReviews ? '🚀' : '📡'}</div>
             <div style={{ fontSize: 13, color: T.textMid, marginBottom: 14, lineHeight: 1.5 }}>
-              Nenhum dispositivo ativo ainda.
+              {hasReviews ? 'Acelere a coleta: cada toque do cliente vira uma avaliação.' : 'Ative um dispositivo pra captar no automático.'}
             </div>
             <div style={{ display:'flex', gap: 8, justifyContent:'center', flexWrap:'wrap' }}>
               <button onClick={() => setModalOpen(true)} style={{
@@ -5170,6 +5179,18 @@ function calcStarTouchScore(d) {
   return Math.max(0, Math.min(100, Math.round(ratingPart + reviewsPart + positionPart)))
 }
 
+// Subtítulo HONESTO da saudação — só afirma o que tem base (sem "está
+// crescendo" no vazio). Prioridade alta (subiu posição / ganhou avaliações
+// na semana) depende de histórico — pausado por ora, então fica de fora.
+function greetingSubtitle(d) {
+  const comps = (d.competitors || []).filter(c => !c.isYou && typeof c.rating === 'number')
+  if (comps.length) {
+    const avg = comps.reduce((s, c) => s + c.rating, 0) / comps.length
+    if ((d.kpis.rating || 0) > avg + 0.05) return 'Sua nota está acima da média da sua região · atualizado agora'
+  }
+  return 'Veja como está sua presença local · atualizado agora'
+}
+
 // ─────────────────────────────────────────────────────────────
 // Main layout
 // ─────────────────────────────────────────────────────────────
@@ -5438,7 +5459,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             Olá, {d.biz.name}.
           </h1>
           <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
-            Veja como seu negócio está crescendo · atualizado agora
+            {demoMode ? 'Veja como seu negócio está crescendo · atualizado agora' : greetingSubtitle(d)}
           </p>
         </div>
 
@@ -5485,7 +5506,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             Só com dado real de concorrente (hasComp) — senão não há o que sugerir. */}
         {(demoMode || hasComp) && (
         <Section>
-          <WeekActions items={demoMode ? d.weekActions : realWeekActions(d)} isMobile={isMobile} />
+          <WeekActions items={demoMode ? d.weekActions : realWeekActions(d).slice(0, 1)} isMobile={isMobile} />
         </Section>
         )}
 
@@ -5545,7 +5566,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
 
         {/* CAPTURE POINTS — id pra scroll automático de /app#pontos-de-captacao */}
         <Section id="pontos-de-captacao">
-          <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} isAdmin={isAdminUser(user)} />
+          <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} isAdmin={isAdminUser(user)} reviewCount={d.kpis.reviewCount} />
         </Section>
 
       </main>
