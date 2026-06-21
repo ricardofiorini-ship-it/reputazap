@@ -4642,7 +4642,7 @@ function GuestSearch({ isMobile }) {
               <input style={inputStyle} value={loc} onChange={e=>setLoc(e.target.value)} placeholder="Ex: São Paulo ou 04567-000"/>
             </div>
             <div style={{ marginBottom:18 }}>
-              <label style={labelStyle}>O que você vende / como te procuram no Google</label>
+              <label style={labelStyle}>O que seus clientes digitam no Google pra te achar?</label>
               <input style={inputStyle} value={term} onChange={e=>setTerm(e.target.value)} placeholder="Ex: trattoria italiana, aluguel de roupas"/>
               <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
                 É esse termo que usamos pra achar os concorrentes certos — quanto mais específico, melhor.
