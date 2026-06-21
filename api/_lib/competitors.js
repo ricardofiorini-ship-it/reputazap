@@ -316,8 +316,20 @@ export async function fetchRankingByTerm({ placeId, keyword, radius }) {
       rating: p.rating,
       reviews: p.user_ratings_total || 0,
       lat: p.geometry?.location?.lat ?? null,
-      lng: p.geometry?.location?.lng ?? null
+      lng: p.geometry?.location?.lng ?? null,
+      types: p.types || []
     });
+  }
+
+  // Filtro de categoria — mesma regra das lentes de visibilidade: mantém só
+  // negócios da MESMA categoria primária do cliente (+ o próprio). Tira intenção
+  // diferente (ex: ALUGUEL numa busca por LOJA). De graça (types já vêm). Só
+  // aplica se sobrar >=3, pra não zerar em categoria mal-classificada.
+  const myTypesR = meR.types || [];
+  const matchTypeR = myTypesR.find(t => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t)) || null;
+  if (matchTypeR) {
+    const f = ordered.filter(p => p.place_id === placeId || (p.types || []).includes(matchTypeR));
+    if (f.length >= 3) { ordered.length = 0; ordered.push(...f); }
   }
 
   const total = ordered.length;
