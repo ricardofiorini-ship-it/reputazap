@@ -4723,6 +4723,72 @@ function GuestGate({ url, feature, isMobile }) {
   )
 }
 
+// Barra "ajustar termo" do ranking — igual o controle do /diagnostico.
+// Logado: salva category_override e recarrega. Convidado: troca o keyword da sessão.
+function TermBar({ term, isGuest, placeId, isMobile }) {
+  const [editing, setEditing] = React.useState(false)
+  const [val, setVal] = React.useState(term || '')
+  const [saving, setSaving] = React.useState(false)
+  React.useEffect(() => { setVal(term || '') }, [term])
+
+  async function apply() {
+    const t = (val || '').trim()
+    if (!t) return
+    setSaving(true)
+    if (isGuest) {
+      window.location.href = `/app?place_id=${encodeURIComponent(placeId || '')}&keyword=${encodeURIComponent(t)}`
+      return
+    }
+    try {
+      const token = localStorage.getItem('rz_token')
+      const res = await fetch('/api/savebiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ category_override: t })
+      })
+      if (!res.ok) throw new Error('save failed')
+      window.location.reload()
+    } catch {
+      setSaving(false)
+      alert('Não consegui salvar o termo. Tente de novo.')
+    }
+  }
+
+  return (
+    <div style={{
+      background: T.blueSoft, borderBottom: `1px solid ${T.border}`,
+      padding: isMobile ? '8px 14px' : '9px 18px',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap',
+      fontFamily: "'Inter', sans-serif", fontSize: isMobile ? 12.5 : 13.5, color: T.blueDk
+    }}>
+      {!editing ? (
+        <>
+          <span>📍 Comparando com quem busca <b>"{term || 'sua categoria'} perto de mim"</b></span>
+          <button onClick={() => setEditing(true)} style={{
+            background: '#fff', color: T.blue, border: `1px solid ${T.blue}`, borderRadius: 7,
+            padding: '4px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'
+          }}>Trocar termo</button>
+        </>
+      ) : (
+        <>
+          <input value={val} onChange={e => setVal(e.target.value)} autoFocus
+            onKeyDown={e => { if (e.key === 'Enter') apply() }}
+            placeholder="Ex: loja de bicicletas"
+            style={{ flex: '1 1 200px', maxWidth: 320, padding: '7px 11px', fontSize: 14, color: T.text,
+              border: `1.5px solid ${T.blue}`, borderRadius: 8, outline: 'none', fontFamily: "'Inter', sans-serif" }}/>
+          <button onClick={apply} disabled={saving} style={{
+            background: T.blue, color: '#fff', border: 'none', borderRadius: 8, padding: '7px 14px',
+            fontSize: 13, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', whiteSpace: 'nowrap'
+          }}>{saving ? '…' : 'Recalcular'}</button>
+          <button onClick={() => { setEditing(false); setVal(term || '') }} style={{
+            background: 'transparent', color: T.textMid, border: 'none', fontSize: 12.5, cursor: 'pointer'
+          }}>Cancelar</button>
+        </>
+      )}
+    </div>
+  )
+}
+
 function LoadingScreen() {
   return (
     <div style={{ display:'grid', placeItems:'center', minHeight:'calc(100vh - 80px)', padding: 40 }}>
@@ -5200,6 +5266,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     }}>
       {isGuest && <GuestBanner url={guestSignupUrl} isMobile={isMobile} />}
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} />
+      {(tab === 'painel' || tab === 'concorrentes') && real.hasBusiness && (
+        <TermBar
+          term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
+          isGuest={isGuest}
+          placeId={guestContext?.placeId || d.biz?.placeId}
+          isMobile={isMobile}
+        />
+      )}
       {!isMobile && <TopTabs active={tab} onChange={setTab} plan={plan} isMobile={false} />}
 
       {/* Aba: CONCORRENTES (Pro) — funcional pro Pro, preview borrado pro Free */}
