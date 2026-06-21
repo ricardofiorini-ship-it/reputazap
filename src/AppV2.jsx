@@ -3285,7 +3285,7 @@ function ConfigScreen({ data, isMobile, plan, isReal, isAdmin }) {
 // ─────────────────────────────────────────────────────────────
 // Header — agora com dropdown do avatar
 // ─────────────────────────────────────────────────────────────
-function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode }) {
+function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode, guest = false, signupUrl = null }) {
   const [open, setOpen] = React.useState(false)
   const ref = React.useRef(null)
 
@@ -3386,16 +3386,16 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode 
           </a>
         )}
 
-        {/* Avatar clicável */}
+        {/* Avatar clicável — neutro quando convidado (sem conta ainda) */}
         <button
           onClick={() => setOpen(o => !o)}
-          aria-label="Menu da conta"
+          aria-label={guest ? 'Menu do visitante' : 'Menu da conta'}
           style={{
-            width: 32, height: 32, borderRadius:'50%', background:'#1A73E8', color:'#fff',
-            fontWeight: 700, fontSize: 12, display:'flex', alignItems:'center', justifyContent:'center',
+            width: 32, height: 32, borderRadius:'50%', background: guest ? T.textDim : '#1A73E8', color:'#fff',
+            fontWeight: 700, fontSize: guest ? 15 : 12, display:'flex', alignItems:'center', justifyContent:'center',
             border:'none', cursor:'pointer', padding: 0,
             boxShadow: open ? '0 0 0 3px '+T.blueSoft : 'none', transition:'box-shadow .15s'
-          }}>{initials}</button>
+          }}>{guest ? '👤' : initials}</button>
 
         {/* Dropdown */}
         {open && (
@@ -3405,6 +3405,47 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode 
             boxShadow:'0 8px 32px -4px rgba(15,23,42,.18)',
             minWidth: 240, padding: 6, zIndex: 60
           }}>
+            {guest ? (
+              <>
+                <div style={{ padding:'8px 12px', borderBottom:'1px solid '+T.border, marginBottom: 4 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Visitante</div>
+                  <div style={{ fontSize: 12, color: T.textMid }}>Você ainda não tem conta</div>
+                </div>
+                <a href={signupUrl || '/ativar?from=web'}
+                  onClick={() => setOpen(false)}
+                  style={{
+                    display:'flex', alignItems:'center', width:'100%',
+                    padding:'9px 12px', textDecoration:'none',
+                    fontSize: 13, fontWeight: 600, color: T.blue, gap: 8, borderRadius: 6
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = T.bg}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >✨ Criar conta grátis</a>
+                <a href="/app?login=1"
+                  onClick={() => setOpen(false)}
+                  style={{
+                    display:'flex', alignItems:'center', width:'100%',
+                    padding:'9px 12px', textDecoration:'none',
+                    fontSize: 13, color: T.text, gap: 8, borderRadius: 6
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = T.bg}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >🔑 Entrar</a>
+                <div style={{ borderTop:'1px solid '+T.border, marginTop: 4, paddingTop: 4 }}>
+                  <a href="/ajuda" target="_blank" rel="noopener"
+                    onClick={() => setOpen(false)}
+                    style={{
+                      display:'flex', alignItems:'center', width:'100%',
+                      padding:'9px 12px', textDecoration:'none',
+                      fontSize: 13, color: T.text, gap: 8, borderRadius: 6
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = T.bg}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >❓ Central de ajuda <span style={{ marginLeft:'auto', color: T.textDim, fontSize: 11 }}>↗</span></a>
+                </div>
+              </>
+            ) : (
+              <>
             <div style={{ padding:'8px 12px', borderBottom:'1px solid '+T.border, marginBottom: 4 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{displayName}</div>
               <div style={{ fontSize: 12, color: T.textMid }}>{displayEmail}</div>
@@ -3450,6 +3491,8 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode 
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >🚪 Sair</a>
             </div>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -5513,7 +5556,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       paddingBottom: isMobile ? 'calc(72px + env(safe-area-inset-bottom, 0))' : 0
     }}>
       {isGuest && <GuestBanner url={guestSignupUrl} isMobile={isMobile} />}
-      <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} />
+      <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl} />
       {!isMobile && <TopTabs active={tab} onChange={setTab} plan={plan} isMobile={false} />}
 
       {/* Aba: CONCORRENTES (Pro) — funcional pro Pro, preview borrado pro Free */}
