@@ -382,11 +382,11 @@ async function runTextSearch(term, lat, lng, radius) {
   return ordered;
 }
 
-// Lentes padrão: mesma busca (CEP/região × termo), raios regionais.
-// Removido o "perto de você" (raio apertado dava resultado ruidoso).
+// Lentes padrão: mesma busca (CEP/região × termo).
+// ~2km bate melhor com o que o Google traz pro "termo + CEP"; 5km de comparação.
 export const VISIBILITY_LENSES = [
-  { key: "regiao",   label: "Na sua região", radius: 5000 },
-  { key: "ampliada", label: "Área ampliada", radius: 12000 },
+  { key: "regiao",   label: "Na sua região", radius: 2000 },
+  { key: "ampliada", label: "Área ampliada", radius: 5000 },
 ];
 
 export async function fetchVisibilityLenses({ placeId, keyword }) {
