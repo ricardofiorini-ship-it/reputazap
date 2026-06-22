@@ -711,6 +711,15 @@ coForm.addEventListener("submit", async (e) => {
       submitBtn.textContent = orig;
       return;
     }
+    // Guarda o total do pedido p/ a conversão do Google Ads disparar na volta
+    // (no ?compra=sucesso) com o valor real. Limpo após disparar.
+    try {
+      const orderTotal = items.reduce((s, it) => {
+        const p = PRODUCTS.find(x => x.id === it.id);
+        return s + (p ? p.price * it.qty : 0);
+      }, 0);
+      localStorage.setItem("rz_pending_order_value", String(orderTotal));
+    } catch (_) {}
     window.location.href = data.url;
   } catch (err) {
     console.error("[checkout-kit-guest] erro:", err);
@@ -724,6 +733,26 @@ coForm.addEventListener("submit", async (e) => {
 if (params.get("compra") === "sucesso") {
   const sb = document.getElementById("successBanner");
   if (sb) { sb.style.display = "flex"; sb.scrollIntoView({ behavior: "smooth", block: "center" }); }
+
+  // Conversão Google Ads — Compra (AW-18229338581). MP usa auto_return:"approved",
+  // então só pagamento APROVADO cai aqui (pendente -> ?compra=pendente). Dispara
+  // 1x: só se houver o valor salvo no checkout (evita recontar num refresh). O
+  // transaction_id (payment_id do MP) deduplica do lado do Google.
+  try {
+    const stored = localStorage.getItem("rz_pending_order_value");
+    if (stored !== null && typeof gtag === "function") {
+      let orderValue = parseFloat(stored);
+      if (!Number.isFinite(orderValue) || orderValue <= 0) orderValue = 79.90;
+      const txId = params.get("payment_id") || params.get("collection_id") || params.get("external_reference") || "";
+      gtag("event", "conversion", {
+        send_to: "AW-18229338581/Lb1YCP7xqcMcENXDtvRD",
+        value: orderValue,
+        currency: "BRL",
+        transaction_id: txId
+      });
+      localStorage.removeItem("rz_pending_order_value");
+    }
+  } catch (_) {}
 }
 
 // Pré-seleção via ?add=<id> (vindo da vitrine da landing). Seta o carrinho
