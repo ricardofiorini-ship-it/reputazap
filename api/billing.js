@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { MercadoPagoConfig, PreApproval, Preference, Payment } from "mercadopago";
 import crypto from "crypto";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
+import { weeklyDigestEmail, pickWeeklyTip } from "./_lib/email-templates.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -1046,6 +1047,63 @@ export default async function handler(req, res) {
       });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e?.message || "falha no envio de teste" });
+    }
+  }
+
+  // Teste do RESUMO SEMANAL — puxa os dados reais de um place_id (Google) e
+  // manda o email de digest pro ?to= (ou ADMIN_NOTIFICATIONS_EMAIL). Pra
+  // pré-visualizar o template com dados de verdade antes de ligar o envio.
+  // Uso: /api/billing?action=test-weekly&place_id=XXXX[&to=email]
+  if (action === "test-weekly") {
+    let placeId = req.query.place_id || req.query.place;
+    const q = req.query.q;
+    const to = req.query.to || process.env.ADMIN_NOTIFICATIONS_EMAIL;
+    const apiKey = process.env.RESEND_API_KEY;
+    const from = process.env.RESEND_FROM || "StarTouch <onboarding@resend.dev>";
+    if (!apiKey) return res.status(400).json({ ok: false, error: "RESEND_API_KEY não setada" });
+    if (!to) return res.status(400).json({ ok: false, error: "Informe ?to=email ou configure ADMIN_NOTIFICATIONS_EMAIL" });
+    if (!placeId && !q) return res.status(400).json({ ok: false, error: "Use ?place_id=... ou ?q=nome do negócio" });
+    try {
+      const origin = `https://${req.headers.host}`;
+      // Resolve por nome (?q=) quando não veio place_id
+      if (!placeId && q) {
+        const sb = await fetch(`${origin}/api/searchbiz?q=${encodeURIComponent(q)}`).then((r) => r.json()).catch(() => ({}));
+        placeId = sb?.results?.[0]?.place_id;
+        if (!placeId) return res.status(404).json({ ok: false, error: `Nenhum negócio encontrado pra "${q}". Tente um nome mais específico ou passe ?place_id=.` });
+      }
+      const rv = await fetch(`${origin}/api/reviews?place_id=${encodeURIComponent(placeId)}`).then((r) => r.json()).catch(() => ({}));
+      if (!rv || (!rv.name && !rv.rating)) {
+        return res.status(404).json({ ok: false, error: "Não consegui dados desse place_id no Google. Confira o place_id." });
+      }
+      const reviews = Array.isArray(rv.reviews) ? rv.reviews : [];
+      const weekAgo = Math.floor(Date.now() / 1000) - 7 * 24 * 3600;
+      // r.id é o timestamp unix do Google (r.time). Conta as dos últimos 7 dias
+      // (cap em 5, pois o Google só devolve as 5 mais recentes — subestima, nunca infla).
+      const newThisWeek = reviews.filter((r) => Number(r.id) >= weekAgo).length;
+      const tmpl = weeklyDigestEmail({
+        bizName: rv.name,
+        rating: rv.rating,
+        total: rv.total,
+        newThisWeek,
+        recentReviews: reviews,
+        tip: pickWeeklyTip()
+      });
+      const r = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ from, to: [to], subject: `[TESTE] ${tmpl.subject}`, html: tmpl.html })
+      });
+      const body = await r.json();
+      return res.json({
+        ok: r.ok,
+        http_status: r.status,
+        sent_to: to,
+        preview_data: { biz: rv.name, rating: rv.rating, total: rv.total, new_this_week: newThisWeek, reviews_returned: reviews.length },
+        resend_response: body,
+        hint: r.ok ? "Email enviado. Confira a caixa (e o spam)." : "Resend recusou — veja resend_response."
+      });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e?.message || "falha no teste do resumo semanal" });
     }
   }
 

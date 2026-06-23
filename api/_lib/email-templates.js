@@ -511,3 +511,91 @@ export function weeklyReportEmail({ bizName, ratingNow, ratingDelta, reviewsDelt
     })
   };
 }
+
+// ─────────────────────────────────────────────────────────────
+// 10. RESUMO SEMANAL (digest p/ TODOS — free + pro). Só dados do
+//     próprio negócio (nota, avaliações, últimas reviews) + 1 dica.
+//     NÃO depende do cron de concorrentes (Fase 1 do plano de emails).
+// ─────────────────────────────────────────────────────────────
+const WEEKLY_TIPS = [
+  { t: "Responda às avaliações", d: "Negócios que respondem passam mais confiança — e o Google valoriza perfis ativos. Reserve 5 minutos pra responder as últimas." },
+  { t: "Peça no momento certo", d: "O melhor momento de pedir uma avaliação é logo após um bom atendimento, com o cliente ainda no local. Uma placa NFC no balcão faz isso sozinha." },
+  { t: "Complete seu perfil no Google", d: "Foto, horário, telefone e categoria preenchidos aumentam sua visibilidade nas buscas locais — e contam pontos no seu Score." },
+  { t: "Suba uma foto nova", d: "Perfis com fotos recentes aparecem mais. Tire uma foto do seu produto ou ambiente e suba no Google Meu Negócio — leva 1 minuto." },
+  { t: "Repita o que você faz", d: "Ao responder avaliações, mencione naturalmente seu ramo ('obrigado por avaliar nossa pizzaria') — ajuda o Google a entender seu negócio." },
+];
+
+// Escolhe a dica da semana (rotaciona por número da semana — estável dentro
+// da mesma semana, mesma pra todos os clientes naquele envio).
+export function pickWeeklyTip(weekIndex) {
+  const i = Number.isFinite(weekIndex) ? weekIndex : Math.floor(Date.now() / (7 * 24 * 3600 * 1000));
+  const n = WEEKLY_TIPS.length;
+  return WEEKLY_TIPS[((i % n) + n) % n];
+}
+
+function starRow(n) {
+  const full = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
+  return `<span style="color:#FBBC04;letter-spacing:1px;">${"★".repeat(full)}${"☆".repeat(5 - full)}</span>`;
+}
+
+export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip }) {
+  const biz = escapeHtml(bizName || "seu negócio");
+  const note = (typeof rating === "number" && rating > 0) ? rating.toFixed(1).replace(".", ",") : "—";
+  const tot = Number(total) || 0;
+  const nw = Number(newThisWeek) || 0;
+  const t = tip || WEEKLY_TIPS[0];
+
+  const newLine = nw > 0
+    ? `<span style="color:#137333;font-weight:700;">▲ +${nw} ${nw === 1 ? "nova" : "novas"}</span>`
+    : `<span style="color:#5F6368;font-weight:600;">— nenhuma nova</span>`;
+
+  const row = (label, value) => `
+    <tr>
+      <td style="padding:11px 0;border-bottom:1px solid #eef0f3;font-size:14px;color:#5F6368;">${label}</td>
+      <td style="padding:11px 0;border-bottom:1px solid #eef0f3;font-size:15px;color:#202124;font-weight:700;text-align:right;white-space:nowrap;">${value}</td>
+    </tr>`;
+
+  const reviewsBlock = (recentReviews && recentReviews.length)
+    ? `
+      <p style="font-size:12px;font-weight:700;color:#202124;margin:22px 0 8px;text-transform:uppercase;letter-spacing:0.05em;">Últimas avaliações</p>
+      ${recentReviews.slice(0, 3).map((rv) => `
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin:0 0 8px;">
+          <tr><td style="padding:12px 14px;">
+            <div style="font-size:13.5px;color:#202124;"><strong>${escapeHtml(rv.author || "Cliente Google")}</strong> &nbsp;${starRow(rv.rating)} <span style="color:#A8B0BB;font-size:12px;">· ${escapeHtml(rv.date || "")}</span></div>
+            ${rv.text ? `<div style="font-size:13px;color:#5F6368;line-height:1.55;margin-top:4px;">"${escapeHtml(rv.text.length > 160 ? rv.text.slice(0, 160) + "…" : rv.text)}"</div>` : ""}
+          </td></tr>
+        </table>`).join("")}
+    `
+    : "";
+
+  return {
+    subject: `📊 Sua semana no Google — ${biz}`,
+    html: shell({
+      title: "📊 SEU RESUMO DA SEMANA",
+      headerColor: "#1A73E8",
+      body: `
+        <h1 style="margin:0 0 8px;font-size:22px;color:#202124;line-height:1.3;">Como ${biz} foi essa semana</h1>
+        <p style="font-size:14.5px;color:#5F6368;line-height:1.6;margin:0 0 16px;">Um resumo rápido da sua presença no Google nos últimos 7 dias.</p>
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:6px 16px;margin:14px 0;">
+          ${row("Sua nota no Google", `${note} ⭐`)}
+          ${row("Total de avaliações", String(tot))}
+          ${row("Novas nesta semana", newLine)}
+        </table>
+
+        ${reviewsBlock}
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#EAF2FE;border:1px solid #cfe0fb;border-radius:12px;margin:18px 0 4px;">
+          <tr><td style="padding:14px 16px;">
+            <div style="font-size:12px;font-weight:700;color:#1A73E8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">💡 Dica da semana</div>
+            <div style="font-size:14px;color:#202124;font-weight:700;margin-bottom:3px;">${escapeHtml(t.t)}</div>
+            <div style="font-size:13px;color:#5F6368;line-height:1.55;">${escapeHtml(t.d)}</div>
+          </td></tr>
+        </table>
+
+        ${cta("https://startouch.com.br/app", "Ver no painel →")}
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:8px 0 0;">Quer mais avaliações? <a href="https://startouch.com.br/kit" style="color:#1A73E8;text-decoration:none;font-weight:600;">Adicione uma placa ou cartão NFC →</a></p>
+      `
+    })
+  };
+}
