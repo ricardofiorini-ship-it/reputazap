@@ -560,6 +560,20 @@ export function nextMilestone(total) {
   return target ? { target, remaining: target - n } : null;
 }
 
+// Veredito da semana — tom adapta ao ritmo de coleta (newThisWeek = avaliações
+// dos últimos 7 dias). Leve quando fraco (lembrete pra equipe, sem ralhar),
+// parabéns quando bom. Obs: newThisWeek satura em 5 (Google só devolve as 5
+// mais recentes), então >=5 já é "semana excelente".
+export function weekVerdict(newThisWeek) {
+  const n = Number(newThisWeek) || 0;
+  const GREEN = { color: "#137333", bg: "#ECFDF5", border: "#A7F3D0" };
+  const AMBER = { color: "#B7791F", bg: "#FFF8E1", border: "#FCE8A6" };
+  if (n >= 5) return { ...GREEN, emoji: "🎉", title: "Que semana!", msg: "Foram 5 ou mais avaliações novas nos últimos 7 dias — esse é o ritmo que faz subir no Google. Continue assim!" };
+  if (n >= 3) return { ...GREEN, emoji: "🙌", title: "Boa semana!", msg: `${n} avaliações novas. Tá no caminho certo — mantenha o time pedindo a cada bom atendimento.` };
+  if (n >= 1) return { ...AMBER, emoji: "💪", title: "Dá pra acelerar", msg: `${n === 1 ? "1 avaliação nova" : n + " avaliações novas"} esta semana. Que tal combinar com a equipe de pedir em todo atendimento bom? Uma placa no balcão faz isso sozinha.` };
+  return { ...AMBER, emoji: "📣", title: "Vamos buscar avaliações?", msg: "Nenhuma avaliação nova nos últimos 7 dias. Um lembrete pra equipe pedir — ou uma placa/cartão NFC no balcão — já muda esse número na próxima semana." };
+}
+
 // Score StarTouch — MESMA fórmula do painel (src/AppV2.jsx → scoreBreakdown,
 // pesos 35/30/20/15). Mantida em paralelo aqui (sem módulo compartilhado
 // front/back). ⚠️ Se mudar a fórmula no painel, atualize aqui também.
@@ -620,6 +634,16 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
     `
     : "";
 
+  // Veredito da semana (tom adapta ao ritmo de coleta)
+  const v = weekVerdict(nw);
+  const verdictBlock = `
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${v.bg};border:1px solid ${v.border};border-radius:12px;margin:14px 0;">
+      <tr><td style="padding:14px 16px;">
+        <div style="font-size:15px;color:${v.color};font-weight:800;margin-bottom:3px;">${v.emoji} ${escapeHtml(v.title)}</div>
+        <div style="font-size:13px;color:#5F6368;line-height:1.55;">${escapeHtml(v.msg)}</div>
+      </td></tr>
+    </table>`;
+
   // Bloco Score StarTouch (0–100) + o que falta pros 100
   const scoreBlock = score && typeof score.score === "number"
     ? `
@@ -667,6 +691,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
           ${row("Novas nesta semana", newLine)}
         </table>
 
+        ${verdictBlock}
         ${milestoneLine}
         ${scoreBlock}
         ${reviewsBlock}
