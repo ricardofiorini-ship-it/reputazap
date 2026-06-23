@@ -583,6 +583,13 @@ export function emailScore({ rating, reviews, total, pos, photo, phone, category
   return { score, missing };
 }
 
+// Indicação — MESMO mecanismo honesto do ativar-codigo.html (link UTM +
+// mensagem pronta de WhatsApp, sem recompensa inventada, sem backend).
+// utm_campaign distingue indicações vindas do email semanal no GA4.
+const REFERRAL_LINK = "https://startouch.com.br/?utm_source=indicacao&utm_medium=whatsapp&utm_campaign=email_semanal";
+const REFERRAL_MSG = "Oi! Tô usando o StarTouch pra receber mais avaliações no Google — tá ajudando demais. Acho que ia ser útil pro seu negócio também 👉 " + REFERRAL_LINK;
+const REFERRAL_WA = "https://wa.me/?text=" + encodeURIComponent(REFERRAL_MSG);
+
 export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article }) {
   const biz = escapeHtml(bizName || "seu negócio");
   const note = (typeof rating === "number" && rating > 0) ? rating.toFixed(1).replace(".", ",") : "—";
@@ -670,6 +677,16 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
             <div style="font-size:12px;font-weight:700;color:#1A73E8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">💡 Dica da semana</div>
             <div style="font-size:14px;color:#202124;font-weight:700;margin-bottom:3px;">${escapeHtml(t.t)}</div>
             <div style="font-size:13px;color:#5F6368;line-height:1.55;">${escapeHtml(t.d)}</div>
+          </td></tr>
+        </table>
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F0FBF4;border:1px solid #BBF0CD;border-radius:12px;margin:14px 0 4px;">
+          <tr><td style="padding:16px;">
+            <div style="font-size:14px;color:#202124;font-weight:700;margin-bottom:3px;">🤝 Indique para um amigo</div>
+            <div style="font-size:13px;color:#5F6368;line-height:1.55;margin-bottom:10px;">Conhece outro comércio que merece mais avaliações no Google? Indicar leva 10 segundos — e ajuda outro negócio da sua região.</div>
+            <table role="presentation" cellspacing="0" cellpadding="0"><tr><td style="border-radius:10px;background:#25D366;">
+              <a href="${REFERRAL_WA}" target="_blank" style="display:inline-block;padding:11px 22px;font-size:14px;font-weight:700;color:#fff;text-decoration:none;border-radius:10px;font-family:Arial,sans-serif;">Indicar pelo WhatsApp →</a>
+            </td></tr></table>
           </td></tr>
         </table>
 
