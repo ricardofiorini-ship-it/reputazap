@@ -538,7 +538,52 @@ function starRow(n) {
   return `<span style="color:#FBBC04;letter-spacing:1px;">${"★".repeat(full)}${"☆".repeat(5 - full)}</span>`;
 }
 
-export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip }) {
+// Manifesto de artigos do blog (MAIS RECENTE PRIMEIRO). Ao publicar um novo,
+// adicione no TOPO — o resumo semanal usa o primeiro como "artigo da semana".
+const ARTICLES = [
+  { slug: "como-subir-no-ranking-do-google-meu-negocio", title: "Como subir no ranking do Google Meu Negócio: guia prático 2026", excerpt: "O passo a passo pra aparecer mais alto nas buscas locais." },
+  { slug: "como-pedir-avaliacao-no-google-sem-parecer-chato", title: "Como pedir avaliação no Google sem parecer chato", excerpt: "Roteiros prontos pra pedir review sem constrangimento." },
+  { slug: "como-melhorar-a-nota-no-google", title: "Como melhorar a nota no Google: do 3 ao 5 estrelas", excerpt: "O que fazer pra a média subir de verdade." },
+  { slug: "como-conseguir-mais-avaliacoes-no-google", title: "Como conseguir mais avaliações no Google: 7 estratégias", excerpt: "Táticas que realmente trazem mais avaliações." },
+  { slug: "como-aparecer-primeiro-no-google-maps", title: "Como aparecer em primeiro no Google Maps", excerpt: "Os fatores que mais pesam no ranking local." },
+];
+export function latestArticle() {
+  const a = ARTICLES[0];
+  return a ? { title: a.title, excerpt: a.excerpt, url: `https://startouch.com.br/artigos/${a.slug}` } : null;
+}
+
+// Próximo marco de avaliações (motivacional). Retorna null se já passou de tudo.
+const MILESTONES = [10, 20, 30, 50, 75, 100, 150, 200, 300, 500, 1000];
+export function nextMilestone(total) {
+  const n = Number(total) || 0;
+  const target = MILESTONES.find((m) => m > n);
+  return target ? { target, remaining: target - n } : null;
+}
+
+// Score StarTouch — MESMA fórmula do painel (src/AppV2.jsx → scoreBreakdown,
+// pesos 35/30/20/15). Mantida em paralelo aqui (sem módulo compartilhado
+// front/back). ⚠️ Se mudar a fórmula no painel, atualize aqui também.
+export function emailScore({ rating, reviews, total, pos, photo, phone, category }) {
+  const rt = Number(rating) || 0;
+  const rv = Number(reviews) || 0;
+  const tot = Number(total) || 0;
+  const p = Number(pos) || tot;
+  const notaPts = (rt / 5) * 35;
+  const volPts = Math.min(rv / 100, 1) * 30;
+  const posPts = tot > 0 ? ((tot - p + 1) / tot) * 20 : 10;
+  const hasPhoto = !!photo, hasPhone = !!phone, hasCat = !!category;
+  const perfilPts = (hasPhoto ? 5 : 0) + (hasPhone ? 5 : 0) + (hasCat ? 5 : 0);
+  const score = Math.max(0, Math.min(100, Math.round(notaPts + volPts + posPts + perfilPts)));
+  const missing = [];
+  if (perfilPts < 15) {
+    const f = [!hasPhoto && "foto", !hasPhone && "telefone", !hasCat && "categoria"].filter(Boolean);
+    missing.push(`complete o perfil no Google (${f.join(", ")})`);
+  }
+  if (rv < 100) missing.push("colete mais avaliações");
+  return { score, missing };
+}
+
+export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article }) {
   const biz = escapeHtml(bizName || "seu negócio");
   const note = (typeof rating === "number" && rating > 0) ? rating.toFixed(1).replace(".", ",") : "—";
   const tot = Number(total) || 0;
@@ -558,7 +603,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
   const reviewsBlock = (recentReviews && recentReviews.length)
     ? `
       <p style="font-size:12px;font-weight:700;color:#202124;margin:22px 0 8px;text-transform:uppercase;letter-spacing:0.05em;">Últimas avaliações</p>
-      ${recentReviews.slice(0, 3).map((rv) => `
+      ${recentReviews.slice(0, 2).map((rv) => `
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin:0 0 8px;">
           <tr><td style="padding:12px 14px;">
             <div style="font-size:13.5px;color:#202124;"><strong>${escapeHtml(rv.author || "Cliente Google")}</strong> &nbsp;${starRow(rv.rating)} <span style="color:#A8B0BB;font-size:12px;">· ${escapeHtml(rv.date || "")}</span></div>
@@ -566,6 +611,38 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
           </td></tr>
         </table>`).join("")}
     `
+    : "";
+
+  // Bloco Score StarTouch (0–100) + o que falta pros 100
+  const scoreBlock = score && typeof score.score === "number"
+    ? `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#FFF8E1;border:1px solid #FCE8A6;border-radius:12px;margin:14px 0;">
+        <tr><td style="padding:14px 16px;">
+          <div style="font-size:12px;font-weight:700;color:#B7791F;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">🏅 Seu Score StarTouch</div>
+          <div style="font-size:26px;font-weight:800;color:#202124;line-height:1;">${score.score}<span style="font-size:15px;color:#5F6368;font-weight:700;"> / 100</span></div>
+          ${score.missing && score.missing.length
+            ? `<div style="font-size:13px;color:#5F6368;line-height:1.5;margin-top:6px;">Pra subir: ${escapeHtml(score.missing[0])}. <a href="https://startouch.com.br/app" style="color:#1A73E8;text-decoration:none;font-weight:600;">Ver o que falta →</a></div>`
+            : `<div style="font-size:13px;color:#137333;font-weight:600;margin-top:6px;">Presença completa! 🎉</div>`}
+        </td></tr>
+      </table>`
+    : "";
+
+  // Linha de próximo marco de avaliações
+  const milestoneLine = milestone && milestone.remaining > 0
+    ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;margin:12px 0;"><tr><td style="padding:11px 14px;font-size:13.5px;color:#202124;line-height:1.5;">🎯 <strong>Faltam ${milestone.remaining} ${milestone.remaining === 1 ? "avaliação" : "avaliações"}</strong> pra você chegar a ${milestone.target} no Google.</td></tr></table>`
+    : "";
+
+  // Bloco artigo da semana (newsletter consolidada aqui)
+  const articleBlock = article && article.title
+    ? `
+      <p style="font-size:12px;font-weight:700;color:#202124;margin:22px 0 8px;text-transform:uppercase;letter-spacing:0.05em;">📖 Leia esta semana</p>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin:0 0 4px;">
+        <tr><td style="padding:14px 16px;">
+          <a href="${article.url}" target="_blank" style="font-size:15px;font-weight:700;color:#1A73E8;text-decoration:none;line-height:1.3;">${escapeHtml(article.title)}</a>
+          ${article.excerpt ? `<div style="font-size:13px;color:#5F6368;line-height:1.55;margin-top:5px;">${escapeHtml(article.excerpt)}</div>` : ""}
+          <div style="margin-top:8px;"><a href="${article.url}" target="_blank" style="font-size:13px;color:#1A73E8;text-decoration:none;font-weight:600;">Ler artigo →</a></div>
+        </td></tr>
+      </table>`
     : "";
 
   return {
@@ -583,7 +660,10 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
           ${row("Novas nesta semana", newLine)}
         </table>
 
+        ${milestoneLine}
+        ${scoreBlock}
         ${reviewsBlock}
+        ${articleBlock}
 
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#EAF2FE;border:1px solid #cfe0fb;border-radius:12px;margin:18px 0 4px;">
           <tr><td style="padding:14px 16px;">

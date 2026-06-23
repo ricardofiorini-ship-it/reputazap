@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { MercadoPagoConfig, PreApproval, Preference, Payment } from "mercadopago";
 import crypto from "crypto";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
-import { weeklyDigestEmail, pickWeeklyTip } from "./_lib/email-templates.js";
+import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle } from "./_lib/email-templates.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -1071,7 +1071,14 @@ export default async function handler(req, res) {
         placeId = sb?.results?.[0]?.place_id;
         if (!placeId) return res.status(404).json({ ok: false, error: `Nenhum negócio encontrado pra "${q}". Tente um nome mais específico ou passe ?place_id=.` });
       }
-      const rv = await fetch(`${origin}/api/reviews?place_id=${encodeURIComponent(placeId)}`).then((r) => r.json()).catch(() => ({}));
+      // Em paralelo: reviews (nota/total/reviews), bizinfo (perfil p/ Score) e
+      // diagnostico (posição p/ Score). bizinfo/diagnostico podem falhar sem
+      // derrubar o email (Score só perde precisão).
+      const [rv, bi, diag] = await Promise.all([
+        fetch(`${origin}/api/reviews?place_id=${encodeURIComponent(placeId)}`).then((r) => r.json()).catch(() => ({})),
+        fetch(`${origin}/api/bizinfo?place_id=${encodeURIComponent(placeId)}`).then((r) => r.json()).catch(() => ({})),
+        fetch(`${origin}/api/diagnostico?place_id=${encodeURIComponent(placeId)}`).then((r) => r.json()).catch(() => ({})),
+      ]);
       if (!rv || (!rv.name && !rv.rating)) {
         return res.status(404).json({ ok: false, error: "Não consegui dados desse place_id no Google. Confira o place_id." });
       }
@@ -1080,13 +1087,26 @@ export default async function handler(req, res) {
       // r.id é o timestamp unix do Google (r.time). Conta as dos últimos 7 dias
       // (cap em 5, pois o Google só devolve as 5 mais recentes — subestima, nunca infla).
       const newThisWeek = reviews.filter((r) => Number(r.id) >= weekAgo).length;
+      const totalReviews = rv.total ?? bi.total ?? 0;
+      const score = emailScore({
+        rating: rv.rating ?? bi.rating,
+        reviews: totalReviews,
+        total: diag.total,
+        pos: diag.rank,
+        photo: bi.photoUrl,
+        phone: bi.phone,
+        category: bi.category,
+      });
       const tmpl = weeklyDigestEmail({
         bizName: rv.name,
         rating: rv.rating,
-        total: rv.total,
+        total: totalReviews,
         newThisWeek,
         recentReviews: reviews,
-        tip: pickWeeklyTip()
+        tip: pickWeeklyTip(),
+        score,
+        milestone: nextMilestone(totalReviews),
+        article: latestArticle(),
       });
       const r = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -1098,7 +1118,7 @@ export default async function handler(req, res) {
         ok: r.ok,
         http_status: r.status,
         sent_to: to,
-        preview_data: { biz: rv.name, rating: rv.rating, total: rv.total, new_this_week: newThisWeek, reviews_returned: reviews.length },
+        preview_data: { biz: rv.name, rating: rv.rating, total: totalReviews, new_this_week: newThisWeek, reviews_returned: reviews.length, score: score.score, score_missing: score.missing, milestone: nextMilestone(totalReviews), article: latestArticle()?.title },
         resend_response: body,
         hint: r.ok ? "Email enviado. Confira a caixa (e o spam)." : "Resend recusou — veja resend_response."
       });
