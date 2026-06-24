@@ -17,7 +17,7 @@ const FOOTER = `
     <tr><td align="center">
       <p style="font-size:11px;color:#A8B0BB;line-height:1.6;margin:0;">
         Você está recebendo isso porque criou uma conta no StarTouch.<br/>
-        Pra ajustar quais emails recebe, acesse <a href="https://startouch.com.br/app?tab=alertas" style="color:#1A73E8;text-decoration:none;font-weight:600;">o painel</a>.
+        Pra ajustar quais emails recebe, acesse <a href="https://startouch.com.br/app?login=1&tab=alertas" style="color:#1A73E8;text-decoration:none;font-weight:600;">o painel</a>.
       </p>
       <p style="font-size:11px;color:#A8B0BB;line-height:1.6;margin:10px 0 0;">
         StarTouch · Reputação no piloto automático<br/>

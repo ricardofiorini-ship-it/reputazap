@@ -199,7 +199,7 @@ let tagCount = 0; // placas já gravadas com sucesso
 window.addEventListener("load", async () => {
   const token = localStorage.getItem("rz_token");
   if (!token) {
-    window.location.href = "/app";
+    window.location.href = "/app?login=1";
     return;
   }
   try {
@@ -207,13 +207,13 @@ window.addEventListener("load", async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) {
-      window.location.href = "/app";
+      window.location.href = "/app?login=1";
       return;
     }
     const data = await res.json();
     if (!data.business?.place_id) {
       alert("Você precisa cadastrar um negócio antes de ativar uma placa.");
-      window.location.href = "/app";
+      window.location.href = "/app?login=1";
       return;
     }
     placeId = data.business.place_id;
@@ -224,7 +224,7 @@ window.addEventListener("load", async () => {
     document.getElementById("bizHeader").style.display = "flex";
     detectDevice();
   } catch {
-    window.location.href = "/app";
+    window.location.href = "/app?login=1";
   }
 });
 
@@ -333,7 +333,7 @@ function recordAnother() {
 function finish() {
   document.getElementById("doneCount").textContent = tagCount;
   show("screenDone");
-  setTimeout(() => { window.location.href = "/app"; }, 1500);
+  setTimeout(() => { window.location.href = "/app?login=1"; }, 1500);
 }
 </script>
 </body>

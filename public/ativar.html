@@ -437,7 +437,7 @@ async function handleGoogleCredential(response) {
       await saveBiz();
       state.bizSaved = true;
       if (state.activity) localStorage.setItem("rz_activity", state.activity);
-      window.location.href = "/app";
+      window.location.href = "/app?login=1";
       return;
     }
     // NFC flow: cadastro -> busca
@@ -621,7 +621,7 @@ async function goToStep2(){
       await saveBiz();
       state.bizSaved = true;
       if (state.activity) localStorage.setItem("rz_activity", state.activity);
-      window.location.href = "/app";
+      window.location.href = "/app?login=1";
       return;
     }
     // NFC flow: cadastro -> busca
