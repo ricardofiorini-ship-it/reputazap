@@ -570,8 +570,8 @@ export function weekVerdict(newThisWeek) {
   const AMBER = { color: "#B7791F", bg: "#FFF8E1", border: "#FCE8A6" };
   if (n >= 5) return { ...GREEN, emoji: "🎉", title: "Que semana!", msg: "Foram 5 ou mais avaliações novas nos últimos 7 dias — esse é o ritmo que faz subir no Google. Continue assim!" };
   if (n >= 3) return { ...GREEN, emoji: "🙌", title: "Boa semana!", msg: `${n} avaliações novas. Tá no caminho certo — mantenha o time pedindo a cada bom atendimento.` };
-  if (n >= 1) return { ...AMBER, emoji: "💪", title: "Dá pra acelerar", msg: `${n === 1 ? "1 avaliação nova" : n + " avaliações novas"} esta semana. Que tal combinar com a equipe de pedir em todo atendimento bom? Uma placa no balcão faz isso sozinha.` };
-  return { ...AMBER, emoji: "📣", title: "Vamos buscar avaliações?", msg: "Nenhuma avaliação nova nos últimos 7 dias. Um lembrete pra equipe pedir — ou uma placa/cartão NFC no balcão — já muda esse número na próxima semana." };
+  if (n >= 1) return { ...AMBER, emoji: "💪", title: "Dá pra acelerar", msg: `${n === 1 ? "1 avaliação nova" : n + " avaliações novas"} esta semana. Combine com a equipe de pedir a avaliação em todo bom atendimento — apontar o dispositivo StarTouch pro cliente já acelera.` };
+  return { ...AMBER, emoji: "📣", title: "Vamos buscar avaliações?", msg: "Nenhuma avaliação nova nos últimos 7 dias. Vale lembrar a equipe de pedir ao final de cada atendimento — com seu dispositivo StarTouch à vista, o cliente avalia em segundos." };
 }
 
 // Score StarTouch — MESMA fórmula do painel (src/AppV2.jsx → scoreBreakdown,
