@@ -5598,7 +5598,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 18px', lineHeight: 1.55 }}>
               Pra continuar protegendo seus dados, a gente desconecta automaticamente depois de um tempo. Faça login de novo pra retomar.
             </p>
-            <button onClick={() => onLogout && onLogout()} style={{
+            <button onClick={() => {
+              // Limpa a sessão e força a tela de Login (?login=1). NÃO usar
+              // onLogout puro: ele só zera o user e o /app recai em modo
+              // convidado (porta única) em vez de mostrar o login.
+              try { localStorage.removeItem('rz_token'); localStorage.removeItem('rz_user') } catch {}
+              window.location.href = '/app?login=1'
+            }} style={{
               background: T.blue, color:'#fff', border:'none', borderRadius: 9,
               padding:'11px 22px', fontSize: 14, fontWeight: 700, cursor:'pointer'
             }}>Fazer login de novo</button>
