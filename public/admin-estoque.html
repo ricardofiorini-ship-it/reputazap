@@ -76,6 +76,7 @@
           <option value="">Todos os tipos</option>
           <option value="placa_balcao">Placa de Balcão</option>
           <option value="placa_mesa">Placa de Mesa</option>
+          <option value="cartao_nfc">Cartão NFC</option>
           <option value="pulseira_nfc">Pulseira NFC</option>
         </select>
         <select id="filterSource" onchange="applyFilters()">
@@ -101,7 +102,7 @@ let allPlates = [];
 
 const TYPE_LABELS = {
   placa_balcao: "Placa de Balcão", placa_mesa: "Placa de Mesa",
-  pulseira_nfc: "Pulseira NFC", adesivo_nfc: "Adesivo NFC"
+  cartao_nfc: "Cartão NFC", pulseira_nfc: "Pulseira NFC", adesivo_nfc: "Adesivo NFC"
 };
 const STATUS_LABELS = {
   in_stock: "Em estoque", assigned: "Atribuída", sent: "Enviada",

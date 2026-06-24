@@ -16,7 +16,7 @@ const supabase = createClient(
 // MVP: admin gating por email hardcoded (evoluir pra is_admin depois)
 const ADMIN_EMAIL = "ricardo.fiorini@gmail.com";
 
-const VALID_TYPES = ["placa_balcao", "placa_mesa", "pulseira_nfc", "adesivo_nfc"];
+const VALID_TYPES = ["placa_balcao", "placa_mesa", "pulseira_nfc", "cartao_nfc"];
 
 async function authUser(req) {
   const token = req.headers.authorization?.replace("Bearer ", "");
