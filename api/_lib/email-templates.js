@@ -652,7 +652,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
           <div style="font-size:12px;font-weight:700;color:#B7791F;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">🏅 Seu Score StarTouch</div>
           <div style="font-size:26px;font-weight:800;color:#202124;line-height:1;">${score.score}<span style="font-size:15px;color:#5F6368;font-weight:700;"> / 100</span></div>
           ${score.missing && score.missing.length
-            ? `<div style="font-size:13px;color:#5F6368;line-height:1.5;margin-top:6px;">Pra subir: ${escapeHtml(score.missing[0])}. <a href="https://startouch.com.br/app" style="color:#1A73E8;text-decoration:none;font-weight:600;">Ver o que falta →</a></div>`
+            ? `<div style="font-size:13px;color:#5F6368;line-height:1.5;margin-top:6px;">Pra subir: ${escapeHtml(score.missing[0])}. <a href="https://startouch.com.br/app?login=1" style="color:#1A73E8;text-decoration:none;font-weight:600;">Ver o que falta →</a></div>`
             : `<div style="font-size:13px;color:#137333;font-weight:600;margin-top:6px;">Presença completa! 🎉</div>`}
         </td></tr>
       </table>`
@@ -715,7 +715,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
           </td></tr>
         </table>
 
-        ${cta("https://startouch.com.br/app", "Ver no painel →")}
+        ${cta("https://startouch.com.br/app?login=1", "Ver no painel →")}
         <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:8px 0 0;">Quer mais avaliações? <a href="https://startouch.com.br/kit" style="color:#1A73E8;text-decoration:none;font-weight:600;">Adicione uma placa ou cartão NFC →</a></p>
       `
     })
