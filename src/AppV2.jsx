@@ -480,7 +480,6 @@ const PRODUCT_LABELS = {
   placa_mesa:   'Placa de Mesa',
   placa_parede: 'Placa de Parede',
   pulseira_nfc: 'Pulseira NFC',
-  adesivo_nfc:  'Adesivo NFC',
   cartao_nfc:   'Cartão NFC'
 }
 
@@ -4327,7 +4326,6 @@ const PRODUCT_ICONS = {
   placa_mesa:   '🍽️',
   placa_parede: '🖼️',
   pulseira_nfc: '⌚',
-  adesivo_nfc:  '⭕',
   cartao_nfc:   '💳'
 }
 
@@ -4338,9 +4336,10 @@ const PRODUCT_IMAGES = {
   placa_mesa:   '/placa-m-1.png',
   placa_parede: '/gadget-placa.png',
   pulseira_nfc: '/gadget-pulseira.png',
-  adesivo_nfc:  '/gadget-adesivo.png',
-  cartao_nfc:   '/gadget-cartao.png'
+  cartao_nfc:   '/cartao-1.png'
 }
+// Tipos com foto vertical -> recorte quadrado (cover) no thumbnail de 48px
+const COVER_TYPES = ['placa_mesa', 'cartao_nfc']
 
 function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) {
   const [modalOpen, setModalOpen] = React.useState(false)
@@ -4423,10 +4422,10 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) 
                 width: 56, height: 56, borderRadius: 12, flexShrink: 0,
                 background:'#fff', border:'1px solid '+T.border,
                 display:'grid', placeItems:'center', overflow:'hidden',
-                padding: topPlate.product_type === 'placa_mesa' ? 0 : 6
+                padding: COVER_TYPES.includes(topPlate.product_type) ? 0 : 6
               }}>
                 <img src={PRODUCT_IMAGES[topPlate.product_type] || '/gadget-placa.png'} alt=""
-                  style={topPlate.product_type === 'placa_mesa'
+                  style={COVER_TYPES.includes(topPlate.product_type)
                     ? { width:'100%', height:'100%', objectFit:'cover', display:'block' }
                     : { maxWidth:'100%', maxHeight:'100%', objectFit:'contain', display:'block' }}/>
               </div>
@@ -4451,10 +4450,10 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) 
                     width: 48, height: 48, borderRadius: 12, flexShrink: 0,
                     background:'#fff', border:'1px solid '+T.border,
                     display:'grid', placeItems:'center', overflow:'hidden',
-                    padding: p.product_type === 'placa_mesa' ? 0 : 5  // M usa foto vertical -> cover sem padding
+                    padding: COVER_TYPES.includes(p.product_type) ? 0 : 5  // foto vertical -> cover sem padding
                   }}>
                     <img src={PRODUCT_IMAGES[p.product_type] || '/gadget-placa.png'} alt={productLabel}
-                      style={p.product_type === 'placa_mesa'
+                      style={COVER_TYPES.includes(p.product_type)
                         ? { width:'100%', height:'100%', objectFit:'cover', display:'block' }
                         : { maxWidth:'100%', maxHeight:'100%', objectFit:'contain', display:'block' }}/>
                   </div>

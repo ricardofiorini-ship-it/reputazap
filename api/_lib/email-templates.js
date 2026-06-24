@@ -297,7 +297,6 @@ const PRODUCT_LABELS_PT = {
   placa_mesa: "Placa de Mesa",
   placa_parede: "Placa de Parede",
   pulseira_nfc: "Pulseira NFC",
-  adesivo_nfc: "Adesivo NFC",
   cartao_nfc: "Cartão NFC"
 };
 
