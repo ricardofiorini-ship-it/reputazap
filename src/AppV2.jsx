@@ -4372,7 +4372,8 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) 
             padding: 24, borderRadius: 12, background: T.bg, border:`1px dashed ${T.border}`,
             textAlign:'center'
           }}>
-            <div style={{ fontSize: 36, marginBottom: 8 }}>{hasReviews ? '🚀' : '📡'}</div>
+            <img src="/gadget-placa.png" alt="Placa NFC StarTouch de balcão"
+              style={{ height: 96, width:'auto', objectFit:'contain', display:'block', margin:'0 auto 12px', filter:'drop-shadow(0 6px 16px rgba(15,23,42,0.12))' }}/>
             <div style={{ fontSize: 13, color: T.textMid, marginBottom: 14, lineHeight: 1.5 }}>
               {hasReviews ? 'Acelere a coleta: cada toque do cliente vira uma avaliação.' : 'Ative um dispositivo pra captar no automático.'}
             </div>
@@ -4417,6 +4418,19 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) 
                   : 'Continue assim! Cada toque pode virar uma avaliação no Google.'}
               </div>
             </div>
+            {topPlate && (
+              <div style={{
+                width: 56, height: 56, borderRadius: 12, flexShrink: 0,
+                background:'#fff', border:'1px solid '+T.border,
+                display:'grid', placeItems:'center', overflow:'hidden',
+                padding: topPlate.product_type === 'placa_mesa' ? 0 : 6
+              }}>
+                <img src={PRODUCT_IMAGES[topPlate.product_type] || '/gadget-placa.png'} alt=""
+                  style={topPlate.product_type === 'placa_mesa'
+                    ? { width:'100%', height:'100%', objectFit:'cover', display:'block' }
+                    : { maxWidth:'100%', maxHeight:'100%', objectFit:'contain', display:'block' }}/>
+              </div>
+            )}
           </div>
 
           {/* LISTA SIMPLIFICADA — uma placa por linha, sem badges/códigos confusos */}
@@ -4436,10 +4450,13 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) 
                   <div style={{
                     width: 48, height: 48, borderRadius: 12, flexShrink: 0,
                     background:'#fff', border:'1px solid '+T.border,
-                    display:'grid', placeItems:'center', overflow:'hidden', padding: 5
+                    display:'grid', placeItems:'center', overflow:'hidden',
+                    padding: p.product_type === 'placa_mesa' ? 0 : 5  // M usa foto vertical -> cover sem padding
                   }}>
                     <img src={PRODUCT_IMAGES[p.product_type] || '/gadget-placa.png'} alt={productLabel}
-                      style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain', display:'block' }}/>
+                      style={p.product_type === 'placa_mesa'
+                        ? { width:'100%', height:'100%', objectFit:'cover', display:'block' }
+                        : { maxWidth:'100%', maxHeight:'100%', objectFit:'contain', display:'block' }}/>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap' }}>
