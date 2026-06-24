@@ -4331,6 +4331,17 @@ const PRODUCT_ICONS = {
   cartao_nfc:   '💳'
 }
 
+// Foto real do produto por tipo (mais "marketeiro" que o emoji na lista de
+// pontos de captação). Fallback pra placa de balcão.
+const PRODUCT_IMAGES = {
+  placa_balcao: '/gadget-placa.png',
+  placa_mesa:   '/placa-m-1.png',
+  placa_parede: '/gadget-placa.png',
+  pulseira_nfc: '/gadget-pulseira.png',
+  adesivo_nfc:  '/gadget-adesivo.png',
+  cartao_nfc:   '/gadget-cartao.png'
+}
+
 function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [showCode, setShowCode] = React.useState(false)
@@ -4423,10 +4434,13 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) 
                   display:'flex', alignItems:'center', gap: 14
                 }}>
                   <div style={{
-                    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                    width: 48, height: 48, borderRadius: 12, flexShrink: 0,
                     background:'#fff', border:'1px solid '+T.border,
-                    display:'grid', placeItems:'center', fontSize: 22
-                  }}>{PRODUCT_ICONS[p.product_type] || '📦'}</div>
+                    display:'grid', placeItems:'center', overflow:'hidden', padding: 5
+                  }}>
+                    <img src={PRODUCT_IMAGES[p.product_type] || '/gadget-placa.png'} alt={productLabel}
+                      style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain', display:'block' }}/>
+                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap' }}>
                       <span style={{ fontSize: 15, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>
