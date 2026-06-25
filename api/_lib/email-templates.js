@@ -11,13 +11,15 @@ function escapeHtml(s) {
   }[m]));
 }
 
-// Footer padrão de todos os emails
-const FOOTER = `
+// Footer padrão de todos os emails. unsubUrl (opcional) adiciona o link de
+// descadastro de 1 clique — usado no digest semanal (não nos transacionais).
+function footer(unsubUrl) {
+  return `
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:30px;">
     <tr><td align="center">
       <p style="font-size:11px;color:#A8B0BB;line-height:1.6;margin:0;">
         Você está recebendo isso porque criou uma conta no StarTouch.<br/>
-        Pra ajustar quais emails recebe, acesse <a href="https://startouch.com.br/app?login=1&tab=alertas" style="color:#1A73E8;text-decoration:none;font-weight:600;">o painel</a>.
+        Pra ajustar quais emails recebe, acesse <a href="https://startouch.com.br/app?login=1&tab=alertas" style="color:#1A73E8;text-decoration:none;font-weight:600;">o painel</a>.${unsubUrl ? `<br/>Não quer mais o resumo semanal? <a href="${unsubUrl}" style="color:#A8B0BB;text-decoration:underline;">Descadastrar</a>.` : ""}
       </p>
       <p style="font-size:11px;color:#A8B0BB;line-height:1.6;margin:10px 0 0;">
         StarTouch · Reputação no piloto automático<br/>
@@ -26,9 +28,10 @@ const FOOTER = `
     </td></tr>
   </table>
 `;
+}
 
 // Wrapper que envolve todo email
-function shell({ title, headerColor = "#1A73E8", body }) {
+function shell({ title, headerColor = "#1A73E8", body, unsubUrl }) {
   return `
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#202124;background:#F8F9FA;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:16px;">
@@ -39,7 +42,7 @@ function shell({ title, headerColor = "#1A73E8", body }) {
         </td></tr>
       </table>
       ${body}
-      ${FOOTER}
+      ${footer(unsubUrl)}
     </div>
   `;
 }
@@ -603,7 +606,7 @@ const REFERRAL_LINK = "https://startouch.com.br/?utm_source=indicacao&utm_medium
 const REFERRAL_MSG = "Oi! Tô usando o StarTouch pra receber mais avaliações no Google — tá ajudando demais. Acho que ia ser útil pro seu negócio também 👉 " + REFERRAL_LINK;
 const REFERRAL_WA = "https://wa.me/?text=" + encodeURIComponent(REFERRAL_MSG);
 
-export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article }) {
+export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl }) {
   const biz = escapeHtml(bizName || "seu negócio");
   const note = (typeof rating === "number" && rating > 0) ? rating.toFixed(1).replace(".", ",") : "—";
   const tot = Number(total) || 0;
@@ -680,6 +683,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
     html: shell({
       title: "📊 SEU RESUMO DA SEMANA",
       headerColor: "#1A73E8",
+      unsubUrl,
       body: `
         <h1 style="margin:0 0 8px;font-size:22px;color:#202124;line-height:1.3;">Como ${biz} foi essa semana</h1>
         <p style="font-size:14.5px;color:#5F6368;line-height:1.6;margin:0 0 16px;">Um resumo rápido da sua presença no Google nos últimos 7 dias.</p>

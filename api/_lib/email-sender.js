@@ -44,7 +44,9 @@ export async function sendTransactionalEmail({
   userId, emailType, to, subject, html, metadata = {},
   // dedupeByMetadata: se passado, faz idempotência por user_id + email_type + metadata[key]=value
   // (em vez de só user_id + email_type). Útil pra eventos por dispositivo (plate_id), etc.
-  dedupeByMetadata
+  dedupeByMetadata,
+  // headers: headers SMTP extras (ex: List-Unsubscribe pro digest semanal).
+  headers
 }) {
   if (!userId || !emailType || !to) {
     console.warn("[email-sender] params faltando:", { userId, emailType, to });
@@ -88,7 +90,8 @@ export async function sendTransactionalEmail({
         from: EMAIL_FROM,
         to: [to],
         subject,
-        html
+        html,
+        ...(headers && Object.keys(headers).length ? { headers } : {})
       })
     });
     const data = await res.json();
