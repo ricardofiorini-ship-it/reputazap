@@ -692,14 +692,29 @@ async function submitNew(){
     if(!googleAuthed){
       const rReg = await fetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,email,phone,password:pass})});
       const dReg = await rReg.json();
-      if(!rReg.ok){ msg.className="msg error"; msg.textContent=dReg.error||"Erro ao criar conta."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
-      token = dReg.token;
-      if(!token){
+      if(!rReg.ok){
+        // Email JÁ cadastrado: cliente recorrente que escolheu "Sou novo" por
+        // engano (ex: ativar um 2º/3º dispositivo). Tenta logar com a senha
+        // digitada e segue o fluxo; se a senha não bater, orienta o login.
+        const jaExiste = rReg.status === 409 || /already registered|already exists|já (cadastrad|registrad|existe)/i.test(dReg.error||"");
+        if(!jaExiste){ msg.className="msg error"; msg.textContent=dReg.error||"Erro ao criar conta."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
         const rLog=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})});
-        const dLog=await rLog.json(); token=dLog.token;
+        const dLog=await rLog.json();
+        if(!rLog.ok||!dLog.token){
+          msg.className="msg error"; msg.innerHTML='Esse email já tem conta StarTouch. Volte e use <b>"Já tenho conta"</b> pra entrar (ou recuperar a senha) e vincular este dispositivo.'; btn.disabled=false; btn.textContent="✓ Ativar"; return;
+        }
+        token=dLog.token;
+        localStorage.setItem("rz_token",token);
+        if(dLog.user) localStorage.setItem("rz_user",JSON.stringify(dLog.user));
+      } else {
+        token = dReg.token;
+        if(!token){
+          const rLog=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})});
+          const dLog=await rLog.json(); token=dLog.token;
+        }
+        localStorage.setItem("rz_token",token);
+        if(dReg.user) localStorage.setItem("rz_user",JSON.stringify(dReg.user));
       }
-      localStorage.setItem("rz_token",token);
-      if(dReg.user) localStorage.setItem("rz_user",JSON.stringify(dReg.user));
     }
     // Se autenticado via Google, token já foi setado em handleGoogleCredential
 
