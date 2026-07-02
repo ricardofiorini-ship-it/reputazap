@@ -4685,9 +4685,13 @@ function GuestSearch({ isMobile }) {
     if (cepDigits.length === 8) {
       try {
         const v = await fetch(`https://viacep.com.br/ws/${cepDigits}/json/`).then(r => r.json())
-        if (v && !v.erro) return { parts: [cepDigits, v.localidade, v.uf].filter(Boolean), cep: cepDigits }
+        // Texto da busca usa CIDADE + UF (nao o CEP cru): o numero do CEP dentro da
+        // Text Search do Google polui o match e costuma zerar resultados. O CEP em si
+        // vai separado (retorno .cep) pro geocoding/ordenacao por proximidade no backend.
+        if (v && !v.erro) return { parts: [v.localidade, v.uf].filter(Boolean), cep: cepDigits }
       } catch {}
-      return { parts: [cepDigits], cep: cepDigits }
+      // ViaCEP fora do ar: busca so pelo nome (+ proximidade via cep), sem injetar o numero no texto.
+      return { parts: [], cep: cepDigits }
     }
     return { parts: locRaw ? [locRaw] : [], cep: '' }
   }
@@ -4815,7 +4819,22 @@ function GuestSearch({ isMobile }) {
           {results && (
             <div style={{ marginTop:18 }}>
               {results.length === 0 ? (
-                <p style={{ fontSize:13, color:T.textMid }}>Nada encontrado. Tente o nome completo ou adicione a cidade.</p>
+                <div style={{ background:'#FEF7E0', border:'1.5px solid #FDE293', borderRadius:12, padding:'16px 18px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:9, marginBottom:8 }}>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#B06000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+                      <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="11.5"/><circle cx="11" cy="14.3" r="0.6" fill="#B06000" stroke="none"/>
+                    </svg>
+                    <span style={{ fontSize:16, fontWeight:800, color:'#B06000', letterSpacing:'-0.01em' }}>Não encontramos seu negócio</span>
+                  </div>
+                  <p style={{ fontSize:13.5, color:'#7A5200', lineHeight:1.55, margin:'0 0 4px' }}>
+                    Isso costuma acontecer por um detalhe simples. Tente:
+                  </p>
+                  <ul style={{ fontSize:13.5, color:'#7A5200', lineHeight:1.6, margin:0, paddingLeft:18 }}>
+                    <li>Escreva o <b>nome exato</b> como aparece no Google (ex: <i>Supermercado Mambo</i>, sem apelidos).</li>
+                    <li>Confira a <b>cidade ou CEP</b> — um CEP errado joga a busca pra longe.</li>
+                    <li>Se o negócio é novo, ele pode ainda <b>não estar no Google Maps</b>. Cadastre grátis em <a href="https://business.google.com" target="_blank" rel="noopener" style={{ color:'#B06000', fontWeight:700 }}>google.com/business</a> e volte aqui.</li>
+                  </ul>
+                </div>
               ) : (
                 <>
                   <p style={{ fontSize:13, color:T.blue, fontWeight:600, margin:'0 0 8px' }}>👇 Toque no seu negócio</p>
@@ -5109,7 +5128,9 @@ function NoBusinessScreen({ user }) {
     setSearching(true)
     setResults(null)
     try {
-      const q = [name, cep, activity].filter(Boolean).join(" ")
+      // NAO injeta o CEP cru no texto (polui a Text Search do Google e zera resultados);
+      // o CEP vai separado no parametro &cep= pra ordenacao por proximidade.
+      const q = [name, activity].filter(Boolean).join(" ")
       const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(q)}&cep=${encodeURIComponent(cep)}`)
       const data = await r.json()
       if (!data.results?.length) {
