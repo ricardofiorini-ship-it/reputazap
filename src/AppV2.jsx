@@ -4680,23 +4680,22 @@ function GuestSearch({ isMobile }) {
     } catch {}
   }, [])
 
-  async function resolveLocation(locRaw) {
-    const cepDigits = (locRaw || '').replace(/\D/g, '')
-    // Com CEP, o backend ancora a busca geograficamente (geocode + Nearby Search),
-    // entao o texto vai so com o NOME do negocio — sem cidade/UF nem o numero do CEP,
-    // que poluiriam o match. Sem CEP, usa o texto livre (ex: "Sao Paulo") como local.
-    if (cepDigits.length === 8) return { parts: [], cep: cepDigits }
-    return { parts: locRaw ? [locRaw] : [], cep: '' }
-  }
-
   async function doSearch(e) {
     if (e) e.preventDefault()
     if (q.trim().length < 2) return
     setLoading(true); setError(''); setResults(null)
     try {
-      const locInfo = await resolveLocation(loc.trim())
-      const fullQ = [q.trim(), ...locInfo.parts].filter(Boolean).join(' ')
-      const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(fullQ)}&cep=${encodeURIComponent(locInfo.cep)}`)
+      // Prioridade do match (backend): NOME (1o) + TIPO (2o) na query; CEP (3o)
+      // vai separado, so pra desempatar por proximidade entre nomes iguais (rede).
+      const name = q.trim()
+      const type = term.trim()
+      const cepDigits = (loc || '').replace(/\D/g, '')
+      const isCep = cepDigits.length === 8
+      const locText = isCep ? '' : loc.trim()   // texto livre (ex: "São Paulo") so quando nao e' CEP
+      const fullQ = [name, type, locText].filter(Boolean).join(' ')
+      const params = new URLSearchParams({ q: fullQ, name })
+      if (isCep) params.set('cep', cepDigits)
+      const r = await fetch(`/api/searchbiz?${params.toString()}`)
       const d = await r.json()
       setResults(d.results || [])
     } catch {
@@ -5121,10 +5120,10 @@ function NoBusinessScreen({ user }) {
     setSearching(true)
     setResults(null)
     try {
-      // NAO injeta o CEP cru no texto (polui a Text Search do Google e zera resultados);
-      // o CEP vai separado no parametro &cep= pra ordenacao por proximidade.
+      // Query = NOME + TIPO (prioridade de match); `name` separado pro score de
+      // nome no backend; CEP separado so pra desempate por proximidade.
       const q = [name, activity].filter(Boolean).join(" ")
-      const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(q)}&cep=${encodeURIComponent(cep)}`)
+      const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(q)}&name=${encodeURIComponent(name)}&cep=${encodeURIComponent(cep)}`)
       const data = await r.json()
       if (!data.results?.length) {
         setError("Não encontramos seu negócio no Google. Tente outro nome ou cadastre primeiro em google.com/business.")
