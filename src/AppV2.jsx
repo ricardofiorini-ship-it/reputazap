@@ -4900,8 +4900,11 @@ function GuestGate({ url, feature, isMobile }) {
   )
 }
 
-// Barra "ajustar termo" do ranking — igual o controle do /diagnostico.
-// Logado: salva category_override e recarrega. Convidado: troca o keyword da sessão.
+// Controle de CATEGORIA do ranking (funcionalidade StarTouch: "sua arena de
+// concorrência"). Deixa explícito contra quem o cliente compete e permite trocar.
+// Logado: salva category_override no banco e recalcula (reload garante que TODOS
+// os números — lentes 1/3km, KPIs, ranking — batam com a nova categoria).
+// Convidado: troca o keyword da sessão.
 function TermBar({ term, isGuest, placeId, isMobile }) {
   const [editing, setEditing] = React.useState(false)
   const [val, setVal] = React.useState(term || '')
@@ -4927,38 +4930,38 @@ function TermBar({ term, isGuest, placeId, isMobile }) {
       window.location.reload()
     } catch {
       setSaving(false)
-      alert('Não consegui salvar o termo. Tente de novo.')
+      alert('Não consegui salvar a categoria. Tente de novo.')
     }
   }
 
   return (
     <div style={{
-      background: T.blueSoft, borderBottom: `1px solid ${T.border}`,
-      padding: isMobile ? '8px 14px' : '9px 18px',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap',
-      fontFamily: "'Inter', sans-serif", fontSize: isMobile ? 12.5 : 13.5, color: T.blueDk
+      background: T.blueSoft, border: `1px solid ${T.border}`, borderRadius: 12,
+      padding: isMobile ? '11px 14px' : '12px 18px', marginBottom: 14,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap',
+      fontFamily: "'Inter', sans-serif", fontSize: isMobile ? 13 : 13.5, color: T.blueDk
     }}>
       {!editing ? (
         <>
-          <span>📍 Comparando com quem busca <b>"{term || 'sua categoria'} perto de mim"</b></span>
+          <span>🎯 Você está sendo comparado como <b>{term || 'sua categoria'}</b></span>
           <button onClick={() => setEditing(true)} style={{
             background: '#fff', color: T.blue, border: `1px solid ${T.blue}`, borderRadius: 7,
-            padding: '4px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'
-          }}>Trocar termo</button>
+            padding: '5px 13px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'
+          }}>Alterar categoria</button>
         </>
       ) : (
         <>
           <input value={val} onChange={e => setVal(e.target.value)} autoFocus
             onKeyDown={e => { if (e.key === 'Enter') apply() }}
-            placeholder="Ex: loja de bicicletas"
-            style={{ flex: '1 1 200px', maxWidth: 320, padding: '7px 11px', fontSize: 14, color: T.text,
+            placeholder="Ex: restaurante japonês, boteco, padaria"
+            style={{ flex: '1 1 200px', maxWidth: 340, padding: '7px 11px', fontSize: 14, color: T.text,
               border: `1.5px solid ${T.blue}`, borderRadius: 8, outline: 'none', fontFamily: "'Inter', sans-serif" }}/>
           <button onClick={apply} disabled={saving} style={{
             background: T.blue, color: '#fff', border: 'none', borderRadius: 8, padding: '7px 14px',
             fontSize: 13, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', whiteSpace: 'nowrap'
-          }}>{saving ? '…' : 'Recalcular'}</button>
-          <button onClick={() => { setEditing(false); setVal(term || '') }} style={{
-            background: 'transparent', color: T.textMid, border: 'none', fontSize: 12.5, cursor: 'pointer'
+          }}>{saving ? 'Recalculando…' : 'Recalcular'}</button>
+          <button onClick={() => { setEditing(false); setVal(term || '') }} disabled={saving} style={{
+            background: 'transparent', color: T.textMid, border: 'none', fontSize: 12.5, cursor: saving ? 'default' : 'pointer'
           }}>Cancelar</button>
         </>
       )}
@@ -5802,9 +5805,16 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           </div>
         </Section>
 
-        {/* VISIBILIDADE MULTI-LENTE — posição real do Google em raios diferentes */}
+        {/* VISIBILIDADE MULTI-LENTE — posição real do Google em raios diferentes.
+            TermBar em cima: deixa EXPLÍCITA a categoria de comparação e permite trocá-la. */}
         {!demoMode && real.hasBusiness && (guestContext?.placeId || d.biz?.placeId) && (
         <Section>
+          <TermBar
+            term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
+            isGuest={isGuest}
+            placeId={guestContext?.placeId || d.biz?.placeId}
+            isMobile={isMobile}
+          />
           <VisibilityLenses
             placeId={guestContext?.placeId || d.biz?.placeId}
             term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
