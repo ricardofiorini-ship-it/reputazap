@@ -846,7 +846,7 @@ function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen }) {
       {MOBILE_PRIMARY_TABS.map(tab => {
         const isMore = tab.id === 'more'
         const isActive = isMore ? moreOpen : active === tab.id
-        const isLocked = tab.pro && plan === 'free'
+        const isLocked = false   // tudo free: sem selo na barra mobile
         return (
           <a
             key={tab.id}
@@ -967,7 +967,7 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
         {/* Lista */}
         <div style={{ padding:'0 8px' }}>
           {items.map((it, i) => {
-            const isLocked = it.pro && plan === 'free'
+            const isLocked = false   // tudo free: sem selo PRO na lista
             // Item com link externo (ex: Central de ajuda → /ajuda em nova aba)
             const isExternal = !!it.external
             const targetHref = isExternal ? it.href : '#'
@@ -1089,7 +1089,7 @@ function TopTabs({ active, onChange, plan, isMobile }) {
           `}</style>
         {TABS.map(tab => {
           const isActive = active === tab.id
-          const isLocked = tab.pro && plan === 'free'
+          const isLocked = false   // tudo free: sem selo PRO na navegação
           return (
             <a
               key={tab.id}
@@ -1160,7 +1160,7 @@ function ComingSoon({ icon, title, desc, plan }) {
         <div style={{ fontSize: 56, marginBottom: 20 }}>{icon}</div>
         <h2 style={{ fontFamily: "'Inter', sans-serif", fontSize: 24, fontWeight: 700, color: T.text, margin: '0 0 12px', letterSpacing: '-0.02em' }}>{title}</h2>
         <p style={{ fontSize: 15, color: T.textMid, margin: '0 0 28px', lineHeight: 1.6 }}>{desc}</p>
-        {plan === 'free' ? (
+        {false ? (
           <a href="/plano-pro" style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             background: T.blue, color: '#fff',
@@ -3261,10 +3261,10 @@ function BillingSection({ billing, plan }) {
             )}
           </div>
           {plan === 'free' && (
-            <a href="/plano-pro" style={{
-              background: T.blue, color:'#fff', border:'none', borderRadius: 9,
-              padding:'10px 18px', fontSize: 13.5, fontWeight: 700, textDecoration:'none'
-            }}>Fazer upgrade pro Pro →</a>
+            <span style={{
+              background: T.greenSoft, color:'#137333', borderRadius: 9,
+              padding:'10px 18px', fontSize: 13.5, fontWeight: 700
+            }}>✓ Todos os recursos liberados</span>
           )}
         </div>
       </div>
@@ -3894,7 +3894,7 @@ function HeroPosition({ progressPct, currentPos, isMobile, placeId, bizName, onA
 // Ranking — com blur pra plano Free
 // ─────────────────────────────────────────────────────────────
 function RankingList({ items, isMobile, plan, category, onEditCategory }) {
-  const locked = plan === 'free'
+  const locked = false   // tudo free: sem blur, sem selo PRO, sem upsell no ranking
   const catLabel = category ? `${category.charAt(0).toUpperCase() + category.slice(1)} · 3km` : 'Sua categoria · 3km'
   return (
     <Card style={{ position:'relative' }}>
@@ -5700,23 +5700,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl} />
       {!isMobile && <TopTabs active={tab} onChange={navigateFromMore} plan={plan} isMobile={false} />}
 
-      {/* Aba: CONCORRENTES (Pro) — funcional pro Pro, preview borrado pro Free */}
-      {tab === 'concorrentes' && (plan === 'pro'
-        ? <CompetitorsScreen data={d} isMobile={isMobile}/>
-        : <ProPreview tab="concorrentes" isMobile={isMobile}><CompetitorsScreen data={MOCK} isMobile={isMobile}/></ProPreview>
-      )}
+      {/* Aba: CONCORRENTES — free pra todos (sem mais preview borrado) */}
+      {tab === 'concorrentes' && <CompetitorsScreen data={d} isMobile={isMobile}/>}
 
-      {/* Aba: ALERTAS (Pro) — funcional pro Pro, preview borrado pro Free */}
-      {tab === 'alertas' && (plan === 'pro'
-        ? <AlertsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness} userEmail={user?.email}/>
-        : <ProPreview tab="alertas" isMobile={isMobile}><AlertsScreen data={MOCK} isMobile={isMobile} isReal={false} userEmail={user?.email}/></ProPreview>
-      )}
+      {/* Aba: ALERTAS — free pra todos */}
+      {tab === 'alertas' && <AlertsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness} userEmail={user?.email}/>}
 
-      {/* Aba: RELATÓRIOS (Pro) — funcional pro Pro, preview borrado pro Free */}
-      {tab === 'relatorios' && (plan === 'pro'
-        ? <ReportsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness}/>
-        : <ProPreview tab="relatorios" isMobile={isMobile}><ReportsScreen data={MOCK} isMobile={isMobile} isReal={false}/></ProPreview>
-      )}
+      {/* Aba: RELATÓRIOS — free pra todos */}
+      {tab === 'relatorios' && <ReportsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness}/>}
 
       {/* Aba LOJA virou página única (/kit) — clicar em "Loja" abre o /kit
           (vitrine + carrinho + checkout). Sem render interno; ver navigateFromMore. */}
