@@ -43,44 +43,27 @@ function nameScore(candidateName, queryName) {
   return coverage * 100 - extra * 2;
 }
 
-// Geocoda um CEP em lat/lng. A Geocoding API do projeto esta DESATIVADA, entao
-// usa a Places API (Find Place). Fallback pelo ViaCEP -> endereco -> Find Place
-// pra CEPs validos que o Google nao indexa direto. Cuidado critico: NUNCA
-// geocodar string vazia (endereco em branco cai no centroide do Brasil e
-// destroi o desempate por distancia). Retorna null se nao resolver com seguranca.
+// Geocoda um CEP em lat/lng via Geocoding API. Aceita o CEP com OU sem hifen
+// (o handler ja normaliza pra 8 digitos). Blindagem critica: pra um CEP que NAO
+// existe, a Geocoding API nao da erro — devolve o CENTROIDE do Brasil com
+// types:["country"] (formatted "Brasil"). Se aceitassemos isso, o desempate por
+// distancia mediria tudo a partir do meio do pais. Por isso so aceita um
+// resultado que seja de fato um CEP (types inclui "postal_code"). CEP invalido
+// -> retorna null -> a lista sai so por relevancia de nome, sem ponto inventado.
 async function geocodeCep(cepDigits, API_KEY) {
   const cepFmt = `${cepDigits.slice(0, 5)}-${cepDigits.slice(5)}`;
-  const findPlace = async (input) => {
+  try {
     const r = await fetchWithTimeout(
-      `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(input)}&inputtype=textquery&fields=geometry&language=pt-BR&key=${API_KEY}`,
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cepFmt)}&components=country:BR&language=pt-BR&key=${API_KEY}`,
       {}, 5000
     );
     const d = await r.json();
-    return d.candidates?.[0]?.geometry?.location || null;
-  };
-
-  // 1) Find Place direto no CEP (resolve a maioria dos CEPs validos).
-  try {
-    const loc = await findPlace(`${cepFmt} Brasil`);
-    if (inBrazil(loc)) return loc;
+    const hit = (d.results || []).find((x) => (x.types || []).includes("postal_code"));
+    const loc = hit?.geometry?.location;
+    if (inBrazil(loc)) return { lat: loc.lat, lng: loc.lng };
   } catch (e) {
-    console.warn("[searchbiz] find place do CEP falhou:", e.message);
+    console.warn("[searchbiz] geocode do CEP falhou:", e.message);
   }
-
-  // 2) Fallback ViaCEP -> endereco. So' avança se o ViaCEP devolver um endereco
-  //    REAL (com cidade); assim nunca geocoda string vazia.
-  try {
-    const v = await fetchWithTimeout(`https://viacep.com.br/ws/${cepDigits}/json/`, {}, 4000);
-    const vd = await v.json();
-    if (vd && !vd.erro && vd.localidade) {
-      const addr = [vd.logradouro, vd.bairro, vd.localidade, vd.uf].filter(Boolean).join(", ");
-      const loc = await findPlace(`${addr}, Brasil`);
-      if (inBrazil(loc)) return loc;
-    }
-  } catch (e) {
-    console.warn("[searchbiz] fallback ViaCEP falhou:", e.message);
-  }
-
   return null;
 }
 
@@ -120,14 +103,27 @@ export default async function handler(req, res) {
       origin = await geocodeCep(cepDigits, API_KEY);
     }
 
-    // 4. Ordena pela PRIORIDADE pedida: NOME (score) primeiro; entre nomes de
-    //    mesmo score, a UNIDADE mais proxima do CEP em cima (desempate). Sem CEP,
-    //    mantem a ordem de relevancia do Google dentro do mesmo score.
-    const scored = raw.map((p) => ({
+    // 4. Com CEP valido, descarta o que esta ABSURDAMENTE longe (> 150km). Um
+    //    homonimo em outra cidade/estado (ex: "Bar Imperatriz" no Rio, 369km, pro
+    //    CEP de SP) nunca e' o negocio do usuario — ele digitou o proprio CEP.
+    //    Sem isso, um xara distante com nome identico furava a fila. So corta
+    //    quando temos o ponto do CEP (senao nao da pra medir).
+    const MAX_DIST_M = 150000;
+    let scored = raw.map((p) => ({
       p,
       _score: nameScore(p.name, nameQuery),
       _dist: origin ? haversine(origin, p.geometry?.location) : null,
     }));
+    if (origin) {
+      const near = scored.filter((s) => s._dist <= MAX_DIST_M);
+      // So corta se sobrar algum perto. Se TUDO estiver longe (ex: negocio unico
+      // distante do CEP digitado), mantem a lista pra nao dar "nada encontrado".
+      if (near.length) scored = near;
+    }
+
+    // 5. Ordena pela PRIORIDADE pedida: NOME (score) primeiro; entre nomes de
+    //    mesmo score, a UNIDADE mais proxima do CEP em cima (desempate). Sem CEP,
+    //    mantem a ordem de relevancia do Google dentro do mesmo score.
     scored.sort((a, b) =>
       (b._score - a._score) ||
       ((a._dist ?? Infinity) - (b._dist ?? Infinity))
