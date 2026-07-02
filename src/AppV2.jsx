@@ -5867,21 +5867,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           </>
         ) : (
           <>
-            {/* REAL: sem gráfico MOCK. Ranking ao lado das Avaliações (preenche o espaço
-                que sobrou do gráfico); Oportunidades vira faixa de largura total embaixo. */}
-            {hasComp ? (
-              <Section>
-                <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 460px) 1fr', gap: isMobile ? 14 : 24, alignItems:'start' }}>
-                  <RankingList items={d.ranking} isMobile={isMobile} plan={plan} category={d.activeCategory} onEditCategory={() => navigateFromMore('config', 'negocio')} />
-                  <RecentReviews items={d.recentReviews} trend={null} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
-                </div>
-              </Section>
-            ) : (
-              // Sem dado de concorrente: só as avaliações reais, largura total.
-              <Section>
-                <RecentReviews items={d.recentReviews} trend={null} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
-              </Section>
-            )}
+            {/* REAL: o ranking já está nas duas lentes 1km/3km acima — aqui só as
+                avaliações reais em largura total. Oportunidades como faixa embaixo. */}
+            <Section>
+              <RecentReviews items={d.recentReviews} trend={null} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
+            </Section>
             <Section>
               <Opportunities count={null} placeId={d.biz.placeId} />
             </Section>
