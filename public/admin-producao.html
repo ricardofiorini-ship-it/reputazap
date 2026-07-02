@@ -223,8 +223,11 @@ function exportCSV() {
   const base = "https://startouch.com.br/r/";
   let csv = "codigo,product_type,batch_name,nfc_url,qr_url\n";
   for (const code of lastCodes) {
-    const url = base + code;
-    csv += `${code},${lastBatch.product_type},"${lastBatch.batch_name}",${url},${url}\n`;
+    // Mesma rota /r/CODE nas duas colunas; UTMs distinguem o meio físico (chip NFC vs QR impresso).
+    // O servidor (/api/r/[code]) repassa esses UTMs pro destino final (GA4/gtag).
+    const nfcUrl = base + code + "?utm_source=placa&utm_medium=nfc";
+    const qrUrl = base + code + "?utm_source=placa&utm_medium=qr";
+    csv += `${code},${lastBatch.product_type},"${lastBatch.batch_name}",${nfcUrl},${qrUrl}\n`;
   }
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const a = document.createElement("a");

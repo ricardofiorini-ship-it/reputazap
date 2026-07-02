@@ -94,6 +94,8 @@ Modelo "TrustHero adapted" — **FLUXO ÚNICO de ativação independente de cana
 
 **Produção física:** gráfica/fornecedor grava o NFC (chip NTAG213+, NDEF/URL) e imprime o QR a partir do CSV — ambos apontam pra mesma URL `/r/CODE`.
 
+**UTMs de placa (atribuição, 2026-07-02):** o CSV grava `nfc_url` com `?utm_source=placa&utm_medium=nfc` e `qr_url` com `?utm_source=placa&utm_medium=qr` (mesma rota `/r/CODE`; o medium distingue o meio físico). O servidor `api/r/[code].js` **repassa** os UTMs que chegam na URL pro destino final (`/avaliar`, `/ativar-codigo` — onde vive o GA4/gtag). **Placas antigas** foram gravadas sem parâmetros: quando batidas, o servidor aplica o padrão `utm_source=placa&utm_medium=nfc` — sem regravar o chip físico. Assim toda batida chega na landing com atribuição.
+
 ## IA Radar (diagnóstico de presença em IA)
 
 Feature de **GEO/medição**: o usuário informa nome + categoria + cidade; o backend pergunta a 3 motores de IA com busca real (Gemini Flash, GPT-4o-mini, Perplexity Sonar) "qual a melhor {categoria} em {cidade}?" (6 perguntas/motor), mede em quantas respostas o negócio é citado e quais concorrentes aparecem, e devolve um **score 0-100** (taxa de menção) + concorrentes + diagnóstico em texto.

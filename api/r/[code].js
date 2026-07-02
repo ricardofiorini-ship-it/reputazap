@@ -13,6 +13,33 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
+// ── UTMs de placa ───────────────────────────────────────────
+// Toda batida de placa deve chegar na página de destino (/avaliar, /ativar-codigo,
+// onde vive o GA4/gtag) com atribuição de origem. Duas realidades convivem:
+//   • Placas NOVAS: a gráfica grava a URL já com ?utm_source=placa&utm_medium=nfc|qr
+//     (ver CSV em admin-producao.html). O medium (nfc vs qr) fica embutido no chip/QR.
+//   • Placas ANTIGAS: foram gravadas como /r/CODE, SEM parâmetros.
+// Solução única no servidor: repassa os UTMs que vierem na URL e, se não vier
+// NENHUM (placa antiga), aplica o padrão. Não muda o chip físico já gravado.
+const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+
+function buildPlateUtm(query) {
+  const parts = [];
+  for (const k of UTM_KEYS) {
+    const v = query[k];
+    if (v != null && String(v) !== "") parts.push(`${k}=${encodeURIComponent(String(v))}`);
+  }
+  // Sem nenhum UTM na URL = placa antiga → padrão de placa (assume NFC, o toque é o caso comum).
+  if (parts.length === 0) parts.push("utm_source=placa", "utm_medium=nfc");
+  return parts.join("&");
+}
+
+// Anexa os UTMs ao destino respeitando se ele já tem query string.
+function withUtm(dest, utm) {
+  if (!utm) return dest;
+  return dest + (dest.includes("?") ? "&" : "?") + utm;
+}
+
 // Tenta uma consulta ao Supabase até `tries` vezes antes de desistir.
 // Crucial pro fluxo de placa: uma falha transitória de banco NÃO pode ser
 // confundida com "placa não existe" — senão uma placa ativa, no balcão do
@@ -46,9 +73,12 @@ export default async function handler(req, res) {
   // aqui e, se reviewReady, reencaminha pro /r/CODE (fluxo de avaliação).
   const checkOnly = req.query.check === "1";
 
+  // UTMs a repassar ao destino (padrão de placa se a URL veio sem parâmetros).
+  const utm = buildPlateUtm(req.query);
+
   if (!code) {
     if (checkOnly) return res.status(200).json({ ok: true, status: "not_found", reviewReady: false });
-    return res.redirect(302, "/ativar-codigo?error=invalida");
+    return res.redirect(302, withUtm("/ativar-codigo?error=invalida", utm));
   }
 
   try {
@@ -81,22 +111,22 @@ export default async function handler(req, res) {
     // pro cliente tocar de novo em vez de descartar uma placa boa.
     if (error) {
       console.error("[r/code] busca de placa falhou após retries:", error.message || error);
-      return res.redirect(302, `/ativar-codigo?error=instavel&code=${encodeURIComponent(code)}`);
+      return res.redirect(302, withUtm(`/ativar-codigo?error=instavel&code=${encodeURIComponent(code)}`, utm));
     }
 
     // 1b. Banco respondeu, mas placa realmente não existe (0 linhas)
     if (!plate) {
-      return res.redirect(302, "/ativar-codigo?error=invalida");
+      return res.redirect(302, withUtm("/ativar-codigo?error=invalida", utm));
     }
 
     // 2. Placa desabilitada
     if (plate.status === "disabled") {
-      return res.redirect(302, "/ativar-codigo?error=desabilitada");
+      return res.redirect(302, withUtm("/ativar-codigo?error=desabilitada", utm));
     }
 
     // 3. Placa ainda não ativa (in_stock / assigned / sent) → onboarding
     if (plate.status !== "active") {
-      return res.redirect(302, `/ativar-codigo?code=${encodeURIComponent(plate.code)}`);
+      return res.redirect(302, withUtm(`/ativar-codigo?code=${encodeURIComponent(plate.code)}`, utm));
     }
 
     // 4. Placa ativa → captura review. Resolve place_id do negócio vinculado.
@@ -113,14 +143,14 @@ export default async function handler(req, res) {
       // A placa está ativa; o negócio existe; foi só o banco que tropeçou.
       if (bizErr) {
         console.error("[r/code] busca de negócio falhou após retries:", bizErr.message || bizErr);
-        return res.redirect(302, `/ativar-codigo?error=instavel&code=${encodeURIComponent(plate.code)}`);
+        return res.redirect(302, withUtm(`/ativar-codigo?error=instavel&code=${encodeURIComponent(plate.code)}`, utm));
       }
       placeId = biz?.place_id || null;
     }
 
     // Sem place_id resolvido de verdade (negócio sem place_id) → manda pra reativar
     if (!placeId) {
-      return res.redirect(302, `/ativar-codigo?code=${encodeURIComponent(plate.code)}`);
+      return res.redirect(302, withUtm(`/ativar-codigo?code=${encodeURIComponent(plate.code)}`, utm));
     }
 
     // Incrementa contador de taps (await rápido pra garantir gravação)
@@ -169,10 +199,10 @@ export default async function handler(req, res) {
       }
     }
 
-    return res.redirect(302, `/avaliar?place_id=${encodeURIComponent(placeId)}&plate=${encodeURIComponent(plate.code)}`);
+    return res.redirect(302, withUtm(`/avaliar?place_id=${encodeURIComponent(placeId)}&plate=${encodeURIComponent(plate.code)}`, utm));
   } catch (err) {
     // Exceção inesperada = problema nosso, não código inválido do cliente.
     console.error("[r/code] erro:", err);
-    return res.redirect(302, `/ativar-codigo?error=instavel&code=${encodeURIComponent(code)}`);
+    return res.redirect(302, withUtm(`/ativar-codigo?error=instavel&code=${encodeURIComponent(code)}`, utm));
   }
 }
