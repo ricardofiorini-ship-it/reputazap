@@ -21,12 +21,38 @@ export default async function handler(req, res) {
   const cepDigits = (cep || "").replace(/\D/g, "");
 
   try {
-    // Text Search (e nao Find Place): retorna uma LISTA de lugares (ate 20 por
-    // pagina), essencial pra redes com varias unidades.
-    const searchRes = await fetchWithTimeout(
-      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&language=pt-BR&region=br&key=${API_KEY}`,
-      {}, 8000
-    );
+    // 1. Se veio CEP, geocoda ANTES da busca. O ponto (lat/lng) do CEP e' usado
+    //    em DOIS momentos: (a) como VIES geografico (location+radius) na propria
+    //    Text Search do Google e (b) pra ordenar por proximidade depois.
+    //    Sem o vies, o Google devolve as unidades mais "famosas" da cidade (por
+    //    numero de reviews); a loja mais PERTO do cliente pode nem entrar na lista
+    //    dos 20 candidatos — e ai nenhum reordenamento posterior consegue resgatar.
+    let origin = null;
+    if (cepDigits.length === 8) {
+      try {
+        const geoRes = await fetchWithTimeout(
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${cepDigits}&components=country:BR&language=pt-BR&key=${API_KEY}`,
+          {}, 5000
+        );
+        const geo = await geoRes.json();
+        const loc = geo.results?.[0]?.geometry?.location;
+        if (loc) origin = { lat: loc.lat, lng: loc.lng };
+      } catch (e) {
+        console.warn("[searchbiz] geocoding falhou, seguindo sem vies geografico:", e.message);
+      }
+    }
+
+    // 2. Text Search (e nao Find Place): retorna uma LISTA de lugares (ate 20 por
+    //    pagina), essencial pra redes com varias unidades. Com CEP resolvido,
+    //    aplica vies geografico de ~12km ao redor do CEP — forte o bastante pra
+    //    trazer o cluster local da rede, mas como location/radius e' PREFERENCIA
+    //    (nao filtro rigido), unidades um pouco mais longe ainda podem aparecer.
+    let searchUrl =
+      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&language=pt-BR&region=br&key=${API_KEY}`;
+    if (origin) {
+      searchUrl += `&location=${origin.lat},${origin.lng}&radius=12000`;
+    }
+    const searchRes = await fetchWithTimeout(searchUrl, {}, 8000);
     const data = await searchRes.json();
 
     if (!data.results?.length) {
@@ -43,25 +69,9 @@ export default async function handler(req, res) {
       return res.json({ results: [] });
     }
 
-    // Se temos CEP, geocoda pra obter lat/lng de referencia e ordena resultados
-    // pela proximidade — pra redes (varias unidades), a loja mais perto do CEP
-    // do cliente fica no topo (em vez do "best match" do Google, que costuma ser
-    // a unidade com mais reviews, nao a mais perto).
-    let origin = null;
-    if (cepDigits.length === 8) {
-      try {
-        const geoRes = await fetchWithTimeout(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${cepDigits}&components=country:BR&language=pt-BR&key=${API_KEY}`,
-          {}, 5000
-        );
-        const geo = await geoRes.json();
-        const loc = geo.results?.[0]?.geometry?.location;
-        if (loc) origin = { lat: loc.lat, lng: loc.lng };
-      } catch (e) {
-        console.warn("[searchbiz] geocoding falhou, mantendo ordem do Google:", e.message);
-      }
-    }
-
+    // 3. Ordena os candidatos pela proximidade ao CEP — pra redes (varias
+    //    unidades), a loja mais perto do cliente fica no topo (em vez do "best
+    //    match" do Google, que costuma ser a unidade com mais reviews).
     let ordered = data.results;
     if (origin) {
       ordered = data.results
