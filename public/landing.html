@@ -642,7 +642,7 @@ fbq('track', 'PageView');
   @media (min-width: 480px) {
     .hero-ctas { flex-direction: row; gap: 12px; width: auto; }
   }
-  .hero-cta-primary, .hero-cta-secondary {
+  .hero-cta-primary, .hero-cta-secondary, .hero-cta-buy {
     display: inline-flex; align-items: center; justify-content: center;
     gap: 8px;
     padding: 14px 28px;
@@ -669,6 +669,21 @@ fbq('track', 'PageView');
   }
   .hero-cta-primary:active { transform: translateY(1px); }
   .hero-cta-primary svg { width: 16px; height: 16px; flex-shrink: 0; }
+  /* CTA de COMPRA (verde) — contraste forte contra o azul dominante, leva direto pro /kit.
+     Adicionado 2026-07-02 pra elevar a taxa de landing→kit (era 8%). */
+  .hero-cta-buy {
+    background: var(--st-green-accent);
+    color: #FFFFFF;
+    border: 1px solid var(--st-green-accent);
+    box-shadow: var(--st-shadow-md);
+  }
+  .hero-cta-buy:hover {
+    background: #188038;
+    border-color: #188038;
+    box-shadow: var(--st-shadow-lg);
+  }
+  .hero-cta-buy:active { transform: translateY(1px); }
+  .hero-cta-buy svg { width: 18px; height: 18px; flex-shrink: 0; }
   .hero-cta-secondary {
     background: transparent;
     color: var(--st-blue-primary);
@@ -3872,6 +3887,14 @@ fbq('track', 'PageView');
       <h1>Mais avaliações no Google.</h1>
       <p class="hero-sub">Seu cliente aproxima o celular e avalia.</p>
       <div class="hero-ctas">
+        <a class="hero-cta-buy" href="/kit?add=cartao-nfc">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          Quero minha placa
+        </a>
         <a class="hero-cta-primary" href="/app">
           Ver minha presença no Google
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
