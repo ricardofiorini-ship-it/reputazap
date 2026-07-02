@@ -4916,6 +4916,110 @@ function GuestGate({ url, feature, isMobile }) {
   )
 }
 
+// Teaser do "acompanhar" — portão SUAVE do modo convidado. Mantém o retrato
+// (posição, concorrentes) aberto e tranca só o que exige conta e faz sentido ao
+// longo do tempo: evolução semanal, alertas e sugestões de ação. Cria desejo
+// sem esconder o "aha".
+function GuestFollowTeaser({ url, isMobile }) {
+  return (
+    <Card>
+      <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 8 }}>
+        <span style={{ fontSize: 22 }}>🔒</span>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 16 : 18, fontWeight: 700, color: T.text, margin: 0, letterSpacing:'-0.01em' }}>
+          Acompanhe sua evolução — crie conta grátis
+        </h3>
+      </div>
+      <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, margin:'0 0 14px' }}>
+        Você já viu onde está hoje. Com uma conta (também grátis), o StarTouch passa a <b>trabalhar por você toda semana</b>:
+      </p>
+      <ul style={{ listStyle:'none', padding: 0, margin:'0 0 18px', display:'flex', flexDirection:'column', gap: 10 }}>
+        {[
+          ['📈', <>Evolução <b>semana a semana</b> — veja se subiu ou caiu no ranking</>],
+          ['🔔', <>Alerta <b>na hora</b> quando um concorrente te ultrapassar</>],
+          ['🎯', <>O que fazer <b>essa semana</b> pra subir de posição</>],
+        ].map(([icon, txt], i) => (
+          <li key={i} style={{ display:'flex', alignItems:'flex-start', gap: 10, fontSize: 13.5, color: T.text }}>
+            <span style={{ fontSize: 16, flexShrink: 0, lineHeight: 1.3 }}>{icon}</span>
+            <span style={{ lineHeight: 1.4 }}>{txt}</span>
+          </li>
+        ))}
+      </ul>
+      <a href={url} style={{
+        display:'inline-flex', alignItems:'center', gap: 8,
+        background: T.blue, color:'#fff', textDecoration:'none',
+        padding:'12px 22px', borderRadius: 11, fontSize: 14, fontWeight: 700,
+        boxShadow:'0 4px 14px rgba(26,115,232,0.28)'
+      }}>Criar conta grátis e acompanhar →</a>
+    </Card>
+  )
+}
+
+// Modal de EXIT-INTENT (rede de segurança de conversão) — dispara quando o
+// convidado leva o cursor pra fora pela borda de cima (indo fechar/trocar de
+// aba). Só desktop (touch não tem "mouseleave" útil), 1x por sessão (não perturba).
+// Mensagem personalizada com os números reais (mesma lógica da tarja).
+function ExitIntentModal({ url, bizName, rank, gap, targetPos, isMobile }) {
+  const [show, setShow] = React.useState(false)
+  const firedRef = React.useRef(false)
+  React.useEffect(() => {
+    if (isMobile) return
+    try { if (sessionStorage.getItem('rz_exit_shown') === '1') return } catch {}
+    function onLeave(e) {
+      if (firedRef.current) return
+      // Saiu pela borda superior da janela (rumo à barra de abas / fechar).
+      if (e.clientY <= 0 && !e.relatedTarget) {
+        firedRef.current = true
+        try { sessionStorage.setItem('rz_exit_shown', '1') } catch {}
+        setShow(true)
+      }
+    }
+    document.addEventListener('mouseout', onLeave)
+    return () => document.removeEventListener('mouseout', onLeave)
+  }, [isMobile])
+
+  if (!show) return null
+
+  let headline, sub
+  if (rank === 1) {
+    headline = `${bizName || 'Seu negócio'} é o 1º da categoria!`
+    sub = 'Crie conta grátis pra manter a liderança e ser avisado se um concorrente chegar perto.'
+  } else if (gap && gap > 0 && targetPos) {
+    headline = `Faltam ${gap} ${gap === 1 ? 'avaliação' : 'avaliações'} pro ${targetPos}º lugar`
+    sub = 'Não perca esse diagnóstico. Crie conta grátis e comece a subir hoje.'
+  } else {
+    headline = 'Antes de sair…'
+    sub = `Salve o diagnóstico de ${bizName || 'seu negócio'} e acompanhe sua evolução. É grátis.`
+  }
+
+  return (
+    <div onClick={() => setShow(false)} style={{
+      position:'fixed', inset:0, background:'rgba(0,0,0,0.5)',
+      display:'flex', alignItems:'center', justifyContent:'center', padding: 20, zIndex: 300
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background:'#fff', borderRadius: 18, padding: 32, maxWidth: 440, width:'100%',
+        textAlign:'center', position:'relative', boxShadow:'0 20px 60px rgba(0,0,0,0.3)'
+      }}>
+        <button onClick={() => setShow(false)} aria-label="Fechar" style={{
+          position:'absolute', top: 14, right: 16, background:'none', border:'none',
+          fontSize: 20, color: T.textDim, cursor:'pointer', lineHeight: 1
+        }}>✕</button>
+        <div style={{ fontSize: 44, marginBottom: 12 }}>👋</div>
+        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 23, fontWeight: 800, color: T.text, margin:'0 0 10px', letterSpacing:'-0.02em', lineHeight:1.2 }}>{headline}</h2>
+        <p style={{ fontSize: 14.5, color: T.textMid, lineHeight: 1.55, margin:'0 0 22px' }}>{sub}</p>
+        <a href={url} style={{
+          display:'inline-block', background: T.blue, color:'#fff', textDecoration:'none',
+          fontWeight:700, padding:'13px 26px', borderRadius: 12, fontSize: 15,
+          boxShadow:'0 4px 14px rgba(26,115,232,0.30)'
+        }}>Salvar meu diagnóstico grátis →</a>
+        <div style={{ marginTop: 12 }}>
+          <button onClick={() => setShow(false)} style={{ background:'none', border:'none', color: T.textDim, fontSize: 12.5, cursor:'pointer' }}>Agora não</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Controle de CATEGORIA do ranking (funcionalidade StarTouch: "sua arena de
 // concorrência"). Deixa explícito contra quem o cliente compete e permite trocar.
 // Logado: salva category_override no banco e recalcula (reload garante que TODOS
@@ -5720,17 +5824,31 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         gap={hasComp ? (d.kpis.nextGoal?.reviewsToNext ?? null) : null}
         targetPos={hasComp ? (d.kpis.nextGoal?.targetPosition ?? null) : null}
       />}
+      {isGuest && <ExitIntentModal
+        url={guestSignupUrl}
+        isMobile={isMobile}
+        bizName={d.businessInfo?.name || d.biz?.name || ''}
+        rank={hasComp ? d.kpis.rankingPos : null}
+        gap={hasComp ? (d.kpis.nextGoal?.reviewsToNext ?? null) : null}
+        targetPos={hasComp ? (d.kpis.nextGoal?.targetPosition ?? null) : null}
+      />}
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl} />
       {!isMobile && <TopTabs active={tab} onChange={navigateFromMore} plan={plan} isMobile={false} />}
 
       {/* Aba: CONCORRENTES — free pra todos (sem mais preview borrado) */}
       {tab === 'concorrentes' && <CompetitorsScreen data={d} isMobile={isMobile}/>}
 
-      {/* Aba: ALERTAS — free pra todos */}
-      {tab === 'alertas' && <AlertsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness} userEmail={user?.email}/>}
+      {/* Aba: ALERTAS — free pra logado; convidado precisa de conta (email) */}
+      {tab === 'alertas' && (isGuest
+        ? <GuestGate url={guestSignupUrl} feature="os alertas do seu ranking" isMobile={isMobile}/>
+        : <AlertsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness} userEmail={user?.email}/>
+      )}
 
-      {/* Aba: RELATÓRIOS — free pra todos */}
-      {tab === 'relatorios' && <ReportsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness}/>}
+      {/* Aba: RELATÓRIOS — free pra logado; convidado precisa de conta */}
+      {tab === 'relatorios' && (isGuest
+        ? <GuestGate url={guestSignupUrl} feature="os relatórios semanais" isMobile={isMobile}/>
+        : <ReportsScreen data={d} isMobile={isMobile} isReal={!demoMode && real.hasBusiness}/>
+      )}
 
       {/* Aba LOJA virou página única (/kit) — clicar em "Loja" abre o /kit
           (vitrine + carrinho + checkout). Sem render interno; ver navigateFromMore. */}
@@ -5847,9 +5965,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         )}
 
         {/* SUGESTÕES DA SEMANA (push de direção).
-            Demo: itens MOCK. Real: calculadas do estado competitivo (realWeekActions).
-            Só com dado real de concorrente (hasComp) — senão não há o que sugerir. */}
-        {(demoMode || hasComp) && (
+            Convidado: portão suave — teaser do "acompanhar" (evolução/alertas/ação).
+            Logado — Demo: itens MOCK. Real: calculadas do estado competitivo. */}
+        {isGuest ? (
+        <Section>
+          <GuestFollowTeaser url={guestSignupUrl} isMobile={isMobile} />
+        </Section>
+        ) : (demoMode || hasComp) && (
         <Section>
           <WeekActions items={demoMode ? d.weekActions : realWeekActions(d).slice(0, 1)} isMobile={isMobile} />
         </Section>
