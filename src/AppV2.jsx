@@ -4866,18 +4866,32 @@ function GuestSearch({ isMobile }) {
 }
 
 // Tarja fixa do modo convidado — CTA de cadastro (conversão).
-function GuestBanner({ url, isMobile }) {
+// Personalizada com os números REAIS do negócio (gap pro topo) + urgência
+// (diagnóstico temporário). Genérico converte menos que específico.
+function GuestBanner({ url, isMobile, bizName, rank, gap, targetPos }) {
+  const name = bizName || 'seu negócio'
+  let msg
+  if (rank === 1) {
+    // Já é líder → medo de PERDER a liderança.
+    msg = <>🏆 <b>{bizName || 'Seu negócio'}</b> é o <b>1º da categoria</b>! Crie conta grátis pra <b>manter a liderança</b> e ser avisado se um concorrente chegar perto.</>
+  } else if (gap && gap > 0 && targetPos) {
+    // Tem gap real → mostra exatamente quanto falta pra subir.
+    msg = <>🎯 Faltam <b>{gap} {gap === 1 ? 'avaliação' : 'avaliações'}</b> pro <b>{targetPos}º lugar</b>. Este diagnóstico é temporário — crie conta grátis e comece a subir hoje.</>
+  } else {
+    // Sem dado de ranking → foca em salvar/acompanhar (perecibilidade).
+    msg = <>👀 Prévia do painel de <b>{name}</b>. Este diagnóstico é temporário — crie conta grátis pra <b>salvar</b>, acompanhar sua evolução e receber alertas.</>
+  }
   return (
     <div style={{
       background: T.red, color:'#fff',
       display:'flex', alignItems:'center', justifyContent:'center', gap: isMobile?8:12, flexWrap:'wrap',
       padding: isMobile ? '9px 14px' : '10px 18px', fontSize: isMobile?12:13.5, fontWeight:600, textAlign:'center'
     }}>
-      <span>👀 Você está vendo uma <b>prévia</b> do seu painel — crie sua conta grátis pra salvar e receber alertas.</span>
+      <span>{msg}</span>
       <a href={url} style={{
         background:'#fff', color: T.red, textDecoration:'none', fontWeight:700,
         padding:'6px 14px', borderRadius: 8, fontSize: isMobile?12.5:13, whiteSpace:'nowrap'
-      }}>Criar conta grátis →</a>
+      }}>Salvar meu diagnóstico →</a>
     </div>
   )
 }
@@ -5698,7 +5712,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       // Espaço pro bottom tab bar não cobrir o conteúdo final (só mobile)
       paddingBottom: isMobile ? 'calc(72px + env(safe-area-inset-bottom, 0))' : 0
     }}>
-      {isGuest && <GuestBanner url={guestSignupUrl} isMobile={isMobile} />}
+      {isGuest && <GuestBanner
+        url={guestSignupUrl}
+        isMobile={isMobile}
+        bizName={d.businessInfo?.name || d.biz?.name || ''}
+        rank={hasComp ? d.kpis.rankingPos : null}
+        gap={hasComp ? (d.kpis.nextGoal?.reviewsToNext ?? null) : null}
+        targetPos={hasComp ? (d.kpis.nextGoal?.targetPosition ?? null) : null}
+      />}
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl} />
       {!isMobile && <TopTabs active={tab} onChange={navigateFromMore} plan={plan} isMobile={false} />}
 
