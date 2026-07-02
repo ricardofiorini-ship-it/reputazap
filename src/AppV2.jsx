@@ -4689,12 +4689,9 @@ function GuestSearch({ isMobile }) {
       // vai separado, so pra desempatar por proximidade entre nomes iguais (rede).
       const name = q.trim()
       const type = term.trim()
-      const cepDigits = (loc || '').replace(/\D/g, '')
-      const isCep = cepDigits.length === 8
-      const locText = isCep ? '' : loc.trim()   // texto livre (ex: "São Paulo") so quando nao e' CEP
-      const fullQ = [name, type, locText].filter(Boolean).join(' ')
-      const params = new URLSearchParams({ q: fullQ, name })
-      if (isCep) params.set('cep', cepDigits)
+      const cepDigits = (loc || '').replace(/\D/g, '')   // CEP obrigatorio (validado em canSearch)
+      const fullQ = [name, type].filter(Boolean).join(' ')
+      const params = new URLSearchParams({ q: fullQ, name, cep: cepDigits })
       const r = await fetch(`/api/searchbiz?${params.toString()}`)
       const d = await r.json()
       setResults(d.results || [])
@@ -4718,7 +4715,14 @@ function GuestSearch({ isMobile }) {
     fontFamily:"'Inter', sans-serif", background:'#fff'
   }
   const labelStyle = { display:'block', fontSize:13, fontWeight:600, color:T.textMid, margin:'0 0 6px' }
-  const canSearch = q.trim().length >= 2 && !loading
+  // Mascara de CEP: so digitos, maximo 8, hifen automatico depois do 5o (00000-000).
+  const maskCep = (v) => {
+    const d = (v || '').replace(/\D/g, '').slice(0, 8)
+    return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d
+  }
+  const cepDigits = (loc || '').replace(/\D/g, '')
+  // CEP agora e' OBRIGATORIO (8 digitos) — garante o desempate por proximidade.
+  const canSearch = q.trim().length >= 2 && cepDigits.length === 8 && !loading
 
   return (
     <div style={{ background:T.bg, minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', padding:'32px 18px 80px' }}>
@@ -4789,8 +4793,11 @@ function GuestSearch({ isMobile }) {
               <input style={inputStyle} value={q} onChange={e=>setQ(e.target.value)} placeholder="Ex: Padaria do João" autoFocus/>
             </div>
             <div style={{ marginBottom:14 }}>
-              <label style={labelStyle}>Cidade ou CEP</label>
-              <input style={inputStyle} value={loc} onChange={e=>setLoc(e.target.value)} placeholder="Ex: São Paulo ou 04567-000"/>
+              <label style={labelStyle}>CEP do seu negócio</label>
+              <input style={inputStyle} value={loc} onChange={e=>setLoc(maskCep(e.target.value))} inputMode="numeric" maxLength={9} placeholder="Ex: 05086-010"/>
+              <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
+                Usamos o CEP pra achar exatamente <b>a sua unidade</b> (importante se houver lojas com nome parecido).
+              </span>
             </div>
             <div style={{ marginBottom:18 }}>
               <label style={labelStyle}>O que seus clientes digitam no Google pra te achar?</label>
