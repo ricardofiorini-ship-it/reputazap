@@ -21,12 +21,8 @@ export default async function handler(req, res) {
   const cepDigits = (cep || "").replace(/\D/g, "");
 
   try {
-    // 1. Se veio CEP, geocoda ANTES da busca. O ponto (lat/lng) do CEP e' usado
-    //    em DOIS momentos: (a) como VIES geografico (location+radius) na propria
-    //    Text Search do Google e (b) pra ordenar por proximidade depois.
-    //    Sem o vies, o Google devolve as unidades mais "famosas" da cidade (por
-    //    numero de reviews); a loja mais PERTO do cliente pode nem entrar na lista
-    //    dos 20 candidatos — e ai nenhum reordenamento posterior consegue resgatar.
+    // 1. Se veio CEP, geocoda pra ancorar a busca no ponto do cliente. Essa
+    //    coordenada guia tanto a busca (Nearby Search) quanto a ordenacao final.
     let origin = null;
     if (cepDigits.length === 8) {
       try {
@@ -38,52 +34,74 @@ export default async function handler(req, res) {
         const loc = geo.results?.[0]?.geometry?.location;
         if (loc) origin = { lat: loc.lat, lng: loc.lng };
       } catch (e) {
-        console.warn("[searchbiz] geocoding falhou, seguindo sem vies geografico:", e.message);
+        console.warn("[searchbiz] geocoding falhou, seguindo sem ancora de CEP:", e.message);
       }
     }
 
-    // 2. Text Search (e nao Find Place): retorna uma LISTA de lugares (ate 20 por
-    //    pagina), essencial pra redes com varias unidades. Com CEP resolvido,
-    //    aplica vies geografico de ~12km ao redor do CEP — forte o bastante pra
-    //    trazer o cluster local da rede, mas como location/radius e' PREFERENCIA
-    //    (nao filtro rigido), unidades um pouco mais longe ainda podem aparecer.
-    let searchUrl =
-      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&language=pt-BR&region=br&key=${API_KEY}`;
-    if (origin) {
-      searchUrl += `&location=${origin.lat},${origin.lng}&radius=12000`;
-    }
-    const searchRes = await fetchWithTimeout(searchUrl, {}, 8000);
-    const data = await searchRes.json();
+    let raw = [];
 
-    if (!data.results?.length) {
+    // 2. COM ponto do CEP: usa Nearby Search com rankby=distance. Diferente da
+    //    Text Search (onde location/radius e' so uma preferencia fraca que o
+    //    nome da cidade no texto atropela), o Nearby ANCORA de verdade no ponto
+    //    e devolve os lugares que casam com o nome JA ORDENADOS pela distancia
+    //    real — a unidade mais proxima primeiro. E' o que o Google Maps faz
+    //    quando voce busca uma rede perto de um lugar. Resolve o caso "rede com
+    //    varias unidades" de forma confiavel (a loja perto entra na lista, em
+    //    vez de so as mais "famosas" da cidade).
+    if (origin) {
+      const nearbyUrl =
+        `https://maps.googleapis.com/maps/api/place/nearbysearch/json?keyword=${encodeURIComponent(q)}` +
+        `&location=${origin.lat},${origin.lng}&rankby=distance&language=pt-BR&key=${API_KEY}`;
+      try {
+        const nRes = await fetchWithTimeout(nearbyUrl, {}, 8000);
+        const nData = await nRes.json();
+        raw = nData.results || [];
+      } catch (e) {
+        console.warn("[searchbiz] nearby search falhou, caindo pro text search:", e.message);
+      }
+    }
+
+    // 3. SEM CEP (ou Nearby vazio) → Text Search ampla (ate 20 lugares). Cobre
+    //    busca por cidade/nome digitados no texto e serve de rede de seguranca.
+    if (!raw.length) {
+      const textRes = await fetchWithTimeout(
+        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&language=pt-BR&region=br&key=${API_KEY}`,
+        {}, 8000
+      );
+      const tData = await textRes.json();
+      raw = tData.results || [];
+    }
+
+    if (!raw.length) {
       return res.json({ results: [] });
     }
 
     // Filtra lojas fechadas/temporariamente fechadas — Google mantem no indice
     // mesmo apos o dono fechar; mostrar essas dava resultado confuso pro usuario.
-    data.results = data.results.filter(p =>
-      !p.business_status || p.business_status === "OPERATIONAL"
-    );
+    raw = raw.filter(p => !p.business_status || p.business_status === "OPERATIONAL");
 
-    if (!data.results.length) {
+    if (!raw.length) {
       return res.json({ results: [] });
     }
 
-    // 3. Ordena os candidatos pela proximidade ao CEP — pra redes (varias
-    //    unidades), a loja mais perto do cliente fica no topo (em vez do "best
-    //    match" do Google, que costuma ser a unidade com mais reviews).
-    let ordered = data.results;
+    // 4. Ordena pela proximidade ao CEP. O Nearby ja vem em ordem de distancia,
+    //    mas recalcular aqui garante consistencia (inclusive no fallback) e
+    //    permite devolver a distancia em metros pra UI.
+    let ordered = raw;
     if (origin) {
-      ordered = data.results
+      ordered = raw
         .map(p => ({ ...p, _dist: haversine(origin, p.geometry?.location) }))
         .sort((a, b) => a._dist - b._dist);
     }
 
-    const limit = cepDigits.length === 8 ? 5 : 20;
+    // Com ancora de CEP, corta nos 5 mais proximos; sem CEP, mostra ate 20.
+    const limit = origin ? 5 : 20;
     const results = ordered.slice(0, limit).map(p => ({
       place_id: p.place_id,
       name: p.name,
-      address: p.formatted_address || "",
+      // Nearby Search devolve `vicinity` (endereco curto); Text Search devolve
+      // `formatted_address`. Usa o que existir.
+      address: p.formatted_address || p.vicinity || "",
       rating: p.rating || 0,
       total: p.user_ratings_total || 0,
       ...(typeof p._dist === "number" && isFinite(p._dist)

@@ -4682,17 +4682,10 @@ function GuestSearch({ isMobile }) {
 
   async function resolveLocation(locRaw) {
     const cepDigits = (locRaw || '').replace(/\D/g, '')
-    if (cepDigits.length === 8) {
-      try {
-        const v = await fetch(`https://viacep.com.br/ws/${cepDigits}/json/`).then(r => r.json())
-        // Texto da busca usa CIDADE + UF (nao o CEP cru): o numero do CEP dentro da
-        // Text Search do Google polui o match e costuma zerar resultados. O CEP em si
-        // vai separado (retorno .cep) pro geocoding/ordenacao por proximidade no backend.
-        if (v && !v.erro) return { parts: [v.localidade, v.uf].filter(Boolean), cep: cepDigits }
-      } catch {}
-      // ViaCEP fora do ar: busca so pelo nome (+ proximidade via cep), sem injetar o numero no texto.
-      return { parts: [], cep: cepDigits }
-    }
+    // Com CEP, o backend ancora a busca geograficamente (geocode + Nearby Search),
+    // entao o texto vai so com o NOME do negocio — sem cidade/UF nem o numero do CEP,
+    // que poluiriam o match. Sem CEP, usa o texto livre (ex: "Sao Paulo") como local.
+    if (cepDigits.length === 8) return { parts: [], cep: cepDigits }
     return { parts: locRaw ? [locRaw] : [], cep: '' }
   }
 
