@@ -581,8 +581,10 @@ function buildData(real, user, demoMode) {
       ...MOCK.kpis,
       rating: typeof rating === 'number' ? rating : MOCK.kpis.rating,
       reviewCount: typeof total === 'number' ? total : MOCK.kpis.reviewCount,
-      rankingPos: compData?.rankingPos ?? MOCK.kpis.rankingPos,
-      totalCompetitors: compData?.totalCompetitors ?? MOCK.kpis.totalCompetitors,
+      // Sem dado real de ranking → null (NÃO cair no MOCK "#3 de 12", que
+      // aparecia igual pra todos e mentia a posição no card do score StarTouch).
+      rankingPos: compData?.rankingPos ?? null,
+      totalCompetitors: compData?.totalCompetitors ?? null,
       nextGoal: compData
         ? { reviewsToNext: compData.reviewsToNext, targetPosition: Math.max(1, (compData.rankingPos || 2) - 1) }
         : MOCK.kpis.nextGoal
