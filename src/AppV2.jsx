@@ -61,14 +61,14 @@ const MOCK = {
   trend: { recentAvg: 4.8, overallAvg: 4.6, direction: 'up' /* 'up' | 'down' | 'flat' */ },
   // Sugestões da semana (pushs de direção)
   weekActions: [
-    { icon: '🎯', text: 'Foque em pedir 2 avaliações no atendimento essa semana — leva você pro Top 2.', kind: 'goal' },
-    { icon: '💬', text: 'Responda as 5 avaliações pendentes hoje — Google premia perfis ativos.',         kind: 'action' },
-    { icon: '📸', text: 'Atualize as fotos do seu Google Meu Negócio (último upload faz 60 dias).',       kind: 'tip' }
+    { icon: 'target', text: 'Foque em pedir 2 avaliações no atendimento essa semana — leva você pro Top 2.', kind: 'goal' },
+    { icon: 'chat', text: 'Responda as 5 avaliações pendentes hoje — Google premia perfis ativos.',         kind: 'action' },
+    { icon: 'camera', text: 'Atualize as fotos do seu Google Meu Negócio (último upload faz 60 dias).',       kind: 'tip' }
   ],
   ranking: [
-    { pos: 1, medal: '🥇', name: 'Empresa A',         rating: 5.0, reviews: 25, you: false },
-    { pos: 2, medal: '🥈', name: 'Empresa B',         rating: 5.0, reviews: 14, you: false },
-    { pos: 3, medal: '🥉', name: 'Café Bella Vista',  rating: 5.0, reviews: 12, you: true  },
+    { pos: 1, medal: 'medal1', name: 'Empresa A',         rating: 5.0, reviews: 25, you: false },
+    { pos: 2, medal: 'medal2', name: 'Empresa B',         rating: 5.0, reviews: 14, you: false },
+    { pos: 3, medal: 'medal3', name: 'Café Bella Vista',  rating: 5.0, reviews: 12, you: true  },
     { pos: 4, medal: '',   name: 'Empresa C',         rating: 4.9, reviews: 11, you: false },
     { pos: 5, medal: '',   name: 'Empresa D',         rating: 4.8, reviews: 9,  you: false }
   ],
@@ -93,9 +93,9 @@ const MOCK = {
   // Concorrentes (Inteligência Competitiva)
   // distance: metros até o seu negócio. angle: ângulo (radianos) pro mapa SVG.
   competitors: [
-    { id: 1,  pos: 1,  medal:'🥇', name:'Empresa A',        rating: 5.0, reviews: 25, weekGrowth: +3, distance:  320, angle: 0.4, history:[18,19,20,21,21,22,23,24,24,24,25,25], color:'#F59E0B', initials:'EA' },
-    { id: 2,  pos: 2,  medal:'🥈', name:'Empresa B',        rating: 5.0, reviews: 14, weekGrowth: +1, distance:  480, angle: 1.9, history:[10,10,11,11,11,12,12,13,13,13,14,14], color:'#10B981', initials:'EB' },
-    { id: 3,  pos: 3,  medal:'🥉', name:'Café Bella Vista', rating: 5.0, reviews: 12, weekGrowth: +2, distance:    0, angle: 0,   history:[5,5,6,6,7,7,8,9,10,11,11,12],         color:'#1A73E8', initials:'CB', isYou: true },
+    { id: 1,  pos: 1,  medal:'medal1', name:'Empresa A',        rating: 5.0, reviews: 25, weekGrowth: +3, distance:  320, angle: 0.4, history:[18,19,20,21,21,22,23,24,24,24,25,25], color:'#F59E0B', initials:'EA' },
+    { id: 2,  pos: 2,  medal:'medal2', name:'Empresa B',        rating: 5.0, reviews: 14, weekGrowth: +1, distance:  480, angle: 1.9, history:[10,10,11,11,11,12,12,13,13,13,14,14], color:'#10B981', initials:'EB' },
+    { id: 3,  pos: 3,  medal:'medal3', name:'Café Bella Vista', rating: 5.0, reviews: 12, weekGrowth: +2, distance:    0, angle: 0,   history:[5,5,6,6,7,7,8,9,10,11,11,12],         color:'#1A73E8', initials:'CB', isYou: true },
     { id: 4,  pos: 4,            name:'Empresa C',        rating: 4.9, reviews: 11, weekGrowth:  0, distance:  580, angle: 3.2, history:[10,10,10,11,11,11,11,11,11,11,11,11], color:'#8B5CF6', initials:'EC' },
     { id: 5,  pos: 5,            name:'Empresa D',        rating: 4.8, reviews:  9, weekGrowth: +1, distance:  710, angle: 4.7, history:[5,5,6,6,6,7,7,7,8,8,8,9],             color:'#EC4899', initials:'ED' },
     { id: 6,  pos: 6,            name:'Empresa E',        rating: 4.8, reviews:  9, weekGrowth:  0, distance:  860, angle: 0.9, history:[8,8,8,8,8,8,9,9,9,9,9,9],              color:'#06B6D4', initials:'EE' },
@@ -115,16 +115,16 @@ const MOCK = {
   ],
   // Alertas (Feature 3)
   alerts: [
-    { id: 1,  type:'promotion', icon:'🏆', title:'Você entrou no Top 3!',                            detail:'Subiu da 4ª pra 3ª posição na sua categoria.',                       when:'Há 2 horas',  isNew:true,  category:'ranking' },
-    { id: 2,  type:'threat',    icon:'⚠️', title:'Empresa A ganhou 5 avaliações em 3 dias',          detail:'Cresceu de 20 pra 25 avaliações — está acelerando.',                  when:'Hoje 10:42',  isNew:true,  category:'concorrente' },
-    { id: 3,  type:'goal',      icon:'🎯', title:'Você está a 2 avaliações do Top 2',                detail:'Foque em pedir avaliações essa semana e suba uma posição.',           when:'Hoje 09:15',  isNew:true,  category:'ranking' },
+    { id: 1,  type:'promotion', icon:'trophy', title:'Você entrou no Top 3!',                            detail:'Subiu da 4ª pra 3ª posição na sua categoria.',                       when:'Há 2 horas',  isNew:true,  category:'ranking' },
+    { id: 2,  type:'threat',    icon:'warn', title:'Empresa A ganhou 5 avaliações em 3 dias',          detail:'Cresceu de 20 pra 25 avaliações — está acelerando.',                  when:'Hoje 10:42',  isNew:true,  category:'concorrente' },
+    { id: 3,  type:'goal',      icon:'target', title:'Você está a 2 avaliações do Top 2',                detail:'Foque em pedir avaliações essa semana e suba uma posição.',           when:'Hoje 09:15',  isNew:true,  category:'ranking' },
     { id: 4,  type:'advance',   icon:'↑',  title:'Você ultrapassou Empresa C',                       detail:'Ganhou 1 posição no ranking.',                                        when:'Ontem 18:30',              category:'ranking' },
-    { id: 5,  type:'review',    icon:'⭐', title:'Nova avaliação 5 estrelas de Maria S.',            detail:'"Atendimento incrível, super atenciosos!"',                           when:'Ontem 14:22',              category:'avaliacao' },
+    { id: 5,  type:'review',    icon:'star', title:'Nova avaliação 5 estrelas de Maria S.',            detail:'"Atendimento incrível, super atenciosos!"',                           when:'Ontem 14:22',              category:'avaliacao' },
     { id: 6,  type:'regression',icon:'↓',  title:'Empresa B passou você',                            detail:'Você caiu da 2ª pra 3ª posição.',                                     when:'Há 2 dias',                category:'ranking' },
-    { id: 7,  type:'review',    icon:'⭐', title:'Nova avaliação 4 estrelas de Bruno L.',            detail:'"Café muito bom, espera só demorou um pouco no horário de pico."',     when:'Há 3 dias',                category:'avaliacao' },
-    { id: 8,  type:'review',    icon:'⭐', title:'Nova avaliação 5 estrelas de Carla S.',            detail:'"Tudo perfeito! Recomendo."',                                          when:'Há 4 dias',                category:'avaliacao' },
-    { id: 9,  type:'threat',    icon:'⚠️', title:'Empresa F ganhou 4 avaliações na semana',          detail:'Crescimento acelerado — pode ameaçar sua posição.',                   when:'Há 5 dias',                category:'concorrente' },
-    { id: 10, type:'promotion', icon:'🏆', title:'Sua nota chegou a 5.0!',                           detail:'Você atingiu nota máxima na sua categoria.',                          when:'Há 1 semana',              category:'ranking' }
+    { id: 7,  type:'review',    icon:'star', title:'Nova avaliação 4 estrelas de Bruno L.',            detail:'"Café muito bom, espera só demorou um pouco no horário de pico."',     when:'Há 3 dias',                category:'avaliacao' },
+    { id: 8,  type:'review',    icon:'star', title:'Nova avaliação 5 estrelas de Carla S.',            detail:'"Tudo perfeito! Recomendo."',                                          when:'Há 4 dias',                category:'avaliacao' },
+    { id: 9,  type:'threat',    icon:'warn', title:'Empresa F ganhou 4 avaliações na semana',          detail:'Crescimento acelerado — pode ameaçar sua posição.',                   when:'Há 5 dias',                category:'concorrente' },
+    { id: 10, type:'promotion', icon:'trophy', title:'Sua nota chegou a 5.0!',                           detail:'Você atingiu nota máxima na sua categoria.',                          when:'Há 1 semana',              category:'ranking' }
   ],
   alertStats: { newToday: 3, weekly: 12, positionChanges: 2 },
   alertChannels: {
@@ -154,7 +154,7 @@ const MOCK = {
       rankingMoves: [
         { type:'up',   icon:'↑',  text:'Você subiu da 4ª pra 3ª posição',           highlight: true  },
         { type:'down', icon:'↓',  text:'Empresa C caiu da 3ª pra 4ª posição'  },
-        { type:'risk', icon:'⚠️', text:'Empresa F está crescendo rápido (+2 avaliações)' }
+        { type:'risk', icon:'warn', text:'Empresa F está crescendo rápido (+2 avaliações)' }
       ],
       competitorComparison: [
         { name:'Empresa A',         pos: 1, reviews: 25, weekChange: +3 },
@@ -163,9 +163,9 @@ const MOCK = {
         { name:'Empresa C',         pos: 4, reviews: 11, weekChange:  0 }
       ],
       opportunities: [
-        { icon:'🎯', text:'Faltam apenas 2 avaliações pra ultrapassar Empresa B e entrar no Top 2.' },
-        { icon:'💬', text:'Você tem 5 avaliações sem resposta — respondê-las melhora ranking no Google.' },
-        { icon:'📸', text:'Sua última foto no Google Meu Negócio é de 60 dias atrás. Suba 1 esse mês.' }
+        { icon:'target', text:'Faltam apenas 2 avaliações pra ultrapassar Empresa B e entrar no Top 2.' },
+        { icon:'chat', text:'Você tem 5 avaliações sem resposta — respondê-las melhora ranking no Google.' },
+        { icon:'camera', text:'Sua última foto no Google Meu Negócio é de 60 dias atrás. Suba 1 esse mês.' }
       ]
     },
     monthly: {
@@ -187,7 +187,7 @@ const MOCK = {
       rankingMoves: [
         { type:'up',   icon:'↑',  text:'Você subiu da 5ª pra 3ª posição no mês',  highlight: true  },
         { type:'up',   icon:'↑',  text:'Ultrapassou Empresa C e Empresa D'  },
-        { type:'risk', icon:'⚠️', text:'Empresa A continua crescendo forte (+8 avaliações no mês)' }
+        { type:'risk', icon:'warn', text:'Empresa A continua crescendo forte (+8 avaliações no mês)' }
       ],
       competitorComparison: [
         { name:'Empresa A',         pos: 1, reviews: 25, weekChange: +8 },
@@ -196,9 +196,9 @@ const MOCK = {
         { name:'Empresa C',         pos: 4, reviews: 11, weekChange: +1 }
       ],
       opportunities: [
-        { icon:'📈', text:'Sua nota subiu de 4.8 pra 5.0 no mês — capitalize isso com posts e flyers.' },
-        { icon:'🎯', text:'Mantendo o ritmo de 7 avaliações/mês, em 60 dias você ultrapassa a Empresa A.' },
-        { icon:'🛎️', text:'Considere ativar pulseira NFC pros garçons: hoje só placa de mesa gera reviews.' }
+        { icon:'trendup', text:'Sua nota subiu de 4.8 pra 5.0 no mês — capitalize isso com posts e flyers.' },
+        { icon:'target', text:'Mantendo o ritmo de 7 avaliações/mês, em 60 dias você ultrapassa a Empresa A.' },
+        { icon:'bell', text:'Considere ativar pulseira NFC pros garçons: hoje só placa de mesa gera reviews.' }
       ]
     }
   },
@@ -247,7 +247,7 @@ const MOCK = {
     }
   ],
   kit: {
-    icon: '🎁',
+    icon: 'gift',
     name:'Catálogo completo no shop',
     desc:'Veja todos os produtos com preços, escolha tamanhos, monte seu kit e compre direto no nosso shop oficial.',
     buyUrl:'/kit'
@@ -575,7 +575,7 @@ function buildData(real, user, demoMode) {
       return {
         id: c.place_id || i,
         pos: i + 1,
-        medal: i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '',
+        medal: i === 0 ? 'medal1' : i === 1 ? 'medal2' : i === 2 ? 'medal3' : '',
         name: c.name || (isLocked ? null : `Concorrente ${i + 1}`),
         locked: isLocked,
         rating: c.rating,
@@ -587,7 +587,7 @@ function buildData(real, user, demoMode) {
         lat: c.lat ?? null,
         lng: c.lng ?? null,
         color: isLocked ? '#94A3B8' : colorFromName(c.name || `${i}`),
-        initials: isLocked ? '🔒' : initialsFromName(c.name || `C${i}`),
+        initials: isLocked ? '' : initialsFromName(c.name || `C${i}`),
         isYou: c.is_me
       }
     })
@@ -786,14 +786,14 @@ function Trend({ value, suffix = '' }) {
 // Top Tabs — navegação principal
 // ─────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'painel',       icon: '📊', label: 'Painel',       pro: false },
+  { id: 'painel',       icon: 'chart', label: 'Painel',       pro: false },
   // TEMPORÁRIO: Concorrentes/Alertas/Relatórios (Pro) escondidos até termos
   // segurança pra vender. Pra reexibir, descomente as 3 linhas abaixo.
-  // { id: 'concorrentes', icon: '🏆', label: 'Concorrentes', pro: true },
-  // { id: 'alertas',      icon: '🔔', label: 'Alertas',      pro: true },
-  { id: 'avaliacoes',   icon: '⭐', label: 'Avaliações',   pro: false },
-  // { id: 'relatorios',   icon: '📈', label: 'Relatórios',   pro: true },
-  { id: 'loja',         icon: '🛍️', label: 'Loja',         pro: false }
+  // { id: 'concorrentes', icon: 'trophy', label: 'Concorrentes', pro: true },
+  // { id: 'alertas',      icon: 'bell', label: 'Alertas',      pro: true },
+  { id: 'avaliacoes',   icon: 'star', label: 'Avaliações',   pro: false },
+  // { id: 'relatorios',   icon: 'trendup', label: 'Relatórios',   pro: true },
+  { id: 'loja',         icon: 'bag', label: 'Loja',         pro: false }
 ]
 
 // ─────────────────────────────────────────────────────────────
@@ -801,12 +801,12 @@ const TABS = [
 // Spec: Nubank/Mercado Livre/Stripe app style.
 // ─────────────────────────────────────────────────────────────
 const MOBILE_PRIMARY_TABS = [
-  { id: 'painel',       icon: '🏠', label: 'Painel'       },
-  { id: 'avaliacoes',   icon: '⭐', label: 'Avaliações'   },
-  { id: 'loja',         icon: '🛍️', label: 'Loja'         },
+  { id: 'painel',       icon: 'home', label: 'Painel'       },
+  { id: 'avaliacoes',   icon: 'star', label: 'Avaliações'   },
+  { id: 'loja',         icon: 'bag', label: 'Loja'         },
   // TEMPORÁRIO: Concorrentes (Pro) escondido. Reexibir trocando 'loja' acima
-  // por { id:'concorrentes', icon:'🏆', label:'Concorrentes', pro:true }.
-  { id: 'more',         icon: '☰',  label: 'Mais'         }
+  // por { id:'concorrentes', icon:'trophy', label:'Concorrentes', pro:true }.
+  { id: 'more',         icon: 'menu',  label: 'Mais'         }
 ]
 
 // ─────────────────────────────────────────────────────────────
@@ -915,7 +915,7 @@ function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen }) {
               overflow:'hidden'
             }}
           >
-            <span style={{ fontSize: 22, lineHeight: 1, marginBottom: 4 }}>{tab.icon}</span>
+            <span style={{ lineHeight: 1, marginBottom: 4, display:'inline-flex' }}><Ico name={tab.icon} size={24}/></span>
             <span style={{
               fontSize: 10.5, fontWeight: isActive ? 700 : 500,
               whiteSpace:'nowrap', textAlign:'center', maxWidth:'100%'
@@ -949,12 +949,12 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
   const items = [
     // TEMPORÁRIO: Alertas/Relatórios (Pro) escondidos até termos segurança
     // pra vender. Pra reexibir, descomente as 2 linhas abaixo.
-    // { label:'Alertas',     icon:'🔔', tabId:'alertas',    pro: true  },
-    // { label:'Relatórios',  icon:'📊', tabId:'relatorios', pro: true  },
-    { label:'Loja',        icon:'🛒', tabId:'loja'                   },
-    { label:'Configurações', icon:'⚙️', tabId:'config', hash:'negocio' },
-    { label:'Minha conta', icon:'👤', tabId:'config', hash:'conta' },
-    { label:'Central de ajuda', icon:'❓', href:'/ajuda', external: true }
+    // { label:'Alertas',     icon:'bell', tabId:'alertas',    pro: true  },
+    // { label:'Relatórios',  icon:'chart', tabId:'relatorios', pro: true  },
+    { label:'Loja',        icon:'cart', tabId:'loja'                   },
+    { label:'Configurações', icon:'settings', tabId:'config', hash:'negocio' },
+    { label:'Minha conta', icon:'user', tabId:'config', hash:'conta' },
+    { label:'Central de ajuda', icon:'help', href:'/ajuda', external: true }
   ]
 
   const handleLogout = (e) => {
@@ -1036,7 +1036,7 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
                   marginBottom: 2
                 }}
               >
-                <span style={{ fontSize: 22, width: 28, textAlign:'center' }}>{it.icon}</span>
+                <span style={{ width: 28, display:'inline-flex', justifyContent:'center' }}><Ico name={it.icon} size={22}/></span>
                 <span style={{ flex: 1 }}>{it.label}</span>
                 {isLocked && (
                   <span style={{
@@ -1162,7 +1162,7 @@ function TopTabs({ active, onChange, plan, isMobile }) {
               onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = T.text }}
               onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = T.textMid }}
             >
-              <span style={{ fontSize: isMobile ? 14 : 15, lineHeight: 1 }}>{tab.icon}</span>
+              <span style={{ lineHeight: 1, display:'inline-flex' }}><Ico name={tab.icon} size={17}/></span>
               <span>{tab.label}</span>
               {isLocked && (
                 <span style={{
@@ -1203,7 +1203,7 @@ function ComingSoon({ icon, title, desc, plan }) {
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 32px', textAlign: 'center' }}>
       <Card style={{ padding: '60px 32px', maxWidth: 560, margin: '0 auto' }}>
-        <div style={{ fontSize: 56, marginBottom: 20 }}>{icon}</div>
+        <div style={{ marginBottom: 20, color: T.primary, display:'flex', justifyContent:'center' }}><Ico name={icon} size={48}/></div>
         <h2 style={{ fontFamily: "'Inter', sans-serif", fontSize: 24, fontWeight: 700, color: T.text, margin: '0 0 12px', letterSpacing: '-0.02em' }}>{title}</h2>
         <p style={{ fontSize: 15, color: T.textMid, margin: '0 0 28px', lineHeight: 1.6 }}>{desc}</p>
         {false ? (
@@ -1334,7 +1334,7 @@ function CompetitorCard({ comp, youReviews }) {
           display:'flex', alignItems:'center', justifyContent:'center',
           fontWeight: 700, fontSize: 15
         }}>
-          {comp.medal || `#${comp.pos}`}
+          {comp.medal ? <Ico name={comp.medal} size={16}/> : `#${comp.pos}`}
         </div>
 
         {/* Body */}
@@ -1461,28 +1461,28 @@ function CategoryBenchmark({ data, list, isMobile }) {
       hint: youRating >= parseFloat(avgRating)
         ? <span style={{ color: T.green }}>{ratingDelta > 0 ? `+${ratingDelta}` : ratingDelta} vs média</span>
         : <span style={{ color: T.red }}>{ratingDelta} vs média</span>,
-      icon:'⭐',
+      icon:'star',
       accent: T.blue
     },
     {
       label:'Média da categoria',
       value: avgRating,
       hint:`com ${allRatings.length} negócios`,
-      icon:'📊',
+      icon:'chart',
       accent: T.textMid
     },
     {
       label:'Líder em volume',
       value: topReviews,
       hint: topComp ? (topComp.locked ? '🔒 nome oculto' : topComp.isYou ? '(você!)' : topComp.name) : '—',
-      icon:'🥇',
+      icon:'medal1',
       accent: T.amber
     },
     {
       label:'Mediana da região',
       value: median,
       hint: youReviews >= median ? <span style={{ color: T.green }}>Acima da mediana</span> : <span style={{ color: T.red }}>Abaixo da mediana</span>,
-      icon:'📍',
+      icon:'mappin',
       accent: T.textMid
     }
   ]
@@ -1499,7 +1499,7 @@ function CategoryBenchmark({ data, list, isMobile }) {
         {items.map((it, i) => (
           <div key={i} style={{ padding: 14, background: T.bg, border:'1px solid '+T.border, borderRadius: 10 }}>
             <div style={{ fontSize: 11, color: T.textMid, fontWeight: 600, letterSpacing:'.02em', textTransform:'uppercase', marginBottom: 4, display:'flex', alignItems:'center', gap: 4 }}>
-              <span style={{ fontSize: 12 }}>{it.icon}</span>{it.label}
+              <span style={{ display:'inline-flex', marginRight:2 }}><Ico name={it.icon} size={13}/></span>{it.label}
             </div>
             <div style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 26, fontWeight: 800, color: it.accent, letterSpacing:'-0.02em', lineHeight: 1, marginBottom: 4 }}>
               {it.value}
@@ -1837,7 +1837,7 @@ function OpportunitiesPanel({ data, list, isMobile }) {
   if (closeUp) {
     const gap = (closeUp.reviews || 0) - youReviews
     ops.push({
-      icon:'🎯',
+      icon:'target',
       color: T.green,
       bg: T.greenSoft,
       title:`Subir pro ${youPos - 1}º lugar está ao seu alcance`,
@@ -1850,7 +1850,7 @@ function OpportunitiesPanel({ data, list, isMobile }) {
   if (rising.length > 0) {
     const r = rising[0]
     ops.push({
-      icon:'🚨',
+      icon:'siren',
       color: T.red,
       bg:'#FEF2F2',
       title:`${r.locked ? 'Um concorrente' : r.name} está acelerando`,
@@ -1860,7 +1860,7 @@ function OpportunitiesPanel({ data, list, isMobile }) {
   }
   if (top1 && !top1.isYou && data.kpis.rating >= 4.8) {
     ops.push({
-      icon:'⭐',
+      icon:'star',
       color: T.blue,
       bg: T.blueSoft,
       title:'Sua nota é igual ou maior que a do líder',
@@ -1870,7 +1870,7 @@ function OpportunitiesPanel({ data, list, isMobile }) {
   }
   if (youPos <= 3) {
     ops.push({
-      icon:'🏆',
+      icon:'trophy',
       color: T.amber,
       bg:'#FFFBEB',
       title:'Você está no Top 3 — capitalize',
@@ -1897,7 +1897,7 @@ function OpportunitiesPanel({ data, list, isMobile }) {
             border:`1px solid ${op.color}33`
           }}>
             <div style={{ display:'flex', gap: 10, alignItems:'flex-start' }}>
-              <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{op.icon}</span>
+              <span style={{ lineHeight: 1, flexShrink: 0, display:'inline-flex' }}><Ico name={op.icon} size={20} style={{ color: T.primary }}/></span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 4, lineHeight: 1.35 }}>
                   {op.title}
@@ -1922,13 +1922,13 @@ function OpportunitiesPanel({ data, list, isMobile }) {
 // de um vidro fosco + card de upsell, pra entender o que está perdendo.
 function ProPreview({ tab, isMobile, children }) {
   const C = {
-    concorrentes: { icon:'🏆', title:'Inteligência Competitiva', sub:'Veja quem disputa o ranking com você — e nunca seja pego de surpresa.',
+    concorrentes: { icon:'trophy', title:'Inteligência Competitiva', sub:'Veja quem disputa o ranking com você — e nunca seja pego de surpresa.',
       bullets:['Os nomes de quem está na sua frente','Aviso na hora quando alguém te ultrapassar','Quem está crescendo mais rápido','Evolução semana a semana'] },
-    alertas: { icon:'🔔', title:'Vigie seu ranking 24/7', sub:'O alerta de avaliação negativa já é seu, de graça. O Pro adiciona a vigilância do ranking — direto no seu email:',
+    alertas: { icon:'bell', title:'Vigie seu ranking 24/7', sub:'O alerta de avaliação negativa já é seu, de graça. O Pro adiciona a vigilância do ranking — direto no seu email:',
       bullets:['Um concorrente te ultrapassou no ranking','Sua nota caiu — ou bateu um novo recorde','Resumo toda segunda: o que mudou e o que fazer'] },
-    relatorios: { icon:'📈', title:'Relatórios semanais', sub:'Toda segunda no seu email: sua evolução e o que fazer.',
+    relatorios: { icon:'trendup', title:'Relatórios semanais', sub:'Toda segunda no seu email: sua evolução e o que fazer.',
       bullets:['Evolução de nota e posição','Comparativo com os concorrentes','Oportunidades pra crescer mais rápido'] }
-  }[tab] || { icon:'🔒', title:'Recurso Pro', sub:'', bullets:[] }
+  }[tab] || { icon:'lock', title:'Recurso Pro', sub:'', bullets:[] }
 
   return (
     <div style={{ position:'relative', maxHeight: 820, overflow:'hidden' }}>
@@ -1942,7 +1942,7 @@ function ProPreview({ tab, isMobile, children }) {
       }}>
         <Card style={{ maxWidth: 440, textAlign:'center', padding: isMobile ? '28px 22px' : '34px 30px', boxShadow:'0 16px 48px rgba(15,23,42,0.20)' }}>
           <span style={{ display:'inline-block', fontSize: 11, fontWeight: 800, letterSpacing:'0.08em', background:'#FBBC04', color:'#78350F', padding:'3px 9px', borderRadius: 6, marginBottom: 12 }}>PRO</span>
-          <div style={{ fontSize: 42, lineHeight: 1, marginBottom: 10 }}>{C.icon}</div>
+          <div style={{ lineHeight: 1, marginBottom: 10, color: T.primary }}><Ico name={C.icon} size={40}/></div>
           <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 21, fontWeight: 800, color: T.text, margin:'0 0 8px', letterSpacing:'-0.02em' }}>{C.title}</h2>
           <p style={{ fontSize: 14, color: T.textMid, lineHeight: 1.55, margin:'0 0 16px' }}>{C.sub}</p>
           <ul style={{ listStyle:'none', padding: 0, margin:'0 0 20px', textAlign:'left', display:'inline-block' }}>
@@ -2209,7 +2209,7 @@ function AlertItem({ alert }) {
         <div style={{
           width: 38, height: 38, borderRadius: 10, background:'#fff',
           display:'grid', placeItems:'center', fontSize: 18, border:'1px solid '+s.border, flexShrink: 0
-        }}>{alert.icon}</div>
+        }}><Ico name={alert.icon} size={18}/></div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 2, flexWrap:'wrap' }}>
             <span style={{
@@ -2239,8 +2239,8 @@ function ChannelRow({ icon, name, desc, enabled, onToggle, locked, children }) {
     }}>
       <div style={{
         width: 34, height: 34, borderRadius: 8, background: enabled ? T.blueSoft : T.bg,
-        display:'grid', placeItems:'center', fontSize: 16, flexShrink: 0
-      }}>{icon}</div>
+        display:'grid', placeItems:'center', flexShrink: 0, color: enabled ? T.primary : T.textDim
+      }}><Ico name={icon} size={18}/></div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 8 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{name}</div>
@@ -2328,7 +2328,7 @@ function AlertChannelsCard({ channels, isReal, userEmail }) {
       </p>
 
       <ChannelRow
-        icon="🖥️"
+        icon="monitor"
         name="No painel"
         desc="Alertas ficam visíveis na aba Alertas do painel · sempre ligado"
         enabled={true}
@@ -2336,7 +2336,7 @@ function AlertChannelsCard({ channels, isReal, userEmail }) {
       />
 
       <ChannelRow
-        icon="✉️"
+        icon="mail"
         name="Email"
         desc="Receba os alertas no seu email — funciona até com o painel fechado."
         enabled={local.emailEnabled}
@@ -2516,8 +2516,8 @@ function AlertsScreen({ data, isMobile, isReal, userEmail }) {
 // ─────────────────────────────────────────────────────────────
 function ReportPeriodTabs({ active, onChange, isMobile }) {
   const tabs = [
-    { key:'weekly',  label:'Semanal', icon:'📅' },
-    { key:'monthly', label:'Mensal',  icon:'📆' }
+    { key:'weekly',  label:'Semanal', icon:'calendar' },
+    { key:'monthly', label:'Mensal',  icon:'calendarMonth' }
   ]
   return (
     <div style={{
@@ -2535,7 +2535,7 @@ function ReportPeriodTabs({ active, onChange, isMobile }) {
               color: a ? '#fff' : T.textMid,
               display:'inline-flex', alignItems:'center', gap: 6, transition:'all .15s'
             }}>
-            <span style={{ fontSize: 14 }}>{t.icon}</span>{t.label}
+            <span style={{ display:'inline-flex', marginRight:2 }}><Ico name={t.icon} size={14}/></span>{t.label}
           </button>
         )
       })}
@@ -2594,17 +2594,17 @@ function DeltaBadge({ value, suffix = '', invert = false }) {
 
 function ReportSummaryGrid({ summary, isMobile }) {
   const items = [
-    { label:'Novas avaliações', value: summary.newReviews,      delta: summary.newReviewsDelta, suffix:' vs anterior', icon:'⭐' },
-    { label:'Nota atual',       value: summary.currentRating.toFixed(1), delta: summary.ratingDelta, suffix:'',  isFloat: true, icon:'📈' },
-    { label:'Posição no rank',  value: `${summary.currentPosition}º`, delta: summary.positionDelta, suffix:' pos.', invert: false, icon:'🏆' },
-    { label:'Próximo concorrente', value: `-${Math.abs(summary.competitorDelta)} ${Math.abs(summary.competitorDelta) === 1 ? 'avaliação' : 'avaliações'}`, delta: null, sub:'mais perto que antes', icon:'🎯' }
+    { label:'Novas avaliações', value: summary.newReviews,      delta: summary.newReviewsDelta, suffix:' vs anterior', icon:'star' },
+    { label:'Nota atual',       value: summary.currentRating.toFixed(1), delta: summary.ratingDelta, suffix:'',  isFloat: true, icon:'trendup' },
+    { label:'Posição no rank',  value: `${summary.currentPosition}º`, delta: summary.positionDelta, suffix:' pos.', invert: false, icon:'trophy' },
+    { label:'Próximo concorrente', value: `-${Math.abs(summary.competitorDelta)} ${Math.abs(summary.competitorDelta) === 1 ? 'avaliação' : 'avaliações'}`, delta: null, sub:'mais perto que antes', icon:'target' }
   ]
   return (
     <div style={{ display:'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 8 : 12 }}>
       {items.map((it, i) => (
         <Card key={i} padded={false} style={{ padding: isMobile ? 14 : 18 }}>
           <div style={{ display:'flex', alignItems:'center', gap: 6, marginBottom: 4 }}>
-            <span style={{ fontSize: 14 }}>{it.icon}</span>
+            <span style={{ display:'inline-flex' }}><Ico name={it.icon} size={14}/></span>
             <div style={{ fontSize: 11, color: T.textMid, fontWeight: 600, letterSpacing:'.02em', textTransform:'uppercase' }}>{it.label}</div>
           </div>
           <div style={{ display:'flex', alignItems:'baseline', gap: 8, flexWrap:'wrap', marginTop: 4 }}>
@@ -2640,7 +2640,7 @@ function ReportRatingChart({ data, labels, mode }) {
   const areaPath = path + ` L${xs[xs.length - 1]},${h - padB} L${xs[0]},${h - padB} Z`
   return (
     <Card>
-      <ReportSectionTitle icon="📈" title="Evolução da nota" sub={`Sua nota nos últimos ${mode === 'weekly' ? '7 dias' : '12 meses'}.`}/>
+      <ReportSectionTitle icon="trendup" title="Evolução da nota" sub={`Sua nota nos últimos ${mode === 'weekly' ? '7 dias' : '12 meses'}.`}/>
       <svg viewBox={`0 0 ${w} ${h}`} style={{ width:'100%', height:'auto', display:'block' }} preserveAspectRatio="none">
         <defs>
           <linearGradient id="grad-rep" x1="0" x2="0" y1="0" y2="1">
@@ -2680,7 +2680,7 @@ function ReportRatingChart({ data, labels, mode }) {
 function ReportReviewsList({ reviews }) {
   return (
     <Card>
-      <ReportSectionTitle icon="⭐" title="Avaliações em destaque" sub="As que mais movimentaram sua reputação no período."/>
+      <ReportSectionTitle icon="star" title="Avaliações em destaque" sub="As que mais movimentaram sua reputação no período."/>
       <ul style={{ listStyle:'none', padding: 0, margin: 0, display:'flex', flexDirection:'column', gap: 12 }}>
         {reviews.map((r, i) => (
           <li key={i} style={{ display:'flex', gap: 12, paddingBottom: 12, borderBottom: i < reviews.length - 1 ? '1px solid '+T.border : 'none' }}>
@@ -2711,7 +2711,7 @@ function ReportRankingMoves({ moves }) {
   }
   return (
     <Card>
-      <ReportSectionTitle icon="🏆" title="Movimentação no ranking" sub="O que mudou na sua categoria no período."/>
+      <ReportSectionTitle icon="trophy" title="Movimentação no ranking" sub="O que mudou na sua categoria no período."/>
       <div style={{ display:'flex', flexDirection:'column', gap: 8 }}>
         {moves.map((m, i) => {
           const c = colors[m.type] || colors.up
@@ -2721,7 +2721,7 @@ function ReportRankingMoves({ moves }) {
               background: c.bg, border:'1px solid '+c.border, borderRadius: 8,
               fontWeight: m.highlight ? 700 : 500
             }}>
-              <span style={{ fontSize: 16, color: c.dot, width: 18, textAlign:'center' }}>{m.icon}</span>
+              <span style={{ color: c.dot, width: 18, display:'inline-flex', justifyContent:'center' }}><Ico name={m.icon} size={16}/></span>
               <span style={{ fontSize: 13.5, color: T.text }}>{m.text}</span>
             </div>
           )
@@ -2734,7 +2734,7 @@ function ReportRankingMoves({ moves }) {
 function ReportCompetitorTable({ rows }) {
   return (
     <Card>
-      <ReportSectionTitle icon="🔍" title="Você vs concorrentes" sub="Comparativo direto com os 4 mais próximos."/>
+      <ReportSectionTitle icon="search" title="Você vs concorrentes" sub="Comparativo direto com os 4 mais próximos."/>
       <div style={{ overflowX:'auto' }}>
         <table style={{ width:'100%', borderCollapse:'collapse', fontSize: 13 }}>
           <thead>
@@ -2773,11 +2773,11 @@ function ReportCompetitorTable({ rows }) {
 function ReportOpportunities({ items }) {
   return (
     <Card style={{ background: T.amberSoft, borderColor:'#FDE68A' }}>
-      <ReportSectionTitle icon="💡" title="Oportunidades pra essa semana" sub="O que fazer agora pra crescer mais rápido."/>
+      <ReportSectionTitle icon="lightbulb" title="Oportunidades pra essa semana" sub="O que fazer agora pra crescer mais rápido."/>
       <ul style={{ listStyle:'none', padding: 0, margin: 0, display:'flex', flexDirection:'column', gap: 10 }}>
         {items.map((it, i) => (
           <li key={i} style={{ display:'flex', gap: 10, alignItems:'flex-start', fontSize: 13.5, color: T.text, lineHeight: 1.5 }}>
-            <span style={{ fontSize: 16, flexShrink: 0, lineHeight: 1.4 }}>{it.icon}</span>
+            <span style={{ flexShrink: 0, lineHeight: 1.4, display:'inline-flex' }}><Ico name={it.icon} size={16}/></span>
             <span>{it.text}</span>
           </li>
         ))}
@@ -2790,7 +2790,7 @@ function ReportSettingsCard({ settings, onChange }) {
   const [email, setEmail] = React.useState(settings.email)
   return (
     <Card>
-      <ReportSectionTitle icon="⚙️" title="Configurar envio" sub="Receba este relatório direto no seu email."/>
+      <ReportSectionTitle icon="settings" title="Configurar envio" sub="Receba este relatório direto no seu email."/>
       <div style={{ marginBottom: 14 }}>
         <label style={{ fontSize: 12, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 4 }}>Email do destinatário</label>
         <input
@@ -2979,7 +2979,7 @@ function KitCard({ k, isMobile }) {
         <div style={{
           width: 96, height: 96, borderRadius: 16, background:'rgba(255,255,255,.15)',
           display:'grid', placeItems:'center', fontSize: 52, flexShrink: 0
-        }}>{k.icon}</div>
+        }}><Ico name={k.icon} size={24}/></div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display:'inline-block', fontSize: 10.5, fontWeight: 800, letterSpacing:'.06em', background:'#FBBC04', color:'#78350F', padding:'3px 8px', borderRadius: 5, marginBottom: 8 }}>
             VER PREÇOS E MONTAR KIT
@@ -3037,12 +3037,12 @@ function LojaScreen({ data, isMobile, plan }) {
           gap: isMobile ? 16 : 24, textAlign:'center'
         }}>
           {[
-            { icon:'🚚', t:'Envio rápido', d:'Despacho em 24h pela Jadlog/Correios' },
-            { icon:'🛡️', t:'Garantia 90 dias', d:'Defeito de fabricação trocamos sem custo' },
-            { icon:'📞', t:'Suporte WhatsApp', d:SUPPORT_WA_DISPLAY+' — tira dúvidas direto com a gente' }
+            { icon:'truck', t:'Envio rápido', d:'Despacho em 24h pela Jadlog/Correios' },
+            { icon:'shield', t:'Garantia 90 dias', d:'Defeito de fabricação trocamos sem custo' },
+            { icon:'phone', t:'Suporte WhatsApp', d:SUPPORT_WA_DISPLAY+' — tira dúvidas direto com a gente' }
           ].map((it, i) => (
             <div key={i}>
-              <div style={{ fontSize: 26, marginBottom: 4 }}>{it.icon}</div>
+              <div style={{ marginBottom: 4, color: T.primary }}><Ico name={it.icon} size={26}/></div>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 2 }}>{it.t}</div>
               <div style={{ fontSize: 12, color: T.textMid }}>{it.d}</div>
             </div>
@@ -3092,7 +3092,7 @@ function ConfigSectionCard({ icon, title, sub, children, anchor }) {
     <Card style={{ scrollMarginTop: 100 }} {...(anchor ? { id: anchor } : {})}>
       <div style={{ marginBottom: 18 }}>
         <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-          <span>{icon}</span>{title}
+          <span style={{ display:'inline-flex', color: T.primary }}><Ico name={icon} size={18}/></span>{title}
         </h2>
         {sub && <div style={{ fontSize: 13, color: T.textMid }}>{sub}</div>}
       </div>
@@ -3103,7 +3103,7 @@ function ConfigSectionCard({ icon, title, sub, children, anchor }) {
 
 function AccountSection({ user }) {
   return (
-    <ConfigSectionCard anchor="conta" icon="👤" title="Minha conta" sub="Seus dados pessoais e acesso.">
+    <ConfigSectionCard anchor="conta" icon="user" title="Minha conta" sub="Seus dados pessoais e acesso.">
       <ConfigField label="Nome completo"  value={user.name}/>
       <ConfigField label="Email"          value={user.email} type="email" hint="É também seu login."/>
       <ConfigField label="Telefone"       value={user.phone} type="tel"/>
@@ -3166,7 +3166,7 @@ function BusinessSection({ biz, googleCategory, categoryOverride, showDebug }) {
   }
 
   return (
-    <ConfigSectionCard anchor="negocio" icon="🏢" title="Dados do negócio" sub="O que aparece nos seus dispositivos, relatórios e alertas.">
+    <ConfigSectionCard anchor="negocio" icon="building" title="Dados do negócio" sub="O que aparece nos seus dispositivos, relatórios e alertas.">
 
       {/* Status visível da categoria em uso */}
       <div style={{
@@ -3284,7 +3284,7 @@ hora local:                ${new Date().toISOString()}`}
 
 function BillingSection({ billing, plan }) {
   return (
-    <ConfigSectionCard anchor="plano" icon="💳" title="Plano e cobrança" sub="Seu plano atual, próxima cobrança e histórico de pagamentos.">
+    <ConfigSectionCard anchor="plano" icon="card" title="Plano e cobrança" sub="Seu plano atual, próxima cobrança e histórico de pagamentos.">
       {/* Card do plano atual */}
       <div style={{
         background: plan === 'pro' ? 'linear-gradient(135deg,#1A73E8,#0F4DAE)' : T.bg,
@@ -3623,7 +3623,7 @@ function KpiCard({ icon, label, value, sub, trend, onClick }) {
   return (
     <Card style={{ padding: 20 }} onClick={onClick}>
       <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 12 }}>
-        <span style={{ fontSize: 16 }}>{icon}</span>
+        <span style={{ display:'inline-flex', color: T.primary }}><Ico name={icon} size={18}/></span>
         <span style={{ fontSize: 12.5, fontWeight: 500, color: T.textMid }}>{label}</span>
       </div>
       <div style={{ display:'flex', alignItems:'baseline', gap: 8, marginBottom: 5, flexWrap:'wrap' }}>
@@ -3656,14 +3656,14 @@ function realWeekActions(d) {
   // não de uma fórmula nota×reviews — então NUNCA aconselhamos "aumentar a nota"
   // (até porque pode já estar no teto).
   if (pos <= 1) {
-    actions.push({ icon: '🏆', text: 'Você é #1 na sua categoria. Continue coletando avaliações toda semana pra manter a liderança — quem para de coletar acaba ultrapassado.', kind: 'goal' })
+    actions.push({ icon: 'trophy', text: 'Você é #1 na sua categoria. Continue coletando avaliações toda semana pra manter a liderança — quem para de coletar acaba ultrapassado.', kind: 'goal' })
   } else if (aheadWithFewer.length > 0) {
     // Caso da SAIF: gente na frente com menos avaliações → é proximidade/relevância.
-    actions.push({ icon: '📍', text: `Tem negócio na sua frente com MENOS avaliações que você — sinal de que aqui o ranking é dominado por proximidade (quão perto você está de quem busca) e relevância pro termo, não pelo volume de avaliações. O acionável: confira se a categoria do seu Google é a certa pra esse termo e deixe o perfil completo (fotos, horário, descrição, produtos).`, kind: 'goal' })
+    actions.push({ icon: 'mappin', text: `Tem negócio na sua frente com MENOS avaliações que você — sinal de que aqui o ranking é dominado por proximidade (quão perto você está de quem busca) e relevância pro termo, não pelo volume de avaliações. O acionável: confira se a categoria do seu Google é a certa pra esse termo e deixe o perfil completo (fotos, horário, descrição, produtos).`, kind: 'goal' })
   } else if (toNext > 0) {
-    actions.push({ icon: '🎯', text: `Faltam ~${toNext} ${toNext === 1 ? 'avaliação' : 'avaliações'} pra alcançar a ${targetPos}ª posição. Foque em coletar no atendimento essa semana.`, kind: 'goal' })
+    actions.push({ icon: 'target', text: `Faltam ~${toNext} ${toNext === 1 ? 'avaliação' : 'avaliações'} pra alcançar a ${targetPos}ª posição. Foque em coletar no atendimento essa semana.`, kind: 'goal' })
   } else {
-    actions.push({ icon: '🎯', text: `Você já tem volume de avaliações parecido com quem está na sua frente${rating >= 4.8 ? ' (e nota no topo)' : ''}. No ranking do Google também pesam proximidade e relevância, não só a nota — siga coletando e mantenha o perfil completo: categoria certa, fotos e horário.`, kind: 'goal' })
+    actions.push({ icon: 'target', text: `Você já tem volume de avaliações parecido com quem está na sua frente${rating >= 4.8 ? ' (e nota no topo)' : ''}. No ranking do Google também pesam proximidade e relevância, não só a nota — siga coletando e mantenha o perfil completo: categoria certa, fotos e horário.`, kind: 'goal' })
   }
 
   // 2) Coleta ligada aos pontos de captação (placas)
@@ -3676,7 +3676,7 @@ function realWeekActions(d) {
 
   // 3) Qualidade da nota (se ainda não chegou no teto)
   if (rating < 4.9) {
-    actions.push({ icon: '⭐', text: 'Atendeu bem? Peça a avaliação na hora. Notas 5★ recentes puxam sua média pra cima e te separam dos concorrentes.', kind: 'tip' })
+    actions.push({ icon: 'star', text: 'Atendeu bem? Peça a avaliação na hora. Notas 5★ recentes puxam sua média pra cima e te separam dos concorrentes.', kind: 'tip' })
   }
 
   return actions.slice(0, 3)
@@ -3747,7 +3747,7 @@ function WeekActions({ items, isMobile }) {
             border: `1px solid ${T.border}`,
             alignItems:'flex-start'
           }}>
-            <span style={{ fontSize: 18, lineHeight: 1.2, flexShrink: 0 }}>{a.icon}</span>
+            <span style={{ lineHeight: 1.2, flexShrink: 0, display:'inline-flex' }}><Ico name={a.icon} size={18}/></span>
             <span style={{ fontSize: 13, color: T.textMid, lineHeight: 1.5 }}>{a.text}</span>
           </div>
         ))}
@@ -3985,7 +3985,7 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
                 display:'flex', alignItems:'center', justifyContent:'center',
                 fontWeight: 700, fontSize: 13, flexShrink: 0
               }}>
-                {r.medal || r.pos + 'º'}
+                {r.medal ? <Ico name={r.medal} size={16}/> : r.pos + 'º'}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
@@ -5531,7 +5531,7 @@ function scoreBreakdown(d) {
 
   const factors = [
     {
-      key: 'nota', icon: '⭐', label: 'Nota no Google',
+      key: 'nota', icon: 'star', label: 'Nota no Google',
       earned: Math.round(notaPts), max: 35,
       detail: rating ? `Sua nota é ${rating.toFixed(1).replace('.', ',')}.` : 'Você ainda não tem nota.',
       hint: rating >= 4.8
@@ -5539,7 +5539,7 @@ function scoreBreakdown(d) {
         : 'Capriche no atendimento: cada estrela a mais vale pontos aqui.'
     },
     {
-      key: 'volume', icon: '💬', label: 'Volume de avaliações',
+      key: 'volume', icon: 'chat', label: 'Volume de avaliações',
       earned: Math.round(volPts), max: 30,
       detail: `${reviews} ${reviews === 1 ? 'avaliação' : 'avaliações'}${reviews < 100 ? ' (pontuação cheia em 100)' : ''}.`,
       hint: reviews >= 100
@@ -5547,7 +5547,7 @@ function scoreBreakdown(d) {
         : `Colete mais avaliações com as placas e cartões NFC${reviews < 100 ? ` (faltam ~${100 - reviews} pra a pontuação cheia)` : ''}.`
     },
     {
-      key: 'posicao', icon: '📍', label: 'Posição na sua categoria',
+      key: 'posicao', icon: 'mappin', label: 'Posição na sua categoria',
       earned: Math.round(posPts), max: 20,
       detail: hasRank ? `#${pos} de ${total} negócios por perto.` : 'Ainda sem dados de concorrentes por perto.',
       hint: hasRank
@@ -5555,7 +5555,7 @@ function scoreBreakdown(d) {
         : 'Assim que houver concorrentes mapeados, sua posição entra na conta.'
     },
     {
-      key: 'perfil', icon: '🪪', label: 'Perfil completo no Google',
+      key: 'perfil', icon: 'id', label: 'Perfil completo no Google',
       earned: perfilPts, max: 15,
       detail: faltando.length ? `Falta: ${faltando.join(', ')}.` : 'Foto, telefone e categoria preenchidos. ✓',
       hint: faltando.length
@@ -5625,7 +5625,7 @@ function ScoreModal({ d, onClose }) {
               <div key={f.key} style={{ padding: 14, background: T.bg, borderRadius: 12, border:`1px solid ${T.border}` }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 8, marginBottom: 8 }}>
                   <span style={{ fontSize: 13.5, fontWeight: 600, color: T.text, display:'flex', alignItems:'center', gap: 7 }}>
-                    <span style={{ fontSize: 15 }}>{f.icon}</span>{f.label}
+                    <span style={{ display:'inline-flex', marginRight:2 }}><Ico name={f.icon} size={15}/></span>{f.label}
                   </span>
                   <span style={{ fontSize: 12.5, fontWeight: 700, color: full ? T.green : T.textMid, whiteSpace:'nowrap' }}>
                     {f.earned}<span style={{ color: T.textDim, fontWeight: 500 }}> / {f.max} pts</span>
@@ -5972,12 +5972,12 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(160px, 1fr))',
             gap: isMobile ? 10 : 12
           }}>
-            <KpiCard icon="⭐" label="Nota Google"     value={d.kpis.rating.toFixed(1)} sub="Sua reputação atual"            trend={demoMode ? +0.4 : undefined} />
-            <KpiCard icon="📝" label="Avaliações"      value={d.kpis.reviewCount}      sub="Total recebidas"                trend={demoMode ? +d.kpis.newLast30Days : undefined} />
-            {(demoMode || hasComp) && <KpiCard icon="🏆" label="Ranking local"   value={`#${d.kpis.rankingPos}`}  sub={`Entre ${d.kpis.totalCompetitors} empresas`} trend={demoMode ? +2 : undefined} />}
-            {demoMode && <KpiCard icon="📈" label="Últimos 30 dias" value={`+${d.kpis.newLast30Days}`} sub="Novas avaliações"             trend={+3} />}
-            {(demoMode || hasComp) && <KpiCard icon="🎯" label="Próxima Meta"    value={`${d.kpis.nextGoal.reviewsToNext} ${d.kpis.nextGoal.reviewsToNext === 1 ? 'avaliação' : 'avaliações'}`} sub={`Para o Top ${d.kpis.nextGoal.targetPosition}`} />}
-            <KpiCard icon="🏅" label="Score StarTouch" value={`${calcStarTouchScore(d)}`} sub={`Por que ${calcStarTouchScore(d)}? Ver o que falta →`} onClick={() => setScoreOpen(true)} />
+            <KpiCard icon="star" label="Nota Google"     value={d.kpis.rating.toFixed(1)} sub="Sua reputação atual"            trend={demoMode ? +0.4 : undefined} />
+            <KpiCard icon="chat" label="Avaliações"      value={d.kpis.reviewCount}      sub="Total recebidas"                trend={demoMode ? +d.kpis.newLast30Days : undefined} />
+            {(demoMode || hasComp) && <KpiCard icon="trophy" label="Ranking local"   value={`#${d.kpis.rankingPos}`}  sub={`Entre ${d.kpis.totalCompetitors} empresas`} trend={demoMode ? +2 : undefined} />}
+            {demoMode && <KpiCard icon="trendup" label="Últimos 30 dias" value={`+${d.kpis.newLast30Days}`} sub="Novas avaliações"             trend={+3} />}
+            {(demoMode || hasComp) && <KpiCard icon="target" label="Próxima Meta"    value={`${d.kpis.nextGoal.reviewsToNext} ${d.kpis.nextGoal.reviewsToNext === 1 ? 'avaliação' : 'avaliações'}`} sub={`Para o Top ${d.kpis.nextGoal.targetPosition}`} />}
+            <KpiCard icon="award" label="Score StarTouch" value={`${calcStarTouchScore(d)}`} sub={`Por que ${calcStarTouchScore(d)}? Ver o que falta →`} onClick={() => setScoreOpen(true)} />
           </div>
         </Section>
 
