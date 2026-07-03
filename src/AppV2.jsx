@@ -6,7 +6,8 @@ import {
   Camera, Lightbulb, Flame, Package, Phone, Building2, Wrench, FlaskConical, Calendar,
   Download, Send, FileText, Radar, Sparkles, Key, Gift, DoorOpen, Map, CreditCard,
   Image as ImageIcon, Store, PartyPopper, Construction, Monitor, Bookmark, RefreshCw,
-  Truck, ShieldCheck, Siren, ClipboardList, Inbox, Tag, UtensilsCrossed, Hand, ChevronRight
+  Truck, ShieldCheck, Siren, ClipboardList, Inbox, Tag, UtensilsCrossed, Hand, ChevronRight,
+  Smartphone, QrCode
 } from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────
@@ -4609,7 +4610,14 @@ const PRODUCT_IMAGES = {
 // Tipos com foto vertical -> recorte quadrado (cover) no thumbnail de 48px
 const COVER_TYPES = ['placa_mesa', 'cartao_nfc']
 
-function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) {
+// Vitrine de produtos pro estado vazio — renders bonitas dos 3 itens vendidos.
+const PRODUCT_SHOWCASE = [
+  { img: '/gadget-placa.png',    name: 'Placa de balcão' },
+  { img: '/gadget-cartao.png',   name: 'Cartão NFC' },
+  { img: '/gadget-pulseira.png', name: 'Pulseira NFC' },
+]
+
+function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, isMobile }) {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [showCode, setShowCode] = React.useState(false)
   const platesList = (plates || []).slice().sort((a,b) => (b.total_taps || 0) - (a.total_taps || 0))
@@ -4630,30 +4638,47 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) 
 
       {isEmpty ? (
         <>
-          <p style={{ fontSize: 13, color: T.textMid, margin:'0 0 18px' }}>
+          <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 16px', lineHeight: 1.5 }}>
             {hasReviews
-              ? `Você já tem ${reviewCount} avaliações — ótimo! Com uma placa no balcão ou cartão NFC, cada cliente vira avaliação sem você precisar pedir.`
-              : 'Coloque uma placa no balcão ou um cartão NFC pra começar a captar avaliações no piloto automático.'}
+              ? `Você já tem ${reviewCount} avaliações — ótimo! Um dispositivo NFC transforma cada cliente em avaliação, sem você precisar pedir.`
+              : 'Coloque um dispositivo NFC no balcão e transforme cada atendimento em avaliação no Google, no automático.'}
           </p>
-          <div style={{
-            padding: 24, borderRadius: 12, background: T.bg, border:`1px dashed ${T.border}`,
-            textAlign:'center'
-          }}>
-            <img src="/gadget-placa.png" alt="Placa NFC StarTouch de balcão"
-              style={{ height: 96, width:'auto', objectFit:'contain', display:'block', margin:'0 auto 12px', filter:'drop-shadow(0 6px 16px rgba(15,23,42,0.12))' }}/>
-            <div style={{ fontSize: 13, color: T.textMid, marginBottom: 14, lineHeight: 1.5 }}>
-              {hasReviews ? 'Acelere a coleta: cada toque do cliente vira uma avaliação.' : 'Ative um dispositivo pra captar no automático.'}
-            </div>
-            <div style={{ display:'flex', gap: 8, justifyContent:'center', flexWrap:'wrap' }}>
-              <button onClick={() => setModalOpen(true)} style={{
-                background: T.blue, color:'#fff', border:'none', borderRadius: 9,
-                padding:'10px 16px', fontSize: 13, fontWeight: 700, cursor:'pointer'
-              }}>Ativar código de dispositivo →</button>
-              <a href="/kit" style={{
-                background:'#fff', color: T.blue, border:`1.5px solid ${T.blue}`, borderRadius: 9,
-                padding:'10px 16px', fontSize: 13, fontWeight: 700, textDecoration:'none'
-              }}>Comprar dispositivos</a>
-            </div>
+
+          {/* Vitrine dos 3 produtos — renders grandes com sombra */}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap: isMobile ? 8 : 12, marginBottom: 16 }}>
+            {PRODUCT_SHOWCASE.map(prod => (
+              <div key={prod.name} style={{
+                background:'#fff', border:`1px solid ${T.border}`, borderRadius: 14,
+                padding: isMobile ? '10px 6px' : 14, textAlign:'center', boxShadow: T.shadow
+              }}>
+                <div style={{ height: isMobile ? 92 : 128, display:'grid', placeItems:'center', marginBottom: 8 }}>
+                  <img src={prod.img} alt={prod.name}
+                    style={{ maxHeight:'100%', maxWidth:'100%', objectFit:'contain', filter:'drop-shadow(0 8px 18px rgba(15,23,42,0.16))' }}/>
+                </div>
+                <div style={{ fontSize: isMobile ? 11.5 : 13, fontWeight: 700, color: T.text, lineHeight: 1.25 }}>{prod.name}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Como funciona — 1 linha com ícones */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap: 8, flexWrap:'wrap', fontSize: 12.5, color: T.textMuted, marginBottom: 16, textAlign:'center' }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap: 5 }}><Smartphone size={15} style={{ color: T.primary }}/> Toque</span>
+            <span style={{ color: T.textDim }}>ou</span>
+            <span style={{ display:'inline-flex', alignItems:'center', gap: 5 }}><QrCode size={15} style={{ color: T.primary }}/> QR Code</span>
+            <span>→ avaliação no Google em segundos.</span>
+          </div>
+
+          {/* CTAs — 1 primário + 1 secundário (spec Bloco 6) */}
+          <div style={{ display:'flex', gap: 8, flexWrap:'wrap' }}>
+            <button onClick={() => setModalOpen(true)} style={{
+              flex:'1 1 200px', minHeight: 46, background: T.primary, color:'#fff', border:'none', borderRadius: 11,
+              padding:'11px 16px', fontSize: 13.5, fontWeight: 700, cursor:'pointer', fontFamily:"'Inter', sans-serif"
+            }}>Ativar código de dispositivo →</button>
+            <a href="/kit" style={{
+              flex:'1 1 160px', minHeight: 46, background:'#fff', color: T.primary, border:`1.5px solid ${T.primary}`, borderRadius: 11,
+              padding:'11px 16px', fontSize: 13.5, fontWeight: 700, textDecoration:'none', textAlign:'center',
+              display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Inter', sans-serif"
+            }}>Comprar dispositivos</a>
           </div>
         </>
       ) : (
@@ -6361,7 +6386,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
 
         {/* CAPTURE POINTS — id pra scroll automático de /app#pontos-de-captacao */}
         <Section id="pontos-de-captacao">
-          <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} isAdmin={isAdminUser(user)} reviewCount={d.kpis.reviewCount} />
+          <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} isAdmin={isAdminUser(user)} reviewCount={d.kpis.reviewCount} isMobile={isMobile} />
         </Section>
 
         {/* BLOCO 7 — Card criar conta (só na prévia/convidado). Spec seção 3. */}
