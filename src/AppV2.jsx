@@ -4644,18 +4644,21 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
               : 'Coloque um dispositivo NFC no balcão e transforme cada atendimento em avaliação no Google, no automático.'}
           </p>
 
-          {/* Vitrine dos 3 produtos — renders grandes com sombra */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap: isMobile ? 8 : 12, marginBottom: 16 }}>
+          {/* Vitrine dos 3 produtos — renders grandes com sombra.
+              minmax(0,1fr) + minWidth:0 impedem a imagem de estourar as colunas;
+              img com width/height 100% + objectFit contain fica sempre contida. */}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3, minmax(0, 1fr))', gap: isMobile ? 8 : 12, marginBottom: 16 }}>
             {PRODUCT_SHOWCASE.map(prod => (
               <div key={prod.name} style={{
+                minWidth: 0, overflow:'hidden',
                 background:'#fff', border:`1px solid ${T.border}`, borderRadius: 14,
                 padding: isMobile ? '10px 6px' : 14, textAlign:'center', boxShadow: T.shadow
               }}>
-                <div style={{ height: isMobile ? 92 : 128, display:'grid', placeItems:'center', marginBottom: 8 }}>
+                <div style={{ height: isMobile ? 88 : 120, marginBottom: 8, overflow:'hidden' }}>
                   <img src={prod.img} alt={prod.name}
-                    style={{ maxHeight:'100%', maxWidth:'100%', objectFit:'contain', filter:'drop-shadow(0 8px 18px rgba(15,23,42,0.16))' }}/>
+                    style={{ width:'100%', height:'100%', objectFit:'contain', display:'block', filter:'drop-shadow(0 6px 14px rgba(15,23,42,0.14))' }}/>
                 </div>
-                <div style={{ fontSize: isMobile ? 11.5 : 13, fontWeight: 700, color: T.text, lineHeight: 1.25 }}>{prod.name}</div>
+                <div style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: T.text, lineHeight: 1.25, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{prod.name}</div>
               </div>
             ))}
           </div>
