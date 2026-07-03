@@ -3692,6 +3692,7 @@ function HeroBlock({ d, position, demoMode, isMobile, onScoreDetails, onSeeCompe
   const total = position?.total
   const posDelta = demoMode ? 2 : null   // sem histórico real → oculta variação (spec 6.4)
   const showPos = !!(position && position.inResults && pos != null)
+  const notClassified = !!(position && !position.inResults)   // tem lente, mas o Places não retorna o negócio
   const link = { display:'inline-flex', alignItems:'center', gap: 3, fontSize: 12.5, fontWeight: 600, color: T.primary, textDecoration:'none', cursor:'pointer', background:'none', border:'none', padding: 0, fontFamily:'inherit' }
   return (
     <Card>
@@ -3715,6 +3716,14 @@ function HeroBlock({ d, position, demoMode, isMobile, onScoreDetails, onSeeCompe
                 </div>
               )}
               <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button>
+            </>
+          ) : notClassified ? (
+            <>
+              <div style={{ display:'inline-flex', alignItems:'center', gap: 6, fontSize: isMobile ? 20 : 24, fontWeight: 800, color: T.accent, lineHeight: 1.1, letterSpacing:'-0.01em' }}>
+                <AlertTriangle size={isMobile ? 20 : 22}/> Fora da lista
+              </div>
+              <div style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.4 }}>O Google não te classifica nessa categoria.</div>
+              <button onClick={onSeeCompetitors} style={{ ...link, color: T.accent }}>Ver concorrentes <ChevronRight size={14}/></button>
             </>
           ) : (
             <div style={{ color: T.textMuted, fontSize: 12.5, lineHeight: 1.5 }}>Sua posição aparece assim que houver concorrentes mapeados na sua categoria.</div>
@@ -5368,19 +5377,30 @@ function useLensesData({ placeId, term, cep, mock }) {
   return { data, loading }
 }
 
-// Pega a posição da lente "Bem perto de você" (1km) — fonte única pro Hero Coluna B.
-function pertoPosition(lensData) {
+// Info da lente "Bem perto de você" (1km) — fonte única pro Hero Coluna B.
+// Retorna sempre que houver dados de lente (pra distinguir "não classificado" de
+// "sem dados ainda"); `inResults` diz se o Places de fato retornou o negócio.
+function pertoLensInfo(lensData) {
   const lens = lensData?.lenses?.find(l => l.key === 'perto') || lensData?.lenses?.[0]
-  if (!lens || !lens.inResults || lens.rank == null) return null
-  return { rank: lens.rank, total: lens.total, inResults: true }
+  if (!lens) return null
+  return { rank: lens.rank, total: lens.total, inResults: !!lens.inResults }
 }
 
-function VisibilityLenses({ data, loading, isMobile }) {
+function VisibilityLenses({ data, loading, isMobile, googleUrl, category }) {
   const [tab, setTab] = React.useState(0)
   const [showInfo, setShowInfo] = React.useState(false)
   const lenses = (data && data.lenses) || []
+  const active = lenses.length ? lenses[Math.min(tab, lenses.length - 1)] : null
+  // GA4: ranking_not_classified_impression — 1x por (categoria, lente) não classificada.
+  const firedRef = React.useRef(new Set())
+  React.useEffect(() => {
+    if (!active || active.inResults) return
+    const key = (category || '') + '|' + active.key
+    if (firedRef.current.has(key)) return
+    firedRef.current.add(key)
+    try { if (typeof window !== 'undefined' && window.gtag) window.gtag('event', 'ranking_not_classified_impression', { categoria: category || '' }) } catch {}
+  }, [active, category])
   if (!loading && !lenses.length) return null
-  const active = lenses[Math.min(tab, Math.max(0, lenses.length - 1))]
 
   return (
     <Card>
@@ -5421,13 +5441,28 @@ function VisibilityLenses({ data, loading, isMobile }) {
             <div>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 12, marginBottom: 8 }}>
                 <div style={{ fontSize: 12, color: T.textMuted }}>raio ~{active.radiusKm} km · {active.total} negócios</div>
-                <div style={{ textAlign:'right', flexShrink: 0 }}>
-                  {active.inResults
-                    ? <span style={{ fontSize: 22, fontWeight: 800, color: active.rank <= 3 ? T.success : T.text, letterSpacing:'-0.02em' }}>#{active.rank}</span>
-                    : <span style={{ fontSize: 12.5, fontWeight: 700, color: T.accent }}>fora do top</span>}
-                  <span style={{ fontSize: 11, color: T.textDim }}> de {active.total}</span>
-                </div>
+                {active.inResults && (
+                  <div style={{ textAlign:'right', flexShrink: 0 }}>
+                    <span style={{ fontSize: 22, fontWeight: 800, color: active.rank <= 3 ? T.success : T.text, letterSpacing:'-0.02em' }}>#{active.rank}</span>
+                    <span style={{ fontSize: 11, color: T.textDim }}> de {active.total}</span>
+                  </div>
+                )}
               </div>
+              {/* NÃO classificado: o Places não retorna o negócio nesta busca. */}
+              {!active.inResults && (
+                <div style={{ display:'flex', gap: 10, alignItems:'flex-start', background: T.amberBg, border:'1px solid #FDE68A', borderRadius: 10, padding:'11px 12px', marginBottom: 12 }}>
+                  <span style={{ color: T.accent, flexShrink: 0, marginTop: 1, display:'inline-flex' }}><AlertTriangle size={18}/></span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color:'#92400E', marginBottom: 3 }}>Não classificado nesta busca</div>
+                    <p style={{ fontSize: 12.5, color:'#78350F', lineHeight: 1.5, margin:'0 0 6px' }}>
+                      O Google não classifica seu negócio como <b>{category || 'essa categoria'}</b>. Quem busca por esse termo na sua região não encontra você.
+                    </p>
+                    <a href={googleUrl} target="_blank" rel="noopener noreferrer" style={{ display:'inline-flex', alignItems:'center', gap: 3, fontSize: 12.5, fontWeight: 700, color:'#B45309', textDecoration:'none' }}>
+                      Como corrigir a categoria no Google <ChevronRight size={14}/>
+                    </a>
+                  </div>
+                </div>
+              )}
               {(active.top || []).map((c, i) => {
                 const meFirst = c.isMe && c.pos === 1
                 return (
@@ -6054,7 +6089,12 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     cep: guestContext?.cep || '',
     mock: demoLenses
   })
-  const heroPos = pertoPosition(lensState.data)
+  const heroPos = pertoLensInfo(lensState.data)
+  // Categoria mostrada e URL do perfil do Google (p/ "corrigir categoria" / "Responder").
+  const lensCategory = lensState.data?.term || d.activeCategory || 'sua categoria'
+  const googleProfileUrl = (guestContext?.placeId || d.biz?.placeId)
+    ? `https://search.google.com/local/reviews?placeid=${encodeURIComponent(guestContext?.placeId || d.biz?.placeId)}`
+    : 'https://business.google.com/'
 
   // Header usa nome do negócio real
   const headerBizName = d.biz.name
@@ -6254,6 +6294,8 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             data={lensState.data}
             loading={lensState.loading}
             isMobile={isMobile}
+            googleUrl={googleProfileUrl}
+            category={lensCategory}
           />
           {!demoMode && (
           <div style={{ marginTop: 10 }}>

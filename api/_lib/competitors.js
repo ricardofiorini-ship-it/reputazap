@@ -398,9 +398,8 @@ export async function fetchRankingByTerm({ placeId, keyword, radius, cep }) {
   const keepR = makeCategoryFilter(meR, placeId);
   const fR = ordered.filter(keepR);
   if (fR.length >= 2) { ordered.length = 0; ordered.push(...fR); }
-  // Garante o próprio negócio na lista (sempre aparece no próprio ranking).
-  const withMeR = ensureMe(ordered, me);
-  ordered.length = 0; ordered.push(...withMeR);
+  // NÃO injeta o próprio negócio: a posição só existe se o Places o retornar de
+  // fato pra {termo}+região. Sem isso, inResults=false (não classificado).
 
   const total = ordered.length;
   if (total < 2) {
@@ -524,12 +523,14 @@ export async function fetchVisibilityLenses({ placeId, keyword, cep }) {
     let raw = [];
     try { raw = await runTextSearch(term, aLat, aLng, L.radius); } catch { raw = []; }
 
-    // Filtra (só aplica se sobrar >=2). Depois garante o próprio negócio.
+    // Filtra (só aplica se sobrar >=2). NÃO injeta o próprio negócio: a posição
+    // só existe se o Places REALMENTE o retornar pra essa categoria+região. Se o
+    // Google não classifica o negócio nesse termo, ele fica "não classificado"
+    // (inResults=false) — o ranking dos concorrentes segue visível.
     let ordered = raw;
     let filtered = false;
     const f = raw.filter(keep);
     if (f.length >= 2) { ordered = f; filtered = true; }
-    ordered = ensureMe(ordered, me);
 
     const idx = ordered.findIndex(p => p.place_id === placeId);
     const top = ordered.slice(0, 10).map(p => ({ ...p, is_me: p.place_id === placeId }));
