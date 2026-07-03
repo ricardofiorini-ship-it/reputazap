@@ -6310,20 +6310,6 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         </Section>
         )}
 
-        {/* HERO POSITION = card de RESULTADO (sem CTA pra Pro).
-            Depende de posição real → só com dado de concorrente. */}
-        {(demoMode || hasComp) && (
-        <Section>
-          <HeroPosition
-            progressPct={d.hero.progressPct}
-            currentPos={d.kpis.rankingPos}
-            isMobile={isMobile}
-            placeId={d.biz.placeId}
-            bizName={d.biz.name}
-            onActivatePlate={() => { if (isGuest) { window.location.href = guestSignupUrl; return } setActivatePlateOpen(true) }}
-          />
-        </Section>
-        )}
 
         {/* BLOCO 5 — Avaliações recentes (mesmo layout em demo e real; o ranking
             já está nas lentes 1/3km acima). */}
