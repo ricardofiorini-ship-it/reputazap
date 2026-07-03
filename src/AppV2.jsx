@@ -74,6 +74,8 @@ const MOCK = {
   ],
   unrepliedReviews: 5,
   recentReviews: [
+    { name: 'Fábio Nunes',    rating: 1, comment: 'Demorou demais e o pedido veio errado. Fiquei frustrado.',         date: 'Há 1 dia',     initials: 'FN', color: '#EF4444' },
+    { name: 'Gabriela Reis',  rating: 2, comment: 'Esperava mais pelo preço. O atendimento foi meio frio.',            date: 'Há 3 dias',    initials: 'GR', color: '#F97316' },
     { name: 'Ana Martins',    rating: 5, comment: 'Atendimento incrível, super atenciosos. Voltarei sempre!',         date: 'Há 2 dias',    initials: 'AM', color: '#F59E0B' },
     { name: 'Bruno Lima',     rating: 5, comment: 'Café muito bom, ambiente aconchegante e equipe atenciosa.',         date: 'Há 4 dias',    initials: 'BL', color: '#10B981' },
     { name: 'Carla Souza',    rating: 5, comment: 'Tudo perfeito! Recomendo demais.',                                   date: 'Há 1 semana',  initials: 'CS', color: '#8B5CF6', replied: true },
@@ -821,6 +823,21 @@ function SupportFAB({ isMobile }) {
     return () => clearTimeout(t)
   }, [])
 
+  // Esconde ao rolar PRA BAIXO (leitura) e reaparece ao rolar pra cima / no topo.
+  // Garante que o FAB não cubra elementos interativos dos cards durante o scroll.
+  const [hidden, setHidden] = React.useState(false)
+  React.useEffect(() => {
+    let lastY = typeof window !== 'undefined' ? window.scrollY : 0
+    const onScroll = () => {
+      const y = window.scrollY
+      if (y > lastY + 6 && y > 120) setHidden(true)
+      else if (y < lastY - 6) setHidden(false)
+      lastY = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   const href = `https://wa.me/${SUPPORT_WA_NUMBER}?text=${encodeURIComponent(SUPPORT_WA_DEFAULT_MSG)}`
   // No mobile sobe pra não colidir com a BottomTabBar (altura ~62 + safe-area)
   const bottom = isMobile
@@ -850,9 +867,13 @@ function SupportFAB({ isMobile }) {
         boxShadow: hover
           ? '0 12px 28px rgba(37,211,102,0.45), 0 4px 12px rgba(0,0,0,0.12)'
           : '0 8px 20px rgba(37,211,102,0.35), 0 2px 6px rgba(0,0,0,0.10)',
-        transform: hover ? 'translateY(-2px) scale(1.04)' : 'translateY(0) scale(1)',
-        transition: 'transform .18s ease, box-shadow .18s ease',
-        zIndex: 60,                                            // acima da BottomTabBar (50)
+        transform: hidden
+          ? 'translateY(160%)'
+          : (hover ? 'translateY(-2px) scale(1.04)' : 'translateY(0) scale(1)'),
+        opacity: hidden ? 0 : 1,
+        pointerEvents: hidden ? 'none' : 'auto',
+        transition: 'transform .22s ease, opacity .22s ease, box-shadow .18s ease',
+        zIndex: 60,                                            // acima da BottomTabBar (50), abaixo de modais (100+)
         textDecoration: 'none'
       }}
     >
@@ -4272,26 +4293,35 @@ function Opportunities({ count, placeId }) {
 
 // ─────────────────────────────────────────────────────────────
 // Bloco 3 — Ação da semana (1 só). Regra de prioridade da spec seção 3:
-//  1) avaliação sem resposta → responder no Google
+//  1) avaliação sem resposta → responder no Google. Entre várias, escolhe a PIOR:
+//     menor nota primeiro, mais recente como desempate. Uma nota 1-2 sem resposta
+//     sempre vence qualquer outra ação.
 //  2) sem dispositivo ativo → ativar código
 //  3) fallback → maior lacuna do Score StarTouch
 // Absorve o banner amarelo gigante: fundo surface, ícone accent, badge discreto.
 // ─────────────────────────────────────────────────────────────
 function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate }) {
-  const unreplied = demoMode ? d.unrepliedReviews : null
-  const hasReviews = (d.kpis.reviewCount || 0) > 0
-  const firstReviewer = (d.recentReviews && d.recentReviews[0] && d.recentReviews[0].name) || null
+  const reviews = d.recentReviews || []
+  // Avaliações SEM resposta (real: sem flag `replied` → todas contam).
+  const unreplied = reviews.filter(r => !r.replied)
+  // Pior avaliação sem resposta: menor nota; empate → mais recente (menor índice).
+  const worst = unreplied.length
+    ? [...unreplied].sort((a, b) => (a.rating - b.rating) || (reviews.indexOf(a) - reviews.indexOf(b)))[0]
+    : null
   const noDevice = (d.activePlates || []).length === 0
   const googleUrl = placeId ? `https://search.google.com/local/reviews?placeid=${placeId}` : 'https://business.google.com/'
 
   let a
-  if (hasReviews) {
+  if (worst) {
+    const low = worst.rating <= 2
     a = {
-      Icon: MessageSquare, type: 'respond',
-      title: firstReviewer
-        ? `Responda a avaliação de ${firstReviewer}${unreplied && unreplied > 1 ? ` e outras ${unreplied - 1}` : ''}`
-        : 'Responda suas avaliações no Google',
-      context: 'Responder transmite confiança e fortalece sua presença no Google.',
+      Icon: low ? AlertTriangle : MessageSquare, type: 'respond',
+      title: low
+        ? `Responda à avaliação de ${worst.rating} ${worst.rating === 1 ? 'estrela' : 'estrelas'} de ${worst.name}`
+        : `Responda a avaliação de ${worst.name}`,
+      context: low
+        ? 'Uma nota baixa sem resposta pesa muito na sua reputação — responder com cuidado reduz o impacto.'
+        : 'Responder transmite confiança e fortalece sua presença no Google.',
       badge: 'até 30% mais visitas', cta: 'Responder no Google', href: googleUrl
     }
   } else if (noDevice) {
