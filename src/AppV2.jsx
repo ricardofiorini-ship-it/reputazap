@@ -917,16 +917,9 @@ function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen }) {
           >
             <span style={{ lineHeight: 1, marginBottom: 4, display:'inline-flex' }}><Ico name={tab.icon} size={24}/></span>
             <span style={{
-              fontSize: 10.5, fontWeight: isActive ? 700 : 500,
+              fontSize: 11.5, fontWeight: isActive ? 600 : 500,
               whiteSpace:'nowrap', textAlign:'center', maxWidth:'100%'
             }}>{tab.label}</span>
-            {isLocked && (
-              <span style={{
-                position:'absolute', top: 4, right: 'calc(50% - 22px)',
-                fontSize: 9, padding:'1px 4px', borderRadius: 3,
-                background:'#FBBC04', color:'#78350F', fontWeight: 800
-              }}></span>
-            )}
           </a>
         )
       })}
@@ -3465,7 +3458,7 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
         {/* Nome do negócio — secundário (com label sutil pra hierarquia clara) */}
         <div style={{ display:'flex', flexDirection:'column', minWidth: 0, gap: 1 }}>
           <span style={{ fontSize: 9.5, fontWeight: 700, color: T.textDim, letterSpacing:'.06em', textTransform:'uppercase' }}>Negócio</span>
-          <span style={{ fontWeight: 600, fontSize: isMobile ? 12.5 : 13.5, color: T.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight: 1.2 }}>{bizName}</span>
+          <span title={bizName} style={{ fontWeight: 600, fontSize: isMobile ? 12.5 : 13.5, color: T.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight: 1.2, maxWidth: isMobile ? 180 : 280 }}>{bizName}</span>
         </div>
       </div>
 
