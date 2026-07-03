@@ -826,7 +826,7 @@ function SupportFAB({ isMobile }) {
   const bottom = isMobile
     ? 'calc(76px + env(safe-area-inset-bottom, 0px))'
     : 24
-  const size = isMobile ? 54 : 58
+  const size = 52   // spec 2.5 — FAB reduzido pra 52px
 
   return (
     <a
@@ -6121,7 +6121,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       )}
 
       {tab === 'painel' && (
-      <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
+      <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 96px' : '32px 32px 96px' }}>
 
         {/* Switch plano — só em demo (?demo=1). Em produção logada, o plano vem do banco. */}
         {demoMode && (
