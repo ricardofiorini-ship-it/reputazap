@@ -76,8 +76,8 @@ const MOCK = {
   recentReviews: [
     { name: 'Ana Martins',    rating: 5, comment: 'Atendimento incrível, super atenciosos. Voltarei sempre!',         date: 'Há 2 dias',    initials: 'AM', color: '#F59E0B' },
     { name: 'Bruno Lima',     rating: 5, comment: 'Café muito bom, ambiente aconchegante e equipe atenciosa.',         date: 'Há 4 dias',    initials: 'BL', color: '#10B981' },
-    { name: 'Carla Souza',    rating: 5, comment: 'Tudo perfeito! Recomendo demais.',                                   date: 'Há 1 semana',  initials: 'CS', color: '#8B5CF6' },
-    { name: 'Diego Pereira',  rating: 5, comment: 'Excelente! O capuccino é um dos melhores da cidade.',                date: 'Há 1 semana',  initials: 'DP', color: '#EC4899' },
+    { name: 'Carla Souza',    rating: 5, comment: 'Tudo perfeito! Recomendo demais.',                                   date: 'Há 1 semana',  initials: 'CS', color: '#8B5CF6', replied: true },
+    { name: 'Diego Pereira',  rating: 5, comment: 'Excelente! O capuccino é um dos melhores da cidade.',                date: 'Há 1 semana',  initials: 'DP', color: '#EC4899', replied: true },
     { name: 'Eduarda Castro', rating: 4, comment: 'Muito bom, só a espera demorou um pouco no horário de pico.',        date: 'Há 2 semanas', initials: 'EC', color: '#06B6D4' }
   ],
   capturePoints: [
@@ -3663,12 +3663,14 @@ function ScoreRing({ score, size = 128 }) {
   )
 }
 
-function HeroBlock({ d, hasComp, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
+function HeroBlock({ d, position, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
   const score = calcStarTouchScore(d)
-  const pos = d.kpis.rankingPos
-  const total = d.kpis.totalCompetitors
+  // Coluna B consome a MESMA fonte do ranking (lente "Bem perto de você") — não o
+  // d.kpis.rankingPos, que ficava null e mostrava placeholder mesmo com ranking cheio.
+  const pos = position?.rank
+  const total = position?.total
   const posDelta = demoMode ? 2 : null   // sem histórico real → oculta variação (spec 6.4)
-  const showPos = (demoMode || hasComp) && pos != null
+  const showPos = !!(position && position.inResults && pos != null)
   const link = { display:'inline-flex', alignItems:'center', gap: 3, fontSize: 12.5, fontWeight: 600, color: T.primary, textDecoration:'none', cursor:'pointer', background:'none', border:'none', padding: 0, fontFamily:'inherit' }
   return (
     <Card>
@@ -3727,6 +3729,11 @@ function HeroBlock({ d, hasComp, demoMode, isMobile, onScoreDetails, onSeeCompet
 // ─────────────────────────────────────────────────────────────
 const RADAR_WIDGET_ENABLED = false
 function RadarWidgetSlot({ d, isMobile }) {
+  // GA4 radar_widget_impression — cabeado; dispara 1x quando a flag for ligada.
+  React.useEffect(() => {
+    if (!RADAR_WIDGET_ENABLED) return
+    try { if (typeof window !== 'undefined' && window.gtag) window.gtag('event', 'radar_widget_impression') } catch {}
+  }, [])
   if (!RADAR_WIDGET_ENABLED) return null
   return null
 }
@@ -4273,6 +4280,7 @@ function Opportunities({ count, placeId }) {
 function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate }) {
   const unreplied = demoMode ? d.unrepliedReviews : null
   const hasReviews = (d.kpis.reviewCount || 0) > 0
+  const firstReviewer = (d.recentReviews && d.recentReviews[0] && d.recentReviews[0].name) || null
   const noDevice = (d.activePlates || []).length === 0
   const googleUrl = placeId ? `https://search.google.com/local/reviews?placeid=${placeId}` : 'https://business.google.com/'
 
@@ -4280,7 +4288,9 @@ function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate }) {
   if (hasReviews) {
     a = {
       Icon: MessageSquare, type: 'respond',
-      title: unreplied ? `Responda suas ${unreplied} avaliações sem resposta` : 'Responda suas avaliações no Google',
+      title: firstReviewer
+        ? `Responda a avaliação de ${firstReviewer}${unreplied && unreplied > 1 ? ` e outras ${unreplied - 1}` : ''}`
+        : 'Responda suas avaliações no Google',
       context: 'Responder transmite confiança e fortalece sua presença no Google.',
       badge: 'até 30% mais visitas', cta: 'Responder no Google', href: googleUrl
     }
@@ -4387,7 +4397,14 @@ function RecentReviews({ items, trend, isMobile, onSeeAll }) {
               <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4, flexWrap:'wrap' }}>
                 <span style={{ fontSize: 13.5, fontWeight: 600, color: T.text }}>{r.name}</span>
                 <Stars rating={r.rating} size={11} />
-                <span style={{ fontSize: 11.5, color: T.textDim, marginLeft:'auto' }}>{r.date}</span>
+                <div style={{ marginLeft:'auto', display:'inline-flex', alignItems:'center', gap: 8 }}>
+                  <span style={{ fontSize: 11.5, color: T.textDim }}>{r.date}</span>
+                  {!r.replied && (
+                    <span style={{ display:'inline-flex', alignItems:'center', gap: 4, fontSize: 11, fontWeight: 700, color:'#B45309', background:'#FEF3C7', border:'1px solid #FDE68A', borderRadius: 999, padding:'2px 9px' }}>
+                      <MessageSquare size={12}/> Responder
+                    </span>
+                  )}
+                </div>
               </div>
               {r.comment
                 ? <p style={{ fontSize: 13, color: T.textMid, margin: 0, lineHeight: 1.55 }}>"{r.comment}"</p>
@@ -5093,14 +5110,14 @@ function GuestBanner({ url, isMobile, bizName, rank, gap, targetPos }) {
   }
   return (
     <div style={{
-      background: T.red, color:'#fff',
+      background: T.primarySoft, color: T.text, borderLeft: `4px solid ${T.primary}`,
       display:'flex', alignItems:'center', justifyContent:'center', gap: isMobile?8:12, flexWrap:'wrap',
-      padding: isMobile ? '9px 14px' : '10px 18px', fontSize: isMobile?12:13.5, fontWeight:600, textAlign:'center'
+      padding: isMobile ? '10px 14px' : '11px 18px', fontSize: isMobile?12:13.5, fontWeight:600, textAlign:'center'
     }}>
       <span>{msg}</span>
       <a href={url} style={{
-        background:'#fff', color: T.red, textDecoration:'none', fontWeight:700,
-        padding:'6px 14px', borderRadius: 8, fontSize: isMobile?12.5:13, whiteSpace:'nowrap'
+        background: T.primary, color:'#fff', textDecoration:'none', fontWeight:700,
+        padding:'7px 15px', borderRadius: 8, fontSize: isMobile?12.5:13, whiteSpace:'nowrap'
       }}>Salvar meu diagnóstico →</a>
     </div>
   )
@@ -5301,11 +5318,14 @@ function TermBar({ term, isGuest, placeId, isMobile }) {
 
 // Visibilidade multi-lente: a MESMA busca (ordem real do Google) em raios
 // diferentes. Mostra que a posição varia conforme a distância de quem busca.
-function VisibilityLenses({ placeId, term, cep, isMobile, mock }) {
+// Hook compartilhado: busca as lentes (1/3km) UMA vez, pra o Hero (Coluna B) e o
+// bloco de concorrentes consumirem a MESMA fonte de dados. Com `mock`, usa
+// dados estáticos (modo demo), sem fetch.
+function useLensesData({ placeId, term, cep, mock }) {
   const [data, setData] = React.useState(mock || null)
   const [loading, setLoading] = React.useState(!mock)
   React.useEffect(() => {
-    if (mock) { setData(mock); setLoading(false); return }   // modo demo: dados estáticos, sem fetch
+    if (mock) { setData(mock); setLoading(false); return }
     if (!placeId) { setLoading(false); return }
     let cancelled = false
     setLoading(true)
@@ -5315,7 +5335,17 @@ function VisibilityLenses({ placeId, term, cep, isMobile, mock }) {
     fetch(url).then(r => r.json()).then(d => { if (!cancelled) setData(d) }).catch(() => {}).finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [placeId, term, cep, mock])
+  return { data, loading }
+}
 
+// Pega a posição da lente "Bem perto de você" (1km) — fonte única pro Hero Coluna B.
+function pertoPosition(lensData) {
+  const lens = lensData?.lenses?.find(l => l.key === 'perto') || lensData?.lenses?.[0]
+  if (!lens || !lens.inResults || lens.rank == null) return null
+  return { rank: lens.rank, total: lens.total, inResults: true }
+}
+
+function VisibilityLenses({ data, loading, isMobile }) {
   const [tab, setTab] = React.useState(0)
   const [showInfo, setShowInfo] = React.useState(false)
   const lenses = (data && data.lenses) || []
@@ -5986,6 +6016,16 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     return { lenses: [lens('perto', 'Bem perto de você', 1, 8), lens('regiao', 'Na sua região', 3, 12)], anchoredAtCep: true }
   }, [demoMode, d])
 
+  // Lentes 1/3km — busca ÚNICA, compartilhada entre o Hero (Coluna B) e o bloco
+  // de concorrentes (mesma fonte de dados). No demo, usa demoLenses (mock).
+  const lensState = useLensesData({
+    placeId: guestContext?.placeId || d.biz?.placeId,
+    term: (real.competitors && real.competitors.category) || d.activeCategory || '',
+    cep: guestContext?.cep || '',
+    mock: demoLenses
+  })
+  const heroPos = pertoPosition(lensState.data)
+
   // Header usa nome do negócio real
   const headerBizName = d.biz.name
 
@@ -6148,7 +6188,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <Section>
           <HeroBlock
             d={d}
-            hasComp={hasComp}
+            position={heroPos}
             demoMode={demoMode}
             isMobile={isMobile}
             onScoreDetails={() => { try { window.gtag && window.gtag('event', 'click_score_details') } catch {} ; setScoreOpen(true) }}
@@ -6170,16 +6210,10 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         {/* BLOCO 3 — Ação da semana (1 só).
             Convidado: portão suave — teaser do "acompanhar" (evolução/alertas/ação).
             Logado — Demo: itens MOCK. Real: calculadas do estado competitivo. */}
-        {isGuest ? (
-        <Section>
-          <GuestFollowTeaser url={guestSignupUrl} isMobile={isMobile} />
-        </Section>
-        ) : (
         <Section>
           <WeeklyAction d={d} demoMode={demoMode} isMobile={isMobile} placeId={d.biz.placeId}
-            onActivate={() => setActivatePlateOpen(true)} />
+            onActivate={() => { if (isGuest) { window.location.href = guestSignupUrl; return } setActivatePlateOpen(true) }} />
         </Section>
-        )}
 
         {/* BLOCO 4 — Concorrentes por perto: lentes 1km/3km + categoria. Spec 3.
             TermBar em cima: deixa EXPLÍCITA a categoria de comparação e permite trocá-la. */}
@@ -6187,10 +6221,8 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <Section>
           <div id="bloco-concorrentes" style={{ scrollMarginTop: 72 }} />
           <VisibilityLenses
-            placeId={guestContext?.placeId || d.biz?.placeId}
-            term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
-            cep={guestContext?.cep || ''}
-            mock={demoLenses}
+            data={lensState.data}
+            loading={lensState.loading}
             isMobile={isMobile}
           />
           {!demoMode && (
@@ -6231,6 +6263,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <Section id="pontos-de-captacao">
           <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} isAdmin={isAdminUser(user)} reviewCount={d.kpis.reviewCount} />
         </Section>
+
+        {/* BLOCO 7 — Card criar conta (só na prévia/convidado). Spec seção 3. */}
+        {isGuest && (
+        <Section>
+          <GuestFollowTeaser url={guestSignupUrl} isMobile={isMobile} />
+        </Section>
+        )}
 
       </main>
       )}
