@@ -3719,6 +3719,18 @@ function HeroBlock({ d, hasComp, demoMode, isMobile, onScoreDetails, onSeeCompet
   )
 }
 
+// ─────────────────────────────────────────────────────────────
+// Bloco 2 — SLOT reservado do Widget Radar IA (spec seção 3, Bloco 2).
+// Layout FUTURO: card com score de visibilidade em IA — mesma anatomia do Score
+// StarTouch (anel SVG + número Display + link). Hoje desligado pela feature flag
+// → renderiza null. Ao ativar: disparar GA4 'radar_widget_impression'.
+// ─────────────────────────────────────────────────────────────
+const RADAR_WIDGET_ENABLED = false
+function RadarWidgetSlot({ d, isMobile }) {
+  if (!RADAR_WIDGET_ENABLED) return null
+  return null
+}
+
 // Sugestões REAIS da semana — calculadas do estado competitivo do próprio
 // negócio (mesma fórmula do ranking: gscore = nota × log10(avaliações+1)).
 // Sem MOCK: cada negócio recebe conselho dos seus próprios números.
@@ -6059,7 +6071,31 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           />
         </Section>
 
-        {/* VISIBILIDADE MULTI-LENTE — posição real do Google em raios diferentes.
+        {/* BLOCO 2 — SLOT do Widget Radar IA (feature flag desligada → null). Spec 3. */}
+        <RadarWidgetSlot d={d} isMobile={isMobile} />
+
+        {/* GATILHO PRO (FOMO) — ESCONDIDO TEMPORARIAMENTE (sem segurança pra
+            vender Pro ainda). Pra reexibir, troque `false &&` por `(demoMode || hasComp)`. */}
+        {false && plan === 'free' && (
+        <Section>
+          <ProTriggerCard data={d} isMobile={isMobile} />
+        </Section>
+        )}
+
+        {/* BLOCO 3 — Ação da semana (1 só).
+            Convidado: portão suave — teaser do "acompanhar" (evolução/alertas/ação).
+            Logado — Demo: itens MOCK. Real: calculadas do estado competitivo. */}
+        {isGuest ? (
+        <Section>
+          <GuestFollowTeaser url={guestSignupUrl} isMobile={isMobile} />
+        </Section>
+        ) : (demoMode || hasComp) && (
+        <Section>
+          <WeekActions items={demoMode ? d.weekActions : realWeekActions(d).slice(0, 1)} isMobile={isMobile} />
+        </Section>
+        )}
+
+        {/* BLOCO 4 — Concorrentes por perto: lentes 1km/3km + categoria. Spec 3.
             TermBar em cima: deixa EXPLÍCITA a categoria de comparação e permite trocá-la. */}
         {!demoMode && real.hasBusiness && (guestContext?.placeId || d.biz?.placeId) && (
         <Section>
@@ -6076,27 +6112,6 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             cep={guestContext?.cep || ''}
             isMobile={isMobile}
           />
-        </Section>
-        )}
-
-        {/* GATILHO PRO (FOMO) — ESCONDIDO TEMPORARIAMENTE (sem segurança pra
-            vender Pro ainda). Pra reexibir, troque `false &&` por `(demoMode || hasComp)`. */}
-        {false && plan === 'free' && (
-        <Section>
-          <ProTriggerCard data={d} isMobile={isMobile} />
-        </Section>
-        )}
-
-        {/* SUGESTÕES DA SEMANA (push de direção).
-            Convidado: portão suave — teaser do "acompanhar" (evolução/alertas/ação).
-            Logado — Demo: itens MOCK. Real: calculadas do estado competitivo. */}
-        {isGuest ? (
-        <Section>
-          <GuestFollowTeaser url={guestSignupUrl} isMobile={isMobile} />
-        </Section>
-        ) : (demoMode || hasComp) && (
-        <Section>
-          <WeekActions items={demoMode ? d.weekActions : realWeekActions(d).slice(0, 1)} isMobile={isMobile} />
         </Section>
         )}
 
