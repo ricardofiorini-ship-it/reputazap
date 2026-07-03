@@ -5301,10 +5301,11 @@ function TermBar({ term, isGuest, placeId, isMobile }) {
 
 // Visibilidade multi-lente: a MESMA busca (ordem real do Google) em raios
 // diferentes. Mostra que a posição varia conforme a distância de quem busca.
-function VisibilityLenses({ placeId, term, cep, isMobile }) {
-  const [data, setData] = React.useState(null)
-  const [loading, setLoading] = React.useState(true)
+function VisibilityLenses({ placeId, term, cep, isMobile, mock }) {
+  const [data, setData] = React.useState(mock || null)
+  const [loading, setLoading] = React.useState(!mock)
   React.useEffect(() => {
+    if (mock) { setData(mock); setLoading(false); return }   // modo demo: dados estáticos, sem fetch
     if (!placeId) { setLoading(false); return }
     let cancelled = false
     setLoading(true)
@@ -5313,7 +5314,7 @@ function VisibilityLenses({ placeId, term, cep, isMobile }) {
       + (cep ? `&cep=${encodeURIComponent(cep)}` : '')
     fetch(url).then(r => r.json()).then(d => { if (!cancelled) setData(d) }).catch(() => {}).finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [placeId, term, cep])
+  }, [placeId, term, cep, mock])
 
   const [tab, setTab] = React.useState(0)
   const [showInfo, setShowInfo] = React.useState(false)
@@ -5975,6 +5976,16 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   // Usado pra esconder KPIs de ranking/posição quando seriam MOCK num negócio real.
   const hasComp = (d.competitors && d.competitors.length > 0)
 
+  // Lentes MOCK pro modo demo — o VisibilityLenses real busca via API; no demo,
+  // alimenta o mesmo componente (abas 1/3km) com os dados de exemplo do MOCK.
+  const demoLenses = React.useMemo(() => {
+    if (!demoMode) return undefined
+    const me = (d.ranking || []).find(r => r.you)
+    const top = (d.ranking || []).map(r => ({ pos: r.pos, name: r.name, rating: r.rating, reviews: r.reviews, isMe: !!r.you }))
+    const lens = (key, label, radiusKm, total) => ({ key, label, radiusKm, total, rank: me ? me.pos : null, inResults: !!me, top })
+    return { lenses: [lens('perto', 'Bem perto de você', 1, 8), lens('regiao', 'Na sua região', 3, 12)], anchoredAtCep: true }
+  }, [demoMode, d])
+
   // Header usa nome do negócio real
   const headerBizName = d.biz.name
 
@@ -6123,27 +6134,6 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       {tab === 'painel' && (
       <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 96px' : '32px 32px 96px' }}>
 
-        {/* Switch plano — só em demo (?demo=1). Em produção logada, o plano vem do banco. */}
-        {demoMode && (
-          <div style={{ display:'flex', gap: 8, marginBottom: 20, fontSize: 12, alignItems:'center' }}>
-            <span style={{ fontSize: 11, color: T.textDim, marginRight: 4 }}>DEMO:</span>
-            <a href="?demo=1&plan=free" style={{
-              padding:'6px 12px', borderRadius:8, textDecoration:'none',
-              background: plan === 'free' ? T.blue : '#fff',
-              color: plan === 'free' ? '#fff' : T.textMid,
-              border:`1px solid ${plan === 'free' ? T.blue : T.border}`,
-              fontWeight: 600
-            }}>Ver como FREE</a>
-            <a href="?demo=1&plan=pro" style={{
-              padding:'6px 12px', borderRadius:8, textDecoration:'none',
-              background: plan === 'pro' ? T.blue : '#fff',
-              color: plan === 'pro' ? '#fff' : T.textMid,
-              border:`1px solid ${plan === 'pro' ? T.blue : T.border}`,
-              fontWeight: 600
-            }}>Ver como PRO</a>
-          </div>
-        )}
-
         {/* TITLE */}
         <div style={{ marginBottom: 22 }}>
           <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
@@ -6184,10 +6174,6 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <Section>
           <GuestFollowTeaser url={guestSignupUrl} isMobile={isMobile} />
         </Section>
-        ) : demoMode ? (
-        <Section>
-          <WeekActions items={d.weekActions} isMobile={isMobile} />
-        </Section>
         ) : (
         <Section>
           <WeeklyAction d={d} demoMode={demoMode} isMobile={isMobile} placeId={d.biz.placeId}
@@ -6197,15 +6183,17 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
 
         {/* BLOCO 4 — Concorrentes por perto: lentes 1km/3km + categoria. Spec 3.
             TermBar em cima: deixa EXPLÍCITA a categoria de comparação e permite trocá-la. */}
-        {!demoMode && real.hasBusiness && (guestContext?.placeId || d.biz?.placeId) && (
+        {(demoMode || (real.hasBusiness && (guestContext?.placeId || d.biz?.placeId))) && (
         <Section>
           <div id="bloco-concorrentes" style={{ scrollMarginTop: 72 }} />
           <VisibilityLenses
             placeId={guestContext?.placeId || d.biz?.placeId}
             term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
             cep={guestContext?.cep || ''}
+            mock={demoLenses}
             isMobile={isMobile}
           />
+          {!demoMode && (
           <div style={{ marginTop: 10 }}>
             <TermBar
               term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
@@ -6214,6 +6202,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
               isMobile={isMobile}
             />
           </div>
+          )}
         </Section>
         )}
 
@@ -6232,31 +6221,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         </Section>
         )}
 
-        {demoMode ? (
-          <>
-            {/* DEMO: Ranking + gráfico de evolução, depois Oportunidades + Avaliações */}
-            <Section>
-              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 420px) 1fr', gap: isMobile ? 14 : 24 }}>
-                <RankingList items={d.ranking} isMobile={isMobile} plan={plan} category={d.activeCategory} onEditCategory={() => navigateFromMore('config', 'negocio')} />
-                <EvolutionChart data={d.evolution} growthPct={d.growthPct} isMobile={isMobile} />
-              </div>
-            </Section>
-            <Section>
-              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 360px) 1fr', gap: isMobile ? 14 : 24 }}>
-                <Opportunities count={d.unrepliedReviews} placeId={d.biz.placeId} />
-                <RecentReviews items={d.recentReviews} trend={d.trend} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
-              </div>
-            </Section>
-          </>
-        ) : (
-          <>
-            {/* REAL: o ranking já está nas duas lentes 1km/3km acima — aqui só as
-                avaliações reais em largura total. Oportunidades como faixa embaixo. */}
-            <Section>
-              <RecentReviews items={d.recentReviews} trend={null} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
-            </Section>
-          </>
-        )}
+        {/* BLOCO 5 — Avaliações recentes (mesmo layout em demo e real; o ranking
+            já está nas lentes 1/3km acima). */}
+        <Section>
+          <RecentReviews items={d.recentReviews} trend={demoMode ? d.trend : null} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
+        </Section>
 
         {/* CAPTURE POINTS — id pra scroll automático de /app#pontos-de-captacao */}
         <Section id="pontos-de-captacao">
