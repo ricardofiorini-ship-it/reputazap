@@ -1,8 +1,33 @@
+/* Tokens de cor — PAINEL-V3 (spec seção 2.2). Sem Tailwind no projeto: os tokens
+   ficam aqui como variáveis CSS e no objeto T do AppV2.jsx (estilos inline). */
+:root {
+  --st-primary:      #2563EB;
+  --st-primary-dark: #1E40AF;
+  --st-primary-soft: #EFF6FF;
+  --st-accent:       #F59E0B;
+  --st-success:      #10B981;
+  --st-danger:       #EF4444;
+  --st-bg:           #F8FAFC;
+  --st-surface:      #FFFFFF;
+  --st-border:       #E2E8F0;
+  --st-text:         #0F172A;
+  --st-text-muted:   #64748B;
+}
+
 html, body {
   margin: 0;
-  background: #F7F8FA;
+  background: var(--st-bg);
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  color: #0F172A;
+  color: var(--st-text);
   -webkit-font-smoothing: antialiased;
 }
 * { box-sizing: border-box; }
+
+/* Shimmer suave pros skeletons de loading (spec 6.3) */
+@keyframes st-shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+.st-skeleton {
+  background: linear-gradient(90deg, #EEF2F6 25%, #E2E8F0 37%, #EEF2F6 63%);
+  background-size: 800px 100%;
+  animation: st-shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}

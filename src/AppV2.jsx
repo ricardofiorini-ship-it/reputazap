@@ -652,15 +652,25 @@ function buildData(real, user, demoMode) {
   }
 }
 
+// Tokens de cor — PAINEL-V3 (spec seção 2.2). O projeto não usa Tailwind (conflito
+// registrado no relatório): os tokens vivem aqui no objeto T (usado pelos estilos
+// inline) + em variáveis CSS no v2.css. As chaves LEGADAS (blue/green/amber/…)
+// foram repontadas pros novos valores pra não quebrar os componentes existentes.
 const T = {
-  bg:'#F7F8FA', surface:'#FFFFFF', border:'#EAEDF1',
-  text:'#0F172A', textMid:'#475569', textDim:'#94A3B8',
-  blue:'#1A73E8', blueDk:'#0F4DAE', blueSoft:'#EAF2FE',
+  // Neutros
+  bg:'#F8FAFC', surface:'#FFFFFF', border:'#E2E8F0',
+  text:'#0F172A', textMid:'#475569', textDim:'#64748B', textMuted:'#64748B',
+  // Semânticos (nomes da spec)
+  primary:'#2563EB', primaryDark:'#1E40AF', primarySoft:'#EFF6FF',
+  accent:'#F59E0B', success:'#10B981', danger:'#EF4444',
+  // Legado → mesmos valores novos (compat com estilos inline existentes)
+  blue:'#2563EB', blueDk:'#1E40AF', blueSoft:'#EFF6FF',
   green:'#10B981', greenSoft:'#ECFDF5',
   amber:'#F59E0B', amberSoft:'#FEF7E6', amberBg:'#FFFBEB',
   red:'#EF4444',
-  shadow:'0 1px 2px rgba(15,23,42,0.04), 0 6px 24px -8px rgba(15,23,42,0.08)',
-  shadowSm:'0 1px 2px rgba(15,23,42,0.06)'
+  // Sombra única sutil (spec 2.4)
+  shadow:'0 1px 3px rgba(0,0,0,0.06)',
+  shadowSm:'0 1px 3px rgba(0,0,0,0.06)'
 }
 
 // Detect mobile via media-query hook (no extra deps)
