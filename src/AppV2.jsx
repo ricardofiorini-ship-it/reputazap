@@ -3637,6 +3637,88 @@ function KpiCard({ icon, label, value, sub, trend, onClick }) {
   )
 }
 
+// ─────────────────────────────────────────────────────────────
+// Bloco 1 — HERO (placar de 5 segundos). Spec seção 3, Bloco 1.
+// Anel de score SVG (cor por faixa) + posição no ranking + mini-cards.
+// ─────────────────────────────────────────────────────────────
+function ScoreRing({ score, size = 128 }) {
+  const stroke = 11
+  const r = (size - stroke) / 2
+  const circ = 2 * Math.PI * r
+  const s = Math.max(0, Math.min(100, Math.round(score || 0)))
+  const color = s >= 75 ? T.success : s >= 50 ? T.accent : T.danger
+  return (
+    <div style={{ position:'relative', width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={T.border} strokeWidth={stroke}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+          strokeDasharray={circ} strokeDashoffset={circ * (1 - s/100)} strokeLinecap="round"
+          transform={`rotate(-90 ${size/2} ${size/2})`}
+          style={{ transition:'stroke-dashoffset .7s ease' }}/>
+      </svg>
+      <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <span style={{ fontSize: size > 110 ? 44 : 36, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>{s}</span>
+      </div>
+    </div>
+  )
+}
+
+function HeroBlock({ d, hasComp, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
+  const score = calcStarTouchScore(d)
+  const pos = d.kpis.rankingPos
+  const total = d.kpis.totalCompetitors
+  const posDelta = demoMode ? 2 : null   // sem histórico real → oculta variação (spec 6.4)
+  const showPos = (demoMode || hasComp) && pos != null
+  const link = { display:'inline-flex', alignItems:'center', gap: 3, fontSize: 12.5, fontWeight: 600, color: T.primary, textDecoration:'none', cursor:'pointer', background:'none', border:'none', padding: 0, fontFamily:'inherit' }
+  return (
+    <Card>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap: isMobile ? 10 : 20 }}>
+        {/* Coluna A — Score StarTouch (a estrela do painel) */}
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', gap: 8, borderRight:`1px solid ${T.border}`, paddingRight: isMobile ? 8 : 16 }}>
+          <ScoreRing score={score} size={isMobile ? 104 : 128}/>
+          <div style={{ fontSize: 13, fontWeight: 600, color: T.textMuted }}>Score StarTouch</div>
+          <button onClick={onScoreDetails} style={link}>Por que {score}? Ver o que falta <ChevronRight size={14}/></button>
+        </div>
+        {/* Coluna B — Posição no ranking */}
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 6, paddingLeft: isMobile ? 4 : 8 }}>
+          {showPos ? (
+            <>
+              <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>#{pos}</div>
+              <div style={{ fontSize: 13, color: T.textMuted }}>de {total} na sua região</div>
+              {posDelta != null && (
+                <div style={{ display:'inline-flex', alignItems:'center', gap: 4, fontSize: 12.5, fontWeight: 700, color: posDelta >= 0 ? T.success : T.danger }}>
+                  {posDelta >= 0 ? <TrendingUp size={15}/> : <TrendingDown size={15}/>}
+                  {posDelta >= 0 ? '+' : ''}{posDelta} vs. semana passada
+                </div>
+              )}
+              <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button>
+            </>
+          ) : (
+            <div style={{ color: T.textMuted, fontSize: 12.5, lineHeight: 1.5 }}>Sua posição aparece assim que houver concorrentes mapeados na sua categoria.</div>
+          )}
+        </div>
+      </div>
+      {/* Mini-cards coadjuvantes (nota + avaliações) — sem Display */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap: 12, marginTop: 16, borderTop:`1px solid ${T.border}`, paddingTop: 14 }}>
+        <div style={{ display:'flex', alignItems:'center', gap: 8 }}>
+          <Star size={18} fill={T.accent} color={T.accent} strokeWidth={0}/>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, lineHeight: 1.1 }}>{typeof d.kpis.rating === 'number' && d.kpis.rating ? d.kpis.rating.toFixed(1) : '—'}</div>
+            <div style={{ fontSize: 11.5, color: T.textMuted }}>reputação atual</div>
+          </div>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap: 8 }}>
+          <MessageSquare size={18} color={T.primary}/>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, lineHeight: 1.1 }}>{d.kpis.reviewCount ?? 0}</div>
+            <div style={{ fontSize: 11.5, color: T.textMuted }}>recebidas</div>
+          </div>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
 // Sugestões REAIS da semana — calculadas do estado competitivo do próprio
 // negócio (mesma fórmula do ranking: gscore = nota × log10(avaliações+1)).
 // Sem MOCK: cada negócio recebe conselho dos seus próprios números.
@@ -5965,28 +6047,23 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           </p>
         </div>
 
-        {/* KPI ROW — grid flexível: nº de cards varia conforme dados reais.
-            Trends fixos (+0.4/+2/+3) e "Últimos 30 dias" são MOCK → só em demo.
-            Ranking/Próxima Meta só aparecem com dado real de concorrente. */}
+        {/* BLOCO 1 — HERO: placar de 5 segundos (score + posição + mini-cards). Spec 3. */}
         <Section>
-          <div style={{
-            display:'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(160px, 1fr))',
-            gap: isMobile ? 10 : 12
-          }}>
-            <KpiCard icon="star" label="Nota Google"     value={d.kpis.rating.toFixed(1)} sub="Sua reputação atual"            trend={demoMode ? +0.4 : undefined} />
-            <KpiCard icon="chat" label="Avaliações"      value={d.kpis.reviewCount}      sub="Total recebidas"                trend={demoMode ? +d.kpis.newLast30Days : undefined} />
-            {(demoMode || hasComp) && <KpiCard icon="trophy" label="Ranking local"   value={`#${d.kpis.rankingPos}`}  sub={`Entre ${d.kpis.totalCompetitors} empresas`} trend={demoMode ? +2 : undefined} />}
-            {demoMode && <KpiCard icon="trendup" label="Últimos 30 dias" value={`+${d.kpis.newLast30Days}`} sub="Novas avaliações"             trend={+3} />}
-            {(demoMode || hasComp) && <KpiCard icon="target" label="Próxima Meta"    value={`${d.kpis.nextGoal.reviewsToNext} ${d.kpis.nextGoal.reviewsToNext === 1 ? 'avaliação' : 'avaliações'}`} sub={`Para o Top ${d.kpis.nextGoal.targetPosition}`} />}
-            <KpiCard icon="award" label="Score StarTouch" value={`${calcStarTouchScore(d)}`} sub={`Por que ${calcStarTouchScore(d)}? Ver o que falta →`} onClick={() => setScoreOpen(true)} />
-          </div>
+          <HeroBlock
+            d={d}
+            hasComp={hasComp}
+            demoMode={demoMode}
+            isMobile={isMobile}
+            onScoreDetails={() => { try { window.gtag && window.gtag('event', 'click_score_details') } catch {} ; setScoreOpen(true) }}
+            onSeeCompetitors={() => { const el = document.getElementById('bloco-concorrentes'); if (el) el.scrollIntoView({ behavior:'smooth', block:'start' }) }}
+          />
         </Section>
 
         {/* VISIBILIDADE MULTI-LENTE — posição real do Google em raios diferentes.
             TermBar em cima: deixa EXPLÍCITA a categoria de comparação e permite trocá-la. */}
         {!demoMode && real.hasBusiness && (guestContext?.placeId || d.biz?.placeId) && (
         <Section>
+          <div id="bloco-concorrentes" style={{ scrollMarginTop: 72 }} />
           <TermBar
             term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
             isGuest={isGuest}
