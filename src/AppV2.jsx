@@ -5245,63 +5245,78 @@ function VisibilityLenses({ placeId, term, cep, isMobile }) {
     return () => { cancelled = true }
   }, [placeId, term, cep])
 
+  const [tab, setTab] = React.useState(0)
+  const [showInfo, setShowInfo] = React.useState(false)
   const lenses = (data && data.lenses) || []
   if (!loading && !lenses.length) return null
+  const active = lenses[Math.min(tab, Math.max(0, lenses.length - 1))]
 
   return (
     <Card>
-      <div style={{ marginBottom: 12 }}>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'flex', alignItems:'center', gap: 8 }}>
-          Concorrentes da sua categoria por perto
+      {/* Header: título + Info colapsável (spec 6 — disclaimer de 5 linhas vira ícone) */}
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap: 8, marginBottom: 12 }}>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0, display:'inline-flex', alignItems:'center', gap: 8 }}>
+          <Search size={18} style={{ color: T.primary }}/> Concorrentes por perto
         </h3>
-        <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.5 }}>
-          Negócios de <b>"{term || 'sua categoria'}"</b> que o Google mostra na sua região — uma amostra pra você se comparar. <b>Não é sua posição exata no Google Maps.</b>
-        </div>
+        <button onClick={() => setShowInfo(v => !v)} aria-label="Sobre estes dados"
+          style={{ background:'none', border:'none', cursor:'pointer', color: showInfo ? T.primary : T.textMuted, display:'inline-flex', padding: 4, flexShrink: 0 }}>
+          <Info size={18}/>
+        </button>
       </div>
-
-      {loading ? (
-        <div style={{ fontSize: 13, color: T.textDim, padding: '8px 0' }}>Calculando…</div>
-      ) : (
-        <div style={{ display:'flex', flexDirection:'column', gap: 14 }}>
-          {lenses.map(L => (
-            <div key={L.key} style={{ border:`1px solid ${T.border}`, borderRadius: 10, overflow:'hidden' }}>
-              <div style={{
-                display:'flex', alignItems:'center', justifyContent:'space-between', gap: 12,
-                padding:'10px 14px', background: T.bg, borderBottom:`1px solid ${T.border}`
-              }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{L.label}</div>
-                  <div style={{ fontSize: 12, color: T.textMid }}>raio ~{L.radiusKm} km · {L.total} negócios</div>
-                </div>
-                <div style={{ textAlign:'right', flexShrink: 0 }}>
-                  {L.inResults
-                    ? <span style={{ fontSize: 20, fontWeight: 800, color: L.rank <= 3 ? T.green : T.text, letterSpacing:'-0.02em' }}>#{L.rank}</span>
-                    : <span style={{ fontSize: 12.5, fontWeight: 700, color: T.amber }}>fora do top</span>}
-                  <span style={{ fontSize: 11, color: T.textDim }}> de {L.total}</span>
-                </div>
-              </div>
-              <div style={{ padding: '6px 8px 8px' }}>
-                {(L.top || []).map((c, i) => (
-                  <div key={i} style={{
-                    display:'flex', alignItems:'center', gap: 8, padding:'6px 8px',
-                    background: c.isMe ? T.blueSoft : 'transparent', borderRadius: 7
-                  }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: T.textDim, width: 22, flexShrink: 0 }}>{c.pos}º</span>
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: c.isMe ? 700 : 500, color: c.isMe ? T.blueDk : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                      {c.isMe ? `${c.name || 'Você'} (você)` : (c.name || 'Concorrente')}
-                    </span>
-                    <span style={{ fontSize: 12, color: T.textMid, flexShrink: 0 }}>{c.rating ?? '—'} · {c.reviews}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+      {showInfo && (
+        <div style={{ fontSize: 12, color: T.textMuted, lineHeight: 1.5, marginBottom: 12, background: T.bg, border:`1px solid ${T.border}`, borderRadius: 10, padding:'10px 12px' }}>
+          Amostra da concorrência via Google Places, filtrada pela sua categoria{data && data.anchoredAtCep ? ', ancorada no centro do seu CEP' : ''}. Não é o ranking exato do Google Maps — ele varia conforme quem busca e de onde. Estamos finalizando a medição exata.
         </div>
       )}
 
-      <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.5 }}>
-        Amostra da concorrência na sua região (via Google Places), filtrada pela sua categoria.{data && data.anchoredAtCep ? ' Ancorada no centro do seu CEP.' : ''} Não é o ranking exato do Google Maps — esse varia conforme quem busca e de onde. Estamos finalizando a medição exata.
-      </div>
+      {loading ? (
+        <div className="st-skeleton" style={{ height: 220 }}/>
+      ) : (
+        <>
+          {/* Segmented control: um raio por vez (spec 6 — corta a página pela metade) */}
+          <div style={{ display:'flex', gap: 4, background: T.bg, border:`1px solid ${T.border}`, borderRadius: 10, padding: 4, marginBottom: 14 }}>
+            {lenses.map((L, i) => (
+              <button key={L.key}
+                onClick={() => { setTab(i); try { window.gtag && window.gtag('event', 'click_competitors_tab', { radius_km: L.radiusKm }) } catch {} }}
+                style={{ flex: 1, padding:'8px 10px', borderRadius: 7, border:'none', cursor:'pointer', fontSize: 12.5, fontWeight: 700, fontFamily:'inherit',
+                  background: i === tab ? T.surface : 'transparent', color: i === tab ? T.primary : T.textMuted,
+                  boxShadow: i === tab ? T.shadowSm : 'none', transition:'all .15s' }}>
+                {L.label}
+              </button>
+            ))}
+          </div>
+
+          {active && (
+            <div>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 12, marginBottom: 8 }}>
+                <div style={{ fontSize: 12, color: T.textMuted }}>raio ~{active.radiusKm} km · {active.total} negócios</div>
+                <div style={{ textAlign:'right', flexShrink: 0 }}>
+                  {active.inResults
+                    ? <span style={{ fontSize: 22, fontWeight: 800, color: active.rank <= 3 ? T.success : T.text, letterSpacing:'-0.02em' }}>#{active.rank}</span>
+                    : <span style={{ fontSize: 12.5, fontWeight: 700, color: T.accent }}>fora do top</span>}
+                  <span style={{ fontSize: 11, color: T.textDim }}> de {active.total}</span>
+                </div>
+              </div>
+              {(active.top || []).map((c, i) => {
+                const meFirst = c.isMe && c.pos === 1
+                return (
+                  <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'8px', borderRadius: 8, marginBottom: 2,
+                    background: c.isMe ? T.primarySoft : 'transparent' }}>
+                    <span style={{ width: 24, flexShrink: 0, textAlign:'center', fontSize: 12, fontWeight: 700,
+                      ...(meFirst ? { background: T.success, color:'#fff', borderRadius: 6, padding:'2px 0' } : { color: T.textDim }) }}>{c.pos}º</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: c.isMe ? 700 : 500, color: c.isMe ? T.primaryDark : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                      {c.isMe ? `${c.name || 'Você'} (você)` : (c.name || 'Concorrente')}
+                    </span>
+                    <span style={{ fontSize: 12, color: T.textMuted, flexShrink: 0, display:'inline-flex', alignItems:'center', gap: 2 }}>
+                      {c.rating ?? '—'}<Star size={11} fill={T.accent} color={T.accent} strokeWidth={0}/> · {c.reviews}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </>
+      )}
     </Card>
   )
 }
@@ -6100,18 +6115,20 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         {!demoMode && real.hasBusiness && (guestContext?.placeId || d.biz?.placeId) && (
         <Section>
           <div id="bloco-concorrentes" style={{ scrollMarginTop: 72 }} />
-          <TermBar
-            term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
-            isGuest={isGuest}
-            placeId={guestContext?.placeId || d.biz?.placeId}
-            isMobile={isMobile}
-          />
           <VisibilityLenses
             placeId={guestContext?.placeId || d.biz?.placeId}
             term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
             cep={guestContext?.cep || ''}
             isMobile={isMobile}
           />
+          <div style={{ marginTop: 10 }}>
+            <TermBar
+              term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
+              isGuest={isGuest}
+              placeId={guestContext?.placeId || d.biz?.placeId}
+              isMobile={isMobile}
+            />
+          </div>
         </Section>
         )}
 
