@@ -4264,6 +4264,76 @@ function Opportunities({ count, placeId }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Bloco 3 — Ação da semana (1 só). Regra de prioridade da spec seção 3:
+//  1) avaliação sem resposta → responder no Google
+//  2) sem dispositivo ativo → ativar código
+//  3) fallback → maior lacuna do Score StarTouch
+// Absorve o banner amarelo gigante: fundo surface, ícone accent, badge discreto.
+// ─────────────────────────────────────────────────────────────
+function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate }) {
+  const unreplied = demoMode ? d.unrepliedReviews : null
+  const hasReviews = (d.kpis.reviewCount || 0) > 0
+  const noDevice = (d.activePlates || []).length === 0
+  const googleUrl = placeId ? `https://search.google.com/local/reviews?placeid=${placeId}` : 'https://business.google.com/'
+
+  let a
+  if (hasReviews) {
+    a = {
+      Icon: MessageSquare, type: 'respond',
+      title: unreplied ? `Responda suas ${unreplied} avaliações sem resposta` : 'Responda suas avaliações no Google',
+      context: 'Responder transmite confiança e fortalece sua presença no Google.',
+      badge: 'até 30% mais visitas', cta: 'Responder no Google', href: googleUrl
+    }
+  } else if (noDevice) {
+    a = {
+      Icon: Rocket, type: 'activate',
+      title: 'Ative sua placa e capte avaliações no automático',
+      context: 'Um dispositivo NFC coleta avaliações a cada atendimento, sem esforço.',
+      badge: null, cta: 'Ativar código', onClick: onActivate
+    }
+  } else {
+    const { factors } = scoreBreakdown(d)
+    const gap = [...factors].sort((x, y) => (y.max - y.earned) - (x.max - x.earned))[0]
+    a = {
+      Icon: Target, type: 'tip',
+      title: gap ? gap.hint : 'Continue coletando avaliações toda semana',
+      context: gap ? `${gap.label}: ${Math.round(gap.earned)}/${gap.max} pts no seu Score StarTouch.` : '',
+      badge: null, cta: null
+    }
+  }
+
+  const ctaStyle = {
+    marginTop: 14, width:'100%', minHeight: 48, background: T.primary, color:'#fff', border:'none',
+    borderRadius: 12, padding:'12px 18px', fontSize: 14, fontWeight: 700, cursor:'pointer',
+    textDecoration:'none', fontFamily:"'Inter', sans-serif",
+    display:'flex', alignItems:'center', justifyContent:'center', gap: 6
+  }
+  const fireGA = () => { try { window.gtag && window.gtag('event', 'click_weekly_action', { action_type: a.type }) } catch {} }
+  const A = a.Icon
+  return (
+    <Card>
+      <div style={{ display:'flex', alignItems:'flex-start', gap: 12 }}>
+        <span style={{ flexShrink: 0, display:'inline-flex', color: T.accent, marginTop: 2 }}><A size={24}/></span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, letterSpacing:'.05em', textTransform:'uppercase', marginBottom: 4 }}>Sua ação da semana</div>
+          <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 15.5 : 17, fontWeight: 700, color: T.text, margin:'0 0 4px', lineHeight: 1.3 }}>{a.title}</h3>
+          {a.context && <p style={{ fontSize: 13, color: T.textMuted, margin: 0, lineHeight: 1.5 }}>{a.context}</p>}
+          {a.badge && (
+            <span style={{ display:'inline-flex', alignItems:'center', gap: 5, marginTop: 8, fontSize: 11.5, fontWeight: 700, color:'#B45309', background:'#FEF3C7', border:'1px solid #FDE68A', borderRadius: 999, padding:'3px 10px' }}>
+              <TrendingUp size={13}/> {a.badge}
+            </span>
+          )}
+        </div>
+      </div>
+      {a.cta && (a.href
+        ? <a href={a.href} target="_blank" rel="noopener noreferrer" onClick={fireGA} style={ctaStyle}>{a.cta} <ChevronRight size={16}/></a>
+        : <button onClick={() => { fireGA(); a.onClick && a.onClick() }} style={ctaStyle}>{a.cta} <ChevronRight size={16}/></button>
+      )}
+    </Card>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // Recent reviews
 // ─────────────────────────────────────────────────────────────
 function RecentReviews({ items, trend, isMobile, onSeeAll }) {
@@ -6104,9 +6174,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <Section>
           <GuestFollowTeaser url={guestSignupUrl} isMobile={isMobile} />
         </Section>
-        ) : (demoMode || hasComp) && (
+        ) : demoMode ? (
         <Section>
-          <WeekActions items={demoMode ? d.weekActions : realWeekActions(d).slice(0, 1)} isMobile={isMobile} />
+          <WeekActions items={d.weekActions} isMobile={isMobile} />
+        </Section>
+        ) : (
+        <Section>
+          <WeeklyAction d={d} demoMode={demoMode} isMobile={isMobile} placeId={d.biz.placeId}
+            onActivate={() => setActivatePlateOpen(true)} />
         </Section>
         )}
 
@@ -6169,9 +6244,6 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
                 avaliações reais em largura total. Oportunidades como faixa embaixo. */}
             <Section>
               <RecentReviews items={d.recentReviews} trend={null} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
-            </Section>
-            <Section>
-              <Opportunities count={null} placeId={d.biz.placeId} />
             </Section>
           </>
         )}
