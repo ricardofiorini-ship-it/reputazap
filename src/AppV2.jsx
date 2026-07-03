@@ -5851,7 +5851,7 @@ function calcStarTouchScore(d) {
 // Mostra cada fator (ganho/máximo + barra) e a ação acionável pra fechar o gap.
 // Honestidade: explicita o que NÃO entra na conta hoje (taxa de resposta e
 // recência — não temos esse dado do Google ainda).
-function ScoreModal({ d, onClose }) {
+function ScoreModal({ d, onClose, isGuest, signupUrl }) {
   const { score, factors } = scoreBreakdown(d)
   const faltam = 100 - score
 
@@ -5860,6 +5860,12 @@ function ScoreModal({ d, onClose }) {
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  // GA4: impressão da trava (só no modo prévia/convidado) — pra medir conversão.
+  React.useEffect(() => {
+    if (!isGuest) return
+    try { if (typeof window !== 'undefined' && window.gtag) window.gtag('event', 'score_breakdown_gate_view') } catch {}
+  }, [isGuest])
 
   const scoreColor = score >= 80 ? T.green : score >= 55 ? T.amber : T.red
 
@@ -5892,12 +5898,36 @@ function ScoreModal({ d, onClose }) {
             : <>Score máximo. Seu negócio tá com a presença local completa pela nossa fórmula.</>}
         </p>
 
-        {/* Fatores */}
+        {/* Fatores. Convidado: só o 1º fator revelado; os demais com blur (só a
+            pontuação legível) + trava. Logado: todos abertos (nada muda). */}
         <div style={{ display:'flex', flexDirection:'column', gap: 14 }}>
-          {factors.map((f) => {
+          {factors.map((f, idx) => {
             const pct = f.max > 0 ? Math.round((f.earned / f.max) * 100) : 0
             const full = f.earned >= f.max
             const barColor = full ? T.green : pct >= 50 ? T.blue : T.amber
+            const locked = isGuest && idx > 0
+
+            if (locked) {
+              return (
+                <div key={f.key} style={{ position:'relative', padding: 14, background: T.bg, borderRadius: 12, border:`1px solid ${T.border}`, overflow:'hidden' }}>
+                  <div style={{ filter:'blur(6px)', userSelect:'none', pointerEvents:'none' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap: 7, marginBottom: 8 }}>
+                      <Ico name={f.icon} size={15}/><span style={{ fontSize: 13.5, fontWeight: 600, color: T.text }}>{f.label}</span>
+                    </div>
+                    <div style={{ height: 6, background: T.border, borderRadius: 99, overflow:'hidden', marginBottom: 8 }}>
+                      <div style={{ width: `${pct}%`, height:'100%', background: barColor, borderRadius: 99 }} />
+                    </div>
+                    <p style={{ fontSize: 12.5, color: T.textMid, margin: 0, lineHeight: 1.45 }}>{f.detail}</p>
+                  </div>
+                  {/* Overlay: trava + pontuação legível */}
+                  <div style={{ position:'absolute', inset: 0, display:'flex', alignItems:'center', justifyContent:'center', gap: 8, background:'rgba(248,250,252,0.35)' }}>
+                    <Lock size={16} color={T.textMid}/>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: T.text }}>+{Math.round(f.earned)} pts</span>
+                  </div>
+                </div>
+              )
+            }
+
             return (
               <div key={f.key} style={{ padding: 14, background: T.bg, borderRadius: 12, border:`1px solid ${T.border}` }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 8, marginBottom: 8 }}>
@@ -5908,7 +5938,6 @@ function ScoreModal({ d, onClose }) {
                     {f.earned}<span style={{ color: T.textDim, fontWeight: 500 }}> / {f.max} pts</span>
                   </span>
                 </div>
-                {/* Barra */}
                 <div style={{ height: 6, background: T.border, borderRadius: 99, overflow:'hidden', marginBottom: 8 }}>
                   <div style={{ width: `${pct}%`, height:'100%', background: barColor, borderRadius: 99, transition:'width .3s' }} />
                 </div>
@@ -5919,10 +5948,23 @@ function ScoreModal({ d, onClose }) {
           })}
         </div>
 
-        {/* Rodapé honesto — o que ainda não entra na conta */}
-        <p style={{ fontSize: 11.5, color: T.textDim, margin:'16px 0 0', lineHeight: 1.5, borderTop:`1px solid ${T.border}`, paddingTop: 12 }}>
-          Ainda não contamos <b>taxa de resposta às avaliações</b> nem <b>recência</b> — o Google não expõe esses dados de forma confiável hoje. Quando der, entram na fórmula.
-        </p>
+        {isGuest ? (
+          /* CTA primário do gate — mesmo destino do fluxo de criar conta */
+          <a href={signupUrl || '/ativar?from=web'}
+            onClick={() => { try { window.gtag && window.gtag('event', 'score_breakdown_gate_click') } catch {} }}
+            style={{
+              marginTop: 16, width:'100%', minHeight: 48, background: T.primary, color:'#fff', textDecoration:'none',
+              borderRadius: 12, padding:'12px 18px', fontSize: 14, fontWeight: 700, fontFamily:"'Inter', sans-serif",
+              display:'flex', alignItems:'center', justifyContent:'center', gap: 6
+            }}>
+            Criar conta grátis e ver tudo <ChevronRight size={16}/>
+          </a>
+        ) : (
+          /* Rodapé honesto — o que ainda não entra na conta (só logado) */
+          <p style={{ fontSize: 11.5, color: T.textDim, margin:'16px 0 0', lineHeight: 1.5, borderTop:`1px solid ${T.border}`, paddingTop: 12 }}>
+            Ainda não contamos <b>taxa de resposta às avaliações</b> nem <b>recência</b> — o Google não expõe esses dados de forma confiável hoje. Quando der, entram na fórmula.
+          </p>
+        )}
       </Card>
     </div>
   )
@@ -6363,7 +6405,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
 
       {/* Detalhamento do Score StarTouch — "Por que {score}? O que falta?" */}
       {scoreOpen && (
-        <ScoreModal d={d} onClose={() => setScoreOpen(false)} />
+        <ScoreModal d={d} onClose={() => setScoreOpen(false)} isGuest={isGuest} signupUrl={guestSignupUrl} />
       )}
 
       {/* WhatsApp de suporte — flutuante em todas as telas do /app */}
