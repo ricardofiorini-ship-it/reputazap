@@ -763,7 +763,7 @@ function Section({ children, style, id }) {
 function Stars({ rating, size = 14 }) {
   return (
     <span style={{ display:'inline-flex', gap:1, color:'#FBBC04', fontSize:size, lineHeight:1 }}>
-      {[1,2,3,4,5].map(i => <span key={i}>{i <= Math.round(rating) ? '★' : '☆'}</span>)}
+      {[1,2,3,4,5].map(i => <Star key={i} size={13} strokeWidth={2} fill={i <= Math.round(rating) ? '#F59E0B' : 'none'} color={i <= Math.round(rating) ? '#F59E0B' : '#CBD5E1'} style={{ verticalAlign:'middle' }}/>)}
     </span>
   )
 }
@@ -925,7 +925,7 @@ function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen }) {
                 position:'absolute', top: 4, right: 'calc(50% - 22px)',
                 fontSize: 9, padding:'1px 4px', borderRadius: 3,
                 background:'#FBBC04', color:'#78350F', fontWeight: 800
-              }}>🔒</span>
+              }}></span>
             )}
           </a>
         )
@@ -1062,7 +1062,7 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
                 color: T.red, fontSize: 15, fontWeight: 500
               }}
             >
-              <span style={{ fontSize: 22, width: 28, textAlign:'center' }}>🚪</span>
+              <span style={{ width: 28, display:'inline-flex', justifyContent:'center' }}><DoorOpen size={20}/></span>
               <span style={{ flex: 1 }}>Sair</span>
             </a>
           </div>
@@ -1223,7 +1223,7 @@ function ComingSoon({ icon, title, desc, plan }) {
             padding: '11px 20px', borderRadius: 999,
             fontSize: 13, fontWeight: 600
           }}>
-            🔨 Em construção · liberado em breve
+            Em construção · liberado em breve
           </div>
         )}
       </Card>
@@ -1271,7 +1271,7 @@ function CompetitorStats({ youPos, total, reviewsToNext, risingCount, isMobile }
     <Card padded={false} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow:'hidden' }}>
       <Item label="Sua posição" value={`#${youPos}`} sub={`de ${total} empresas`} accent={T.blue}/>
       {youPos <= 1
-        ? <Item label="Liderança" value="🏆 1º lugar" sub="ninguém à sua frente" accent={T.green}/>
+        ? <Item label="Liderança" value="1º lugar" sub="ninguém à sua frente" accent={T.green}/>
         : <Item label="Falta pra subir" value={reviewsToNext > 0 ? `${reviewsToNext} ${reviewsToNext === 1 ? 'avaliação' : 'avaliações'}` : '—'} sub={`pra alcançar a #${youPos - 1}`} accent={T.amber}/>}
       <Item label="Em alta na sua categoria" value={`${risingCount} concorrente${risingCount > 1 ? 's' : ''}`} sub="cresceu essa semana" accent={T.green}/>
     </Card>
@@ -1283,7 +1283,7 @@ function FilterChips({ active, onChange, counts }) {
     { id: 'all',    label: 'Todos',          count: counts.all },
     { id: 'ahead',  label: 'À sua frente',   count: counts.ahead },
     { id: 'behind', label: 'Atrás de você',  count: counts.behind },
-    { id: 'rising', label: 'Em alta 📈',     count: counts.rising }
+    { id: 'rising', label: 'Em alta ',     count: counts.rising }
   ]
   return (
     <div style={{ display:'flex', gap: 8, flexWrap:'wrap', marginBottom: 16 }}>
@@ -1342,14 +1342,14 @@ function CompetitorCard({ comp, youReviews }) {
           <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4, flexWrap:'wrap' }}>
             {isLocked ? (
               <span style={{ fontSize: 15, fontWeight: 700, color: T.textMid, display:'inline-flex', alignItems:'center', gap: 6 }}>
-                🔒 Concorrente oculto
+                Concorrente oculto
                 <a href="/plano-pro" style={{ fontSize: 11, fontWeight: 700, color: T.blue, background: T.blueSoft, padding:'2px 7px', borderRadius: 5, textDecoration:'none' }}>Desbloquear</a>
               </span>
             ) : (
               <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{comp.name}</span>
             )}
             {isYou && <span style={{ fontSize: 10.5, fontWeight: 700, color: T.blue, background:'#fff', border:`1px solid ${T.blue}`, borderRadius: 5, padding:'1px 6px' }}>VOCÊ</span>}
-            {closeTarget && !isYou && <span style={{ fontSize: 10.5, fontWeight: 700, color:'#92400E', background:'#FEF3C7', border:'1px solid #FCD34D', borderRadius: 5, padding:'1px 6px' }}>🎯 ALVO PRÓXIMO</span>}
+            {closeTarget && !isYou && <span style={{ fontSize: 10.5, fontWeight: 700, color:'#92400E', background:'#FEF3C7', border:'1px solid #FCD34D', borderRadius: 5, padding:'1px 6px' }}>ALVO PRÓXIMO</span>}
           </div>
           <div style={{ display:'flex', alignItems:'center', gap: 10, fontSize: 12.5, color: T.textMid, marginBottom: 10, flexWrap:'wrap' }}>
             <span style={{ display:'inline-flex', alignItems:'center', gap: 4 }}>
@@ -1392,7 +1392,7 @@ function MyGoalsCard({ goals }) {
   return (
     <Card>
       <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 14 }}>
-        <span style={{ fontSize: 22 }}>🎯</span>
+        <span style={{ display:'inline-flex', color: T.primary }}><Target size={22}/></span>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin: 0 }}>Minhas Metas no Ranking</h3>
       </div>
       <p style={{ fontSize: 13, color: T.textMid, margin:'0 0 18px' }}>Acompanhe sua jornada rumo ao topo da sua categoria.</p>
@@ -1413,7 +1413,7 @@ function MyGoalsCard({ goals }) {
                   color: g.achieved ? '#fff' : T.textMid,
                   display:'flex', alignItems:'center', justifyContent:'center',
                   fontSize: 13, fontWeight: 700, flexShrink: 0
-                }}>{g.achieved ? '✓' : '○'}</span>
+                }}>{g.achieved ? <Check size={13} strokeWidth={3}/> : '○'}</span>
                 <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{g.label}</span>
                 {isCurrent && <span style={{ fontSize: 10.5, fontWeight: 700, color: T.green, background:'#fff', border:`1px solid ${T.green}`, borderRadius: 5, padding:'1px 6px' }}>VOCÊ ESTÁ AQUI</span>}
                 <span style={{ marginLeft:'auto', fontSize: 12, fontWeight: 600, color: g.achieved ? '#065F46' : T.textMid }}>
@@ -1474,7 +1474,7 @@ function CategoryBenchmark({ data, list, isMobile }) {
     {
       label:'Líder em volume',
       value: topReviews,
-      hint: topComp ? (topComp.locked ? '🔒 nome oculto' : topComp.isYou ? '(você!)' : topComp.name) : '—',
+      hint: topComp ? (topComp.locked ? 'nome oculto' : topComp.isYou ? '(você!)' : topComp.name) : '—',
       icon:'medal1',
       accent: T.amber
     },
@@ -1491,7 +1491,7 @@ function CategoryBenchmark({ data, list, isMobile }) {
     <Card>
       <div style={{ marginBottom: 12 }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-          📊 Benchmark da categoria
+          Benchmark da categoria
         </h3>
         <div style={{ fontSize: 12.5, color: T.textMid }}>Como você se compara nos índices da sua categoria.</div>
       </div>
@@ -1525,7 +1525,7 @@ function CompetitorMap({ list, isMobile }) {
       <Card padded={false} style={{ padding: 22 }}>
         <div style={{ marginBottom: 12 }}>
           <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-            🗺️ Mapa de concorrência
+            Mapa de concorrência
           </h3>
           <div style={{ fontSize: 12.5, color: T.textMid }}>Em breve: posição geográfica de cada concorrente em relação a você.</div>
         </div>
@@ -1533,7 +1533,7 @@ function CompetitorMap({ list, isMobile }) {
           padding: 28, borderRadius: 12, background: T.bg,
           border:'1px dashed '+T.border, textAlign:'center'
         }}>
-          <div style={{ fontSize: 40, marginBottom: 8 }}>📍</div>
+          <div style={{ marginBottom: 8, color: T.textDim, display:'flex', justifyContent:'center' }}><MapPin size={40}/></div>
           <div style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.5, maxWidth: 420, margin:'0 auto' }}>
             Estamos integrando o Google Maps pra mostrar onde cada concorrente está em volta de você. Por enquanto, veja o ranking detalhado abaixo.
           </div>
@@ -1559,7 +1559,7 @@ function CompetitorMap({ list, isMobile }) {
       <div style={{ marginBottom: 14, display:'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent:'space-between', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
         <div>
           <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-            🗺️ Mapa de concorrência
+            Mapa de concorrência
           </h3>
           <div style={{ fontSize: 12.5, color: T.textMid }}>Quem disputa o cliente que está pertinho de você.</div>
         </div>
@@ -1639,7 +1639,7 @@ function CompetitorMap({ list, isMobile }) {
       </div>
 
       <div style={{ marginTop: 12, fontSize: 11.5, color: T.textDim, textAlign:'center', display:'flex', justifyContent:'center', alignItems:'center', gap: 6 }}>
-        <span>📍</span>
+        <span></span>
         <span>Posições relativas das {others.length} cafeterias da sua categoria. Anéis = distância até você.</span>
       </div>
     </Card>
@@ -1679,14 +1679,14 @@ function EnhancedCompetitorRow({ comp, youPos, isMobile }) {
         <div style={{ display:'flex', alignItems:'center', gap: 6, marginBottom: 4, flexWrap:'wrap' }}>
           {isLocked ? (
             <span style={{ fontSize: 14, fontWeight: 700, color: T.textMid, display:'inline-flex', alignItems:'center', gap: 6 }}>
-              🔒 Concorrente oculto
+              Concorrente oculto
               <a href="/plano-pro" style={{ fontSize: 10, fontWeight: 700, color: T.blue, background: T.blueSoft, padding:'2px 6px', borderRadius: 4, textDecoration:'none' }}>Desbloquear</a>
             </span>
           ) : (
             <span style={{ fontSize: 14.5, fontWeight: 700, color: T.text }}>{comp.name}</span>
           )}
           {isYou && <span style={{ fontSize: 10, fontWeight: 700, color: T.blue, background:'#fff', border:`1px solid ${T.blue}`, borderRadius: 4, padding:'1px 5px' }}>VOCÊ</span>}
-          {closeTarget && !isYou && <span style={{ fontSize: 10, fontWeight: 700, color:'#92400E', background:'#FEF3C7', border:'1px solid #FCD34D', borderRadius: 4, padding:'1px 5px' }}>🎯 ALVO</span>}
+          {closeTarget && !isYou && <span style={{ fontSize: 10, fontWeight: 700, color:'#92400E', background:'#FEF3C7', border:'1px solid #FCD34D', borderRadius: 4, padding:'1px 5px' }}>ALVO</span>}
         </div>
 
         {/* Métricas em linha */}
@@ -1712,7 +1712,7 @@ function EnhancedCompetitorRow({ comp, youPos, isMobile }) {
           {distance && (
             <>
               <span style={{ color: T.textDim }}>·</span>
-              <span style={{ display:'inline-flex', alignItems:'center', gap: 3 }}>📍 {distance}</span>
+              <span style={{ display:'inline-flex', alignItems:'center', gap: 3 }}>{distance}</span>
             </>
           )}
         </div>
@@ -1757,7 +1757,7 @@ function GrowthSimulator({ data, list, isMobile }) {
     <Card>
       <div style={{ marginBottom: 14 }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-          🚀 Simulador de crescimento
+          Simulador de crescimento
         </h3>
         <div style={{ fontSize: 12.5, color: T.textMid }}>"E se eu conseguisse <strong>{perWeek}</strong> nova{perWeek !== 1 ? 's' : ''} avaliação/semana?"</div>
       </div>
@@ -1804,14 +1804,14 @@ function GrowthSimulator({ data, list, isMobile }) {
       </div>
 
       <div style={{ marginTop: 12, fontSize: 12, color: T.textMid, textAlign:'center', lineHeight: 1.5 }}>
-        📈 Volume constante de avaliações fortalece sua posição no Google ao longo do tempo.
+        Volume constante de avaliações fortalece sua posição no Google ao longo do tempo.
       </div>
 
       <div style={{
         marginTop: 12, padding: 12, background: T.blueSoft, borderRadius: 8,
         fontSize: 12.5, color: T.blueDk, lineHeight: 1.5
       }}>
-        💡 <b>Como capitar {perWeek}/semana?</b> {
+        <b>Como capitar {perWeek}/semana?</b> {
           perWeek <= 2 ? 'Ative a placa de balcão — toque do cliente após pagar gera ~3 avaliações/semana automaticamente.' :
           perWeek <= 5 ? 'Combine placa de balcão + cartão NFC do garçom — multiplica os pontos de contato em 2-3x.' :
                          'Kit completo (placa + cartão + pulseira) + treinamento da equipe pra pedir avaliação no fim do atendimento.'
@@ -1843,7 +1843,7 @@ function OpportunitiesPanel({ data, list, isMobile }) {
       title:`Subir pro ${youPos - 1}º lugar está ao seu alcance`,
       text: gap > 0
         ? `${closeUp.locked ? 'O concorrente logo à sua frente' : 'A ' + closeUp.name} tem ${gap} ${gap === 1 ? 'avaliação' : 'avaliações'} a mais que você. Coletar mais avaliações é o caminho pra passar.`
-        : `Você tem volume parecido com ${closeUp.locked ? 'o concorrente à sua frente' : 'a ' + closeUp.name} — foque em avaliações 5★ pra ultrapassar.`,
+        : `Você tem volume parecido com ${closeUp.locked ? 'o concorrente à sua frente' : 'a ' + closeUp.name} — foque em avaliações 5pra ultrapassar.`,
       cta:{ label:'Ativar mais dispositivos', href:'/ativar-codigo' }
     })
   }
@@ -1885,7 +1885,7 @@ function OpportunitiesPanel({ data, list, isMobile }) {
     <Card>
       <div style={{ marginBottom: 12 }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-          💡 Oportunidades pra subir
+          Oportunidades pra subir
         </h3>
         <div style={{ fontSize: 12.5, color: T.textMid }}>O que fazer agora pra ganhar posições com mais velocidade.</div>
       </div>
@@ -1948,7 +1948,7 @@ function ProPreview({ tab, isMobile, children }) {
           <ul style={{ listStyle:'none', padding: 0, margin:'0 0 20px', textAlign:'left', display:'inline-block' }}>
             {C.bullets.map((b, i) => (
               <li key={i} style={{ display:'flex', alignItems:'flex-start', gap: 8, fontSize: 13.5, color: T.text, marginBottom: 8 }}>
-                <span style={{ color: T.green, flexShrink: 0, fontWeight: 700 }}>✓</span><span>{b}</span>
+                <span style={{ color: T.green, flexShrink: 0, display:'inline-flex' }}><Check size={14} strokeWidth={3}/></span><span>{b}</span>
               </li>
             ))}
           </ul>
@@ -1957,7 +1957,7 @@ function ProPreview({ tab, isMobile, children }) {
               display:'inline-flex', alignItems:'center', gap: 8, background: T.blue, color:'#fff',
               padding:'13px 26px', borderRadius: 11, fontSize: 14.5, fontWeight: 700, textDecoration:'none',
               boxShadow:'0 6px 18px rgba(26,115,232,0.32)'
-            }}>🔓 Desbloquear no Plano Pro</a>
+            }}>Desbloquear no Plano Pro</a>
           </div>
           <p style={{ fontSize: 11.5, color: T.textDim, marginTop: 12 }}>Tudo isso com os dados reais do seu negócio.</p>
         </Card>
@@ -1979,11 +1979,11 @@ function CompetitorsScreen({ data, isMobile }) {
       <main style={{ maxWidth: 720, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
         <div style={{ marginBottom: 22 }}>
           <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
-            🏆 Inteligência Competitiva
+            Inteligência Competitiva
           </h1>
         </div>
         <Card style={{ textAlign:'center', padding: 48 }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>📡</div>
+          <div style={{ marginBottom: 16, color: T.primary, display:'flex', justifyContent:'center' }}><Radar size={48}/></div>
           <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin:'0 0 8px' }}>
             Coletando concorrentes da sua região
           </h2>
@@ -2035,7 +2035,7 @@ function CompetitorsScreen({ data, isMobile }) {
     <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
       <div style={{ marginBottom: 22 }}>
         <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
-          🏆 Inteligência Competitiva
+          Inteligência Competitiva
         </h1>
         <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
           {data.kpis.totalCompetitors > 0 ? `${data.kpis.totalCompetitors} negócios na sua categoria num raio de 3km. Sua presença local em detalhe.` : 'Sua presença local em detalhe.'}
@@ -2073,7 +2073,7 @@ function CompetitorsScreen({ data, isMobile }) {
             <Card>
               <div style={{ marginBottom: 12 }}>
                 <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 8px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-                  📋 Ranking detalhado
+                  Ranking detalhado
                 </h3>
                 <FilterChips active={filter} onChange={setFilter} counts={counts}/>
                 {/* Ordenação secundária só faz sentido no filtro Todos */}
@@ -2297,10 +2297,10 @@ function AlertChannelsCard({ channels, isReal, userEmail }) {
         method: 'POST',
         body: JSON.stringify(body)
       })
-      setNotice('✓ Preferências salvas')
+      setNotice('ok:Preferências salvas')
       setTimeout(() => setNotice(''), 2200)
     } catch (e) {
-      setNotice('⚠️ ' + (e.message || 'Erro ao salvar'))
+      setNotice('err:' + (e.message || 'Erro ao salvar'))
     } finally {
       setSaving(false)
     }
@@ -2316,7 +2316,7 @@ function AlertChannelsCard({ channels, isReal, userEmail }) {
     <Card padded={false} style={{ padding: 18 }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 8, marginBottom: 4 }}>
         <div style={{ display:'flex', alignItems:'center', gap: 8 }}>
-          <span style={{ fontSize: 18 }}>🔔</span>
+          <span style={{ display:'inline-flex', color: T.primary }}><Bell size={18}/></span>
           <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color: T.text, margin: 0 }}>
             Onde você quer ser avisado?
           </h3>
@@ -2383,10 +2383,13 @@ function AlertChannelsCard({ channels, isReal, userEmail }) {
       {notice && (
         <div style={{
           marginTop: 10, padding:'7px 10px', fontSize: 12, fontWeight: 600,
-          background: notice.startsWith('✓') ? T.greenSoft : '#FEF2F2',
-          color: notice.startsWith('✓') ? '#065F46' : T.red,
-          borderRadius: 6, textAlign:'center'
-        }}>{notice}</div>
+          background: notice.startsWith('ok:') ? T.greenSoft : '#FEF2F2',
+          color: notice.startsWith('ok:') ? '#065F46' : T.red,
+          borderRadius: 6, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap: 6
+        }}>
+          {notice.startsWith('ok:') ? <Check size={14} strokeWidth={2.4}/> : <AlertTriangle size={14} strokeWidth={2.4}/>}
+          {notice.replace(/^(ok|err):/, '')}
+        </div>
       )}
 
       {/* Botão de teste: envia 1 alerta exemplo agora pelos canais ativos */}
@@ -2399,13 +2402,13 @@ function AlertChannelsCard({ channels, isReal, userEmail }) {
               const sent = r.results?.email?.sent
               const skipped = r.results?.email?.skipped
               const errMsg = r.results?.email?.error
-              if (sent) setNotice('✓ Alerta de teste enviado pra ' + (r.results.email.to))
-              else if (errMsg) setNotice('⚠️ ' + errMsg)
-              else if (skipped) setNotice('⚠️ ' + (r.results.email.reason || 'Envio pulado'))
+              if (sent) setNotice('ok:Alerta de teste enviado pra ' + (r.results.email.to))
+              else if (errMsg) setNotice('err:' + errMsg)
+              else if (skipped) setNotice('err:' + (r.results.email.reason || 'Envio pulado'))
               else setNotice('Tentei enviar — sem resposta clara do servidor.')
               setTimeout(() => setNotice(''), 6000)
             } catch (e) {
-              setNotice('⚠️ ' + (e.message || 'Erro ao enviar teste'))
+              setNotice('err:' + (e.message || 'Erro ao enviar teste'))
             } finally {
               setSaving(false)
             }
@@ -2418,14 +2421,14 @@ function AlertChannelsCard({ channels, isReal, userEmail }) {
             fontSize: 13, fontWeight: 600, cursor: saving ? 'wait' : 'pointer',
             opacity: saving ? 0.6 : 1
           }}
-        >🧪 Enviar alerta de teste agora</button>
+        >Enviar alerta de teste agora</button>
       )}
 
       <div style={{
         marginTop: 14, padding: 12, background: T.blueSoft, borderRadius: 8,
         fontSize: 12.5, color: T.blueDk, lineHeight: 1.5
       }}>
-        💡 <b>Dica:</b> deixe email ligado pra não perder mudança importante no ranking — assim você sabe quando algo muda mesmo sem abrir o painel.
+        <b>Dica:</b> deixe email ligado pra não perder mudança importante no ranking — assim você sabe quando algo muda mesmo sem abrir o painel.
       </div>
     </Card>
   )
@@ -2447,7 +2450,7 @@ function AlertsScreen({ data, isMobile, isReal, userEmail }) {
     <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
       <div style={{ marginBottom: 22 }}>
         <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
-          🔔 Alertas em tempo real
+          Alertas em tempo real
         </h1>
         <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
           Saiba na hora quando um concorrente passa você, sair do Top ou ganhar várias avaliações.
@@ -2466,7 +2469,7 @@ function AlertsScreen({ data, isMobile, isReal, userEmail }) {
             // Estado honesto: o alerta de avaliação negativa JÁ está ativo (por email);
             // os de ranking/concorrente estão chegando. Sem alertas falsos no feed.
             <Card style={{ textAlign:'center', padding: 40 }}>
-              <div style={{ fontSize: 56, marginBottom: 14 }}>🔔</div>
+              <div style={{ marginBottom: 14, color: T.success, display:'flex', justifyContent:'center' }}><Bell size={48}/></div>
               <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin:'0 0 8px' }}>
                 Você está protegido
               </h2>
@@ -2474,7 +2477,7 @@ function AlertsScreen({ data, isMobile, isReal, userEmail }) {
                 display:'inline-flex', alignItems:'center', gap: 6, flexWrap:'wrap', justifyContent:'center',
                 fontSize: 12, fontWeight: 700, color: '#137333',
                 background: T.greenSoft, padding:'6px 12px', borderRadius: 999, marginBottom: 14
-              }}>✓ Avaliação negativa · ✓ Resumo semanal do ranking</div>
+              }}>Avaliação negativa · Resumo semanal do ranking</div>
               <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, margin:'0 auto 18px', maxWidth: 480 }}>
                 Avaliação ruim nova? A gente te avisa <strong>por email</strong> em poucas horas, pra responder e recuperar o cliente.
                 E toda segunda chega o <strong>resumo do seu ranking</strong> — quem te passou, se a nota mudou e o que fazer.
@@ -2555,7 +2558,7 @@ function ReportHeader({ report, isMobile }) {
             {report.period}
           </h2>
           <div style={{ fontSize: 13, opacity: 0.85 }}>
-            ✉️ {report.sentAt}
+            {report.sentAt}
           </div>
         </div>
         <div style={{ display:'flex', gap: 8, flexShrink: 0 }}>
@@ -2563,12 +2566,12 @@ function ReportHeader({ report, isMobile }) {
             background:'#fff', color: T.blueDk, border:'none', borderRadius: 8,
             padding:'10px 16px', fontSize: 13, fontWeight: 600, cursor:'pointer',
             display:'inline-flex', alignItems:'center', gap: 6
-          }}>📥 Baixar PDF</button>
+          }}>Baixar PDF</button>
           <button style={{
             background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.3)',
             borderRadius: 8, padding:'10px 16px', fontSize: 13, fontWeight: 600, cursor:'pointer',
             display:'inline-flex', alignItems:'center', gap: 6
-          }}>✉️ Enviar agora</button>
+          }}>Enviar agora</button>
         </div>
       </div>
     </Card>
@@ -2843,7 +2846,7 @@ function ReportsScreen({ data, isMobile, isReal }) {
       <div style={{ marginBottom: 18, display:'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent:'space-between', gap: 12, flexDirection: isMobile ? 'column' : 'row' }}>
         <div>
           <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
-            📈 Relatórios automáticos
+            Relatórios automáticos
           </h1>
           <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
             Toda segunda no seu email — evolução da nota, novas avaliações, ranking e oportunidades.
@@ -2858,7 +2861,7 @@ function ReportsScreen({ data, isMobile, isReal }) {
         // empty state honesto + form de configurar canal de envio.
         <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
           <Card style={{ textAlign:'center', padding: 48 }}>
-            <div style={{ fontSize: 56, marginBottom: 14 }}>📬</div>
+            <div style={{ marginBottom: 14, color: T.primary, display:'flex', justifyContent:'center' }}><Inbox size={48}/></div>
             <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin:'0 0 8px' }}>
               Seu primeiro relatório está sendo preparado
             </h2>
@@ -2870,7 +2873,7 @@ function ReportsScreen({ data, isMobile, isReal }) {
               display:'inline-flex', alignItems:'center', gap: 6,
               fontSize: 11.5, fontWeight: 700, color: '#92400E',
               background:'#FEF3C7', padding:'5px 10px', borderRadius: 6, marginBottom: 18
-            }}>🔬 BETA · relatórios em preparação</div>
+            }}>BETA · relatórios em preparação</div>
             <p style={{ fontSize: 12, color: T.textDim, lineHeight: 1.5 }}>
               Confirme abaixo o email pra envio e a frequência (semanal/mensal).
             </p>
@@ -2946,7 +2949,7 @@ function ProductCard({ p }) {
           <ul style={{ listStyle:'none', margin:'0 0 14px', padding: 0, display:'flex', flexDirection:'column', gap: 6 }}>
             {p.specs.map((s, i) => (
               <li key={i} style={{ fontSize: 12, color: T.textMid, display:'flex', gap: 7, alignItems:'flex-start', lineHeight: 1.4 }}>
-                <span style={{ color: T.green, fontWeight: 800, flexShrink: 0 }}>✓</span><span>{s}</span>
+                <span style={{ color: T.green, flexShrink: 0, display:'inline-flex' }}><Check size={14} strokeWidth={3}/></span><span>{s}</span>
               </li>
             ))}
           </ul>
@@ -3005,7 +3008,7 @@ function LojaScreen({ data, isMobile, plan }) {
     <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
       <div style={{ marginBottom: 22 }}>
         <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
-          🛍️ Loja StarTouch
+          Loja StarTouch
         </h1>
         <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
           Placas, cartões e pulseiras NFC pra ampliar seus pontos de captação de avaliações.
@@ -3140,10 +3143,10 @@ function BusinessSection({ biz, googleCategory, categoryOverride, showDebug }) {
         body: JSON.stringify({ category_override: v || null })
       })
       try { localStorage.removeItem('rz_activity') } catch {}
-      setSavedNotice('✓ Categoria salva no seu perfil · sincroniza em todos os dispositivos. Recarregando…')
+      setSavedNotice('ok:Categoria salva no seu perfil · sincroniza em todos os dispositivos. Recarregando…')
       setTimeout(() => window.location.reload(), 1100)
     } catch (e) {
-      setSavedNotice('⚠️ Erro ao salvar: ' + (e.message || 'tente de novo'))
+      setSavedNotice('err:Erro ao salvar: ' + (e.message || 'tente de novo'))
       setSaving(false)
     }
   }
@@ -3157,10 +3160,10 @@ function BusinessSection({ biz, googleCategory, categoryOverride, showDebug }) {
         body: JSON.stringify({ category_override: null })
       })
       try { localStorage.removeItem('rz_activity') } catch {}
-      setSavedNotice('✓ Voltando pra categoria automática do Google…')
+      setSavedNotice('ok:Voltando pra categoria automática do Google…')
       setTimeout(() => window.location.reload(), 900)
     } catch (e) {
-      setSavedNotice('⚠️ Erro: ' + (e.message || 'tente de novo'))
+      setSavedNotice('err:Erro: ' + (e.message || 'tente de novo'))
       setSaving(false)
     }
   }
@@ -3225,9 +3228,15 @@ function BusinessSection({ biz, googleCategory, categoryOverride, showDebug }) {
         </div>
         {savedNotice && (
           <div style={{
-            marginTop: 8, padding:'8px 12px', background: T.greenSoft, border:'1px solid #A7F3D0',
-            borderRadius: 8, fontSize: 12.5, color:'#065F46', fontWeight: 600
-          }}>{savedNotice}</div>
+            marginTop: 8, padding:'8px 12px',
+            background: savedNotice.startsWith('err:') ? '#FEF2F2' : T.greenSoft,
+            border:'1px solid ' + (savedNotice.startsWith('err:') ? '#FECACA' : '#A7F3D0'),
+            borderRadius: 8, fontSize: 12.5, color: savedNotice.startsWith('err:') ? T.red : '#065F46',
+            fontWeight: 600, display:'flex', alignItems:'center', gap: 6
+          }}>
+            {savedNotice.startsWith('err:') ? <AlertTriangle size={14} strokeWidth={2.4}/> : <Check size={14} strokeWidth={2.4}/>}
+            {savedNotice.replace(/^(ok|err):/, '')}
+          </div>
         )}
       </div>
 
@@ -3250,7 +3259,7 @@ function BusinessSection({ biz, googleCategory, categoryOverride, showDebug }) {
           display:'inline-block', background: T.blue, color:'#fff',
           borderRadius: 8, padding:'9px 16px', fontSize: 13, fontWeight: 700,
           textDecoration:'none'
-        }}>🔄 Trocar negócio vinculado</a>
+        }}>Trocar negócio vinculado</a>
       </div>
 
       <div style={{ display:'flex', gap: 8, marginTop: 14 }}>
@@ -3263,7 +3272,7 @@ function BusinessSection({ biz, googleCategory, categoryOverride, showDebug }) {
 
       {/* Debug discreto — só admins (pra não confundir usuário comum com dado técnico) */}
       {showDebug && <details style={{ marginTop: 18, fontSize: 11.5, color: T.textDim }}>
-        <summary style={{ cursor:'pointer' }}>🔍 Diagnóstico (debug)</summary>
+        <summary style={{ cursor:'pointer' }}>Diagnóstico (debug)</summary>
         <pre style={{
           background: T.bg, border:'1px solid '+T.border, borderRadius: 6,
           padding: 10, marginTop: 8, fontSize: 11, overflowX:'auto', lineHeight: 1.5
@@ -3310,7 +3319,7 @@ function BillingSection({ billing, plan }) {
             <span style={{
               background: T.greenSoft, color:'#137333', borderRadius: 9,
               padding:'10px 18px', fontSize: 13.5, fontWeight: 700
-            }}>✓ Todos os recursos liberados</span>
+            }}>Todos os recursos liberados</span>
           )}
         </div>
       </div>
@@ -3369,7 +3378,7 @@ function ConfigScreen({ data, isMobile, plan, isReal, isAdmin }) {
     <main style={{ maxWidth: 860, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
       <div style={{ marginBottom: 22 }}>
         <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
-          ⚙️ Configurações
+          Configurações
         </h1>
         <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
           Gerencie sua conta, dados do negócio e plano.
@@ -3382,7 +3391,7 @@ function ConfigScreen({ data, isMobile, plan, isReal, isAdmin }) {
           padding:'10px 14px', marginBottom: 16,
           display:'flex', alignItems:'flex-start', gap: 10
         }}>
-          <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>🚧</span>
+          <span style={{ lineHeight: 1, flexShrink: 0, display:'inline-flex', color: T.accent }}><Construction size={18}/></span>
           <div style={{ fontSize: 12.5, color: T.blueDk, lineHeight: 1.45 }}>
             <b>Modo leitura.</b> Seus dados reais aparecem abaixo — a edição completa (alterar nome, endereço, método de pagamento) chega na próxima atualização.
           </div>
@@ -3511,7 +3520,7 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
             fontWeight: 700, fontSize: guest ? 15 : 12, display:'flex', alignItems:'center', justifyContent:'center',
             border:'none', cursor:'pointer', padding: 0,
             boxShadow: open ? '0 0 0 3px '+T.blueSoft : 'none', transition:'box-shadow .15s'
-          }}>{guest ? '👤' : initials}</button>
+          }}>{guest ? <User size={18}/> : initials}</button>
 
         {/* Dropdown */}
         {open && (
@@ -3536,7 +3545,7 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
                   }}
                   onMouseEnter={e => e.currentTarget.style.background = T.bg}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >✨ Criar conta grátis</a>
+                >Criar conta grátis</a>
                 <a href="/app?login=1"
                   onClick={() => setOpen(false)}
                   style={{
@@ -3546,7 +3555,7 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
                   }}
                   onMouseEnter={e => e.currentTarget.style.background = T.bg}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >🔑 Entrar</a>
+                >Entrar</a>
                 <div style={{ borderTop:'1px solid '+T.border, marginTop: 4, paddingTop: 4 }}>
                   <a href="/ajuda" target="_blank" rel="noopener"
                     onClick={() => setOpen(false)}
@@ -3557,7 +3566,7 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
                     }}
                     onMouseEnter={e => e.currentTarget.style.background = T.bg}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  >❓ Central de ajuda <span style={{ marginLeft:'auto', color: T.textDim, fontSize: 11 }}>↗</span></a>
+                  >Central de ajuda <span style={{ marginLeft:'auto', color: T.textDim, fontSize: 11 }}>↗</span></a>
                 </div>
               </>
             ) : (
@@ -3566,14 +3575,14 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
               <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{displayName}</div>
               <div style={{ fontSize: 12, color: T.textMid }}>{displayEmail}</div>
               {demoMode && (
-                <div style={{ fontSize: 10, fontWeight: 700, color: T.amber, marginTop: 4, letterSpacing:'.05em' }}>🔬 MODO DEMO</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: T.amber, marginTop: 4, letterSpacing:'.05em' }}>MODO DEMO</div>
               )}
             </div>
 
             {[
-              { label:'👤 Minha conta',       anchor:'conta'   },
-              { label:'🏢 Dados do negócio',  anchor:'negocio' },
-              { label:'💳 Plano e cobrança',  anchor:'plano'   }
+              { label:'Minha conta',       anchor:'conta'   },
+              { label:'Dados do negócio',  anchor:'negocio' },
+              { label:'Plano e cobrança',  anchor:'plano'   }
             ].map(it => (
               <button key={it.anchor} onClick={() => go(it.anchor)}
                 style={{
@@ -3597,7 +3606,7 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = T.bg}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >❓ Central de ajuda <span style={{ marginLeft:'auto', color: T.textDim, fontSize: 11 }}>↗</span></a>
+              >Central de ajuda <span style={{ marginLeft:'auto', color: T.textDim, fontSize: 11 }}>↗</span></a>
               <a href="/" onClick={handleLogout} style={{
                 display:'flex', alignItems:'center', width:'100%',
                 padding:'9px 12px', textDecoration:'none',
@@ -3605,7 +3614,7 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
               }}
               onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >🚪 Sair</a>
+              >Sair</a>
             </div>
               </>
             )}
@@ -3669,14 +3678,14 @@ function realWeekActions(d) {
   // 2) Coleta ligada aos pontos de captação (placas)
   const hasActivePlates = (d.activePlates || []).length > 0
   if (hasActivePlates) {
-    actions.push({ icon: '📲', text: 'Peça pro cliente tocar a placa logo após o atendimento — o momento da satisfação é quando ele mais avalia.', kind: 'action' })
+    actions.push({ icon: 'phone', text: 'Peça pro cliente tocar a placa logo após o atendimento — o momento da satisfação é quando ele mais avalia.', kind: 'action' })
   } else {
-    actions.push({ icon: '📲', text: 'Ative um dispositivo (placa de balcão ou cartão NFC) pra coletar avaliações no automático — cada toque do cliente vira uma avaliação.', kind: 'action' })
+    actions.push({ icon: 'phone', text: 'Ative um dispositivo (placa de balcão ou cartão NFC) pra coletar avaliações no automático — cada toque do cliente vira uma avaliação.', kind: 'action' })
   }
 
   // 3) Qualidade da nota (se ainda não chegou no teto)
   if (rating < 4.9) {
-    actions.push({ icon: 'star', text: 'Atendeu bem? Peça a avaliação na hora. Notas 5★ recentes puxam sua média pra cima e te separam dos concorrentes.', kind: 'tip' })
+    actions.push({ icon: 'star', text: 'Atendeu bem? Peça a avaliação na hora. Notas 5recentes puxam sua média pra cima e te separam dos concorrentes.', kind: 'tip' })
   }
 
   return actions.slice(0, 3)
@@ -3692,15 +3701,15 @@ function ProTriggerCard({ data, isMobile }) {
 
   let headline, sub
   if (rising.length > 0) {
-    headline = `🔥 ${rising.length} concorrente${rising.length > 1 ? 's' : ''} acelerando essa semana`
+    headline = `${rising.length} concorrente${rising.length > 1 ? 's' : ''} acelerando essa semana`
     sub = (threat && threat.weekGrowth)
       ? `Um deles ganhou ${threat.weekGrowth} ${threat.weekGrowth === 1 ? 'avaliação' : 'avaliações'} e está se aproximando de você. Veja quem — e seja avisado na hora que te passar.`
       : 'Veja quem está crescendo e seja avisado quando te ultrapassarem.'
   } else if (anyMovement) {
-    headline = '🔔 Teve movimentação no seu ranking essa semana'
+    headline = 'Teve movimentação no seu ranking essa semana'
     sub = 'Concorrentes se mexeram. Acompanhe quem subiu e seja avisado quando algo te ameaçar.'
   } else {
-    headline = '🔔 A gente vigia seus concorrentes toda semana'
+    headline = 'A gente vigia seus concorrentes toda semana'
     sub = 'Seja avisado na hora em que um concorrente te ultrapassar, sair do Top ou disparar em avaliações.'
   }
 
@@ -3720,7 +3729,7 @@ function ProTriggerCard({ data, isMobile }) {
         padding: '12px 18px', borderRadius: 10, fontSize: 13.5, fontWeight: 700,
         whiteSpace: 'nowrap', boxShadow: '0 4px 14px rgba(26,115,232,0.28)',
         width: isMobile ? '100%' : 'auto', textAlign: 'center'
-      }}>🔓 Ativar alertas (Pro)</a>
+      }}>Ativar alertas (Pro)</a>
     </Card>
   )
 }
@@ -3731,7 +3740,7 @@ function WeekActions({ items, isMobile }) {
     <Card>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 14, gap: 8 }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color: T.text, margin: 0 }}>
-          {items.length === 1 ? '🎯 Sua ação de hoje' : '🎯 Sugestões pra essa semana'}
+          {items.length === 1 ? 'Sua ação de hoje' : 'Sugestões pra essa semana'}
         </h3>
         {items.length > 1 && <span style={{ fontSize: 11.5, color: T.textDim }}>{items.length} ações</span>}
       </div>
@@ -3806,7 +3815,7 @@ function ShareReviewsModal({ placeId, bizName, onClose, onActivatePlate }) {
         }}>×</button>
 
         <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 20, fontWeight: 700, color: T.text, margin:'0 0 6px', letterSpacing:'-0.02em' }}>
-          🚀 Gerar mais avaliações
+          Gerar mais avaliações
         </h2>
         <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 18px', lineHeight: 1.5 }}>
           Escolha o caminho mais prático pra coletar mais reviews dos seus clientes.
@@ -3829,12 +3838,12 @@ function ShareReviewsModal({ placeId, bizName, onClose, onActivatePlate }) {
                 fontSize: 13, fontWeight: 700, cursor:'pointer',
                 display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6,
                 transition:'background .15s'
-              }}>{copied ? '✓ Copiado!' : '📋 Copiar link'}</button>
+              }}>{copied ? <><Check size={15}/> Copiado!</> : <><ClipboardList size={15}/> Copiar link</>}</button>
               <a href={`https://wa.me/?text=${waText}`} target="_blank" rel="noreferrer" style={{
                 flex:'1 1 140px', background:'#25D366', color:'#fff', textDecoration:'none',
                 borderRadius: 8, padding:'10px 14px', fontSize: 13, fontWeight: 700,
                 display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6
-              }}>💬 Enviar por WhatsApp</a>
+              }}>Enviar por WhatsApp</a>
             </div>
             <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 6, lineHeight: 1.45 }}>
               Coloca no rodapé do email, na descrição do Instagram, ou manda direto pros clientes que você atendeu.
@@ -3857,7 +3866,7 @@ function ShareReviewsModal({ placeId, bizName, onClose, onActivatePlate }) {
               fontSize: 13.5, fontWeight: 600, cursor:'pointer',
               display:'flex', alignItems:'center', gap: 10, textAlign:'left'
             }}>
-            <span style={{ fontSize: 20 }}>📦</span>
+            <span style={{ display:'inline-flex' }}><Package size={20}/></span>
             <span style={{ flex: 1 }}>Ativar código (STAR-XXXXX)</span>
             <span style={{ color: T.textDim }}>›</span>
           </button>
@@ -3875,7 +3884,7 @@ function ShareReviewsModal({ placeId, bizName, onClose, onActivatePlate }) {
             fontSize: 13.5, fontWeight: 600, textDecoration:'none',
             alignItems:'center', gap: 10
           }}>
-            <span style={{ fontSize: 20 }}>🛒</span>
+            <span style={{ display:'inline-flex' }}><ShoppingCart size={20}/></span>
             <span style={{ flex: 1 }}>Comprar placa de balcão, cartão NFC ou pulseira</span>
             <span style={{ color: T.textDim }}>›</span>
           </a>
@@ -3897,7 +3906,7 @@ function HeroPosition({ progressPct, currentPos, isMobile, placeId, bizName, onA
           fontSize: isMobile ? 24 : 34, fontWeight: 700, lineHeight: 1.2, letterSpacing: '-0.02em',
           margin: '8px 0 12px', textWrap: 'balance'
         }}>
-          🏆 Você está entre as melhores empresas da sua categoria.
+          Você está entre as melhores empresas da sua categoria.
         </h1>
         <p style={{ fontSize: isMobile ? 14.5 : 16, opacity: 0.95, lineHeight: 1.55, margin: '0 0 8px', maxWidth: 620 }}>
           Sua empresa ocupa atualmente a <strong style={{ color: '#FBBC04' }}>{currentPos}ª posição</strong> no ranking local.
@@ -3921,7 +3930,7 @@ function HeroPosition({ progressPct, currentPos, isMobile, placeId, bizName, onA
           boxShadow:'0 4px 14px rgba(0,0,0,0.18)', fontFamily:"'Inter', sans-serif",
           width: isMobile ? '100%' : 'auto', justifyContent:'center'
         }}>
-          🚀 Gerar mais avaliações →
+          Gerar mais avaliações →
         </button>
       </div>
       {open && (
@@ -3955,7 +3964,7 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
                 type="button"
                 onClick={() => onEditCategory && onEditCategory()}
                 style={{ background:'none', border:'none', padding: 0, color: T.blue, fontWeight: 600, fontSize: 12, cursor:'pointer' }}>
-                ✏️ alterar
+                alterar
               </button>
             </span>
           )}
@@ -3963,7 +3972,7 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
 
       {items.length === 0 ? (
         <div style={{ padding: 22, textAlign:'center', color: T.textMid, fontSize: 13 }}>
-          📡 Coletando dados dos concorrentes da sua região…
+          Coletando dados dos concorrentes da sua região…
         </div>
       ) : (
       <ol style={{ listStyle:'none', padding: 0, margin: 0 }}>
@@ -4002,12 +4011,12 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
                   <span>{r.reviews} avaliações</span>
                 </div>
               </div>
-              {/* Teaser de movimento — 🔥 concorrente acelerando / ▲ seu crescimento */}
+              {/* Teaser de movimento — concorrente acelerando / ▲ seu crescimento */}
               {(typeof r.weekGrowth === 'number' && r.weekGrowth >= 1) && (
                 r.you
                   ? <span style={{ flexShrink:0, fontSize:11, fontWeight:700, color:'#137333', background:T.greenSoft, borderRadius:6, padding:'3px 7px', whiteSpace:'nowrap' }}>▲ +{r.weekGrowth}</span>
                   : r.weekGrowth >= 2
-                    ? <span style={{ flexShrink:0, fontSize:11, fontWeight:700, color:'#B45309', background:'#FEF3C7', border:'1px solid #FDE68A', borderRadius:6, padding:'3px 7px', whiteSpace:'nowrap' }}>🔥 +{r.weekGrowth}/sem</span>
+                    ? <span style={{ flexShrink:0, fontSize:11, fontWeight:700, color:'#B45309', background:'#FEF3C7', border:'1px solid #FDE68A', borderRadius:6, padding:'3px 7px', whiteSpace:'nowrap' }}>+{r.weekGrowth}/sem</span>
                     : <span style={{ flexShrink:0, fontSize:11, fontWeight:600, color:T.textMid, whiteSpace:'nowrap' }}>▲ +{r.weekGrowth}</span>
               )}
             </li>
@@ -4031,12 +4040,12 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
             <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', background:'#FBBC04', color:'#78350F', padding:'3px 8px', borderRadius: 5 }}>PRO</span>
             </div>
-            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 10, lineHeight: 1.25 }}>🔔 Nunca seja pego de surpresa</div>
+            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 10, lineHeight: 1.25 }}>Nunca seja pego de surpresa</div>
             <ul style={{ listStyle:'none', padding: 0, margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.6 }}>
-              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}><strong>Aviso na hora</strong> quando um concorrente te ultrapassar</span></li>
-              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Quem está crescendo mais rápido que você</span></li>
-              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Os <strong>nomes</strong> de quem está na sua frente</span></li>
-              <li style={{ display:'flex', alignItems:'flex-start', gap: 8 }}><span style={{ color:'#FBBC04', flexShrink: 0 }}>✓</span><span style={{ opacity: 0.95 }}>Evolução do seu ranking, semana a semana</span></li>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0, display:'inline-flex' }}><Check size={15} strokeWidth={3}/></span><span style={{ opacity: 0.95 }}><strong>Aviso na hora</strong> quando um concorrente te ultrapassar</span></li>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0, display:'inline-flex' }}><Check size={15} strokeWidth={3}/></span><span style={{ opacity: 0.95 }}>Quem está crescendo mais rápido que você</span></li>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0, display:'inline-flex' }}><Check size={15} strokeWidth={3}/></span><span style={{ opacity: 0.95 }}>Os <strong>nomes</strong> de quem está na sua frente</span></li>
+              <li style={{ display:'flex', alignItems:'flex-start', gap: 8 }}><span style={{ color:'#FBBC04', flexShrink: 0, display:'inline-flex' }}><Check size={15} strokeWidth={3}/></span><span style={{ opacity: 0.95 }}>Evolução do seu ranking, semana a semana</span></li>
             </ul>
             <a href="/plano-pro" style={{
               display:'inline-flex', alignItems:'center', gap: 8,
@@ -4089,7 +4098,7 @@ function EvolutionChart({ data, growthPct, isMobile }) {
         padding:'10px 14px', borderRadius: 10,
         marginBottom: 12
       }}>
-        <span style={{ fontSize: 18 }}>📈</span>
+        <span style={{ display:'inline-flex', color: T.success }}><TrendingUp size={18}/></span>
         <span style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 800, color: T.green, letterSpacing:'-0.02em' }}>+{growthPct}%</span>
         <span style={{ fontSize: 13, fontWeight: 600 }}>de crescimento nos últimos 90 dias</span>
       </div>
@@ -4126,7 +4135,7 @@ function Opportunities({ count, placeId }) {
   return (
     <Card style={{ background: T.amberBg, border: `1px solid #FCD34D` }}>
       <div style={{ display:'flex', alignItems:'flex-start', gap: 12 }}>
-        <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>⚠️</span>
+        <span style={{ lineHeight: 1, flexShrink: 0, display:'inline-flex', color: T.accent }}><AlertTriangle size={26}/></span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color:'#78350F', margin:'0 0 8px', lineHeight: 1.3 }}>
             {count != null
@@ -4148,7 +4157,7 @@ function Opportunities({ count, placeId }) {
         borderRadius: 10,
         fontSize: 12.5, color:'#78350F', fontWeight: 600
       }}>
-        <span style={{ fontSize: 16 }}>📈</span>
+        <span style={{ display:'inline-flex', color: T.success }}><TrendingUp size={16}/></span>
         <span>Negócios que respondem têm <strong style={{ color: T.amber }}>até 30% mais visitas</strong> no perfil.</span>
       </div>
 
@@ -4293,7 +4302,7 @@ function ActivatePlateModal({ businessId, onClose }) {
         }}>×</button>
 
         <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 20, fontWeight: 700, color: T.text, margin:'0 0 6px', letterSpacing:'-0.02em', display:'flex', alignItems:'center', gap: 8 }}>
-          📦 Ativar dispositivo
+          Ativar dispositivo
         </h2>
         <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 18px', lineHeight: 1.5 }}>
           Cole o código que veio na sua placa, cartão ou pulseira NFC. O código fica no verso, começa com <code style={{ background: T.bg, padding:'1px 5px', borderRadius: 4, fontSize: 12 }}>STAR-</code>.
@@ -4304,7 +4313,7 @@ function ActivatePlateModal({ businessId, onClose }) {
             padding: 18, background: T.greenSoft, border:'1px solid #A7F3D0', borderRadius: 10,
             display:'flex', alignItems:'center', gap: 10
           }}>
-            <span style={{ fontSize: 24 }}>✅</span>
+            <span style={{ display:'inline-flex', color: T.success }}><CheckCircle2 size={24}/></span>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color:'#065F46' }}>Dispositivo ativado!</div>
               <div style={{ fontSize: 12.5, color:'#047857' }}>Atualizando a tela…</div>
@@ -4347,7 +4356,7 @@ function ActivatePlateModal({ businessId, onClose }) {
               <div style={{
                 padding:'10px 12px', background:'#FEF2F2', border:'1px solid #FECACA',
                 borderRadius: 8, color: T.red, fontSize: 13, marginBottom: 14
-              }}>⚠️ {error}</div>
+              }}>{error}</div>
             )}
 
             <button type="submit" disabled={loading} style={{
@@ -4368,11 +4377,11 @@ function ActivatePlateModal({ businessId, onClose }) {
 // Capture points
 // ─────────────────────────────────────────────────────────────
 const PRODUCT_ICONS = {
-  placa_balcao: '🏷️',
-  placa_mesa:   '🍽️',
-  placa_parede: '🖼️',
-  pulseira_nfc: '⌚',
-  cartao_nfc:   '💳'
+  placa_balcao: 'tag',
+  placa_mesa:   'food',
+  placa_parede: 'image',
+  pulseira_nfc: 'bell',
+  cartao_nfc:   'card'
 }
 
 // Foto real do produto por tipo (mais "marketeiro" que o emoji na lista de
@@ -4402,7 +4411,7 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) 
     <Card>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 4, gap: 8, flexWrap:'wrap' }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>
-          {isEmpty && hasReviews ? '🚀 Capte ainda mais avaliações no automático' : '📍 Onde seus clientes avaliam'}
+          {isEmpty && hasReviews ? 'Capte ainda mais avaliações no automático' : 'Onde seus clientes avaliam'}
         </h3>
       </div>
 
@@ -4508,7 +4517,7 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0 }) 
                       <span style={{ fontSize: 15, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>
                         {displayName}
                       </span>
-                      {isTop && <span style={{ fontSize: 10.5, fontWeight: 800, color: T.blueDk, background:'#fff', padding:'1px 7px', borderRadius: 4 }}>🏆 MAIS USADA</span>}
+                      {isTop && <span style={{ fontSize: 10.5, fontWeight: 800, color: T.blueDk, background:'#fff', padding:'1px 7px', borderRadius: 4 }}>MAIS USADA</span>}
                     </div>
                     <div style={{ fontSize: 12, color: T.textMid, marginTop: 2 }}>
                       {productLabel}{p.last_tapped_at && taps > 0 ? ' · último toque ' + relativeDate(p.last_tapped_at) : ''}
@@ -4572,7 +4581,7 @@ function BetaBanner({ feature, eta }) {
       border:'1px solid #FCD34D', borderRadius: 12, padding:'12px 16px',
       marginBottom: 18, display:'flex', alignItems:'flex-start', gap: 12
     }}>
-      <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>🔬</span>
+      <span style={{ lineHeight: 1, flexShrink: 0, display:'inline-flex', color: T.accent }}><FlaskConical size={20}/></span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color:'#78350F', marginBottom: 2 }}>
           {feature} · em demonstração
@@ -4601,7 +4610,7 @@ function ReviewsScreen({ data, isMobile }) {
     <main style={{ maxWidth: 980, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
       <div style={{ marginBottom: 22 }}>
         <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
-          ⭐ Suas avaliações
+          Suas avaliações
         </h1>
         <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
           As últimas avaliações que seus clientes deixaram no Google.
@@ -4624,7 +4633,7 @@ function ReviewsScreen({ data, isMobile }) {
                 const pct = total ? (n / total) * 100 : 0
                 return (
                   <div key={s} style={{ display:'flex', alignItems:'center', gap: 8, fontSize: 12.5 }}>
-                    <span style={{ width: 14, color: T.textMid, fontWeight: 600 }}>{s}★</span>
+                    <span style={{ color: T.textMid, fontWeight: 600, display:'inline-flex', alignItems:'center', gap: 1 }}>{s}<Star size={11} fill="currentColor" strokeWidth={0}/></span>
                     <div style={{ flex: 1, height: 8, background: T.bg, borderRadius: 4, overflow:'hidden' }}>
                       <div style={{ width: pct + '%', height:'100%', background:'#FBBC04' }}/>
                     </div>
@@ -4656,7 +4665,7 @@ function ReviewsScreen({ data, isMobile }) {
                 background: active ? T.blue : T.surface,
                 color: active ? '#fff' : (n === 0 ? T.textDim : T.textMid),
                 cursor: n === 0 ? 'not-allowed' : 'pointer', opacity: n === 0 ? 0.5 : 1
-              }}>{s}★ ({n})</button>
+              }}><span style={{ display:'inline-flex', alignItems:'center', gap: 1 }}>{s}<Star size={11} fill="currentColor" strokeWidth={0}/> ({n})</span></button>
             )
           })}
         </div>
@@ -4665,7 +4674,7 @@ function ReviewsScreen({ data, isMobile }) {
       {/* Lista */}
       {visible.length === 0 ? (
         <Card style={{ textAlign:'center', padding: 48 }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
+          <div style={{ marginBottom: 12, color: T.textDim, display:'flex', justifyContent:'center' }}><Inbox size={44}/></div>
           <div style={{ fontSize: 15, fontWeight: 600, color: T.text, marginBottom: 4 }}>Nada por aqui ainda</div>
           <div style={{ fontSize: 13, color: T.textMid }}>
             {starFilter ? 'Nenhuma avaliação com essa nota.' : 'Quando alguém avaliar no Google, aparece aqui.'}
@@ -4804,17 +4813,17 @@ function GuestSearch({ isMobile }) {
         <div className="gs-illustration" aria-hidden="true">
           <div className="gs-phone">
             <div className="gs-glogo"><span className="g1">G</span><span className="g2">o</span><span className="g3">o</span><span className="g4">g</span><span className="g5">l</span><span className="g6">e</span></div>
-            <div className="gs-psearch">🔍 Seu negócio</div>
+            <div className="gs-psearch">Seu negócio</div>
             <div className="gs-pline"></div>
             <div className="gs-presult">
               <div className="gs-pimg"></div>
               <div className="gs-pinfo">
                 <div className="gs-pname">Café Bello Vista</div>
                 <div className="gs-pmeta">Cafeteria · Aberto agora</div>
-                <div className="gs-pstars">★★★★★</div>
+                <div className="gs-pstars" style={{ display:'flex', gap: 1 }}>{[1,2,3,4,5].map(i => <Star key={i} size={11} fill="#F59E0B" color="#F59E0B" strokeWidth={0}/>)}</div>
               </div>
             </div>
-            <div className="gs-picons"><div className="gs-picon">📍</div><div className="gs-picon">📞</div><div className="gs-picon">🔖</div><div className="gs-picon">↗</div></div>
+            <div className="gs-picons"><div className="gs-picon"></div><div className="gs-picon"></div><div className="gs-picon"></div><div className="gs-picon">↗</div></div>
             <div className="gs-pbar"></div>
             <div className="gs-pbar short"></div>
             <div className="gs-pbar"></div>
@@ -4856,7 +4865,7 @@ function GuestSearch({ isMobile }) {
               width:'100%', padding:'13px', background: canSearch?T.blue:T.textDim, color:'#fff',
               border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
               cursor: canSearch?'pointer':'not-allowed'
-            }}>{loading ? 'Buscando…' : '🔍 Ver minha presença'}</button>
+            }}>{loading ? 'Buscando…' : 'Ver minha presença'}</button>
           </form>
 
           {error && <p style={{ fontSize:13, color:T.red, marginTop:12 }}>{error}</p>}
@@ -4882,7 +4891,7 @@ function GuestSearch({ isMobile }) {
                 </div>
               ) : (
                 <>
-                  <p style={{ fontSize:13, color:T.blue, fontWeight:600, margin:'0 0 8px' }}>👇 Toque no seu negócio</p>
+                  <p style={{ fontSize:13, color:T.blue, fontWeight:600, margin:'0 0 8px' }}>Toque no seu negócio</p>
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     {results.map(b => (
                       <button key={b.place_id} type="button" onClick={()=>pick(b.place_id)} style={{
@@ -4891,7 +4900,7 @@ function GuestSearch({ isMobile }) {
                       }}>
                         <span style={{ fontSize:14.5, fontWeight:700, color:T.text }}>{b.name}</span>
                         <span style={{ fontSize:12.5, color:T.textMid }}>{b.address || ''}</span>
-                        <span style={{ fontSize:12, color:T.textDim }}>⭐ {b.rating || '—'} · {b.total || 0} avaliações</span>
+                        <span style={{ fontSize:12, color:T.textDim }}>{b.rating || '—'} · {b.total || 0} avaliações</span>
                       </button>
                     ))}
                   </div>
@@ -4917,13 +4926,13 @@ function GuestBanner({ url, isMobile, bizName, rank, gap, targetPos }) {
   let msg
   if (rank === 1) {
     // Já é líder → medo de PERDER a liderança.
-    msg = <>🏆 <b>{bizName || 'Seu negócio'}</b> é o <b>1º da categoria</b>! Crie conta grátis pra <b>manter a liderança</b> e ser avisado se um concorrente chegar perto.</>
+    msg = <><b>{bizName || 'Seu negócio'}</b> é o <b>1º da categoria</b>! Crie conta grátis pra <b>manter a liderança</b> e ser avisado se um concorrente chegar perto.</>
   } else if (gap && gap > 0 && targetPos) {
     // Tem gap real → mostra exatamente quanto falta pra subir.
-    msg = <>🎯 Faltam <b>{gap} {gap === 1 ? 'avaliação' : 'avaliações'}</b> pro <b>{targetPos}º lugar</b>. Este diagnóstico é temporário — crie conta grátis e comece a subir hoje.</>
+    msg = <>Faltam <b>{gap} {gap === 1 ? 'avaliação' : 'avaliações'}</b> pro <b>{targetPos}º lugar</b>. Este diagnóstico é temporário — crie conta grátis e comece a subir hoje.</>
   } else {
     // Sem dado de ranking → foca em salvar/acompanhar (perecibilidade).
-    msg = <>👀 Prévia do painel de <b>{name}</b>. Este diagnóstico é temporário — crie conta grátis pra <b>salvar</b>, acompanhar sua evolução e receber alertas.</>
+    msg = <>Prévia do painel de <b>{name}</b>. Este diagnóstico é temporário — crie conta grátis pra <b>salvar</b>, acompanhar sua evolução e receber alertas.</>
   }
   return (
     <div style={{
@@ -4945,7 +4954,7 @@ function GuestGate({ url, feature, isMobile }) {
   return (
     <main style={{ maxWidth: 520, margin: isMobile?'40px auto':'60px auto', padding:'0 24px', textAlign:'center' }}>
       <div style={{ background:T.surface, border:`1px solid ${T.border}`, borderRadius:16, boxShadow:T.shadow, padding: isMobile?24:32 }}>
-        <div style={{ fontSize:44, marginBottom:12 }}>🔒</div>
+        <div style={{ marginBottom:12, color: T.primary, display:'flex', justifyContent:'center' }}><Lock size={40}/></div>
         <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize:20, fontWeight:700, color:T.text, margin:'0 0 8px' }}>
           Crie sua conta pra acessar {feature}
         </h2>
@@ -4968,7 +4977,7 @@ function GuestFollowTeaser({ url, isMobile }) {
   return (
     <Card>
       <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 8 }}>
-        <span style={{ fontSize: 22 }}>🔒</span>
+        <span style={{ display:'inline-flex', color: T.primary }}><Lock size={20}/></span>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 16 : 18, fontWeight: 700, color: T.text, margin: 0, letterSpacing:'-0.01em' }}>
           Acompanhe sua evolução — crie conta grátis
         </h3>
@@ -4978,12 +4987,12 @@ function GuestFollowTeaser({ url, isMobile }) {
       </p>
       <ul style={{ listStyle:'none', padding: 0, margin:'0 0 18px', display:'flex', flexDirection:'column', gap: 10 }}>
         {[
-          ['📈', <>Evolução <b>semana a semana</b> — veja se subiu ou caiu no ranking</>],
-          ['🔔', <>Alerta <b>na hora</b> quando um concorrente te ultrapassar</>],
-          ['🎯', <>O que fazer <b>essa semana</b> pra subir de posição</>],
-        ].map(([icon, txt], i) => (
+          [TrendingUp, <>Evolução <b>semana a semana</b> — veja se subiu ou caiu no ranking</>],
+          [Bell, <>Alerta <b>na hora</b> quando um concorrente te ultrapassar</>],
+          [Target, <>O que fazer <b>essa semana</b> pra subir de posição</>],
+        ].map(([IconC, txt], i) => (
           <li key={i} style={{ display:'flex', alignItems:'flex-start', gap: 10, fontSize: 13.5, color: T.text }}>
-            <span style={{ fontSize: 16, flexShrink: 0, lineHeight: 1.3 }}>{icon}</span>
+            <span style={{ flexShrink: 0, lineHeight: 1.3, color: T.primary, display:'inline-flex' }}><IconC size={18} strokeWidth={2}/></span>
             <span style={{ lineHeight: 1.4 }}>{txt}</span>
           </li>
         ))}
@@ -5047,8 +5056,8 @@ function ExitIntentModal({ url, bizName, rank, gap, targetPos, isMobile }) {
         <button onClick={() => setShow(false)} aria-label="Fechar" style={{
           position:'absolute', top: 14, right: 16, background:'none', border:'none',
           fontSize: 20, color: T.textDim, cursor:'pointer', lineHeight: 1
-        }}>✕</button>
-        <div style={{ fontSize: 44, marginBottom: 12 }}>👋</div>
+        }}></button>
+        <div style={{ marginBottom: 12, color: T.primary, display:'flex', justifyContent:'center' }}><Hand size={40}/></div>
         <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 23, fontWeight: 800, color: T.text, margin:'0 0 10px', letterSpacing:'-0.02em', lineHeight:1.2 }}>{headline}</h2>
         <p style={{ fontSize: 14.5, color: T.textMid, lineHeight: 1.55, margin:'0 0 22px' }}>{sub}</p>
         <a href={url} style={{
@@ -5107,7 +5116,7 @@ function TermBar({ term, isGuest, placeId, isMobile }) {
     }}>
       {!editing ? (
         <>
-          <span>🎯 Você está sendo comparado como <b>{term || 'sua categoria'}</b></span>
+          <span>Você está sendo comparado como <b>{term || 'sua categoria'}</b></span>
           <button onClick={() => setEditing(true)} style={{
             background: '#fff', color: T.blue, border: `1px solid ${T.blue}`, borderRadius: 7,
             padding: '5px 13px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'
@@ -5156,7 +5165,7 @@ function VisibilityLenses({ placeId, term, cep, isMobile }) {
     <Card>
       <div style={{ marginBottom: 12 }}>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'flex', alignItems:'center', gap: 8 }}>
-          🔎 Concorrentes da sua categoria por perto
+          Concorrentes da sua categoria por perto
         </h3>
         <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.5 }}>
           Negócios de <b>"{term || 'sua categoria'}"</b> que o Google mostra na sua região — uma amostra pra você se comparar. <b>Não é sua posição exata no Google Maps.</b>
@@ -5194,7 +5203,7 @@ function VisibilityLenses({ placeId, term, cep, isMobile }) {
                     <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: c.isMe ? 700 : 500, color: c.isMe ? T.blueDk : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                       {c.isMe ? `${c.name || 'Você'} (você)` : (c.name || 'Concorrente')}
                     </span>
-                    <span style={{ fontSize: 12, color: T.textMid, flexShrink: 0 }}>⭐ {c.rating ?? '—'} · {c.reviews}</span>
+                    <span style={{ fontSize: 12, color: T.textMid, flexShrink: 0 }}>{c.rating ?? '—'} · {c.reviews}</span>
                   </div>
                 ))}
               </div>
@@ -5230,7 +5239,7 @@ function ErrorScreen({ message, onRetry }) {
   return (
     <main style={{ maxWidth: 560, margin:'80px auto', padding:'0 24px', textAlign:'center' }}>
       <Card style={{ padding: 32 }}>
-        <div style={{ fontSize: 48, marginBottom: 14 }}>⚠️</div>
+        <div style={{ marginBottom: 14, color: T.danger, display:'flex', justifyContent:'center' }}><AlertTriangle size={44}/></div>
         <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 20, fontWeight: 700, color: T.text, margin:'0 0 8px' }}>
           Não conseguimos carregar seus dados
         </h2>
@@ -5280,7 +5289,7 @@ function NoBusinessScreen({ user }) {
       .then(j => {
         if (cancelled) return
         if (j.erro) { setCepFeedback("CEP não encontrado"); return }
-        setCepFeedback(`📍 ${j.localidade} / ${j.uf}${j.bairro ? " · " + j.bairro : ""}`)
+        setCepFeedback(`${j.localidade} / ${j.uf}${j.bairro ? " · " + j.bairro : ""}`)
       })
       .catch(() => { if (!cancelled) setCepFeedback("") })
     return () => { cancelled = true }
@@ -5352,7 +5361,7 @@ function NoBusinessScreen({ user }) {
   return (
     <main style={{ maxWidth: 620, margin:'40px auto 80px', padding:'0 20px' }}>
       <Card style={{ padding: isCompact() ? 24 : 36 }}>
-        <div style={{ fontSize: 44, textAlign:'center', marginBottom: 12 }}>🏪</div>
+        <div style={{ textAlign:'center', marginBottom: 12, color: T.primary, display:'flex', justifyContent:'center' }}><Store size={40}/></div>
         <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 24, fontWeight: 700, color: T.text, margin:'0 0 8px', letterSpacing:'-0.02em', textAlign:'center' }}>
           Falta 1 passo pra começar
         </h2>
@@ -5417,7 +5426,7 @@ function NoBusinessScreen({ user }) {
               marginTop: 4
             }}
           >
-            {searching ? 'Buscando…' : '🔍 Buscar no Google'}
+            {searching ? 'Buscando…' : 'Buscar no Google'}
           </button>
         </div>
 
@@ -5449,8 +5458,8 @@ function NoBusinessScreen({ user }) {
                   )}
                 </div>
                 <div style={{ fontSize: 12, color: T.textMid }}>
-                  ⭐ {r.rating || "?"} · {r.total || 0} avaliações
-                  {r.distance_meters != null && ` · 📍 ${fmtDistance(r.distance_meters)} do CEP`}
+                  {r.rating || "?"} · {r.total || 0} avaliações
+                  {r.distance_meters != null && ` · ${fmtDistance(r.distance_meters)} do CEP`}
                 </div>
                 <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 3 }}>{r.address}</div>
               </div>
@@ -5459,7 +5468,7 @@ function NoBusinessScreen({ user }) {
               marginTop: 10, padding:'10px 12px', background:'#fefce8', border:'1px solid #fef08a',
               borderRadius: 8, fontSize: 11.5, color:'#854d0e', lineHeight: 1.5
             }}>
-              <strong>⚠️ Nome ou endereço diferente?</strong> Os dados vêm do Google Meu Negócio. Selecione mesmo assim e atualize no Google depois — propaga em 1-2 dias.
+              <strong>Nome ou endereço diferente?</strong> Os dados vêm do Google Meu Negócio. Selecione mesmo assim e atualize no Google depois — propaga em 1-2 dias.
             </div>
           </div>
         )}
@@ -5557,7 +5566,7 @@ function scoreBreakdown(d) {
     {
       key: 'perfil', icon: 'id', label: 'Perfil completo no Google',
       earned: perfilPts, max: 15,
-      detail: faltando.length ? `Falta: ${faltando.join(', ')}.` : 'Foto, telefone e categoria preenchidos. ✓',
+      detail: faltando.length ? `Falta: ${faltando.join(', ')}.` : 'Foto, telefone e categoria preenchidos. ',
       hint: faltando.length
         ? 'Complete seu perfil no Google Meu Negócio — leva minutos e fecha esses pontos hoje.'
         : 'Perfil completo — nada a fazer aqui.'
@@ -5603,7 +5612,7 @@ function ScoreModal({ d, onClose }) {
 
         {/* Cabeçalho — score grande + leitura */}
         <div style={{ display:'flex', alignItems:'center', gap: 14, marginBottom: 6 }}>
-          <span style={{ fontSize: 26 }}>🏅</span>
+          <span style={{ display:'inline-flex', color: T.accent }}><Award size={24}/></span>
           <div style={{ display:'flex', alignItems:'baseline', gap: 6 }}>
             <span style={{ fontFamily:"'Inter', sans-serif", fontSize: 40, fontWeight: 700, color: scoreColor, lineHeight: 1, letterSpacing:'-0.03em' }}>{score}</span>
             <span style={{ fontSize: 16, fontWeight: 600, color: T.textDim }}>/ 100</span>
@@ -5612,7 +5621,7 @@ function ScoreModal({ d, onClose }) {
         <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 18px', lineHeight: 1.5 }}>
           {faltam > 0
             ? <>Seu Score StarTouch é <b>{score}</b>. Veja de onde vêm os pontos e o que falta pros <b>{faltam}</b> que sobram.</>
-            : <>Score máximo. 🎉 Seu negócio tá com a presença local completa pela nossa fórmula.</>}
+            : <>Score máximo. Seu negócio tá com a presença local completa pela nossa fórmula.</>}
         </p>
 
         {/* Fatores */}
@@ -5808,7 +5817,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <Header bizName="StarTouch" plan="free" isMobile={isMobile} user={user} onLogout={onLogout} demoMode={demoMode} />
         <main style={{ maxWidth: 480, margin:'80px auto', padding:'0 24px', textAlign:'center' }}>
           <Card style={{ padding: 32 }}>
-            <div style={{ fontSize: 48, marginBottom: 14 }}>🔐</div>
+            <div style={{ marginBottom: 14, color: T.primary, display:'flex', justifyContent:'center' }}><Lock size={44}/></div>
             <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 20, fontWeight: 700, color: T.text, margin:'0 0 8px' }}>
               Sua sessão expirou
             </h2>
@@ -5912,7 +5921,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       {/* Fallback p/ abas desconhecidas (as Pro já são tratadas acima com preview) */}
       {tab !== 'painel' && tab !== 'concorrentes' && tab !== 'alertas' && tab !== 'relatorios' && tab !== 'loja' && tab !== 'avaliacoes' && tab !== 'config' && (
         <ComingSoon
-          icon={tab === 'concorrentes' ? '🏆' : tab === 'alertas' ? '🔔' : tab === 'relatorios' ? '📈' : '⭐'}
+          icon={tab === 'concorrentes' ? 'trophy' : tab === 'alertas' ? 'bell' : tab === 'relatorios' ? 'trendup' : 'star'}
           title={
             tab === 'concorrentes' ? 'Inteligência Competitiva' :
             tab === 'alertas'      ? 'Alertas em tempo real' :
