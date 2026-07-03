@@ -5939,6 +5939,16 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     } catch {}
   }, [guestPanelViewed])
 
+  // Analytics: view_panel (spec 7) — 1x por montagem do painel, com o modo (preview|logged).
+  const panelReady = !real.loading && (real.hasBusiness || demoMode)
+  const viewFiredRef = React.useRef(false)
+  React.useEffect(() => {
+    if (!panelReady || viewFiredRef.current) return
+    viewFiredRef.current = true
+    const mode = (guestMode && !!guestContext?.placeId) ? 'preview' : 'logged'
+    try { if (typeof window !== 'undefined' && window.gtag) window.gtag('event', 'view_panel', { mode }) } catch {}
+  }, [panelReady])
+
   // Scroll automático pro elemento do hash quando muda de aba ou termina o loading
   // (DEPOIS do `real` ser declarado pra evitar temporal dead zone)
   React.useEffect(() => {
