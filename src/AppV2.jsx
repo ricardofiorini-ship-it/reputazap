@@ -1,4 +1,38 @@
 import React from 'react'
+import {
+  Home, Star, ShoppingBag, ShoppingCart, Menu, Lock, Unlock, TrendingUp, TrendingDown,
+  Bell, Target, Search, Award, Medal, Rocket, AlertTriangle, MessageSquare, Info,
+  Settings, Mail, HelpCircle, Check, CheckCircle2, X, MapPin, BarChart3, User, Users,
+  Camera, Lightbulb, Flame, Package, Phone, Building2, Wrench, FlaskConical, Calendar,
+  Download, Send, FileText, Radar, Sparkles, Key, Gift, DoorOpen, Map, CreditCard,
+  Image as ImageIcon, Store, PartyPopper, Construction, Monitor, Bookmark, RefreshCw,
+  Truck, ShieldCheck, Siren, ClipboardList, Inbox, Tag, UtensilsCrossed, Hand, ChevronRight
+} from 'lucide-react'
+
+// ─────────────────────────────────────────────────────────────
+// Registro de ícones para dados (campos `icon:` em MOCK/config/notificações).
+// Substitui os emojis-string por chaves; <Ico name="trophy"/> renderiza o Lucide.
+// (spec seção 2.1 — nenhum emoji na UI)
+// ─────────────────────────────────────────────────────────────
+const ICON_MAP = {
+  trophy: Award, medal1: Medal, medal2: Medal, medal3: Medal, target: Target,
+  chat: MessageSquare, camera: Camera, star: Star, warn: AlertTriangle, chart: BarChart3,
+  trendup: TrendingUp, bell: Bell, rocket: Rocket, lightbulb: Lightbulb, siren: Siren,
+  search: Search, mappin: MapPin, lock: Lock, unlock: Unlock, settings: Settings,
+  mail: Mail, help: HelpCircle, user: User, users: Users, monitor: Monitor, flask: FlaskConical,
+  calendar: Calendar, calendarMonth: Calendar, download: Download, send: Send, inbox: Inbox,
+  bell2: Bell, cart: ShoppingCart, config: Settings, door: DoorOpen, map: Map, card: CreditCard,
+  package: Package, phone: Phone, building: Building2, wrench: Construction, radar: Radar,
+  sparkles: Sparkles, key: Key, gift: Gift, id: CreditCard, party: PartyPopper, store: Store,
+  bag: ShoppingBag, home: Home, menu: Menu, award: Award, bookmark: Bookmark, refresh: RefreshCw,
+  truck: Truck, shield: ShieldCheck, clipboard: ClipboardList, tag: Tag, food: UtensilsCrossed,
+  image: ImageIcon, wave: Hand, check: Check, flame: Flame
+}
+function Ico({ name, size = 20, strokeWidth = 2, style, ...rest }) {
+  const C = ICON_MAP[name]
+  if (!C) return null
+  return <C size={size} strokeWidth={strokeWidth} style={{ flexShrink: 0, ...style }} {...rest} />
+}
 
 // ─────────────────────────────────────────────────────────────
 // Dashboard StarTouch — V2 (mockup funcional)
