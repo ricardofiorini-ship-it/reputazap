@@ -7,6 +7,7 @@
     { "source": "/(.*)", "has": [{ "type": "host", "value": "www.reputazap.com.br" }], "destination": "https://startouch.com.br/$1", "permanent": true },
     { "source": "/(.*)", "has": [{ "type": "host", "value": "www.startouch.com.br" }], "destination": "https://startouch.com.br/$1", "permanent": true },
     { "source": "/", "destination": "/landing", "permanent": false },
+    { "source": "/ativar", "missing": [{ "type": "query", "key": "from" }], "destination": "/landing", "permanent": false },
     { "source": "/app-v2", "destination": "/app", "permanent": true },
     { "source": "/app-v2/(.*)", "destination": "/app/$1", "permanent": true },
     { "source": "/landing.html", "destination": "/landing", "permanent": true },
