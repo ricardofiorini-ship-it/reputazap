@@ -143,6 +143,32 @@ body {
 }
 .art-callout strong { color: var(--st-blue-dark); }
 
+/* Tabela (comparativos dentro do prose) */
+.art-table-wrap { margin: 28px 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.art-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  line-height: 1.5;
+  min-width: 460px;
+}
+.art-table th, .art-table td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--st-gray-light);
+  vertical-align: top;
+  color: #1F2937;
+}
+.art-table thead th {
+  font-family: 'General Sans', sans-serif;
+  font-weight: 700;
+  color: #0F0F0F;
+  border-bottom: 2px solid var(--st-gray-light);
+}
+.art-table tbody td:first-child { font-weight: 600; color: #0F0F0F; white-space: nowrap; }
+.art-table tbody tr:last-child td { border-bottom: none; }
+.art-table tbody tr:nth-child(even) { background: #F8F9FA; }
+
 /* Roteiro / script box */
 .art-script {
   background: #F8F9FA;
