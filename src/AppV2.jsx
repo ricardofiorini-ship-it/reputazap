@@ -6459,8 +6459,10 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           />
         </Section>
 
-        {/* BLOCO 2 — SLOT do Widget Radar IA (feature flag desligada → null). Spec 3. */}
-        <RadarWidgetSlot d={d} isMobile={isMobile} />
+        {/* BLOCO 2 — Widget Radar IA. Rollout FECHADO: só admin por enquanto
+            (teste com a base real antes de abrir pra todos). Pra liberar geral,
+            troque `isAdminUser(user) &&` por `true &&` (ou remova o gate). */}
+        {isAdminUser(user) && <RadarWidgetSlot d={d} isMobile={isMobile} />}
 
         {/* GATILHO PRO (FOMO) — ESCONDIDO TEMPORARIAMENTE (sem segurança pra
             vender Pro ainda). Pra reexibir, troque `false &&` por `(demoMode || hasComp)`. */}
