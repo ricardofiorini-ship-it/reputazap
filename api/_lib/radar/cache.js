@@ -64,17 +64,50 @@ export async function setCached({ cacheKey, motor, pergunta, resposta }) {
   }
 }
 
-// Salva o diagnóstico no histórico. Best-effort (não derruba a resposta).
-export async function saveDiagnostic({ nome, categoria, cidade, score, mencoes, total, concorrentes, detalhe }) {
+// Salva o diagnóstico no histórico e DEVOLVE o id (o "code" do link do plano).
+// Best-effort: se falhar (ex: colunas place_id/site ainda não criadas), devolve
+// null — quem chama trata a ausência de code (o /radar cai no relatório inline).
+// place_id/site alimentam a /radar/plano (auditoria ao vivo pelo code).
+export async function saveDiagnostic({ nome, categoria, cidade, score, mencoes, total, concorrentes, detalhe, place_id, site }) {
   const supabase = getSupabase();
-  if (!supabase) return;
+  if (!supabase) return null;
   try {
-    await supabase.from("radar_diagnostics").insert({
-      nome, categoria, cidade, score, mencoes, total,
-      concorrentes: concorrentes || [],
-      detalhe: detalhe || {},
-    });
+    const { data, error } = await supabase
+      .from("radar_diagnostics")
+      .insert({
+        nome, categoria, cidade, score, mencoes, total,
+        concorrentes: concorrentes || [],
+        detalhe: detalhe || {},
+        place_id: place_id || null,
+        site: site || null,
+      })
+      .select("id")
+      .single();
+    if (error) {
+      console.warn("[radar] saveDiagnostic falhou:", error.message);
+      return null;
+    }
+    return data?.id || null;
+  } catch (e) {
+    console.warn("[radar] saveDiagnostic exceção:", e.message);
+    return null;
+  }
+}
+
+// Lê um diagnóstico salvo pelo id (code do link do plano). Retorna a linha
+// completa ou null (id inexistente, inválido, ou sem banco). Nunca lança.
+export async function getDiagnostic(id) {
+  const supabase = getSupabase();
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("radar_diagnostics")
+      .select("id, nome, categoria, cidade, score, mencoes, total, concorrentes, detalhe, place_id, site, created_at")
+      .eq("id", id)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data;
   } catch {
-    /* ignora */
+    return null; // id malformado (uuid inválido) etc.
   }
 }

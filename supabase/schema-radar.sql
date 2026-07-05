@@ -32,6 +32,13 @@ create table if not exists radar_diagnostics (
 );
 create index if not exists idx_radar_diagnostics_created on radar_diagnostics(created_at);
 
+-- Funil-impacto: o diagnóstico guarda o negócio do Google (place_id) e o site,
+-- pra /radar/plano?code={id} reconstruir a auditoria ao vivo. ALTER idempotente
+-- (rodar uma vez). SEM ESTAS COLUNAS o insert do diagnóstico falha e o /radar
+-- cai no relatório inline (sem gerar o code do plano).
+alter table radar_diagnostics add column if not exists place_id text;
+alter table radar_diagnostics add column if not exists site text;
+
 -- Leads do fluxo de fechamento (Pacote Presença em IA). Captura quem demonstra
 -- interesse — mesmo que não conclua o pagamento — pra follow-up comercial.
 create table if not exists radar_leads (
