@@ -3822,7 +3822,8 @@ function RadarWidgetSlot({ d, isMobile }) {
           <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, marginBottom: 16 }}>
             Descubra se o ChatGPT e o Gemini recomendam o seu negócio quando alguém pergunta pela sua categoria.
           </p>
-          <a href={href} onClick={() => track('radar_widget_click', { state: 0, destino: 'radar' })}
+          {/* Abre em nova aba: o painel do cliente logado NÃO é perdido. */}
+          <a href={href} target="_blank" rel="noopener" onClick={() => track('radar_widget_click', { state: 0, destino: 'radar' })}
             style={{ display:'inline-flex', alignItems:'center', gap: 6, fontSize: 14, fontWeight: 700, color: T.primary, background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 10, padding:'11px 16px', textDecoration:'none' }}>
             Fazer diagnóstico grátis <ChevronRight size={16}/>
           </a>
@@ -3874,7 +3875,7 @@ function RadarWidgetSlot({ d, isMobile }) {
 
         {/* Rodapé — CTA + sub-linha de pendências */}
         <div style={{ marginTop: 16 }}>
-          <a href={planoHref} onClick={() => track('radar_unlock_click', { state: 1, pendencias: pend })}
+          <a href={planoHref} target="_blank" rel="noopener" onClick={() => track('radar_unlock_click', { state: 1, pendencias: pend })}
             style={{ display:'flex', alignItems:'center', justifyContent:'center', gap: 7, width:'100%', fontSize: 14.5, fontWeight: 700, color:'#fff', background: T.primary, border:'none', borderRadius: 10, padding:'13px 16px', textDecoration:'none', boxSizing:'border-box' }}>
             {strong ? 'Ver diagnóstico completo' : 'Desbloquear diagnóstico completo'} <ChevronRight size={16}/>
           </a>
@@ -6459,9 +6460,9 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           />
         </Section>
 
-        {/* BLOCO 2 — Widget Radar IA. ABERTO PRA TODOS (2026-07-05). Pra voltar
-            ao rollout fechado, envolver em `isAdminUser(user) && (...)`. */}
-        <RadarWidgetSlot d={d} isMobile={isMobile} />
+        {/* BLOCO 2 — Widget Radar IA. Só pra CONTAS COM CADASTRO: exige negócio
+            real salvo (d.biz.id). Convidado (biz.id null) e demo (sem id) não veem. */}
+        {!guestMode && !demoMode && d?.biz?.id && <RadarWidgetSlot d={d} isMobile={isMobile} />}
 
         {/* GATILHO PRO (FOMO) — ESCONDIDO TEMPORARIAMENTE (sem segurança pra
             vender Pro ainda). Pra reexibir, troque `false &&` por `(demoMode || hasComp)`. */}
