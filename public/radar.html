@@ -732,8 +732,10 @@ fbq('track', 'PageView');
       // Funil-impacto: com code → página de plano completa (auditoria + IA).
       // Sem code (banco off ou colunas place_id/site ainda não criadas) →
       // relatório inline, comportamento antigo (fallback resiliente).
+      // Propaga a origem (ex: widget do painel) pra atribuição no plano.
       if (data.code) {
-        window.location.href = "/radar/plano?code=" + encodeURIComponent(data.code) + "&origem=radar";
+        const origem = new URLSearchParams(location.search).get("origem") || "radar";
+        window.location.href = "/radar/plano?code=" + encodeURIComponent(data.code) + "&origem=" + encodeURIComponent(origem);
         return;
       }
       renderReport(data, selectedBiz.name);
@@ -817,9 +819,14 @@ fbq('track', 'PageView');
     }
   });
 
-  // Nome vindo da land do Radar (?nome=) — preenche e já dispara a busca.
-  const nomeParam = new URLSearchParams(location.search).get("nome");
-  if (nomeParam) {
+  // Vindo do widget do painel (?place_id=&nome=) — já sabemos o negócio:
+  // pré-seleciona e pula a busca. Vindo da land (?nome=) — preenche e busca.
+  const qp = new URLSearchParams(location.search);
+  const placeParam = qp.get("place_id");
+  const nomeParam = qp.get("nome");
+  if (placeParam && nomeParam) {
+    pickBiz({ place_id: placeParam, name: nomeParam.slice(0, 120), address: "" });
+  } else if (nomeParam) {
     $("nome").value = nomeParam.slice(0, 120);
     setTimeout(searchBiz, 300);
   }

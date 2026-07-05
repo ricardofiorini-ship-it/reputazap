@@ -17,7 +17,7 @@ import {
   computeScore,
   buildDiagnostico,
 } from "./_lib/radar/score.js";
-import { saveDiagnostic, getDiagnostic } from "./_lib/radar/cache.js";
+import { saveDiagnostic, getDiagnostic, getLatestDiagnosticByPlace } from "./_lib/radar/cache.js";
 import { lookupCep } from "./_lib/radar/cep.js";
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { detectFromName, typeToTerm } from "./_lib/competitors.js";
@@ -88,11 +88,14 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(204).end();
 
-  // GET ?code={id} — a /radar/plano lê o diagnóstico salvo pelo code.
+  // GET — leitura de diagnóstico salvo (sem custo de IA):
+  //   ?code={id}       → a /radar/plano lê o diagnóstico pelo code
+  //   ?place_id={pid}  → o widget do painel pega o ÚLTIMO diagnóstico do negócio
   if (req.method === "GET") {
     const code = (req.query.code || "").toString().trim();
-    if (!code) return res.status(400).json({ error: "code obrigatório" });
-    const d = await getDiagnostic(code);
+    const placeId = (req.query.place_id || "").toString().trim();
+    if (!code && !placeId) return res.status(400).json({ error: "code ou place_id obrigatório" });
+    const d = code ? await getDiagnostic(code) : await getLatestDiagnosticByPlace(placeId);
     if (!d) return res.status(404).json({ error: "Diagnóstico não encontrado" });
     const detalhe = d.detalhe || {};
     return res.json({
