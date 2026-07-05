@@ -73,11 +73,55 @@ export default async function handler(req, res) {
     if (action === "list-clients") return await handleListClients(req, res);
     if (action === "delete-user")  return await handleDeleteUser(req, res, admin);
     if (action === "prospects")    return await handleProspects(req, res);
-    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user ou prospects" });
+    if (action === "funnel")       return await handleFunnel(req, res);
+    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects ou funnel" });
   } catch (err) {
     console.error("[admin] erro:", err);
     return res.status(500).json({ error: err.message });
   }
+}
+
+// ── FUNNEL: funil do convidado (pessoas por passo + queda) ───
+// Conta pessoas DISTINTAS (anon_id) que atingiram cada passo na janela de dias.
+// signup_complete pode vir sem anon_id (logado no server) → conta por evento.
+async function handleFunnel(req, res) {
+  const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 365);
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data, error } = await supabase
+    .from("funnel_events")
+    .select("anon_id, step, created_at")
+    .gte("created_at", since)
+    .limit(100000);
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Passos na ordem do funil + rótulo amigável.
+  const STEPS = [
+    { key: "guest_search_view",   label: "Abriu a busca" },
+    { key: "guest_search_submit", label: "Buscou um negócio" },
+    { key: "guest_panel_view",    label: "Viu o painel" },
+    { key: "guest_signup_click",  label: "Clicou em criar conta" },
+    { key: "signup_complete",     label: "Concluiu o cadastro" },
+  ];
+  const sets = {}; STEPS.forEach(s => { sets[s.key] = new Set(); });
+  let i = 0;
+  for (const r of (data || [])) {
+    if (!sets[r.step]) continue;
+    // Sem anon_id (ex: signup_complete server-side) → conta cada evento.
+    sets[r.step].add(r.anon_id || `evt-${i++}`);
+  }
+
+  const top = sets[STEPS[0].key].size || 0;
+  let prev = null;
+  const funnel = STEPS.map(s => {
+    const people = sets[s.key].size;
+    const pctOfTop = top ? Math.round((people / top) * 100) : 0;
+    const dropFromPrev = prev != null && prev > 0 ? Math.round(((prev - people) / prev) * 100) : null;
+    prev = people;
+    return { key: s.key, label: s.label, people, pctOfTop, dropFromPrev };
+  });
+
+  return res.json({ days, total_events: (data || []).length, funnel });
 }
 
 // ── STATS: números gerais do sistema ─────────────────────────

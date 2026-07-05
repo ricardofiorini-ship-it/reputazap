@@ -727,6 +727,26 @@ function useIsMobile(bp = 768) {
 const ADMIN_EMAILS = ['ricardo.fiorini@gmail.com']
 const isAdminUser = (user) => !!user && ADMIN_EMAILS.includes((user.email || '').toLowerCase())
 
+// ── Medição do funil do convidado (anônimo) ──────────────────
+// Dispara o evento no GA4 E grava no nosso banco (/api/track), pra alimentar o
+// painel /admin/funil. anon_id = id aleatório do navegador (não identifica ninguém).
+function anonId() {
+  try {
+    let id = localStorage.getItem('rz_anon')
+    if (!id) { id = 'a' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('rz_anon', id) }
+    return id
+  } catch { return null }
+}
+function trackFunnel(step, meta) {
+  try { if (typeof window !== 'undefined' && window.gtag) window.gtag('event', step, meta || {}) } catch {}
+  try {
+    fetch('/api/track', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+      body: JSON.stringify({ step, anon_id: anonId(), meta: meta || {} })
+    }).catch(() => {})
+  } catch {}
+}
+
 function getPlan(realBiz, demoMode, user) {
   // URL ?plan=free|pro só vale em demoMode OU quando ainda não tem negócio real
   // (em produção, NUNCA permitir bypass do paywall pelo URL)
@@ -5094,10 +5114,8 @@ function GuestSearch({ isMobile }) {
 
   // Analytics: abriu a busca sem cadastro (topo do funil convidado)
   React.useEffect(() => {
-    try {
-      if (typeof window !== 'undefined' && window.gtag) window.gtag('event', 'guest_search_view')
-      if (typeof window !== 'undefined' && window.fbq) window.fbq('trackCustom', 'GuestSearchView')
-    } catch {}
+    trackFunnel('guest_search_view')
+    try { if (typeof window !== 'undefined' && window.fbq) window.fbq('trackCustom', 'GuestSearchView') } catch {}
   }, [])
 
   async function doSearch(e) {
@@ -5115,6 +5133,8 @@ function GuestSearch({ isMobile }) {
       const r = await fetch(`/api/searchbiz?${params.toString()}`)
       const d = await r.json()
       setResults(d.results || [])
+      // Buscou de verdade (fim do 1º ponto cego do funil).
+      trackFunnel('guest_search_submit', { results: (d.results || []).length })
     } catch {
       setError('Erro ao buscar. Tente de novo.')
     } finally { setLoading(false) }
@@ -5306,7 +5326,7 @@ function GuestBanner({ url, isMobile, bizName, rank, gap, targetPos }) {
       padding: isMobile ? '10px 14px' : '11px 18px', fontSize: isMobile?12:13.5, fontWeight:600, textAlign:'center'
     }}>
       <span>{msg}</span>
-      <a href={url} style={{
+      <a href={url} onClick={() => trackFunnel('guest_signup_click', { from: 'banner' })} style={{
         background: T.primary, color:'#fff', textDecoration:'none', fontWeight:700,
         padding:'7px 15px', borderRadius: 8, fontSize: isMobile?12.5:13, whiteSpace:'nowrap'
       }}>Salvar meu diagnóstico →</a>
@@ -5326,7 +5346,7 @@ function GuestGate({ url, feature, isMobile }) {
         <p style={{ fontSize:14, color:T.textMid, lineHeight:1.55, margin:'0 0 20px' }}>
           Você está numa prévia gratuita. Crie sua conta (também grátis) pra salvar seu negócio, configurar e receber alertas.
         </p>
-        <a href={url} style={{ display:'inline-block', background:T.blue, color:'#fff', textDecoration:'none', fontWeight:700, padding:'12px 24px', borderRadius:11, fontSize:15 }}>
+        <a href={url} onClick={() => trackFunnel('guest_signup_click', { from: 'gate' })} style={{ display:'inline-block', background:T.blue, color:'#fff', textDecoration:'none', fontWeight:700, padding:'12px 24px', borderRadius:11, fontSize:15 }}>
           Criar conta grátis →
         </a>
       </div>
@@ -5644,7 +5664,7 @@ function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGues
                     <strong style={{ color: T.text }}>Quem são seus concorrentes?</strong> Crie sua conta grátis pra ver os nomes de quem aparece na sua frente.
                   </div>
                   <a href={signupUrl || '/ativar?from=web'}
-                    onClick={() => { try { window.gtag && window.gtag('event', 'guest_ranking_unlock_click') } catch {} }}
+                    onClick={() => trackFunnel('guest_signup_click', { from: 'ranking' })}
                     style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6, flexShrink: 0,
                       background: T.primary, color:'#fff', fontSize: 13.5, fontWeight: 700, textDecoration:'none',
                       borderRadius: 10, padding:'10px 16px' }}>
@@ -6237,13 +6257,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         keyword: guestContext?.keyword || ''
       }))
     } catch {}
+    trackFunnel('guest_panel_view', {
+      place_id: guestContext?.placeId || '',
+      keyword: guestContext?.keyword || ''
+    })
     try {
-      if (typeof window !== 'undefined' && window.gtag) {
-        window.gtag('event', 'guest_panel_view', {
-          place_id: guestContext?.placeId || '',
-          keyword: guestContext?.keyword || ''
-        })
-      }
       if (typeof window !== 'undefined' && window.fbq) {
         window.fbq('trackCustom', 'GuestPanelView', { place_id: guestContext?.placeId || '' })
       }

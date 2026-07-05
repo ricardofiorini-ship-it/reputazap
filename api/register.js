@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { sendInBackground } from "./_lib/email-sender.js";
 import { welcomeEmail, adminNewClientEmail } from "./_lib/email-templates.js";
+import { logFunnel } from "./track.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -14,7 +15,7 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { name, email, phone, password } = req.body;
+  const { name, email, phone, password, anon_id } = req.body;
   if (!name || !email || !phone || !password) {
     return res.status(400).json({ error: "Todos os campos são obrigatórios" });
   }
@@ -30,6 +31,10 @@ export default async function handler(req, res) {
     });
 
     if (error) return res.status(400).json({ error: error.message });
+
+    // Fim do funil do convidado: cadastro concluído. Server-side pra não depender
+    // do front (best-effort; anon_id vem do cliente se enviado, senão conta o evento).
+    const funnelPromise = logFunnel({ step: "signup_complete", anon_id, meta: { source: "register" } });
 
     // Retorna token direto se a sessão foi criada
     const token = data.session?.access_token || null;
@@ -69,8 +74,9 @@ export default async function handler(req, res) {
       }));
     }
 
-    // Aguarda paralelo (~300-800ms a mais de latência, mas garante envio)
-    await Promise.allSettled(emailPromises);
+    // Aguarda paralelo (~300-800ms a mais de latência, mas garante envio +
+    // grava o signup_complete antes do serverless encerrar).
+    await Promise.allSettled([...emailPromises, funnelPromise]);
 
     res.json({
       ok: true,
