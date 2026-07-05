@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '767972996338904');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=767972996338904&ev=PageView&noscript=1"/></noscript>
+<!-- End Meta Pixel Code -->
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18239737019"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-18239737019');
+  gtag('config', 'AW-18229338581');
+  gtag('config', 'G-HCLV0Z640L');
+</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<!-- Link com code expõe dados do negócio a quem tiver o link: não indexar (regra 4). -->
+<meta name="robots" content="noindex, nofollow"/>
+<title>Seu plano de trabalho — StarTouch</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  :root{
+    --brand:#1A73E8; --brand-hover:#174EA6; --brand-050:#E8F0FE;
+    --ink:#111827; --ink-2:#4B5563; --ink-3:#80868B;
+    --bg:#FFFFFF; --surf:#F8F9FA; --surf-2:#F1F3F4; --border:#E5E7EB;
+    --ok:#1E8E3E; --ok-bg:#E6F4EA; --ok-bd:#A8DAB5;
+    --bad:#A50E0E; --bad-bg:#FCE8E6; --bad-bd:#F5C6C0;
+    --warn:#7A5900; --warn-bg:#FEF7E0; --warn-bd:#FDE68A;
+    --na:#80868B; --na-bg:#F1F3F4;
+    --dark:#0B1A33; --dark-hi:#8AB4F8; --dark-sub:#A9B6CC;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--surf);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5;}
+  a{text-decoration:none;color:inherit;}
+  .tnums{font-variant-numeric:tabular-nums;}
+  .wrap{max-width:600px;margin:0 auto;padding:0 20px 72px;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 0 10px;max-width:600px;margin:0 auto;padding-left:20px;padding-right:20px;}
+  .logo img{height:40px;width:auto;display:block;}
+  .eyebrow{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.09em;color:var(--brand);}
+
+  /* Estados de carregamento / erro */
+  .boot{text-align:center;padding:80px 20px;color:var(--ink-2);}
+  .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .block{margin-bottom:16px;}
+  .btag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;padding:4px 9px;border-radius:999px;margin-bottom:12px;}
+  .btag svg{width:12px;height:12px;}
+
+  /* Bloco A — banda escura */
+  .impact{background:var(--dark);color:#fff;border-radius:18px;padding:24px 22px;}
+  .impact h2{font-size:22px;font-weight:800;letter-spacing:-0.02em;text-wrap:balance;margin-bottom:4px;}
+  .impact .sub{color:var(--dark-sub);font-size:13.5px;margin-bottom:18px;}
+  .ring-row{display:flex;align-items:center;gap:18px;margin-bottom:18px;}
+  .ring{position:relative;width:96px;height:96px;flex:0 0 auto;}
+  .ring svg{transform:rotate(-90deg);}
+  .ring .val{position:absolute;inset:0;display:grid;place-items:center;text-align:center;}
+  .ring .val b{font-size:26px;font-weight:800;line-height:1;}
+  .ring .val span{font-size:10px;color:var(--dark-sub);text-transform:uppercase;letter-spacing:.05em;}
+  .ring-meta .k{font-size:12px;color:var(--dark-sub);}
+  .ring-meta .big{font-size:15px;font-weight:700;margin:2px 0 10px;}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:7px 11px;font-size:12.5px;}
+  .chip b{color:#fff;} .chip span{color:var(--dark-sub);}
+  .reveal{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px 15px;}
+  .reveal .q{font-size:12px;color:var(--dark-hi);margin-bottom:9px;line-height:1.5;}
+  .reveal .q b{color:#fff;}
+  .compbar{display:flex;align-items:center;gap:10px;margin:7px 0;}
+  .compbar .nm{font-size:13px;width:120px;flex:0 0 auto;color:#e8eefb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .compbar .track{flex:1;height:8px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden;}
+  .compbar .fill{height:100%;background:var(--dark-hi);border-radius:999px;}
+  .miss{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12);font-size:13.5px;font-weight:700;color:#FCA5A5;display:flex;align-items:center;gap:8px;}
+  .miss.inrank{color:#7EE2A8;}
+  .miss svg{width:16px;height:16px;flex:0 0 auto;}
+
+  /* Bloco B — orçamento de oficina */
+  .audit h2{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin-bottom:3px;}
+  .audit .sub{color:var(--ink-2);font-size:13.5px;margin-bottom:16px;}
+  .group{background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:6px 16px;margin-bottom:12px;}
+  .group > h3{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-3);margin:14px 2px 4px;}
+  .row{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--surf-2);}
+  .row:first-of-type{border-top:0;}
+  .ic{width:22px;height:22px;border-radius:7px;flex:0 0 auto;display:grid;place-items:center;margin-top:1px;}
+  .ic svg{width:14px;height:14px;stroke-width:2.4;}
+  .ic.pass{background:var(--ok-bg);} .ic.pass svg{stroke:var(--ok);}
+  .ic.fail{background:var(--bad-bg);} .ic.fail svg{stroke:var(--bad);}
+  .ic.na{background:var(--na-bg);} .ic.na svg{stroke:var(--na);}
+  .row .lab{font-size:14px;font-weight:600;color:var(--ink);}
+  .row .det{font-size:12.5px;color:var(--ink-2);margin-top:2px;}
+  .row.na .lab,.row.na .det{color:var(--ink-3);}
+  .empty-note{padding:14px 2px;font-size:13px;color:var(--ink-2);line-height:1.5;}
+  .audit-loading{display:flex;align-items:center;gap:10px;color:var(--ink-3);font-size:13px;padding:14px 2px;}
+  .audit-loading .sp{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite;}
+  .foot{margin-top:4px;background:var(--bad-bg);border:1px solid var(--bad-bd);color:#7a1c14;border-radius:14px;padding:14px 16px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:10px;}
+  .foot.clean{background:var(--ok-bg);border-color:var(--ok-bd);color:#155e2b;}
+  .foot .n{font-size:22px;font-weight:800;}
+  .foot svg{width:20px;height:20px;flex:0 0 auto;}
+
+  /* Bloco C — oferta */
+  .offer{background:var(--dark);color:#fff;border-radius:18px;padding:24px 22px;}
+  .offer h2{font-size:22px;font-weight:800;letter-spacing:-0.02em;text-wrap:balance;margin-bottom:14px;}
+  .incl{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:9px;}
+  .incl li{display:flex;gap:10px;font-size:13.5px;color:#e8eefb;}
+  .incl li svg{width:17px;height:17px;stroke:var(--dark-hi);flex:0 0 auto;margin-top:1px;}
+  .price{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;}
+  .price .v{font-size:34px;font-weight:800;letter-spacing:-0.02em;}
+  .price .per{color:var(--dark-sub);font-size:14px;}
+  .anchor{font-size:12.5px;color:var(--dark-sub);margin-bottom:18px;}
+  .anchor b{color:var(--dark-hi);}
+  .cta{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;background:var(--brand);color:#fff;font-size:15.5px;font-weight:700;height:56px;border-radius:14px;cursor:pointer;transition:background .15s;}
+  .cta:hover{background:var(--brand-hover);}
+  .cta svg{width:18px;height:18px;stroke:#fff;}
+  .undercta{text-align:center;font-size:12px;color:var(--dark-sub);margin-top:11px;}
+
+  .pagefoot{text-align:center;font-size:11.5px;color:var(--ink-3);margin-top:22px;line-height:1.5;}
+  @media (min-width:560px){.impact h2,.audit h2,.offer h2{font-size:25px;}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="logo" href="/landing" aria-label="StarTouch"><img src="/startouch-logo-dark.png" alt="StarTouch"/></a>
+  <span class="eyebrow">Plano de trabalho</span>
+</div>
+
+<main class="wrap">
+  <div id="boot" class="boot"><div class="spinner"></div><p>Montando seu plano de trabalho…</p></div>
+  <div id="page" style="display:none;"></div>
+  <div id="pagefoot" class="pagefoot" style="display:none;">
+    Cada ✓/✗/— vem de verificação automatizada real · dados públicos do seu Google e do seu site.
+  </div>
+</main>
+
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  const CODE = (params.get("code") || "").trim();
+  const ORIGEM = (params.get("origem") || "direct").trim();
+
+  // Sem code → não há plano pra mostrar: manda rodar o diagnóstico. replace()
+  // pra não deixar a URL quebrada no histórico.
+  if (!CODE) { location.replace("/radar"); return; }
+
+  function esc(s){ const d = document.createElement("div"); d.textContent = (s==null?"":String(s)); return d.innerHTML; }
+
+  const ENGINE_LABELS = { gemini:"Gemini", openai:"ChatGPT", perplexity:"Perplexity" };
+  const ICON = {
+    check:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+    x:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+    minus:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>',
+    alert:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+    wa:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.4L3 21l2.2-5.6A8.4 8.4 0 1 1 21 11.5z"/></svg>',
+  };
+  const ICMAP = { pass:ICON.check, fail:ICON.x, na:ICON.minus };
+
+  // ---- disparo de eventos GA4 (idempotente) ----
+  let planoViewed = false;
+  let lastPend = null; // pendências (N) quando a auditoria resolver
+  function firePlanoView(pend){
+    if (planoViewed) return; planoViewed = true;
+    const p = { origem: ORIGEM };
+    if (typeof pend === "number") p.pendencias = pend;
+    if (window.gtag) gtag("event", "plano_view", p);
+  }
+  // Garante o plano_view mesmo se a auditoria travar (dispara sem pendências).
+  setTimeout(() => firePlanoView(lastPend), 6000);
+
+  // ===================== BLOCO A (dados reais do /api/radar) =====================
+  function ringDash(score){ const r=42, c=2*Math.PI*r; return { c, off:c*(1-Math.max(0,Math.min(100,score))/100), r }; }
+
+  function competitorsFromDiag(diag){
+    const freq = {};
+    Object.values(diag.porMotor || {}).forEach(pm => (pm.itens || []).forEach(it => {
+      (it.concorrentes || []).forEach(c => {
+        const k = (c||"").trim().toLowerCase(); if (!k) return;
+        (freq[k] || (freq[k] = { name: c.trim(), n: 0 })).n++;
+      });
+    }));
+    let ranked = Object.values(freq).sort((a,b) => b.n - a.n).slice(0, 4);
+    if (!ranked.length) ranked = (diag.concorrentes || []).slice(0, 4).map(n => ({ name: n, n: 0 }));
+    return ranked;
+  }
+
+  function renderBlocoA(diag){
+    const { c, off, r } = ringDash(diag.score);
+    const total = diag.total || 0;
+    const ranked = competitorsFromDiag(diag);
+    const maxN = Math.max(1, ...ranked.map(x => x.n));
+    const comps = ranked.map(x => {
+      const w = x.n ? Math.round((x.n / maxN) * 100) : 40; // sem freq (fallback) usa largura neutra
+      return '<div class="compbar"><div class="nm">' + esc(x.name) + '</div>' +
+        '<div class="track"><div class="fill" style="width:' + Math.max(12, w) + '%"></div></div></div>';
+    }).join("");
+
+    // Motor real pra rotular a "pergunta" (usa o primeiro que rodou).
+    const motores = Object.keys(diag.porMotor || {});
+    const engineLabel = motores.length ? (ENGINE_LABELS[motores[0]] || "IA") : "IA";
+    // Pergunta real (a 1ª do motor), se existir; senão monta pela categoria/cidade.
+    let pergunta = "";
+    const firstItens = motores.length ? (diag.porMotor[motores[0]].itens || []) : [];
+    if (firstItens.length && firstItens[0].pergunta) pergunta = firstItens[0].pergunta;
+    else pergunta = "qual a melhor " + (diag.categoria || "opção") + " em " + (diag.cidade || "sua região") + "?";
+
+    const appeared = (diag.mencoes || 0) > 0;
+    const missTxt = appeared
+      ? "A " + esc(diag.nome) + " apareceu em " + diag.mencoes + " de " + total + " buscas."
+      : "A " + esc(diag.nome) + " não apareceu em nenhuma das " + total + " buscas.";
+
+    const revealBlock = ranked.length ? (
+      '<div class="reveal">' +
+        '<div class="q">Perguntamos ao <b>' + esc(engineLabel) + '</b>: <b>"' + esc(pergunta) + '"</b> → e medimos quem ele cita:</div>' +
+        comps +
+        '<div class="miss ' + (appeared ? "inrank" : "") + '">' + (appeared ? ICON.check : ICON.alert) + ' ' + missTxt + '</div>' +
+      '</div>'
+    ) : (
+      '<div class="reveal"><div class="miss ' + (appeared ? "inrank" : "") + '">' + (appeared ? ICON.check : ICON.alert) + ' ' + missTxt + '</div></div>'
+    );
+
+    return '<div class="block"><div class="impact">' +
+      '<h2>Como a ' + esc(diag.nome) + ' está hoje</h2>' +
+      '<div class="sub">O que as inteligências artificiais respondem quando procuram pela sua categoria.</div>' +
+      '<div class="ring-row">' +
+        '<div class="ring"><svg width="96" height="96">' +
+          '<circle cx="48" cy="48" r="' + r + '" stroke="rgba(255,255,255,.14)" stroke-width="8" fill="none"/>' +
+          '<circle cx="48" cy="48" r="' + r + '" stroke="var(--dark-hi)" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="' + c + '" stroke-dashoffset="' + off + '"/>' +
+        '</svg><div class="val"><div><b class="tnums">' + (diag.score || 0) + '</b><span>de 100</span></div></div></div>' +
+        '<div class="ring-meta">' +
+          '<div class="k">Visibilidade nas IAs</div>' +
+          '<div class="big">Taxa de menção</div>' +
+          '<div class="chips" id="bizChips"></div>' +
+        '</div>' +
+      '</div>' + revealBlock +
+    '</div></div>';
+  }
+
+  // Preenche nota/avaliações do Google (vêm da auditoria). Some se não houver.
+  function fillBlocoAChips(business){
+    if (!business) return;
+    const box = $("bizChips"); if (!box) return;
+    const chips = [];
+    if (typeof business.rating === "number") chips.push('<div class="chip tnums"><b>' + business.rating + '</b> <span>nota Google</span></div>');
+    if (business.reviews_total) chips.push('<div class="chip tnums"><b>' + Number(business.reviews_total).toLocaleString("pt-BR") + '</b> <span>avaliações</span></div>');
+    box.innerHTML = chips.join("");
+  }
+
+  // ===================== BLOCO B (auditoria ao vivo /api/audit) =====================
+  function renderBlocoB(audit){
+    const groups = (audit.groups || []).map(g => {
+      if (!g.items || !g.items.length) {
+        return '<div class="group"><h3>' + esc(g.title) + '</h3><div class="empty-note">' + esc(g.note || "") + '</div></div>';
+      }
+      const rows = g.items.map(it =>
+        '<div class="row ' + it.status + '"><div class="ic ' + it.status + '">' + (ICMAP[it.status] || ICON.minus) + '</div>' +
+        '<div><div class="lab">' + esc(it.label) + '</div><div class="det">' + esc(it.detail) + '</div></div></div>'
+      ).join("");
+      return '<div class="group"><h3>' + esc(g.title) + '</h3>' + rows + '</div>';
+    }).join("");
+
+    const n = audit.pendencias || 0;
+    const nome = (audit.business && audit.business.name) || "seu negócio";
+    const foot = n > 0
+      ? '<div class="foot">' + ICON.alert + '<span><span class="n tnums">' + n + '</span> pendência' + (n>1?"s":"") + ' ' + (n>1?"estão":"está") + ' segurando a visibilidade da ' + esc(nome) + '.</span></div>'
+      : '<div class="foot clean">' + ICON.check + '<span>Perfil saudável. O trabalho aqui é <b>manter a posição</b> — seus concorrentes estão correndo.</span></div>';
+
+    $("blocoB").innerHTML =
+      '<span class="btag" style="background:var(--brand-050);color:var(--brand);">' + ICON.check + ' Auditoria do seu negócio</span>' +
+      '<h2>O que precisa ser feito</h2>' +
+      '<div class="sub">Checklist verificado automaticamente — como um orçamento de oficina.</div>' +
+      groups + foot;
+  }
+  function renderBlocoBMsg(msg){
+    $("blocoB").innerHTML =
+      '<h2>O que precisa ser feito</h2>' +
+      '<div class="sub">Checklist do seu negócio.</div>' +
+      '<div class="group"><div class="empty-note">' + esc(msg) + '</div></div>';
+  }
+
+  // ===================== BLOCO C (oferta) =====================
+  function renderBlocoC(diag){
+    const incl = [
+      "Otimização completa do seu perfil no Google",
+      "Preparação técnica do seu site pras IAs",
+      "Conteúdo no formato que as IAs citam",
+      "Gestão das suas avaliações",
+      "Relatório mensal de evolução",
+    ];
+    const msg = "Vi meu plano de trabalho do Radar (" + (diag.nome || "") + ") e quero começar";
+    const wa = "https://wa.me/5511976944026?text=" + encodeURIComponent(msg);
+    return '<div class="block"><div class="offer">' +
+      '<h2>Nós resolvemos tudo isso pra você</h2>' +
+      '<ul class="incl">' + incl.map(i => '<li>' + ICON.check + ' ' + i + '</li>').join("") + '</ul>' +
+      '<div class="price"><span class="v">R$99</span><span class="per">/mês · sem fidelidade</span></div>' +
+      '<div class="anchor">ou <b>R$599 por 6 meses</b> com Kit NFC de brinde</div>' +
+      '<a class="cta" id="ctaWa" href="' + wa + '" target="_blank" rel="noopener">' + ICON.wa + ' Quero que resolvam pra mim</a>' +
+      '<div class="undercta">Primeiros ajustes em 7 dias · cancele quando quiser</div>' +
+    '</div></div>';
+  }
+
+  // ===================== fluxo =====================
+  async function load(){
+    let diag;
+    try {
+      const r = await fetch("/api/radar?code=" + encodeURIComponent(CODE));
+      if (!r.ok) throw new Error("not found");
+      diag = await r.json();
+      if (!diag || !diag.code) throw new Error("empty");
+    } catch {
+      // Code inexistente/expirado/inválido → volta pro /radar (regra do funil).
+      location.replace("/radar");
+      return;
+    }
+
+    // Monta Bloco A + C na hora (dados do diagnóstico já em mãos).
+    $("page").innerHTML =
+      renderBlocoA(diag) +
+      '<div class="block audit" id="blocoB"><h2>O que precisa ser feito</h2><div class="sub">Checklist do seu negócio.</div>' +
+        '<div class="audit-loading"><span class="sp"></span> Verificando seu perfil no Google e seu site…</div></div>' +
+      renderBlocoC(diag);
+    $("boot").style.display = "none";
+    $("page").style.display = "";
+    $("pagefoot").style.display = "";
+    window.scrollTo({ top: 0 });
+
+    // CTA → evento GA4 (deixa a navegação seguir; target _blank).
+    const cta = $("ctaWa");
+    if (cta) cta.addEventListener("click", () => {
+      const p = { origem: ORIGEM };
+      if (typeof lastPend === "number") p.pendencias = lastPend;
+      if (window.gtag) gtag("event", "plano_cta_click", p);
+    });
+
+    // Auditoria ao vivo (Bloco B).
+    if (diag.place_id) {
+      try {
+        const url = "/api/audit?place_id=" + encodeURIComponent(diag.place_id) +
+          (diag.site ? "&site=" + encodeURIComponent(diag.site) : "");
+        const a = await fetch(url);
+        if (a.ok) {
+          const audit = await a.json();
+          renderBlocoB(audit);
+          fillBlocoAChips(audit.business);
+          lastPend = typeof audit.pendencias === "number" ? audit.pendencias : null;
+        } else {
+          renderBlocoBMsg("Não foi possível auditar seu negócio agora. Fale com a gente pelo WhatsApp abaixo — a gente roda a auditoria manualmente.");
+        }
+      } catch {
+        renderBlocoBMsg("Não foi possível auditar seu negócio agora. Fale com a gente pelo WhatsApp abaixo — a gente roda a auditoria manualmente.");
+      }
+    } else {
+      renderBlocoBMsg("Diagnóstico sem vínculo com o Google — refaça pelo /radar escolhendo seu negócio na lista pra liberar a auditoria.");
+    }
+
+    firePlanoView(lastPend);
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>
