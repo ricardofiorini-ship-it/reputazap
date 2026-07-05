@@ -5538,7 +5538,7 @@ function pertoLensInfo(lensData) {
   return { rank: lens.rank, total: lens.total, inResults: !!lens.inResults }
 }
 
-function VisibilityLenses({ data, loading, isMobile, googleUrl, category }) {
+function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGuest, signupUrl }) {
   const [tab, setTab] = React.useState(0)
   const [showInfo, setShowInfo] = React.useState(false)
   const lenses = (data && data.lenses) || []
@@ -5617,12 +5617,15 @@ function VisibilityLenses({ data, loading, isMobile, googleUrl, category }) {
               )}
               {(active.top || []).map((c, i) => {
                 const meFirst = c.isMe && c.pos === 1
+                // Convidado (sem cadastro): nome do concorrente borrado — força o cadastro.
+                const blurName = isGuest && !c.isMe
                 return (
                   <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'8px', borderRadius: 8, marginBottom: 2,
                     background: c.isMe ? T.primarySoft : 'transparent' }}>
                     <span style={{ width: 24, flexShrink: 0, textAlign:'center', fontSize: 12, fontWeight: 700,
                       ...(meFirst ? { background: T.success, color:'#fff', borderRadius: 6, padding:'2px 0' } : { color: T.textDim }) }}>{c.pos}º</span>
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: c.isMe ? 700 : 500, color: c.isMe ? T.primaryDark : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: c.isMe ? 700 : 500, color: c.isMe ? T.primaryDark : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
+                      ...(blurName && { filter:'blur(5px)', userSelect:'none', pointerEvents:'none' }) }}>
                       {c.isMe ? `${c.name || 'Você'} (você)` : (c.name || 'Concorrente')}
                     </span>
                     <span style={{ fontSize: 12, color: T.textMuted, flexShrink: 0, display:'inline-flex', alignItems:'center', gap: 2 }}>
@@ -5631,6 +5634,24 @@ function VisibilityLenses({ data, loading, isMobile, googleUrl, category }) {
                   </div>
                 )
               })}
+
+              {/* Aviso convidado: nomes borrados → cadastro pra revelar. */}
+              {isGuest && (active.top || []).some(c => !c.isMe) && (
+                <div style={{ marginTop: 12, display:'flex', alignItems:'center', gap: 12, flexWrap:'wrap',
+                  background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 12, padding:'12px 14px' }}>
+                  <Lock size={18} color={T.primary} style={{ flexShrink: 0 }}/>
+                  <div style={{ flex:'1 1 180px', minWidth: 0, fontSize: 13, color: T.textMid, lineHeight: 1.45 }}>
+                    <strong style={{ color: T.text }}>Quem são seus concorrentes?</strong> Crie sua conta grátis pra ver os nomes de quem aparece na sua frente.
+                  </div>
+                  <a href={signupUrl || '/ativar?from=web'}
+                    onClick={() => { try { window.gtag && window.gtag('event', 'guest_ranking_unlock_click') } catch {} }}
+                    style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6, flexShrink: 0,
+                      background: T.primary, color:'#fff', fontSize: 13.5, fontWeight: 700, textDecoration:'none',
+                      borderRadius: 10, padding:'10px 16px' }}>
+                    Criar conta grátis <ChevronRight size={16}/>
+                  </a>
+                </div>
+              )}
             </div>
           )}
         </>
@@ -6491,6 +6512,8 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             isMobile={isMobile}
             googleUrl={googleProfileUrl}
             category={lensCategory}
+            isGuest={isGuest}
+            signupUrl={guestSignupUrl}
           />
           {!demoMode && (
           <div style={{ marginTop: 10 }}>
