@@ -24,6 +24,7 @@
     { "source": "/sobre.html", "destination": "/sobre", "permanent": true },
     { "source": "/ranking.html", "destination": "/ranking", "permanent": true },
     { "source": "/radar.html", "destination": "/radar", "permanent": true },
+    { "source": "/radar-plano.html", "destination": "/radar/plano", "permanent": true },
     { "source": "/radar-land.html", "destination": "/radar-land", "permanent": true }
   ],
   "rewrites": [
@@ -44,6 +45,7 @@
     { "source": "/sobre", "destination": "/sobre.html" },
     { "source": "/ranking", "destination": "/ranking.html" },
     { "source": "/radar", "destination": "/radar.html" },
+    { "source": "/radar/plano", "destination": "/radar-plano.html" },
     { "source": "/radar-land", "destination": "/radar-land.html" },
     { "source": "/r/:code", "destination": "/api/r/:code" },
     { "source": "/artigos", "destination": "/artigos/index.html" },

@@ -17,8 +17,48 @@ import {
   computeScore,
   buildDiagnostico,
 } from "./_lib/radar/score.js";
-import { saveDiagnostic } from "./_lib/radar/cache.js";
+import { saveDiagnostic, getDiagnostic } from "./_lib/radar/cache.js";
 import { lookupCep } from "./_lib/radar/cep.js";
+import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
+import { detectFromName, typeToTerm } from "./_lib/competitors.js";
+
+// Tipos genéricos do Google que não servem como "categoria" de busca.
+const GENERIC_TYPES = new Set([
+  "point_of_interest", "establishment", "premise", "geocode", "political", "store_storage",
+]);
+
+// Com o place_id do fluxo "ache seu negócio no Google", puxa do Places o que o
+// motor de IA precisa (nome, categoria em pt-BR, cidade) + o site (pra auditoria).
+// Assim o formulário do /radar vira 1 passo só e o dado é o REAL do Google.
+async function resolveBusinessFromPlace(placeId) {
+  const API_KEY = process.env.PLACES_API_KEY;
+  if (!API_KEY || !placeId) return null;
+  try {
+    const url =
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
+      `&fields=name,types,website,address_components&language=pt-BR&key=${API_KEY}`;
+    const data = await (await fetchWithTimeout(url, {}, 6000)).json();
+    const r = data.result;
+    if (!r) return null;
+
+    const nome = r.name || "";
+    // Categoria: detecta pelo nome (mais específico) e cai pro tipo do Google.
+    const specific = (r.types || []).find((t) => !GENERIC_TYPES.has(t)) || null;
+    const categoria = detectFromName(nome) || typeToTerm(specific) || "";
+
+    // Cidade + UF a partir dos address_components (mais confiável que o texto).
+    const comps = r.address_components || [];
+    const get = (type) => comps.find((c) => (c.types || []).includes(type));
+    const city = get("administrative_area_level_2") || get("locality") || get("administrative_area_level_1");
+    const uf = get("administrative_area_level_1");
+    const cidade = [city?.long_name, uf?.short_name].filter(Boolean).join(", ");
+
+    return { nome, categoria, cidade, site: (r.website || "").trim() || null };
+  } catch (e) {
+    console.warn("[radar] resolveBusinessFromPlace falhou:", e.message);
+    return null;
+  }
+}
 
 // ---- Rate limit simples por IP/hora (best-effort; instância quente da Vercel) ----
 const RATE_LIMIT = 5;
@@ -47,6 +87,31 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(204).end();
+
+  // GET ?code={id} — a /radar/plano lê o diagnóstico salvo pelo code.
+  if (req.method === "GET") {
+    const code = (req.query.code || "").toString().trim();
+    if (!code) return res.status(400).json({ error: "code obrigatório" });
+    const d = await getDiagnostic(code);
+    if (!d) return res.status(404).json({ error: "Diagnóstico não encontrado" });
+    const detalhe = d.detalhe || {};
+    return res.json({
+      code: d.id,
+      nome: d.nome,
+      categoria: d.categoria,
+      cidade: d.cidade,
+      score: d.score,
+      mencoes: d.mencoes,
+      total: d.total,
+      concorrentes: d.concorrentes || [],
+      porMotor: detalhe.porMotor || {},
+      local: detalhe.local || { cidade: d.cidade },
+      place_id: d.place_id || null,
+      site: d.site || null,
+      created_at: d.created_at,
+    });
+  }
+
   if (req.method !== "POST") return res.status(405).json({ error: "Método não permitido" });
 
   // body (Vercel já faz parse de JSON; fallback defensivo se vier string)
@@ -56,10 +121,25 @@ export default async function handler(req, res) {
   }
   if (!body || typeof body !== "object") body = {};
 
-  const nome = (body.nome || "").toString().trim();
-  const categoria = (body.categoria || "").toString().trim();
+  let nome = (body.nome || "").toString().trim();
+  let categoria = (body.categoria || "").toString().trim();
   let cidade = (body.cidade || "").toString().trim();
   const cep = (body.cep || "").toString().trim();
+  const placeId = (body.place_id || "").toString().trim();
+
+  // Fluxo "ache seu negócio no Google": veio place_id → puxa nome/categoria/
+  // cidade/site do Places (dado real) e preenche o que faltar.
+  let site = null;
+  if (placeId) {
+    const biz = await resolveBusinessFromPlace(placeId);
+    if (biz) {
+      nome = nome || biz.nome;
+      categoria = categoria || biz.categoria;
+      if (!cidade) cidade = biz.cidade;
+      site = biz.site;
+    }
+  }
+
   if (!nome || !categoria) {
     return res.status(400).json({ error: "Informe nome e categoria." });
   }
@@ -156,13 +236,17 @@ export default async function handler(req, res) {
 
     const diagnostico = buildDiagnostico({ nome, score, mencoes, total, concorrentes, motoresAtivos });
 
-    // Histórico (best-effort).
-    await saveDiagnostic({
+    // Histórico + gera o code do link do plano (best-effort). place_id/site
+    // deixam a /radar/plano rodar a auditoria ao vivo pelo code.
+    const code = await saveDiagnostic({
       nome, categoria, cidade, score, mencoes, total, concorrentes,
       detalhe: { local: { cidade, bairro }, produtos, porMotor },
+      place_id: placeId || null, site,
     });
 
-    return res.json({ score, mencoes, total, concorrentes, diagnostico, porMotor, local: { cidade, bairro } });
+    // `code` pode vir null (banco off ou colunas place_id/site ainda não
+    // criadas) — nesse caso o /radar cai no relatório inline (fallback).
+    return res.json({ code, score, mencoes, total, concorrentes, diagnostico, porMotor, local: { cidade, bairro }, place_id: placeId || null, site });
   } catch (err) {
     console.error("[radar] erro:", err);
     return res.status(500).json({ error: err.message || "Erro ao gerar o diagnóstico de IA." });

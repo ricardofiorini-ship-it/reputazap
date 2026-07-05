@@ -46,7 +46,7 @@ const TYPE_TO_TERM = {
   gas_station: "posto de gasolina", laundry: "lavanderia", bicycle: "loja de bicicletas",
   clothing: "loja de roupas", optician: "ótica", hardware: "loja de ferragens"
 };
-function typeToTerm(rawType) {
+export function typeToTerm(rawType) {
   if (!rawType) return "";
   return TYPE_TO_TERM[rawType] || rawType.replace(/_/g, " ");
 }
