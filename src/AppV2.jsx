@@ -3753,20 +3753,143 @@ function HeroBlock({ d, position, demoMode, isMobile, onScoreDetails, onSeeCompe
 }
 
 // ─────────────────────────────────────────────────────────────
-// Bloco 2 — SLOT reservado do Widget Radar IA (spec seção 3, Bloco 2).
-// Layout FUTURO: card com score de visibilidade em IA — mesma anatomia do Score
-// StarTouch (anel SVG + número Display + link). Hoje desligado pela feature flag
-// → renderiza null. Ao ativar: disparar GA4 'radar_widget_impression'.
+// Bloco 2 — Widget Radar IA (RADAR-WIDGET-SPEC + Gatilho 1 do FUNIL-IMPACTO).
+// Estado 0 (convite): nunca rodou o Radar → CTA pra /radar (com place_id pré-
+// selecionado). Estado 1 (vendedor): já rodou → anel de score REAL + concorrentes
+// borrados (nomes reais) + "Desbloquear" → /radar/plano?code. Dados vêm do último
+// diagnóstico salvo (GET /api/radar?place_id — leitura barata, sem custo de IA).
+// Honestidade (spec 4): score alto vira "mantenha sua posição", não pânico.
 // ─────────────────────────────────────────────────────────────
-const RADAR_WIDGET_ENABLED = false
+const RADAR_WIDGET_ENABLED = true
 function RadarWidgetSlot({ d, isMobile }) {
-  // GA4 radar_widget_impression — cabeado; dispara 1x quando a flag for ligada.
+  const placeId = d?.biz?.placeId || d?.businessInfo?.placeId || null
+  const nome = d?.biz?.name || d?.businessInfo?.name || ''
+  const categoria = d?.businessInfo?.category || ''
+
+  const [state, setState] = React.useState('loading') // loading | invite | seller
+  const [diag, setDiag] = React.useState(null)
+  const [pend, setPend] = React.useState(null)        // nº de pendências (auditoria)
+
+  // Busca o último diagnóstico do negócio (barato). Sem diagnóstico → convite.
   React.useEffect(() => {
-    if (!RADAR_WIDGET_ENABLED) return
-    try { if (typeof window !== 'undefined' && window.gtag) window.gtag('event', 'radar_widget_impression') } catch {}
-  }, [])
-  if (!RADAR_WIDGET_ENABLED) return null
-  return null
+    if (!RADAR_WIDGET_ENABLED || !placeId) return
+    let alive = true
+    ;(async () => {
+      try {
+        const r = await fetch(`/api/radar?place_id=${encodeURIComponent(placeId)}`)
+        if (!alive) return
+        if (!r.ok) { setState('invite'); return }
+        const j = await r.json()
+        setDiag(j); setState('seller')
+        // Sub-linha "{N} pendências" — opcional, só aparece se a auditoria vier.
+        fetch(`/api/audit?place_id=${encodeURIComponent(placeId)}${j.site ? `&site=${encodeURIComponent(j.site)}` : ''}`)
+          .then(a => a.ok ? a.json() : null)
+          .then(a => { if (alive && a && typeof a.pendencias === 'number') setPend(a.pendencias) })
+          .catch(() => {})
+      } catch { if (alive) setState('invite') }
+    })()
+    return () => { alive = false }
+  }, [placeId])
+
+  // GA4 impression quando o estado resolve (0 = convite, 1 = vendedor).
+  React.useEffect(() => {
+    if (!RADAR_WIDGET_ENABLED || state === 'loading') return
+    try { if (typeof window !== 'undefined' && window.gtag) window.gtag('event', 'radar_widget_impression', { state: state === 'seller' ? 1 : 0 }) } catch {}
+  }, [state])
+
+  const track = (evt, extra) => { try { if (window.gtag) window.gtag('event', evt, extra || {}) } catch {} }
+
+  if (!RADAR_WIDGET_ENABLED || !placeId) return null
+  if (state === 'loading') return null // sem flash: aparece já resolvido
+
+  const Header = (
+    <div style={{ display:'flex', alignItems:'center', gap: 9, marginBottom: 14 }}>
+      <div style={{ width: 34, height: 34, borderRadius: 9, background: T.primarySoft, display:'grid', placeItems:'center', flexShrink: 0 }}>
+        <Radar size={19} color={T.primary}/>
+      </div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: T.text, flex: 1 }}>Visibilidade em IAs</div>
+      <span style={{ fontSize: 10, fontWeight: 800, letterSpacing:'0.06em', color: T.primary, background: T.primarySoft, padding:'3px 8px', borderRadius: 999 }}>NOVO</span>
+    </div>
+  )
+
+  // ── Estado 0 — convite (nunca rodou) ──
+  if (state === 'invite') {
+    const href = `/radar?place_id=${encodeURIComponent(placeId)}&nome=${encodeURIComponent(nome)}&origem=widget`
+    return (
+      <Section>
+        <Card>
+          {Header}
+          <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, marginBottom: 16 }}>
+            Descubra se o ChatGPT e o Gemini recomendam o seu negócio quando alguém pergunta pela sua categoria.
+          </p>
+          <a href={href} onClick={() => track('radar_widget_click', { state: 0, destino: 'radar' })}
+            style={{ display:'inline-flex', alignItems:'center', gap: 6, fontSize: 14, fontWeight: 700, color: T.primary, background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 10, padding:'11px 16px', textDecoration:'none' }}>
+            Fazer diagnóstico grátis <ChevronRight size={16}/>
+          </a>
+        </Card>
+      </Section>
+    )
+  }
+
+  // ── Estado 1 — vendedor (já rodou) ──
+  const score = diag?.score || 0
+  const comps = Array.isArray(diag?.concorrentes) ? diag.concorrentes.filter(Boolean).slice(0, 3) : []
+  const strong = score >= 75 || comps.length === 0   // aparece bem → mantém, não pânico
+  const planoHref = `/radar/plano?code=${encodeURIComponent(diag.code)}&origem=widget`
+  const catTxt = categoria ? ` na categoria ${categoria}` : ''
+
+  return (
+    <Section>
+      <Card>
+        {Header}
+        <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'auto 1fr', gap: isMobile ? 14 : 18, alignItems:'center' }}>
+          {/* Coluna A — anel de score real */}
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap: 6, ...(isMobile ? {} : { borderRight:`1px solid ${T.border}`, paddingRight: 18 }) }}>
+            <ScoreRing score={score} size={isMobile ? 92 : 100}/>
+            <div style={{ fontSize: 12, fontWeight: 600, color: T.textMuted, textAlign:'center' }}>Score de visibilidade em IA</div>
+          </div>
+          {/* Coluna B — revelação */}
+          <div>
+            {strong ? (
+              <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55 }}>
+                Boa notícia: as IAs já citam o seu negócio nas respostas{catTxt}. O trabalho agora é <strong style={{ color: T.text }}>manter a posição</strong> — seus concorrentes estão correndo.
+              </p>
+            ) : (
+              <>
+                <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, marginBottom: 10 }}>
+                  O ChatGPT recomenda <strong style={{ color: T.text }}>{comps.length} concorrente{comps.length > 1 ? 's' : ''}</strong> seu{comps.length > 1 ? 's' : ''}{catTxt}:
+                </p>
+                <div style={{ display:'flex', flexDirection:'column', gap: 6 }}>
+                  {comps.map((c, i) => (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap: 8 }}>
+                      <Lock size={13} color={T.textMuted} style={{ flexShrink: 0 }}/>
+                      <span aria-hidden="true" style={{ fontSize: 13.5, fontWeight: 600, color: T.text, filter:'blur(6px)', userSelect:'none' }}>{c}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Rodapé — CTA + sub-linha de pendências */}
+        <div style={{ marginTop: 16 }}>
+          <a href={planoHref} onClick={() => track('radar_unlock_click', { state: 1, pendencias: pend })}
+            style={{ display:'flex', alignItems:'center', justifyContent:'center', gap: 7, width:'100%', fontSize: 14.5, fontWeight: 700, color:'#fff', background: T.primary, border:'none', borderRadius: 10, padding:'13px 16px', textDecoration:'none', boxSizing:'border-box' }}>
+            {strong ? 'Ver diagnóstico completo' : 'Desbloquear diagnóstico completo'} <ChevronRight size={16}/>
+          </a>
+          {pend != null && pend > 0 && (
+            <div style={{ marginTop: 9, fontSize: 12.5, fontWeight: 600, color: T.accent, textAlign:'center' }}>
+              {pend} pendência{pend > 1 ? 's' : ''} encontrada{pend > 1 ? 's' : ''} no seu negócio
+            </div>
+          )}
+          <div style={{ marginTop: 9, fontSize: 12, color: T.textMuted, textAlign:'center' }}>
+            Diagnóstico completo + monitoramento mensal
+          </div>
+        </div>
+      </Card>
+    </Section>
+  )
 }
 
 // Sugestões REAIS da semana — calculadas do estado competitivo do próprio

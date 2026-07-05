@@ -94,6 +94,27 @@ export async function saveDiagnostic({ nome, categoria, cidade, score, mencoes, 
   }
 }
 
+// Lê o diagnóstico MAIS RECENTE de um negócio (place_id). Alimenta o widget do
+// painel: leitura barata (sem custo de IA). Retorna a linha ou null (nunca
+// rodou / sem banco). Nunca lança.
+export async function getLatestDiagnosticByPlace(placeId) {
+  const supabase = getSupabase();
+  if (!supabase || !placeId) return null;
+  try {
+    const { data, error } = await supabase
+      .from("radar_diagnostics")
+      .select("id, nome, categoria, cidade, score, mencoes, total, concorrentes, detalhe, place_id, site, created_at")
+      .eq("place_id", placeId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 // Lê um diagnóstico salvo pelo id (code do link do plano). Retorna a linha
 // completa ou null (id inexistente, inválido, ou sem banco). Nunca lança.
 export async function getDiagnostic(id) {
