@@ -32,6 +32,8 @@ function Root() {
   const guestPlaceId = params?.get('place_id') || params?.get('place') || null
   const guestKeyword = params?.get('keyword') || ''
   const guestCep = params?.get('cep') || ''
+  // Termos escolhidos no formulário (grade por termo). Ex: ?terms=restaurante,pizzaria
+  const guestTerms = (params?.get('terms') || '').split(',').map(t => t.trim()).filter(Boolean).slice(0, 3)
 
   // ?next= sinaliza ação que EXIGE conta (ex: assinar Pro). Mostra Login (que
   // tem link "criar conta") e, após autenticar, manda pro destino. Só paths
@@ -48,7 +50,7 @@ function Root() {
       onLogout={handleLogout}
       demoMode={false}
       guestMode={true}
-      guestContext={{ placeId: guestPlaceId, keyword: guestKeyword, cep: guestCep }}
+      guestContext={{ placeId: guestPlaceId, keyword: guestKeyword, cep: guestCep, terms: guestTerms }}
     />
   }
   return <AppV2 user={user} onLogout={handleLogout} demoMode={isDemo} />

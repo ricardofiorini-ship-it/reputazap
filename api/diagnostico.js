@@ -78,6 +78,19 @@ export default async function handler(req, res) {
   const radius = Number.isFinite(rIn) ? Math.min(Math.max(rIn, 500), 3000) : 3000;
   if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
 
+  // Sugestão de termos (chips do formulário) a partir da categoria/nome do Google.
+  if (req.query.suggest) {
+    try {
+      const url =
+        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
+        `&fields=name,types&language=pt-BR&key=${process.env.PLACES_API_KEY}`;
+      const det = (await (await fetchWithTimeout(url, {}, 6000)).json()).result;
+      return res.json({ ok: true, name: det?.name || null, suggestions: suggestTerms(det?.name, det?.types) });
+    } catch (err) {
+      return res.json({ ok: true, suggestions: [] });
+    }
+  }
+
   // Modo GRADE (Passo 2). LAB: sem flag nesta branch (preview é SSO-protegido e
   // produção não tem caller). Passo 4 adiciona o gate RANKING_GRID_ENABLED.
   if (req.query.grid) {

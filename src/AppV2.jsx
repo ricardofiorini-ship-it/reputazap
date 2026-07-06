@@ -5111,6 +5111,11 @@ function GuestSearch({ isMobile }) {
   const [results, setResults] = React.useState(null)
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
+  // Passo 2 (grade): após escolher o negócio, o dono seleciona os termos.
+  const [selectedBiz, setSelectedBiz] = React.useState(null)
+  const [suggestions, setSuggestions] = React.useState([])
+  const [selectedTerms, setSelectedTerms] = React.useState([])
+  const [addInput, setAddInput] = React.useState('')
 
   // Analytics: abriu a busca sem cadastro (topo do funil convidado)
   React.useEffect(() => {
@@ -5140,11 +5145,32 @@ function GuestSearch({ isMobile }) {
     } finally { setLoading(false) }
   }
 
-  function pick(placeId) {
-    const kw = term.trim()
+  // Escolheu o negócio → carrega os termos sugeridos (não navega ainda).
+  async function pick(biz) {
+    setSelectedBiz(biz)
+    let sugg = []
+    try {
+      const r = await fetch('/api/diagnostico?suggest=1&place_id=' + encodeURIComponent(biz.place_id))
+      const d = await r.json(); sugg = d.suggestions || []
+    } catch {}
+    const typed = term.trim()
+    const merged = [...new Set([typed, ...sugg].filter(Boolean))]
+    setSuggestions(merged)
+    setSelectedTerms(merged.slice(0, 1))   // 1 termo padrão (grátis)
+  }
+  function toggleTerm(t) {
+    setSelectedTerms(prev => prev.includes(t) ? prev.filter(x => x !== t) : (prev.length >= 3 ? prev : [...prev, t]))
+  }
+  function addTerm() {
+    const t = addInput.trim(); if (!t) return
+    setSuggestions(prev => prev.includes(t) ? prev : [...prev, t])
+    setSelectedTerms(prev => (prev.includes(t) || prev.length >= 3) ? prev : [...prev, t])
+    setAddInput('')
+  }
+  function goToPanel() {
     const cepDigits = (loc || '').replace(/\D/g, '')
-    let url = `/app?place_id=${encodeURIComponent(placeId)}`
-    if (kw) url += `&keyword=${encodeURIComponent(kw)}`
+    let url = `/app?place_id=${encodeURIComponent(selectedBiz.place_id)}`
+    if (selectedTerms.length) url += `&terms=${encodeURIComponent(selectedTerms.join(','))}`
     if (cepDigits.length === 8) url += `&cep=${cepDigits}`
     window.location.href = url
   }
@@ -5255,7 +5281,37 @@ function GuestSearch({ isMobile }) {
 
           {error && <p style={{ fontSize:13, color:T.red, marginTop:12 }}>{error}</p>}
 
-          {results && (
+          {/* Passo de TERMOS (após escolher o negócio) */}
+          {selectedBiz && (
+            <div style={{ marginTop:18 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, background:T.blueSoft, border:'1px solid #C6DAFC', borderRadius:11, padding:'11px 14px', marginBottom:16 }}>
+                <span style={{ fontSize:14.5, fontWeight:700, color:T.text, flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{selectedBiz.name}</span>
+                <button type="button" onClick={()=>{ setSelectedBiz(null); setSelectedTerms([]) }} style={{ background:'none', border:'none', color:T.blue, fontWeight:600, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Trocar</button>
+              </div>
+              <label style={labelStyle}>Como seus clientes te buscam no Google? <span style={{ fontWeight:400, color:T.textDim }}>(até 3)</span></label>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:8, margin:'8px 0 10px' }}>
+                {suggestions.map(t => {
+                  const on = selectedTerms.includes(t)
+                  return <button key={t} type="button" onClick={()=>toggleTerm(t)} style={{
+                    border:`1.5px solid ${on?T.blue:T.border}`, background:on?T.blue:'#fff', color:on?'#fff':T.textMid,
+                    borderRadius:999, padding:'8px 14px', fontSize:13.5, fontWeight:600, cursor:'pointer', fontFamily:'inherit'
+                  }}>{t}</button>
+                })}
+              </div>
+              <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+                <input style={{ ...inputStyle, flex:1 }} value={addInput} onChange={e=>setAddInput(e.target.value)}
+                  onKeyDown={e=>{ if(e.key==='Enter'){ e.preventDefault(); addTerm() } }} placeholder="Adicionar termo (ex: rodízio, delivery)"/>
+                <button type="button" onClick={addTerm} style={{ background:'#fff', border:`1.5px solid ${T.border}`, borderRadius:10, padding:'0 16px', fontSize:20, fontWeight:700, color:T.blue, cursor:'pointer' }}>+</button>
+              </div>
+              <button type="button" onClick={goToPanel} disabled={!selectedTerms.length} style={{
+                width:'100%', padding:'13px', background: selectedTerms.length?T.blue:T.textDim, color:'#fff',
+                border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
+                cursor: selectedTerms.length?'pointer':'not-allowed'
+              }}>Ver minha presença →</button>
+            </div>
+          )}
+
+          {!selectedBiz && results && (
             <div style={{ marginTop:18 }}>
               {results.length === 0 ? (
                 <div style={{ background:'#FEF7E0', border:'1.5px solid #FDE293', borderRadius:12, padding:'16px 18px' }}>
@@ -5279,7 +5335,7 @@ function GuestSearch({ isMobile }) {
                   <p style={{ fontSize:13, color:T.blue, fontWeight:600, margin:'0 0 8px' }}>Toque no seu negócio</p>
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     {results.map(b => (
-                      <button key={b.place_id} type="button" onClick={()=>pick(b.place_id)} style={{
+                      <button key={b.place_id} type="button" onClick={()=>pick(b)} style={{
                         textAlign:'left', background:'#fff', border:`1.5px solid ${T.border}`, borderRadius:11,
                         padding:'12px 14px', cursor:'pointer', display:'flex', flexDirection:'column', gap:3
                       }}>
@@ -5565,9 +5621,10 @@ function pertoLensInfo(lensData) {
 // Pra abrir geral: virar a chave RANKING_GRID_ENABLED + trocar a fonte pro
 // endpoint público. Retorna null em qualquer erro (painel não quebra).
 // ─────────────────────────────────────────────────────────────
-function RankingGrid({ placeId, isMobile }) {
+function RankingGrid({ placeId, terms, isMobile }) {
   const [state, setState] = React.useState('loading')  // loading | ok | off
   const [data, setData] = React.useState(null)
+  const termsQ = (Array.isArray(terms) ? terms : []).filter(Boolean).slice(0, 3).join(',')
 
   React.useEffect(() => {
     if (!placeId) return
@@ -5576,7 +5633,7 @@ function RankingGrid({ placeId, isMobile }) {
       try {
         // LAB: endpoint público (funciona no modo convidado, sem login). Passo 4
         // troca pela fonte definitiva + flag.
-        const r = await fetch('/api/diagnostico?grid=1&place_id=' + encodeURIComponent(placeId))
+        const r = await fetch('/api/diagnostico?grid=1&place_id=' + encodeURIComponent(placeId) + (termsQ ? '&terms=' + encodeURIComponent(termsQ) : ''))
         if (!alive) return
         if (!r.ok) { setState('off'); return }
         const d = await r.json()
@@ -5585,7 +5642,7 @@ function RankingGrid({ placeId, isMobile }) {
       } catch { if (alive) setState('off') }
     })()
     return () => { alive = false }
-  }, [placeId])
+  }, [placeId, termsQ])
 
   if (state === 'loading') {
     return <Card><div className="st-skeleton" style={{ height: 150 }}/></Card>
@@ -6621,7 +6678,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
               modo convidado) pra o Ricardo ver no preview sem login. Passo 4 re-trava. */}
           {(d.biz?.placeId || guestContext?.placeId) && (
             <div style={{ marginBottom: 14 }}>
-              <RankingGrid placeId={d.biz?.placeId || guestContext?.placeId} isMobile={isMobile} />
+              <RankingGrid placeId={d.biz?.placeId || guestContext?.placeId} terms={guestContext?.terms} isMobile={isMobile} />
             </div>
           )}
           <VisibilityLenses
