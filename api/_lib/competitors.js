@@ -568,3 +568,88 @@ export function applyNameLocking(top, paid) {
     };
   });
 }
+
+// ============================================================
+// RANKING POR AMOSTRAGEM EM GRADE (Passo 0 — spike de validação)
+// ============================================================
+// Mede a posição REAL do place_id em 5 pontos ao redor do negócio (centro + 4
+// cardeais a ~1km), por termo de busca. O Google ranqueia por distância de QUEM
+// busca — 1 ponto só (centroide do CEP) não representa isso. A grade aproxima a
+// "visão média da região".
+// Regras: coords vêm do place_id (não do CEP); ordem RAW do Google pro termo
+// naquele ponto (sem filtro de categoria — é o que o cliente vê); NUNCA insere o
+// negócio artificialmente (ausência é registrada como null).
+// ============================================================
+
+// Desloca um ponto lat/lng por N metros ao norte/leste (negativo = sul/oeste).
+function offsetMeters(lat, lng, northM, eastM) {
+  const dLat = northM / 111320;
+  const dLng = eastM / (111320 * Math.cos((lat * Math.PI) / 180));
+  return { lat: lat + dLat, lng: lng + dLng };
+}
+function gridPoints(lat, lng, spacingM) {
+  return [
+    { dir: "centro", lat, lng },
+    { dir: "N", ...offsetMeters(lat, lng, spacingM, 0) },
+    { dir: "S", ...offsetMeters(lat, lng, -spacingM, 0) },
+    { dir: "L", ...offsetMeters(lat, lng, 0, spacingM) },
+    { dir: "O", ...offsetMeters(lat, lng, 0, -spacingM) },
+  ];
+}
+
+/**
+ * Roda o ranking por grade pra um negócio.
+ * @param {string} placeId
+ * @param {string[]} terms          1–3 termos de busca
+ * @param {number} [spacingM=1000]  distância dos 4 pontos cardeais (m)
+ * @param {number} [radius=1000]    raio (bias) do Text Search em cada ponto (m).
+ *   VALIDADO no Passo 0: raio ≈ espaçamento é o ponto ótimo. Raio >=2000 em área
+ *   densa faz o negócio sumir (teto de 20 do Google puxa concorrentes prominentes);
+ *   raio < espaçamento faz os pontos cardeais "não alcançarem" o negócio.
+ * @returns {Promise<Object>} { placeId, name, center, spacingM, radius, terms:[
+ *   { term, points:[{dir,rank|null,total,top[]}], avg, coverage, competitors[] } ] }
+ */
+export async function fetchGridRanking({ placeId, terms, spacingM = 1000, radius = 1000 }) {
+  if (!placeId) throw new Error("placeId obrigatório");
+  if (!API_KEY) throw new Error("PLACES_API_KEY ausente no ambiente");
+  const termList = (Array.isArray(terms) ? terms : [terms])
+    .map((t) => (t || "").toString().trim()).filter(Boolean).slice(0, 3);
+  if (!termList.length) throw new Error("informe ao menos 1 termo");
+
+  // Coords exatas + nome do negócio (substitui o centroide do CEP).
+  const detUrl =
+    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
+    `&fields=name,geometry,types&language=pt-BR&key=${API_KEY}`;
+  const det = (await (await fetchWithTimeout(detUrl, {}, 6000)).json()).result;
+  if (!det?.geometry?.location) throw new Error("negócio sem coordenadas no Google");
+  const { lat, lng } = det.geometry.location;
+  const points = gridPoints(lat, lng, spacingM);
+
+  // Cada termo: os 5 pontos em paralelo (Text Search com bias no ponto).
+  const termsOut = await Promise.all(termList.map(async (term) => {
+    const pts = await Promise.all(points.map(async (pt) => {
+      let ordered = [];
+      try { ordered = await runTextSearch(term, pt.lat, pt.lng, radius); } catch { ordered = []; }
+      const idx = ordered.findIndex((p) => p.place_id === placeId);
+      return {
+        dir: pt.dir,
+        rank: idx >= 0 ? idx + 1 : null,   // null = ausente (NUNCA inserido)
+        total: ordered.length,
+        top: ordered.slice(0, 3).map((p) => p.name),
+      };
+    }));
+    const present = pts.filter((p) => p.rank != null).map((p) => p.rank);
+    const avg = present.length ? Math.round((present.reduce((a, b) => a + b, 0) / present.length) * 10) / 10 : null;
+    // Concorrentes agregados: mais frequentes no topo dos 5 pontos (exceto o próprio).
+    const freq = new Map();
+    for (const p of pts) for (const nm of (p.top || [])) {
+      const k = nm.trim().toLowerCase(); if (!k) continue;
+      if (!freq.has(k)) freq.set(k, { name: nm.trim(), n: 0 });
+      freq.get(k).n += 1;
+    }
+    const competitors = [...freq.values()].sort((a, b) => b.n - a.n).slice(0, 5).map((x) => x.name);
+    return { term, points: pts, avg, coverage: present.length, competitors };
+  }));
+
+  return { placeId, name: det.name, center: { lat, lng }, spacingM, radius, terms: termsOut };
+}
