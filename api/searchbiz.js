@@ -27,20 +27,20 @@ function tokenize(s) {
   return norm(s).split(/[^a-z0-9]+/).filter((t) => t.length >= 3);
 }
 
-// Score de relevancia de NOME (prioridade #1). Mede quantos tokens do nome
-// digitado aparecem no nome do candidato e penaliza palavras extras (nome mais
-// "limpo"/proximo do buscado pontua mais). Assim "Mambo" fica acima de "Chef
-// Mambo Parrilla", e "St. Marche" (que nao casa no nome) fica pra baixo — mesmo
-// que esteja mais perto do CEP. O CEP so desempata DEPOIS, entre nomes iguais.
-function nameScore(candidateName, queryName) {
+// Match de NOME: separa COBERTURA (fracao dos tokens do nome buscado que
+// casaram) de PALAVRAS EXTRAS (tokens a mais no candidato). Quem chama ordena:
+// cobertura decide o bucket ("casa com o nome?"); entre nomes que casam igual, a
+// DISTANCIA do CEP decide (proximidade); palavras extras so no desempate final.
+// Antes um score unico misturava os dois e a penalidade de nome comprido
+// sobrepujava a distancia — uma franquia "Multicoisas - Bairro" longe, com nome
+// mais curto, ganhava da unidade do bairro do usuario. Agora nao.
+function nameMatch(candidateName, queryName) {
   const qToks = tokenize(queryName);
-  if (!qToks.length) return 0;
+  if (!qToks.length) return { coverage: 0, extra: 99 };
   const cToks = new Set(tokenize(candidateName));
   let hit = 0;
   for (const t of qToks) if (cToks.has(t)) hit++;
-  const coverage = hit / qToks.length;         // fracao do nome buscado que casou
-  const extra = Math.max(0, cToks.size - hit);  // palavras a mais no candidato
-  return coverage * 100 - extra * 2;
+  return { coverage: hit / qToks.length, extra: Math.max(0, cToks.size - hit) };
 }
 
 // Geocoda um CEP em lat/lng via Geocoding API. Aceita o CEP com OU sem hifen
@@ -78,16 +78,24 @@ export default async function handler(req, res) {
   const nameQuery = (name || q || "").trim();
 
   try {
-    // 1. Text Search com NOME + TIPO (o `q` ja vem montado assim). A relevancia
-    //    do proprio Google prioriza nome/tipo — e' a base da lista de candidatos.
-    const textRes = await fetchWithTimeout(
-      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&language=pt-BR&region=br&key=${API_KEY}`,
-      {}, 8000
-    );
+    // 1. CEP → coordenadas PRIMEIRO: e' a ancora da busca (nao so um desempate).
+    //    CEP invalido/irresolvivel → origin null (busca sem ancora, best-effort).
+    let origin = null;
+    if (cepDigits.length === 8) {
+      origin = await geocodeCep(cepDigits, API_KEY);
+    }
+
+    // 2. Text Search ANCORADO no CEP (location+radius). SEM a ancora, o Google
+    //    usa o IP do SERVIDOR (Vercel) pra decidir relevancia e devolve negocios
+    //    de outra regiao — a unidade do bairro do usuario nem entrava na lista.
+    let tsUrl =
+      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&language=pt-BR&region=br&key=${API_KEY}`;
+    if (origin) tsUrl += `&location=${origin.lat},${origin.lng}&radius=25000`;
+    const textRes = await fetchWithTimeout(tsUrl, {}, 8000);
     const tData = await textRes.json();
     let raw = tData.results || [];
 
-    // 2. Trava de Brasil + remove lojas fechadas (Google mantem fechadas no indice).
+    // 3. Trava de Brasil + remove lojas fechadas (Google mantem fechadas no indice).
     raw = raw.filter((p) => inBrazil(p.geometry?.location));
     raw = raw.filter((p) => !p.business_status || p.business_status === "OPERATIONAL");
 
@@ -95,38 +103,28 @@ export default async function handler(req, res) {
       return res.json({ results: [] });
     }
 
-    // 3. CEP → coordenadas (so pra DESEMPATE por proximidade). Se o CEP for
-    //    invalido/irresolvivel, origin fica null e a lista sai so por relevancia
-    //    de nome — sem inventar um ponto errado.
-    let origin = null;
-    if (cepDigits.length === 8) {
-      origin = await geocodeCep(cepDigits, API_KEY);
-    }
-
     // 4. Com CEP valido, descarta o que esta ABSURDAMENTE longe (> 150km). Um
-    //    homonimo em outra cidade/estado (ex: "Bar Imperatriz" no Rio, 369km, pro
-    //    CEP de SP) nunca e' o negocio do usuario — ele digitou o proprio CEP.
-    //    Sem isso, um xara distante com nome identico furava a fila. So corta
-    //    quando temos o ponto do CEP (senao nao da pra medir).
+    //    homonimo em outra cidade/estado nunca e' o negocio do usuario — ele
+    //    digitou o proprio CEP. So corta quando ha ponto do CEP; se TUDO estiver
+    //    longe, mantem a lista pra nao dar "nada encontrado".
     const MAX_DIST_M = 150000;
-    let scored = raw.map((p) => ({
-      p,
-      _score: nameScore(p.name, nameQuery),
-      _dist: origin ? haversine(origin, p.geometry?.location) : null,
-    }));
+    let scored = raw.map((p) => {
+      const nm = nameMatch(p.name, nameQuery);
+      return { p, _cov: nm.coverage, _extra: nm.extra, _dist: origin ? haversine(origin, p.geometry?.location) : null };
+    });
     if (origin) {
       const near = scored.filter((s) => s._dist <= MAX_DIST_M);
-      // So corta se sobrar algum perto. Se TUDO estiver longe (ex: negocio unico
-      // distante do CEP digitado), mantem a lista pra nao dar "nada encontrado".
       if (near.length) scored = near;
     }
 
-    // 5. Ordena pela PRIORIDADE pedida: NOME (score) primeiro; entre nomes de
-    //    mesmo score, a UNIDADE mais proxima do CEP em cima (desempate). Sem CEP,
-    //    mantem a ordem de relevancia do Google dentro do mesmo score.
+    // 5. Ordena: (1) COBERTURA do nome buscado — quem casa mais vem antes (evita
+    //    que um vizinho de nome diferente ganhe). (2) Com CEP, o MAIS PERTO vence
+    //    entre nomes que casam igual (proximidade decide de fato). (3) Desempate
+    //    final: nome mais limpo. Sem CEP, cai direto pro nome limpo.
     scored.sort((a, b) =>
-      (b._score - a._score) ||
-      ((a._dist ?? Infinity) - (b._dist ?? Infinity))
+      (b._cov - a._cov) ||
+      (origin ? ((a._dist ?? Infinity) - (b._dist ?? Infinity)) : 0) ||
+      (a._extra - b._extra)
     );
 
     const limit = origin ? 8 : 20;
