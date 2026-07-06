@@ -35,6 +35,9 @@ async function getCached(placeId, term) {
       .maybeSingle();
     if (error || !data) return null;
     if (Date.now() - new Date(data.created_at).getTime() > TTL_MS) return null; // expirou
+    // Guard de formato: entradas antigas (antes da agregação) não têm `ranking`.
+    // Trata como miss → recomputa no formato novo (auto-conserta o cache velho).
+    if (!data.result || data.result.ranking === undefined) return null;
     return data.result;
   } catch {
     return null;
