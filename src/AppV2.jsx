@@ -5180,9 +5180,12 @@ function GuestSearch({ isMobile }) {
     setSelectedTerms(prev => prev.includes(t) ? prev.filter(x => x !== t) : (prev.length >= 3 ? prev : [...prev, t]))
   }
   function addTerm() {
-    const t = addInput.trim(); if (!t) return
-    setSuggestions(prev => prev.includes(t) ? prev : [...prev, t])
-    setSelectedTerms(prev => (prev.includes(t) || prev.length >= 3) ? prev : [...prev, t])
+    // Minúsculo pra casar com as sugestões (que vêm minúsculas) — evita "Padaria"
+    // duplicar a "padaria" automática. Busca no Google é case-insensitive.
+    const t = addInput.trim().toLowerCase(); if (!t) return
+    const exists = (arr) => arr.some(x => x.toLowerCase() === t)
+    setSuggestions(prev => exists(prev) ? prev : [...prev, t])
+    setSelectedTerms(prev => (exists(prev) || prev.length >= 3) ? prev : [...prev, t])
     setAddInput('')
   }
   function goToPanel() {
