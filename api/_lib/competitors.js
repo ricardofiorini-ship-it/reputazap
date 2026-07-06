@@ -44,7 +44,8 @@ const TYPE_TO_TERM = {
   car_wash: "lava-rápido", dentist: "dentista", doctor: "clínica médica",
   hospital: "hospital", physiotherapist: "fisioterapia", lodging: "hotel",
   gas_station: "posto de gasolina", laundry: "lavanderia", bicycle: "loja de bicicletas",
-  clothing: "loja de roupas", optician: "ótica", hardware: "loja de ferragens"
+  clothing: "loja de roupas", optician: "ótica", hardware: "loja de ferragens",
+  home_goods_store: "loja de utilidades", store: "loja", general_store: "loja"
 };
 export function typeToTerm(rawType) {
   if (!rawType) return "";
@@ -567,6 +568,38 @@ export function applyNameLocking(top, paid) {
       is_me: false
     };
   });
+}
+
+// Sugere 1-3 termos de busca a partir do nome + tipos do Google — semente pros
+// chips do formulário (o dono confirma / edita / adiciona o dele). Nicho pelo
+// nome (detectFromName) primeiro; depois a categoria do Google traduzida,
+// priorizando o tipo de negócio "principal" (ex: restaurante acima de bar).
+const TYPE_PRIORITY = {
+  pizza_restaurant: 4, restaurant: 3, meal_takeaway: 2, meal_delivery: 2,
+  cafe: 2, bakery: 3, bar: 1,
+};
+export function suggestTerms(name, types) {
+  const out = [];
+  const fromName = detectFromName(name);
+  if (fromName) out.push(fromName);
+  const specific = (types || []).filter((t) => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t));
+  const sorted = [...specific].sort((a, b) => (TYPE_PRIORITY[b] || 0) - (TYPE_PRIORITY[a] || 0));
+  for (const t of sorted) {
+    const term = typeToTerm(t);
+    if (term && !out.some((o) => o.toLowerCase() === term.toLowerCase())) out.push(term);
+    if (out.length >= 3) break;
+  }
+  // Fallback: sem tipo específico (ex: "loja de utilidades"), usa o tipo amplo
+  // traduzido — melhor uma semente fraca que chip nenhum (o dono edita depois).
+  if (!out.length) {
+    const broad = (types || []).filter((t) => !GENERIC_TYPES.has(t) && BROAD_TYPES.has(t));
+    for (const t of broad) {
+      const term = typeToTerm(t);
+      if (term && !out.some((o) => o.toLowerCase() === term.toLowerCase())) out.push(term);
+      if (out.length >= 2) break;
+    }
+  }
+  return out.slice(0, 3);
 }
 
 // ============================================================
