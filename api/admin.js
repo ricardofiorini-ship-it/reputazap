@@ -15,6 +15,8 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
+import { suggestTerms } from "./_lib/competitors.js";
+import { fetchGridRankingCached } from "./_lib/ranking-grid-cache.js";
 
 // Lista de emails autorizados como admin (hardcoded)
 const ADMIN_EMAILS = new Set([
@@ -74,7 +76,9 @@ export default async function handler(req, res) {
     if (action === "delete-user")  return await handleDeleteUser(req, res, admin);
     if (action === "prospects")    return await handleProspects(req, res);
     if (action === "funnel")       return await handleFunnel(req, res);
-    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects ou funnel" });
+    if (action === "grid-suggest") return await handleGridSuggest(req, res);
+    if (action === "grid")         return await handleGrid(req, res);
+    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects, funnel, grid-suggest ou grid" });
   } catch (err) {
     console.error("[admin] erro:", err);
     return res.status(500).json({ error: err.message });
@@ -122,6 +126,28 @@ async function handleFunnel(req, res) {
   });
 
   return res.json({ days, total_events: (data || []).length, funnel });
+}
+
+// ── GRID: ranking por grade (comparação admin, Passo 1/3) ────
+// Admin-gated: roda a grade nova sem depender da flag RANKING_GRID_ENABLED,
+// pra validar endpoint + cache em negócios reais antes de virar a chave.
+async function handleGridSuggest(req, res) {
+  const placeId = (req.query.place_id || "").toString().trim();
+  if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
+  const url =
+    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
+    `&fields=name,types&language=pt-BR&key=${process.env.PLACES_API_KEY}`;
+  const det = (await (await fetchWithTimeout(url, {}, 6000)).json()).result;
+  if (!det) return res.status(404).json({ error: "Negócio não encontrado" });
+  return res.json({ name: det.name, types: det.types || [], suggestions: suggestTerms(det.name, det.types) });
+}
+async function handleGrid(req, res) {
+  const placeId = (req.query.place_id || "").toString().trim();
+  const terms = (req.query.terms || "").toString().split(",").map((t) => t.trim()).filter(Boolean).slice(0, 3);
+  if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
+  if (!terms.length) return res.status(400).json({ error: "Informe ao menos 1 termo (?terms=a,b,c)" });
+  const grid = await fetchGridRankingCached({ placeId, terms });
+  return res.json(grid);
 }
 
 // ── STATS: números gerais do sistema ─────────────────────────
