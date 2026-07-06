@@ -5286,11 +5286,15 @@ function GuestSearch({ isMobile }) {
                 Usamos o CEP pra achar exatamente <b>a sua unidade</b> (importante se houver lojas com nome parecido).
               </span>
             </div>
-            <button type="submit" disabled={!canSearch} style={{
-              width:'100%', padding:'13px', background: canSearch?T.blue:T.textDim, color:'#fff',
-              border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
-              cursor: canSearch?'pointer':'not-allowed'
-            }}>{loading ? 'Buscando…' : 'Ver minha presença'}</button>
+            {/* Botão de BUSCA: some quando o negócio já foi escolhido (aí o único
+                CTA azul é o "Ver minha posição" do passo de termos). */}
+            {!selectedBiz && (
+              <button type="submit" disabled={!canSearch} style={{
+                width:'100%', padding:'13px', background: canSearch?T.blue:T.textDim, color:'#fff',
+                border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
+                cursor: canSearch?'pointer':'not-allowed'
+              }}>{loading ? 'Buscando…' : 'Buscar meu negócio'}</button>
+            )}
           </form>
 
           {error && <p style={{ fontSize:13, color:T.red, marginTop:12 }}>{error}</p>}
