@@ -3705,7 +3705,7 @@ function ScoreRing({ score, size = 128 }) {
   )
 }
 
-function HeroBlock({ d, position, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
+function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
   const score = calcStarTouchScore(d)
   // Coluna B consome a MESMA fonte do ranking (lente "Bem perto de você") — não o
   // d.kpis.rankingPos, que ficava null e mostrava placeholder mesmo com ranking cheio.
@@ -3724,9 +3724,27 @@ function HeroBlock({ d, position, demoMode, isMobile, onScoreDetails, onSeeCompe
           <div style={{ fontSize: 13, fontWeight: 600, color: T.textMuted }}>Score StarTouch</div>
           <button onClick={onScoreDetails} style={link}>Por que {score}? Ver o que falta <ChevronRight size={14}/></button>
         </div>
-        {/* Coluna B — Posição no ranking */}
+        {/* Coluna B — Posição no ranking. Fonte preferida: GRADE (posição média
+            real de 5 pontos). Sem grade ainda, cai na lente antiga (fallback). */}
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 6, paddingLeft: isMobile ? 4 : 8 }}>
-          {showPos ? (
+          {gridPos ? (
+            gridPos.coverage > 0 ? (
+              <>
+                <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>#{gridPos.avg}</div>
+                <div style={{ fontSize: 13, color: T.textMuted }}>posição média na sua região</div>
+                <div style={{ fontSize: 12, color: T.textDim }}>como {gridPos.term} · aparece em {gridPos.coverage}/5 pontos</div>
+                <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button>
+              </>
+            ) : (
+              <>
+                <div style={{ display:'inline-flex', alignItems:'center', gap: 6, fontSize: isMobile ? 20 : 24, fontWeight: 800, color: T.accent, lineHeight: 1.1, letterSpacing:'-0.01em' }}>
+                  <AlertTriangle size={isMobile ? 20 : 22}/> Fora da lista
+                </div>
+                <div style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.4 }}>Não aparece pra "{gridPos.term}" em nenhum ponto da sua região.</div>
+                <button onClick={onSeeCompetitors} style={{ ...link, color: T.accent }}>Ver concorrentes <ChevronRight size={14}/></button>
+              </>
+            )
+          ) : showPos ? (
             <>
               <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>#{pos}</div>
               <div style={{ fontSize: 13, color: T.textMuted }}>de {total} na sua região</div>
@@ -5265,13 +5283,6 @@ function GuestSearch({ isMobile }) {
                 Usamos o CEP pra achar exatamente <b>a sua unidade</b> (importante se houver lojas com nome parecido).
               </span>
             </div>
-            <div style={{ marginBottom:18 }}>
-              <label style={labelStyle}>O que seus clientes digitam no Google pra te achar?</label>
-              <input style={inputStyle} value={term} onChange={e=>setTerm(e.target.value)} placeholder="Ex: padaria, loja de bicicletas, salão de beleza"/>
-              <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
-                Use o <b>tipo/categoria</b> do negócio — <b>não o nome da empresa</b>. É isso que mostra os concorrentes certos.
-              </span>
-            </div>
             <button type="submit" disabled={!canSearch} style={{
               width:'100%', padding:'13px', background: canSearch?T.blue:T.textDim, color:'#fff',
               border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
@@ -5288,7 +5299,7 @@ function GuestSearch({ isMobile }) {
                 <span style={{ fontSize:14.5, fontWeight:700, color:T.text, flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{selectedBiz.name}</span>
                 <button type="button" onClick={()=>{ setSelectedBiz(null); setSelectedTerms([]) }} style={{ background:'none', border:'none', color:T.blue, fontWeight:600, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Trocar</button>
               </div>
-              <label style={labelStyle}>Como seus clientes te buscam no Google? <span style={{ fontWeight:400, color:T.textDim }}>(até 3)</span></label>
+              <label style={labelStyle}>Em quais buscas você quer aparecer? <span style={{ fontWeight:400, color:T.textDim }}>(até 3)</span></label>
               <div style={{ display:'flex', flexWrap:'wrap', gap:8, margin:'8px 0 10px' }}>
                 {suggestions.map(t => {
                   const on = selectedTerms.includes(t)
@@ -5307,7 +5318,7 @@ function GuestSearch({ isMobile }) {
                 width:'100%', padding:'13px', background: selectedTerms.length?T.blue:T.textDim, color:'#fff',
                 border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
                 cursor: selectedTerms.length?'pointer':'not-allowed'
-              }}>Ver minha presença →</button>
+              }}>Ver minha posição no Google →</button>
             </div>
           )}
 
@@ -5615,94 +5626,64 @@ function pertoLensInfo(lensData) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Ranking por GRADE (Passo 2 — apresentação). Mede a posição em 5 pontos
-// (centro + 4 cardeais ~1km) e mostra média + cobertura como número-herói.
-// Rollout FECHADO: renderiza só pra admin (usa a ação admin-gated, sem flag).
-// Pra abrir geral: virar a chave RANKING_GRID_ENABLED + trocar a fonte pro
-// endpoint público. Retorna null em qualquer erro (painel não quebra).
+// Ranking por GRADE (Passo 2). Hook do painel: busca a grade UMA vez e alimenta
+// o Hero (Coluna B, termo principal) e o card de termos EXTRAS. Fonte LAB:
+// /api/diagnostico?grid=1 (público). Passo 4 troca pela fonte definitiva + flag.
 // ─────────────────────────────────────────────────────────────
-function RankingGrid({ placeId, terms, isMobile }) {
-  const [state, setState] = React.useState('loading')  // loading | ok | off
+function useGridData({ placeId, terms }) {
   const [data, setData] = React.useState(null)
   const termsQ = (Array.isArray(terms) ? terms : []).filter(Boolean).slice(0, 3).join(',')
-
   React.useEffect(() => {
-    if (!placeId) return
+    if (!placeId) { setData(null); return }
     let alive = true
     ;(async () => {
       try {
-        // LAB: endpoint público (funciona no modo convidado, sem login). Passo 4
-        // troca pela fonte definitiva + flag.
         const r = await fetch('/api/diagnostico?grid=1&place_id=' + encodeURIComponent(placeId) + (termsQ ? '&terms=' + encodeURIComponent(termsQ) : ''))
         if (!alive) return
-        if (!r.ok) { setState('off'); return }
-        const d = await r.json()
-        if (!d?.grid) { setState('off'); return }
-        setData(d.grid); setState('ok')
-      } catch { if (alive) setState('off') }
+        const d = r.ok ? await r.json() : null
+        setData(d?.grid || null)
+      } catch { if (alive) setData(null) }
     })()
     return () => { alive = false }
   }, [placeId, termsQ])
+  return data
+}
 
-  if (state === 'loading') {
-    return <Card><div className="st-skeleton" style={{ height: 150 }}/></Card>
-  }
-  if (state !== 'ok' || !data?.terms?.length) return null
+// Rótulo/cor por termo (forte / melhorar / subir / oportunidade).
+function gridStatus(t) {
+  if (!t || !t.coverage) return { label: 'oportunidade', color: '#A50E0E', bg: '#FCE8E6' }
+  if (t.avg <= 3)  return { label: 'forte',           color: '#137333', bg: '#E6F4EA' }
+  if (t.avg <= 10) return { label: 'dá pra melhorar', color: '#B45309', bg: '#FEF3C7' }
+  return { label: 'precisa subir', color: '#A50E0E', bg: '#FCE8E6' }
+}
 
-  // Faixa/rótulo por termo: forte (#1-3) / melhorar (#4-10) / subir (#11+) /
-  // oportunidade (não aparece). Vira a cor do rótulo e das bolinhas.
-  const statusOf = (t) => {
-    if (!t.coverage) return { label: 'oportunidade', color: '#A50E0E', bg: '#FCE8E6' }
-    if (t.avg <= 3)  return { label: 'forte',          color: '#137333', bg: '#E6F4EA' }
-    if (t.avg <= 10) return { label: 'dá pra melhorar', color: '#B45309', bg: '#FEF3C7' }
-    return { label: 'precisa subir', color: '#A50E0E', bg: '#FCE8E6' }
-  }
-  const dotColor = (r) => r == null ? null : r <= 3 ? '#1E8E3E' : r <= 10 ? '#F9AB00' : '#EF4444'
-
+// Card dos termos EXTRAS (o principal já aparece no Hero). Só renderiza quando o
+// dono escolheu mais de 1 termo — a "camada de oportunidade". Sem bolinhas: só a
+// classificação por termo (feedback do Ricardo).
+function RankingGrid({ data }) {
+  const extras = (data?.terms || []).slice(1)
+  if (!extras.length) return null
   return (
     <Card>
-      <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 14 }}>
+      <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 12 }}>
         <Search size={18} style={{ color: T.primary }}/>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0, flex: 1 }}>Sua posição na região</h3>
-        <span style={{ fontSize: 10, fontWeight: 800, letterSpacing:'.06em', color: T.primary, background: T.primarySoft, padding:'3px 8px', borderRadius: 999 }}>NOVO</span>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color: T.text, margin: 0 }}>Você também aparece em</h3>
       </div>
-
-      {/* Uma linha por termo: posição média (herói) + cobertura + bolinhas. */}
-      <div style={{ display:'flex', flexDirection:'column', gap: 14 }}>
-        {data.terms.map((t, i) => {
-          const s = statusOf(t)
+      <div style={{ display:'flex', flexDirection:'column', gap: 12 }}>
+        {extras.map((t, i) => {
+          const s = gridStatus(t)
           return (
-            <div key={i} style={{ borderTop: i > 0 ? `1px solid ${T.border}` : 'none', paddingTop: i > 0 ? 14 : 0 }}>
-              <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 6 }}>
-                <span style={{ fontSize: 13, color: T.textMid }}>Como <b style={{ color: T.text }}>{t.term}</b></span>
-                <span style={{ marginLeft:'auto', fontSize: 10.5, fontWeight: 800, textTransform:'uppercase', letterSpacing:'.04em', color: s.color, background: s.bg, padding:'3px 9px', borderRadius: 999 }}>{s.label}</span>
-              </div>
-              {t.coverage > 0 ? (
-                <div style={{ fontSize: 14, color: T.textMuted, fontWeight: 600 }}>
-                  <b style={{ fontSize: 24, fontWeight: 800, color: T.text, letterSpacing:'-0.02em' }}>#{t.avg}</b> média · aparece em <b style={{ color: T.text }}>{t.coverage} de 5</b> pontos
+            <div key={i} style={{ display:'flex', alignItems:'center', gap: 10, borderTop: i > 0 ? `1px solid ${T.border}` : 'none', paddingTop: i > 0 ? 12 : 0 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, color: T.text, fontWeight: 600 }}>Como {t.term}</div>
+                <div style={{ fontSize: 12.5, color: T.textMuted, marginTop: 1 }}>
+                  {t.coverage > 0 ? <>posição média <b style={{ color: T.text }}>#{t.avg}</b> · {t.coverage}/5 pontos</> : 'não aparece nesta busca'}
                 </div>
-              ) : (
-                <div style={{ fontSize: 13.5, color: T.textMid }}>
-                  Não aparece em nenhum dos 5 pontos — quem busca "{t.term}" na sua região não te encontra.
-                </div>
-              )}
-              {/* Bolinhas: um ponto ao redor cada (sem número). Cinza vazado = ausente. */}
-              <div style={{ display:'flex', gap: 6, marginTop: 9 }}>
-                {(t.points || []).map((p, j) => {
-                  const c = dotColor(p.rank)
-                  return <span key={j} title={p.dir + (p.rank ? ': #' + p.rank : ': fora')}
-                    style={{ width: 13, height: 13, borderRadius:'50%', display:'inline-block',
-                      background: c || 'transparent', border: c ? 'none' : `2px solid ${T.border}` }}/>
-                })}
-                <span style={{ fontSize: 11.5, color: T.textDim, marginLeft: 4 }}>pontos ao redor</span>
               </div>
+              <span style={{ fontSize: 10.5, fontWeight: 800, textTransform:'uppercase', letterSpacing:'.04em', color: s.color, background: s.bg, padding:'4px 9px', borderRadius: 999, flexShrink: 0 }}>{s.label}</span>
             </div>
           )
         })}
-      </div>
-
-      <div style={{ fontSize: 11.5, color: T.textMuted, lineHeight: 1.5, marginTop: 14, background: T.bg, border:`1px solid ${T.border}`, borderRadius: 10, padding:'10px 12px' }}>
-        Medimos sua posição de <b>5 pontos reais</b> ao redor do seu negócio. O resultado individual varia por pessoa, horário e histórico — esta é a <b>visão média</b> da sua região.
       </div>
     </Card>
   )
@@ -6473,6 +6454,10 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     mock: demoLenses
   })
   const heroPos = pertoLensInfo(lensState.data)
+  // Ranking por GRADE (posição média real). Alimenta o Hero (termo principal) e o
+  // card de termos extras. Uma busca só, compartilhada.
+  const gridData = useGridData({ placeId: guestContext?.placeId || d.biz?.placeId, terms: guestContext?.terms })
+  const gridPrimary = gridData?.terms?.[0] || null
   // Categoria mostrada e URL do perfil do Google (p/ "corrigir categoria" / "Responder").
   const lensCategory = lensState.data?.term || d.activeCategory || 'sua categoria'
   const googleProfileUrl = (guestContext?.placeId || d.biz?.placeId)
@@ -6640,6 +6625,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         {/* BLOCO 1 — HERO: placar de 5 segundos (score + posição + mini-cards). Spec 3. */}
         <Section>
           <HeroBlock
+            gridPos={gridPrimary}
             d={d}
             position={heroPos}
             demoMode={demoMode}
@@ -6676,9 +6662,9 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           <div id="bloco-concorrentes" style={{ scrollMarginTop: 72 }} />
           {/* Ranking por GRADE (Passo 2). LAB: aparece pra qualquer place_id (inclui
               modo convidado) pra o Ricardo ver no preview sem login. Passo 4 re-trava. */}
-          {(d.biz?.placeId || guestContext?.placeId) && (
+          {gridData?.terms?.length > 1 && (
             <div style={{ marginBottom: 14 }}>
-              <RankingGrid placeId={d.biz?.placeId || guestContext?.placeId} terms={guestContext?.terms} isMobile={isMobile} />
+              <RankingGrid data={gridData} />
             </div>
           )}
           <VisibilityLenses
