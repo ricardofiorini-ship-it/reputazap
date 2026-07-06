@@ -46,7 +46,9 @@ export async function sendTransactionalEmail({
   // (em vez de só user_id + email_type). Útil pra eventos por dispositivo (plate_id), etc.
   dedupeByMetadata,
   // headers: headers SMTP extras (ex: List-Unsubscribe pro digest semanal).
-  headers
+  headers,
+  // bcc: cópia oculta (ex: cópia pro admin revisar a copy). String ou array.
+  bcc
 }) {
   if (!userId || !emailType || !to) {
     console.warn("[email-sender] params faltando:", { userId, emailType, to });
@@ -91,6 +93,7 @@ export async function sendTransactionalEmail({
         to: [to],
         subject,
         html,
+        ...(bcc && (Array.isArray(bcc) ? bcc.length : bcc) ? { bcc: Array.isArray(bcc) ? bcc : [bcc] } : {}),
         ...(headers && Object.keys(headers).length ? { headers } : {})
       })
     });

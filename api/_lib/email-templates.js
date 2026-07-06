@@ -724,3 +724,59 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
     })
   };
 }
+
+// ─────────────────────────────────────────────────────────────
+// PLANO DE TRABALHO (Gatilho 3 do funil-impacto)
+// Leva pro /radar/plano?code=…&origem=email. Assunto e corpo seguem a spec:
+// contexto curto + CTA + preview de 1 pendência real (+ "e mais N-1").
+// ─────────────────────────────────────────────────────────────
+export function planoTrabalhoEmail({ empresa, pendencias, code, checklistItem, unsubUrl }) {
+  const nome = escapeHtml(empresa || "seu negócio");
+  const nomeAssunto = empresa || "sua empresa";
+  const n = Number(pendencias) || 0;
+  const link = `https://startouch.com.br/radar/plano?code=${encodeURIComponent(code || "")}&origem=email`;
+  const restantes = Math.max(0, n - 1);
+
+  // Preview de 1 pendência REAL (✗) + "e mais N-1". Só entra se veio item real.
+  const preview = (checklistItem && checklistItem.label)
+    ? `
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin:16px 0;">
+        <table role="presentation" cellspacing="0" cellpadding="0">
+          <tr>
+            <td valign="top" style="padding-right:10px;">
+              <span style="display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border-radius:6px;background:#FCE8E6;color:#A50E0E;font-weight:800;font-size:13px;">✗</span>
+            </td>
+            <td>
+              <div style="font-size:14px;font-weight:700;color:#202124;">${escapeHtml(checklistItem.label)}</div>
+              ${checklistItem.detail ? `<div style="font-size:13px;color:#5F6368;line-height:1.5;margin-top:2px;">${escapeHtml(checklistItem.detail)}</div>` : ""}
+            </td>
+          </tr>
+        </table>
+        ${restantes > 0 ? `<p style="font-size:13px;color:#80868B;margin:12px 0 0;">…e mais ${restantes} pendência${restantes > 1 ? "s" : ""} no seu plano completo.</p>` : ""}
+      </div>`
+    : "";
+
+  return {
+    subject: `O plano de trabalho da ${nomeAssunto} está pronto (${n} pendência${n === 1 ? "" : "s"})`,
+    html: shell({
+      title: "🛰️ PLANO DE TRABALHO",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:23px;color:#202124;line-height:1.25;">
+          O plano de trabalho da ${nome} está pronto
+        </h1>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 6px;">
+          Testamos a presença da ${nome} nas inteligências artificiais (ChatGPT, Gemini, Perplexity).
+        </p>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 6px;">
+          Encontramos <strong style="color:#202124;">${n} ponto${n === 1 ? "" : "s"}</strong> segurando a sua visibilidade — e listamos, item por item, o que precisa ser feito.
+        </p>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 6px;">
+          Leva 1 minuto pra ver e mostra exatamente onde você está hoje.
+        </p>
+        ${cta(link, "Ver meu plano de trabalho →")}
+        ${preview}
+      `,
+      unsubUrl
+    })
+  };
+}

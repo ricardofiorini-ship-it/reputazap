@@ -21,6 +21,7 @@ import { saveDiagnostic, getDiagnostic, getLatestDiagnosticByPlace } from "./_li
 import { lookupCep } from "./_lib/radar/cep.js";
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { detectFromName, typeToTerm } from "./_lib/competitors.js";
+import { maybeSendPlanoEmail } from "./_lib/radar/plano-email.js";
 
 // Tipos genéricos do Google que não servem como "categoria" de busca.
 const GENERIC_TYPES = new Set([
@@ -246,6 +247,14 @@ export default async function handler(req, res) {
       detalhe: { local: { cidade, bairro }, produtos, porMotor },
       place_id: placeId || null, site,
     });
+
+    // Gatilho 3 (funil-impacto): se o place_id for de um negócio CADASTRADO,
+    // manda o email do plano pro dono (cópia pro admin). Best-effort e awaited
+    // antes do res.json (fire-and-forget não é confiável no serverless).
+    // Não-cadastrado sai rápido (só a leitura em businesses) — sem custo extra.
+    if (code && placeId) {
+      await maybeSendPlanoEmail({ placeId, code, site }).catch((e) => console.warn("[radar] email do plano falhou:", e.message));
+    }
 
     // `code` pode vir null (banco off ou colunas place_id/site ainda não
     // criadas) — nesse caso o /radar cai no relatório inline (fallback).
