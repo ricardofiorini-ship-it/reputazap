@@ -3728,10 +3728,10 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
             real de 5 pontos). Sem grade ainda, cai na lente antiga (fallback). */}
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 6, paddingLeft: isMobile ? 4 : 8 }}>
           {gridPos ? (
-            gridPos.coverage > 0 ? (
+            gridPos.coverage > 0 && gridPos.rank ? (
               <>
-                <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>#{gridPos.avg}</div>
-                <div style={{ fontSize: 13, color: T.textMuted }}>posição média na sua região</div>
+                <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>#{gridPos.rank}</div>
+                <div style={{ fontSize: 13, color: T.textMuted }}>na sua região</div>
                 <div style={{ fontSize: 12, color: T.textDim }}>como {gridPos.term} · aparece em {gridPos.coverage}/5 pontos</div>
                 <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button>
               </>
@@ -5692,6 +5692,50 @@ function RankingGrid({ data }) {
   )
 }
 
+// Lista de concorrentes da REGIÃO vinda da GRADE (posição média agregada dos 5
+// pontos). Fonte ÚNICA com o Hero — o "#N" do topo bate com a posição aqui
+// (fim da divergência com o método de lentes antigo).
+function GridRankingList({ data, isGuest, signupUrl }) {
+  if (!data?.ranking?.length) return null
+  return (
+    <Card>
+      <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4 }}>
+        <Search size={18} style={{ color: T.primary }}/>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Concorrentes por perto</h3>
+      </div>
+      <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 12 }}>Ranking médio da sua região · como {data.term}</div>
+      {data.ranking.map((r, i) => {
+        const me = r.is_me
+        const blurName = isGuest && !me
+        return (
+          <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'8px', borderRadius: 8, marginBottom: 2, background: me ? T.primarySoft : 'transparent' }}>
+            <span style={{ width: 24, flexShrink: 0, textAlign:'center', fontSize: 12, fontWeight: 700, color: me ? T.primaryDark : T.textDim }}>{i + 1}º</span>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: me ? 700 : 500, color: me ? T.primaryDark : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
+              ...(blurName && { filter:'blur(5px)', userSelect:'none', pointerEvents:'none' }) }}>
+              {me ? `${r.name || 'Você'} (você)` : (r.name || 'Concorrente')}
+            </span>
+            <span style={{ fontSize: 12, color: T.textMuted, flexShrink: 0, display:'inline-flex', alignItems:'center', gap: 2 }}>
+              {r.rating ?? '—'}<Star size={11} fill={T.accent} color={T.accent} strokeWidth={0}/> · {r.reviews}
+            </span>
+          </div>
+        )
+      })}
+      {isGuest && data.ranking.some(r => !r.is_me) && (
+        <div style={{ marginTop: 12, display:'flex', alignItems:'center', gap: 12, flexWrap:'wrap', background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 12, padding:'12px 14px' }}>
+          <Lock size={18} color={T.primary} style={{ flexShrink: 0 }}/>
+          <div style={{ flex:'1 1 180px', minWidth: 0, fontSize: 13, color: T.textMid, lineHeight: 1.45 }}>
+            <strong style={{ color: T.text }}>Quem são seus concorrentes?</strong> Crie sua conta grátis pra ver os nomes.
+          </div>
+          <a href={signupUrl || '/ativar?from=web'} onClick={() => trackFunnel('guest_signup_click', { from: 'ranking' })}
+            style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6, flexShrink: 0, background: T.primary, color:'#fff', fontSize: 13.5, fontWeight: 700, textDecoration:'none', borderRadius: 10, padding:'10px 16px' }}>
+            Criar conta grátis <ChevronRight size={16}/>
+          </a>
+        </div>
+      )}
+    </Card>
+  )
+}
+
 function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGuest, signupUrl }) {
   const [tab, setTab] = React.useState(0)
   const [showInfo, setShowInfo] = React.useState(false)
@@ -6670,15 +6714,21 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
               <RankingGrid data={gridData} />
             </div>
           )}
-          <VisibilityLenses
-            data={lensState.data}
-            loading={lensState.loading}
-            isMobile={isMobile}
-            googleUrl={googleProfileUrl}
-            category={lensCategory}
-            isGuest={isGuest}
-            signupUrl={guestSignupUrl}
-          />
+          {/* Com a grade disponível, a LISTA vem dela (fonte única com o Hero).
+              Sem grade (fallback), usa as lentes 1/3km antigas. */}
+          {gridPrimary ? (
+            <GridRankingList data={gridPrimary} isGuest={isGuest} signupUrl={guestSignupUrl} />
+          ) : (
+            <VisibilityLenses
+              data={lensState.data}
+              loading={lensState.loading}
+              isMobile={isMobile}
+              googleUrl={googleProfileUrl}
+              category={lensCategory}
+              isGuest={isGuest}
+              signupUrl={guestSignupUrl}
+            />
+          )}
           {!demoMode && (
           <div style={{ marginTop: 10 }}>
             <TermBar

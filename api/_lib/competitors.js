@@ -668,20 +668,42 @@ export async function fetchGridRanking({ placeId, terms, spacingM = 1000, radius
         dir: pt.dir,
         rank: idx >= 0 ? idx + 1 : null,   // null = ausente (NUNCA inserido)
         total: ordered.length,
-        top: ordered.slice(0, 3).map((p) => p.name),
+        list: ordered.slice(0, 20),        // lista ordenada do ponto (pra agregar)
       };
     }));
     const present = pts.filter((p) => p.rank != null).map((p) => p.rank);
     const avg = present.length ? Math.round((present.reduce((a, b) => a + b, 0) / present.length) * 10) / 10 : null;
-    // Concorrentes agregados: mais frequentes no topo dos 5 pontos (exceto o próprio).
-    const freq = new Map();
-    for (const p of pts) for (const nm of (p.top || [])) {
-      const k = nm.trim().toLowerCase(); if (!k) continue;
-      if (!freq.has(k)) freq.set(k, { name: nm.trim(), n: 0 });
-      freq.get(k).n += 1;
-    }
-    const competitors = [...freq.values()].sort((a, b) => b.n - a.n).slice(0, 5).map((x) => x.name);
-    return { term, points: pts, avg, coverage: present.length, competitors };
+
+    // RANKING REGIONAL AGREGADO: une o topo dos 5 pontos e ordena por um score
+    // que PENALIZA ausência — quem aparece em mais pontos, em boas posições,
+    // ranqueia melhor. Sem isso, um negócio que aparece 1x em #1 furava a fila
+    // de quem está sempre em #3. A LISTA e a posição do dono vêm da MESMA
+    // medição do Hero (o "#N" do topo bate com a lista).
+    const PENALTY = 21;               // "além do top 20" pros pontos onde o negócio some
+    const nPts = pts.length || 5;
+    const agg = new Map();            // place_id -> { name, rating, reviews, positions[] }
+    for (const p of pts) (p.list || []).forEach((biz, i) => {
+      const cur = agg.get(biz.place_id) || { place_id: biz.place_id, name: biz.name, rating: biz.rating, reviews: biz.reviews, positions: [] };
+      cur.positions.push(i + 1);
+      agg.set(biz.place_id, cur);
+    });
+    const rankingArr = [...agg.values()]
+      .map((c) => {
+        const sum = c.positions.reduce((a, b) => a + b, 0);
+        const score = (sum + PENALTY * (nPts - c.positions.length)) / nPts;
+        return {
+          place_id: c.place_id, name: c.name, rating: c.rating, reviews: c.reviews,
+          _score: score, points: c.positions.length, is_me: c.place_id === placeId,
+        };
+      })
+      .sort((a, b) => a._score - b._score);
+    const myIdx = rankingArr.findIndex((c) => c.is_me);
+    const rank = myIdx >= 0 ? myIdx + 1 : null;   // posição ORDINAL do dono na região
+    const strip = ({ _score, place_id, ...r }) => r;
+    let ranking = rankingArr.slice(0, 12).map(strip);
+    if (myIdx >= 12) ranking.push(strip(rankingArr[myIdx]));   // garante o dono na lista
+
+    return { term, points: pts.map(({ dir, rank, total }) => ({ dir, rank, total })), avg, coverage: present.length, rank, total: rankingArr.length, ranking };
   }));
 
   return { placeId, name: det.name, center: { lat, lng }, spacingM, radius, terms: termsOut };
