@@ -143,9 +143,17 @@ async function handleGridSuggest(req, res) {
 }
 async function handleGrid(req, res) {
   const placeId = (req.query.place_id || "").toString().trim();
-  const terms = (req.query.terms || "").toString().split(",").map((t) => t.trim()).filter(Boolean).slice(0, 3);
+  let terms = (req.query.terms || "").toString().split(",").map((t) => t.trim()).filter(Boolean).slice(0, 3);
   if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
-  if (!terms.length) return res.status(400).json({ error: "Informe ao menos 1 termo (?terms=a,b,c)" });
+  // Sem termo → usa o padrão da categoria do Google (1 termo, grátis).
+  if (!terms.length) {
+    const url =
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
+      `&fields=name,types&language=pt-BR&key=${process.env.PLACES_API_KEY}`;
+    const det = (await (await fetchWithTimeout(url, {}, 6000)).json()).result;
+    terms = suggestTerms(det?.name, det?.types).slice(0, 1);
+    if (!terms.length) return res.status(422).json({ error: "Sem termo padrão pra este negócio — informe um termo." });
+  }
   const grid = await fetchGridRankingCached({ placeId, terms });
   return res.json(grid);
 }

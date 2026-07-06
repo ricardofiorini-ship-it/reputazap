@@ -5558,6 +5558,104 @@ function pertoLensInfo(lensData) {
   return { rank: lens.rank, total: lens.total, inResults: !!lens.inResults }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Ranking por GRADE (Passo 2 — apresentação). Mede a posição em 5 pontos
+// (centro + 4 cardeais ~1km) e mostra média + cobertura como número-herói.
+// Rollout FECHADO: renderiza só pra admin (usa a ação admin-gated, sem flag).
+// Pra abrir geral: virar a chave RANKING_GRID_ENABLED + trocar a fonte pro
+// endpoint público. Retorna null em qualquer erro (painel não quebra).
+// ─────────────────────────────────────────────────────────────
+function RankingGrid({ placeId, isMobile }) {
+  const [state, setState] = React.useState('loading')  // loading | ok | off
+  const [data, setData] = React.useState(null)
+  const [showList, setShowList] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!placeId) return
+    let alive = true
+    ;(async () => {
+      try {
+        const token = localStorage.getItem('rz_token')
+        const r = await fetch('/api/admin?action=grid&place_id=' + encodeURIComponent(placeId), {
+          headers: token ? { Authorization: 'Bearer ' + token } : {}
+        })
+        if (!alive) return
+        if (!r.ok) { setState('off'); return }
+        const d = await r.json()
+        setData(d); setState('ok')
+      } catch { if (alive) setState('off') }
+    })()
+    return () => { alive = false }
+  }, [placeId])
+
+  if (state === 'loading') {
+    return <Card><div className="st-skeleton" style={{ height: 150 }}/></Card>
+  }
+  if (state !== 'ok' || !data?.terms?.length) return null
+
+  const t = data.terms[0]
+  const cellBg = (r) => r == null ? T.bg : r <= 3 ? '#E6F4EA' : r <= 10 ? '#FEF3C7' : '#FCE8E6'
+  const cellFg = (r) => r == null ? T.textDim : r <= 3 ? '#137333' : r <= 10 ? '#B45309' : '#A50E0E'
+  const by = Object.fromEntries((t.points || []).map(p => [p.dir, p.rank]))
+  const cell = (dir, gc, gr) => {
+    const r = by[dir]
+    return <div key={dir} style={{ gridColumn: gc, gridRow: gr, display:'flex', alignItems:'center', justifyContent:'center',
+      height: 30, borderRadius: 7, fontSize: 12.5, fontWeight: 800, background: cellBg(r), color: cellFg(r),
+      fontVariantNumeric:'tabular-nums' }}>{r == null ? '·' : '#' + r}</div>
+  }
+  const covered = t.coverage > 0
+
+  return (
+    <Card>
+      <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 12 }}>
+        <Search size={18} style={{ color: T.primary }}/>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0, flex: 1 }}>Sua posição na região</h3>
+        <span style={{ fontSize: 10, fontWeight: 800, letterSpacing:'.06em', color: T.primary, background: T.primarySoft, padding:'3px 8px', borderRadius: 999 }}>NOVO</span>
+      </div>
+
+      <div style={{ display:'flex', alignItems:'center', gap: 18, flexWrap:'wrap' }}>
+        {/* Mini-grade 5 pontos (N / O·centro·L / S) */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 34px)', gridTemplateRows:'repeat(3, 30px)', gap: 4, flexShrink: 0 }}>
+          {cell('N', 2, 1)}{cell('O', 1, 2)}{cell('centro', 2, 2)}{cell('L', 3, 2)}{cell('S', 2, 3)}
+        </div>
+        <div style={{ minWidth: 160, flex: 1 }}>
+          <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 2 }}>Como <b style={{ color: T.text }}>{t.term}</b></div>
+          {covered ? (
+            <>
+              <div style={{ fontSize: 26, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>
+                #{t.avg}<span style={{ fontSize: 14, color: T.textMuted, fontWeight: 700 }}> média</span>
+              </div>
+              <div style={{ fontSize: 13, color: T.textMid, marginTop: 4 }}>Aparece em <b>{t.coverage} de 5</b> pontos ao redor</div>
+            </>
+          ) : (
+            <div style={{ fontSize: 13.5, color:'#92400E', background: T.amberBg, border:'1px solid #FDE68A', borderRadius: 10, padding:'10px 12px' }}>
+              Você <b>não aparece</b> em nenhum dos 5 pontos pra "{t.term}". Quem busca esse termo na sua região não te encontra.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {covered && t.competitors?.length > 0 && (
+        <div style={{ marginTop: 12 }}>
+          <button onClick={() => setShowList(v => !v)} style={{ background:'none', border:'none', padding: 0, cursor:'pointer',
+            fontSize: 12.5, fontWeight: 600, color: T.primary, display:'inline-flex', alignItems:'center', gap: 3 }}>
+            {showList ? 'Ocultar' : 'Ver'} quem mais aparece <ChevronRight size={14} style={{ transform: showList ? 'rotate(90deg)' : 'none', transition:'transform .15s' }}/>
+          </button>
+          {showList && (
+            <ol style={{ margin:'10px 0 0', paddingLeft: 18, fontSize: 13, color: T.textMid, lineHeight: 1.7 }}>
+              {t.competitors.map((c, i) => <li key={i}>{c}</li>)}
+            </ol>
+          )}
+        </div>
+      )}
+
+      <div style={{ fontSize: 11.5, color: T.textMuted, lineHeight: 1.5, marginTop: 12, background: T.bg, border:`1px solid ${T.border}`, borderRadius: 10, padding:'10px 12px' }}>
+        Medimos sua posição de <b>5 pontos reais</b> ao redor do seu negócio. O resultado individual varia por pessoa, horário e histórico — esta é a <b>visão média</b> da sua região.
+      </div>
+    </Card>
+  )
+}
+
 function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGuest, signupUrl }) {
   const [tab, setTab] = React.useState(0)
   const [showInfo, setShowInfo] = React.useState(false)
@@ -6524,6 +6622,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         {(demoMode || (real.hasBusiness && (guestContext?.placeId || d.biz?.placeId))) && (
         <Section>
           <div id="bloco-concorrentes" style={{ scrollMarginTop: 72 }} />
+          {/* Ranking por GRADE (Passo 2). Rollout fechado: só admin por enquanto,
+              acima das lentes atuais pra comparar no painel real. */}
+          {isAdminUser(user) && (d.biz?.placeId || guestContext?.placeId) && (
+            <div style={{ marginBottom: 14 }}>
+              <RankingGrid placeId={d.biz?.placeId || guestContext?.placeId} isMobile={isMobile} />
+            </div>
+          )}
           <VisibilityLenses
             data={lensState.data}
             loading={lensState.loading}
