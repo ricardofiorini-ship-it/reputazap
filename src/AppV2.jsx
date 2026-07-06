@@ -5575,14 +5575,14 @@ function RankingGrid({ placeId, isMobile }) {
     let alive = true
     ;(async () => {
       try {
-        const token = localStorage.getItem('rz_token')
-        const r = await fetch('/api/admin?action=grid&place_id=' + encodeURIComponent(placeId), {
-          headers: token ? { Authorization: 'Bearer ' + token } : {}
-        })
+        // LAB: endpoint público (funciona no modo convidado, sem login). Passo 4
+        // troca pela fonte definitiva + flag.
+        const r = await fetch('/api/diagnostico?grid=1&place_id=' + encodeURIComponent(placeId))
         if (!alive) return
         if (!r.ok) { setState('off'); return }
         const d = await r.json()
-        setData(d); setState('ok')
+        if (!d?.grid) { setState('off'); return }
+        setData(d.grid); setState('ok')
       } catch { if (alive) setState('off') }
     })()
     return () => { alive = false }
@@ -6622,9 +6622,9 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         {(demoMode || (real.hasBusiness && (guestContext?.placeId || d.biz?.placeId))) && (
         <Section>
           <div id="bloco-concorrentes" style={{ scrollMarginTop: 72 }} />
-          {/* Ranking por GRADE (Passo 2). Rollout fechado: só admin por enquanto,
-              acima das lentes atuais pra comparar no painel real. */}
-          {isAdminUser(user) && (d.biz?.placeId || guestContext?.placeId) && (
+          {/* Ranking por GRADE (Passo 2). LAB: aparece pra qualquer place_id (inclui
+              modo convidado) pra o Ricardo ver no preview sem login. Passo 4 re-trava. */}
+          {(d.biz?.placeId || guestContext?.placeId) && (
             <div style={{ marginBottom: 14 }}>
               <RankingGrid placeId={d.biz?.placeId || guestContext?.placeId} isMobile={isMobile} />
             </div>

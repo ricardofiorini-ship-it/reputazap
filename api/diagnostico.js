@@ -9,7 +9,9 @@
 // Uso: /api/diagnostico?place_id=XXX  (opcional &keyword= &radius=)
 // É marketing — mostra nomes dos líderes (diferente do paywall do app).
 // ============================================================
-import { fetchRankingByTerm, fetchVisibilityLenses, applyNameLocking } from "./_lib/competitors.js";
+import { fetchRankingByTerm, fetchVisibilityLenses, applyNameLocking, suggestTerms } from "./_lib/competitors.js";
+import { fetchGridRankingCached } from "./_lib/ranking-grid-cache.js";
+import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 
 const gscore = (rt, rv) => (rt || 0) * Math.log10((rv || 0) + 1);
 
@@ -75,6 +77,27 @@ export default async function handler(req, res) {
   const rIn = parseInt(req.query.radius, 10);
   const radius = Number.isFinite(rIn) ? Math.min(Math.max(rIn, 500), 3000) : 3000;
   if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
+
+  // Modo GRADE (Passo 2). LAB: sem flag nesta branch (preview é SSO-protegido e
+  // produção não tem caller). Passo 4 adiciona o gate RANKING_GRID_ENABLED.
+  if (req.query.grid) {
+    try {
+      let terms = (req.query.terms || "").toString().split(",").map((t) => t.trim()).filter(Boolean).slice(0, 3);
+      if (!terms.length) {
+        const url =
+          `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
+          `&fields=name,types&language=pt-BR&key=${process.env.PLACES_API_KEY}`;
+        const det = (await (await fetchWithTimeout(url, {}, 6000)).json()).result;
+        terms = suggestTerms(det?.name, det?.types).slice(0, 1);
+      }
+      if (!terms.length) return res.json({ ok: true, grid: null });
+      const grid = await fetchGridRankingCached({ placeId, terms });
+      return res.json({ ok: true, grid });
+    } catch (err) {
+      console.error("[diagnostico/grid] erro:", err);
+      return res.status(500).json({ error: err.message || "Erro na grade" });
+    }
+  }
 
   // Modo VISIBILIDADE MULTI-LENTE: mesma busca (ordem real do Google) em raios
   // diferentes. Nomes de concorrente bloqueados (público), como no resto.
