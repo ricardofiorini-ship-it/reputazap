@@ -80,6 +80,11 @@ fbq('track', 'PageView');
   .compbar .track{flex:1;height:8px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden;}
   .compbar .fill{height:100%;background:var(--dark-hi);border-radius:999px;}
   .miss{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12);font-size:13.5px;font-weight:700;color:#FCA5A5;display:flex;align-items:center;gap:8px;}
+  .localrank{margin-top:14px;}
+  .lr{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;font-size:13.5px;color:#e8eefb;line-height:1.5;display:flex;align-items:flex-start;gap:8px;}
+  .lr b{color:#fff;} .lr-sub{color:var(--dark-sub);}
+  .lr svg{width:18px;height:18px;stroke:var(--dark-hi);flex-shrink:0;margin-top:1px;}
+  .lr.miss-lr svg{stroke:#FCA5A5;}
   .miss.inrank{color:#7EE2A8;}
   .miss svg{width:16px;height:16px;flex:0 0 auto;}
 
@@ -160,6 +165,7 @@ fbq('track', 'PageView');
     minus:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>',
     alert:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
     wa:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.4L3 21l2.2-5.6A8.4 8.4 0 1 1 21 11.5z"/></svg>',
+    pin:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
   };
   const ICMAP = { pass:ICON.check, fail:ICON.x, na:ICON.minus };
 
@@ -240,7 +246,26 @@ fbq('track', 'PageView');
           '<div class="chips" id="bizChips"></div>' +
         '</div>' +
       '</div>' + revealBlock +
+      '<div class="localrank" id="localRank"></div>' +
     '</div></div>';
+  }
+
+  // Ranking LOCAL no Google (grade) — mesma medição do painel. Preenche quando
+  // a grade responde. Some se não houver dado.
+  function fillLocalRank(grid){
+    const box = $("localRank"); if (!box) return;
+    const t = grid && grid.terms && grid.terms[0];
+    if (!t) return;
+    if (t.coverage > 0 && t.rank){
+      box.innerHTML =
+        '<div class="lr">' + ICON.pin +
+        '<span>No Google, na sua região você aparece em <b>#' + t.rank + '</b> como <b>' + esc(t.term) + '</b>' +
+        '<span class="lr-sub"> · em ' + t.coverage + ' de 5 pontos ao redor</span></span></div>';
+    } else {
+      box.innerHTML =
+        '<div class="lr miss-lr">' + ICON.alert +
+        '<span>No Google, você <b>não aparece</b> na busca local por "' + esc(t.term) + '" na sua região.</span></div>';
+    }
   }
 
   // Preenche nota/avaliações do Google (vêm da auditoria). Some se não houver.
@@ -338,6 +363,15 @@ fbq('track', 'PageView');
       if (typeof lastPend === "number") p.pendencias = lastPend;
       if (window.gtag) gtag("event", "plano_cta_click", p);
     });
+
+    // Ranking LOCAL (grade) no topo — mesma medição do painel. Fire-and-forget:
+    // preenche o elemento quando responde, sem travar a página.
+    if (diag.place_id) {
+      fetch("/api/diagnostico?grid=1&place_id=" + encodeURIComponent(diag.place_id))
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d && d.grid) fillLocalRank(d.grid); })
+        .catch(() => {});
+    }
 
     // Auditoria ao vivo (Bloco B).
     if (diag.place_id) {
