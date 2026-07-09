@@ -256,11 +256,14 @@ fbq('track', 'PageView');
     const box = $("localRank"); if (!box) return;
     const t = grid && grid.terms && grid.terms[0];
     if (!t) return;
-    if (t.coverage > 0 && t.rank){
+    // Mostra a MÉDIA das 5 posições, não o ordinal da lista: a grade é centrada
+    // na porta do negócio, então o ordinal favorece quem está no centro (ele).
+    // Dois vizinhos a 1km davam AMBOS "#1", cada um na própria grade.
+    if (t.coverage > 0 && t.avg != null){
       box.innerHTML =
         '<div class="lr">' + ICON.pin +
-        '<span>No Google, na sua região você aparece em <b>#' + t.rank + '</b> como <b>' + esc(t.term) + '</b>' +
-        '<span class="lr-sub"> · em ' + t.coverage + ' de 5 pontos ao redor</span></span></div>';
+        '<span>No Google, sua posição média é <b>' + t.avg.toFixed(1).replace(".", ",") + '</b> como <b>' + esc(t.term) + '</b>' +
+        '<span class="lr-sub"> · em ' + t.coverage + ' de 5 pontos ao redor do seu endereço</span></span></div>';
     } else {
       box.innerHTML =
         '<div class="lr miss-lr">' + ICON.alert +

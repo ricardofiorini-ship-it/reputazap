@@ -801,6 +801,10 @@ export async function fetchGridRanking({ placeId, terms, spacingM = 1000, radius
         return {
           place_id: c.place_id, name: c.name, rating: c.rating, reviews: c.reviews,
           _score: score, points: c.positions.length, is_me: c.place_id === placeId,
+          // Posição MÉDIA nos pontos onde aparece. É o número honesto pra
+          // mostrar ao lado de cada nome: o ordinal esconde o quão apertada é a
+          // disputa (1º e 2º podem ser 3,2 e 3,4).
+          avg: Math.round((sum / c.positions.length) * 10) / 10,
         };
       })
       .sort((a, b) => a._score - b._score);

@@ -3725,14 +3725,22 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
           <button onClick={onScoreDetails} style={link}>Por que {score}? Ver o que falta <ChevronRight size={14}/></button>
         </div>
         {/* Coluna B — Posição no ranking. Fonte preferida: GRADE (posição média
-            real de 5 pontos). Sem grade ainda, cai na lente antiga (fallback). */}
+            real de 5 pontos). Sem grade ainda, cai na lente antiga (fallback).
+
+            Mostra a MÉDIA das 5 posições, não o ordinal da lista agregada. A
+            grade é centrada na porta do negócio, então o dono é sempre o mais
+            perto de todos os 5 pontos e o vizinho a 1km é sempre o mais longe:
+            o ordinal favorece quem está no centro. Medido: Sankayo e Iroha
+            (1,16km de distância) davam AMBOS "#1", cada um na própria grade —
+            numa arena neutra o Iroha ganha por larga margem. A média (Sankayo
+            3,2 · Iroha 1,4) é o número que não mente. */}
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 6, paddingLeft: isMobile ? 4 : 8 }}>
           {gridPos ? (
-            gridPos.coverage > 0 && gridPos.rank ? (
+            gridPos.coverage > 0 && gridPos.avg != null ? (
               <>
-                <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>#{gridPos.rank}</div>
-                <div style={{ fontSize: 13, color: T.textMuted }}>na sua região</div>
-                <div style={{ fontSize: 12, color: T.textDim }}>como {gridPos.term} · aparece em {gridPos.coverage}/5 pontos</div>
+                <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>{gridPos.avg.toFixed(1).replace('.', ',')}</div>
+                <div style={{ fontSize: 13, color: T.textMuted }}>posição média no Google</div>
+                <div style={{ fontSize: 12, color: T.textDim }}>como {gridPos.term} · aparece em {gridPos.coverage}/5 pontos ao redor do seu endereço</div>
                 <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button>
               </>
             ) : (
@@ -5684,7 +5692,7 @@ function RankingGrid({ data }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, color: T.text, fontWeight: 600 }}>Como {t.term}</div>
                 <div style={{ fontSize: 12.5, color: T.textMuted, marginTop: 1 }}>
-                  {t.coverage > 0 ? <>posição média <b style={{ color: T.text }}>#{t.avg}</b> · {t.coverage}/5 pontos</> : 'não aparece nesta busca'}
+                  {t.coverage > 0 ? <>posição média <b style={{ color: T.text }}>{t.avg.toFixed(1).replace('.', ',')}</b> · {t.coverage}/5 pontos</> : 'não aparece nesta busca'}
                 </div>
               </div>
               <span style={{ fontSize: 10.5, fontWeight: 800, textTransform:'uppercase', letterSpacing:'.04em', color: s.color, background: s.bg, padding:'4px 9px', borderRadius: 999, flexShrink: 0 }}>{s.label}</span>
@@ -5707,7 +5715,11 @@ function GridRankingList({ data, isGuest, signupUrl }) {
         <Search size={18} style={{ color: T.primary }}/>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Concorrentes por perto</h3>
       </div>
-      <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 12 }}>Ranking médio da sua região · como {data.term}</div>
+      {/* A ordem desta lista é medida a partir do ENDEREÇO DO DONO (a grade é
+          centrada nele), então favorece quem está no centro — ele. Por isso a
+          coluna da média existe: "1º" e "2º" podem ser 3,2 e 3,4. O número diz a
+          verdade que o ordinal esconde. */}
+      <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 12 }}>Medido em 5 pontos ao redor do seu endereço · como {data.term}</div>
       {data.ranking.map((r, i) => {
         const me = r.is_me
         const blurName = isGuest && !me
@@ -5718,6 +5730,12 @@ function GridRankingList({ data, isGuest, signupUrl }) {
               ...(blurName && { filter:'blur(5px)', userSelect:'none', pointerEvents:'none' }) }}>
               {me ? `${r.name || 'Você'} (você)` : (r.name || 'Concorrente')}
             </span>
+            {r.avg != null && (
+              <span title={`Posição média nos ${r.points} de 5 pontos em que aparece`}
+                style={{ fontSize: 12, fontWeight: 600, color: me ? T.primaryDark : T.textMuted, flexShrink: 0 }}>
+                {r.avg.toFixed(1).replace('.', ',')}
+              </span>
+            )}
             <span style={{ fontSize: 12, color: T.textMuted, flexShrink: 0, display:'inline-flex', alignItems:'center', gap: 2 }}>
               {r.rating ?? '—'}<Star size={11} fill={T.accent} color={T.accent} strokeWidth={0}/> · {r.reviews}
             </span>
