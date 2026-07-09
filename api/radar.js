@@ -20,13 +20,8 @@ import {
 import { saveDiagnostic, getDiagnostic, getLatestDiagnosticByPlace } from "./_lib/radar/cache.js";
 import { lookupCep } from "./_lib/radar/cep.js";
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
-import { detectFromName, typeToTerm } from "./_lib/competitors.js";
+import { resolveRadarCategory } from "./_lib/competitors.js";
 import { maybeSendPlanoEmail } from "./_lib/radar/plano-email.js";
-
-// Tipos genéricos do Google que não servem como "categoria" de busca.
-const GENERIC_TYPES = new Set([
-  "point_of_interest", "establishment", "premise", "geocode", "political", "store_storage",
-]);
 
 // Com o place_id do fluxo "ache seu negócio no Google", puxa do Places o que o
 // motor de IA precisa (nome, categoria em pt-BR, cidade) + o site (pra auditoria).
@@ -43,9 +38,12 @@ async function resolveBusinessFromPlace(placeId) {
     if (!r) return null;
 
     const nome = r.name || "";
-    // Categoria: detecta pelo nome (mais específico) e cai pro tipo do Google.
-    const specific = (r.types || []).find((t) => !GENERIC_TYPES.has(t)) || null;
-    const categoria = detectFromName(nome) || typeToTerm(specific) || "";
+    // Categoria = a ARENA do exame. Vem do TIPO do Google (amplo e consistente),
+    // não do nome. Ver resolveRadarCategory: "Le Moulin Padaria Artesanal" era
+    // examinado contra artesanais e "Panatè Artesanal" contra padarias comuns,
+    // só porque um escreveu "padaria" na placa e o outro não.
+    // O `nicho` do nome não se perde: vira pergunta extra (ver handler POST).
+    const { categoria, nicho } = resolveRadarCategory(nome, r.types);
 
     // Cidade + UF a partir dos address_components (mais confiável que o texto).
     const comps = r.address_components || [];
@@ -54,7 +52,7 @@ async function resolveBusinessFromPlace(placeId) {
     const uf = get("administrative_area_level_1");
     const cidade = [city?.long_name, uf?.short_name].filter(Boolean).join(", ");
 
-    return { nome, categoria, cidade, site: (r.website || "").trim() || null };
+    return { nome, categoria, nicho, cidade, site: (r.website || "").trim() || null };
   } catch (e) {
     console.warn("[radar] resolveBusinessFromPlace falhou:", e.message);
     return null;
@@ -134,11 +132,13 @@ export default async function handler(req, res) {
   // Fluxo "ache seu negócio no Google": veio place_id → puxa nome/categoria/
   // cidade/site do Places (dado real) e preenche o que faltar.
   let site = null;
+  let nicho = "";           // nicho do nome ("padaria artesanal") → pergunta extra
   if (placeId) {
     const biz = await resolveBusinessFromPlace(placeId);
     if (biz) {
       nome = nome || biz.nome;
       categoria = categoria || biz.categoria;
+      nicho = biz.nicho || "";
       if (!cidade) cidade = biz.cidade;
       site = biz.site;
     }
@@ -170,7 +170,15 @@ export default async function handler(req, res) {
   let produtos = [];
   if (Array.isArray(body.produtos)) produtos = body.produtos;
   else if (typeof body.produtos === "string") produtos = body.produtos.split(",");
-  produtos = produtos.map((p) => (p || "").toString().trim()).filter(Boolean).slice(0, 3);
+  produtos = produtos.map((p) => (p || "").toString().trim()).filter(Boolean);
+
+  // O nicho que o NOME revela ("Le Moulin Padaria Artesanal") vira uma pergunta
+  // extra, não a arena principal. Assim o Le Moulin continua sendo medido em
+  // "padaria artesanal" — mas também em "padaria", como o Panatè e a Deôla.
+  // Vai no fim: o que o dono digitou tem prioridade se estourar o teto de 3.
+  const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if (nicho && !produtos.some((p) => norm(p) === norm(nicho))) produtos.push(nicho);
+  produtos = produtos.slice(0, 3);
 
   const engines = availableEngines();
   if (engines.length === 0) {

@@ -83,6 +83,54 @@ function typeToTermStrict(rawType) {
   return (rawType && TYPE_TO_TERM[rawType]) || "";
 }
 
+/**
+ * Categoria do IA RADAR — a "arena" em que o negócio é examinado.
+ *
+ * Regra oposta à dos chips do painel, e de propósito. O painel quer a MELHOR
+ * posição possível (nicho fino). O Radar quer COMPARABILIDADE: dois negócios
+ * iguais precisam receber o mesmo exame.
+ *
+ * O bug que isto conserta: a categoria vinha de `detectFromName(nome)` primeiro.
+ * "Le Moulin Padaria Artesanal" era examinado como *padaria artesanal*; "Panatè
+ * Artesanal" (sem a palavra "padaria" no nome) como *padaria*. Duas padarias
+ * idênticas, dois torneios diferentes — decididos pela grafia da placa. Pior:
+ * quem tem nome genérico cai num lago maior e parece pior do que é.
+ *
+ * Também NÃO usamos a categoria oficial do Meu Negócio aqui (ao contrário dos
+ * chips): a Dona Deôla está cadastrada como "Restaurante", e perguntar às IAs
+ * pelo melhor *restaurante* de São Paulo examinaria uma padaria no torneio
+ * errado. O TIPO do Google (`bakery`) é o sinal confiável pra intenção de busca.
+ *
+ * @returns {{categoria: string, nicho: string}} `categoria` = a arena (ampla e
+ *   consistente). `nicho` = o que o nome revela ("padaria artesanal"), quando
+ *   for mais específico — vira PERGUNTA EXTRA, não o exame principal.
+ */
+export function resolveRadarCategory(name, types) {
+  const lista = types || [];
+  // Ignora o que não serve de arena: rótulos vazios, amplos demais, ou de papel
+  // na cadeia (fabricante/fornecedor).
+  const candidatos = lista.filter(
+    (t) => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t) && !STRUCTURAL_TYPES.has(t)
+  );
+  // A ORDEM dos types do Google não é prioridade. O "Restaurante Sushi Isao" vem
+  // como [meal_takeaway, restaurant]: pegar o primeiro o examinaria como
+  // *lanchonete*. TYPE_PRIORITY desempata pelo tipo de negócio principal.
+  const ordenados = [...candidatos].sort((a, b) => (TYPE_PRIORITY[b] || 0) - (TYPE_PRIORITY[a] || 0));
+  const especifico = ordenados.find((t) => typeToTermStrict(t)) || ordenados[0] || null;
+
+  const doTipo = typeToTermStrict(especifico);   // só traduções que conhecemos
+  const doNome = detectFromName(name);           // "padaria artesanal", "produtos de limpeza"
+
+  // Tipo conhecido vence (consistente entre negócios). Sem tipo conhecido, o
+  // nome é a única pista — é o caso da "Loja da Limpeza", cujo tipo é `store`.
+  const categoria = doTipo || doNome || typeToTerm(especifico) || "";
+
+  // Nicho só existe se for MAIS específico que a arena (senão viraria pergunta
+  // duplicada: "padaria" e "padaria").
+  const nicho = doNome && doNome.toLowerCase() !== categoria.toLowerCase() ? doNome : "";
+  return { categoria, nicho };
+}
+
 // ── Filtro de categoria/intenção (compartilhado) ──────────────
 // O tipo do Google é grosseiro (marca "loja de bicicleta" e "aluguel de
 // bicicleta" como bicycle_store). Combinamos: (1) mesmo tipo primário
