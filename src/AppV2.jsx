@@ -3740,7 +3740,7 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
               <>
                 <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>{gridPos.score.toFixed(1).replace('.', ',')}</div>
                 <div style={{ fontSize: 13, color: T.textMuted }}>posição média no Google</div>
-                <div style={{ fontSize: 12, color: T.textDim }}>como {gridPos.term} · aparece em {gridPos.coverage}/5 pontos ao redor do seu endereço</div>
+                <div style={{ fontSize: 12, color: T.textDim }}>como {gridPos.term} · aparece em {gridPos.coverage}/{gridPos.measured} pontos ao redor do seu endereço</div>
                 <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button>
               </>
             ) : (
@@ -3748,7 +3748,7 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
                 <div style={{ display:'inline-flex', alignItems:'center', gap: 6, fontSize: isMobile ? 20 : 24, fontWeight: 800, color: T.accent, lineHeight: 1.1, letterSpacing:'-0.01em' }}>
                   <AlertTriangle size={isMobile ? 20 : 22}/> Fora da lista
                 </div>
-                <div style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.4 }}>Não aparece pra "{gridPos.term}" em nenhum ponto da sua região.</div>
+                <div style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.4 }}>Não aparece pra "{gridPos.term}" em nenhum dos {gridPos.measured} pontos medidos na sua região.</div>
                 <button onClick={onSeeCompetitors} style={{ ...link, color: T.accent }}>Ver concorrentes <ChevronRight size={14}/></button>
               </>
             )
@@ -5692,7 +5692,7 @@ function RankingGrid({ data }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, color: T.text, fontWeight: 600 }}>Como {t.term}</div>
                 <div style={{ fontSize: 12.5, color: T.textMuted, marginTop: 1 }}>
-                  {t.coverage > 0 ? <>posição média <b style={{ color: T.text }}>{t.score.toFixed(1).replace('.', ',')}</b> · {t.coverage}/5 pontos</> : 'não aparece nesta busca'}
+                  {t.coverage > 0 ? <>posição média <b style={{ color: T.text }}>{t.score.toFixed(1).replace('.', ',')}</b> · {t.coverage}/{t.measured} pontos</> : 'não aparece nesta busca'}
                 </div>
               </div>
               <span style={{ fontSize: 10.5, fontWeight: 800, textTransform:'uppercase', letterSpacing:'.04em', color: s.color, background: s.bg, padding:'4px 9px', borderRadius: 999, flexShrink: 0 }}>{s.label}</span>
@@ -5710,7 +5710,7 @@ function RankingGrid({ data }) {
 // cabeçalho: sem ele, "1,4 4,7 8442" é ruído.
 // Larguras somam ~180px + gaps: num card de 328px (celular de 360) sobram ~120px
 // pro nome, que trunca com reticências. Apertar mais espreme o cabeçalho.
-const COL = { pos: 24, avg: 54, rating: 46, reviews: 56 }
+const COL = { pos: 38, avg: 54, rating: 46, reviews: 52 }
 function GridRankingList({ data, isGuest, signupUrl }) {
   if (!data?.ranking?.length) return null
   const th = { fontSize: 10, fontWeight: 700, letterSpacing:'0.04em', textTransform:'uppercase', color: T.textDim, flexShrink: 0 }
@@ -5725,10 +5725,10 @@ function GridRankingList({ data, isGuest, signupUrl }) {
           centrada nele), então favorece quem está no centro — ele. Por isso a
           coluna da média existe: "1º" e "2º" podem ser 3,2 e 3,4. O número diz a
           verdade que o ordinal esconde. */}
-      <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 12 }}>Medido em 5 pontos ao redor do seu endereço · como {data.term}</div>
+      <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 12 }}>Medido em {data.measured} pontos ao redor do seu endereço · como {data.term}</div>
 
       <div style={{ display:'flex', alignItems:'flex-end', gap: 8, padding:'0 8px 6px', borderBottom:`1px solid ${T.border}`, marginBottom: 4 }}>
-        <span style={{ ...th, width: COL.pos }}/>
+        <span style={{ ...th, width: COL.pos, textAlign:"center" }}>Ordem</span>
         <span style={{ ...th, flex: 1, minWidth: 0 }}>Negócio</span>
         <span style={{ ...th, ...num, width: COL.avg, lineHeight: 1.2 }}>Posição<br/>média</span>
         <span style={{ ...th, ...num, width: COL.rating }}>Nota</span>
@@ -5746,7 +5746,7 @@ function GridRankingList({ data, isGuest, signupUrl }) {
               {me ? `${r.name || 'Você'} (você)` : (r.name || 'Concorrente')}
             </span>
             <span title={r.score != null
-                ? `Aparece em ${r.points} de 5 pontos${r.points < 5 ? ` (nos outros ${5 - r.points}, fica fora do top 20)` : ''}`
+                ? `Aparece em ${r.points} de ${data.measured} pontos${r.points < data.measured ? ` (nos outros ${data.measured - r.points}, fica fora do top 20)` : ''}`
                 : 'Não apareceu em nenhum ponto'}
               style={{ ...num, width: COL.avg, fontSize: 13, fontWeight: 700, color: me ? T.primaryDark : T.text }}>
               {r.score != null ? r.score.toFixed(1).replace('.', ',') : '—'}
@@ -5760,9 +5760,17 @@ function GridRankingList({ data, isGuest, signupUrl }) {
           </div>
         )
       })}
-      <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.45 }}>
-        <b style={{ color: T.textMuted }}>Posição média</b>: em que lugar o Google mostra o negócio, na média dos 5 pontos.
-        Quando ele não aparece num ponto, esse ponto conta como 21º. Menor é melhor.
+      {/* "1º com posição média 4,6" parece contradição e não é: a Padaria Delícia
+          de Perdizes fica em 1,7,4,6,5 no Google (média 4,6) e ainda assim lidera,
+          porque os vizinhos estão em 9,0 ou pior. Ordem ≠ posição — a legenda tem
+          que dizer isso, senão o dono lê os dois números como o mesmo. */}
+      <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.5 }}>
+        <div><b style={{ color: T.textMuted }}>Ordem</b>: quem se sai melhor entre os negócios medidos aqui.</div>
+        <div style={{ marginTop: 2 }}>
+          <b style={{ color: T.textMuted }}>Posição média</b>: em que lugar o Google mostra o negócio, na média dos {data.measured} pontos.
+          Quando ele não aparece num ponto, esse ponto conta como 21º. Menor é melhor.
+        </div>
+        <div style={{ marginTop: 2 }}>Dá pra ser 1º na ordem e ainda assim ter posição média 4,6 — significa que a vizinhança inteira aparece mal.</div>
       </div>
       {isGuest && data.ranking.some(r => !r.is_me) && (
         <div style={{ marginTop: 12, display:'flex', alignItems:'center', gap: 12, flexWrap:'wrap', background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 12, padding:'12px 14px' }}>
@@ -6548,7 +6556,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   // Ranking por GRADE (posição média real). Alimenta o Hero (termo principal) e o
   // card de termos extras. Uma busca só, compartilhada.
   const gridData = useGridData({ placeId: guestContext?.placeId || d.biz?.placeId, terms: guestContext?.terms })
-  const gridPrimary = gridData?.terms?.[0] || null
+  // measured === 0 → o Places falhou em TODOS os pontos. Não sabemos nada; cair
+  // no fallback das lentes é melhor que anunciar "Fora da lista" (que seria
+  // inventar uma má notícia a partir de uma falha de infraestrutura).
+  const gp = gridData?.terms?.[0]
+  const gridPrimary = gp && gp.measured > 0 ? gp : null
   // Categoria mostrada e URL do perfil do Google (p/ "corrigir categoria" / "Responder").
   const lensCategory = lensState.data?.term || d.activeCategory || 'sua categoria'
   const googleProfileUrl = (guestContext?.placeId || d.biz?.placeId)

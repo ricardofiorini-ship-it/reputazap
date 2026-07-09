@@ -256,14 +256,17 @@ fbq('track', 'PageView');
     const box = $("localRank"); if (!box) return;
     const t = grid && grid.terms && grid.terms[0];
     if (!t) return;
-    // Mostra a MÉDIA das 5 posições, não o ordinal da lista: a grade é centrada
+    // measured === 0 → o Places falhou em todos os pontos. Some o bloco: dizer
+    // "você não aparece" seria transformar uma falha nossa em má notícia pro dono.
+    if (!t.measured) return;
+    // Mostra a MÉDIA das posições, não o ordinal da lista: a grade é centrada
     // na porta do negócio, então o ordinal favorece quem está no centro (ele).
     // Dois vizinhos a 1km davam AMBOS "#1", cada um na própria grade.
     if (t.coverage > 0 && t.score != null){
       box.innerHTML =
         '<div class="lr">' + ICON.pin +
         '<span>No Google, sua posição média é <b>' + t.score.toFixed(1).replace(".", ",") + '</b> como <b>' + esc(t.term) + '</b>' +
-        '<span class="lr-sub"> · em ' + t.coverage + ' de 5 pontos ao redor do seu endereço</span></span></div>';
+        '<span class="lr-sub"> · em ' + t.coverage + ' de ' + t.measured + ' pontos ao redor do seu endereço</span></span></div>';
     } else {
       box.innerHTML =
         '<div class="lr miss-lr">' + ICON.alert +

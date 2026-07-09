@@ -491,6 +491,15 @@ async function geocodeCep(cep) {
 async function runTextSearch(term, lat, lng, radius) {
   const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(term)}&location=${lat},${lng}&radius=${radius}&language=pt-BR&region=br&key=${API_KEY}`;
   const ts = await (await fetchWithTimeout(url, {}, 8000)).json();
+  // O Places devolve `DEADLINE_EXCEEDED` de forma intermitente (medido: 3 em 6
+  // requisições no mesmo ponto), com `results` vazio e HTTP 200. Sem checar o
+  // status, uma FALHA DA API vira "o negócio não aparece aqui" — e ausência
+  // custa 21 pontos de penalidade no score. Foi assim que a Padaria Delícia de
+  // Perdizes oscilou entre 4,6 e 8,6 entre uma medição e outra.
+  // ZERO_RESULTS é resposta legítima (ninguém encontrado); o resto é falha.
+  if (ts.status && ts.status !== "OK" && ts.status !== "ZERO_RESULTS") {
+    throw new Error(`places_status:${ts.status}`);
+  }
   const seen = new Set();
   const ordered = [];
   for (const p of (ts.results || [])) {
@@ -767,17 +776,30 @@ export async function fetchGridRanking({ placeId, terms, spacingM = 1000, radius
 
   // Cada termo: os 5 pontos em paralelo (Text Search com bias no ponto).
   const termsOut = await Promise.all(termList.map(async (term) => {
-    const pts = await Promise.all(points.map(async (pt) => {
-      let ordered = [];
-      try { ordered = await runTextSearch(term, pt.lat, pt.lng, radius); } catch { ordered = []; }
+    const allPts = await Promise.all(points.map(async (pt) => {
+      // Até 3 tentativas: o Places falha de forma intermitente e um ponto
+      // "perdido" custaria 21 pontos de penalidade ao negócio (ver runTextSearch).
+      let ordered = null, erro = null;
+      for (let tentativa = 0; tentativa < 3; tentativa++) {
+        try { ordered = await runTextSearch(term, pt.lat, pt.lng, radius); erro = null; break; }
+        catch (e) { erro = e; await new Promise((r) => setTimeout(r, 250 * (tentativa + 1))); }
+      }
+      // Falhou as 3 vezes → ponto NÃO MEDIDO. Sai da conta inteira (nem posição,
+      // nem penalidade). Contar como ausência seria inventar uma má notícia.
+      if (ordered == null) {
+        console.warn(`[grid] ponto ${pt.dir} descartado (${erro?.message || "erro"})`);
+        return { dir: pt.dir, ok: false, rank: null, total: 0, list: [] };
+      }
       const idx = ordered.findIndex((p) => p.place_id === placeId);
       return {
         dir: pt.dir,
-        rank: idx >= 0 ? idx + 1 : null,   // null = ausente (NUNCA inserido)
+        ok: true,
+        rank: idx >= 0 ? idx + 1 : null,   // null = ausente de verdade (NUNCA inserido)
         total: ordered.length,
         list: ordered.slice(0, 20),        // lista ordenada do ponto (pra agregar)
       };
     }));
+    const pts = allPts.filter((p) => p.ok);   // só pontos realmente medidos entram na conta
     const present = pts.filter((p) => p.rank != null).map((p) => p.rank);
     const avg = present.length ? Math.round((present.reduce((a, b) => a + b, 0) / present.length) * 10) / 10 : null;
 
@@ -787,7 +809,7 @@ export async function fetchGridRanking({ placeId, terms, spacingM = 1000, radius
     // de quem está sempre em #3. A LISTA e a posição do dono vêm da MESMA
     // medição do Hero (o "#N" do topo bate com a lista).
     const PENALTY = 21;               // "além do top 20" pros pontos onde o negócio some
-    const nPts = pts.length || 5;
+    const nPts = pts.length;          // denominador = pontos MEDIDOS (não os 5 fixos)
     const agg = new Map();            // place_id -> { name, rating, reviews, positions[] }
     for (const p of pts) (p.list || []).forEach((biz, i) => {
       const cur = agg.get(biz.place_id) || { place_id: biz.place_id, name: biz.name, rating: biz.rating, reviews: biz.reviews, positions: [] };
@@ -822,7 +844,14 @@ export async function fetchGridRanking({ placeId, terms, spacingM = 1000, radius
     let ranking = rankingArr.slice(0, 12).map(strip);
     if (myIdx >= 12) ranking.push(strip(rankingArr[myIdx]));   // garante o dono na lista
 
-    return { term, points: pts.map(({ dir, rank, total }) => ({ dir, rank, total })), avg, score, coverage: present.length, rank, total: rankingArr.length, ranking };
+    // `measured` = quantos dos 5 pontos o Google respondeu. measured 0 = não
+    // sabemos nada; o chamador NÃO pode ler isso como "fora da lista".
+    return {
+      term,
+      points: allPts.map(({ dir, ok, rank, total }) => ({ dir, ok, rank, total })),
+      avg, score, coverage: present.length, measured: nPts,
+      rank, total: rankingArr.length, ranking,
+    };
   }));
 
   return { placeId, name: det.name, center: { lat, lng }, spacingM, radius, terms: termsOut };
