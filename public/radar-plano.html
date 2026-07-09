@@ -103,6 +103,11 @@ fbq('track', 'PageView');
   .ev-me{font-weight:800;color:#8AB4F8;}                 /* o negócio do dono */
   .ev-comp{margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1);font-size:12.5px;color:var(--dark-sub);line-height:1.5;}
   .ev-comp b{color:#fff;}
+  /* Liga o veredito do cartão ("não citou você") à estatística logo abaixo
+     ("apareceu em 2 de 6"). Sem ela os dois números parecem se contradizer. */
+  .ev-bridge{margin-top:10px;font-size:12.5px;color:var(--dark-sub);line-height:1.5;}
+  .ev-bridge b{color:#fff;}
+  .ev-comp + .ev-bridge{margin-top:6px;border-top:0;padding-top:0;}
   .miss svg{width:16px;height:16px;flex:0 0 auto;}
 
   /* Bloco B — orçamento de oficina */
@@ -238,12 +243,27 @@ fbq('track', 'PageView');
     const citou = (it.concorrentes || []).length
       ? '<div class="ev-comp">Em vez disso, citou: <b>' + it.concorrentes.map(esc).join("</b>, <b>") + '</b>.</div>'
       : "";
+
+    // Reconciliação. O cartão mostra a resposta MAIS DURA (pickEvidence), e logo
+    // abaixo a estatística diz "apareceu em 2 de 6 buscas". Sem esta linha, os
+    // dois números parecem se contradizer: "não citou você" × "apareceu em 2".
+    // Aqui a gente liga um no outro, em voz alta.
+    const m = diag.mencoes || 0, t = diag.total || 0;
+    let ponte = "";
+    if (t > 0) {
+      if (presente)      ponte = 'E não foi só aqui: você foi citado em <b>todas as ' + t + '</b> buscas que fizemos.';
+      else if (m === 0)  ponte = 'E não foi só aqui: você não foi citado em <b>nenhuma</b> das ' + t + ' buscas que fizemos.';
+      else               ponte = 'Nesta resposta, não. Em <b>' + m + ' das ' + t + '</b> buscas que fizemos, sim.';
+    }
+    const bridge = ponte ? '<div class="ev-bridge">' + ponte + '</div>' : "";
+
     return '<div class="ev">' +
       '<div class="ev-head"><span class="ev-engine">' + esc(ENGINE_LABELS[it.motor] || it.motor) + ' respondeu</span>' +
         '<span class="ev-flag ' + (presente ? "ok" : "no") + '">' + (presente ? "✓ citou você" : "✗ não citou você") + '</span></div>' +
       '<div class="ev-q">"' + esc(it.pergunta) + '"</div>' +
       '<blockquote class="ev-a">' + corpo + '</blockquote>' +
       (presente ? "" : citou) +
+      bridge +
     '</div>';
   }
   const ICON = {

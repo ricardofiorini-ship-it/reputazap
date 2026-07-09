@@ -397,6 +397,10 @@ fbq('track', 'PageView');
   .ev-verdict.ok{color:#137333;}
   .ev-comp{margin-top:6px;font-size:13.5px;color:#4B5563;line-height:1.5;}
   .ev-comp strong{color:#111827;font-weight:800;}
+  /* Liga o veredito do cartão ("ausente") à medida do passo seguinte
+     ("citado em 2 de 6"). Sem ela os dois números parecem se contradizer. */
+  .ev-bridge{margin-top:8px;font-size:13px;color:#5F6368;line-height:1.55;}
+  .ev-bridge strong{color:#111827;font-weight:800;}
   .ev-note{margin-top:14px;font-size:13.5px;color:#5F6368;line-height:1.6;}
   .ev-note strong{color:#111827;}
   #repPlanBox{margin-top:20px;}
@@ -882,10 +886,20 @@ fbq('track', 'PageView');
       ? '<p class="ev-comp">Em vez disso, citou: <strong>' + it.concorrentes.map(esc).join("</strong>, <strong>") + '</strong>.</p>'
       : "";
 
+    const m = d.mencoes || 0, t = d.total || 0;
+    let texto = "";
+    if (t > 0) {
+      if (presente)     texto = 'E não foi só aqui: você foi citado em <strong>todas as ' + t + '</strong> buscas que fizemos.';
+      else if (m === 0) texto = 'E não foi só aqui: você não foi citado em <strong>nenhuma</strong> das ' + t + ' buscas que fizemos.';
+      else              texto = 'Nesta resposta, não. Em <strong>' + m + ' das ' + t + '</strong> buscas que fizemos, sim.';
+    }
+    const ponte = texto ? '<p class="ev-bridge">' + texto + '</p>' : "";
+
     box.innerHTML =
-      '<p class="ev-lead">' + (presente
-        ? "Perguntamos às IAs o que seus clientes perguntariam. Veja o que uma delas respondeu:"
-        : "Perguntamos às IAs o que seus clientes perguntariam. Veja o que uma delas respondeu:") + '</p>' +
+      // Reconciliação: o cartão mostra a resposta MAIS DURA (pickEvidence) e a
+      // medida logo adiante diz "citado em 2 de 6". Sem esta ponte, os dois
+      // números parecem se contradizer. Mesma regra do /radar/plano.
+      '<p class="ev-lead">Perguntamos às IAs o que seus clientes perguntariam. Veja o que uma delas respondeu:</p>' +
       '<div class="ev-card">' +
         '<div class="ev-head">' +
           '<span class="ev-engine">' + esc(ENGINE_LABELS[it.motor] || it.motor) + '</span>' +
@@ -895,6 +909,7 @@ fbq('track', 'PageView');
         (it.resposta ? '<blockquote class="ev-a">' + corpo + '</blockquote>' : '') +
         '<p class="ev-verdict ' + veredito.cls + '">' + veredito.txt + '</p>' +
         citou +
+        ponte +
       '</div>' +
       '<p class="ev-note">' + (presente
         ? "Boa notícia: hoje você aparece. O trabalho passa a ser <strong>manter a posição</strong> — as respostas mudam conforme os sinais mudam."
