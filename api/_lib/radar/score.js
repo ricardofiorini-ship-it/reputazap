@@ -63,7 +63,10 @@ function parseJsonLoose(text) {
 }
 
 // Encurta um texto pra caber no payload (transparência sem peso).
-function excerpt(s, max = 480) {
+// 800 (era 480): a resposta da IA é o argumento do laudo, e cortar em 480
+// truncava no meio do segundo concorrente. O texto é guardado em `detalhe` no
+// banco e trafega no payload do /radar/plano — 800 ainda é barato.
+function excerpt(s, max = 800) {
   const t = (s || "").trim();
   return t.length > max ? t.slice(0, max).trimEnd() + "…" : t;
 }

@@ -148,7 +148,7 @@ na página do tratamento.
       "itens": [
         {
           "pergunta": "Qual a melhor clínica veterinária na Lapa, São Paulo?",
-          "resposta": "texto da IA, truncado em 480 caracteres com reticências",
+          "resposta": "texto da IA, truncado em 800 caracteres com reticências",
           "mencionado": false,
           "concorrentes": ["Clínica X", "Vet Y"]
         }
@@ -164,9 +164,9 @@ na página do tratamento.
 
 **Limites reais, não negociáveis pelo design:**
 
-- `resposta` vem **truncada em 480 caracteres** (`excerpt()` em
-  `api/_lib/radar/score.js`). Um layout que precise da resposta inteira exige
-  mudar o backend — decisão consciente, não acidente de CSS.
+- `resposta` vem **truncada em 800 caracteres** (`excerpt()` em
+  `api/_lib/radar/score.js`; era 480 até 09/07). Um layout que precise da
+  resposta inteira exige mudar o backend — decisão consciente, não acidente de CSS.
 - `concorrentes` (topo) traz **no máximo 5**, já ordenados por frequência.
 - `porMotor` só contém motores que responderam. **Regra de transparência: nunca
   exibir um motor que não rodou.** Falha de um motor não derruba o diagnóstico.
