@@ -101,7 +101,15 @@ export default async function handler(req, res) {
         terms = suggestTerms(seed?.name, seed?.types, seed?.primaryDisplay, seed?.primaryType).slice(0, 1);
       }
       if (!terms.length) return res.json({ ok: true, grid: null });
-      const grid = await fetchGridRankingCached({ placeId, terms });
+      // ?fresh=1 → ignora o cache e mede na hora. Ferramenta de DIAGNÓSTICO: sem
+      // ela não dá pra saber, olhando a tela, se um número estranho é bug de
+      // ranking ou cache de até 7 dias. Queima Places sempre → LAB, junto com o
+      // resto dos hacks desta branch. Passo 4 tranca com o gate de admin.
+      const fresh = !!req.query.fresh;
+      // O handler seta `max-age=600` no topo. Numa medição "sem cache" isso
+      // devolveria uma resposta de até 10min do CDN — o bolor que viemos matar.
+      if (fresh) res.setHeader("Cache-Control", "no-store");
+      const grid = await fetchGridRankingCached({ placeId, terms, fresh });
       return res.json({ ok: true, grid });
     } catch (err) {
       console.error("[diagnostico/grid] erro:", err);

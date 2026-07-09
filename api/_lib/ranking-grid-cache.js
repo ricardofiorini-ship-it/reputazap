@@ -38,7 +38,10 @@ async function getCached(placeId, term) {
     // Guard de formato: entradas antigas (antes da agregação) não têm `ranking`.
     // Trata como miss → recomputa no formato novo (auto-conserta o cache velho).
     if (!data.result || data.result.ranking === undefined) return null;
-    return data.result;
+    // Carimba QUANDO foi medido. Sem isso o painel mostra a posição de até 7 dias
+    // atrás como se fosse a de hoje — e não há como distinguir, olhando a tela,
+    // um bug de ranking de um cache velho.
+    return { ...data.result, measuredAt: data.created_at };
   } catch {
     return null;
   }
@@ -61,28 +64,33 @@ async function setCached(placeId, term, result) {
  * Ranking por grade COM cache por termo. Só computa (queima Places) os termos
  * que não estão no cache/expiraram; o resto vem do banco. Se TODOS os termos
  * estiverem no cache, não faz nenhuma chamada ao Places.
- * @returns {Promise<Object>} { placeId, name, center, terms:[{...,cached:bool}] }
+ * @param {boolean} [fresh=false] IGNORA a leitura do cache e mede na hora (ainda
+ *   grava o resultado). Ferramenta de diagnóstico: sem ela não dá pra distinguir
+ *   "o ranking está errado" de "o cache está velho" olhando a tela. QUEIMA Places
+ *   em toda chamada — nunca expor num caminho público sem gate.
+ * @returns {Promise<Object>} { placeId, name, center, terms:[{...,cached:bool,measuredAt}] }
  */
-export async function fetchGridRankingCached({ placeId, terms, spacingM, radius }) {
+export async function fetchGridRankingCached({ placeId, terms, spacingM, radius, fresh = false }) {
   const termList = (Array.isArray(terms) ? terms : [terms])
     .map((t) => (t || "").toString().trim()).filter(Boolean).slice(0, 3);
   if (!placeId || !termList.length) throw new Error("place_id e ao menos 1 termo obrigatórios");
 
-  // 1. Lê o cache de cada termo em paralelo.
+  // 1. Lê o cache de cada termo em paralelo (fresh=1 pula a leitura: tudo é frio).
   const cachedByTerm = {};
   const cold = [];
   await Promise.all(termList.map(async (term) => {
-    const c = await getCached(placeId, term);
+    const c = fresh ? null : await getCached(placeId, term);
     if (c) cachedByTerm[norm(term)] = c;
     else cold.push(term);
   }));
 
   // 2. Só os termos frios vão pro Places (uma chamada, compartilha o Details).
-  let fresh = null;
+  let computed = null;
+  const measuredNow = new Date().toISOString();
   if (cold.length) {
-    fresh = await fetchGridRanking({ placeId, terms: cold, spacingM, radius });
-    await Promise.all((fresh.terms || []).map((t) =>
-      setCached(placeId, t.term, { ...t, name: fresh.name, center: fresh.center })
+    computed = await fetchGridRanking({ placeId, terms: cold, spacingM, radius });
+    await Promise.all((computed.terms || []).map((t) =>
+      setCached(placeId, t.term, { ...t, name: computed.name, center: computed.center })
     ));
   }
 
@@ -90,11 +98,11 @@ export async function fetchGridRankingCached({ placeId, terms, spacingM, radius 
   const outTerms = termList.map((term) => {
     const c = cachedByTerm[norm(term)];
     if (c) return { ...c, cached: true };
-    const f = (fresh?.terms || []).find((t) => norm(t.term) === norm(term));
-    return f ? { ...f, name: fresh.name, center: fresh.center, cached: false } : null;
+    const f = (computed?.terms || []).find((t) => norm(t.term) === norm(term));
+    return f ? { ...f, name: computed.name, center: computed.center, cached: false, measuredAt: measuredNow } : null;
   }).filter(Boolean);
 
-  const name = fresh?.name || outTerms[0]?.name || null;
-  const center = fresh?.center || outTerms[0]?.center || null;
+  const name = computed?.name || outTerms[0]?.name || null;
+  const center = computed?.center || outTerms[0]?.center || null;
   return { placeId, name, center, terms: outTerms };
 }
