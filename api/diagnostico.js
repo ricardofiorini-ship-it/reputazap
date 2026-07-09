@@ -64,6 +64,26 @@ function suggestFor(term) {
   return [...new Set([term, ...base])].slice(0, 4);
 }
 
+// A grade é a única rota pública que queima Places em lote: 5 Text Search por
+// termo frio (até 3 termos = 15 chamadas). O cache de 7 dias absorve as
+// revisitas, mas nada impede alguém de varrer place_ids. Freio por IP.
+// Ressalva: `Map` em memória vive por INSTÂNCIA de função — a Vercel roda
+// várias, então o teto real é maior que RATE_LIMIT. Segura abuso casual, não
+// ataque decidido.
+const GRID_RATE_LIMIT = 12;
+const GRID_RATE_WINDOW_MS = 60 * 60 * 1000;
+const gridHits = new Map();
+function gridRateLimited(ip) {
+  const now = Date.now();
+  const arr = (gridHits.get(ip) || []).filter((t) => now - t < GRID_RATE_WINDOW_MS);
+  if (arr.length >= GRID_RATE_LIMIT) { gridHits.set(ip, arr); return true; }
+  arr.push(now); gridHits.set(ip, arr); return false;
+}
+function getIp(req) {
+  const fwd = req.headers["x-forwarded-for"];
+  return fwd ? fwd.split(",")[0].trim() : (req.socket?.remoteAddress || "unknown");
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Cache-Control", "public, max-age=600");
@@ -91,21 +111,25 @@ export default async function handler(req, res) {
     }
   }
 
-  // Modo GRADE (Passo 2). LAB: sem flag nesta branch (preview é SSO-protegido e
-  // produção não tem caller). Passo 4 adiciona o gate RANKING_GRID_ENABLED.
+  // Modo GRADE. PÚBLICO de propósito (decisão de 09/07: ranking é tudo free —
+  // entregamos o diagnóstico e vendemos o conserto). Protegido por cache de 7
+  // dias + freio por IP, não por login.
   if (req.query.grid) {
     try {
+      if (gridRateLimited(getIp(req))) {
+        return res.status(429).json({ error: "Muitas consultas seguidas. Tente de novo em alguns minutos." });
+      }
       let terms = (req.query.terms || "").toString().split(",").map((t) => t.trim()).filter(Boolean).slice(0, 3);
       if (!terms.length) {
         const seed = await fetchPlaceSeed(placeId);
         terms = suggestTerms(seed?.name, seed?.types, seed?.primaryDisplay, seed?.primaryType).slice(0, 1);
       }
       if (!terms.length) return res.json({ ok: true, grid: null });
-      // ?fresh=1 → ignora o cache e mede na hora. Ferramenta de DIAGNÓSTICO: sem
-      // ela não dá pra saber, olhando a tela, se um número estranho é bug de
-      // ranking ou cache de até 7 dias. Queima Places sempre → LAB, junto com o
-      // resto dos hacks desta branch. Passo 4 tranca com o gate de admin.
-      const fresh = !!req.query.fresh;
+      // ?fresh=1 fura o cache e mede na hora: 15 chamadas Places por request, sem
+      // reaproveitar nada. É ferramenta de diagnóstico, NÃO pode ser pública —
+      // um F5 repetido viraria conta no Google. Exige o segredo; sem a env, some.
+      const segredo = process.env.GRID_FRESH_SECRET;
+      const fresh = !!req.query.fresh && !!segredo && req.query.secret === segredo;
       // O handler seta `max-age=600` no topo. Numa medição "sem cache" isso
       // devolveria uma resposta de até 10min do CDN — o bolor que viemos matar.
       if (fresh) res.setHeader("Cache-Control", "no-store");

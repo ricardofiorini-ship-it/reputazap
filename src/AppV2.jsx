@@ -6763,8 +6763,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         {(demoMode || (real.hasBusiness && (guestContext?.placeId || d.biz?.placeId))) && (
         <Section>
           <div id="bloco-concorrentes" style={{ scrollMarginTop: 72 }} />
-          {/* Ranking por GRADE (Passo 2). LAB: aparece pra qualquer place_id (inclui
-              modo convidado) pra o Ricardo ver no preview sem login. Passo 4 re-trava. */}
+          {/* Ranking por GRADE. Aberto pra qualquer place_id, inclusive convidado
+              sem login — decisão de 09/07: o ranking é tudo free. Entregamos o
+              diagnóstico inteiro e vendemos o conserto (pacote de IA, placas),
+              não a informação. O custo é contido por cache + freio por IP no
+              endpoint, não por paywall. */}
           {gridData?.terms?.length > 1 && (
             <div style={{ marginBottom: 14 }}>
               <RankingGrid data={gridData} />
