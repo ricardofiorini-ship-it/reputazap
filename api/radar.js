@@ -108,6 +108,11 @@ export default async function handler(req, res) {
       concorrentes: d.concorrentes || [],
       porMotor: detalhe.porMotor || {},
       local: detalhe.local || { cidade: d.cidade },
+      // Termos de NICHO usados nas perguntas extras ("padaria artesanal"). Já
+      // eram gravados em `detalhe`, mas nunca saíam daqui — sem eles a tela não
+      // consegue separar "aparece no nicho" de "aparece na busca ampla", que é
+      // o diagnóstico mais útil que o laudo tem a dar.
+      produtos: detalhe.produtos || [],
       place_id: d.place_id || null,
       site: d.site || null,
       created_at: d.created_at,
@@ -266,7 +271,9 @@ export default async function handler(req, res) {
 
     // `code` pode vir null (banco off ou colunas place_id/site ainda não
     // criadas) — nesse caso o /radar cai no relatório inline (fallback).
-    return res.json({ code, score, mencoes, total, concorrentes, diagnostico, porMotor, local: { cidade, bairro }, place_id: placeId || null, site });
+    // `produtos` e `categoria` também no POST: o laudo de fallback (sem `code`)
+    // precisa separar nicho de busca ampla igual à tela real.
+    return res.json({ code, score, mencoes, total, concorrentes, diagnostico, porMotor, categoria, produtos, local: { cidade, bairro }, place_id: placeId || null, site });
   } catch (err) {
     console.error("[radar] erro:", err);
     return res.status(500).json({ error: err.message || "Erro ao gerar o diagnóstico de IA." });

@@ -108,6 +108,18 @@ fbq('track', 'PageView');
   .ev-bridge{margin-top:10px;font-size:12.5px;color:var(--dark-sub);line-height:1.5;}
   .ev-bridge b{color:#fff;}
   .ev-comp + .ev-bridge{margin-top:6px;border-top:0;padding-top:0;}
+
+  /* Nicho × busca ampla. Duas linhas e uma conclusão — só quando há contraste. */
+  .bt{margin-top:14px;padding-top:13px;border-top:1px solid rgba(255,255,255,.12);}
+  .bt-title{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--dark-sub);margin-bottom:9px;}
+  .bt-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;}
+  .bt-row + .bt-row{border-top:1px solid rgba(255,255,255,.06);}
+  .bt-term{font-size:13.5px;color:#e8eefb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bt-count{font-size:12.5px;font-weight:800;border-radius:6px;padding:3px 9px;white-space:nowrap;flex-shrink:0;font-variant-numeric:tabular-nums;}
+  .bt-count.ok{background:rgba(126,226,168,.16);color:#7EE2A8;}
+  .bt-count.no{background:rgba(252,165,165,.16);color:#FCA5A5;}
+  .bt-punch{margin-top:11px;font-size:13px;color:#e8eefb;line-height:1.55;}
+  .bt-punch b{color:#fff;}
   .miss svg{width:16px;height:16px;flex:0 0 auto;}
 
   /* Bloco B — orçamento de oficina */
@@ -231,6 +243,59 @@ fbq('track', 'PageView');
         || todos.find(it => it.mencionado)
         || todos[0];
   }
+  // ── Aparece no NICHO ou na BUSCA AMPLA? ────────────────────────────────────
+  // O laudo dizia "2 de 7 buscas" sem revelar QUAIS. Uma dessas perguntas é a de
+  // nicho ("padaria artesanal"); as outras são a arena ("padaria"). Separadas,
+  // viram o diagnóstico mais util que temos: "você existe pro seu nicho e é
+  // invisível na busca ampla" — que é exatamente o que a StarTouch conserta.
+  //
+  // Classificação: uma pergunta é de nicho se contém um dos `produtos` (os
+  // termos extras). Comparação normalizada (minúsculo, sem acento).
+  function breakdownPorTermo(diag){
+    const produtos = (diag.produtos || []).map(p => normComp(p)).filter(Boolean);
+    if (!produtos.length) return null;
+
+    const arena = { termo: diag.categoria || "sua categoria", mencoes: 0, total: 0 };
+    const nicho = { termo: (diag.produtos || [])[0] || "", mencoes: 0, total: 0 };
+
+    Object.values(diag.porMotor || {}).forEach(pm => (pm.itens || []).forEach(it => {
+      const q = normComp(it.pergunta || "");
+      const alvo = produtos.some(p => q.includes(p)) ? nicho : arena;
+      alvo.total++;
+      if (it.mencionado) alvo.mencoes++;
+    }));
+
+    if (!nicho.total || !arena.total) return null;   // sem contraste, sem história
+    return { arena, nicho };
+  }
+
+  function renderBreakdown(diag){
+    const b = breakdownPorTermo(diag);
+    if (!b) return "";
+    const { arena, nicho } = b;
+    const linha = (x, destaque) =>
+      '<div class="bt-row">' +
+        '<span class="bt-term">' + esc(x.termo) + '</span>' +
+        '<span class="bt-count ' + (x.mencoes ? "ok" : "no") + '">' +
+          (x.mencoes ? x.mencoes + ' de ' + x.total : '0 de ' + x.total) +
+        '</span>' +
+      '</div>';
+
+    // A frase só existe quando há CONTRASTE. Sem contraste seria ruído — ou pior,
+    // uma conclusão inventada.
+    let punch = "";
+    if (!arena.mencoes && nicho.mencoes)
+      punch = 'Você aparece quando pedem <b>' + esc(nicho.termo) + '</b> — e some quando pedem <b>' + esc(arena.termo) + '</b>. Quem não conhece você ainda, não te encontra.';
+    else if (arena.mencoes && !nicho.mencoes)
+      punch = 'Você aparece na busca ampla por <b>' + esc(arena.termo) + '</b>, mas não em <b>' + esc(nicho.termo) + '</b> — onde a concorrência é menor.';
+
+    return '<div class="bt">' +
+      '<div class="bt-title">Em quais buscas você aparece</div>' +
+      linha(arena) + linha(nicho) +
+      (punch ? '<div class="bt-punch">' + punch + '</div>' : '') +
+    '</div>';
+  }
+
   // O cartão de prova. A resposta literal da IA é o argumento — um score é uma
   // opinião nossa, isto é um fato.
   function renderEvidence(diag){
@@ -359,6 +424,7 @@ fbq('track', 'PageView');
         qLine +
         comps +
         '<div class="miss ' + (appeared ? "inrank" : "") + '">' + (appeared ? ICON.check : ICON.alert) + ' ' + missTxt + '</div>' +
+        renderBreakdown(diag) +
       '</div>'
     ) : (
       '<div class="reveal">' + evidence +
