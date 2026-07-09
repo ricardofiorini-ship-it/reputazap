@@ -15,7 +15,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
-import { suggestTerms } from "./_lib/competitors.js";
+import { suggestTerms, fetchPlaceSeed } from "./_lib/competitors.js";
 import { fetchGridRankingCached } from "./_lib/ranking-grid-cache.js";
 
 // Lista de emails autorizados como admin (hardcoded)
@@ -134,12 +134,14 @@ async function handleFunnel(req, res) {
 async function handleGridSuggest(req, res) {
   const placeId = (req.query.place_id || "").toString().trim();
   if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
-  const url =
-    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
-    `&fields=name,types&language=pt-BR&key=${process.env.PLACES_API_KEY}`;
-  const det = (await (await fetchWithTimeout(url, {}, 6000)).json()).result;
-  if (!det) return res.status(404).json({ error: "Negócio não encontrado" });
-  return res.json({ name: det.name, types: det.types || [], suggestions: suggestTerms(det.name, det.types) });
+  const seed = await fetchPlaceSeed(placeId);
+  if (!seed) return res.status(404).json({ error: "Negócio não encontrado" });
+  return res.json({
+    name: seed.name,
+    types: seed.types || [],
+    primary_category: seed.primaryDisplay || null,
+    suggestions: suggestTerms(seed.name, seed.types, seed.primaryDisplay, seed.primaryType),
+  });
 }
 async function handleGrid(req, res) {
   const placeId = (req.query.place_id || "").toString().trim();
@@ -147,11 +149,8 @@ async function handleGrid(req, res) {
   if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
   // Sem termo → usa o padrão da categoria do Google (1 termo, grátis).
   if (!terms.length) {
-    const url =
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
-      `&fields=name,types&language=pt-BR&key=${process.env.PLACES_API_KEY}`;
-    const det = (await (await fetchWithTimeout(url, {}, 6000)).json()).result;
-    terms = suggestTerms(det?.name, det?.types).slice(0, 1);
+    const seed = await fetchPlaceSeed(placeId);
+    terms = suggestTerms(seed?.name, seed?.types, seed?.primaryDisplay, seed?.primaryType).slice(0, 1);
     if (!terms.length) return res.status(422).json({ error: "Sem termo padrão pra este negócio — informe um termo." });
   }
   const grid = await fetchGridRankingCached({ placeId, terms });

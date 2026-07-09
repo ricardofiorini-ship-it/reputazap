@@ -45,11 +45,31 @@ const TYPE_TO_TERM = {
   hospital: "hospital", physiotherapist: "fisioterapia", lodging: "hotel",
   gas_station: "posto de gasolina", laundry: "lavanderia", bicycle: "loja de bicicletas",
   clothing: "loja de roupas", optician: "ótica", hardware: "loja de ferragens",
-  home_goods_store: "loja de utilidades", store: "loja", general_store: "loja"
+  home_goods_store: "loja de utilidades", store: "loja", general_store: "loja",
+  // Tipos finos da Places API (New) — ela devolve uma taxonomia bem mais rica
+  // que a antiga (italian_restaurant, sushi_restaurant…).
+  italian_restaurant: "restaurante italiano", pizza_restaurant: "pizzaria",
+  sushi_restaurant: "restaurante de sushi", japanese_restaurant: "restaurante japonês",
+  brazilian_restaurant: "restaurante", chinese_restaurant: "restaurante chinês",
+  mexican_restaurant: "restaurante mexicano", seafood_restaurant: "restaurante de frutos do mar",
+  steak_house: "churrascaria", hamburger_restaurant: "hamburgueria",
+  sandwich_shop: "lanchonete", ice_cream_shop: "sorveteria",
+  coffee_shop: "cafeteria", barber_shop: "barbearia", nail_salon: "manicure",
+  fitness_center: "academia", pet_shop: "petshop"
 };
+// Tradução TOLERANTE: tipo desconhecido vira texto legível. Usada pelo motor de
+// ranking, onde um termo torto ainda é melhor que termo nenhum (sem termo não
+// há busca).
 export function typeToTerm(rawType) {
   if (!rawType) return "";
   return TYPE_TO_TERM[rawType] || rawType.replace(/_/g, " ");
+}
+// Tradução ESTRITA: tipo desconhecido é DESCARTADO. Usada pelos chips do
+// formulário. Sem isso a Places API (New), que devolve tipos muito mais finos,
+// vaza inglês cru pro rosto do cliente — "adventure sports center" numa loja de
+// bicicletas, "service" num salão. Chip a menos > chip errado em inglês.
+function typeToTermStrict(rawType) {
+  return (rawType && TYPE_TO_TERM[rawType]) || "";
 }
 
 // ── Filtro de categoria/intenção (compartilhado) ──────────────
@@ -287,6 +307,7 @@ const KEYWORD_DICT = [
   ["pizzaria napolitana","pizzaria napolitana"],["pizza napolitana","pizzaria napolitana"],
   ["comida japonesa","restaurante japonês"],["comida árabe","restaurante árabe"],["comida arabe","restaurante árabe"],
   ["comida italiana","restaurante italiano"],
+  ["trattoria","restaurante italiano"],["osteria","restaurante italiano"],["cantina italiana","restaurante italiano"],
   // Cozinhas específicas no nome ("Restaurante Árabe", "Comida Japonesa"...) —
   // vencem o genérico "restaurante" e fazem o negócio ranquear no nicho certo.
   ["restaurante árabe","restaurante árabe"],["restaurante arabe","restaurante árabe"],
@@ -570,23 +591,91 @@ export function applyNameLocking(top, paid) {
   });
 }
 
-// Sugere 1-3 termos de busca a partir do nome + tipos do Google — semente pros
-// chips do formulário (o dono confirma / edita / adiciona o dele). Nicho pelo
-// nome (detectFromName) primeiro; depois a categoria do Google traduzida,
-// priorizando o tipo de negócio "principal" (ex: restaurante acima de bar).
+// ============================================================
+// SEMENTE DO NEGÓCIO (nome + tipos + categoria principal)
+// ============================================================
+// A API antiga (place/details) só devolve tipos GROSSOS: o Pecorino sai como
+// "restaurant", sem sinal de ser italiano. A API nova (places.googleapis.com/v1)
+// devolve `primaryTypeDisplayName` — a categoria principal que o dono cadastrou
+// no Meu Negócio, já em pt-BR ("Restaurante italiano").
+//
+// Isso não é cosmético: o termo fino MUDA o ranking. Medido no Pecorino V.
+// Leopoldina — #10 em "restaurante", #2 em "restaurante italiano". Com a API
+// antiga o chip padrão era sempre a pior versão da vida do dono.
+//
+// Custo: a nova SUBSTITUI a chamada antiga (não soma). Ambas caem no mesmo SKU
+// (Place Details Pro, US$17/1k, 5k grátis/mês) porque `displayName` já é Pro.
+// Se a nova falhar (API desligada, quota, timeout), cai pra antiga sozinha.
+export async function fetchPlaceSeed(placeId) {
+  const key = process.env.PLACES_API_KEY;
+  if (!placeId || !key) return null;
+  try {
+    const r = await fetchWithTimeout(
+      `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?languageCode=pt-BR`,
+      { headers: { "X-Goog-Api-Key": key, "X-Goog-FieldMask": "displayName,primaryType,primaryTypeDisplayName,types" } },
+      6000
+    );
+    const j = await r.json();
+    if (!r.ok || j.error) throw new Error(j?.error?.status || `HTTP ${r.status}`);
+    return {
+      name: j.displayName?.text || null,
+      types: j.types || [],
+      primaryType: j.primaryType || null,
+      primaryDisplay: j.primaryTypeDisplayName?.text || null,
+    };
+  } catch (err) {
+    console.warn("[places-new] fallback pra API antiga:", err.message);
+    try {
+      const r = await fetchWithTimeout(
+        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
+          `&fields=name,types&language=pt-BR&key=${key}`,
+        {}, 6000
+      );
+      const det = (await r.json()).result;
+      if (!det) return null;
+      return { name: det.name || null, types: det.types || [], primaryType: null, primaryDisplay: null };
+    } catch {
+      return null;
+    }
+  }
+}
+
+// Sugere 1-3 termos de busca — semente pros chips do formulário (o dono
+// confirma / edita / adiciona o dele).
+//
+// Ordem: (1) categoria PRINCIPAL do Meu Negócio, quando a API nova responde —
+// é a fonte autoritativa, não um palpite nosso; (2) nicho detectado no nome
+// (pega o que a categoria não pega: "Pizzaria Napolitana" → o dono cadastrou só
+// "Pizzaria"); (3) tipos grossos traduzidos, como rede de segurança.
+//
+// TYPE_PRIORITY é o desempate ARTESANAL de quando não temos a categoria
+// principal (API nova fora do ar). Com ela, não adivinhamos: a Bella Paulista
+// devolve 5 tipos na antiga (bakery, cafe, restaurant, storage, store) e a nova
+// simplesmente diz "Padaria".
 const TYPE_PRIORITY = {
   pizza_restaurant: 4, restaurant: 3, meal_takeaway: 2, meal_delivery: 2,
   cafe: 2, bakery: 3, bar: 1,
 };
-export function suggestTerms(name, types) {
+export function suggestTerms(name, types, primaryDisplay, primaryType) {
   const out = [];
-  const fromName = detectFromName(name);
-  if (fromName) out.push(fromName);
+  // Dedup ignora caixa, acento e plural: "Loja de bicicleta" (categoria do
+  // Google) e "loja de bicicletas" (nosso dicionário) são o mesmo chip. NÃO
+  // funde sinônimos de verdade — "drogaria" e "farmácia" seguem separados, e
+  // devem: rendem rankings diferentes no Google.
+  const dedupKey = (t) => normalizeName(t).split(/\s+/).map((w) => w.replace(/s$/, "")).join(" ");
+  const push = (t) => {
+    const term = (t || "").toString().trim();
+    if (term && !out.some((o) => dedupKey(o) === dedupKey(term))) out.push(term);
+  };
+  // Categoria principal do Meu Negócio vem primeiro — a menos que o Google tenha
+  // classificado o negócio num rótulo vazio de sentido ("establishment"), que
+  // não serve de termo de busca. O guard é no TIPO (código), não no texto pt-BR.
+  if (primaryDisplay && !GENERIC_TYPES.has(primaryType) && !BROAD_TYPES.has(primaryType)) push(primaryDisplay);
+  push(detectFromName(name));
   const specific = (types || []).filter((t) => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t));
   const sorted = [...specific].sort((a, b) => (TYPE_PRIORITY[b] || 0) - (TYPE_PRIORITY[a] || 0));
   for (const t of sorted) {
-    const term = typeToTerm(t);
-    if (term && !out.some((o) => o.toLowerCase() === term.toLowerCase())) out.push(term);
+    push(typeToTermStrict(t));
     if (out.length >= 3) break;
   }
   // Fallback: sem tipo específico (ex: "loja de utilidades"), usa o tipo amplo
@@ -594,8 +683,7 @@ export function suggestTerms(name, types) {
   if (!out.length) {
     const broad = (types || []).filter((t) => !GENERIC_TYPES.has(t) && BROAD_TYPES.has(t));
     for (const t of broad) {
-      const term = typeToTerm(t);
-      if (term && !out.some((o) => o.toLowerCase() === term.toLowerCase())) out.push(term);
+      push(typeToTermStrict(t));
       if (out.length >= 2) break;
     }
   }

@@ -8,8 +8,7 @@
 //   ?place_id=…&suggest=1          → termos sugeridos (categoria/nome do Google)
 //   ?place_id=…&terms=a,b,c        → ranking por grade (com cache 7 dias/termo)
 // ============================================================
-import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
-import { suggestTerms } from "./_lib/competitors.js";
+import { suggestTerms, fetchPlaceSeed } from "./_lib/competitors.js";
 import { fetchGridRankingCached } from "./_lib/ranking-grid-cache.js";
 
 const RATE_LIMIT = 10;
@@ -46,12 +45,12 @@ export default async function handler(req, res) {
   try {
     // Sugestão de termos (antes do dono escolher).
     if (req.query.suggest) {
-      const url =
-        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
-        `&fields=name,types&language=pt-BR&key=${process.env.PLACES_API_KEY}`;
-      const det = (await (await fetchWithTimeout(url, {}, 6000)).json()).result;
-      if (!det) return res.status(404).json({ error: "Negócio não encontrado" });
-      return res.json({ name: det.name, suggestions: suggestTerms(det.name, det.types) });
+      const seed = await fetchPlaceSeed(placeId);
+      if (!seed) return res.status(404).json({ error: "Negócio não encontrado" });
+      return res.json({
+        name: seed.name,
+        suggestions: suggestTerms(seed.name, seed.types, seed.primaryDisplay, seed.primaryType),
+      });
     }
 
     // Ranking por grade (com cache).
