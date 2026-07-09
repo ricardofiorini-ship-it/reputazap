@@ -125,9 +125,28 @@ export function resolveRadarCategory(name, types) {
   // nome é a única pista — é o caso da "Loja da Limpeza", cujo tipo é `store`.
   const categoria = doTipo || doNome || typeToTerm(especifico) || "";
 
-  // Nicho só existe se for MAIS específico que a arena (senão viraria pergunta
-  // duplicada: "padaria" e "padaria").
-  const nicho = doNome && doNome.toLowerCase() !== categoria.toLowerCase() ? doNome : "";
+  // Nicho: a pergunta EXTRA, mais específica que a arena.
+  //
+  // `detectFromName` só casa a expressão inteira ("padaria artesanal"). Isso
+  // deixava o "Panatè Artesanal" sem nicho nenhum, enquanto o "Le Moulin Padaria
+  // Artesanal" ganhava a pergunta — de novo uma assimetria decidida pela grafia
+  // do letreiro, agora nas perguntas extras em vez da arena.
+  //
+  // Então, se o nome traz um qualificador conhecido, compomos com a arena:
+  // "Panatè Artesanal" + arena "padaria" → "padaria artesanal".
+  // Só qualificadores INVARIÁVEIS em gênero entram aqui ("artesanal" serve pra
+  // padaria e pra restaurante). Os que flexionam ("italiano/italiana") já vivem
+  // no KEYWORD_DICT com a categoria junto, e o `detectFromName` os pega.
+  const nomeNorm = normalizeName(name);
+  // "caseiro"/"vegano" ficam de fora: flexionam, e sairia "padaria caseiro".
+  const QUALIFICADORES = ["artesanal", "integral", "natural"];
+  const qualificador = categoria
+    ? QUALIFICADORES.find((q) => new RegExp(`\\b${q}\\b`).test(nomeNorm))
+    : null;
+
+  let nicho = doNome || (qualificador ? `${categoria} ${qualificador}` : "");
+  // Não repetir a arena como pergunta extra ("padaria" e "padaria").
+  if (nicho && nicho.toLowerCase() === categoria.toLowerCase()) nicho = "";
   return { categoria, nicho };
 }
 
