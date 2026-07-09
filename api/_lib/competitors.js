@@ -26,6 +26,17 @@ const BROAD_TYPES = new Set([
   "home_goods_store", "shopping_mall"
 ]);
 
+// Categorias que dizem o PAPEL do negócio na cadeia produtiva, não o que o
+// cliente digita no Google. Caso real: "A Loja da Limpeza" (Av. São Camilo) está
+// cadastrada no Meu Negócio como `manufacturer` → "Fabricante". É a categoria
+// oficial dela, e ainda assim ninguém busca "fabricante" pra comprar detergente.
+// Categoria oficial é autoritativa sobre O QUE o negócio é, não sobre COMO o
+// cliente procura por ele. Estas só entram como último recurso.
+const STRUCTURAL_TYPES = new Set([
+  "manufacturer", "supplier", "wholesaler", "distributor", "corporate_office",
+  "general_contractor", "contractor", "service", "company", "consultant"
+]);
+
 // Tradução tipo do Google → termo natural em PT-BR. Sem isso, o fallback
 // faria um Text Search da string técnica (ex: "bicycle_store"), furando o
 // ranking. O ideal é o dono informar o termo (category_override); isto é a
@@ -668,11 +679,16 @@ export function suggestTerms(name, types, primaryDisplay, primaryType) {
     if (term && !out.some((o) => dedupKey(o) === dedupKey(term))) out.push(term);
   };
   // Categoria principal do Meu Negócio vem primeiro — a menos que o Google tenha
-  // classificado o negócio num rótulo vazio de sentido ("establishment"), que
-  // não serve de termo de busca. O guard é no TIPO (código), não no texto pt-BR.
-  if (primaryDisplay && !GENERIC_TYPES.has(primaryType) && !BROAD_TYPES.has(primaryType)) push(primaryDisplay);
+  // classificado o negócio num rótulo vazio de sentido ("establishment") ou de
+  // papel na cadeia ("Fabricante"). Nesses casos o nome sabe mais que o cadastro.
+  // O guard é no TIPO (código), não no texto pt-BR.
+  const primaryVazio = GENERIC_TYPES.has(primaryType) || BROAD_TYPES.has(primaryType);
+  const primaryEstrutural = STRUCTURAL_TYPES.has(primaryType);
+  if (primaryDisplay && !primaryVazio && !primaryEstrutural) push(primaryDisplay);
   push(detectFromName(name));
-  const specific = (types || []).filter((t) => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t));
+  const specific = (types || []).filter(
+    (t) => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t) && !STRUCTURAL_TYPES.has(t)
+  );
   const sorted = [...specific].sort((a, b) => (TYPE_PRIORITY[b] || 0) - (TYPE_PRIORITY[a] || 0));
   for (const t of sorted) {
     push(typeToTermStrict(t));
@@ -687,6 +703,9 @@ export function suggestTerms(name, types, primaryDisplay, primaryType) {
       if (out.length >= 2) break;
     }
   }
+  // Último recurso: nada sobrou. Aí até "Fabricante" vale mais que chip nenhum —
+  // sem termo não há grade, e o painel abriria vazio. O dono corrige no campo.
+  if (!out.length) push(primaryDisplay);
   return out.slice(0, 3);
 }
 
