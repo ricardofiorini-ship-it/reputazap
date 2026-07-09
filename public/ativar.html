@@ -437,10 +437,12 @@ async function handleGoogleCredential(response) {
       await saveBiz();
       state.bizSaved = true;
       if (state.activity) localStorage.setItem("rz_activity", state.activity);
-      window.location.href = "/app?login=1";
+      // Conversão de cadastro ANTES de sair da página (redirect no callback)
+      fireSignupConversion(() => { window.location.href = "/app?login=1"; });
       return;
     }
-    // NFC flow: cadastro -> busca
+    // NFC flow: cadastro -> busca (mesma página, sem redirect — só dispara)
+    fireSignupConversion();
     goToStep(2);
   } catch (e) {
     console.error("[google-login]", e);
@@ -567,6 +569,21 @@ function updateProgress(step) {
   }
 }
 
+// ── Conversão Google Ads — Cadastro (novo cliente) ──────────────────────────
+// Cole aqui o rótulo da conversão criada no Google Ads (formato "AW-XXXXXXXXX/xxxx").
+// Enquanto estiver vazio, NADA é disparado (seguro pra subir sem o label).
+// Dispara e SÓ DEPOIS segue (event_callback + timeout), pra o redirect não
+// cancelar o registro da conversão — mesmo padrão do radar.html/kit.html.
+const ADS_SIGNUP_CONVERSION = ""; // ex.: "AW-18239737019/AbCdEfGhIj"
+function fireSignupConversion(cb){
+  let done=false;
+  const go=()=>{ if(!done){ done=true; if(typeof cb==="function") cb(); } };
+  if(ADS_SIGNUP_CONVERSION && typeof gtag==="function"){
+    gtag("event","conversion",{ send_to:ADS_SIGNUP_CONVERSION, value:1.0, currency:"BRL", event_callback:go });
+    setTimeout(go,1200); // fallback se o callback não vier
+  } else { go(); }
+}
+
 async function goToStep2(){
   const name=document.getElementById("userName").value.trim();
   const email=document.getElementById("userEmail").value.trim();
@@ -621,10 +638,12 @@ async function goToStep2(){
       await saveBiz();
       state.bizSaved = true;
       if (state.activity) localStorage.setItem("rz_activity", state.activity);
-      window.location.href = "/app?login=1";
+      // Conversão de cadastro ANTES de sair da página (redirect no callback)
+      fireSignupConversion(() => { window.location.href = "/app?login=1"; });
       return;
     }
-    // NFC flow: cadastro -> busca
+    // NFC flow: cadastro -> busca (mesma página, sem redirect — só dispara)
+    fireSignupConversion();
     goToStep(2);
   } catch {
     alert("Erro de conexão. Tente novamente.");
