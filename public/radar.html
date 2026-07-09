@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!-- charset PRIMEIRO: o navegador só procura esta declaração nos 1024 bytes
+     iniciais. Os scripts do Pixel + gtag empurravam o <meta charset> pro byte
+     1080, e sem o header HTTP da Vercel os acentos viravam mojibake. -->
+<meta charset="UTF-8"/>
 <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
@@ -19,18 +23,17 @@ fbq('track', 'PageView');
   gtag('config', 'AW-18229338581');
   gtag('config', 'G-HCLV0Z640L');
 </script>
-<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>IA Radar — Seu negócio aparece nas IAs? | StarTouch</title>
-<meta name="description" content="Descubra se o ChatGPT, o Gemini e o Perplexity recomendam o seu negócio quando alguém pergunta pela sua categoria na sua cidade. Diagnóstico grátis."/>
+<title>IA Radar — As IAs estão indicando sua empresa? | StarTouch</title>
+<meta name="description" content="O IA Radar mostra como sua empresa aparece hoje nas respostas do ChatGPT, do Gemini e de outras IAs — e a StarTouch trabalha os ajustes que aumentam a chance de ela ser recomendada."/>
 <link rel="canonical" href="https://startouch.com.br/radar"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="StarTouch IA Radar — seu negócio aparece nas IAs?"/>
-<meta property="og:description" content="Veja em quantas respostas de IA o seu negócio é citado e quais concorrentes aparecem no seu lugar. Grátis."/>
+<meta property="og:title" content="As Inteligências Artificiais estão indicando sua empresa?"/>
+<meta property="og:description" content="Descubra como sua empresa aparece hoje nas respostas das IAs — e quais sinais precisam ser melhorados. Diagnóstico gratuito."/>
 <meta property="og:url" content="https://startouch.com.br/radar"/>
 <meta property="og:image" content="https://startouch.com.br/og-image.png"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/startouch-vars.css"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <link rel="apple-touch-icon" href="/startouch-logo.png"/>
@@ -234,43 +237,343 @@ fbq('track', 'PageView');
 
   .hidden{display:none;}
 </style>
+
+<!-- ============================================================
+     LANDING DO IA RADAR (narrativa Doença → Diagnóstico → Tratamento)
+     ============================================================
+     Vive DENTRO de #searchMode: o script troca de modo com a classe `hidden`,
+     então tudo que não estiver aqui dentro continuaria visível atrás do
+     relatório. Todo seletor é prefixado `st-` — o CSS acima veste o
+     autocomplete, os 9 passos e o relatório, e não pode ser tocado.
+     A página é uma coluna de 600px (.wrap); as seções da landing sangram pra
+     largura total com `st-bleed`.
+     ============================================================ -->
+<style>
+  html{scroll-behavior:smooth;}
+  /* `width:100vw` inclui a barra de rolagem vertical, o que gerava ~7px de
+     rolagem horizontal. `clip` corta sem criar um novo contexto de rolagem
+     (ao contrário de `hidden`, que quebraria qualquer `position:sticky`). */
+  html,body{overflow-x:clip;}
+
+  /* Sangria: escapa da coluna de 600px sem provocar rolagem horizontal. */
+  .st-bleed{margin-inline:calc(50% - 50vw);width:100vw;}
+  /* .wrap dá 40px no topo e 80px embaixo. Como as seções da landing têm fundo
+     próprio e sangram, sobrava uma faixa cinza colada na topbar e outra entre o
+     cartão final e o rodapé escuro. Anulado SÓ no searchMode — loading e report
+     continuam com o respiro da coluna. */
+  #searchMode{margin-top:-40px;margin-bottom:-80px;}
+  .st-container{width:min(100% - 40px,1100px);margin-inline:auto;}
+  .st-sec{padding:56px 0;}
+
+  .st-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 13px;border-radius:999px;background:#fff;border:1px solid #D7E3FC;color:#1A73E8;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;box-shadow:0 10px 28px rgba(26,115,232,.08);}
+  .st-h1{margin-top:20px;font-size:clamp(34px,6.4vw,64px);line-height:1.04;letter-spacing:-.045em;font-weight:900;text-wrap:balance;color:#111827;}
+  .st-h1 .st-blue{color:#1A73E8;}
+  .st-h2{font-size:clamp(27px,4.4vw,44px);line-height:1.1;letter-spacing:-.035em;font-weight:900;text-wrap:balance;color:#111827;}
+  .st-h2 .st-blue{color:#1A73E8;}
+  .st-lead{margin-top:20px;max-width:620px;color:#334155;font-size:16.5px;line-height:1.65;}
+  .st-lead strong{color:#111827;font-weight:700;}
+  .st-sub{margin-top:14px;color:#4B5563;font-size:15.5px;line-height:1.62;max-width:760px;}
+  .st-center{text-align:center;margin-inline:auto;}
+
+  /* HERO */
+  .st-hero{padding:44px 0 60px;background:radial-gradient(circle at 82% 16%, rgba(232,240,254,.9), transparent 22rem),radial-gradient(circle at 6% 86%, rgba(243,247,255,.9), transparent 22rem),#fff;}
+  .st-hero-grid{display:grid;gap:40px;align-items:center;}
+  .st-actions{margin-top:26px;display:flex;flex-direction:column;gap:12px;}
+  .st-btn{border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:58px;border-radius:14px;padding:0 24px;font-family:inherit;font-size:15.5px;font-weight:800;transition:transform .18s ease,background .18s ease;width:100%;}
+  .st-btn-primary{background:linear-gradient(135deg,#1A73E8,#0F5FE8);color:#fff;box-shadow:0 18px 42px rgba(26,115,232,.26);}
+  .st-btn-primary:hover{background:#4285F4;transform:translateY(-1px);}
+  .st-btn-secondary{background:#fff;color:#1A73E8;border:1px solid #D7E3FC;}
+  .st-btn-secondary:hover{background:#E8F0FE;}
+
+  .st-benefits{margin-top:28px;display:grid;gap:14px;}
+  .st-benefit{display:flex;align-items:flex-start;gap:11px;}
+  .st-benefit-icon{width:30px;height:30px;flex:0 0 30px;display:grid;place-items:center;border:1px solid #D7E3FC;border-radius:999px;color:#1A73E8;background:#fff;font-weight:800;font-size:13px;}
+  .st-benefit b{display:block;font-size:13px;line-height:1.25;color:#111827;}
+  .st-benefit span{display:block;margin-top:2px;font-size:12px;color:#6B7280;line-height:1.3;}
+
+  /* Hero visual — a pergunta que o cliente faz à IA */
+  .st-visual{position:relative;max-width:470px;margin-inline:auto;}
+  .st-chat{border:1px solid #E5E7EB;border-radius:26px;background:rgba(255,255,255,.94);box-shadow:0 24px 80px rgba(17,24,39,.10);padding:24px;}
+  .st-chat-row{display:grid;grid-template-columns:38px 1fr;gap:13px;align-items:flex-start;}
+  .st-chat-row + .st-chat-row{margin-top:22px;}
+  .st-avatar{width:38px;height:38px;border-radius:999px;display:grid;place-items:center;border:1px solid #E5E7EB;background:#F1F3F4;font-size:15px;}
+  .st-avatar.st-ai{border-color:#B7E4CF;background:#E6F4EA;color:#0E9F6E;font-size:12px;font-weight:900;}
+  .st-chat-name{font-size:13px;font-weight:900;margin:5px 0 9px;color:#111827;}
+  .st-bubble{padding:15px 16px;border-radius:16px;background:#F3F7FF;color:#111827;font-size:14px;line-height:1.55;}
+  .st-thinking{padding:16px;border-radius:16px;background:#F1F3F4;color:#80868B;font-size:13.5px;line-height:1.55;}
+  .st-dots{display:flex;gap:6px;margin-top:14px;}
+  .st-dots i{width:6px;height:6px;border-radius:999px;background:#253B5B;opacity:.9;animation:stPulse 1.2s infinite ease-in-out;}
+  .st-dots i:nth-child(2){animation-delay:.15s;} .st-dots i:nth-child(3){animation-delay:.3s;}
+  @keyframes stPulse{50%{opacity:.25;transform:translateY(-2px);}}
+  /* Anotação à mão: a maquete usava Comic Sans, que briga com o tom institucional.
+     Mantida a intenção (quebra a formalidade) com a própria Inter, inclinada. */
+  .st-note{margin:18px 0 0 auto;max-width:300px;color:#0E2A66;font-size:16px;line-height:1.35;font-weight:700;font-style:italic;letter-spacing:-.01em;transform:rotate(-2.2deg);text-align:center;}
+  .st-note u{text-decoration-color:#1A73E8;text-decoration-thickness:3px;text-underline-offset:5px;}
+
+  /* PROBLEMA */
+  .st-problem{background:linear-gradient(180deg,#fff,#F8FAFF);border-top:1px solid rgba(229,231,235,.6);border-bottom:1px solid rgba(229,231,235,.7);}
+  .st-flow{margin-top:32px;display:grid;gap:16px;}
+  .st-flow-item{position:relative;border-radius:20px;padding:22px;background:#fff;box-shadow:0 12px 30px rgba(17,24,39,.04);border:1px solid rgba(229,231,235,.8);}
+  .st-flow-item svg{color:#1A73E8;}
+  .st-flow-item b{display:block;margin-top:14px;font-size:15px;line-height:1.35;letter-spacing:-.015em;color:#111827;}
+  .st-flow-item p{margin-top:7px;color:#4B5563;font-size:13.5px;line-height:1.5;}
+
+  /* SOLUÇÃO */
+  .st-panel{border:1px solid #D7E3FC;border-radius:28px;background:radial-gradient(circle at 86% 24%, rgba(232,240,254,.85), transparent 16rem),#fff;box-shadow:0 16px 44px rgba(26,115,232,.12);padding:24px;display:grid;gap:24px;align-items:center;}
+  .st-method{display:grid;gap:12px;}
+  .st-method-card{border:1px solid #E5E7EB;background:#fff;border-radius:18px;padding:17px;display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;}
+  .st-method-num{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#1A73E8;background:#E8F0FE;font-weight:900;}
+  .st-method-card h3{font-size:15.5px;line-height:1.25;letter-spacing:-.02em;font-weight:900;margin-bottom:5px;color:#111827;}
+  .st-method-card p{color:#4B5563;font-size:13.5px;line-height:1.5;}
+
+  /* AJUSTES TÉCNICOS */
+  .st-technical{background:linear-gradient(180deg,#fff,#F8FAFF);}
+  .st-tech-grid{margin-top:32px;display:grid;gap:14px;}
+  .st-tech-card{border:1px solid #E5E7EB;border-radius:20px;background:#fff;padding:22px;box-shadow:0 14px 36px rgba(17,24,39,.05);transition:transform .18s ease,box-shadow .18s ease;}
+  .st-tech-card:hover{transform:translateY(-2px);box-shadow:0 18px 44px rgba(17,24,39,.08);}
+  .st-tech-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:15px;color:#1A73E8;background:#E8F0FE;margin-bottom:16px;}
+  .st-tech-card h3{font-size:15.5px;line-height:1.25;letter-spacing:-.02em;font-weight:900;color:#111827;}
+  .st-tech-card p{margin-top:9px;color:#4B5563;font-size:13.5px;line-height:1.55;}
+  .st-tech-note{margin-top:26px;border:1px solid #D7E3FC;background:#fff;border-radius:20px;padding:20px;color:#334155;font-size:14.5px;line-height:1.6;box-shadow:0 12px 30px rgba(26,115,232,.06);}
+  .st-tech-note strong{color:#111827;}
+
+  /* BANDA DO RADAR */
+  .st-band{padding:60px 0;color:#fff;background:radial-gradient(circle at 78% 42%, rgba(26,115,232,.28), transparent 20rem),linear-gradient(135deg,#06162F,#09214A);position:relative;overflow:hidden;}
+  .st-band-grid{position:relative;z-index:1;display:grid;gap:28px;align-items:center;}
+  .st-band h2{color:#fff;}
+  .st-band h2 .st-blue{color:#5D97FF;}
+  .st-band p{margin-top:16px;max-width:560px;color:#D7E3FC;font-size:15.5px;line-height:1.65;}
+  .st-tags{margin-top:24px;display:flex;flex-wrap:wrap;gap:12px;color:#fff;font-size:13px;font-weight:700;}
+  .st-tags span + span::before{content:"•";margin-right:12px;color:#6EA2FF;}
+  .st-radar-graphic{position:relative;min-height:260px;display:grid;place-items:center;}
+  .st-radar-circle{width:min(70vw,280px);height:min(70vw,280px);border-radius:999px;border:1px solid rgba(26,115,232,.42);position:relative;background:repeating-radial-gradient(circle, transparent 0 40px, rgba(26,115,232,.3) 41px 42px);}
+  .st-radar-circle::before{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;border-radius:999px;background:#fff;box-shadow:0 0 18px 6px rgba(66,133,244,.85);transform:translate(-50%,-50%);}
+  .st-sweep{position:absolute;left:50%;top:50%;width:42%;height:2px;background:linear-gradient(90deg,#fff,#1A73E8);transform-origin:left center;animation:stSweep 4s linear infinite;box-shadow:0 0 18px rgba(66,133,244,.95);}
+  @keyframes stSweep{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+
+  /* DIAGNÓSTICO (o formulário de verdade mora aqui) */
+  .st-diag{padding:60px 0;background:radial-gradient(circle at 10% 28%, rgba(232,240,254,.84), transparent 20rem),linear-gradient(180deg,#fff,#F8FAFF);border-top:1px solid rgba(229,231,235,.7);}
+  .st-diag-grid{display:grid;gap:28px;align-items:start;}
+  .st-diag-copy{max-width:470px;}
+  .st-note-small{margin-top:26px;max-width:350px;color:#0E2A66;font-size:15.5px;line-height:1.4;font-weight:700;font-style:italic;transform:rotate(-1.6deg);}
+  .st-form-col{max-width:560px;width:100%;margin-inline:auto;}
+
+  /* FECHAMENTO */
+  .st-final{padding:56px 0;background:#fff;}
+  .st-final-card{border:1px solid #D7E3FC;border-radius:28px;background:linear-gradient(135deg,#fff,#F3F7FF);box-shadow:0 16px 44px rgba(26,115,232,.12);padding:30px 24px;text-align:center;}
+  .st-final-card p{margin:14px auto 0;max-width:660px;color:#4B5563;font-size:15.5px;line-height:1.62;}
+  .st-final-card .st-btn{margin-top:24px;max-width:330px;margin-inline:auto;}
+
+  @media (min-width:560px){
+    .st-actions{flex-direction:row;}
+    .st-btn{width:auto;min-width:248px;}
+    .st-benefits{grid-template-columns:repeat(3,1fr);}
+  }
+  @media (min-width:900px){
+    .st-sec{padding:72px 0;}
+    .st-hero{padding:60px 0 80px;}
+    .st-hero-grid{grid-template-columns:1fr .8fr;gap:56px;}
+    .st-visual{margin-left:auto;margin-right:0;}
+    .st-flow{grid-template-columns:repeat(3,1fr);}
+    .st-panel{grid-template-columns:1fr .95fr;padding:32px;}
+    .st-tech-grid{grid-template-columns:repeat(4,1fr);}
+    .st-band-grid{grid-template-columns:1fr .8fr;}
+    .st-diag-grid{grid-template-columns:.8fr 1fr;gap:48px;}
+    .st-form-col{margin-inline:0;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    .st-dots i,.st-sweep{animation:none;}
+    .st-btn,.st-tech-card{transition:none;}
+  }
+</style>
 </head>
 <body>
 <div class="topbar">
   <a class="logo" href="/landing" aria-label="StarTouch"><img src="/startouch-logo-dark.png" alt="StarTouch"/></a>
-  <button class="header-cta" id="headerCta" type="button">Fazer diagnóstico grátis</button>
+  <!-- Continua sendo <button>: o script escuta o clique pra voltar ao formulário
+       e focar o campo certo, inclusive quando o usuário já está vendo o relatório.
+       Virar âncora quebraria esse retorno. -->
+  <button class="header-cta" id="headerCta" type="button">Iniciar diagnóstico</button>
 </div>
 
 <main class="wrap">
 
   <!-- BUSCA -->
   <section id="searchMode">
-    <div class="badge"><span class="badge-dot"></span>IA Radar</div>
-    <h1>Seu negócio aparece nas IAs?</h1>
-    <p class="sub">Cada vez mais gente pergunta ao ChatGPT, ao Gemini e ao Perplexity onde comer, onde se cuidar, onde comprar. Descubra se as IAs recomendam o <strong>seu</strong> negócio — ou o concorrente.</p>
+    <!-- HERO — a doença: mudou como o cliente escolhe fornecedor. -->
+    <div class="st-bleed st-hero">
+      <div class="st-container st-hero-grid">
+        <div>
+          <span class="st-eyebrow">IA Radar StarTouch</span>
+          <h1 class="st-h1">As Inteligências Artificiais estão indicando <span class="st-blue">sua empresa?</span></h1>
+          <p class="st-lead">
+            O IA Radar mostra como sua empresa aparece hoje no ChatGPT, no Gemini e em outras IAs.
+            E a StarTouch trabalha os ajustes técnicos, o conteúdo e os sinais de confiança que
+            <strong>aumentam a chance de ela ser recomendada amanhã</strong>.
+          </p>
+          <div class="st-actions">
+            <a class="st-btn st-btn-primary" href="#diagnostico">Começar diagnóstico gratuito →</a>
+            <a class="st-btn st-btn-secondary" href="#tecnico">Ver o que fazemos</a>
+          </div>
+          <div class="st-benefits">
+            <div class="st-benefit"><div class="st-benefit-icon">✓</div><div><b>Diagnóstico</b><span>Veja como aparece hoje</span></div></div>
+            <div class="st-benefit"><div class="st-benefit-icon">✓</div><div><b>Ajustes certos</b><span>Descubra o que pesa</span></div></div>
+            <div class="st-benefit"><div class="st-benefit-icon">✓</div><div><b>Execução</b><span>A StarTouch faz com você</span></div></div>
+          </div>
+        </div>
 
-    <div class="howit">
-      <h2>Como funciona</h2>
-      <div class="howit-steps">
-        <div class="howit-step">
-          <div class="n">1</div>
-          <h3>Ache seu negócio</h3>
-          <p>Digite o nome e escolha na lista do Google. O CEP ajuda a achar a unidade certa.</p>
-        </div>
-        <div class="howit-step">
-          <div class="n">2</div>
-          <h3>A gente pergunta às IAs</h3>
-          <p>Fazemos as buscas que seus clientes fariam no ChatGPT, Gemini e Perplexity.</p>
-        </div>
-        <div class="howit-step">
-          <div class="n">3</div>
-          <h3>Você vê o resultado</h3>
-          <p>Sua taxa de menção, quem aparece e o que fazer pra subir nas IAs.</p>
+        <div class="st-visual">
+          <div class="st-chat" aria-label="Exemplo de pergunta feita a uma inteligência artificial">
+            <div class="st-chat-row">
+              <div class="st-avatar" aria-hidden="true">👤</div>
+              <div>
+                <div class="st-chat-name">Cliente</div>
+                <div class="st-bubble">Qual a melhor clínica veterinária perto de mim?</div>
+              </div>
+            </div>
+            <div class="st-chat-row">
+              <div class="st-avatar st-ai" aria-hidden="true">IA</div>
+              <div>
+                <div class="st-chat-name">ChatGPT</div>
+                <div class="st-thinking">
+                  Analisando avaliações, site, presença local, autoridade e consistência das informações…
+                  <div class="st-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="st-note">Não é sorte. São sinais — e sinais podem ser <u>melhorados</u>.</p>
         </div>
       </div>
     </div>
 
-    <div class="search-card">
+    <!-- PROBLEMA — saber que não aparece não resolve nada. -->
+    <div class="st-bleed st-sec st-problem">
+      <div class="st-container">
+        <h2 class="st-h2">O problema não é só saber se você aparece. É saber o que precisa ser feito para aparecer melhor.</h2>
+        <p class="st-sub">
+          As IAs se apoiam em sinais que já existem na internet: avaliações, site, informações da empresa,
+          autoridade, presença local e consistência. Muitos desses sinais podem ser corrigidos, organizados e fortalecidos.
+        </p>
+        <div class="st-flow">
+          <article class="st-flow-item">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15zM16 16l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <b>Primeiro, a fotografia atual.</b>
+            <p>Como sua empresa aparece hoje — e quais concorrentes têm mais força nas respostas.</p>
+          </article>
+          <article class="st-flow-item">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5h16v10H8l-4 4V5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <b>Depois, os sinais fracos.</b>
+            <p>O que falta no site, nas páginas, nas avaliações e na presença pública da empresa.</p>
+          </article>
+          <article class="st-flow-item">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.7"/><path d="M20 7L10 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <b>Então, a melhoria.</b>
+            <p>Ajustes técnicos, conteúdo, reputação e presença — pra aumentar a chance de recomendação.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOLUÇÃO — o Radar é o diagnóstico; a StarTouch é o tratamento. -->
+    <div class="st-bleed st-sec">
+      <div class="st-container">
+        <div class="st-panel">
+          <div>
+            <h2 class="st-h2">O IA Radar é o diagnóstico. <span class="st-blue">A StarTouch executa o que precisa mudar.</span></h2>
+            <p class="st-sub">
+              Não entregamos só um relatório. Mostramos o caminho pra sua empresa ficar mais clara,
+              mais confiável e mais relevante — pra quem busca no Google, nos mapas e nas Inteligências Artificiais.
+            </p>
+          </div>
+          <div class="st-method">
+            <article class="st-method-card"><div class="st-method-num">1</div><div><h3>Diagnóstico</h3><p>Mapeamos como sua empresa aparece hoje e quem está sendo recomendado no seu mercado.</p></div></article>
+            <article class="st-method-card"><div class="st-method-num">2</div><div><h3>Plano de melhoria</h3><p>Apontamos os ajustes necessários no site, na presença local, no conteúdo e na reputação.</p></div></article>
+            <article class="st-method-card"><div class="st-method-num">3</div><div><h3>Execução</h3><p>A StarTouch trabalha esses sinais pra aumentar sua autoridade e sua chance de indicação.</p></div></article>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRATAMENTO — o que fazemos, sem nome de tecnologia. -->
+    <div id="tecnico" class="st-bleed st-sec st-technical">
+      <div class="st-container">
+        <div class="st-center" style="max-width:780px;">
+          <h2 class="st-h2">Existem coisas técnicas que ajudam uma empresa a ser entendida e recomendada.</h2>
+          <p class="st-sub st-center">O dono do negócio não precisa dominar isso. Esse é o nosso trabalho.</p>
+        </div>
+        <div class="st-tech-grid">
+          <article class="st-tech-card">
+            <div class="st-tech-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <h3>Organização técnica do site</h3>
+            <p>Ajustamos estrutura, páginas, textos e informações pra que sua empresa seja compreendida com mais clareza.</p>
+          </article>
+          <article class="st-tech-card">
+            <div class="st-tech-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            </div>
+            <h3>Reputação e avaliações</h3>
+            <p>Criamos fluxos pra aumentar avaliações reais e transformar reputação em sinal de confiança.</p>
+          </article>
+          <article class="st-tech-card">
+            <div class="st-tech-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-5.4 7-11a7 7 0 10-14 0c0 5.6 7 11 7 11z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
+            </div>
+            <h3>Presença local consistente</h3>
+            <p>Padronizamos o que importa: nome, endereço, serviços, categoria e as regiões que você atende.</p>
+          </article>
+          <article class="st-tech-card">
+            <div class="st-tech-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 5h16v11H9l-5 4V5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <h3>Conteúdo que responde perguntas</h3>
+            <p>Explicamos o que a empresa faz, pra quem atende e por que ela pode ser uma boa escolha.</p>
+          </article>
+        </div>
+        <p class="st-tech-note">
+          <strong>Sem prometer milagre:</strong> nenhuma empresa controla o que uma IA vai responder.
+          Mas existem sinais técnicos, de reputação e de presença que podem ser fortalecidos — e isso aumenta
+          suas chances de ser encontrada, entendida e recomendada.
+        </p>
+      </div>
+    </div>
+
+    <!-- BANDA — transição pro diagnóstico. -->
+    <div class="st-bleed st-band">
+      <div class="st-container st-band-grid">
+        <div>
+          <h2 class="st-h2">Descubra como sua empresa aparece hoje. <span class="st-blue">E quais sinais precisam melhorar.</span></h2>
+          <p>
+            O IA Radar transforma uma pergunta simples num caminho prático: o que corrigir, o que fortalecer,
+            e como sua empresa pode ficar mais preparada pras novas formas de busca.
+          </p>
+          <div class="st-tags"><span>Diagnóstico claro</span><span>Ajustes certos</span><span>Execução contínua</span></div>
+        </div>
+        <div class="st-radar-graphic" aria-hidden="true">
+          <div class="st-radar-circle"><div class="st-sweep"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIAGNÓSTICO — o formulário. Markup do cartão preservado (o script depende dele). -->
+    <div id="diagnostico" class="st-bleed st-diag">
+      <div class="st-container st-diag-grid">
+        <div class="st-diag-copy">
+          <h2 class="st-h2">Comece pelo diagnóstico.</h2>
+          <p class="st-sub">
+            Em poucos segundos você vê a fotografia inicial. Depois, mostramos quais ajustes podem dar
+            mais força à sua empresa nas respostas das IAs.
+          </p>
+          <p class="st-note-small">
+            O objetivo não é só saber se você aparece. É saber o que fazer para começar a aparecer melhor.
+          </p>
+        </div>
+
+        <div class="st-form-col">
+        <div class="search-card">
       <div class="field">
         <label for="cep">Seu CEP<span class="hint" tabindex="0" role="button" aria-label="ajuda">?<span class="hint-bubble">Ajuda a achar a unidade certa do seu negócio no Google e foca as buscas no seu bairro.</span></span></label>
         <input id="cep" type="text" inputmode="numeric" maxlength="9" placeholder="Ex: 01530-000" autocomplete="postal-code"/>
@@ -286,20 +589,43 @@ fbq('track', 'PageView');
         </div>
       </div>
       <div class="field">
-        <label for="produtos">Produtos/serviços principais <span style="font-weight:400;color:#9AA0A6;">(opcional)</span><span class="hint" tabindex="0" role="button" aria-label="ajuda">?<span class="hint-bubble">O que você mais vende. Deixa o diagnóstico mais preciso — testamos buscas pelo seu nicho. Ex: sobrancelha, corte masculino.</span></span></label>
+        <!-- Campo LIVRE de propósito: o backend usa estes termos pra montar as
+             perguntas feitas às IAs (até 3). Um menu de segmentos amplos tornaria
+             o diagnóstico genérico ("melhor salão em São Paulo" em vez de
+             "melhor lugar pra sobrancelha em Pinheiros"). -->
+        <label for="produtos">O que sua empresa mais vende <span style="font-weight:400;color:#9AA0A6;">(opcional)</span><span class="hint" tabindex="0" role="button" aria-label="ajuda">?<span class="hint-bubble">Deixa o diagnóstico mais preciso: perguntamos às IAs exatamente pelo que você vende, não pela categoria genérica.</span></span></label>
         <input id="produtos" type="text" placeholder="Ex: sobrancelha, corte masculino (separe por vírgula)" autocomplete="off"/>
       </div>
-      <button class="btn btn-primary" id="goBtn" type="button" disabled>🛰️ Rodar meu IA Radar</button>
+      <!-- Nasce desabilitado: o script só libera depois que o dono escolhe o
+           negócio na lista do Google (updateGoBtn). Não remover o `disabled`. -->
+      <button class="btn btn-primary" id="goBtn" type="button" disabled>Iniciar diagnóstico gratuito</button>
       <p class="form-note">Consultamos as IAs em tempo real — leva alguns segundos.</p>
       <div id="searchErr"></div>
-    </div>
+        </div><!-- /.search-card -->
 
-    <div class="trust-chips">
-      <span>✓ Grátis</span>
-      <span>✓ Leva 30 segundos</span>
-      <span>✓ Sem instalar nada</span>
+        <div class="trust-chips">
+          <span>✓ Grátis</span>
+          <span>✓ Leva 30 segundos</span>
+          <span>✓ Sem instalar nada</span>
+        </div>
+        <p class="trust-sub">Consultamos ChatGPT, Gemini e Perplexity em tempo real.</p>
+        </div><!-- /.st-form-col -->
+      </div><!-- /.st-diag-grid -->
+    </div><!-- /#diagnostico -->
+
+    <!-- FECHAMENTO — reafirma a tese: sinais, não sorte. -->
+    <div class="st-bleed st-final">
+      <div class="st-container">
+        <div class="st-final-card">
+          <h2 class="st-h2">As IAs não indicam empresas por sorte. Elas entendem sinais.</h2>
+          <p>
+            O primeiro passo é descobrir como sua empresa aparece hoje.
+            O próximo é trabalhar esses sinais pra que ela seja uma resposta mais forte amanhã.
+          </p>
+          <a class="st-btn st-btn-primary" href="#diagnostico">Começar agora →</a>
+        </div>
+      </div>
     </div>
-    <p class="trust-sub">Consultamos ChatGPT, Gemini e Perplexity em tempo real.</p>
   </section>
 
   <!-- LOADING -->

@@ -49,12 +49,19 @@
     { "source": "/radar", "destination": "/radar-em-breve.html" },
     { "source": "/radar/plano", "destination": "/radar-plano.html" },
     { "source": "/radar-land", "destination": "/radar-em-breve.html" },
+    { "source": "/radar-novo", "destination": "/radar.html" },
     { "source": "/r/:code", "destination": "/api/r/:code" },
     { "source": "/artigos", "destination": "/artigos/index.html" },
     { "source": "/artigos/:slug", "destination": "/artigos/:slug.html" },
     { "source": "/app", "destination": "/index-v2.html" },
     { "source": "/app/(.*)", "destination": "/index-v2.html" },
     { "source": "/app-legacy", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/radar-novo",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    }
   ],
   "functions": {
     "api/radar.js": { "maxDuration": 90 }
