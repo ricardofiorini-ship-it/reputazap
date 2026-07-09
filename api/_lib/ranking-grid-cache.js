@@ -23,6 +23,18 @@ function sb() {
 
 const norm = (s) => (s || "").toString().trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
+// O cache é best-effort: nenhuma falha dele pode derrubar o cálculo. Mas silêncio
+// total esconde o pior caso — a TABELA NÃO EXISTIR. Foi o que aconteceu: o
+// schema-ranking-grid.sql nunca rodou, todo `getCached` deu erro engolido, e o
+// cache passou dias "ligado" sem nunca guardar nada (5 chamadas Places por termo,
+// em toda visita). Avisa uma vez por instância, sem virar ruído no log.
+let _avisouCache = false;
+function avisaFalhaCache(where, msg) {
+  if (_avisouCache) return;
+  _avisouCache = true;
+  console.warn(`[grid-cache] DESLIGADO (${where}): ${msg}. Rode supabase/schema-ranking-grid.sql. Cada visita vai queimar Places.`);
+}
+
 async function getCached(placeId, term) {
   const supabase = sb();
   if (!supabase) return null;
@@ -33,7 +45,8 @@ async function getCached(placeId, term) {
       .eq("place_id", placeId)
       .eq("term_norm", norm(term))
       .maybeSingle();
-    if (error || !data) return null;
+    if (error) { avisaFalhaCache("leitura", error.message); return null; }
+    if (!data) return null;
     if (Date.now() - new Date(data.created_at).getTime() > TTL_MS) return null; // expirou
     // Guard de formato: entradas antigas (antes da agregação) não têm `ranking`.
     // Trata como miss → recomputa no formato novo (auto-conserta o cache velho).
@@ -51,12 +64,13 @@ async function setCached(placeId, term, result) {
   const supabase = sb();
   if (!supabase) return;
   try {
-    await supabase.from("ranking_grid_cache").upsert(
+    const { error } = await supabase.from("ranking_grid_cache").upsert(
       { place_id: placeId, term_norm: norm(term), term, result, created_at: new Date().toISOString() },
       { onConflict: "place_id,term_norm" }
     );
-  } catch {
-    /* ignora erro de escrita de cache */
+    if (error) avisaFalhaCache("escrita", error.message);
+  } catch (e) {
+    avisaFalhaCache("escrita", e.message);   // nunca derruba o cálculo
   }
 }
 
