@@ -381,6 +381,27 @@ fbq('track', 'PageView');
     .st-diag-grid{grid-template-columns:.8fr 1fr;gap:48px;}
     .st-form-col{margin-inline:0;}
   }
+  /* ── LAUDO · cartão de prova ──────────────────────────────────────────────
+     A resposta literal da IA é o argumento. Tipografia de CITAÇÃO, não de
+     dashboard: corpo legível, barra à esquerda, concorrentes em destaque. Antes
+     isso vivia num acordeão fechado, em cinza itálico de 12,5px. */
+  .ev-lead{margin:18px 0 12px;font-size:14.5px;color:#4B5563;line-height:1.55;}
+  .ev-card{border:1px solid #E5E7EB;border-radius:18px;background:#fff;padding:18px;box-shadow:0 12px 34px rgba(17,24,39,.06);}
+  .ev-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+  .ev-engine{font-size:12px;font-weight:800;color:#5F6368;letter-spacing:.02em;}
+  .ev-q{font-size:15px;font-weight:800;color:#111827;line-height:1.4;letter-spacing:-.01em;}
+  .ev-a{margin:12px 0 0;padding:12px 0 12px 14px;border-left:3px solid #D7E3FC;color:#374151;font-size:14.5px;line-height:1.72;}
+  /* .hl / .hl-me vêm do CSS antigo (concorrentes em negrito, o negócio em azul). */
+  .ev-verdict{margin-top:14px;padding-top:12px;border-top:1px solid #F1F3F4;font-size:14px;font-weight:800;}
+  .ev-verdict.no{color:#A50E0E;}
+  .ev-verdict.ok{color:#137333;}
+  .ev-comp{margin-top:6px;font-size:13.5px;color:#4B5563;line-height:1.5;}
+  .ev-comp strong{color:#111827;font-weight:800;}
+  .ev-note{margin-top:14px;font-size:13.5px;color:#5F6368;line-height:1.6;}
+  .ev-note strong{color:#111827;}
+  #repPlanBox{margin-top:20px;}
+  #repPlanCta{text-decoration:none;}
+
   @media (prefers-reduced-motion:reduce){
     html{scroll-behavior:auto;}
     .st-dots i,.st-sweep{animation:none;}
@@ -644,17 +665,19 @@ fbq('track', 'PageView');
       <div class="step-bar"><span id="stepBarFill"></span></div>
     </div>
 
-    <!-- 1: Seu negócio -->
+    <!-- 1: O FATO. A prova vem primeiro, não o número. Um score é uma opinião
+         nossa; a resposta da IA é um fato. O script escolhe o item mais
+         eloquente (ver pickEvidence) e o injeta em #repEvidence. -->
     <div class="step" data-step="1">
       <div class="badge"><span class="badge-dot"></span>Seu IA Radar</div>
       <h1 id="repName" style="font-size:24px;">—</h1>
       <p id="repLocal" class="sub" style="margin-top:-4px;font-size:14px;"></p>
-      <p class="step-lead">Vamos ver, passo a passo, como as inteligências artificiais enxergam o seu negócio hoje — e o caminho pra você aparecer mais. É rápido: toque em <strong>Próximo</strong>.</p>
+      <div id="repEvidence"></div>
     </div>
 
-    <!-- 2: O diagnóstico -->
+    <!-- 2: A MEDIDA. Só agora o número. -->
     <div class="step hidden" data-step="2">
-      <p class="step-eyebrow">O diagnóstico</p>
+      <p class="step-eyebrow">A medida</p>
       <div class="score-hero">
         <div class="num"><span id="repScore">0</span><small>/100</small></div>
         <div class="lbl">Taxa de menção em IAs</div>
@@ -671,89 +694,20 @@ fbq('track', 'PageView');
       <p class="transparency" id="repTransparency"></p>
     </div>
 
-    <!-- 3: Como a gente resolve -->
+    <!-- 3: O ENCAMINHAMENTO. O laudo não vende. Ele encaminha pro tratamento,
+         que vive no /radar/plano — onde existe a auditoria de verdade do site e
+         do perfil do Google. Sem preço, sem oferta, sem brinde aqui: o pacote se
+         explica na página do pacote, num lugar só. -->
     <div class="step hidden" data-step="3">
-      <p class="step-eyebrow">Como a gente resolve</p>
-      <h2 class="step-h2">Aparecer nas IAs é método — e a gente faz com você</h2>
-      <p class="step-sub">As IAs recomendam quem é forte no Google: avaliações recentes, perfil completo e presença consistente. Veja o que fazemos nos 6 meses, item por item:</p>
-      <div class="solve-list">
-        <div class="solve-item"><span class="solve-ico">📊</span><div><h4>Diagnóstico mensal no Radar</h4><p>Todo mês a gente re-mede sua presença e te entrega um relatório de evolução — a prova de que está subindo.</p></div></div>
-        <div class="solve-item"><span class="solve-ico">🗺️</span><div><h4>Diretrizes do Google Meu Negócio</h4><p>Mostramos exatamente o que ajustar no seu perfil (categoria, fotos, descrição) pra IA confiar e recomendar você.</p></div></div>
-        <div class="solve-item"><span class="solve-ico">⭐</span><div><h4>Estratégia de avaliações</h4><p>Plano pra aumentar suas avaliações positivas no Google — o sinal nº 1 que faz a IA citar seu negócio.</p></div></div>
-        <div class="solve-item"><span class="solve-ico">📈</span><div><h4>Acompanhamento vs concorrentes</h4><p>Você vê, mês a mês, como está contra quem aparece no seu lugar hoje.</p></div></div>
-      </div>
-    </div>
-
-    <!-- 4: Brinde Kit NFC -->
-    <div class="step hidden" data-step="4">
-      <p class="step-eyebrow">E tem um presente 🎁</p>
-      <h2 class="step-h2">Kit NFC StarTouch — incluído de graça</h2>
-      <div class="kit-card">
-        <div class="kit-hero">🎁</div>
-        <p class="kit-title">1 Placa de balcão + 3 Cartões NFC</p>
-        <ul class="kit-list">
-          <li><strong>A Placa</strong> fica no <strong>balcão / caixa</strong>: o cliente encosta o celular na saída e avalia.</li>
-          <li><strong>Os 3 Cartões</strong> ficam com a <strong>sua equipe</strong>: o atendente aproxima do cliente na despedida.</li>
-        </ul>
-        <p class="kit-foot">É a ferramenta que coleta avaliações no automático — sem app, num toque. Vem junto, sem custo extra.</p>
-      </div>
-    </div>
-
-    <!-- 5: O valor -->
-    <div class="step hidden" data-step="5">
-      <p class="step-eyebrow">O investimento</p>
-      <h2 class="step-h2">Quanto vale tudo isso?</h2>
-      <div class="price-block">
-        <p class="price-line">Consultoria de presença + Kit NFC, por 6 meses</p>
-        <div class="price-anchor">R$ 199<span>/mês</span></div>
-        <p class="price-sub">6 meses no valor de tabela = <strong>R$ 1.194</strong>.</p>
-      </div>
-    </div>
-
-    <!-- 6: Desconto -->
-    <div class="step hidden" data-step="6">
-      <p class="step-eyebrow">Oferta de lançamento</p>
-      <h2 class="step-h2">Mas hoje você não paga isso</h2>
-      <div class="price-block">
-        <div class="price-strike">R$ 1.194</div>
-        <div class="price-final">R$ 599</div>
-        <p class="price-sub">Programa completo de 6 meses + Kit NFC de brinde.</p>
-      </div>
-    </div>
-
-    <!-- 7: Parcelado -->
-    <div class="step hidden" data-step="7">
-      <p class="step-eyebrow">Cabe no bolso</p>
-      <h2 class="step-h2">E ainda dá pra parcelar</h2>
-      <div class="price-block">
-        <div class="price-parcela">6x de <strong>R$ 99,83</strong></div>
-        <p class="price-sub">no cartão · ou R$ 599 à vista</p>
-      </div>
-    </div>
-
-    <!-- 8: Prazo & acompanhamento -->
-    <div class="step hidden" data-step="8">
-      <p class="step-eyebrow">Como funciona o trabalho</p>
-      <h2 class="step-h2">6 meses lado a lado</h2>
-      <div class="solve-list">
-        <div class="solve-item"><span class="solve-ico">🗓️</span><div><h4>Programa de 6 meses</h4><p>Tempo certo pra as avaliações crescerem e a IA recalibrar quem ela recomenda.</p></div></div>
-        <div class="solve-item"><span class="solve-ico">📈</span><div><h4>Relatório todo mês</h4><p>Você acompanha sua evolução no Radar — vê o número subindo, sem achismo.</p></div></div>
-        <div class="solve-item"><span class="solve-ico">💬</span><div><h4>Suporte humano</h4><p>Dúvida na execução? A gente te orienta pelo WhatsApp, em português.</p></div></div>
-      </div>
-    </div>
-
-    <!-- 9: Checkout -->
-    <div class="step hidden" data-step="9">
-      <p class="step-eyebrow">Vamos começar</p>
-      <h2 class="step-h2">Garanta sua vaga — R$ 599 em 6x</h2>
-      <div class="lead-form" id="leadForm">
-        <div class="field"><label for="leadNome">Seu nome</label><input id="leadNome" type="text" autocomplete="name"/></div>
-        <div class="field"><label for="leadWhats">WhatsApp</label><input id="leadWhats" type="tel" inputmode="tel" placeholder="(11) 99999-9999" autocomplete="tel"/></div>
-        <div class="field"><label for="leadEmail">Email</label><input id="leadEmail" type="email" autocomplete="email"/></div>
-        <button class="btn btn-primary" id="contratarBtn" type="button">Ir para o pagamento — R$ 599 em 6x</button>
-        <div id="leadErr"></div>
-        <p class="cta-note">Inclui o Kit NFC de brinde · Pagamento seguro via Mercado Pago.</p>
-      </div>
+      <p class="step-eyebrow">O caminho</p>
+      <h2 class="step-h2">Dá pra mudar isso — e a gente sabe por onde começar</h2>
+      <p class="step-sub">
+        As IAs se apoiam em sinais que já existem sobre a sua empresa: avaliações, informações do perfil,
+        estrutura do site, presença local. Montamos um plano de melhoria olhando o <strong>seu</strong> caso,
+        item por item.
+      </p>
+      <div id="repPlanBox"></div>
+      <p class="cta-note">Ninguém controla o que uma IA responde. O que dá pra fazer é fortalecer os sinais que ela lê.</p>
     </div>
 
     <!-- Navegação -->
@@ -861,24 +815,6 @@ fbq('track', 'PageView');
     updateGoBtn();
   }
 
-  // Conversão do Google Ads (lead): dispara e SÓ DEPOIS redireciona, pra não
-  // cancelar o registro. Usa event_callback + timeout de segurança (padrão Google).
-  const ADS_LEAD_CONVERSION = "AW-18239737019/CY03CJqo8b4cELuZsflD";
-  function redirectWithConversion(url) {
-    let done = false;
-    const go = () => { if (!done) { done = true; window.location.href = url; } };
-    if (window.gtag) {
-      gtag("event", "conversion", {
-        send_to: ADS_LEAD_CONVERSION,
-        value: 1.0,
-        currency: "BRL",
-        event_callback: go,
-      });
-      setTimeout(go, 1200); // fallback se o callback não vier
-    } else {
-      go();
-    }
-  }
 
   const show = (id) => {
     ["searchMode","loadingMode","reportMode"].forEach(s => $(s).classList.toggle("hidden", s !== id));
@@ -900,10 +836,65 @@ fbq('track', 'PageView');
     return escapedText.replace(re, '<span class="' + cls + '">$1</span>');
   }
 
+  // Escolhe o item mais eloquente entre TODAS as perguntas de TODOS os motores.
+  // Prioridade: (1) não citado E com concorrentes nomeados — o silêncio fica
+  // gritante ao lado de quem apareceu; (2) só não citado; (3) citado (quando o
+  // negócio aparece em tudo, a tela muda de tom e não inventa problema).
+  function pickEvidence(d){
+    const todos = [];
+    Object.keys(d.porMotor || {}).forEach(m =>
+      (d.porMotor[m].itens || []).forEach(it => todos.push({ ...it, motor: m })));
+    if (!todos.length) return null;
+    const comConcorrentes = todos.filter(it => !it.mencionado && (it.concorrentes || []).length);
+    if (comConcorrentes.length) return comConcorrentes[0];
+    const ausentes = todos.filter(it => !it.mencionado);
+    if (ausentes.length) return ausentes[0];
+    return todos.find(it => it.mencionado) || todos[0];
+  }
+
+  function renderEvidence(d, nome){
+    const box = $("repEvidence");
+    const it = pickEvidence(d);
+    if (!it) { box.innerHTML = ""; return; }
+
+    const presente = d.mencoes === d.total && d.total > 0;
+    const veredito = presente
+      ? { cls: "ok",  txt: "Seu negócio foi citado." }
+      : { cls: "no",  txt: "Seu negócio não foi citado nesta resposta." };
+
+    // Mesma marcação do acordeão: concorrentes em negrito, o negócio em azul.
+    let corpo = esc(it.resposta || "");
+    corpo = highlight(corpo, it.concorrentes, "hl");
+    corpo = highlight(corpo, [nome], "hl-me");
+
+    const citou = (it.concorrentes || []).length
+      ? '<p class="ev-comp">Em vez disso, citou: <strong>' + it.concorrentes.map(esc).join("</strong>, <strong>") + '</strong>.</p>'
+      : "";
+
+    box.innerHTML =
+      '<p class="ev-lead">' + (presente
+        ? "Perguntamos às IAs o que seus clientes perguntariam. Veja o que uma delas respondeu:"
+        : "Perguntamos às IAs o que seus clientes perguntariam. Veja o que uma delas respondeu:") + '</p>' +
+      '<div class="ev-card">' +
+        '<div class="ev-head">' +
+          '<span class="ev-engine">' + esc(ENGINE_LABELS[it.motor] || it.motor) + '</span>' +
+          '<span class="qa-flag ' + veredito.cls + '">' + (presente ? "✓ citado" : "✗ ausente") + '</span>' +
+        '</div>' +
+        '<p class="ev-q">' + esc(it.pergunta) + '</p>' +
+        (it.resposta ? '<blockquote class="ev-a">' + corpo + '</blockquote>' : '') +
+        '<p class="ev-verdict ' + veredito.cls + '">' + veredito.txt + '</p>' +
+        citou +
+      '</div>' +
+      '<p class="ev-note">' + (presente
+        ? "Boa notícia: hoje você aparece. O trabalho passa a ser <strong>manter a posição</strong> — as respostas mudam conforme os sinais mudam."
+        : "Não é sorte, nem castigo. As IAs leem sinais públicos sobre sua empresa — e esses sinais podem ser fortalecidos.") + '</p>';
+  }
+
   function renderReport(d, nome){
     $("repName").textContent = nome;
     const loc = d.local || {};
     lastReport = { nome: nome, cidade: loc.cidade || "", bairro: loc.bairro || "", score: d.score };
+    renderEvidence(d, nome);
     $("repLocal").textContent = loc.bairro
       ? "📍 Buscas focadas no bairro " + loc.bairro + " · " + (loc.cidade || "")
       : (loc.cidade ? "📍 " + loc.cidade : "");
@@ -996,6 +987,23 @@ fbq('track', 'PageView');
       "Medição feita em " + motores.length + " motor(es) consultado(s): " + nomes +
       ". O score é a taxa de vezes em que seu negócio foi citado — não é um ranking garantido.";
 
+    // Encaminhamento pro tratamento. `code` pode vir null (banco fora do ar ou
+    // colunas ausentes): sem ele NÃO existe link do plano, e prometer um link
+    // quebrado é pior que oferecer a conversa direta.
+    const plano = $("repPlanBox");
+    if (d.code) {
+      plano.innerHTML =
+        '<a class="btn btn-primary" id="repPlanCta" href="/radar/plano?code=' + encodeURIComponent(d.code) + '&origem=laudo">' +
+        'Ver meu plano de melhoria →</a>';
+      $("repPlanCta").addEventListener("click", () => track("radar_plano_click", { score: d.score }));
+    } else {
+      const msg = "Fiz o diagnóstico do IA Radar (" + nome + ") e quero saber o que dá pra melhorar";
+      plano.innerHTML =
+        '<a class="btn btn-primary" id="repPlanCta" target="_blank" rel="noopener" href="https://wa.me/5511976944026?text=' +
+        encodeURIComponent(msg) + '">Falar com a StarTouch →</a>';
+      $("repPlanCta").addEventListener("click", () => track("radar_plano_click", { score: d.score, fallback: 1 }));
+    }
+
     maxStepSeen = 0;                            // reinicia o funil deste diagnóstico
     track("radar_resultado", { score: d.score }); // rodou o diagnóstico com sucesso
     goToStep(1);          // sempre começa a apresentação do passo 1
@@ -1003,7 +1011,10 @@ fbq('track', 'PageView');
   }
 
   // ===== Apresentação em passos (funil gradual) =====
-  const TOTAL_STEPS = 9;
+  // 3 passos: o fato → a medida → o encaminhamento. Os antigos passos 3–9 eram
+  // a venda (método, brinde, preço, oferta, parcelamento, checkout) e saíram:
+  // o tratamento é vendido em UM lugar só, o /radar/plano.
+  const TOTAL_STEPS = 3;
   const STEP_NAMES = { 1:"negocio", 2:"diagnostico", 3:"solucao", 4:"brinde", 5:"valor", 6:"desconto", 7:"parcelado", 8:"prazo", 9:"checkout" };
   let curStep = 1;
   let maxStepSeen = 0;
@@ -1107,43 +1118,9 @@ fbq('track', 'PageView');
   $("stepNext").addEventListener("click", () => goToStep(curStep + 1));
   $("stepBack").addEventListener("click", () => goToStep(curStep - 1));
 
-  // Fluxo de fechamento (passo final)
-  $("contratarBtn").addEventListener("click", async () => {
-    const nome = $("leadNome").value.trim();
-    const email = $("leadEmail").value.trim();
-    const whatsapp = $("leadWhats").value.trim();
-    const btn = $("contratarBtn");
-    $("leadErr").innerHTML = "";
-    if (!nome || !email) {
-      $("leadErr").innerHTML = '<div class="err">Preencha seu nome e email.</div>';
-      return;
-    }
-    btn.disabled = true;
-    const label = btn.textContent;
-    btn.textContent = "Gerando pagamento…";
-    try {
-      const r = await fetch("/api/billing?action=checkout-ia", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome, email, whatsapp,
-          biz_name: lastReport.nome || "",
-          cidade: lastReport.cidade || "",
-          bairro: lastReport.bairro || "",
-          score: lastReport.score,
-          want_kit: true, // Kit NFC é brinde incluído no pacote
-        }),
-      });
-      const data = await r.json();
-      if (!r.ok || !data.url) throw new Error(data.error || "Não foi possível gerar o pagamento.");
-      track("radar_lead", { valor: 599 });       // lead no GA4 (complementa a conversao do Ads)
-      redirectWithConversion(data.url); // registra o lead no Google Ads e vai pro pagamento
-    } catch (e) {
-      $("leadErr").innerHTML = '<div class="err">' + (e.message || "Erro ao gerar o pagamento.") + '</div>';
-      btn.disabled = false;
-      btn.textContent = label;
-    }
-  });
+  // O fluxo de fechamento (formulário de lead + checkout do pacote) SAIU daqui.
+  // O laudo não vende: ele encaminha pro /radar/plano, onde o tratamento é
+  // explicado e cobrado — num lugar só. Ver docs/laudo-radar-contrato.md.
 
   // Vindo do widget do painel (?place_id=&nome=) — já sabemos o negócio:
   // pré-seleciona e pula a busca. Vindo da land (?nome=) — preenche e busca.

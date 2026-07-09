@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<meta charset="UTF-8"/>
 <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
@@ -19,7 +20,6 @@ fbq('track', 'PageView');
   gtag('config', 'AW-18229338581');
   gtag('config', 'G-HCLV0Z640L');
 </script>
-<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <!-- Link com code expõe dados do negócio a quem tiver o link: não indexar (regra 4). -->
 <meta name="robots" content="noindex, nofollow"/>
@@ -86,6 +86,21 @@ fbq('track', 'PageView');
   .lr svg{width:18px;height:18px;stroke:var(--dark-hi);flex-shrink:0;margin-top:1px;}
   .lr.miss-lr svg{stroke:#FCA5A5;}
   .miss.inrank{color:#7EE2A8;}
+
+  /* Cartão de prova — a resposta literal da IA, dentro da banda escura.
+     Tipografia de citação, não de dashboard: é o argumento da página. */
+  .ev{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:15px;margin-bottom:16px;}
+  .ev-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+  .ev-engine{font-size:11.5px;font-weight:800;color:var(--dark-sub);text-transform:uppercase;letter-spacing:.05em;}
+  .ev-flag{font-size:11px;font-weight:800;border-radius:6px;padding:3px 8px;white-space:nowrap;}
+  .ev-flag.no{background:rgba(252,165,165,.16);color:#FCA5A5;}
+  .ev-flag.ok{background:rgba(126,226,168,.16);color:#7EE2A8;}
+  .ev-q{font-size:14px;font-weight:700;color:#fff;line-height:1.45;}
+  .ev-a{margin:11px 0 0;padding:2px 0 2px 12px;border-left:2px solid var(--dark-hi);color:#C7D5EA;font-size:13.5px;line-height:1.7;}
+  .ev-hl{font-weight:800;color:#fff;}                    /* concorrentes citados */
+  .ev-me{font-weight:800;color:#8AB4F8;}                 /* o negócio do dono */
+  .ev-comp{margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1);font-size:12.5px;color:var(--dark-sub);line-height:1.5;}
+  .ev-comp b{color:#fff;}
   .miss svg{width:16px;height:16px;flex:0 0 auto;}
 
   /* Bloco B — orçamento de oficina */
@@ -127,6 +142,23 @@ fbq('track', 'PageView');
   .cta svg{width:18px;height:18px;stroke:#fff;}
   .undercta{text-align:center;font-size:12px;color:var(--dark-sub);margin-top:11px;}
 
+  /* Checkout do pacote — mudou-se do laudo (/radar, passo 9) pra cá. Vive na
+     banda escura, então os campos precisam de contraste próprio. `.cta` já
+     estiliza o botão; aqui só o formulário e o botão secundário. */
+  .lead-form{display:grid;gap:11px;margin-bottom:4px;}
+  .lf-field{display:grid;gap:5px;}
+  .lf-field label{font-size:12px;font-weight:700;color:var(--dark-sub);}
+  .lf-field input{width:100%;height:50px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(255,255,255,.06);color:#fff;padding:0 14px;font-family:inherit;font-size:15px;outline:none;transition:border-color .15s,background .15s;}
+  .lf-field input::placeholder{color:#7C8DA6;}
+  .lf-field input:focus{border-color:var(--dark-hi);background:rgba(255,255,255,.1);}
+  .lead-form .cta{margin-top:5px;}
+  .lead-form .cta:disabled{opacity:.6;cursor:progress;}
+  .lf-err{margin-top:9px;background:rgba(252,232,230,.12);border:1px solid #F5C6C0;border-radius:10px;padding:10px 12px;color:#FCA5A5;font-size:13px;line-height:1.45;}
+  /* Quem prefere conversar antes de pagar — secundário, não concorre com o CTA. */
+  .cta-ghost{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:12px;background:transparent;border:1px solid rgba(255,255,255,.2);color:#D7E3FC;font-size:14px;font-weight:600;height:48px;border-radius:12px;transition:background .15s;}
+  .cta-ghost:hover{background:rgba(255,255,255,.07);}
+  .cta-ghost svg{width:17px;height:17px;stroke:#D7E3FC;}
+
   .pagefoot{text-align:center;font-size:11.5px;color:var(--ink-3);margin-top:22px;line-height:1.5;}
   @media (min-width:560px){.impact h2,.audit h2,.offer h2{font-size:25px;}}
 </style>
@@ -159,6 +191,48 @@ fbq('track', 'PageView');
   function esc(s){ const d = document.createElement("div"); d.textContent = (s==null?"":String(s)); return d.innerHTML; }
 
   const ENGINE_LABELS = { gemini:"Gemini", openai:"ChatGPT", perplexity:"Perplexity" };
+  function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  // Destaca, no texto JÁ escapado, os nomes da lista. Mais longos primeiro, pra
+  // não destacar pedaço de nome. Uma passada só.
+  function highlight(escapedText, names, cls){
+    const list = (names || []).map(n => (n || "").trim()).filter(Boolean).sort((a,b) => b.length - a.length);
+    if (!list.length) return escapedText;
+    return escapedText.replace(new RegExp("(" + list.map(escRe).join("|") + ")", "gi"), '<span class="' + cls + '">$1</span>');
+  }
+  // Escolhe a pergunta mais eloquente entre TODOS os motores: (1) não citado E
+  // com concorrentes nomeados — o silêncio fica gritante ao lado de quem
+  // apareceu; (2) só não citado; (3) citado (quando aparece em tudo, não
+  // inventamos problema). Ver docs/laudo-radar-contrato.md.
+  function pickEvidence(diag){
+    const todos = [];
+    Object.keys(diag.porMotor || {}).forEach(m =>
+      (diag.porMotor[m].itens || []).forEach(it => todos.push({ ...it, motor: m })));
+    if (!todos.length) return null;
+    return todos.find(it => !it.mencionado && (it.concorrentes || []).length)
+        || todos.find(it => !it.mencionado)
+        || todos.find(it => it.mencionado)
+        || todos[0];
+  }
+  // O cartão de prova. A resposta literal da IA é o argumento — um score é uma
+  // opinião nossa, isto é um fato.
+  function renderEvidence(diag){
+    const it = pickEvidence(diag);
+    if (!it || !it.resposta) return "";
+    const presente = (diag.mencoes || 0) === (diag.total || 0) && (diag.total || 0) > 0;
+    let corpo = esc(it.resposta);
+    corpo = highlight(corpo, it.concorrentes, "ev-hl");
+    corpo = highlight(corpo, [diag.nome], "ev-me");
+    const citou = (it.concorrentes || []).length
+      ? '<div class="ev-comp">Em vez disso, citou: <b>' + it.concorrentes.map(esc).join("</b>, <b>") + '</b>.</div>'
+      : "";
+    return '<div class="ev">' +
+      '<div class="ev-head"><span class="ev-engine">' + esc(ENGINE_LABELS[it.motor] || it.motor) + ' respondeu</span>' +
+        '<span class="ev-flag ' + (presente ? "ok" : "no") + '">' + (presente ? "✓ citou você" : "✗ não citou você") + '</span></div>' +
+      '<div class="ev-q">"' + esc(it.pergunta) + '"</div>' +
+      '<blockquote class="ev-a">' + corpo + '</blockquote>' +
+      (presente ? "" : citou) +
+    '</div>';
+  }
   const ICON = {
     check:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
     x:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
@@ -222,14 +296,27 @@ fbq('track', 'PageView');
       ? "A " + esc(diag.nome) + " apareceu em " + diag.mencoes + " de " + total + " buscas."
       : "A " + esc(diag.nome) + " não apareceu em nenhuma das " + total + " buscas.";
 
+    // A PROVA vem antes da estatística: primeiro a resposta literal da IA (o
+    // fato), depois quem ela cita e com que frequência (a medida).
+    const evidence = renderEvidence(diag);
+
+    // Com o cartão de prova acima, repetir a pergunta aqui era eco. Se o cartão
+    // não renderizar (motor sem `resposta`), a pergunta volta — senão a barra de
+    // concorrentes apareceria sem contexto nenhum.
+    const qLine = evidence
+      ? '<div class="q">Fizemos <b>' + total + ' buscas</b> como essa. Veja quem as IAs citam:</div>'
+      : '<div class="q">Perguntamos ao <b>' + esc(engineLabel) + '</b>: <b>"' + esc(pergunta) + '"</b> → e medimos quem ele cita:</div>';
+
     const revealBlock = ranked.length ? (
       '<div class="reveal">' +
-        '<div class="q">Perguntamos ao <b>' + esc(engineLabel) + '</b>: <b>"' + esc(pergunta) + '"</b> → e medimos quem ele cita:</div>' +
+        evidence +
+        qLine +
         comps +
         '<div class="miss ' + (appeared ? "inrank" : "") + '">' + (appeared ? ICON.check : ICON.alert) + ' ' + missTxt + '</div>' +
       '</div>'
     ) : (
-      '<div class="reveal"><div class="miss ' + (appeared ? "inrank" : "") + '">' + (appeared ? ICON.check : ICON.alert) + ' ' + missTxt + '</div></div>'
+      '<div class="reveal">' + evidence +
+        '<div class="miss ' + (appeared ? "inrank" : "") + '">' + (appeared ? ICON.check : ICON.alert) + ' ' + missTxt + '</div></div>'
     );
 
     return '<div class="block"><div class="impact">' +
@@ -327,14 +414,78 @@ fbq('track', 'PageView');
     ];
     const msg = "Vi meu plano de trabalho do Radar (" + (diag.nome || "") + ") e quero começar";
     const wa = "https://wa.me/5511976944026?text=" + encodeURIComponent(msg);
+    // O checkout do pacote MUDOU-SE PRA CÁ (era o passo 9 do laudo em /radar).
+    // O tratamento é vendido em um lugar só. Antes, o laudo cobrava "R$599 em 6x"
+    // e esta página anunciava "R$99/mês" — dois discursos, dois preços.
+    // O que o Mercado Pago cobra de fato (api/billing.js, IA_PACKAGE):
+    // R$ 599,00 em até 6x. A copy abaixo reflete isso.
     return '<div class="block"><div class="offer">' +
       '<h2>Nós resolvemos tudo isso pra você</h2>' +
       '<ul class="incl">' + incl.map(i => '<li>' + ICON.check + ' ' + i + '</li>').join("") + '</ul>' +
-      '<div class="price"><span class="v">R$99</span><span class="per">/mês · sem fidelidade</span></div>' +
-      '<div class="anchor">ou <b>R$599 por 6 meses</b> com Kit NFC de brinde</div>' +
-      '<a class="cta" id="ctaWa" href="' + wa + '" target="_blank" rel="noopener">' + ICON.wa + ' Quero que resolvam pra mim</a>' +
-      '<div class="undercta">Primeiros ajustes em 7 dias · cancele quando quiser</div>' +
+      '<div class="price"><span class="v">R$599</span><span class="per">· programa de 6 meses</span></div>' +
+      '<div class="anchor">em até <b>6x de R$ 99,83</b> no cartão · Kit NFC de brinde</div>' +
+      '<div class="lead-form" id="leadForm">' +
+        '<div class="lf-field"><label for="leadNome">Seu nome</label><input id="leadNome" type="text" autocomplete="name"/></div>' +
+        '<div class="lf-field"><label for="leadWhats">WhatsApp</label><input id="leadWhats" type="tel" inputmode="tel" placeholder="(11) 99999-9999" autocomplete="tel"/></div>' +
+        '<div class="lf-field"><label for="leadEmail">Email</label><input id="leadEmail" type="email" autocomplete="email"/></div>' +
+        '<button class="cta" id="contratarBtn" type="button">Ir para o pagamento →</button>' +
+        '<div id="leadErr"></div>' +
+      '</div>' +
+      '<div class="undercta">Pagamento seguro via Mercado Pago · primeiros ajustes em 7 dias</div>' +
+      '<a class="cta-ghost" id="ctaWa" href="' + wa + '" target="_blank" rel="noopener">' + ICON.wa + ' Prefiro falar antes no WhatsApp</a>' +
     '</div></div>';
+  }
+
+  // Conversão do Google Ads (lead): dispara e SÓ DEPOIS redireciona, senão o
+  // redirect cancela o registro. event_callback + timeout de segurança.
+  const ADS_LEAD_CONVERSION = "AW-18239737019/CY03CJqo8b4cELuZsflD";
+  function redirectWithConversion(url) {
+    let done = false;
+    const go = () => { if (!done) { done = true; window.location.href = url; } };
+    if (window.gtag) {
+      gtag("event", "conversion", { send_to: ADS_LEAD_CONVERSION, value: 1.0, currency: "BRL", event_callback: go });
+      setTimeout(go, 1200);
+    } else { go(); }
+  }
+
+  // Checkout do Pacote Presença em IA. Mesmo endpoint de antes; só mudou de casa.
+  function wireCheckout(diag){
+    const btn = $("contratarBtn");
+    if (!btn) return;
+    btn.addEventListener("click", async () => {
+      const nome = $("leadNome").value.trim();
+      const email = $("leadEmail").value.trim();
+      const whatsapp = $("leadWhats").value.trim();
+      const err = $("leadErr");
+      err.innerHTML = "";
+      if (!nome || !email) { err.innerHTML = '<div class="lf-err">Preencha seu nome e email.</div>'; return; }
+      btn.disabled = true;
+      const label = btn.textContent;
+      btn.textContent = "Gerando pagamento…";
+      try {
+        const local = diag.local || {};   // GET /api/radar?code= devolve `local` no topo
+        const r = await fetch("/api/billing?action=checkout-ia", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome, email, whatsapp,
+            biz_name: diag.nome || "",
+            cidade: local.cidade || "",
+            bairro: local.bairro || "",
+            score: diag.score,
+            want_kit: true, // Kit NFC é brinde incluído no pacote
+          }),
+        });
+        const data = await r.json();
+        if (!r.ok || !data.url) throw new Error(data.error || "Não foi possível gerar o pagamento.");
+        try { if (window.gtag) gtag("event", "radar_lead", { valor: 599 }); } catch (e) {}
+        redirectWithConversion(data.url);
+      } catch (e) {
+        err.innerHTML = '<div class="lf-err">' + (e.message || "Erro ao gerar o pagamento.") + '</div>';
+        btn.disabled = false;
+        btn.textContent = label;
+      }
+    });
   }
 
   // ===================== fluxo =====================
@@ -361,6 +512,10 @@ fbq('track', 'PageView');
     $("page").style.display = "";
     $("pagefoot").style.display = "";
     window.scrollTo({ top: 0 });
+
+    // O Bloco C só existe no DOM depois do innerHTML acima — ligar o checkout
+    // antes disso não acharia o botão.
+    wireCheckout(diag);
 
     // CTA → evento GA4 (deixa a navegação seguir; target _blank).
     const cta = $("ctaWa");

@@ -13,10 +13,42 @@
 
 ---
 
+## 0. CORREÇÃO IMPORTANTE (descoberta em 09/07, depois da 1ª versão deste doc)
+
+**O `#reportMode` de `radar.html` NÃO é a tela de resultado que o cliente vê.**
+Ao terminar o diagnóstico, `run()` faz:
+
+```js
+if (data.code) {                       // caso normal: o banco respondeu
+  window.location.href = "/radar/plano?code=" + data.code + "&origem=" + origem;
+  return;                              // ← nunca chega no relatório embutido
+}
+renderReport(data, selectedBiz.name);  // fallback: só quando NÃO há code
+```
+
+Ou seja: o laudo de 9 passos só aparecia quando o banco estava fora do ar. **A
+tela de resultado real é o `/radar/plano`** (Bloco A = impacto, Bloco B =
+auditoria, Bloco C = oferta). E a venda que vivia no passo 9 já era inalcançável
+no caminho normal.
+
+Consequências, já aplicadas:
+- O cartão de prova (a resposta literal da IA) foi para o **Bloco A do
+  `/radar/plano`**, não para o `radar.html`.
+- O checkout do pacote **mudou-se do laudo para o `/radar/plano`** — antes era o
+  único caminho de pagamento do produto e estava numa tela morta.
+- O `#reportMode` foi encolhido para 3 passos e continua existindo **como
+  fallback resiliente**: mesmo caminho narrativo (fato → medida →
+  encaminhamento), sem venda.
+
+O resto deste documento vale como escrito, com essa substituição de endereço.
+
+---
+
 ## 1. Onde estamos e o que está errado
 
-Hoje o resultado do diagnóstico vive em `public/radar.html`, dentro do bloco
-`#reportMode`, apresentado como um percurso de **9 passos**:
+O resultado do diagnóstico *era* apresentado em `public/radar.html`, no bloco
+`#reportMode`, como um percurso de **9 passos** (ver §0: ele só rodava como
+fallback):
 
 | Passo | Conteúdo |
 |---|---|
