@@ -12,18 +12,12 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
-  <!-- /radar fora do sitemap enquanto o IA Radar está em melhorias (09/07/2026).
-       A URL responde com radar-em-breve.html, que é `noindex` — deixá-la aqui
-       seria mandar o Google indexar uma página que pede pra não ser indexada.
-       Ao religar o Radar: descomentar e atualizar o lastmod. -->
-  <!--
   <url>
     <loc>https://startouch.com.br/radar</loc>
-    <lastmod>2026-06-15</lastmod>
+    <lastmod>2026-07-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  -->
   <url>
     <loc>https://startouch.com.br/ajuda</loc>
     <lastmod>2026-06-03</lastmod>
