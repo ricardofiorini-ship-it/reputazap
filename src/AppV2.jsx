@@ -3705,7 +3705,7 @@ function ScoreRing({ score, size = 128 }) {
   )
 }
 
-function HeroBlock({ d, position, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
+function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
   const score = calcStarTouchScore(d)
   // Coluna B consome a MESMA fonte do ranking (lente "Bem perto de você") — não o
   // d.kpis.rankingPos, que ficava null e mostrava placeholder mesmo com ranking cheio.
@@ -3724,9 +3724,35 @@ function HeroBlock({ d, position, demoMode, isMobile, onScoreDetails, onSeeCompe
           <div style={{ fontSize: 13, fontWeight: 600, color: T.textMuted }}>Score StarTouch</div>
           <button onClick={onScoreDetails} style={link}>Por que {score}? Ver o que falta <ChevronRight size={14}/></button>
         </div>
-        {/* Coluna B — Posição no ranking */}
+        {/* Coluna B — Posição no ranking. Fonte preferida: GRADE (posição média
+            real de 5 pontos). Sem grade ainda, cai na lente antiga (fallback).
+
+            Mostra a MÉDIA das 5 posições, não o ordinal da lista agregada. A
+            grade é centrada na porta do negócio, então o dono é sempre o mais
+            perto de todos os 5 pontos e o vizinho a 1km é sempre o mais longe:
+            o ordinal favorece quem está no centro. Medido: Sankayo e Iroha
+            (1,16km de distância) davam AMBOS "#1", cada um na própria grade —
+            numa arena neutra o Iroha ganha por larga margem. A média (Sankayo
+            3,2 · Iroha 1,4) é o número que não mente. */}
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 6, paddingLeft: isMobile ? 4 : 8 }}>
-          {showPos ? (
+          {gridPos ? (
+            gridPos.coverage > 0 && gridPos.score != null ? (
+              <>
+                <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>{gridPos.score.toFixed(1).replace('.', ',')}</div>
+                <div style={{ fontSize: 13, color: T.textMuted }}>posição média no Google</div>
+                <div style={{ fontSize: 12, color: T.textDim }}>como {gridPos.term} · aparece em {gridPos.coverage}/{gridPos.measured} pontos ao redor do seu endereço</div>
+                <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button>
+              </>
+            ) : (
+              <>
+                <div style={{ display:'inline-flex', alignItems:'center', gap: 6, fontSize: isMobile ? 20 : 24, fontWeight: 800, color: T.accent, lineHeight: 1.1, letterSpacing:'-0.01em' }}>
+                  <AlertTriangle size={isMobile ? 20 : 22}/> Fora da lista
+                </div>
+                <div style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.4 }}>Não aparece pra "{gridPos.term}" em nenhum dos {gridPos.measured} pontos medidos na sua região.</div>
+                <button onClick={onSeeCompetitors} style={{ ...link, color: T.accent }}>Ver concorrentes <ChevronRight size={14}/></button>
+              </>
+            )
+          ) : showPos ? (
             <>
               <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>#{pos}</div>
               <div style={{ fontSize: 13, color: T.textMuted }}>de {total} na sua região</div>
@@ -5111,6 +5137,11 @@ function GuestSearch({ isMobile }) {
   const [results, setResults] = React.useState(null)
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
+  // Passo 2 (grade): após escolher o negócio, o dono seleciona os termos.
+  const [selectedBiz, setSelectedBiz] = React.useState(null)
+  const [suggestions, setSuggestions] = React.useState([])
+  const [selectedTerms, setSelectedTerms] = React.useState([])
+  const [addInput, setAddInput] = React.useState('')
 
   // Analytics: abriu a busca sem cadastro (topo do funil convidado)
   React.useEffect(() => {
@@ -5140,11 +5171,35 @@ function GuestSearch({ isMobile }) {
     } finally { setLoading(false) }
   }
 
-  function pick(placeId) {
-    const kw = term.trim()
+  // Escolheu o negócio → carrega os termos sugeridos (não navega ainda).
+  async function pick(biz) {
+    setSelectedBiz(biz)
+    let sugg = []
+    try {
+      const r = await fetch('/api/diagnostico?suggest=1&place_id=' + encodeURIComponent(biz.place_id))
+      const d = await r.json(); sugg = d.suggestions || []
+    } catch {}
+    const typed = term.trim()
+    const merged = [...new Set([typed, ...sugg].filter(Boolean))]
+    setSuggestions(merged)
+    setSelectedTerms(merged.slice(0, 1))   // 1 termo padrão (grátis)
+  }
+  function toggleTerm(t) {
+    setSelectedTerms(prev => prev.includes(t) ? prev.filter(x => x !== t) : (prev.length >= 3 ? prev : [...prev, t]))
+  }
+  function addTerm() {
+    // Minúsculo pra casar com as sugestões (que vêm minúsculas) — evita "Padaria"
+    // duplicar a "padaria" automática. Busca no Google é case-insensitive.
+    const t = addInput.trim().toLowerCase(); if (!t) return
+    const exists = (arr) => arr.some(x => x.toLowerCase() === t)
+    setSuggestions(prev => exists(prev) ? prev : [...prev, t])
+    setSelectedTerms(prev => (exists(prev) || prev.length >= 3) ? prev : [...prev, t])
+    setAddInput('')
+  }
+  function goToPanel() {
     const cepDigits = (loc || '').replace(/\D/g, '')
-    let url = `/app?place_id=${encodeURIComponent(placeId)}`
-    if (kw) url += `&keyword=${encodeURIComponent(kw)}`
+    let url = `/app?place_id=${encodeURIComponent(selectedBiz.place_id)}`
+    if (selectedTerms.length) url += `&terms=${encodeURIComponent(selectedTerms.join(','))}`
     if (cepDigits.length === 8) url += `&cep=${cepDigits}`
     window.location.href = url
   }
@@ -5239,23 +5294,50 @@ function GuestSearch({ isMobile }) {
                 Usamos o CEP pra achar exatamente <b>a sua unidade</b> (importante se houver lojas com nome parecido).
               </span>
             </div>
-            <div style={{ marginBottom:18 }}>
-              <label style={labelStyle}>O que seus clientes digitam no Google pra te achar?</label>
-              <input style={inputStyle} value={term} onChange={e=>setTerm(e.target.value)} placeholder="Ex: padaria, loja de bicicletas, salão de beleza"/>
-              <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
-                Use o <b>tipo/categoria</b> do negócio — <b>não o nome da empresa</b>. É isso que mostra os concorrentes certos.
-              </span>
-            </div>
-            <button type="submit" disabled={!canSearch} style={{
-              width:'100%', padding:'13px', background: canSearch?T.blue:T.textDim, color:'#fff',
-              border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
-              cursor: canSearch?'pointer':'not-allowed'
-            }}>{loading ? 'Buscando…' : 'Ver minha presença'}</button>
+            {/* Botão de BUSCA: some quando o negócio já foi escolhido (aí o único
+                CTA azul é o "Ver minha posição" do passo de termos). */}
+            {!selectedBiz && (
+              <button type="submit" disabled={!canSearch} style={{
+                width:'100%', padding:'13px', background: canSearch?T.blue:T.textDim, color:'#fff',
+                border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
+                cursor: canSearch?'pointer':'not-allowed'
+              }}>{loading ? 'Buscando…' : 'Buscar meu negócio'}</button>
+            )}
           </form>
 
           {error && <p style={{ fontSize:13, color:T.red, marginTop:12 }}>{error}</p>}
 
-          {results && (
+          {/* Passo de TERMOS (após escolher o negócio) */}
+          {selectedBiz && (
+            <div style={{ marginTop:18 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, background:T.blueSoft, border:'1px solid #C6DAFC', borderRadius:11, padding:'11px 14px', marginBottom:16 }}>
+                <span style={{ fontSize:14.5, fontWeight:700, color:T.text, flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{selectedBiz.name}</span>
+                <button type="button" onClick={()=>{ setSelectedBiz(null); setSelectedTerms([]) }} style={{ background:'none', border:'none', color:T.blue, fontWeight:600, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Trocar</button>
+              </div>
+              <label style={labelStyle}>Em quais buscas você quer aparecer? <span style={{ fontWeight:400, color:T.textDim }}>(até 3)</span></label>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:8, margin:'8px 0 10px' }}>
+                {suggestions.map(t => {
+                  const on = selectedTerms.includes(t)
+                  return <button key={t} type="button" onClick={()=>toggleTerm(t)} style={{
+                    border:`1.5px solid ${on?T.blue:T.border}`, background:on?T.blue:'#fff', color:on?'#fff':T.textMid,
+                    borderRadius:999, padding:'8px 14px', fontSize:13.5, fontWeight:600, cursor:'pointer', fontFamily:'inherit'
+                  }}>{t}</button>
+                })}
+              </div>
+              <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+                <input style={{ ...inputStyle, flex:1 }} value={addInput} onChange={e=>setAddInput(e.target.value)}
+                  onKeyDown={e=>{ if(e.key==='Enter'){ e.preventDefault(); addTerm() } }} placeholder="Adicionar termo (ex: rodízio, delivery)"/>
+                <button type="button" onClick={addTerm} style={{ background:'#fff', border:`1.5px solid ${T.border}`, borderRadius:10, padding:'0 16px', fontSize:20, fontWeight:700, color:T.blue, cursor:'pointer' }}>+</button>
+              </div>
+              <button type="button" onClick={goToPanel} disabled={!selectedTerms.length} style={{
+                width:'100%', padding:'13px', background: selectedTerms.length?T.blue:T.textDim, color:'#fff',
+                border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
+                cursor: selectedTerms.length?'pointer':'not-allowed'
+              }}>Ver minha posição no Google →</button>
+            </div>
+          )}
+
+          {!selectedBiz && results && (
             <div style={{ marginTop:18 }}>
               {results.length === 0 ? (
                 <div style={{ background:'#FEF7E0', border:'1.5px solid #FDE293', borderRadius:12, padding:'16px 18px' }}>
@@ -5279,7 +5361,7 @@ function GuestSearch({ isMobile }) {
                   <p style={{ fontSize:13, color:T.blue, fontWeight:600, margin:'0 0 8px' }}>Toque no seu negócio</p>
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     {results.map(b => (
-                      <button key={b.place_id} type="button" onClick={()=>pick(b.place_id)} style={{
+                      <button key={b.place_id} type="button" onClick={()=>pick(b)} style={{
                         textAlign:'left', background:'#fff', border:`1.5px solid ${T.border}`, borderRadius:11,
                         padding:'12px 14px', cursor:'pointer', display:'flex', flexDirection:'column', gap:3
                       }}>
@@ -5556,6 +5638,154 @@ function pertoLensInfo(lensData) {
   const lens = lensData?.lenses?.find(l => l.key === 'perto') || lensData?.lenses?.[0]
   if (!lens) return null
   return { rank: lens.rank, total: lens.total, inResults: !!lens.inResults }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Ranking por GRADE (Passo 2). Hook do painel: busca a grade UMA vez e alimenta
+// o Hero (Coluna B, termo principal) e o card de termos EXTRAS. Fonte LAB:
+// /api/diagnostico?grid=1 (público). Passo 4 troca pela fonte definitiva + flag.
+// ─────────────────────────────────────────────────────────────
+function useGridData({ placeId, terms }) {
+  const [data, setData] = React.useState(null)
+  const termsQ = (Array.isArray(terms) ? terms : []).filter(Boolean).slice(0, 3).join(',')
+  React.useEffect(() => {
+    if (!placeId) { setData(null); return }
+    let alive = true
+    ;(async () => {
+      try {
+        const r = await fetch('/api/diagnostico?grid=1&place_id=' + encodeURIComponent(placeId) + (termsQ ? '&terms=' + encodeURIComponent(termsQ) : ''))
+        if (!alive) return
+        const d = r.ok ? await r.json() : null
+        setData(d?.grid || null)
+      } catch { if (alive) setData(null) }
+    })()
+    return () => { alive = false }
+  }, [placeId, termsQ])
+  return data
+}
+
+// Rótulo/cor por termo (forte / melhorar / subir / oportunidade).
+function gridStatus(t) {
+  if (!t || !t.coverage) return { label: 'oportunidade', color: '#A50E0E', bg: '#FCE8E6' }
+  if (t.score <= 3)  return { label: 'forte',           color: '#137333', bg: '#E6F4EA' }
+  if (t.score <= 10) return { label: 'dá pra melhorar', color: '#B45309', bg: '#FEF3C7' }
+  return { label: 'precisa subir', color: '#A50E0E', bg: '#FCE8E6' }
+}
+
+// Card dos termos EXTRAS (o principal já aparece no Hero). Só renderiza quando o
+// dono escolheu mais de 1 termo — a "camada de oportunidade". Sem bolinhas: só a
+// classificação por termo (feedback do Ricardo).
+function RankingGrid({ data }) {
+  const extras = (data?.terms || []).slice(1)
+  if (!extras.length) return null
+  return (
+    <Card>
+      <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 12 }}>
+        <Search size={18} style={{ color: T.primary }}/>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color: T.text, margin: 0 }}>Você também aparece em</h3>
+      </div>
+      <div style={{ display:'flex', flexDirection:'column', gap: 12 }}>
+        {extras.map((t, i) => {
+          const s = gridStatus(t)
+          return (
+            <div key={i} style={{ display:'flex', alignItems:'center', gap: 10, borderTop: i > 0 ? `1px solid ${T.border}` : 'none', paddingTop: i > 0 ? 12 : 0 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, color: T.text, fontWeight: 600 }}>Como {t.term}</div>
+                <div style={{ fontSize: 12.5, color: T.textMuted, marginTop: 1 }}>
+                  {t.coverage > 0 ? <>posição média <b style={{ color: T.text }}>{t.score.toFixed(1).replace('.', ',')}</b> · {t.coverage}/{t.measured} pontos</> : 'não aparece nesta busca'}
+                </div>
+              </div>
+              <span style={{ fontSize: 10.5, fontWeight: 800, textTransform:'uppercase', letterSpacing:'.04em', color: s.color, background: s.bg, padding:'4px 9px', borderRadius: 999, flexShrink: 0 }}>{s.label}</span>
+            </div>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}
+
+// Lista de concorrentes da REGIÃO vinda da GRADE (posição média agregada dos 5
+// pontos). Fonte ÚNICA com o Hero — a média do topo bate com a coluna daqui.
+// Três números por linha (posição média, nota, avaliações) só se leem com
+// cabeçalho: sem ele, "1,4 4,7 8442" é ruído.
+// Larguras somam ~180px + gaps: num card de 328px (celular de 360) sobram ~120px
+// pro nome, que trunca com reticências. Apertar mais espreme o cabeçalho.
+const COL = { pos: 38, avg: 54, rating: 46, reviews: 52 }
+function GridRankingList({ data, isGuest, signupUrl }) {
+  if (!data?.ranking?.length) return null
+  const th = { fontSize: 10, fontWeight: 700, letterSpacing:'0.04em', textTransform:'uppercase', color: T.textDim, flexShrink: 0 }
+  const num = { fontVariantNumeric:'tabular-nums', flexShrink: 0, textAlign:'right' }
+  return (
+    <Card>
+      <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4 }}>
+        <Search size={18} style={{ color: T.primary }}/>
+        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Concorrentes por perto</h3>
+      </div>
+      {/* A ordem desta lista é medida a partir do ENDEREÇO DO DONO (a grade é
+          centrada nele), então favorece quem está no centro — ele. Por isso a
+          coluna da média existe: "1º" e "2º" podem ser 3,2 e 3,4. O número diz a
+          verdade que o ordinal esconde. */}
+      <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 12 }}>Medido em {data.measured} pontos ao redor do seu endereço · como {data.term}</div>
+
+      <div style={{ display:'flex', alignItems:'flex-end', gap: 8, padding:'0 8px 6px', borderBottom:`1px solid ${T.border}`, marginBottom: 4 }}>
+        <span style={{ ...th, width: COL.pos, textAlign:"center" }}>Ordem</span>
+        <span style={{ ...th, flex: 1, minWidth: 0 }}>Negócio</span>
+        <span style={{ ...th, ...num, width: COL.avg, lineHeight: 1.2 }}>Posição<br/>média</span>
+        <span style={{ ...th, ...num, width: COL.rating }}>Nota</span>
+        <span style={{ ...th, ...num, width: COL.reviews, lineHeight: 1.2 }}>Aval.<br/>no Google</span>
+      </div>
+
+      {data.ranking.map((r, i) => {
+        const me = r.is_me
+        const blurName = isGuest && !me
+        return (
+          <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'8px', borderRadius: 8, marginBottom: 2, background: me ? T.primarySoft : 'transparent' }}>
+            <span style={{ width: COL.pos, flexShrink: 0, textAlign:'center', fontSize: 12, fontWeight: 700, color: me ? T.primaryDark : T.textDim }}>{i + 1}º</span>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: me ? 700 : 500, color: me ? T.primaryDark : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
+              ...(blurName && { filter:'blur(5px)', userSelect:'none', pointerEvents:'none' }) }}>
+              {me ? `${r.name || 'Você'} (você)` : (r.name || 'Concorrente')}
+            </span>
+            <span title={r.score != null
+                ? `Aparece em ${r.points} de ${data.measured} pontos${r.points < data.measured ? ` (nos outros ${data.measured - r.points}, fica fora do top 20)` : ''}`
+                : 'Não apareceu em nenhum ponto'}
+              style={{ ...num, width: COL.avg, fontSize: 13, fontWeight: 700, color: me ? T.primaryDark : T.text }}>
+              {r.score != null ? r.score.toFixed(1).replace('.', ',') : '—'}
+            </span>
+            <span style={{ ...num, width: COL.rating, fontSize: 12, color: T.textMuted, display:'inline-flex', alignItems:'center', justifyContent:'flex-end', gap: 2 }}>
+              {r.rating != null ? r.rating.toFixed(1).replace('.', ',') : '—'}<Star size={11} fill={T.accent} color={T.accent} strokeWidth={0}/>
+            </span>
+            <span style={{ ...num, width: COL.reviews, fontSize: 12, color: T.textMuted }}>
+              {(r.reviews ?? 0).toLocaleString('pt-BR')}
+            </span>
+          </div>
+        )
+      })}
+      {/* "1º com posição média 4,6" parece contradição e não é: a Padaria Delícia
+          de Perdizes fica em 1,7,4,6,5 no Google (média 4,6) e ainda assim lidera,
+          porque os vizinhos estão em 9,0 ou pior. Ordem ≠ posição — a legenda tem
+          que dizer isso, senão o dono lê os dois números como o mesmo. */}
+      <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.5 }}>
+        <div><b style={{ color: T.textMuted }}>Ordem</b>: quem se sai melhor entre os negócios medidos aqui.</div>
+        <div style={{ marginTop: 2 }}>
+          <b style={{ color: T.textMuted }}>Posição média</b>: em que lugar o Google mostra o negócio, na média dos {data.measured} pontos.
+          Quando ele não aparece num ponto, esse ponto conta como 21º. Menor é melhor.
+        </div>
+        <div style={{ marginTop: 2 }}>Dá pra ser 1º na ordem e ainda assim ter posição média 4,6 — significa que a vizinhança inteira aparece mal.</div>
+      </div>
+      {isGuest && data.ranking.some(r => !r.is_me) && (
+        <div style={{ marginTop: 12, display:'flex', alignItems:'center', gap: 12, flexWrap:'wrap', background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 12, padding:'12px 14px' }}>
+          <Lock size={18} color={T.primary} style={{ flexShrink: 0 }}/>
+          <div style={{ flex:'1 1 180px', minWidth: 0, fontSize: 13, color: T.textMid, lineHeight: 1.45 }}>
+            <strong style={{ color: T.text }}>Quem são seus concorrentes?</strong> Crie sua conta grátis pra ver os nomes.
+          </div>
+          <a href={signupUrl || '/ativar?from=web'} onClick={() => trackFunnel('guest_signup_click', { from: 'ranking' })}
+            style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6, flexShrink: 0, background: T.primary, color:'#fff', fontSize: 13.5, fontWeight: 700, textDecoration:'none', borderRadius: 10, padding:'10px 16px' }}>
+            Criar conta grátis <ChevronRight size={16}/>
+          </a>
+        </div>
+      )}
+    </Card>
+  )
 }
 
 function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGuest, signupUrl }) {
@@ -6323,6 +6553,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     mock: demoLenses
   })
   const heroPos = pertoLensInfo(lensState.data)
+  // Ranking por GRADE (posição média real). Alimenta o Hero (termo principal) e o
+  // card de termos extras. Uma busca só, compartilhada.
+  const gridData = useGridData({ placeId: guestContext?.placeId || d.biz?.placeId, terms: guestContext?.terms })
+  // measured === 0 → o Places falhou em TODOS os pontos. Não sabemos nada; cair
+  // no fallback das lentes é melhor que anunciar "Fora da lista" (que seria
+  // inventar uma má notícia a partir de uma falha de infraestrutura).
+  const gp = gridData?.terms?.[0]
+  const gridPrimary = gp && gp.measured > 0 ? gp : null
   // Categoria mostrada e URL do perfil do Google (p/ "corrigir categoria" / "Responder").
   const lensCategory = lensState.data?.term || d.activeCategory || 'sua categoria'
   const googleProfileUrl = (guestContext?.placeId || d.biz?.placeId)
@@ -6490,6 +6728,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         {/* BLOCO 1 — HERO: placar de 5 segundos (score + posição + mini-cards). Spec 3. */}
         <Section>
           <HeroBlock
+            gridPos={gridPrimary}
             d={d}
             position={heroPos}
             demoMode={demoMode}
@@ -6524,15 +6763,31 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         {(demoMode || (real.hasBusiness && (guestContext?.placeId || d.biz?.placeId))) && (
         <Section>
           <div id="bloco-concorrentes" style={{ scrollMarginTop: 72 }} />
-          <VisibilityLenses
-            data={lensState.data}
-            loading={lensState.loading}
-            isMobile={isMobile}
-            googleUrl={googleProfileUrl}
-            category={lensCategory}
-            isGuest={isGuest}
-            signupUrl={guestSignupUrl}
-          />
+          {/* Ranking por GRADE. Aberto pra qualquer place_id, inclusive convidado
+              sem login — decisão de 09/07: o ranking é tudo free. Entregamos o
+              diagnóstico inteiro e vendemos o conserto (pacote de IA, placas),
+              não a informação. O custo é contido por cache + freio por IP no
+              endpoint, não por paywall. */}
+          {gridData?.terms?.length > 1 && (
+            <div style={{ marginBottom: 14 }}>
+              <RankingGrid data={gridData} />
+            </div>
+          )}
+          {/* Com a grade disponível, a LISTA vem dela (fonte única com o Hero).
+              Sem grade (fallback), usa as lentes 1/3km antigas. */}
+          {gridPrimary ? (
+            <GridRankingList data={gridPrimary} isGuest={isGuest} signupUrl={guestSignupUrl} />
+          ) : (
+            <VisibilityLenses
+              data={lensState.data}
+              loading={lensState.loading}
+              isMobile={isMobile}
+              googleUrl={googleProfileUrl}
+              category={lensCategory}
+              isGuest={isGuest}
+              signupUrl={guestSignupUrl}
+            />
+          )}
           {!demoMode && (
           <div style={{ marginTop: 10 }}>
             <TermBar

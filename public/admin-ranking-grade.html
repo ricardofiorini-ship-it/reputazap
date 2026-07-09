@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex, nofollow"/>
+<title>Comparação Ranking Grade — Admin StarTouch</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  :root{
+    --brand:#1A73E8; --brand-dk:#174EA6; --brand-050:#E8F0FE;
+    --ink:#111827; --ink-2:#4B5563; --ink-3:#80868B;
+    --bg:#F8F9FA; --surf:#FFFFFF; --border:#E5E7EB;
+    --ok:#1E8E3E; --ok-bg:#E6F4EA; --warn:#B45309; --warn-bg:#FEF3C7;
+    --bad:#A50E0E; --bad-bg:#FCE8E6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;}
+  .topbar{display:none;align-items:center;justify-content:space-between;background:var(--surf);border-bottom:1px solid var(--border);padding:14px 20px;}
+  .topbar .brand{font-weight:800;letter-spacing:-0.02em;}
+  .topbar button{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;color:var(--ink-2);cursor:pointer;}
+  .wrap{max-width:820px;margin:0 auto;padding:24px 20px 60px;}
+  #login-view{max-width:360px;margin:80px auto;padding:0 20px;}
+  h1{font-size:20px;font-weight:800;margin-bottom:6px;}
+  .sub{font-size:13.5px;color:var(--ink-2);margin-bottom:18px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:5px;}
+  .field input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 13px;font:inherit;font-size:15px;outline:none;}
+  .field input:focus{border-color:var(--brand);}
+  .btn{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:12px 18px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;}
+  .btn:hover{background:var(--brand-dk);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-full{width:100%;}
+  .err{background:var(--bad-bg);color:var(--bad);border-radius:8px;padding:10px 12px;font-size:13px;margin-top:12px;display:none;}
+  .err.show{display:block;}
+  .card{background:var(--surf);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;}
+
+  .biz-results{margin-top:8px;border:1px solid var(--border);border-radius:10px;overflow:hidden;display:none;}
+  .biz-results.on{display:block;}
+  .biz-item{display:block;width:100%;text-align:left;background:#fff;border:none;border-top:1px solid #F1F3F4;padding:10px 12px;cursor:pointer;font:inherit;}
+  .biz-item:first-child{border-top:none;}
+  .biz-item:hover{background:#F8F9FA;}
+  .biz-item b{font-size:13.5px;} .biz-item span{font-size:11.5px;color:var(--ink-3);}
+  .biz-confirm{display:none;align-items:center;gap:10px;background:var(--brand-050);border:1px solid #C6DAFC;border-radius:10px;padding:10px 12px;margin-top:8px;}
+  .biz-confirm.on{display:flex;}
+  .biz-confirm b{flex:1;font-size:14px;}
+  .biz-confirm button{background:none;border:none;color:var(--brand);font:inherit;font-weight:600;cursor:pointer;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;}
+  .chip{border:1.5px solid var(--border);background:#fff;border-radius:999px;padding:7px 13px;font:inherit;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;}
+  .chip.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .term-add{display:flex;gap:8px;margin-top:4px;}
+  .term-add input{flex:1;border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;font:inherit;font-size:14px;}
+
+  .cmp{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media(min-width:680px){.cmp{grid-template-columns:1fr 1fr;}}
+  .col h3{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-3);margin-bottom:10px;}
+  .term-block{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
+  .term-name{font-size:14px;font-weight:700;margin-bottom:8px;}
+  .headline{font-size:13px;color:var(--ink-2);margin-bottom:8px;}
+  .headline b{color:var(--ink);font-variant-numeric:tabular-nums;}
+  .grid5{display:inline-grid;grid-template-columns:repeat(3,34px);grid-template-rows:repeat(3,26px);gap:3px;}
+  .g{display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;border-radius:5px;font-variant-numeric:tabular-nums;}
+  .g.pass{background:var(--ok-bg);color:var(--ok);} .g.mid{background:var(--warn-bg);color:var(--warn);}
+  .g.bad{background:var(--bad-bg);color:var(--bad);} .g.empty{background:transparent;}
+  .g.N{grid-column:2;grid-row:1;} .g.O{grid-column:1;grid-row:2;} .g.centro{grid-column:2;grid-row:2;} .g.L{grid-column:3;grid-row:2;} .g.S{grid-column:2;grid-row:3;}
+  .lens-row{font-size:13px;color:var(--ink-2);padding:4px 0;}
+  .lens-row b{color:var(--ink);}
+  .comps{font-size:11.5px;color:var(--ink-3);margin-top:8px;line-height:1.5;}
+  .state{color:var(--ink-3);font-size:13px;padding:10px 0;}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar">
+  <span class="brand">StarTouch · Ranking Grade (admin)</span>
+  <button id="btn-logout">Sair</button>
+</div>
+
+<div id="login-view">
+  <h1>Comparação de ranking</h1>
+  <p class="sub">Acesso admin. Entre com sua conta StarTouch.</p>
+  <div class="field"><label>Email</label><input id="li-email" type="email"/></div>
+  <div class="field"><label>Senha</label><input id="li-password" type="password"/></div>
+  <button class="btn btn-full" id="btn-login">Entrar</button>
+  <div class="err" id="login-err"></div>
+</div>
+
+<main class="wrap" id="dash" style="display:none;">
+  <h1>Grade nova × método atual</h1>
+  <p class="sub">Roda a grade (5 pontos) e as lentes atuais (1/3km) no mesmo negócio e termo, pra comparar antes de virar a chave.</p>
+
+  <div class="card">
+    <div class="field">
+      <label>CEP (ancora a busca)</label>
+      <input id="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"/>
+    </div>
+    <div class="field">
+      <label>Negócio no Google</label>
+      <input id="bizName" placeholder="Digite o nome e escolha na lista" autocomplete="off"/>
+      <div class="biz-results" id="bizResults"></div>
+      <div class="biz-confirm" id="bizConfirm"><b id="bizConfirmName"></b><button id="bizReset">Trocar</button></div>
+    </div>
+    <div id="termArea" style="display:none;">
+      <label style="font-size:12px;font-weight:600;color:var(--ink-2);">Termos (até 3)</label>
+      <div class="chips" id="termChips"></div>
+      <div class="term-add">
+        <input id="termInput" placeholder="Adicionar termo próprio (ex: rodízio)"/>
+        <button class="btn" id="termAddBtn" type="button">+ </button>
+      </div>
+    </div>
+    <button class="btn btn-full" id="compareBtn" style="margin-top:14px;" disabled>Comparar</button>
+    <div class="err" id="cmpErr"></div>
+  </div>
+
+  <div id="results"></div>
+</main>
+
+<script>
+const TOKEN_KEY = "rz_admin_token", USER_KEY = "rz_admin_user";
+const $ = (id) => document.getElementById(id);
+const token = () => localStorage.getItem(TOKEN_KEY);
+let selectedBiz = null, suggestions = [], selectedTerms = [], bizTimer = null;
+
+function showLogin(){ $("login-view").style.display=""; $("dash").style.display="none"; $("topbar").style.display="none"; }
+function showDash(){ $("login-view").style.display="none"; $("dash").style.display="block"; $("topbar").style.display="flex"; }
+function esc(s){ const d=document.createElement("div"); d.textContent=(s==null?"":String(s)); return d.innerHTML; }
+function maskCep(el){ let v=el.value.replace(/\D/g,"").slice(0,8); if(v.length>5) v=v.slice(0,5)+"-"+v.slice(5); el.value=v; }
+
+// ---- login ----
+$("btn-login").addEventListener("click", async () => {
+  const email=$("li-email").value.trim(), password=$("li-password").value;
+  const err=$("login-err"); err.classList.remove("show");
+  try{
+    const r=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});
+    const d=await r.json();
+    if(!r.ok){ err.textContent=d.error||"Falha no login"; err.classList.add("show"); return; }
+    localStorage.setItem(TOKEN_KEY,d.token); localStorage.setItem(USER_KEY,JSON.stringify(d.user||{}));
+    showDash();
+  }catch{ err.textContent="Erro de conexão."; err.classList.add("show"); }
+});
+$("li-password").addEventListener("keydown",e=>{ if(e.key==="Enter") $("btn-login").click(); });
+$("btn-logout").addEventListener("click",()=>{ localStorage.removeItem(TOKEN_KEY); showLogin(); });
+
+// ---- autocomplete negócio ----
+async function searchBiz(){
+  const q=$("bizName").value.trim(), cep=$("cep").value.replace(/\D/g,"");
+  const box=$("bizResults");
+  if(q.length<3){ box.classList.remove("on"); box.innerHTML=""; return; }
+  box.classList.add("on"); box.innerHTML='<div class="biz-item"><span>Buscando…</span></div>';
+  try{
+    const url="/api/searchbiz?q="+encodeURIComponent(q)+"&name="+encodeURIComponent(q)+(cep.length===8?"&cep="+cep:"");
+    const d=await (await fetch(url)).json();
+    const rs=d.results||[];
+    if(!rs.length){ box.innerHTML='<div class="biz-item"><span>Nada encontrado.</span></div>'; return; }
+    box.innerHTML=rs.slice(0,6).map(r=>{
+      const dist=r.distance_meters!=null?" · "+(r.distance_meters/1000).toFixed(1)+"km":"";
+      return '<button type="button" class="biz-item" data-b="'+encodeURIComponent(JSON.stringify(r))+'"><b>'+esc(r.name)+'</b><br><span>⭐'+(r.rating||"?")+" · "+(r.total||0)+" aval"+dist+" · "+esc(r.address||"")+'</span></button>';
+    }).join("");
+    box.querySelectorAll(".biz-item[data-b]").forEach(btn=>btn.addEventListener("click",()=>pickBiz(JSON.parse(decodeURIComponent(btn.dataset.b)))));
+  }catch{ box.innerHTML='<div class="biz-item"><span>Erro na busca.</span></div>'; }
+}
+async function pickBiz(b){
+  selectedBiz=b;
+  $("bizResults").classList.remove("on"); $("bizName").value=b.name;
+  $("bizConfirmName").textContent=b.name; $("bizConfirm").classList.add("on");
+  // pega sugestões de termo
+  $("termChips").innerHTML='<span class="state">Buscando termos…</span>';
+  $("termArea").style.display="block";
+  try{
+    const r=await fetch("/api/admin?action=grid-suggest&place_id="+encodeURIComponent(b.place_id),{headers:{Authorization:"Bearer "+token()}});
+    const d=await r.json();
+    suggestions=d.suggestions||[]; selectedTerms=suggestions.slice(0,1);
+  }catch{ suggestions=[]; selectedTerms=[]; }
+  renderChips();
+}
+function resetBiz(){ selectedBiz=null; $("bizConfirm").classList.remove("on"); $("bizName").value=""; $("termArea").style.display="none"; selectedTerms=[]; updateCompare(); }
+function renderChips(){
+  const all=[...new Set([...suggestions,...selectedTerms])];
+  $("termChips").innerHTML=all.map(t=>'<button type="button" class="chip'+(selectedTerms.includes(t)?" on":"")+'" data-t="'+esc(t)+'">'+esc(t)+'</button>').join("");
+  $("termChips").querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>toggleTerm(c.dataset.t)));
+  updateCompare();
+}
+function toggleTerm(t){
+  if(selectedTerms.includes(t)) selectedTerms=selectedTerms.filter(x=>x!==t);
+  else { if(selectedTerms.length>=3) return; selectedTerms.push(t); }
+  renderChips();
+}
+$("termAddBtn").addEventListener("click",()=>{
+  const t=$("termInput").value.trim(); if(!t) return;
+  if(!suggestions.includes(t)) suggestions.push(t);
+  if(!selectedTerms.includes(t) && selectedTerms.length<3) selectedTerms.push(t);
+  $("termInput").value=""; renderChips();
+});
+$("termInput").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("termAddBtn").click(); }});
+function updateCompare(){ $("compareBtn").disabled = !(selectedBiz && selectedTerms.length); }
+
+$("bizName").addEventListener("input",()=>{ if(selectedBiz){ selectedBiz=null; $("bizConfirm").classList.remove("on"); $("termArea").style.display="none"; } clearTimeout(bizTimer); bizTimer=setTimeout(searchBiz,350); });
+$("cep").addEventListener("input",e=>maskCep(e.target));
+$("bizReset").addEventListener("click",resetBiz);
+
+// ---- comparação ----
+function gcolor(rank){ if(rank==null) return "bad"; if(rank<=3) return "pass"; if(rank<=10) return "mid"; return "bad"; }
+function drawGrid(points){
+  const by=Object.fromEntries(points.map(p=>[p.dir,p.rank]));
+  return '<div class="grid5">'+["N","O","centro","L","S"].map(dir=>{
+    const r=by[dir]; const cls=r==null?"bad":gcolor(r);
+    return '<div class="g '+dir+' '+cls+'">'+(r==null?"·":"#"+r)+"</div>";
+  }).join("")+"</div>";
+}
+$("compareBtn").addEventListener("click", async () => {
+  const err=$("cmpErr"); err.classList.remove("show");
+  $("compareBtn").disabled=true; $("results").innerHTML='<div class="state">Rodando grade + lentes atuais…</div>';
+  const pid=selectedBiz.place_id, terms=selectedTerms.slice(0,3);
+  try{
+    // grade nova
+    const gridP=fetch("/api/admin?action=grid&place_id="+encodeURIComponent(pid)+"&terms="+encodeURIComponent(terms.join(",")),{headers:{Authorization:"Bearer "+token()}}).then(r=>r.json());
+    // metodo atual (lentes) por termo — publico
+    const lensP=Promise.all(terms.map(t=>fetch("/api/diagnostico?lenses=1&place_id="+encodeURIComponent(pid)+"&keyword="+encodeURIComponent(t)).then(r=>r.json()).catch(()=>null)));
+    const [grid, lensArr]=await Promise.all([gridP,lensP]);
+    if(grid.error) throw new Error(grid.error);
+    render(grid, terms, lensArr);
+  }catch(e){ err.textContent=e.message||"Erro"; err.classList.add("show"); $("results").innerHTML=""; }
+  finally{ updateCompare(); }
+});
+function render(grid, terms, lensArr){
+  const gByTerm=Object.fromEntries((grid.terms||[]).map(t=>[t.term.toLowerCase(),t]));
+  let html="";
+  terms.forEach((term,i)=>{
+    const g=gByTerm[term.toLowerCase()];
+    const lens=lensArr[i];
+    // grade
+    let gridBlock='<div class="state">sem dado</div>';
+    if(g){
+      gridBlock=drawGrid(g.points)+
+        '<div class="headline" style="margin-top:8px;">média <b>'+(g.avg??"—")+'</b> · aparece em <b>'+g.coverage+'/5</b> pontos'+(g.cached?' · <span style="color:#80868B;">cache</span>':'')+'</div>'+
+        (g.competitors&&g.competitors.length?'<div class="comps">Top: '+g.competitors.map(esc).join(", ")+'</div>':'');
+    }
+    // lentes atuais
+    let lensBlock='<div class="state">sem dado</div>';
+    if(lens&&lens.lenses){
+      lensBlock=lens.lenses.map(L=>{
+        const rk=L.inResults&&L.rank!=null?("#"+L.rank+" de "+L.total):"fora do ranking";
+        return '<div class="lens-row">'+esc(L.label||(L.radiusKm+"km"))+': <b>'+rk+'</b></div>';
+      }).join("");
+    }
+    html+='<div class="cmp"><div class="col"><h3>Grade nova · "'+esc(term)+'"</h3><div class="term-block">'+gridBlock+'</div></div>'+
+          '<div class="col"><h3>Método atual · "'+esc(term)+'"</h3><div class="term-block">'+lensBlock+'</div></div></div>';
+  });
+  $("results").innerHTML=html;
+}
+
+if(token()) showDash(); else showLogin();
+</script>
+</body>
+</html>

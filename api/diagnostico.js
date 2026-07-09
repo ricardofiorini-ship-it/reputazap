@@ -9,7 +9,8 @@
 // Uso: /api/diagnostico?place_id=XXX  (opcional &keyword= &radius=)
 // É marketing — mostra nomes dos líderes (diferente do paywall do app).
 // ============================================================
-import { fetchRankingByTerm, fetchVisibilityLenses, applyNameLocking } from "./_lib/competitors.js";
+import { fetchRankingByTerm, fetchVisibilityLenses, applyNameLocking, suggestTerms, fetchPlaceSeed } from "./_lib/competitors.js";
+import { fetchGridRankingCached } from "./_lib/ranking-grid-cache.js";
 
 const gscore = (rt, rv) => (rt || 0) * Math.log10((rv || 0) + 1);
 
@@ -63,6 +64,26 @@ function suggestFor(term) {
   return [...new Set([term, ...base])].slice(0, 4);
 }
 
+// A grade é a única rota pública que queima Places em lote: 5 Text Search por
+// termo frio (até 3 termos = 15 chamadas). O cache de 7 dias absorve as
+// revisitas, mas nada impede alguém de varrer place_ids. Freio por IP.
+// Ressalva: `Map` em memória vive por INSTÂNCIA de função — a Vercel roda
+// várias, então o teto real é maior que RATE_LIMIT. Segura abuso casual, não
+// ataque decidido.
+const GRID_RATE_LIMIT = 12;
+const GRID_RATE_WINDOW_MS = 60 * 60 * 1000;
+const gridHits = new Map();
+function gridRateLimited(ip) {
+  const now = Date.now();
+  const arr = (gridHits.get(ip) || []).filter((t) => now - t < GRID_RATE_WINDOW_MS);
+  if (arr.length >= GRID_RATE_LIMIT) { gridHits.set(ip, arr); return true; }
+  arr.push(now); gridHits.set(ip, arr); return false;
+}
+function getIp(req) {
+  const fwd = req.headers["x-forwarded-for"];
+  return fwd ? fwd.split(",")[0].trim() : (req.socket?.remoteAddress || "unknown");
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Cache-Control", "public, max-age=600");
@@ -75,6 +96,50 @@ export default async function handler(req, res) {
   const rIn = parseInt(req.query.radius, 10);
   const radius = Number.isFinite(rIn) ? Math.min(Math.max(rIn, 500), 3000) : 3000;
   if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
+
+  // Sugestão de termos (chips do formulário) a partir da categoria/nome do Google.
+  if (req.query.suggest) {
+    try {
+      const seed = await fetchPlaceSeed(placeId);
+      return res.json({
+        ok: true,
+        name: seed?.name || null,
+        suggestions: suggestTerms(seed?.name, seed?.types, seed?.primaryDisplay, seed?.primaryType),
+      });
+    } catch (err) {
+      return res.json({ ok: true, suggestions: [] });
+    }
+  }
+
+  // Modo GRADE. PÚBLICO de propósito (decisão de 09/07: ranking é tudo free —
+  // entregamos o diagnóstico e vendemos o conserto). Protegido por cache de 7
+  // dias + freio por IP, não por login.
+  if (req.query.grid) {
+    try {
+      if (gridRateLimited(getIp(req))) {
+        return res.status(429).json({ error: "Muitas consultas seguidas. Tente de novo em alguns minutos." });
+      }
+      let terms = (req.query.terms || "").toString().split(",").map((t) => t.trim()).filter(Boolean).slice(0, 3);
+      if (!terms.length) {
+        const seed = await fetchPlaceSeed(placeId);
+        terms = suggestTerms(seed?.name, seed?.types, seed?.primaryDisplay, seed?.primaryType).slice(0, 1);
+      }
+      if (!terms.length) return res.json({ ok: true, grid: null });
+      // ?fresh=1 fura o cache e mede na hora: 15 chamadas Places por request, sem
+      // reaproveitar nada. É ferramenta de diagnóstico, NÃO pode ser pública —
+      // um F5 repetido viraria conta no Google. Exige o segredo; sem a env, some.
+      const segredo = process.env.GRID_FRESH_SECRET;
+      const fresh = !!req.query.fresh && !!segredo && req.query.secret === segredo;
+      // O handler seta `max-age=600` no topo. Numa medição "sem cache" isso
+      // devolveria uma resposta de até 10min do CDN — o bolor que viemos matar.
+      if (fresh) res.setHeader("Cache-Control", "no-store");
+      const grid = await fetchGridRankingCached({ placeId, terms, fresh });
+      return res.json({ ok: true, grid });
+    } catch (err) {
+      console.error("[diagnostico/grid] erro:", err);
+      return res.status(500).json({ error: err.message || "Erro na grade" });
+    }
+  }
 
   // Modo VISIBILIDADE MULTI-LENTE: mesma busca (ordem real do Google) em raios
   // diferentes. Nomes de concorrente bloqueados (público), como no resto.

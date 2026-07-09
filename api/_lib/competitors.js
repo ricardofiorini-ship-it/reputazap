@@ -26,6 +26,17 @@ const BROAD_TYPES = new Set([
   "home_goods_store", "shopping_mall"
 ]);
 
+// Categorias que dizem o PAPEL do negócio na cadeia produtiva, não o que o
+// cliente digita no Google. Caso real: "A Loja da Limpeza" (Av. São Camilo) está
+// cadastrada no Meu Negócio como `manufacturer` → "Fabricante". É a categoria
+// oficial dela, e ainda assim ninguém busca "fabricante" pra comprar detergente.
+// Categoria oficial é autoritativa sobre O QUE o negócio é, não sobre COMO o
+// cliente procura por ele. Estas só entram como último recurso.
+const STRUCTURAL_TYPES = new Set([
+  "manufacturer", "supplier", "wholesaler", "distributor", "corporate_office",
+  "general_contractor", "contractor", "service", "company", "consultant"
+]);
+
 // Tradução tipo do Google → termo natural em PT-BR. Sem isso, o fallback
 // faria um Text Search da string técnica (ex: "bicycle_store"), furando o
 // ranking. O ideal é o dono informar o termo (category_override); isto é a
@@ -44,11 +55,32 @@ const TYPE_TO_TERM = {
   car_wash: "lava-rápido", dentist: "dentista", doctor: "clínica médica",
   hospital: "hospital", physiotherapist: "fisioterapia", lodging: "hotel",
   gas_station: "posto de gasolina", laundry: "lavanderia", bicycle: "loja de bicicletas",
-  clothing: "loja de roupas", optician: "ótica", hardware: "loja de ferragens"
+  clothing: "loja de roupas", optician: "ótica", hardware: "loja de ferragens",
+  home_goods_store: "loja de utilidades", store: "loja", general_store: "loja",
+  // Tipos finos da Places API (New) — ela devolve uma taxonomia bem mais rica
+  // que a antiga (italian_restaurant, sushi_restaurant…).
+  italian_restaurant: "restaurante italiano", pizza_restaurant: "pizzaria",
+  sushi_restaurant: "restaurante de sushi", japanese_restaurant: "restaurante japonês",
+  brazilian_restaurant: "restaurante", chinese_restaurant: "restaurante chinês",
+  mexican_restaurant: "restaurante mexicano", seafood_restaurant: "restaurante de frutos do mar",
+  steak_house: "churrascaria", hamburger_restaurant: "hamburgueria",
+  sandwich_shop: "lanchonete", ice_cream_shop: "sorveteria",
+  coffee_shop: "cafeteria", barber_shop: "barbearia", nail_salon: "manicure",
+  fitness_center: "academia", pet_shop: "petshop"
 };
+// Tradução TOLERANTE: tipo desconhecido vira texto legível. Usada pelo motor de
+// ranking, onde um termo torto ainda é melhor que termo nenhum (sem termo não
+// há busca).
 export function typeToTerm(rawType) {
   if (!rawType) return "";
   return TYPE_TO_TERM[rawType] || rawType.replace(/_/g, " ");
+}
+// Tradução ESTRITA: tipo desconhecido é DESCARTADO. Usada pelos chips do
+// formulário. Sem isso a Places API (New), que devolve tipos muito mais finos,
+// vaza inglês cru pro rosto do cliente — "adventure sports center" numa loja de
+// bicicletas, "service" num salão. Chip a menos > chip errado em inglês.
+function typeToTermStrict(rawType) {
+  return (rawType && TYPE_TO_TERM[rawType]) || "";
 }
 
 // ── Filtro de categoria/intenção (compartilhado) ──────────────
@@ -286,6 +318,7 @@ const KEYWORD_DICT = [
   ["pizzaria napolitana","pizzaria napolitana"],["pizza napolitana","pizzaria napolitana"],
   ["comida japonesa","restaurante japonês"],["comida árabe","restaurante árabe"],["comida arabe","restaurante árabe"],
   ["comida italiana","restaurante italiano"],
+  ["trattoria","restaurante italiano"],["osteria","restaurante italiano"],["cantina italiana","restaurante italiano"],
   // Cozinhas específicas no nome ("Restaurante Árabe", "Comida Japonesa"...) —
   // vencem o genérico "restaurante" e fazem o negócio ranquear no nicho certo.
   ["restaurante árabe","restaurante árabe"],["restaurante arabe","restaurante árabe"],
@@ -458,6 +491,15 @@ async function geocodeCep(cep) {
 async function runTextSearch(term, lat, lng, radius) {
   const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(term)}&location=${lat},${lng}&radius=${radius}&language=pt-BR&region=br&key=${API_KEY}`;
   const ts = await (await fetchWithTimeout(url, {}, 8000)).json();
+  // O Places devolve `DEADLINE_EXCEEDED` de forma intermitente (medido: 3 em 6
+  // requisições no mesmo ponto), com `results` vazio e HTTP 200. Sem checar o
+  // status, uma FALHA DA API vira "o negócio não aparece aqui" — e ausência
+  // custa 21 pontos de penalidade no score. Foi assim que a Padaria Delícia de
+  // Perdizes oscilou entre 4,6 e 8,6 entre uma medição e outra.
+  // ZERO_RESULTS é resposta legítima (ninguém encontrado); o resto é falha.
+  if (ts.status && ts.status !== "OK" && ts.status !== "ZERO_RESULTS") {
+    throw new Error(`places_status:${ts.status}`);
+  }
   const seen = new Set();
   const ordered = [];
   for (const p of (ts.results || [])) {
@@ -567,4 +609,250 @@ export function applyNameLocking(top, paid) {
       is_me: false
     };
   });
+}
+
+// ============================================================
+// SEMENTE DO NEGÓCIO (nome + tipos + categoria principal)
+// ============================================================
+// A API antiga (place/details) só devolve tipos GROSSOS: o Pecorino sai como
+// "restaurant", sem sinal de ser italiano. A API nova (places.googleapis.com/v1)
+// devolve `primaryTypeDisplayName` — a categoria principal que o dono cadastrou
+// no Meu Negócio, já em pt-BR ("Restaurante italiano").
+//
+// Isso não é cosmético: o termo fino MUDA o ranking. Medido no Pecorino V.
+// Leopoldina — #10 em "restaurante", #2 em "restaurante italiano". Com a API
+// antiga o chip padrão era sempre a pior versão da vida do dono.
+//
+// Custo: a nova SUBSTITUI a chamada antiga (não soma). Ambas caem no mesmo SKU
+// (Place Details Pro, US$17/1k, 5k grátis/mês) porque `displayName` já é Pro.
+// Se a nova falhar (API desligada, quota, timeout), cai pra antiga sozinha.
+export async function fetchPlaceSeed(placeId) {
+  const key = process.env.PLACES_API_KEY;
+  if (!placeId || !key) return null;
+  try {
+    const r = await fetchWithTimeout(
+      `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?languageCode=pt-BR`,
+      { headers: { "X-Goog-Api-Key": key, "X-Goog-FieldMask": "displayName,primaryType,primaryTypeDisplayName,types" } },
+      6000
+    );
+    const j = await r.json();
+    if (!r.ok || j.error) throw new Error(j?.error?.status || `HTTP ${r.status}`);
+    return {
+      name: j.displayName?.text || null,
+      types: j.types || [],
+      primaryType: j.primaryType || null,
+      primaryDisplay: j.primaryTypeDisplayName?.text || null,
+    };
+  } catch (err) {
+    console.warn("[places-new] fallback pra API antiga:", err.message);
+    try {
+      const r = await fetchWithTimeout(
+        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
+          `&fields=name,types&language=pt-BR&key=${key}`,
+        {}, 6000
+      );
+      const det = (await r.json()).result;
+      if (!det) return null;
+      return { name: det.name || null, types: det.types || [], primaryType: null, primaryDisplay: null };
+    } catch {
+      return null;
+    }
+  }
+}
+
+// Sugere 1-3 termos de busca — semente pros chips do formulário (o dono
+// confirma / edita / adiciona o dele).
+//
+// Ordem: (1) categoria PRINCIPAL do Meu Negócio, quando a API nova responde —
+// é a fonte autoritativa, não um palpite nosso; (2) nicho detectado no nome
+// (pega o que a categoria não pega: "Pizzaria Napolitana" → o dono cadastrou só
+// "Pizzaria"); (3) tipos grossos traduzidos, como rede de segurança.
+//
+// TYPE_PRIORITY é o desempate ARTESANAL de quando não temos a categoria
+// principal (API nova fora do ar). Com ela, não adivinhamos: a Bella Paulista
+// devolve 5 tipos na antiga (bakery, cafe, restaurant, storage, store) e a nova
+// simplesmente diz "Padaria".
+const TYPE_PRIORITY = {
+  pizza_restaurant: 4, restaurant: 3, meal_takeaway: 2, meal_delivery: 2,
+  cafe: 2, bakery: 3, bar: 1,
+};
+export function suggestTerms(name, types, primaryDisplay, primaryType) {
+  const out = [];
+  // Dedup ignora caixa, acento e plural: "Loja de bicicleta" (categoria do
+  // Google) e "loja de bicicletas" (nosso dicionário) são o mesmo chip. NÃO
+  // funde sinônimos de verdade — "drogaria" e "farmácia" seguem separados, e
+  // devem: rendem rankings diferentes no Google.
+  const dedupKey = (t) => normalizeName(t).split(/\s+/).map((w) => w.replace(/s$/, "")).join(" ");
+  const push = (t) => {
+    const term = (t || "").toString().trim();
+    if (term && !out.some((o) => dedupKey(o) === dedupKey(term))) out.push(term);
+  };
+  // Categoria principal do Meu Negócio vem primeiro — a menos que o Google tenha
+  // classificado o negócio num rótulo vazio de sentido ("establishment") ou de
+  // papel na cadeia ("Fabricante"). Nesses casos o nome sabe mais que o cadastro.
+  // O guard é no TIPO (código), não no texto pt-BR.
+  const primaryVazio = GENERIC_TYPES.has(primaryType) || BROAD_TYPES.has(primaryType);
+  const primaryEstrutural = STRUCTURAL_TYPES.has(primaryType);
+  if (primaryDisplay && !primaryVazio && !primaryEstrutural) push(primaryDisplay);
+  push(detectFromName(name));
+  const specific = (types || []).filter(
+    (t) => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t) && !STRUCTURAL_TYPES.has(t)
+  );
+  const sorted = [...specific].sort((a, b) => (TYPE_PRIORITY[b] || 0) - (TYPE_PRIORITY[a] || 0));
+  for (const t of sorted) {
+    push(typeToTermStrict(t));
+    if (out.length >= 3) break;
+  }
+  // Fallback: sem tipo específico (ex: "loja de utilidades"), usa o tipo amplo
+  // traduzido — melhor uma semente fraca que chip nenhum (o dono edita depois).
+  if (!out.length) {
+    const broad = (types || []).filter((t) => !GENERIC_TYPES.has(t) && BROAD_TYPES.has(t));
+    for (const t of broad) {
+      push(typeToTermStrict(t));
+      if (out.length >= 2) break;
+    }
+  }
+  // Último recurso: nada sobrou. Aí até "Fabricante" vale mais que chip nenhum —
+  // sem termo não há grade, e o painel abriria vazio. O dono corrige no campo.
+  if (!out.length) push(primaryDisplay);
+  return out.slice(0, 3);
+}
+
+// ============================================================
+// RANKING POR AMOSTRAGEM EM GRADE (Passo 0 — spike de validação)
+// ============================================================
+// Mede a posição REAL do place_id em 5 pontos ao redor do negócio (centro + 4
+// cardeais a ~1km), por termo de busca. O Google ranqueia por distância de QUEM
+// busca — 1 ponto só (centroide do CEP) não representa isso. A grade aproxima a
+// "visão média da região".
+// Regras: coords vêm do place_id (não do CEP); ordem RAW do Google pro termo
+// naquele ponto (sem filtro de categoria — é o que o cliente vê); NUNCA insere o
+// negócio artificialmente (ausência é registrada como null).
+// ============================================================
+
+// Desloca um ponto lat/lng por N metros ao norte/leste (negativo = sul/oeste).
+function offsetMeters(lat, lng, northM, eastM) {
+  const dLat = northM / 111320;
+  const dLng = eastM / (111320 * Math.cos((lat * Math.PI) / 180));
+  return { lat: lat + dLat, lng: lng + dLng };
+}
+function gridPoints(lat, lng, spacingM) {
+  return [
+    { dir: "centro", lat, lng },
+    { dir: "N", ...offsetMeters(lat, lng, spacingM, 0) },
+    { dir: "S", ...offsetMeters(lat, lng, -spacingM, 0) },
+    { dir: "L", ...offsetMeters(lat, lng, 0, spacingM) },
+    { dir: "O", ...offsetMeters(lat, lng, 0, -spacingM) },
+  ];
+}
+
+/**
+ * Roda o ranking por grade pra um negócio.
+ * @param {string} placeId
+ * @param {string[]} terms          1–3 termos de busca
+ * @param {number} [spacingM=1000]  distância dos 4 pontos cardeais (m)
+ * @param {number} [radius=1000]    raio (bias) do Text Search em cada ponto (m).
+ *   VALIDADO no Passo 0: raio ≈ espaçamento é o ponto ótimo. Raio >=2000 em área
+ *   densa faz o negócio sumir (teto de 20 do Google puxa concorrentes prominentes);
+ *   raio < espaçamento faz os pontos cardeais "não alcançarem" o negócio.
+ * @returns {Promise<Object>} { placeId, name, center, spacingM, radius, terms:[
+ *   { term, points:[{dir,rank|null,total,top[]}], avg, coverage, competitors[] } ] }
+ */
+export async function fetchGridRanking({ placeId, terms, spacingM = 1000, radius = 1000 }) {
+  if (!placeId) throw new Error("placeId obrigatório");
+  if (!API_KEY) throw new Error("PLACES_API_KEY ausente no ambiente");
+  const termList = (Array.isArray(terms) ? terms : [terms])
+    .map((t) => (t || "").toString().trim()).filter(Boolean).slice(0, 3);
+  if (!termList.length) throw new Error("informe ao menos 1 termo");
+
+  // Coords exatas + nome do negócio (substitui o centroide do CEP).
+  const detUrl =
+    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
+    `&fields=name,geometry,types&language=pt-BR&key=${API_KEY}`;
+  const det = (await (await fetchWithTimeout(detUrl, {}, 6000)).json()).result;
+  if (!det?.geometry?.location) throw new Error("negócio sem coordenadas no Google");
+  const { lat, lng } = det.geometry.location;
+  const points = gridPoints(lat, lng, spacingM);
+
+  // Cada termo: os 5 pontos em paralelo (Text Search com bias no ponto).
+  const termsOut = await Promise.all(termList.map(async (term) => {
+    const allPts = await Promise.all(points.map(async (pt) => {
+      // Até 3 tentativas: o Places falha de forma intermitente e um ponto
+      // "perdido" custaria 21 pontos de penalidade ao negócio (ver runTextSearch).
+      let ordered = null, erro = null;
+      for (let tentativa = 0; tentativa < 3; tentativa++) {
+        try { ordered = await runTextSearch(term, pt.lat, pt.lng, radius); erro = null; break; }
+        catch (e) { erro = e; await new Promise((r) => setTimeout(r, 250 * (tentativa + 1))); }
+      }
+      // Falhou as 3 vezes → ponto NÃO MEDIDO. Sai da conta inteira (nem posição,
+      // nem penalidade). Contar como ausência seria inventar uma má notícia.
+      if (ordered == null) {
+        console.warn(`[grid] ponto ${pt.dir} descartado (${erro?.message || "erro"})`);
+        return { dir: pt.dir, ok: false, rank: null, total: 0, list: [] };
+      }
+      const idx = ordered.findIndex((p) => p.place_id === placeId);
+      return {
+        dir: pt.dir,
+        ok: true,
+        rank: idx >= 0 ? idx + 1 : null,   // null = ausente de verdade (NUNCA inserido)
+        total: ordered.length,
+        list: ordered.slice(0, 20),        // lista ordenada do ponto (pra agregar)
+      };
+    }));
+    const pts = allPts.filter((p) => p.ok);   // só pontos realmente medidos entram na conta
+    const present = pts.filter((p) => p.rank != null).map((p) => p.rank);
+    const avg = present.length ? Math.round((present.reduce((a, b) => a + b, 0) / present.length) * 10) / 10 : null;
+
+    // RANKING REGIONAL AGREGADO: une o topo dos 5 pontos e ordena por um score
+    // que PENALIZA ausência — quem aparece em mais pontos, em boas posições,
+    // ranqueia melhor. Sem isso, um negócio que aparece 1x em #1 furava a fila
+    // de quem está sempre em #3. A LISTA e a posição do dono vêm da MESMA
+    // medição do Hero (o "#N" do topo bate com a lista).
+    const PENALTY = 21;               // "além do top 20" pros pontos onde o negócio some
+    const nPts = pts.length;          // denominador = pontos MEDIDOS (não os 5 fixos)
+    const agg = new Map();            // place_id -> { name, rating, reviews, positions[] }
+    for (const p of pts) (p.list || []).forEach((biz, i) => {
+      const cur = agg.get(biz.place_id) || { place_id: biz.place_id, name: biz.name, rating: biz.rating, reviews: biz.reviews, positions: [] };
+      cur.positions.push(i + 1);
+      agg.set(biz.place_id, cur);
+    });
+    const rankingArr = [...agg.values()]
+      .map((c) => {
+        const sum = c.positions.reduce((a, b) => a + b, 0);
+        const score = (sum + PENALTY * (nPts - c.positions.length)) / nPts;
+        return {
+          place_id: c.place_id, name: c.name, rating: c.rating, reviews: c.reviews,
+          _score: score, points: c.positions.length, is_me: c.place_id === placeId,
+          // DOIS números, de propósito:
+          // `avg`   = média crua dos pontos em que aparece (some quando ausente).
+          // `score` = média contando cada ausência como 21ª. É o que ORDENA.
+          // Só o `score` pode ir na tela ao lado do ordinal: mostrar `avg` numa
+          // lista ordenada por `score` produz "5º com 9,4 acima de 6º com 7,0"
+          // (quem some em 1 ponto tem avg boa e posição ruim) — parece bug.
+          avg: Math.round((sum / c.positions.length) * 10) / 10,
+          score: Math.round(score * 10) / 10,
+        };
+      })
+      .sort((a, b) => a._score - b._score);
+    const myIdx = rankingArr.findIndex((c) => c.is_me);
+    const rank = myIdx >= 0 ? myIdx + 1 : null;   // posição ORDINAL do dono na região
+    // `score` do dono: MESMA conta que ordena a lista. O Hero mostra este número
+    // (e não `avg`), senão o topo diz 3,2 e a linha do dono na lista diz outra
+    // coisa quando ele some de algum ponto.
+    const score = myIdx >= 0 ? rankingArr[myIdx].score : null;
+    const strip = ({ _score, place_id, ...r }) => r;
+    let ranking = rankingArr.slice(0, 12).map(strip);
+    if (myIdx >= 12) ranking.push(strip(rankingArr[myIdx]));   // garante o dono na lista
+
+    // `measured` = quantos dos 5 pontos o Google respondeu. measured 0 = não
+    // sabemos nada; o chamador NÃO pode ler isso como "fora da lista".
+    return {
+      term,
+      points: allPts.map(({ dir, ok, rank, total }) => ({ dir, ok, rank, total })),
+      avg, score, coverage: present.length, measured: nPts,
+      rank, total: rankingArr.length, ranking,
+    };
+  }));
+
+  return { placeId, name: det.name, center: { lat, lng }, spacingM, radius, terms: termsOut };
 }
