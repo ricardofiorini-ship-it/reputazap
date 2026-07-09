@@ -96,7 +96,9 @@ fbq('track', 'PageView');
   .ev-flag.no{background:rgba(252,165,165,.16);color:#FCA5A5;}
   .ev-flag.ok{background:rgba(126,226,168,.16);color:#7EE2A8;}
   .ev-q{font-size:14px;font-weight:700;color:#fff;line-height:1.45;}
-  .ev-a{margin:11px 0 0;padding:2px 0 2px 12px;border-left:2px solid var(--dark-hi);color:#C7D5EA;font-size:13.5px;line-height:1.7;}
+  /* pre-line preserva as quebras da lista que a IA escreveu (um concorrente por
+     linha) sem deixar o HTML colapsar tudo num parágrafo só. */
+  .ev-a{margin:11px 0 0;padding:2px 0 2px 12px;border-left:2px solid var(--dark-hi);color:#C7D5EA;font-size:13.5px;line-height:1.7;white-space:pre-line;}
   .ev-hl{font-weight:800;color:#fff;}                    /* concorrentes citados */
   .ev-me{font-weight:800;color:#8AB4F8;}                 /* o negócio do dono */
   .ev-comp{margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1);font-size:12.5px;color:var(--dark-sub);line-height:1.5;}
@@ -192,6 +194,17 @@ fbq('track', 'PageView');
 
   const ENGINE_LABELS = { gemini:"Gemini", openai:"ChatGPT", perplexity:"Perplexity" };
   function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  // As IAs respondem em Markdown. Sem tratar, o cliente lê "* **Dona Deôla**:"
+  // com os asteriscos na cara. Roda DEPOIS do esc() (texto já seguro) e ANTES do
+  // highlight, que injeta <span>. Os negritos do Markdown somem: quem merece
+  // destaque aqui são os concorrentes, e disso o highlight cuida.
+  function stripMarkdown(t){
+    return t
+      .replace(/\*\*(.+?)\*\*/g, "$1")        // **negrito**
+      .replace(/(^|\n)\s*[*-]\s+/g, "$1• ")   // marcador no início da linha
+      .replace(/\s+\*\s+/g, "\n• ")           // marcador INLINE: a IA nem sempre quebra linha
+      .replace(/\n{3,}/g, "\n\n");
+  }
   // Destaca, no texto JÁ escapado, os nomes da lista. Mais longos primeiro, pra
   // não destacar pedaço de nome. Uma passada só.
   function highlight(escapedText, names, cls){
@@ -219,7 +232,7 @@ fbq('track', 'PageView');
     const it = pickEvidence(diag);
     if (!it || !it.resposta) return "";
     const presente = (diag.mencoes || 0) === (diag.total || 0) && (diag.total || 0) > 0;
-    let corpo = esc(it.resposta);
+    let corpo = stripMarkdown(esc(it.resposta));
     corpo = highlight(corpo, it.concorrentes, "ev-hl");
     corpo = highlight(corpo, [diag.nome], "ev-me");
     const citou = (it.concorrentes || []).length
@@ -258,15 +271,28 @@ fbq('track', 'PageView');
   // ===================== BLOCO A (dados reais do /api/radar) =====================
   function ringDash(score){ const r=42, c=2*Math.PI*r; return { c, off:c*(1-Math.max(0,Math.min(100,score))/100), r }; }
 
+  // Mesma regra do consolidateCompetitors do backend (api/_lib/radar/score.js):
+  // a IA chama o mesmo negócio de "Dona Deôla" e "Dona Deôla - Alto da Lapa".
+  // Sem fundir, o dono via dois concorrentes onde há um, cada um com metade da
+  // frequência. Funde só quando um nome é prefixo do outro numa fronteira de
+  // palavra — "Padaria Dara" e "Padaria Daniela" continuam separados.
+  const normComp = (s) => (s||"").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  function mesmoNegocio(a, b){
+    if (a === b) return true;
+    const [curto, longo] = a.length <= b.length ? [a, b] : [b, a];
+    return longo.startsWith(curto) && /^[\s\-–—,:|]/.test(longo.slice(curto.length));
+  }
   function competitorsFromDiag(diag){
-    const freq = {};
+    const grupos = [];
     Object.values(diag.porMotor || {}).forEach(pm => (pm.itens || []).forEach(it => {
       (it.concorrentes || []).forEach(c => {
-        const k = (c||"").trim().toLowerCase(); if (!k) return;
-        (freq[k] || (freq[k] = { name: c.trim(), n: 0 })).n++;
+        const nome = (c||"").trim(); const k = normComp(nome); if (!k) return;
+        const g = grupos.find(x => mesmoNegocio(x.key, k));
+        if (g) { g.n++; if (nome.length < g.name.length) { g.name = nome; g.key = k; } }
+        else grupos.push({ key:k, name:nome, n:1 });
       });
     }));
-    let ranked = Object.values(freq).sort((a,b) => b.n - a.n).slice(0, 4);
+    let ranked = grupos.sort((a,b) => b.n - a.n).slice(0, 4);
     if (!ranked.length) ranked = (diag.concorrentes || []).slice(0, 4).map(n => ({ name: n, n: 0 }));
     return ranked;
   }

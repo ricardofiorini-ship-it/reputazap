@@ -12,12 +12,15 @@ export function buildQuestions(categoria, cidade, bairro, produtos) {
   const b = (bairro || "").trim();
   const local = b ? `${b}, ${cid}` : cid;
 
+  // "em" e não "na/no": o gênero do bairro é imprevisível. Saía "na Alto da
+  // Lapa" na cara do cliente. "em" funciona pra Alto da Lapa, Lapa, Itaim,
+  // Pinheiros — e o cliente lê a pergunta que fizemos.
   const perguntas = b
     ? [
-        `Qual a melhor ${c} na ${b}, em ${cid}?`,
-        `Onde tem uma boa ${c} na ${b}?`,
-        `Me indica ${c} de confiança perto da ${b}, ${cid}.`,
-        `Estou na ${b} (${cid}) e quero ${c}. O que você sugere?`,
+        `Qual a melhor ${c} em ${b}, em ${cid}?`,
+        `Onde tem uma boa ${c} em ${b}?`,
+        `Me indica ${c} de confiança perto de ${b}, ${cid}.`,
+        `Estou em ${b} (${cid}) e quero ${c}. O que você sugere?`,
         `${c} bem avaliada em ${cid}?`,
         `Quais as ${c}s mais recomendadas em ${cid}?`,
       ]
@@ -136,17 +139,41 @@ ${bloco}`;
 }
 
 // 3) Consolida concorrentes: dedup (case-insensitive), top 5 por frequência.
+// A IA nomeia o mesmo concorrente de jeitos diferentes em respostas diferentes:
+// "Dona Deôla" numa, "Dona Deôla - Alto da Lapa" noutra. Contados separadamente,
+// ambos apareciam na lista do dono como se fossem dois negócios — e a frequência
+// de cada um ficava pela metade.
+// Regra: normaliza (minúsculo, sem acento) e funde quando um nome é PREFIXO do
+// outro seguido de separador (espaço, hífen, vírgula). Conservador de propósito:
+// "Padaria Dara" e "Padaria Dara Centro" fundem; "Padaria Dara" e "Padaria
+// Daniela" não (o prefixo não termina em fronteira de palavra).
+const normCompetitor = (s) =>
+  (s || "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+function mesmoNegocio(a, b) {
+  if (a === b) return true;
+  const [curto, longo] = a.length <= b.length ? [a, b] : [b, a];
+  if (!longo.startsWith(curto)) return false;
+  return /^[\s\-–—,:|]/.test(longo.slice(curto.length));
+}
+
 export function consolidateCompetitors(listas) {
-  const counts = new Map(); // key minúsculo -> { name, n }
+  const grupos = []; // { key, name, n }  — `name` é a grafia mais curta (a canônica)
   for (const lista of listas) {
     for (const raw of lista || []) {
-      const key = raw.trim().toLowerCase();
+      const nome = (raw || "").trim();
+      const key = normCompetitor(nome);
       if (!key) continue;
-      if (counts.has(key)) counts.get(key).n += 1;
-      else counts.set(key, { name: raw.trim(), n: 1 });
+      const g = grupos.find((x) => mesmoNegocio(x.key, key));
+      if (g) {
+        g.n += 1;
+        if (nome.length < g.name.length) { g.name = nome; g.key = key; } // canônica = mais curta
+      } else {
+        grupos.push({ key, name: nome, n: 1 });
+      }
     }
   }
-  return [...counts.values()]
+  return grupos
     .sort((a, b) => b.n - a.n)
     .slice(0, 5)
     .map((x) => x.name);

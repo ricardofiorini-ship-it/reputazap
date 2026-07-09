@@ -390,7 +390,7 @@ fbq('track', 'PageView');
   .ev-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
   .ev-engine{font-size:12px;font-weight:800;color:#5F6368;letter-spacing:.02em;}
   .ev-q{font-size:15px;font-weight:800;color:#111827;line-height:1.4;letter-spacing:-.01em;}
-  .ev-a{margin:12px 0 0;padding:12px 0 12px 14px;border-left:3px solid #D7E3FC;color:#374151;font-size:14.5px;line-height:1.72;}
+  .ev-a{margin:12px 0 0;padding:12px 0 12px 14px;border-left:3px solid #D7E3FC;color:#374151;font-size:14.5px;line-height:1.72;white-space:pre-line;}
   /* .hl / .hl-me vêm do CSS antigo (concorrentes em negrito, o negócio em azul). */
   .ev-verdict{margin-top:14px;padding-top:12px;border-top:1px solid #F1F3F4;font-size:14px;font-weight:800;}
   .ev-verdict.no{color:#A50E0E;}
@@ -840,6 +840,16 @@ fbq('track', 'PageView');
   // Prioridade: (1) não citado E com concorrentes nomeados — o silêncio fica
   // gritante ao lado de quem apareceu; (2) só não citado; (3) citado (quando o
   // negócio aparece em tudo, a tela muda de tom e não inventa problema).
+  // As IAs respondem em Markdown; sem tratar, o cliente lê "* **Nome**:" com os
+  // asteriscos na cara. Roda depois do esc() e antes do highlight.
+  function stripMarkdown(t){
+    return t
+      .replace(/\*\*(.+?)\*\*/g, "$1")        // **negrito**
+      .replace(/(^|\n)\s*[*-]\s+/g, "$1• ")   // marcador no início da linha
+      .replace(/\s+\*\s+/g, "\n• ")           // marcador INLINE (a IA nem sempre quebra linha)
+      .replace(/\n{3,}/g, "\n\n");
+  }
+
   function pickEvidence(d){
     const todos = [];
     Object.keys(d.porMotor || {}).forEach(m =>
@@ -863,7 +873,8 @@ fbq('track', 'PageView');
       : { cls: "no",  txt: "Seu negócio não foi citado nesta resposta." };
 
     // Mesma marcação do acordeão: concorrentes em negrito, o negócio em azul.
-    let corpo = esc(it.resposta || "");
+    // As IAs respondem em Markdown; sem tratar, o cliente lê "* **Nome**:".
+    let corpo = stripMarkdown(esc(it.resposta || ""));
     corpo = highlight(corpo, it.concorrentes, "hl");
     corpo = highlight(corpo, [nome], "hl-me");
 
