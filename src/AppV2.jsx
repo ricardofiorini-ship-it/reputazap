@@ -3805,8 +3805,14 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
 // borrados (nomes reais) + "Desbloquear" → /radar/plano?code. Dados vêm do último
 // diagnóstico salvo (GET /api/radar?place_id — leitura barata, sem custo de IA).
 // Honestidade (spec 4): score alto vira "mantenha sua posição", não pânico.
+//
+// DESLIGADO em 2026-07-09 a pedido do Ricardo: o Radar vai passar por melhorias
+// e não queremos oferecê-lo no painel de quem já é cadastrado enquanto isso.
+// Some o bloco inteiro (o componente devolve null), sem tocar em /radar,
+// /radar/plano nem em api/radar.js — que seguem no ar pro funil do convidado.
+// Pra religar: `true`. Nada mais precisa mudar.
 // ─────────────────────────────────────────────────────────────
-const RADAR_WIDGET_ENABLED = true
+const RADAR_WIDGET_ENABLED = false
 function RadarWidgetSlot({ d, isMobile }) {
   const placeId = d?.biz?.placeId || d?.businessInfo?.placeId || null
   const nome = d?.biz?.name || d?.businessInfo?.name || ''
