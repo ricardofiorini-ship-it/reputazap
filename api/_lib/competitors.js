@@ -801,20 +801,28 @@ export async function fetchGridRanking({ placeId, terms, spacingM = 1000, radius
         return {
           place_id: c.place_id, name: c.name, rating: c.rating, reviews: c.reviews,
           _score: score, points: c.positions.length, is_me: c.place_id === placeId,
-          // Posição MÉDIA nos pontos onde aparece. É o número honesto pra
-          // mostrar ao lado de cada nome: o ordinal esconde o quão apertada é a
-          // disputa (1º e 2º podem ser 3,2 e 3,4).
+          // DOIS números, de propósito:
+          // `avg`   = média crua dos pontos em que aparece (some quando ausente).
+          // `score` = média contando cada ausência como 21ª. É o que ORDENA.
+          // Só o `score` pode ir na tela ao lado do ordinal: mostrar `avg` numa
+          // lista ordenada por `score` produz "5º com 9,4 acima de 6º com 7,0"
+          // (quem some em 1 ponto tem avg boa e posição ruim) — parece bug.
           avg: Math.round((sum / c.positions.length) * 10) / 10,
+          score: Math.round(score * 10) / 10,
         };
       })
       .sort((a, b) => a._score - b._score);
     const myIdx = rankingArr.findIndex((c) => c.is_me);
     const rank = myIdx >= 0 ? myIdx + 1 : null;   // posição ORDINAL do dono na região
+    // `score` do dono: MESMA conta que ordena a lista. O Hero mostra este número
+    // (e não `avg`), senão o topo diz 3,2 e a linha do dono na lista diz outra
+    // coisa quando ele some de algum ponto.
+    const score = myIdx >= 0 ? rankingArr[myIdx].score : null;
     const strip = ({ _score, place_id, ...r }) => r;
     let ranking = rankingArr.slice(0, 12).map(strip);
     if (myIdx >= 12) ranking.push(strip(rankingArr[myIdx]));   // garante o dono na lista
 
-    return { term, points: pts.map(({ dir, rank, total }) => ({ dir, rank, total })), avg, coverage: present.length, rank, total: rankingArr.length, ranking };
+    return { term, points: pts.map(({ dir, rank, total }) => ({ dir, rank, total })), avg, score, coverage: present.length, rank, total: rankingArr.length, ranking };
   }));
 
   return { placeId, name: det.name, center: { lat, lng }, spacingM, radius, terms: termsOut };

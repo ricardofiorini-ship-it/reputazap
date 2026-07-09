@@ -3736,9 +3736,9 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
             3,2 · Iroha 1,4) é o número que não mente. */}
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 6, paddingLeft: isMobile ? 4 : 8 }}>
           {gridPos ? (
-            gridPos.coverage > 0 && gridPos.avg != null ? (
+            gridPos.coverage > 0 && gridPos.score != null ? (
               <>
-                <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>{gridPos.avg.toFixed(1).replace('.', ',')}</div>
+                <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>{gridPos.score.toFixed(1).replace('.', ',')}</div>
                 <div style={{ fontSize: 13, color: T.textMuted }}>posição média no Google</div>
                 <div style={{ fontSize: 12, color: T.textDim }}>como {gridPos.term} · aparece em {gridPos.coverage}/5 pontos ao redor do seu endereço</div>
                 <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button>
@@ -5667,8 +5667,8 @@ function useGridData({ placeId, terms }) {
 // Rótulo/cor por termo (forte / melhorar / subir / oportunidade).
 function gridStatus(t) {
   if (!t || !t.coverage) return { label: 'oportunidade', color: '#A50E0E', bg: '#FCE8E6' }
-  if (t.avg <= 3)  return { label: 'forte',           color: '#137333', bg: '#E6F4EA' }
-  if (t.avg <= 10) return { label: 'dá pra melhorar', color: '#B45309', bg: '#FEF3C7' }
+  if (t.score <= 3)  return { label: 'forte',           color: '#137333', bg: '#E6F4EA' }
+  if (t.score <= 10) return { label: 'dá pra melhorar', color: '#B45309', bg: '#FEF3C7' }
   return { label: 'precisa subir', color: '#A50E0E', bg: '#FCE8E6' }
 }
 
@@ -5692,7 +5692,7 @@ function RankingGrid({ data }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, color: T.text, fontWeight: 600 }}>Como {t.term}</div>
                 <div style={{ fontSize: 12.5, color: T.textMuted, marginTop: 1 }}>
-                  {t.coverage > 0 ? <>posição média <b style={{ color: T.text }}>{t.avg.toFixed(1).replace('.', ',')}</b> · {t.coverage}/5 pontos</> : 'não aparece nesta busca'}
+                  {t.coverage > 0 ? <>posição média <b style={{ color: T.text }}>{t.score.toFixed(1).replace('.', ',')}</b> · {t.coverage}/5 pontos</> : 'não aparece nesta busca'}
                 </div>
               </div>
               <span style={{ fontSize: 10.5, fontWeight: 800, textTransform:'uppercase', letterSpacing:'.04em', color: s.color, background: s.bg, padding:'4px 9px', borderRadius: 999, flexShrink: 0 }}>{s.label}</span>
@@ -5705,10 +5705,16 @@ function RankingGrid({ data }) {
 }
 
 // Lista de concorrentes da REGIÃO vinda da GRADE (posição média agregada dos 5
-// pontos). Fonte ÚNICA com o Hero — o "#N" do topo bate com a posição aqui
-// (fim da divergência com o método de lentes antigo).
+// pontos). Fonte ÚNICA com o Hero — a média do topo bate com a coluna daqui.
+// Três números por linha (posição média, nota, avaliações) só se leem com
+// cabeçalho: sem ele, "1,4 4,7 8442" é ruído.
+// Larguras somam ~180px + gaps: num card de 328px (celular de 360) sobram ~120px
+// pro nome, que trunca com reticências. Apertar mais espreme o cabeçalho.
+const COL = { pos: 24, avg: 54, rating: 46, reviews: 56 }
 function GridRankingList({ data, isGuest, signupUrl }) {
   if (!data?.ranking?.length) return null
+  const th = { fontSize: 10, fontWeight: 700, letterSpacing:'0.04em', textTransform:'uppercase', color: T.textDim, flexShrink: 0 }
+  const num = { fontVariantNumeric:'tabular-nums', flexShrink: 0, textAlign:'right' }
   return (
     <Card>
       <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4 }}>
@@ -5720,28 +5726,44 @@ function GridRankingList({ data, isGuest, signupUrl }) {
           coluna da média existe: "1º" e "2º" podem ser 3,2 e 3,4. O número diz a
           verdade que o ordinal esconde. */}
       <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 12 }}>Medido em 5 pontos ao redor do seu endereço · como {data.term}</div>
+
+      <div style={{ display:'flex', alignItems:'flex-end', gap: 8, padding:'0 8px 6px', borderBottom:`1px solid ${T.border}`, marginBottom: 4 }}>
+        <span style={{ ...th, width: COL.pos }}/>
+        <span style={{ ...th, flex: 1, minWidth: 0 }}>Negócio</span>
+        <span style={{ ...th, ...num, width: COL.avg, lineHeight: 1.2 }}>Posição<br/>média</span>
+        <span style={{ ...th, ...num, width: COL.rating }}>Nota</span>
+        <span style={{ ...th, ...num, width: COL.reviews, lineHeight: 1.2 }}>Aval.<br/>no Google</span>
+      </div>
+
       {data.ranking.map((r, i) => {
         const me = r.is_me
         const blurName = isGuest && !me
         return (
           <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'8px', borderRadius: 8, marginBottom: 2, background: me ? T.primarySoft : 'transparent' }}>
-            <span style={{ width: 24, flexShrink: 0, textAlign:'center', fontSize: 12, fontWeight: 700, color: me ? T.primaryDark : T.textDim }}>{i + 1}º</span>
+            <span style={{ width: COL.pos, flexShrink: 0, textAlign:'center', fontSize: 12, fontWeight: 700, color: me ? T.primaryDark : T.textDim }}>{i + 1}º</span>
             <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: me ? 700 : 500, color: me ? T.primaryDark : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
               ...(blurName && { filter:'blur(5px)', userSelect:'none', pointerEvents:'none' }) }}>
               {me ? `${r.name || 'Você'} (você)` : (r.name || 'Concorrente')}
             </span>
-            {r.avg != null && (
-              <span title={`Posição média nos ${r.points} de 5 pontos em que aparece`}
-                style={{ fontSize: 12, fontWeight: 600, color: me ? T.primaryDark : T.textMuted, flexShrink: 0 }}>
-                {r.avg.toFixed(1).replace('.', ',')}
-              </span>
-            )}
-            <span style={{ fontSize: 12, color: T.textMuted, flexShrink: 0, display:'inline-flex', alignItems:'center', gap: 2 }}>
-              {r.rating ?? '—'}<Star size={11} fill={T.accent} color={T.accent} strokeWidth={0}/> · {r.reviews}
+            <span title={r.score != null
+                ? `Aparece em ${r.points} de 5 pontos${r.points < 5 ? ` (nos outros ${5 - r.points}, fica fora do top 20)` : ''}`
+                : 'Não apareceu em nenhum ponto'}
+              style={{ ...num, width: COL.avg, fontSize: 13, fontWeight: 700, color: me ? T.primaryDark : T.text }}>
+              {r.score != null ? r.score.toFixed(1).replace('.', ',') : '—'}
+            </span>
+            <span style={{ ...num, width: COL.rating, fontSize: 12, color: T.textMuted, display:'inline-flex', alignItems:'center', justifyContent:'flex-end', gap: 2 }}>
+              {r.rating != null ? r.rating.toFixed(1).replace('.', ',') : '—'}<Star size={11} fill={T.accent} color={T.accent} strokeWidth={0}/>
+            </span>
+            <span style={{ ...num, width: COL.reviews, fontSize: 12, color: T.textMuted }}>
+              {(r.reviews ?? 0).toLocaleString('pt-BR')}
             </span>
           </div>
         )
       })}
+      <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.45 }}>
+        <b style={{ color: T.textMuted }}>Posição média</b>: em que lugar o Google mostra o negócio, na média dos 5 pontos.
+        Quando ele não aparece num ponto, esse ponto conta como 21º. Menor é melhor.
+      </div>
       {isGuest && data.ranking.some(r => !r.is_me) && (
         <div style={{ marginTop: 12, display:'flex', alignItems:'center', gap: 12, flexWrap:'wrap', background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 12, padding:'12px 14px' }}>
           <Lock size={18} color={T.primary} style={{ flexShrink: 0 }}/>

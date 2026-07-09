@@ -259,10 +259,10 @@ fbq('track', 'PageView');
     // Mostra a MÉDIA das 5 posições, não o ordinal da lista: a grade é centrada
     // na porta do negócio, então o ordinal favorece quem está no centro (ele).
     // Dois vizinhos a 1km davam AMBOS "#1", cada um na própria grade.
-    if (t.coverage > 0 && t.avg != null){
+    if (t.coverage > 0 && t.score != null){
       box.innerHTML =
         '<div class="lr">' + ICON.pin +
-        '<span>No Google, sua posição média é <b>' + t.avg.toFixed(1).replace(".", ",") + '</b> como <b>' + esc(t.term) + '</b>' +
+        '<span>No Google, sua posição média é <b>' + t.score.toFixed(1).replace(".", ",") + '</b> como <b>' + esc(t.term) + '</b>' +
         '<span class="lr-sub"> · em ' + t.coverage + ' de 5 pontos ao redor do seu endereço</span></span></div>';
     } else {
       box.innerHTML =
