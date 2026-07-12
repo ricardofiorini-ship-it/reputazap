@@ -11,13 +11,11 @@ fbq('track', 'PageView');
 <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=767972996338904&ev=PageView&noscript=1"/></noscript>
 <!-- End Meta Pixel Code -->
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18239737019"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HCLV0Z640L"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'AW-18239737019');
-  gtag('config', 'AW-18229338581');
   gtag('config', 'G-HCLV0Z640L');
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -569,17 +567,15 @@ function updateProgress(step) {
   }
 }
 
-// ── Conversão Google Ads — Cadastro (novo cliente) ──────────────────────────
-// Cole aqui o rótulo da conversão criada no Google Ads (formato "AW-XXXXXXXXX/xxxx").
-// Enquanto estiver vazio, NADA é disparado (seguro pra subir sem o label).
-// Dispara e SÓ DEPOIS segue (event_callback + timeout), pra o redirect não
-// cancelar o registro da conversão — mesmo padrão do radar.html/kit.html.
-const ADS_SIGNUP_CONVERSION = ""; // ex.: "AW-18239737019/AbCdEfGhIj"
+// ── Conversão de Cadastro (novo cliente) ────────────────────────────────────
+// Dispara o evento GA4 `sign_up` (evento-chave → importa como conversão pela
+// conta viva do Google Ads). Dispara e SÓ DEPOIS segue (event_callback +
+// timeout), pra o redirect não cancelar o envio — mesmo padrão do radar/kit.
 function fireSignupConversion(cb){
   let done=false;
   const go=()=>{ if(!done){ done=true; if(typeof cb==="function") cb(); } };
-  if(ADS_SIGNUP_CONVERSION && typeof gtag==="function"){
-    gtag("event","conversion",{ send_to:ADS_SIGNUP_CONVERSION, value:1.0, currency:"BRL", event_callback:go });
+  if(typeof gtag==="function"){
+    gtag("event","sign_up",{ method:"web", event_callback:go });
     setTimeout(go,1200); // fallback se o callback não vier
   } else { go(); }
 }
