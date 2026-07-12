@@ -178,6 +178,49 @@ fbq('track', 'PageView');
 
   .pagefoot{text-align:center;font-size:11.5px;color:var(--ink-3);margin-top:22px;line-height:1.5;}
   @media (min-width:560px){.impact h2,.audit h2,.offer h2{font-size:25px;}}
+
+  /* ── Narrativa (Por que · Solução · Protocolo · Bastidores) ──────────────────
+     Estética de parecer técnico de consultoria, não de dashboard: muito respiro,
+     tipografia forte, poucos elementos, quase sem caixas. Fundo claro. */
+  .sec{padding:40px 2px;border-top:1px solid var(--border);}
+  .sec-eyebrow{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;color:var(--brand);margin-bottom:12px;}
+  .sec-h{font-size:26px;font-weight:800;letter-spacing:-0.025em;line-height:1.16;color:var(--ink);text-wrap:balance;margin-bottom:14px;}
+  .sec-p{font-size:15.5px;line-height:1.7;color:var(--ink-2);}
+  .sec-p + .sec-p{margin-top:14px;}
+  .sec-p b{color:var(--ink);font-weight:700;}
+  @media(min-width:560px){.sec-h{font-size:30px;}}
+
+  /* Sinais que as IAs leem (seção "por que") */
+  .signals{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;}
+  .signal{font-size:13px;font-weight:600;color:var(--ink-2);background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:8px 14px;}
+
+  /* Contagem de pontos (seção "solução") — preenchida quando a auditoria resolve */
+  .sol-count{margin-top:20px;font-size:15px;font-weight:700;color:var(--ink);line-height:1.5;display:none;}
+  .sol-count b{color:var(--brand);font-size:17px;}
+
+  /* Protocolo — lista numerada, sem caixas: engenharia, não folheto */
+  .proto-badge{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--ink-2);border:1px solid var(--border);border-radius:999px;padding:6px 13px;margin-bottom:16px;}
+  .proto-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 3px rgba(26,115,232,.15);}
+  .pillars{margin-top:24px;}
+  .pillar{display:flex;gap:16px;padding:20px 0;border-top:1px solid var(--border);}
+  .pillar:first-child{border-top:0;padding-top:4px;}
+  .pillar .no{font-size:13px;font-weight:800;color:var(--brand);font-variant-numeric:tabular-nums;flex:0 0 auto;width:26px;padding-top:3px;letter-spacing:0.03em;}
+  .pillar .body h4{font-size:16.5px;font-weight:700;color:var(--ink);margin-bottom:5px;letter-spacing:-0.01em;}
+  .pillar .body p{font-size:14px;line-height:1.6;color:var(--ink-2);}
+
+  /* Bastidores — o trabalho invisível e contínuo (banda escura) */
+  .behind{background:var(--dark);color:#fff;border-radius:18px;padding:26px 22px;}
+  .behind h3{font-size:21px;font-weight:800;letter-spacing:-0.02em;line-height:1.2;text-wrap:balance;margin-bottom:18px;}
+  .behind .grid{display:grid;gap:12px;margin-bottom:18px;}
+  .behind .item{display:flex;gap:11px;font-size:14px;color:#e8eefb;line-height:1.45;align-items:flex-start;}
+  .behind .item svg{width:16px;height:16px;stroke:var(--dark-hi);flex:0 0 auto;margin-top:2px;}
+  .behind .close{font-size:14px;line-height:1.6;color:var(--dark-sub);border-top:1px solid rgba(255,255,255,.12);padding-top:16px;}
+  .behind .close b{color:#fff;}
+
+  /* Fade-up discreto no scroll (respeitando prefers-reduced-motion) */
+  .reveal-up{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;}
+  .reveal-up.in{opacity:1;transform:none;}
+  @media(prefers-reduced-motion:reduce){.reveal-up{opacity:1 !important;transform:none !important;transition:none;}}
 </style>
 </head>
 <body>
@@ -190,7 +233,7 @@ fbq('track', 'PageView');
   <div id="boot" class="boot"><div class="spinner"></div><p>Montando seu plano de trabalho…</p></div>
   <div id="page" style="display:none;"></div>
   <div id="pagefoot" class="pagefoot" style="display:none;">
-    Cada ✓/✗/— vem de verificação automatizada real · dados públicos do seu Google e do seu site.
+    Diagnóstico gerado a partir de perguntas reais a inteligências artificiais e de dados públicos do seu Google e do seu site.
   </div>
 </main>
 
@@ -430,8 +473,9 @@ fbq('track', 'PageView');
     );
 
     return '<div class="block"><div class="impact">' +
-      '<h2>Como a ' + esc(diag.nome) + ' está hoje</h2>' +
-      '<div class="sub">O que as inteligências artificiais respondem quando procuram pela sua categoria.</div>' +
+      '<div class="sec-eyebrow" style="color:var(--dark-hi);margin-bottom:10px;">O diagnóstico</div>' +
+      '<h2>O que encontramos sobre a ' + esc(diag.nome) + '</h2>' +
+      '<div class="sub">O que as inteligências artificiais respondem hoje quando procuram pela sua categoria.</div>' +
       '<div class="ring-row">' +
         '<div class="ring"><svg width="96" height="96">' +
           '<circle cx="48" cy="48" r="' + r + '" stroke="rgba(255,255,255,.14)" stroke-width="8" fill="none"/>' +
@@ -481,36 +525,90 @@ fbq('track', 'PageView');
     box.innerHTML = chips.join("");
   }
 
-  // ===================== BLOCO B (auditoria ao vivo /api/audit) =====================
-  function renderBlocoB(audit){
-    const groups = (audit.groups || []).map(g => {
-      if (!g.items || !g.items.length) {
-        return '<div class="group"><h3>' + esc(g.title) + '</h3><div class="empty-note">' + esc(g.note || "") + '</div></div>';
-      }
-      const rows = g.items.map(it =>
-        '<div class="row ' + it.status + '"><div class="ic ' + it.status + '">' + (ICMAP[it.status] || ICON.minus) + '</div>' +
-        '<div><div class="lab">' + esc(it.label) + '</div><div class="det">' + esc(it.detail) + '</div></div></div>'
-      ).join("");
-      return '<div class="group"><h3>' + esc(g.title) + '</h3>' + rows + '</div>';
-    }).join("");
+  // ===================== NARRATIVA (por que · solução · protocolo · bastidores) =====================
+  // Substitui o antigo checklist técnico (schema/llms.txt/robots.txt), que expunha
+  // jargão pro dono e parecia um relatório de SEO. A auditoria (/api/audit) segue
+  // rodando por baixo — alimenta as chips do Bloco A e a contagem de pontos da
+  // seção "solução" — mas os itens técnicos NUNCA vão pra tela. Regra de copy do
+  // contrato: o cliente compra resultado, não implementação.
 
-    const n = audit.pendencias || 0;
-    const nome = (audit.business && audit.business.name) || "seu negócio";
-    const foot = n > 0
-      ? '<div class="foot">' + ICON.alert + '<span><span class="n tnums">' + n + '</span> pendência' + (n>1?"s":"") + ' ' + (n>1?"estão":"está") + ' segurando a visibilidade da ' + esc(nome) + '.</span></div>'
-      : '<div class="foot clean">' + ICON.check + '<span>Perfil saudável. O trabalho aqui é <b>manter a posição</b> — seus concorrentes estão correndo.</span></div>';
-
-    $("blocoB").innerHTML =
-      '<span class="btag" style="background:var(--brand-050);color:var(--brand);">' + ICON.check + ' Auditoria do seu negócio</span>' +
-      '<h2>O que precisa ser feito</h2>' +
-      '<div class="sub">Checklist verificado automaticamente — como um orçamento de oficina.</div>' +
-      groups + foot;
+  // 2. Por que isso acontece — o "aha", sem jargão.
+  function renderPorQue(diag){
+    const sinais = ['Quem é a empresa','O que ela faz','Sua especialidade','Sua credibilidade','Sua presença digital','Sua consistência'];
+    return '<section class="sec reveal-up">' +
+      '<div class="sec-eyebrow">Por que isso acontece</div>' +
+      '<h2 class="sec-h">As inteligências artificiais não escolhem no acaso.</h2>' +
+      '<p class="sec-p">Antes de responder, uma IA lê <b>centenas de sinais públicos</b> espalhados pela internet para entender quem é a empresa, o que ela faz, qual sua especialidade, o quanto é confiável e o quanto sua presença é consistente.</p>' +
+      '<p class="sec-p">Quanto mais claros e organizados esses sinais, maior a chance de a IA compreender a empresa e considerá-la uma opção relevante. Hoje, boa parte dos sinais da <b>' + esc(diag.nome) + '</b> está incompleta ou desorganizada — e é por isso que você não aparece.</p>' +
+      '<div class="signals">' + sinais.map(s => '<span class="signal">' + esc(s) + '</span>').join("") + '</div>' +
+    '</section>';
   }
-  function renderBlocoBMsg(msg){
-    $("blocoB").innerHTML =
-      '<h2>O que precisa ser feito</h2>' +
-      '<div class="sub">Checklist do seu negócio.</div>' +
-      '<div class="group"><div class="empty-note">' + esc(msg) + '</div></div>';
+
+  // 3. Existe solução — a virada emocional (problema → esperança).
+  function renderSolucao(){
+    return '<section class="sec reveal-up">' +
+      '<div class="sec-eyebrow">Existe solução</div>' +
+      '<h2 class="sec-h">A boa notícia: quase tudo isso pode ser trabalhado.</h2>' +
+      '<p class="sec-p">Não existe um botão para aparecer nas inteligências artificiais. Existe um trabalho técnico e contínuo de organizar e fortalecer os sinais que essas plataformas usam para entender e confiar em uma empresa.</p>' +
+      '<p class="sec-p">É exatamente isso que a StarTouch faz — e faz como engenharia, não como marketing.</p>' +
+      '<div class="sol-count" id="solucaoCount"></div>' +
+    '</section>';
+  }
+  // Preenchida quando a auditoria resolve: a contagem de pontos, sem citar quais
+  // (o "quais" é jargão e não vai pra tela). Some se a auditoria falhar.
+  function fillSolucao(pend, nome){
+    const box = $("solucaoCount"); if (!box) return;
+    if (typeof pend === "number" && pend > 0){
+      box.innerHTML = 'Na <b style="color:var(--ink)">' + esc(nome || "sua empresa") + '</b>, já mapeamos <b>' + pend + '</b> ponto' + (pend>1?'s':'') + ' que ' + (pend>1?'podem':'pode') + ' ser fortalecido' + (pend>1?'s':'') + ' desde já.';
+      box.style.display = "block";
+    }
+  }
+
+  // 4. O tratamento — Protocolo StarTouch AI Engine™. Vende metodologia, não
+  // funcionalidades. Lista numerada (engenharia), sem caixas de dashboard.
+  function renderProtocolo(){
+    const pillars = [
+      ['Arquitetura da Informação','Organizamos a estrutura do seu ambiente digital para que as inteligências artificiais entendam sua empresa com clareza.'],
+      ['Contexto Semântico','Estruturamos seus conteúdos para que as plataformas compreendam quem você é, o que faz, que problemas resolve e quando deve ser lembrado.'],
+      ['Consistência de Dados Públicos','Padronizamos as informações públicas da sua empresa para reduzir ambiguidades e aumentar a confiança.'],
+      ['Estrutura Técnica','Implementamos melhorias que facilitam a leitura e a interpretação das suas informações pelas IAs.'],
+      ['Autoridade Digital','Fortalecemos os sinais públicos de credibilidade, especialização e relevância da sua empresa.'],
+      ['Relevância Local','Aprimoramos os fatores ligados à sua presença na região onde você atua.'],
+      ['Cobertura de Conteúdo','Ampliamos o contexto digital da empresa para as IAs compreenderem seus produtos, serviços e diferenciais.'],
+      ['Monitoramento Contínuo','As inteligências artificiais mudam o tempo todo. Acompanhamos essas mudanças e adaptamos a estratégia continuamente.'],
+    ];
+    const rows = pillars.map((p, i) =>
+      '<div class="pillar"><div class="no">' + String(i+1).padStart(2,'0') + '</div>' +
+      '<div class="body"><h4>' + esc(p[0]) + '</h4><p>' + esc(p[1]) + '</p></div></div>'
+    ).join("");
+    return '<section class="sec reveal-up">' +
+      '<div class="sec-eyebrow">O tratamento</div>' +
+      '<div class="proto-badge"><span class="dot"></span>Protocolo StarTouch AI Engine™</div>' +
+      '<h2 class="sec-h">Não vendemos tarefas soltas. Vendemos um método.</h2>' +
+      '<p class="sec-p">É o conjunto de processos técnicos e estratégicos que executamos continuamente para fortalecer os sinais que as inteligências artificiais usam para entender, confiar e considerar a sua empresa.</p>' +
+      '<div class="pillars">' + rows + '</div>' +
+    '</section>';
+  }
+
+  // 5. Os bastidores — dispara a percepção de valor. Trabalho invisível e
+  // contínuo, sem explicar tecnologia.
+  function renderBastidores(){
+    const items = [
+      'Organização técnica das suas informações',
+      'Arquitetura da informação',
+      'Contexto semântico dos conteúdos',
+      'Consistência dos dados públicos',
+      'Cobertura de conteúdo',
+      'Autoridade e credibilidade digital',
+      'Presença regional',
+      'Monitoramento das respostas das IAs',
+      'Evolução constante conforme novos modelos surgem',
+    ];
+    return '<div class="block reveal-up"><div class="behind">' +
+      '<h3>O que a StarTouch faz enquanto você cuida da sua empresa</h3>' +
+      '<div class="grid">' + items.map(i => '<div class="item">' + ICON.check + '<span>' + esc(i) + '</span></div>').join("") + '</div>' +
+      '<div class="close">Você não vê esse trabalho — mas as inteligências artificiais veem. E é isso que muda a forma como elas enxergam a sua empresa.</div>' +
+    '</div></div>';
   }
 
   // ===================== BLOCO C (oferta) =====================
@@ -623,16 +721,32 @@ fbq('track', 'PageView');
       return;
     }
 
-    // Monta Bloco A + C na hora (dados do diagnóstico já em mãos).
+    // Monta a página inteira de uma vez (dados do diagnóstico já em mãos): a
+    // prova (Bloco A) abre; a narrativa — por que acontece, existe solução, o
+    // tratamento (Protocolo) e os bastidores — leva até a oferta. A auditoria
+    // roda por baixo e preenche as chips do Bloco A + a contagem de pontos.
     $("page").innerHTML =
       renderBlocoA(diag) +
-      '<div class="block audit" id="blocoB"><h2>O que precisa ser feito</h2><div class="sub">Checklist do seu negócio.</div>' +
-        '<div class="audit-loading"><span class="sp"></span> Verificando seu perfil no Google e seu site…</div></div>' +
+      renderPorQue(diag) +
+      renderSolucao() +
+      renderProtocolo() +
+      renderBastidores() +
       renderBlocoC(diag);
     $("boot").style.display = "none";
     $("page").style.display = "";
     $("pagefoot").style.display = "";
     window.scrollTo({ top: 0 });
+
+    // Fade-up discreto conforme as seções entram na tela (brief: animações
+    // discretas). Fallback: sem IntersectionObserver, mostra tudo de uma vez.
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+      }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+      document.querySelectorAll(".reveal-up").forEach(el => io.observe(el));
+    } else {
+      document.querySelectorAll(".reveal-up").forEach(el => el.classList.add("in"));
+    }
 
     // O Bloco C só existe no DOM depois do innerHTML acima — ligar o checkout
     // antes disso não acharia o botão.
@@ -655,7 +769,10 @@ fbq('track', 'PageView');
         .catch(() => {});
     }
 
-    // Auditoria ao vivo (Bloco B).
+    // Auditoria ao vivo (roda por baixo): preenche as chips do Bloco A (nota /
+    // avaliações do Google) e a contagem de pontos da seção "solução". Os itens
+    // técnicos NÃO vão mais pra tela — viram só o número, sem jargão. Falha aqui
+    // não quebra a página: a narrativa segue de pé, apenas sem a contagem.
     if (diag.place_id) {
       try {
         const url = "/api/audit?place_id=" + encodeURIComponent(diag.place_id) +
@@ -663,17 +780,11 @@ fbq('track', 'PageView');
         const a = await fetch(url);
         if (a.ok) {
           const audit = await a.json();
-          renderBlocoB(audit);
           fillBlocoAChips(audit.business);
           lastPend = typeof audit.pendencias === "number" ? audit.pendencias : null;
-        } else {
-          renderBlocoBMsg("Não foi possível auditar seu negócio agora. Fale com a gente pelo WhatsApp abaixo — a gente roda a auditoria manualmente.");
+          fillSolucao(lastPend, diag.nome);
         }
-      } catch {
-        renderBlocoBMsg("Não foi possível auditar seu negócio agora. Fale com a gente pelo WhatsApp abaixo — a gente roda a auditoria manualmente.");
-      }
-    } else {
-      renderBlocoBMsg("Diagnóstico sem vínculo com o Google — refaça pelo /radar escolhendo seu negócio na lista pra liberar a auditoria.");
+      } catch { /* narrativa segue sem a contagem */ }
     }
 
     firePlanoView(lastPend);
