@@ -560,6 +560,16 @@ fbq('track', 'PageView');
     } else { go(); }
   }
 
+  // Lê client_id/session_id do GA4 (cookies _ga / _ga_<container>) pra amarrar a
+  // venda à sessão de origem quando o webhook dispara o `purchase` server-side.
+  function gaIds(){
+    try {
+      const cid = (document.cookie.match(/_ga=GA\d\.\d\.(\d+\.\d+)/) || [])[1] || "";
+      const sid = (document.cookie.match(/_ga_HCLV0Z640L=GS\d\.\d\.(\d+)/) || [])[1] || "";
+      return { ga_client_id: cid, ga_session_id: sid };
+    } catch (_) { return { ga_client_id: "", ga_session_id: "" }; }
+  }
+
   // Checkout do Pacote Presença em IA. Mesmo endpoint de antes; só mudou de casa.
   function wireCheckout(diag){
     const btn = $("contratarBtn");
@@ -586,6 +596,7 @@ fbq('track', 'PageView');
             bairro: local.bairro || "",
             score: diag.score,
             want_kit: true, // Kit NFC é brinde incluído no pacote
+            ...gaIds(),
           }),
         });
         const data = await r.json();

@@ -505,6 +505,17 @@ function renderCart() {
   document.getElementById("checkoutBtnMobile").disabled = disabled;
 }
 
+// Lê o client_id (cookie _ga) e session_id (cookie _ga_<container>) do GA4 pra
+// mandar no checkout. O webhook usa isso pra amarrar a venda à sessão/campanha
+// de origem quando dispara o evento `purchase` server-side (medição confiável).
+function gaIds() {
+  try {
+    const cid = (document.cookie.match(/_ga=GA\d\.\d\.(\d+\.\d+)/) || [])[1] || "";
+    const sid = (document.cookie.match(/_ga_HCLV0Z640L=GS\d\.\d\.(\d+)/) || [])[1] || "";
+    return { ga_client_id: cid, ga_session_id: sid };
+  } catch (_) { return { ga_client_id: "", ga_session_id: "" }; }
+}
+
 async function handleCheckout() {
   const items = Object.keys(cart).map(id => ({ id, qty: cart[id] }));
   if (items.length === 0) return;
@@ -532,7 +543,7 @@ async function handleCheckout() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify({ items, biz_name: bizName || "" })
+      body: JSON.stringify({ items, biz_name: bizName || "", ...gaIds() })
     });
     const data = await res.json();
     // Token expirado/inválido: limpa e segue como visitante (guest), sem erro.
@@ -702,7 +713,7 @@ coForm.addEventListener("submit", async (e) => {
     const res = await fetch("/api/billing?action=checkout-kit-guest", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items, customer })
+      body: JSON.stringify({ items, customer, ...gaIds() })
     });
     const data = await res.json();
     if (!res.ok || !data.url) {

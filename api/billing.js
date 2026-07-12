@@ -36,6 +36,49 @@ async function authUser(req) {
   return { user: data.user };
 }
 
+// ─────────────────────────────────────────────────────────────
+// GA4 Measurement Protocol — dispara `purchase` do lado do servidor
+// quando o pagamento é APROVADO. É a única forma confiável de medir a
+// venda: independe do cliente voltar pro site (PIX/boleto não retornam),
+// do device e da aba. A conta viva do Google Ads (Star Touch) já importa
+// o evento `purchase` do GA4, então isso alimenta GA4 + Ads de uma vez.
+// Requer GA4_API_SECRET (chave do Measurement Protocol, criada no GA4).
+async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents, items }) {
+  const measurementId = process.env.GA4_MEASUREMENT_ID || "G-HCLV0Z640L";
+  const apiSecret = process.env.GA4_API_SECRET;
+  if (!apiSecret) {
+    console.warn("[ga4] GA4_API_SECRET ausente — purchase não enviado");
+    return;
+  }
+  // client_id real (cookie _ga) casa a venda com a sessão/campanha de origem.
+  // Sem ele (ex.: PIX pago noutro device), usa um id derivado do pagamento —
+  // a venda ainda conta como receita, só não amarra na jornada.
+  const cid = (clientId && String(clientId).trim()) || `mp.${transactionId}`;
+  const params = {
+    transaction_id: String(transactionId),
+    currency: "BRL",
+    value: Number(((valueCents || 0) / 100).toFixed(2)),
+    engagement_time_msec: 1,
+    items: (items || []).map((it) => ({
+      item_id: String(it.id || it.item_id || ""),
+      item_name: String(it.name || it.item_name || ""),
+      quantity: Number(it.qty || it.quantity || 1),
+      price: Number(it.unit_price ?? it.price ?? 0),
+    })),
+  };
+  if (sessionId) params.session_id = String(sessionId);
+  const body = { client_id: cid, events: [{ name: "purchase", params }] };
+  try {
+    const r = await fetch(
+      `https://www.google-analytics.com/mp/collect?measurement_id=${measurementId}&api_secret=${apiSecret}`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+    );
+    console.log(`[ga4] purchase enviado tx=${transactionId} cid=${cid} value=${params.value} status=${r.status}`);
+  } catch (e) {
+    console.warn("[ga4] purchase falhou:", e?.message);
+  }
+}
+
 // Catalogo do kit — fonte de verdade pra preços. Deve refletir public/kit.html.
 // Preços em centavos. soldOut: true bloqueia o item no checkout.
 const KIT_CATALOG = {
@@ -230,7 +273,7 @@ async function handleCheckoutKitMP(req, res) {
 
   try {
     const rawBody = await getRawBody(req);
-    const { items = [], biz_name = "" } = parseJson(rawBody);
+    const { items = [], biz_name = "", ga_client_id = "", ga_session_id = "" } = parseJson(rawBody);
 
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: "Carrinho vazio" });
@@ -289,7 +332,9 @@ async function handleCheckoutKitMP(req, res) {
         metadata: {
           user_id: auth.user.id,
           biz_name,
-          kit_total_cents: String(totalCents)
+          kit_total_cents: String(totalCents),
+          ga_client_id,
+          ga_session_id
         },
         statement_descriptor: "STARTOUCH",
         additional_info: `Pedido do kit StarTouch — ${mpItems.length} item(ns), total R$ ${(totalCents / 100).toFixed(2)}`
@@ -423,7 +468,12 @@ async function handleCheckoutKitGuestMP(req, res) {
         auto_return: "approved",
         external_reference: extRef,
         notification_url: `${origin}/api/billing?action=webhook`,
-        metadata: { tipo: "kit_guest", kit_total_cents: String(totalCents) },
+        metadata: {
+          tipo: "kit_guest",
+          kit_total_cents: String(totalCents),
+          ga_client_id: (body.ga_client_id || "").toString(),
+          ga_session_id: (body.ga_session_id || "").toString()
+        },
         statement_descriptor: "STARTOUCH",
         additional_info: `Pedido do kit StarTouch (guest) — ${mpItems.length} item(ns), total R$ ${(totalCents / 100).toFixed(2)}`
       }
@@ -513,7 +563,11 @@ async function handleCheckoutServicoMP(req, res) {
         payment_methods: { installments: IA_PACKAGE.max_installments },
         external_reference: `ia_${Date.now()}`,
         notification_url: `${origin}/api/billing?action=webhook`,
-        metadata: { tipo: "presenca_ia", nome, email, whatsapp, biz_name, cidade, bairro, score, want_kit },
+        metadata: {
+          tipo: "presenca_ia", nome, email, whatsapp, biz_name, cidade, bairro, score, want_kit,
+          ga_client_id: (b.ga_client_id || "").toString(),
+          ga_session_id: (b.ga_session_id || "").toString()
+        },
         statement_descriptor: "STARTOUCH",
         additional_info: `Pacote Presença em IA (6 meses) — ${biz_name || nome}`,
       },
@@ -679,7 +733,19 @@ async function handleWebhookMP(req, res) {
           } catch (e) {
             console.warn("[mp/webhook] update order falhou:", e?.message);
           }
-          if (order) await notifyAdminKitOrder({ order, pay, userId });
+          if (order) {
+            await notifyAdminKitOrder({ order, pay, userId });
+            // Mede a venda no GA4 (→ importa como "Compra" no Google Ads).
+            // Dentro do `if (order)` = dispara exatamente 1x (na transição p/ pago).
+            const m = pay.metadata || {};
+            await sendGa4Purchase({
+              clientId: m.ga_client_id,
+              sessionId: m.ga_session_id,
+              transactionId: id,
+              valueCents: order.total_cents ?? Math.round((pay.transaction_amount || 0) * 100),
+              items: order.items,
+            });
+          }
         }
         return res.json({ ok: true, type: "payment-kit", id, status: pay.status });
       }
@@ -704,7 +770,16 @@ async function handleWebhookMP(req, res) {
         } catch (e) {
           console.warn("[mp/webhook] insert ia order:", e?.message);
         }
-        if (isNew) await notifyAdminIaOrder({ pay });
+        if (isNew) {
+          await notifyAdminIaOrder({ pay });
+          await sendGa4Purchase({
+            clientId: m.ga_client_id,
+            sessionId: m.ga_session_id,
+            transactionId: id,
+            valueCents: Math.round((pay.transaction_amount || 0) * 100),
+            items: [{ id: "presenca-ia-6m", name: "Pacote Presença em IA", qty: 1, unit_price: pay.transaction_amount || 599 }],
+          });
+        }
       }
 
       // Pagamento mensal da assinatura (recurring) — log pra rastreio
@@ -768,7 +843,7 @@ async function handleCheckoutKitStripe(req, res) {
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
   try {
     const rawBody = await getRawBody(req);
-    const { items = [], biz_name = "" } = parseJson(rawBody);
+    const { items = [], biz_name = "", ga_client_id = "", ga_session_id = "" } = parseJson(rawBody);
     if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: "Carrinho vazio" });
     const line_items = [];
     let totalCents = 0;
@@ -964,6 +1039,12 @@ export default async function handler(req, res) {
         pro_payment_link_set: !!proLink,
         pro_payment_link_host: proLinkHost,
         pro_payment_link_starts: proLink ? proLink.slice(0, 50) + "..." : null
+      },
+      ga4_purchase: {
+        // Medição server-side da venda (evento `purchase` → importa como "Compra" no Ads).
+        measurement_id: process.env.GA4_MEASUREMENT_ID || "G-HCLV0Z640L (default)",
+        api_secret_set: !!process.env.GA4_API_SECRET,
+        ready: !!process.env.GA4_API_SECRET
       },
       stripe_dormant: {
         secret_set: !!process.env.STRIPE_SECRET_KEY,
