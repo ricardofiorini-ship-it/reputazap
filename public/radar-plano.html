@@ -22,214 +22,220 @@ fbq('track', 'PageView');
 <!-- Link com code expõe dados do negócio a quem tiver o link: não indexar (regra 4). -->
 <meta name="robots" content="noindex, nofollow"/>
 <title>Seu plano de trabalho — StarTouch</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <style>
+  /* ── Design system (adotado da maquete premium, enxertado nos dados reais) ── */
   :root{
-    --brand:#1A73E8; --brand-hover:#174EA6; --brand-050:#E8F0FE;
-    --ink:#111827; --ink-2:#4B5563; --ink-3:#80868B;
-    --bg:#FFFFFF; --surf:#F8F9FA; --surf-2:#F1F3F4; --border:#E5E7EB;
-    --ok:#1E8E3E; --ok-bg:#E6F4EA; --ok-bd:#A8DAB5;
-    --bad:#A50E0E; --bad-bg:#FCE8E6; --bad-bd:#F5C6C0;
-    --warn:#7A5900; --warn-bg:#FEF7E0; --warn-bd:#FDE68A;
-    --na:#80868B; --na-bg:#F1F3F4;
-    --dark:#0B1A33; --dark-hi:#8AB4F8; --dark-sub:#A9B6CC;
+    --blue:#1A73E8; --blue2:#4285F4; --blue-soft:#E8F0FE; --line-blue:#D7E3FC;
+    --purple:#6D5DFB;
+    --ink:#0F172A; --ink-2:#475569; --ink-3:#64748B; --line:#E2E8F0;
+    --bg:#FFFFFF; --surf:#F8FAFF;
+    --dark:#071426; --dark2:#0C2349; --dark-hi:#8EA8FF; --dark-sub:#AFC0D8;
+    --ok:#1E8E3E; --ok-soft:#E6F4EA; --amber:#D97706; --red:#C2413A;
+    --shadow:0 24px 80px rgba(15,23,42,.10); --shadow-soft:0 16px 48px rgba(26,115,232,.12);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--surf);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;line-height:1.5;}
   a{text-decoration:none;color:inherit;}
   .tnums{font-variant-numeric:tabular-nums;}
-  .wrap{max-width:600px;margin:0 auto;padding:0 20px 72px;}
+  .container{width:min(100% - 40px, 1040px);margin-inline:auto;}
+  h1,h2,h3,h4,p{margin:0;}
 
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 0 10px;max-width:600px;margin:0 auto;padding-left:20px;padding-right:20px;}
-  .logo img{height:40px;width:auto;display:block;}
-  .eyebrow{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.09em;color:var(--brand);}
+  /* Topbar */
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);border-bottom:1px solid rgba(226,232,240,.8);backdrop-filter:blur(16px);}
+  .topbar-inner{height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .brand{display:flex;align-items:center;gap:9px;}
+  .brand img{height:30px;width:auto;display:block;}
+  .brand .tag{color:var(--ink-3);font-size:11.5px;font-weight:800;letter-spacing:.08em;}
+  .top-meta{color:var(--blue);font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;}
 
-  /* Estados de carregamento / erro */
-  .boot{text-align:center;padding:80px 20px;color:var(--ink-2);}
-  .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+  /* Loader / estados */
+  .boot{text-align:center;padding:120px 20px;color:var(--ink-2);}
+  .spinner{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
   @keyframes spin{to{transform:rotate(360deg);}}
 
-  .block{margin-bottom:16px;}
-  .btag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;padding:4px 9px;border-radius:999px;margin-bottom:12px;}
-  .btag svg{width:12px;height:12px;}
+  section{padding:64px 0;}
+  .section-label{color:var(--blue);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+  .section-h{font-size:clamp(28px,5vw,46px);line-height:1.06;letter-spacing:-.045em;font-weight:900;text-wrap:balance;}
+  .section-sub{margin-top:14px;color:var(--ink-2);font-size:16px;line-height:1.62;max-width:720px;}
 
-  /* Bloco A — banda escura */
-  .impact{background:var(--dark);color:#fff;border-radius:18px;padding:24px 22px;}
-  .impact h2{font-size:22px;font-weight:800;letter-spacing:-0.02em;text-wrap:balance;margin-bottom:4px;}
-  .impact .sub{color:var(--dark-sub);font-size:13.5px;margin-bottom:18px;}
-  .ring-row{display:flex;align-items:center;gap:18px;margin-bottom:18px;}
-  .ring{position:relative;width:96px;height:96px;flex:0 0 auto;}
-  .ring svg{transform:rotate(-90deg);}
-  .ring .val{position:absolute;inset:0;display:grid;place-items:center;text-align:center;}
-  .ring .val b{font-size:26px;font-weight:800;line-height:1;}
-  .ring .val span{font-size:10px;color:var(--dark-sub);text-transform:uppercase;letter-spacing:.05em;}
-  .ring-meta .k{font-size:12px;color:var(--dark-sub);}
-  .ring-meta .big{font-size:15px;font-weight:700;margin:2px 0 10px;}
-  .chips{display:flex;gap:8px;flex-wrap:wrap;}
-  .chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:7px 11px;font-size:12.5px;}
-  .chip b{color:#fff;} .chip span{color:var(--dark-sub);}
-  .reveal{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px 15px;}
-  .reveal .q{font-size:12px;color:var(--dark-hi);margin-bottom:9px;line-height:1.5;}
-  .reveal .q b{color:#fff;}
-  .compbar{display:flex;align-items:center;gap:10px;margin:7px 0;}
-  .compbar .nm{font-size:13px;width:120px;flex:0 0 auto;color:#e8eefb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .compbar .track{flex:1;height:8px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden;}
-  .compbar .fill{height:100%;background:var(--dark-hi);border-radius:999px;}
-  .miss{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12);font-size:13.5px;font-weight:700;color:#FCA5A5;display:flex;align-items:center;gap:8px;}
-  .localrank{margin-top:14px;}
-  .lr{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;font-size:13.5px;color:#e8eefb;line-height:1.5;display:flex;align-items:flex-start;gap:8px;}
-  .lr b{color:#fff;} .lr-sub{color:var(--dark-sub);}
-  .lr svg{width:18px;height:18px;stroke:var(--dark-hi);flex-shrink:0;margin-top:1px;}
-  .lr.miss-lr svg{stroke:#FCA5A5;}
-  .miss.inrank{color:#7EE2A8;}
+  /* ── Hero (banda escura) ── */
+  .hero{position:relative;padding:64px 0 72px;color:#fff;overflow:hidden;
+    background:radial-gradient(circle at 82% 28%,rgba(66,133,244,.26),transparent 22rem),radial-gradient(circle at 26% 92%,rgba(109,93,251,.18),transparent 20rem),linear-gradient(135deg,var(--dark),var(--dark2) 62%,#0A1830);}
+  .hero::after{content:"";position:absolute;inset:auto 0 0 0;height:160px;background:radial-gradient(ellipse at 22% 100%,rgba(66,133,244,.4),transparent 32%),radial-gradient(ellipse at 62% 100%,rgba(109,93,251,.32),transparent 34%);opacity:.55;filter:blur(18px);}
+  .hero-grid{position:relative;z-index:1;display:grid;gap:32px;align-items:center;}
+  .hero-eyebrow{color:#9CBFFF;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.11em;margin-bottom:14px;}
+  .hero h1{font-size:clamp(32px,6vw,58px);line-height:1.02;letter-spacing:-.055em;font-weight:900;text-wrap:balance;}
+  .hero-lead{margin-top:18px;max-width:620px;color:#D5E0F2;font-size:16.5px;line-height:1.6;}
+  .status-pill{margin-top:24px;display:inline-flex;align-items:center;gap:10px;padding:10px 15px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff;font-size:13px;font-weight:800;}
+  .status-dot{width:10px;height:10px;border-radius:999px;flex:0 0 auto;}
+  .status-dot.no{background:#FF6B6B;box-shadow:0 0 16px rgba(255,107,107,.7);}
+  .status-dot.part{background:#FBBF24;box-shadow:0 0 16px rgba(251,191,36,.7);}
+  .status-dot.ok{background:#34D399;box-shadow:0 0 16px rgba(52,211,153,.7);}
 
-  /* Cartão de prova — a resposta literal da IA, dentro da banda escura.
-     Tipografia de citação, não de dashboard: é o argumento da página. */
-  .ev{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:15px;margin-bottom:16px;}
-  .ev-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
-  .ev-engine{font-size:11.5px;font-weight:800;color:var(--dark-sub);text-transform:uppercase;letter-spacing:.05em;}
-  .ev-flag{font-size:11px;font-weight:800;border-radius:6px;padding:3px 8px;white-space:nowrap;}
-  .ev-flag.no{background:rgba(252,165,165,.16);color:#FCA5A5;}
-  .ev-flag.ok{background:rgba(126,226,168,.16);color:#7EE2A8;}
-  .ev-q{font-size:14px;font-weight:700;color:#fff;line-height:1.45;}
-  /* pre-line preserva as quebras da lista que a IA escreveu (um concorrente por
-     linha) sem deixar o HTML colapsar tudo num parágrafo só. */
-  .ev-a{margin:11px 0 0;padding:2px 0 2px 12px;border-left:2px solid var(--dark-hi);color:#C7D5EA;font-size:13.5px;line-height:1.7;white-space:pre-line;}
-  .ev-hl{font-weight:800;color:#fff;}                    /* concorrentes citados */
-  .ev-me{font-weight:800;color:#8AB4F8;}                 /* o negócio do dono */
-  .ev-comp{margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1);font-size:12.5px;color:var(--dark-sub);line-height:1.5;}
+  .score-panel{display:grid;grid-template-columns:150px 1fr;gap:20px;align-items:center;padding:20px;border:1px solid rgba(255,255,255,.14);border-radius:24px;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);box-shadow:0 22px 60px rgba(0,0,0,.18);}
+  .score-ring{width:132px;height:132px;position:relative;display:grid;place-items:center;margin:0 auto;}
+  .score-ring svg{transform:rotate(-90deg);}
+  .score-ring .val{position:absolute;inset:0;display:grid;place-items:center;text-align:center;}
+  .score-ring .val b{font-size:40px;font-weight:900;letter-spacing:-.05em;line-height:1;}
+  .score-ring .val span{display:block;margin-top:2px;color:var(--dark-sub);font-size:11px;}
+  .score-copy small{display:block;color:var(--dark-sub);font-size:12px;margin-bottom:6px;}
+  .score-copy .lbl{color:#F6B73C;font-size:22px;line-height:1.08;letter-spacing:-.03em;font-weight:900;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  .chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:7px 11px;font-size:12.5px;color:var(--dark-sub);}
+  .chip b{color:#fff;}
+
+  /* ── O que encontramos (a PROVA lidera; fundo claro, cartão escuro) ── */
+  .findings{background:var(--surf);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  /* Cartão de prova — a resposta literal da IA, tratada como evidência. */
+  .ev{background:var(--dark);color:#fff;border-radius:20px;padding:22px;margin-top:30px;box-shadow:var(--shadow);}
+  .ev-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+  .ev-engine{font-size:12px;font-weight:900;color:var(--dark-sub);text-transform:uppercase;letter-spacing:.06em;}
+  .ev-flag{font-size:11.5px;font-weight:900;border-radius:7px;padding:4px 9px;white-space:nowrap;}
+  .ev-flag.no{background:rgba(255,107,107,.16);color:#FF9B9B;}
+  .ev-flag.ok{background:rgba(52,211,153,.16);color:#6EE7B7;}
+  .ev-q{font-size:15px;font-weight:800;color:#fff;line-height:1.4;}
+  .ev-a{margin:13px 0 0;padding:2px 0 2px 14px;border-left:2px solid var(--dark-hi);color:#C7D5EA;font-size:14px;line-height:1.72;white-space:pre-line;}
+  .ev-hl{font-weight:800;color:#fff;}
+  .ev-me{font-weight:800;color:#8EA8FF;}
+  .ev-comp{margin-top:13px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);font-size:13px;color:var(--dark-sub);line-height:1.5;}
   .ev-comp b{color:#fff;}
-  /* Liga o veredito do cartão ("não citou você") à estatística logo abaixo
-     ("apareceu em 2 de 6"). Sem ela os dois números parecem se contradizer. */
-  .ev-bridge{margin-top:10px;font-size:12.5px;color:var(--dark-sub);line-height:1.5;}
+  .ev-bridge{margin-top:11px;font-size:13px;color:var(--dark-sub);line-height:1.5;}
   .ev-bridge b{color:#fff;}
-  .ev-comp + .ev-bridge{margin-top:6px;border-top:0;padding-top:0;}
+  .ev-comp + .ev-bridge{margin-top:7px;border-top:0;padding-top:0;}
 
-  /* Nicho × busca ampla. Duas linhas e uma conclusão — só quando há contraste. */
-  .bt{margin-top:14px;padding-top:13px;border-top:1px solid rgba(255,255,255,.12);}
-  .bt-title{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--dark-sub);margin-bottom:9px;}
-  .bt-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;}
-  .bt-row + .bt-row{border-top:1px solid rgba(255,255,255,.06);}
-  .bt-term{font-size:13.5px;color:#e8eefb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .bt-count{font-size:12.5px;font-weight:800;border-radius:6px;padding:3px 9px;white-space:nowrap;flex-shrink:0;font-variant-numeric:tabular-nums;}
-  .bt-count.ok{background:rgba(126,226,168,.16);color:#7EE2A8;}
-  .bt-count.no{background:rgba(252,165,165,.16);color:#FCA5A5;}
-  .bt-punch{margin-top:11px;font-size:13px;color:#e8eefb;line-height:1.55;}
-  .bt-punch b{color:#fff;}
-  .miss svg{width:16px;height:16px;flex:0 0 auto;}
+  /* Medida: concorrentes + veredito + nicho×busca, em cartão claro */
+  .measure{margin-top:16px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 12px 34px rgba(15,23,42,.05);}
+  .measure .q{font-size:14px;color:var(--ink-2);line-height:1.5;margin-bottom:14px;}
+  .measure .q b{color:var(--ink);}
+  .compbar{display:flex;align-items:center;gap:12px;margin:9px 0;}
+  .compbar .nm{font-size:13.5px;width:140px;flex:0 0 auto;color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .compbar .track{flex:1;height:9px;background:var(--blue-soft);border-radius:999px;overflow:hidden;}
+  .compbar .fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:999px;}
+  .miss{margin-top:16px;padding-top:15px;border-top:1px solid var(--line);font-size:14.5px;font-weight:800;color:var(--red);display:flex;align-items:center;gap:9px;}
+  .miss.inrank{color:var(--ok);}
+  .miss svg{width:18px;height:18px;flex:0 0 auto;}
+  .bt{margin-top:16px;padding-top:15px;border-top:1px solid var(--line);}
+  .bt-title{font-size:11.5px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:10px;}
+  .bt-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;}
+  .bt-row + .bt-row{border-top:1px solid var(--surf);}
+  .bt-term{font-size:14px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bt-count{font-size:12.5px;font-weight:900;border-radius:7px;padding:3px 10px;white-space:nowrap;flex-shrink:0;font-variant-numeric:tabular-nums;}
+  .bt-count.ok{background:var(--ok-soft);color:var(--ok);}
+  .bt-count.no{background:#FCE8E6;color:var(--red);}
+  .bt-punch{margin-top:12px;font-size:14px;color:var(--ink-2);line-height:1.55;}
+  .bt-punch b{color:var(--ink);}
+  .localrank{margin-top:16px;}
+  .lr{background:var(--blue-soft);border:1px solid var(--line-blue);border-radius:16px;padding:14px 16px;font-size:14px;color:var(--ink);line-height:1.5;display:flex;align-items:flex-start;gap:9px;}
+  .lr b{font-weight:800;} .lr-sub{color:var(--ink-3);}
+  .lr svg{width:18px;height:18px;stroke:var(--blue);flex-shrink:0;margin-top:1px;}
+  .lr.miss-lr{background:#FCE8E6;border-color:#F5C6C0;} .lr.miss-lr svg{stroke:var(--red);}
 
-  /* Bloco B — orçamento de oficina */
-  .audit h2{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin-bottom:3px;}
-  .audit .sub{color:var(--ink-2);font-size:13.5px;margin-bottom:16px;}
-  .group{background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:6px 16px;margin-bottom:12px;}
-  .group > h3{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-3);margin:14px 2px 4px;}
-  .row{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--surf-2);}
-  .row:first-of-type{border-top:0;}
-  .ic{width:22px;height:22px;border-radius:7px;flex:0 0 auto;display:grid;place-items:center;margin-top:1px;}
-  .ic svg{width:14px;height:14px;stroke-width:2.4;}
-  .ic.pass{background:var(--ok-bg);} .ic.pass svg{stroke:var(--ok);}
-  .ic.fail{background:var(--bad-bg);} .ic.fail svg{stroke:var(--bad);}
-  .ic.na{background:var(--na-bg);} .ic.na svg{stroke:var(--na);}
-  .row .lab{font-size:14px;font-weight:600;color:var(--ink);}
-  .row .det{font-size:12.5px;color:var(--ink-2);margin-top:2px;}
-  .row.na .lab,.row.na .det{color:var(--ink-3);}
-  .empty-note{padding:14px 2px;font-size:13px;color:var(--ink-2);line-height:1.5;}
-  .audit-loading{display:flex;align-items:center;gap:10px;color:var(--ink-3);font-size:13px;padding:14px 2px;}
-  .audit-loading .sp{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite;}
-  .foot{margin-top:4px;background:var(--bad-bg);border:1px solid var(--bad-bd);color:#7a1c14;border-radius:14px;padding:14px 16px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:10px;}
-  .foot.clean{background:var(--ok-bg);border-color:var(--ok-bd);color:#155e2b;}
-  .foot .n{font-size:22px;font-weight:800;}
-  .foot svg{width:20px;height:20px;flex:0 0 auto;}
+  /* ── Por que importa (explanation) + A boa notícia (aside) ── */
+  .explain{background:linear-gradient(180deg,#F8FAFF,#fff);border-bottom:1px solid var(--line);}
+  .explain-grid{display:grid;gap:28px;align-items:start;}
+  .signals{display:grid;gap:12px;margin-top:24px;}
+  .signal{border:1px solid var(--line);border-radius:16px;background:#fff;padding:15px;display:flex;align-items:flex-start;gap:12px;}
+  .signal-num{width:32px;height:32px;flex:0 0 32px;display:grid;place-items:center;border-radius:10px;color:var(--blue);background:var(--blue-soft);font-weight:900;font-size:14px;}
+  .signal b{display:block;font-size:14.5px;margin-bottom:4px;color:var(--ink);}
+  .signal p{color:var(--ink-2);font-size:13px;line-height:1.45;}
+  .good-news{border:1px solid var(--line-blue);border-radius:24px;background:#fff;box-shadow:var(--shadow-soft);padding:26px;position:sticky;top:88px;}
+  .good-news .ico{width:50px;height:50px;display:grid;place-items:center;border-radius:15px;background:var(--blue-soft);color:var(--blue);margin-bottom:16px;}
+  .good-news .ico svg{width:26px;height:26px;stroke:var(--blue);}
+  .good-news h3{font-size:clamp(24px,3.6vw,34px);line-height:1.06;letter-spacing:-.04em;font-weight:900;}
+  .good-news p{margin-top:13px;color:var(--ink-2);font-size:14.5px;line-height:1.6;}
+  .sol-count{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);font-size:14.5px;font-weight:700;color:var(--ink);line-height:1.5;display:none;}
+  .sol-count b{color:var(--blue);font-size:16px;}
 
-  /* Bloco C — oferta */
-  .offer{background:var(--dark);color:#fff;border-radius:18px;padding:24px 22px;}
-  .offer h2{font-size:22px;font-weight:800;letter-spacing:-0.02em;text-wrap:balance;margin-bottom:14px;}
-  .incl{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:9px;}
-  .incl li{display:flex;gap:10px;font-size:13.5px;color:#e8eefb;}
-  .incl li svg{width:17px;height:17px;stroke:var(--dark-hi);flex:0 0 auto;margin-top:1px;}
-  .price{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;}
-  .price .v{font-size:34px;font-weight:800;letter-spacing:-0.02em;}
+  /* ── Protocolo (banda escura, grade) ── */
+  .protocol{color:#fff;background:radial-gradient(circle at 85% 18%,rgba(109,93,251,.24),transparent 20rem),linear-gradient(135deg,var(--dark),var(--dark2));}
+  .protocol .section-label{color:#9CBFFF;}
+  .proto-badge{display:inline-flex;align-items:center;gap:9px;font-size:12.5px;font-weight:800;color:#CAD7EA;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:7px 14px;margin:0 0 16px;}
+  .proto-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--dark-hi);box-shadow:0 0 0 4px rgba(142,168,255,.2);}
+  .protocol .section-sub{color:#CAD7EA;}
+  .protocol-grid{margin-top:32px;display:grid;gap:14px;}
+  .protocol-item{border:1px solid rgba(255,255,255,.14);border-radius:18px;background:rgba(255,255,255,.04);padding:20px;}
+  .protocol-item .num{color:var(--dark-hi);font-size:12px;font-weight:900;letter-spacing:.08em;margin-bottom:12px;}
+  .protocol-item h3{color:#fff;font-size:16.5px;font-weight:900;letter-spacing:-.02em;}
+  .protocol-item p{margin-top:9px;color:#BFD0E8;font-size:13.2px;line-height:1.55;}
+
+  /* ── Bastidores (check-list + motor) ── */
+  .backstage-grid{display:grid;gap:30px;align-items:center;}
+  .check-list{display:grid;gap:12px;margin-top:26px;}
+  .check{display:flex;align-items:flex-start;gap:11px;color:var(--ink-2);font-size:14.5px;line-height:1.5;font-weight:600;}
+  .check .ck{width:22px;height:22px;flex:0 0 22px;border-radius:999px;display:grid;place-items:center;background:var(--blue);color:#fff;margin-top:1px;}
+  .check .ck svg{width:13px;height:13px;stroke:#fff;stroke-width:3;}
+  .engine-visual{min-height:300px;display:grid;place-items:center;position:relative;}
+  .engine-core{width:230px;height:230px;border-radius:50%;background:radial-gradient(circle at 50% 38%,#233E7E 0 24%,#102451 25% 48%,#08172F 49% 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 30px 60px rgba(15,23,42,.22);position:relative;display:grid;place-items:center;}
+  .engine-core::before,.engine-core::after{content:"";position:absolute;border-radius:50%;border:1px solid rgba(109,93,251,.28);}
+  .engine-core::before{inset:-32px;} .engine-core::after{inset:-66px;}
+  .engine-star{width:78px;height:78px;border-radius:26px;display:grid;place-items:center;color:#FFD34D;background:#0A1730;box-shadow:0 0 40px rgba(255,211,77,.35);}
+  .engine-lines{position:absolute;inset:0;pointer-events:none;}
+  .engine-lines::before,.engine-lines::after{content:"";position:absolute;top:50%;width:110px;height:1px;background:linear-gradient(90deg,transparent,#7C8BFF);}
+  .engine-lines::before{left:0;} .engine-lines::after{right:0;transform:scaleX(-1);}
+
+  /* ── Oferta / CTA (banda escura premium com checkout real) ── */
+  .cta{padding:56px 0 68px;}
+  .cta-card{border-radius:28px;padding:30px;color:#fff;box-shadow:var(--shadow);
+    background:radial-gradient(circle at 12% 45%,rgba(109,93,251,.2),transparent 16rem),linear-gradient(135deg,var(--dark),#171359);}
+  .cta-card h2{font-size:clamp(26px,4.4vw,40px);line-height:1.08;letter-spacing:-.04em;font-weight:900;text-wrap:balance;}
+  .incl{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:10px;}
+  .incl li{display:flex;gap:10px;font-size:14.5px;color:#DCE6F5;}
+  .incl li svg{width:18px;height:18px;stroke:var(--dark-hi);flex:0 0 auto;margin-top:1px;}
+  .price{display:flex;align-items:baseline;gap:10px;margin:24px 0 4px;}
+  .price .v{font-size:40px;font-weight:900;letter-spacing:-.03em;}
   .price .per{color:var(--dark-sub);font-size:14px;}
-  .anchor{font-size:12.5px;color:var(--dark-sub);margin-bottom:18px;}
+  .anchor{font-size:13px;color:var(--dark-sub);margin-bottom:20px;}
   .anchor b{color:var(--dark-hi);}
-  .cta{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;background:var(--brand);color:#fff;font-size:15.5px;font-weight:700;height:56px;border-radius:14px;cursor:pointer;transition:background .15s;}
-  .cta:hover{background:var(--brand-hover);}
-  .cta svg{width:18px;height:18px;stroke:#fff;}
-  .undercta{text-align:center;font-size:12px;color:var(--dark-sub);margin-top:11px;}
-
-  /* Checkout do pacote — mudou-se do laudo (/radar, passo 9) pra cá. Vive na
-     banda escura, então os campos precisam de contraste próprio. `.cta` já
-     estiliza o botão; aqui só o formulário e o botão secundário. */
-  .lead-form{display:grid;gap:11px;margin-bottom:4px;}
-  .lf-field{display:grid;gap:5px;}
-  .lf-field label{font-size:12px;font-weight:700;color:var(--dark-sub);}
-  .lf-field input{width:100%;height:50px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(255,255,255,.06);color:#fff;padding:0 14px;font-family:inherit;font-size:15px;outline:none;transition:border-color .15s,background .15s;}
+  .lead-form{display:grid;gap:12px;}
+  .lf-field{display:grid;gap:6px;}
+  .lf-field label{font-size:12px;font-weight:800;color:var(--dark-sub);}
+  .lf-field input{width:100%;height:52px;border:1px solid rgba(255,255,255,.18);border-radius:13px;background:rgba(255,255,255,.06);color:#fff;padding:0 15px;font-family:inherit;font-size:15px;outline:none;transition:border-color .15s,background .15s;}
   .lf-field input::placeholder{color:#7C8DA6;}
   .lf-field input:focus{border-color:var(--dark-hi);background:rgba(255,255,255,.1);}
-  .lead-form .cta{margin-top:5px;}
-  .lead-form .cta:disabled{opacity:.6;cursor:progress;}
-  .lf-err{margin-top:9px;background:rgba(252,232,230,.12);border:1px solid #F5C6C0;border-radius:10px;padding:10px 12px;color:#FCA5A5;font-size:13px;line-height:1.45;}
-  /* Quem prefere conversar antes de pagar — secundário, não concorre com o CTA. */
-  .cta-ghost{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:12px;background:transparent;border:1px solid rgba(255,255,255,.2);color:#D7E3FC;font-size:14px;font-weight:600;height:48px;border-radius:12px;transition:background .15s;}
+  .cta-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:5px;border:0;height:58px;border-radius:14px;color:#fff;font-size:16px;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 16px 36px rgba(109,93,251,.26);background:linear-gradient(135deg,var(--blue),var(--purple));transition:filter .15s;}
+  .cta-btn:hover{filter:brightness(1.06);}
+  .cta-btn:disabled{opacity:.6;cursor:progress;}
+  .lf-err{margin-top:4px;background:rgba(252,232,230,.12);border:1px solid #F5C6C0;border-radius:10px;padding:10px 12px;color:#FF9B9B;font-size:13px;line-height:1.45;}
+  .undercta{text-align:center;font-size:12.5px;color:var(--dark-sub);margin-top:13px;}
+  .cta-ghost{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:12px;background:transparent;border:1px solid rgba(255,255,255,.2);color:#D7E3FC;font-size:14.5px;font-weight:700;height:50px;border-radius:12px;transition:background .15s;}
   .cta-ghost:hover{background:rgba(255,255,255,.07);}
   .cta-ghost svg{width:17px;height:17px;stroke:#D7E3FC;}
 
-  .pagefoot{text-align:center;font-size:11.5px;color:var(--ink-3);margin-top:22px;line-height:1.5;}
-  @media (min-width:560px){.impact h2,.audit h2,.offer h2{font-size:25px;}}
+  .pagefoot{padding:28px 0 40px;text-align:center;font-size:12px;color:var(--ink-3);line-height:1.5;}
 
-  /* ── Narrativa (Por que · Solução · Protocolo · Bastidores) ──────────────────
-     Estética de parecer técnico de consultoria, não de dashboard: muito respiro,
-     tipografia forte, poucos elementos, quase sem caixas. Fundo claro. */
-  .sec{padding:40px 2px;border-top:1px solid var(--border);}
-  .sec-eyebrow{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;color:var(--brand);margin-bottom:12px;}
-  .sec-h{font-size:26px;font-weight:800;letter-spacing:-0.025em;line-height:1.16;color:var(--ink);text-wrap:balance;margin-bottom:14px;}
-  .sec-p{font-size:15.5px;line-height:1.7;color:var(--ink-2);}
-  .sec-p + .sec-p{margin-top:14px;}
-  .sec-p b{color:var(--ink);font-weight:700;}
-  @media(min-width:560px){.sec-h{font-size:30px;}}
-
-  /* Sinais que as IAs leem (seção "por que") */
-  .signals{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;}
-  .signal{font-size:13px;font-weight:600;color:var(--ink-2);background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:8px 14px;}
-
-  /* Contagem de pontos (seção "solução") — preenchida quando a auditoria resolve */
-  .sol-count{margin-top:20px;font-size:15px;font-weight:700;color:var(--ink);line-height:1.5;display:none;}
-  .sol-count b{color:var(--brand);font-size:17px;}
-
-  /* Protocolo — lista numerada, sem caixas: engenharia, não folheto */
-  .proto-badge{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--ink-2);border:1px solid var(--border);border-radius:999px;padding:6px 13px;margin-bottom:16px;}
-  .proto-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 3px rgba(26,115,232,.15);}
-  .pillars{margin-top:24px;}
-  .pillar{display:flex;gap:16px;padding:20px 0;border-top:1px solid var(--border);}
-  .pillar:first-child{border-top:0;padding-top:4px;}
-  .pillar .no{font-size:13px;font-weight:800;color:var(--brand);font-variant-numeric:tabular-nums;flex:0 0 auto;width:26px;padding-top:3px;letter-spacing:0.03em;}
-  .pillar .body h4{font-size:16.5px;font-weight:700;color:var(--ink);margin-bottom:5px;letter-spacing:-0.01em;}
-  .pillar .body p{font-size:14px;line-height:1.6;color:var(--ink-2);}
-
-  /* Bastidores — o trabalho invisível e contínuo (banda escura) */
-  .behind{background:var(--dark);color:#fff;border-radius:18px;padding:26px 22px;}
-  .behind h3{font-size:21px;font-weight:800;letter-spacing:-0.02em;line-height:1.2;text-wrap:balance;margin-bottom:18px;}
-  .behind .grid{display:grid;gap:12px;margin-bottom:18px;}
-  .behind .item{display:flex;gap:11px;font-size:14px;color:#e8eefb;line-height:1.45;align-items:flex-start;}
-  .behind .item svg{width:16px;height:16px;stroke:var(--dark-hi);flex:0 0 auto;margin-top:2px;}
-  .behind .close{font-size:14px;line-height:1.6;color:var(--dark-sub);border-top:1px solid rgba(255,255,255,.12);padding-top:16px;}
-  .behind .close b{color:#fff;}
-
-  /* Fade-up discreto no scroll (respeitando prefers-reduced-motion) */
-  .reveal-up{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;}
+  /* Fade-up discreto no scroll */
+  .reveal-up{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease;}
   .reveal-up.in{opacity:1;transform:none;}
   @media(prefers-reduced-motion:reduce){.reveal-up{opacity:1 !important;transform:none !important;transition:none;}}
+
+  /* ── Desktop ── */
+  @media(min-width:820px){
+    .hero-grid{grid-template-columns:1fr .8fr;}
+    .explain-grid{grid-template-columns:1fr .82fr;}
+    .protocol-grid{grid-template-columns:repeat(4,1fr);}
+    .backstage-grid{grid-template-columns:1fr .82fr;}
+    .cta-card{display:grid;grid-template-columns:1.1fr .9fr;gap:34px;align-items:center;padding:40px;}
+    .cta-lead{max-width:none;}
+  }
+  @media(max-width:819px){
+    .score-panel{grid-template-columns:1fr;text-align:center;}
+    .chips{justify-content:center;}
+    .good-news{position:static;}
+  }
 </style>
 </head>
 <body>
-<div class="topbar">
-  <a class="logo" href="/landing" aria-label="StarTouch"><img src="/startouch-logo-dark.png" alt="StarTouch"/></a>
-  <span class="eyebrow">Plano de trabalho</span>
-</div>
+<header class="topbar"><div class="container topbar-inner">
+  <a class="brand" href="/landing" aria-label="StarTouch"><img src="/startouch-logo-dark.png" alt="StarTouch"/><span class="tag">IA RADAR</span></a>
+  <span class="top-meta">Plano de trabalho</span>
+</div></header>
 
-<main class="wrap">
+<main>
   <div id="boot" class="boot"><div class="spinner"></div><p>Montando seu plano de trabalho…</p></div>
   <div id="page" style="display:none;"></div>
   <div id="pagefoot" class="pagefoot" style="display:none;">
@@ -271,9 +277,7 @@ fbq('track', 'PageView');
     return escapedText.replace(new RegExp("(" + list.map(escRe).join("|") + ")", "gi"), '<span class="' + cls + '">$1</span>');
   }
   // Escolhe a pergunta mais eloquente entre TODOS os motores: (1) não citado E
-  // com concorrentes nomeados — o silêncio fica gritante ao lado de quem
-  // apareceu; (2) só não citado; (3) citado (quando aparece em tudo, não
-  // inventamos problema). Ver docs/laudo-radar-contrato.md.
+  // com concorrentes nomeados; (2) só não citado; (3) citado. Ver contrato.
   function pickEvidence(diag){
     const todos = [];
     Object.keys(diag.porMotor || {}).forEach(m =>
@@ -284,52 +288,37 @@ fbq('track', 'PageView');
         || todos.find(it => it.mencionado)
         || todos[0];
   }
-  // ── Aparece no NICHO ou na BUSCA AMPLA? ────────────────────────────────────
-  // O laudo dizia "2 de 7 buscas" sem revelar QUAIS. Uma dessas perguntas é a de
-  // nicho ("padaria artesanal"); as outras são a arena ("padaria"). Separadas,
-  // viram o diagnóstico mais util que temos: "você existe pro seu nicho e é
-  // invisível na busca ampla" — que é exatamente o que a StarTouch conserta.
-  //
-  // Classificação: uma pergunta é de nicho se contém um dos `produtos` (os
-  // termos extras). Comparação normalizada (minúsculo, sem acento).
+  // ── Aparece no NICHO ou na BUSCA AMPLA? (mesma lógica de antes) ──
   function breakdownPorTermo(diag){
     const produtos = (diag.produtos || []).map(p => normComp(p)).filter(Boolean);
     if (!produtos.length) return null;
-
     const arena = { termo: diag.categoria || "sua categoria", mencoes: 0, total: 0 };
     const nicho = { termo: (diag.produtos || [])[0] || "", mencoes: 0, total: 0 };
-
     Object.values(diag.porMotor || {}).forEach(pm => (pm.itens || []).forEach(it => {
       const q = normComp(it.pergunta || "");
       const alvo = produtos.some(p => q.includes(p)) ? nicho : arena;
       alvo.total++;
       if (it.mencionado) alvo.mencoes++;
     }));
-
-    if (!nicho.total || !arena.total) return null;   // sem contraste, sem história
+    if (!nicho.total || !arena.total) return null;
     return { arena, nicho };
   }
-
   function renderBreakdown(diag){
     const b = breakdownPorTermo(diag);
     if (!b) return "";
     const { arena, nicho } = b;
-    const linha = (x, destaque) =>
+    const linha = (x) =>
       '<div class="bt-row">' +
         '<span class="bt-term">' + esc(x.termo) + '</span>' +
         '<span class="bt-count ' + (x.mencoes ? "ok" : "no") + '">' +
           (x.mencoes ? x.mencoes + ' de ' + x.total : '0 de ' + x.total) +
         '</span>' +
       '</div>';
-
-    // A frase só existe quando há CONTRASTE. Sem contraste seria ruído — ou pior,
-    // uma conclusão inventada.
     let punch = "";
     if (!arena.mencoes && nicho.mencoes)
       punch = 'Você aparece quando pedem <b>' + esc(nicho.termo) + '</b> — e some quando pedem <b>' + esc(arena.termo) + '</b>. Quem não conhece você ainda, não te encontra.';
     else if (arena.mencoes && !nicho.mencoes)
       punch = 'Você aparece na busca ampla por <b>' + esc(arena.termo) + '</b>, mas não em <b>' + esc(nicho.termo) + '</b> — onde a concorrência é menor.';
-
     return '<div class="bt">' +
       '<div class="bt-title">Em quais buscas você aparece</div>' +
       linha(arena) + linha(nicho) +
@@ -337,8 +326,7 @@ fbq('track', 'PageView');
     '</div>';
   }
 
-  // O cartão de prova. A resposta literal da IA é o argumento — um score é uma
-  // opinião nossa, isto é um fato.
+  // O cartão de prova. A resposta literal da IA é o argumento.
   function renderEvidence(diag){
     const it = pickEvidence(diag);
     if (!it || !it.resposta) return "";
@@ -349,11 +337,6 @@ fbq('track', 'PageView');
     const citou = (it.concorrentes || []).length
       ? '<div class="ev-comp">Em vez disso, citou: <b>' + it.concorrentes.map(esc).join("</b>, <b>") + '</b>.</div>'
       : "";
-
-    // Reconciliação. O cartão mostra a resposta MAIS DURA (pickEvidence), e logo
-    // abaixo a estatística diz "apareceu em 2 de 6 buscas". Sem esta linha, os
-    // dois números parecem se contradizer: "não citou você" × "apareceu em 2".
-    // Aqui a gente liga um no outro, em voz alta.
     const m = diag.mencoes || 0, t = diag.total || 0;
     let ponte = "";
     if (t > 0) {
@@ -362,7 +345,6 @@ fbq('track', 'PageView');
       else               ponte = 'Nesta resposta, não. Em <b>' + m + ' das ' + t + '</b> buscas que fizemos, sim.';
     }
     const bridge = ponte ? '<div class="ev-bridge">' + ponte + '</div>' : "";
-
     return '<div class="ev">' +
       '<div class="ev-head"><span class="ev-engine">' + esc(ENGINE_LABELS[it.motor] || it.motor) + ' respondeu</span>' +
         '<span class="ev-flag ' + (presente ? "ok" : "no") + '">' + (presente ? "✓ citou você" : "✗ não citou você") + '</span></div>' +
@@ -372,36 +354,30 @@ fbq('track', 'PageView');
       bridge +
     '</div>';
   }
+
   const ICON = {
     check:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
-    x:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
-    minus:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>',
     alert:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
     wa:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.4L3 21l2.2-5.6A8.4 8.4 0 1 1 21 11.5z"/></svg>',
     pin:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+    bulb:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>',
+    star:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.3 6.2 6.2 2.3-6.2 2.3L12 19.5l-2.3-6.2-6.2-2.3 6.2-2.3L12 2.5z"/></svg>',
   };
-  const ICMAP = { pass:ICON.check, fail:ICON.x, na:ICON.minus };
 
   // ---- disparo de eventos GA4 (idempotente) ----
   let planoViewed = false;
-  let lastPend = null; // pendências (N) quando a auditoria resolver
+  let lastPend = null;
   function firePlanoView(pend){
     if (planoViewed) return; planoViewed = true;
     const p = { origem: ORIGEM };
     if (typeof pend === "number") p.pendencias = pend;
     if (window.gtag) gtag("event", "plano_view", p);
   }
-  // Garante o plano_view mesmo se a auditoria travar (dispara sem pendências).
   setTimeout(() => firePlanoView(lastPend), 6000);
 
-  // ===================== BLOCO A (dados reais do /api/radar) =====================
-  function ringDash(score){ const r=42, c=2*Math.PI*r; return { c, off:c*(1-Math.max(0,Math.min(100,score))/100), r }; }
+  // ===================== dados reais (/api/radar) =====================
+  function ringDash(score){ const r=56, c=2*Math.PI*r; return { c, off:c*(1-Math.max(0,Math.min(100,score))/100), r }; }
 
-  // Mesma regra do consolidateCompetitors do backend (api/_lib/radar/score.js):
-  // a IA chama o mesmo negócio de "Dona Deôla" e "Dona Deôla - Alto da Lapa".
-  // Sem fundir, o dono via dois concorrentes onde há um, cada um com metade da
-  // frequência. Funde só quando um nome é prefixo do outro numa fronteira de
-  // palavra — "Padaria Dara" e "Padaria Daniela" continuam separados.
   const normComp = (s) => (s||"").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
   function mesmoNegocio(a, b){
     if (a === b) return true;
@@ -423,86 +399,213 @@ fbq('track', 'PageView');
     return ranked;
   }
 
-  function renderBlocoA(diag){
-    const { c, off, r } = ringDash(diag.score);
+  // Estado (ausente / parcial / presente) → rótulos honestos, state-aware.
+  function estado(diag){
+    const m = diag.mencoes || 0, t = diag.total || 0;
+    if (t > 0 && m === t) return "ok";
+    if (m > 0) return "part";
+    return "no";
+  }
+
+  // ── HERO: título + status + painel de score real (taxa de menção) ──
+  function renderHero(diag){
+    const { c, off, r } = ringDash(diag.score || 0);
+    const st = estado(diag);
+    const statusTxt = st === "ok" ? "Sua empresa já aparece nas respostas das IAs"
+                    : st === "part" ? "Sua empresa aparece em algumas buscas — mas não em todas"
+                    : "Sua empresa não está aparecendo nas respostas das IAs";
+    const scoreLbl = st === "ok" ? "Boa presença" : st === "part" ? "Presença parcial" : "Presença fraca";
+    return '<section class="hero"><div class="container hero-grid">' +
+      '<div class="hero-copy">' +
+        '<div class="hero-eyebrow">Seu diagnóstico está pronto</div>' +
+        '<h1>Como as inteligências artificiais enxergam a ' + esc(diag.nome) + '</h1>' +
+        '<p class="hero-lead">Perguntamos às IAs pela sua categoria e medimos como sua empresa aparece — e o que está deixando concorrentes na frente.</p>' +
+        '<div class="status-pill"><span class="status-dot ' + st + '"></span>' + esc(statusTxt) + '</div>' +
+      '</div>' +
+      '<div class="score-panel">' +
+        '<div class="score-ring"><svg width="132" height="132">' +
+          '<circle cx="66" cy="66" r="' + r + '" stroke="rgba(255,255,255,.14)" stroke-width="9" fill="none"/>' +
+          '<circle cx="66" cy="66" r="' + r + '" stroke="var(--dark-hi)" stroke-width="9" fill="none" stroke-linecap="round" stroke-dasharray="' + c + '" stroke-dashoffset="' + off + '"/>' +
+        '</svg><div class="val"><div><b class="tnums">' + (diag.score || 0) + '</b><span>de 100</span></div></div></div>' +
+        '<div class="score-copy">' +
+          '<small>Taxa de menção nas IAs</small>' +
+          '<div class="lbl">' + esc(scoreLbl) + '</div>' +
+          '<div class="chips" id="bizChips"></div>' +
+        '</div>' +
+      '</div>' +
+    '</div></section>';
+  }
+
+  // ── O QUE ENCONTRAMOS: a PROVA lidera; depois a medida (concorrentes, veredito) ──
+  function renderDiagnostico(diag){
     const total = diag.total || 0;
     const ranked = competitorsFromDiag(diag);
     const maxN = Math.max(1, ...ranked.map(x => x.n));
     const comps = ranked.map(x => {
-      const w = x.n ? Math.round((x.n / maxN) * 100) : 40; // sem freq (fallback) usa largura neutra
+      const w = x.n ? Math.round((x.n / maxN) * 100) : 40;
       return '<div class="compbar"><div class="nm">' + esc(x.name) + '</div>' +
         '<div class="track"><div class="fill" style="width:' + Math.max(12, w) + '%"></div></div></div>';
     }).join("");
-
-    // Motor real pra rotular a "pergunta" (usa o primeiro que rodou).
-    const motores = Object.keys(diag.porMotor || {});
-    const engineLabel = motores.length ? (ENGINE_LABELS[motores[0]] || "IA") : "IA";
-    // Pergunta real (a 1ª do motor), se existir; senão monta pela categoria/cidade.
-    let pergunta = "";
-    const firstItens = motores.length ? (diag.porMotor[motores[0]].itens || []) : [];
-    if (firstItens.length && firstItens[0].pergunta) pergunta = firstItens[0].pergunta;
-    else pergunta = "qual a melhor " + (diag.categoria || "opção") + " em " + (diag.cidade || "sua região") + "?";
 
     const appeared = (diag.mencoes || 0) > 0;
     const missTxt = appeared
       ? "A " + esc(diag.nome) + " apareceu em " + diag.mencoes + " de " + total + " buscas."
       : "A " + esc(diag.nome) + " não apareceu em nenhuma das " + total + " buscas.";
-
-    // A PROVA vem antes da estatística: primeiro a resposta literal da IA (o
-    // fato), depois quem ela cita e com que frequência (a medida).
     const evidence = renderEvidence(diag);
 
-    // Com o cartão de prova acima, repetir a pergunta aqui era eco. Se o cartão
-    // não renderizar (motor sem `resposta`), a pergunta volta — senão a barra de
-    // concorrentes apareceria sem contexto nenhum.
-    const qLine = evidence
-      ? '<div class="q">Fizemos <b>' + total + ' buscas</b> como essa. Veja quem as IAs citam:</div>'
-      : '<div class="q">Perguntamos ao <b>' + esc(engineLabel) + '</b>: <b>"' + esc(pergunta) + '"</b> → e medimos quem ele cita:</div>';
+    const st = estado(diag);
+    const sub = st === "ok"
+      ? "Sua empresa já é lembrada pelas IAs quando procuram pela sua categoria. O trabalho aqui é manter e ampliar essa posição."
+      : st === "part"
+      ? "Em algumas buscas sua empresa aparece; em outras, um concorrente aparece no seu lugar. Veja a diferença abaixo."
+      : "Quando alguém pergunta a uma IA pela sua categoria, a resposta cita concorrentes — e não menciona a sua empresa. Não é acaso: é o que os sinais públicos dizem hoje.";
 
-    const revealBlock = ranked.length ? (
-      '<div class="reveal">' +
-        evidence +
-        qLine +
+    const measure = ranked.length ? (
+      '<div class="measure">' +
+        '<div class="q">Fizemos <b>' + total + ' buscas</b> como essa e medimos quem as IAs citam:</div>' +
         comps +
         '<div class="miss ' + (appeared ? "inrank" : "") + '">' + (appeared ? ICON.check : ICON.alert) + ' ' + missTxt + '</div>' +
         renderBreakdown(diag) +
+        '<div class="localrank" id="localRank"></div>' +
       '</div>'
     ) : (
-      '<div class="reveal">' + evidence +
-        '<div class="miss ' + (appeared ? "inrank" : "") + '">' + (appeared ? ICON.check : ICON.alert) + ' ' + missTxt + '</div></div>'
+      '<div class="measure"><div class="miss ' + (appeared ? "inrank" : "") + '">' + (appeared ? ICON.check : ICON.alert) + ' ' + missTxt + '</div>' +
+        '<div class="localrank" id="localRank"></div></div>'
     );
 
-    return '<div class="block"><div class="impact">' +
-      '<div class="sec-eyebrow" style="color:var(--dark-hi);margin-bottom:10px;">O diagnóstico</div>' +
-      '<h2>O que encontramos sobre a ' + esc(diag.nome) + '</h2>' +
-      '<div class="sub">O que as inteligências artificiais respondem hoje quando procuram pela sua categoria.</div>' +
-      '<div class="ring-row">' +
-        '<div class="ring"><svg width="96" height="96">' +
-          '<circle cx="48" cy="48" r="' + r + '" stroke="rgba(255,255,255,.14)" stroke-width="8" fill="none"/>' +
-          '<circle cx="48" cy="48" r="' + r + '" stroke="var(--dark-hi)" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="' + c + '" stroke-dashoffset="' + off + '"/>' +
-        '</svg><div class="val"><div><b class="tnums">' + (diag.score || 0) + '</b><span>de 100</span></div></div></div>' +
-        '<div class="ring-meta">' +
-          '<div class="k">Visibilidade nas IAs</div>' +
-          '<div class="big">Taxa de menção</div>' +
-          '<div class="chips" id="bizChips"></div>' +
-        '</div>' +
-      '</div>' + revealBlock +
-      '<div class="localrank" id="localRank"></div>' +
-    '</div></div>';
+    return '<section class="findings"><div class="container">' +
+      '<div class="section-label">01 · O diagnóstico</div>' +
+      '<h2 class="section-h">O que encontramos</h2>' +
+      '<p class="section-sub">' + sub + '</p>' +
+      evidence + measure +
+    '</div></section>';
   }
 
-  // Ranking LOCAL no Google (grade) — mesma medição do painel. Preenche quando
-  // a grade responde. Some se não houver dado.
+  // ── POR QUE IMPORTA + A BOA NOTÍCIA (com a contagem real da auditoria) ──
+  function renderPorque(diag){
+    const signals = [
+      ['Explicação clara do que você faz','Sua presença digital precisa deixar rápido quem você é, o que oferece e para quem atende.'],
+      ['Informações corretas em todos os lugares','Nome, endereço, telefone, serviços e região precisam estar certos e iguais em toda parte.'],
+      ['Facilidade de ser entendido','As informações importantes precisam estar organizadas para as IAs encontrarem sem esforço.'],
+      ['Sinais de confiança','Experiência, especialidade e histórico ajudam a mostrar que sua empresa é uma boa indicação.'],
+    ];
+    const sig = signals.map((s,i) =>
+      '<div class="signal"><div class="signal-num">' + (i+1) + '</div>' +
+      '<div><b>' + esc(s[0]) + '</b><p>' + esc(s[1]) + '</p></div></div>'
+    ).join("");
+    return '<section class="explain"><div class="container explain-grid">' +
+      '<div>' +
+        '<div class="section-label">02 · Por que isso acontece</div>' +
+        '<h2 class="section-h">As IAs precisam entender em quem podem confiar.</h2>' +
+        '<p class="section-sub">Antes de responder, uma IA lê centenas de sinais públicos sobre a sua empresa. Se esses sinais estão fracos ou confusos, outra empresa aparece no seu lugar.</p>' +
+        '<div class="signals">' + sig + '</div>' +
+      '</div>' +
+      '<aside class="good-news">' +
+        '<div class="ico">' + ICON.bulb + '</div>' +
+        '<div class="section-label">03 · A boa notícia</div>' +
+        '<h3>Grande parte disso pode ser trabalhada.</h3>' +
+        '<p>Não existe um botão para aparecer nas inteligências artificiais. Existe um trabalho técnico e contínuo de organizar e fortalecer os sinais que essas plataformas usam — e é isso que a StarTouch faz.</p>' +
+        '<div class="sol-count" id="solucaoCount"></div>' +
+      '</aside>' +
+    '</div></section>';
+  }
+  function fillSolucao(pend, nome){
+    const box = $("solucaoCount"); if (!box) return;
+    if (typeof pend === "number" && pend > 0){
+      box.innerHTML = 'Na <b style="color:var(--ink)">' + esc(nome || "sua empresa") + '</b>, já mapeamos <b>' + pend + '</b> ponto' + (pend>1?'s':'') + ' que ' + (pend>1?'podem':'pode') + ' ser fortalecido' + (pend>1?'s':'') + ' desde já.';
+      box.style.display = "block";
+    }
+  }
+
+  // ── O TRATAMENTO — Protocolo StarTouch AI Engine™ (metodologia, não features) ──
+  function renderProtocolo(){
+    const pillars = [
+      ['Arquitetura da Informação','Organizamos a estrutura do seu ambiente digital para que as IAs entendam sua empresa com clareza.'],
+      ['Contexto Semântico','Estruturamos seus conteúdos para as plataformas compreenderem quem você é, o que faz e quando deve ser lembrado.'],
+      ['Consistência de Dados Públicos','Padronizamos as informações públicas da sua empresa para reduzir ambiguidades e aumentar a confiança.'],
+      ['Estrutura Técnica','Fazemos ajustes que facilitam a leitura e a interpretação das suas informações pelas IAs.'],
+      ['Autoridade Digital','Fortalecemos os sinais públicos de credibilidade, especialização e relevância da sua empresa.'],
+      ['Relevância Local','Aprimoramos os fatores ligados à sua presença na região onde você atua.'],
+      ['Cobertura de Conteúdo','Ampliamos o contexto digital para as IAs compreenderem seus produtos, serviços e diferenciais.'],
+      ['Monitoramento Contínuo','As IAs mudam o tempo todo. Acompanhamos essas mudanças e adaptamos a estratégia continuamente.'],
+    ];
+    const rows = pillars.map((p,i) =>
+      '<article class="protocol-item"><div class="num">' + String(i+1).padStart(2,'0') + '</div>' +
+      '<h3>' + esc(p[0]) + '</h3><p>' + esc(p[1]) + '</p></article>'
+    ).join("");
+    return '<section class="protocol reveal-up"><div class="container">' +
+      '<div class="section-label">04 · O tratamento</div>' +
+      '<div class="proto-badge"><span class="dot"></span>Protocolo StarTouch AI Engine™</div>' +
+      '<h2 class="section-h">Não vendemos tarefas soltas. Vendemos um método.</h2>' +
+      '<p class="section-sub">É o conjunto de processos técnicos e estratégicos que executamos continuamente para fortalecer os sinais que as inteligências artificiais usam para entender, confiar e considerar a sua empresa.</p>' +
+      '<div class="protocol-grid">' + rows + '</div>' +
+    '</div></section>';
+  }
+
+  // ── OS BASTIDORES — trabalho invisível e contínuo (percepção de valor) ──
+  function renderBastidores(){
+    const items = [
+      'Organização do site e das páginas',
+      'Textos que explicam melhor o negócio',
+      'Informações iguais em todos os lugares',
+      'Mais conteúdo sobre serviços e especialidades',
+      'Mais sinais públicos de confiança',
+      'Mais clareza sobre onde a empresa atua',
+      'Testes frequentes no ChatGPT, Gemini e outras IAs',
+      'Acompanhamento dos concorrentes',
+      'Novos ajustes conforme as IAs mudam',
+    ];
+    const list = items.map(i => '<div class="check"><span class="ck">' + ICON.check + '</span>' + esc(i) + '</div>').join("");
+    return '<section class="reveal-up"><div class="container backstage-grid">' +
+      '<div>' +
+        '<div class="section-label">05 · Nos bastidores</div>' +
+        '<h2 class="section-h">Enquanto você cuida do seu negócio, a StarTouch cuida da sua presença nas IAs.</h2>' +
+        '<p class="section-sub">Você não vê esse trabalho — mas as inteligências artificiais veem. É isso que muda a forma como elas enxergam a sua empresa.</p>' +
+        '<div class="check-list">' + list + '</div>' +
+      '</div>' +
+      '<div class="engine-visual"><div class="engine-lines"></div><div class="engine-core"><div class="engine-star">' + ICON.star + '</div></div></div>' +
+    '</div></section>';
+  }
+
+  // ── OFERTA / CTA — o checkout real, na pele premium do mockup ──
+  function renderOferta(diag){
+    const incl = [
+      "Otimização completa do seu perfil no Google",
+      "Preparação técnica do seu site pras IAs",
+      "Conteúdo no formato que as IAs citam",
+      "Gestão das suas avaliações",
+      "Relatório mensal de evolução",
+    ];
+    const msg = "Vi meu plano de trabalho do Radar (" + (diag.nome || "") + ") e quero começar";
+    const wa = "https://wa.me/5511976944026?text=" + encodeURIComponent(msg);
+    // Preço real do Mercado Pago (api/billing.js, IA_PACKAGE): R$ 599 em até 6x.
+    return '<section class="cta reveal-up"><div class="container"><div class="cta-card">' +
+      '<div class="cta-lead">' +
+        '<h2>Nós resolvemos tudo isso pra você</h2>' +
+        '<ul class="incl">' + incl.map(i => '<li>' + ICON.check + ' ' + esc(i) + '</li>').join("") + '</ul>' +
+        '<div class="price"><span class="v">R$599</span><span class="per">· programa de 6 meses</span></div>' +
+        '<div class="anchor">em até <b>6x de R$ 99,83</b> no cartão · Kit NFC de brinde</div>' +
+      '</div>' +
+      '<div>' +
+        '<div class="lead-form" id="leadForm">' +
+          '<div class="lf-field"><label for="leadNome">Seu nome</label><input id="leadNome" type="text" autocomplete="name"/></div>' +
+          '<div class="lf-field"><label for="leadWhats">WhatsApp</label><input id="leadWhats" type="tel" inputmode="tel" placeholder="(11) 99999-9999" autocomplete="tel"/></div>' +
+          '<div class="lf-field"><label for="leadEmail">Email</label><input id="leadEmail" type="email" autocomplete="email"/></div>' +
+          '<button class="cta-btn" id="contratarBtn" type="button">Ir para o pagamento →</button>' +
+          '<div id="leadErr"></div>' +
+        '</div>' +
+        '<div class="undercta">Pagamento seguro via Mercado Pago · primeiros ajustes em 7 dias</div>' +
+        '<a class="cta-ghost" id="ctaWa" href="' + wa + '" target="_blank" rel="noopener">' + ICON.wa + ' Prefiro falar antes no WhatsApp</a>' +
+      '</div>' +
+    '</div></div></section>';
+  }
+
+  // Ranking LOCAL no Google (grade). Preenche quando a grade responde.
   function fillLocalRank(grid){
     const box = $("localRank"); if (!box) return;
     const t = grid && grid.terms && grid.terms[0];
     if (!t) return;
-    // measured === 0 → o Places falhou em todos os pontos. Some o bloco: dizer
-    // "você não aparece" seria transformar uma falha nossa em má notícia pro dono.
     if (!t.measured) return;
-    // Mostra a MÉDIA das posições, não o ordinal da lista: a grade é centrada
-    // na porta do negócio, então o ordinal favorece quem está no centro (ele).
-    // Dois vizinhos a 1km davam AMBOS "#1", cada um na própria grade.
     if (t.coverage > 0 && t.score != null){
       box.innerHTML =
         '<div class="lr">' + ICON.pin +
@@ -515,138 +618,17 @@ fbq('track', 'PageView');
     }
   }
 
-  // Preenche nota/avaliações do Google (vêm da auditoria). Some se não houver.
+  // Nota/avaliações do Google (vêm da auditoria). Some se não houver.
   function fillBlocoAChips(business){
     if (!business) return;
     const box = $("bizChips"); if (!box) return;
     const chips = [];
-    if (typeof business.rating === "number") chips.push('<div class="chip tnums"><b>' + business.rating + '</b> <span>nota Google</span></div>');
-    if (business.reviews_total) chips.push('<div class="chip tnums"><b>' + Number(business.reviews_total).toLocaleString("pt-BR") + '</b> <span>avaliações</span></div>');
+    if (typeof business.rating === "number") chips.push('<div class="chip tnums"><b>' + business.rating + '</b> nota Google</div>');
+    if (business.reviews_total) chips.push('<div class="chip tnums"><b>' + Number(business.reviews_total).toLocaleString("pt-BR") + '</b> avaliações</div>');
     box.innerHTML = chips.join("");
   }
 
-  // ===================== NARRATIVA (por que · solução · protocolo · bastidores) =====================
-  // Substitui o antigo checklist técnico (schema/llms.txt/robots.txt), que expunha
-  // jargão pro dono e parecia um relatório de SEO. A auditoria (/api/audit) segue
-  // rodando por baixo — alimenta as chips do Bloco A e a contagem de pontos da
-  // seção "solução" — mas os itens técnicos NUNCA vão pra tela. Regra de copy do
-  // contrato: o cliente compra resultado, não implementação.
-
-  // 2. Por que isso acontece — o "aha", sem jargão.
-  function renderPorQue(diag){
-    const sinais = ['Quem é a empresa','O que ela faz','Sua especialidade','Sua credibilidade','Sua presença digital','Sua consistência'];
-    return '<section class="sec reveal-up">' +
-      '<div class="sec-eyebrow">Por que isso acontece</div>' +
-      '<h2 class="sec-h">As inteligências artificiais não escolhem no acaso.</h2>' +
-      '<p class="sec-p">Antes de responder, uma IA lê <b>centenas de sinais públicos</b> espalhados pela internet para entender quem é a empresa, o que ela faz, qual sua especialidade, o quanto é confiável e o quanto sua presença é consistente.</p>' +
-      '<p class="sec-p">Quanto mais claros e organizados esses sinais, maior a chance de a IA compreender a empresa e considerá-la uma opção relevante. Hoje, boa parte dos sinais da <b>' + esc(diag.nome) + '</b> está incompleta ou desorganizada — e é por isso que você não aparece.</p>' +
-      '<div class="signals">' + sinais.map(s => '<span class="signal">' + esc(s) + '</span>').join("") + '</div>' +
-    '</section>';
-  }
-
-  // 3. Existe solução — a virada emocional (problema → esperança).
-  function renderSolucao(){
-    return '<section class="sec reveal-up">' +
-      '<div class="sec-eyebrow">Existe solução</div>' +
-      '<h2 class="sec-h">A boa notícia: quase tudo isso pode ser trabalhado.</h2>' +
-      '<p class="sec-p">Não existe um botão para aparecer nas inteligências artificiais. Existe um trabalho técnico e contínuo de organizar e fortalecer os sinais que essas plataformas usam para entender e confiar em uma empresa.</p>' +
-      '<p class="sec-p">É exatamente isso que a StarTouch faz — e faz como engenharia, não como marketing.</p>' +
-      '<div class="sol-count" id="solucaoCount"></div>' +
-    '</section>';
-  }
-  // Preenchida quando a auditoria resolve: a contagem de pontos, sem citar quais
-  // (o "quais" é jargão e não vai pra tela). Some se a auditoria falhar.
-  function fillSolucao(pend, nome){
-    const box = $("solucaoCount"); if (!box) return;
-    if (typeof pend === "number" && pend > 0){
-      box.innerHTML = 'Na <b style="color:var(--ink)">' + esc(nome || "sua empresa") + '</b>, já mapeamos <b>' + pend + '</b> ponto' + (pend>1?'s':'') + ' que ' + (pend>1?'podem':'pode') + ' ser fortalecido' + (pend>1?'s':'') + ' desde já.';
-      box.style.display = "block";
-    }
-  }
-
-  // 4. O tratamento — Protocolo StarTouch AI Engine™. Vende metodologia, não
-  // funcionalidades. Lista numerada (engenharia), sem caixas de dashboard.
-  function renderProtocolo(){
-    const pillars = [
-      ['Arquitetura da Informação','Organizamos a estrutura do seu ambiente digital para que as inteligências artificiais entendam sua empresa com clareza.'],
-      ['Contexto Semântico','Estruturamos seus conteúdos para que as plataformas compreendam quem você é, o que faz, que problemas resolve e quando deve ser lembrado.'],
-      ['Consistência de Dados Públicos','Padronizamos as informações públicas da sua empresa para reduzir ambiguidades e aumentar a confiança.'],
-      ['Estrutura Técnica','Implementamos melhorias que facilitam a leitura e a interpretação das suas informações pelas IAs.'],
-      ['Autoridade Digital','Fortalecemos os sinais públicos de credibilidade, especialização e relevância da sua empresa.'],
-      ['Relevância Local','Aprimoramos os fatores ligados à sua presença na região onde você atua.'],
-      ['Cobertura de Conteúdo','Ampliamos o contexto digital da empresa para as IAs compreenderem seus produtos, serviços e diferenciais.'],
-      ['Monitoramento Contínuo','As inteligências artificiais mudam o tempo todo. Acompanhamos essas mudanças e adaptamos a estratégia continuamente.'],
-    ];
-    const rows = pillars.map((p, i) =>
-      '<div class="pillar"><div class="no">' + String(i+1).padStart(2,'0') + '</div>' +
-      '<div class="body"><h4>' + esc(p[0]) + '</h4><p>' + esc(p[1]) + '</p></div></div>'
-    ).join("");
-    return '<section class="sec reveal-up">' +
-      '<div class="sec-eyebrow">O tratamento</div>' +
-      '<div class="proto-badge"><span class="dot"></span>Protocolo StarTouch AI Engine™</div>' +
-      '<h2 class="sec-h">Não vendemos tarefas soltas. Vendemos um método.</h2>' +
-      '<p class="sec-p">É o conjunto de processos técnicos e estratégicos que executamos continuamente para fortalecer os sinais que as inteligências artificiais usam para entender, confiar e considerar a sua empresa.</p>' +
-      '<div class="pillars">' + rows + '</div>' +
-    '</section>';
-  }
-
-  // 5. Os bastidores — dispara a percepção de valor. Trabalho invisível e
-  // contínuo, sem explicar tecnologia.
-  function renderBastidores(){
-    const items = [
-      'Organização técnica das suas informações',
-      'Arquitetura da informação',
-      'Contexto semântico dos conteúdos',
-      'Consistência dos dados públicos',
-      'Cobertura de conteúdo',
-      'Autoridade e credibilidade digital',
-      'Presença regional',
-      'Monitoramento das respostas das IAs',
-      'Evolução constante conforme novos modelos surgem',
-    ];
-    return '<div class="block reveal-up"><div class="behind">' +
-      '<h3>O que a StarTouch faz enquanto você cuida da sua empresa</h3>' +
-      '<div class="grid">' + items.map(i => '<div class="item">' + ICON.check + '<span>' + esc(i) + '</span></div>').join("") + '</div>' +
-      '<div class="close">Você não vê esse trabalho — mas as inteligências artificiais veem. E é isso que muda a forma como elas enxergam a sua empresa.</div>' +
-    '</div></div>';
-  }
-
-  // ===================== BLOCO C (oferta) =====================
-  function renderBlocoC(diag){
-    const incl = [
-      "Otimização completa do seu perfil no Google",
-      "Preparação técnica do seu site pras IAs",
-      "Conteúdo no formato que as IAs citam",
-      "Gestão das suas avaliações",
-      "Relatório mensal de evolução",
-    ];
-    const msg = "Vi meu plano de trabalho do Radar (" + (diag.nome || "") + ") e quero começar";
-    const wa = "https://wa.me/5511976944026?text=" + encodeURIComponent(msg);
-    // O checkout do pacote MUDOU-SE PRA CÁ (era o passo 9 do laudo em /radar).
-    // O tratamento é vendido em um lugar só. Antes, o laudo cobrava "R$599 em 6x"
-    // e esta página anunciava "R$99/mês" — dois discursos, dois preços.
-    // O que o Mercado Pago cobra de fato (api/billing.js, IA_PACKAGE):
-    // R$ 599,00 em até 6x. A copy abaixo reflete isso.
-    return '<div class="block"><div class="offer">' +
-      '<h2>Nós resolvemos tudo isso pra você</h2>' +
-      '<ul class="incl">' + incl.map(i => '<li>' + ICON.check + ' ' + i + '</li>').join("") + '</ul>' +
-      '<div class="price"><span class="v">R$599</span><span class="per">· programa de 6 meses</span></div>' +
-      '<div class="anchor">em até <b>6x de R$ 99,83</b> no cartão · Kit NFC de brinde</div>' +
-      '<div class="lead-form" id="leadForm">' +
-        '<div class="lf-field"><label for="leadNome">Seu nome</label><input id="leadNome" type="text" autocomplete="name"/></div>' +
-        '<div class="lf-field"><label for="leadWhats">WhatsApp</label><input id="leadWhats" type="tel" inputmode="tel" placeholder="(11) 99999-9999" autocomplete="tel"/></div>' +
-        '<div class="lf-field"><label for="leadEmail">Email</label><input id="leadEmail" type="email" autocomplete="email"/></div>' +
-        '<button class="cta" id="contratarBtn" type="button">Ir para o pagamento →</button>' +
-        '<div id="leadErr"></div>' +
-      '</div>' +
-      '<div class="undercta">Pagamento seguro via Mercado Pago · primeiros ajustes em 7 dias</div>' +
-      '<a class="cta-ghost" id="ctaWa" href="' + wa + '" target="_blank" rel="noopener">' + ICON.wa + ' Prefiro falar antes no WhatsApp</a>' +
-    '</div></div>';
-  }
-
-  // Conversão de lead: dispara o `generate_lead` no GA4 (evento-chave, importado
-  // como conversão pela conta viva do Google Ads) e SÓ DEPOIS redireciona, senão
-  // o redirect cancela o envio. event_callback + timeout de segurança.
+  // Conversão de lead: dispara generate_lead no GA4 e SÓ DEPOIS redireciona.
   function redirectWithConversion(url) {
     let done = false;
     const go = () => { if (!done) { done = true; window.location.href = url; } };
@@ -655,9 +637,7 @@ fbq('track', 'PageView');
       setTimeout(go, 1200);
     } else { go(); }
   }
-
-  // Lê client_id/session_id do GA4 (cookies _ga / _ga_<container>) pra amarrar a
-  // venda à sessão de origem quando o webhook dispara o `purchase` server-side.
+  // client_id/session_id do GA4 (cookies) pra amarrar a venda à origem no webhook.
   function gaIds(){
     try {
       const cid = (document.cookie.match(/_ga=GA\d\.\d\.(\d+\.\d+)/) || [])[1] || "";
@@ -665,8 +645,7 @@ fbq('track', 'PageView');
       return { ga_client_id: cid, ga_session_id: sid };
     } catch (_) { return { ga_client_id: "", ga_session_id: "" }; }
   }
-
-  // Checkout do Pacote Presença em IA. Mesmo endpoint de antes; só mudou de casa.
+  // Checkout do Pacote Presença em IA.
   function wireCheckout(diag){
     const btn = $("contratarBtn");
     if (!btn) return;
@@ -681,7 +660,7 @@ fbq('track', 'PageView');
       const label = btn.textContent;
       btn.textContent = "Gerando pagamento…";
       try {
-        const local = diag.local || {};   // GET /api/radar?code= devolve `local` no topo
+        const local = diag.local || {};
         const r = await fetch("/api/billing?action=checkout-ia", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -691,7 +670,7 @@ fbq('track', 'PageView');
             cidade: local.cidade || "",
             bairro: local.bairro || "",
             score: diag.score,
-            want_kit: true, // Kit NFC é brinde incluído no pacote
+            want_kit: true,
             ...gaIds(),
           }),
         });
@@ -716,43 +695,37 @@ fbq('track', 'PageView');
       diag = await r.json();
       if (!diag || !diag.code) throw new Error("empty");
     } catch {
-      // Code inexistente/expirado/inválido → volta pro /radar (regra do funil).
       location.replace("/radar");
       return;
     }
 
-    // Monta a página inteira de uma vez (dados do diagnóstico já em mãos): a
-    // prova (Bloco A) abre; a narrativa — por que acontece, existe solução, o
-    // tratamento (Protocolo) e os bastidores — leva até a oferta. A auditoria
-    // roda por baixo e preenche as chips do Bloco A + a contagem de pontos.
+    // Monta a página inteira: hero → o que encontramos (prova) → por que → o
+    // tratamento (Protocolo) → bastidores → oferta (checkout).
     $("page").innerHTML =
-      renderBlocoA(diag) +
-      renderPorQue(diag) +
-      renderSolucao() +
+      renderHero(diag) +
+      renderDiagnostico(diag) +
+      renderPorque(diag) +
       renderProtocolo() +
       renderBastidores() +
-      renderBlocoC(diag);
+      renderOferta(diag);
     $("boot").style.display = "none";
     $("page").style.display = "";
     $("pagefoot").style.display = "";
     window.scrollTo({ top: 0 });
 
-    // Fade-up discreto conforme as seções entram na tela (brief: animações
-    // discretas). Fallback: sem IntersectionObserver, mostra tudo de uma vez.
+    // Fade-up discreto conforme as seções entram na tela.
     if ("IntersectionObserver" in window) {
       const io = new IntersectionObserver((entries) => {
         entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
-      }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+      }, { threshold: 0.1, rootMargin: "0px 0px -6% 0px" });
       document.querySelectorAll(".reveal-up").forEach(el => io.observe(el));
     } else {
       document.querySelectorAll(".reveal-up").forEach(el => el.classList.add("in"));
     }
 
-    // O Bloco C só existe no DOM depois do innerHTML acima — ligar o checkout
-    // antes disso não acharia o botão.
+    // Checkout só existe no DOM depois do innerHTML acima.
     wireCheckout(diag);
 
-    // CTA → evento GA4 (deixa a navegação seguir; target _blank).
     const cta = $("ctaWa");
     if (cta) cta.addEventListener("click", () => {
       const p = { origem: ORIGEM };
@@ -760,8 +733,7 @@ fbq('track', 'PageView');
       if (window.gtag) gtag("event", "plano_cta_click", p);
     });
 
-    // Ranking LOCAL (grade) no topo — mesma medição do painel. Fire-and-forget:
-    // preenche o elemento quando responde, sem travar a página.
+    // Ranking LOCAL (grade) — fire-and-forget.
     if (diag.place_id) {
       fetch("/api/diagnostico?grid=1&place_id=" + encodeURIComponent(diag.place_id))
         .then(r => r.ok ? r.json() : null)
@@ -769,10 +741,8 @@ fbq('track', 'PageView');
         .catch(() => {});
     }
 
-    // Auditoria ao vivo (roda por baixo): preenche as chips do Bloco A (nota /
-    // avaliações do Google) e a contagem de pontos da seção "solução". Os itens
-    // técnicos NÃO vão mais pra tela — viram só o número, sem jargão. Falha aqui
-    // não quebra a página: a narrativa segue de pé, apenas sem a contagem.
+    // Auditoria ao vivo (por baixo): chips do hero + contagem de pontos.
+    // Itens técnicos NÃO vão pra tela — só o número, sem jargão.
     if (diag.place_id) {
       try {
         const url = "/api/audit?place_id=" + encodeURIComponent(diag.place_id) +
