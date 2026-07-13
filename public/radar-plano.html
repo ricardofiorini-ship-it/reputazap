@@ -91,22 +91,44 @@ fbq('track', 'PageView');
 
   /* ── O que encontramos (a PROVA lidera; fundo claro, cartão escuro) ── */
   .findings{background:var(--surf);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
-  /* Cartão de prova — a resposta literal da IA, tratada como evidência. */
-  .ev{background:var(--dark);color:#fff;border-radius:20px;padding:22px;margin-top:30px;box-shadow:var(--shadow);}
-  .ev-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
-  .ev-engine{font-size:12px;font-weight:900;color:var(--dark-sub);text-transform:uppercase;letter-spacing:.06em;}
-  .ev-flag{font-size:11.5px;font-weight:900;border-radius:7px;padding:4px 9px;white-space:nowrap;}
-  .ev-flag.no{background:rgba(255,107,107,.16);color:#FF9B9B;}
-  .ev-flag.ok{background:rgba(52,211,153,.16);color:#6EE7B7;}
-  .ev-q{font-size:15px;font-weight:800;color:#fff;line-height:1.4;}
-  .ev-a{margin:13px 0 0;padding:2px 0 2px 14px;border-left:2px solid var(--dark-hi);color:#C7D5EA;font-size:14px;line-height:1.72;white-space:pre-line;}
+  /* Cartão de prova — apresentado como um recorte real da conversa com a IA.
+     Hierarquia de chat: quem respondeu, o que foi perguntado, a resposta literal,
+     quem apareceu no lugar (chips) e o veredito. É o argumento da página. */
+  .ev{background:var(--dark);color:#fff;border-radius:22px;padding:7px;margin-top:30px;box-shadow:var(--shadow);}
+  .ev-inner{border:1px solid rgba(255,255,255,.09);border-radius:17px;padding:20px;}
+  .ev-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;}
+  .ev-bot{display:flex;align-items:center;gap:11px;min-width:0;}
+  .ev-avatar{width:40px;height:40px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;font-weight:900;font-size:16px;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .ev-avatar.gemini{background:linear-gradient(135deg,#4285F4,#9B72CB 62%,#D96570);}
+  .ev-avatar.openai{background:linear-gradient(135deg,#10A37F,#1A7F64);}
+  .ev-avatar.perplexity{background:linear-gradient(135deg,#20808D,#1FB8CD);}
+  .ev-avatar.ia{background:linear-gradient(135deg,var(--blue),var(--purple));}
+  .ev-who{display:flex;flex-direction:column;min-width:0;}
+  .ev-engine{font-size:14.5px;font-weight:800;color:#fff;letter-spacing:-.01em;}
+  .ev-when{font-size:12px;color:var(--dark-sub);}
+  .ev-flag{font-size:11.5px;font-weight:900;border-radius:999px;padding:6px 12px;white-space:nowrap;flex:0 0 auto;}
+  .ev-flag.no{background:rgba(255,107,107,.14);color:#FF9B9B;border:1px solid rgba(255,107,107,.24);}
+  .ev-flag.ok{background:rgba(52,211,153,.14);color:#6EE7B7;border:1px solid rgba(52,211,153,.24);}
+  /* A pergunta do cliente — como um prompt digitado na IA */
+  .ev-ask{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:13px;padding:12px 14px;margin-bottom:15px;}
+  .ev-ask svg{width:16px;height:16px;stroke:var(--dark-hi);flex:0 0 auto;margin-top:2px;}
+  .ev-q{font-size:14.5px;font-weight:700;color:#EAF1FF;line-height:1.45;}
+  /* A resposta literal da IA */
+  .ev-a{margin:0;color:#C7D5EA;font-size:13.5px;line-height:1.72;white-space:pre-line;}
   .ev-hl{font-weight:800;color:#fff;}
   .ev-me{font-weight:800;color:#8EA8FF;}
-  .ev-comp{margin-top:13px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);font-size:13px;color:var(--dark-sub);line-height:1.5;}
-  .ev-comp b{color:#fff;}
-  .ev-bridge{margin-top:11px;font-size:13px;color:var(--dark-sub);line-height:1.5;}
-  .ev-bridge b{color:#fff;}
-  .ev-comp + .ev-bridge{margin-top:7px;border-top:0;padding-top:0;}
+  /* Quem apareceu no lugar — chips escaneáveis */
+  .ev-cited{margin-top:17px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);}
+  .ev-cited-lbl{font-size:11px;font-weight:900;color:var(--dark-sub);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:10px;}
+  .ev-chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .ev-chip{font-size:12.5px;font-weight:700;color:#fff;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:6px 11px;}
+  /* Veredito — faixa de fecho, liga a resposta à estatística geral */
+  .ev-verdict{display:flex;align-items:center;gap:10px;margin-top:16px;border-radius:13px;padding:13px 15px;font-size:13.5px;line-height:1.45;font-weight:600;}
+  .ev-verdict b{font-weight:800;}
+  .ev-verdict.no{background:rgba(255,107,107,.1);color:#FFC9C9;}
+  .ev-verdict.ok{background:rgba(52,211,153,.1);color:#B6F0D8;}
+  .ev-verdict svg{width:19px;height:19px;flex:0 0 auto;}
+  .ev-verdict.no svg{stroke:#FF9B9B;} .ev-verdict.ok svg{stroke:#6EE7B7;}
 
   /* Medida: concorrentes + veredito + nicho×busca, em cartão claro */
   .measure{margin-top:16px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 12px 34px rgba(15,23,42,.05);}
@@ -331,28 +353,43 @@ fbq('track', 'PageView');
     const it = pickEvidence(diag);
     if (!it || !it.resposta) return "";
     const presente = (diag.mencoes || 0) === (diag.total || 0) && (diag.total || 0) > 0;
+    const engineName = ENGINE_LABELS[it.motor] || "IA";
+    const avatarCls = ['gemini','openai','perplexity'].includes(it.motor) ? it.motor : 'ia';
+    const initial = esc((engineName[0] || "I").toUpperCase());
+
     let corpo = stripMarkdown(esc(it.resposta));
     corpo = highlight(corpo, it.concorrentes, "ev-hl");
     corpo = highlight(corpo, [diag.nome], "ev-me");
-    const citou = (it.concorrentes || []).length
-      ? '<div class="ev-comp">Em vez disso, citou: <b>' + it.concorrentes.map(esc).join("</b>, <b>") + '</b>.</div>'
+
+    // Quem apareceu no lugar — chips (só quando o negócio NÃO foi citado).
+    const comps = (it.concorrentes || []).filter(Boolean);
+    const cited = (!presente && comps.length)
+      ? '<div class="ev-cited"><span class="ev-cited-lbl">Quem apareceu no seu lugar</span>' +
+        '<div class="ev-chips">' + comps.map(c => '<span class="ev-chip">' + esc(c) + '</span>').join("") + '</div></div>'
       : "";
+
+    // Veredito — liga esta resposta à estatística geral (evita a contradição
+    // "não citou você" × "apareceu em 4 de 6").
     const m = diag.mencoes || 0, t = diag.total || 0;
-    let ponte = "";
+    const nome = esc(diag.nome);
+    let vTxt = "";
     if (t > 0) {
-      if (presente)      ponte = 'E não foi só aqui: você foi citado em <b>todas as ' + t + '</b> buscas que fizemos.';
-      else if (m === 0)  ponte = 'E não foi só aqui: você não foi citado em <b>nenhuma</b> das ' + t + ' buscas que fizemos.';
-      else               ponte = 'Nesta resposta, não. Em <b>' + m + ' das ' + t + '</b> buscas que fizemos, sim.';
+      if (presente)      vTxt = 'A <b>' + nome + '</b> foi citada em <b>todas as ' + t + '</b> buscas que fizemos.';
+      else if (m === 0)  vTxt = 'A <b>' + nome + '</b> não foi citada em <b>nenhuma</b> das ' + t + ' buscas que fizemos.';
+      else               vTxt = 'Aqui a <b>' + nome + '</b> ficou de fora. No total, apareceu em <b>' + m + ' de ' + t + '</b> buscas.';
     }
-    const bridge = ponte ? '<div class="ev-bridge">' + ponte + '</div>' : "";
-    return '<div class="ev">' +
-      '<div class="ev-head"><span class="ev-engine">' + esc(ENGINE_LABELS[it.motor] || it.motor) + ' respondeu</span>' +
-        '<span class="ev-flag ' + (presente ? "ok" : "no") + '">' + (presente ? "✓ citou você" : "✗ não citou você") + '</span></div>' +
-      '<div class="ev-q">"' + esc(it.pergunta) + '"</div>' +
+    const verdict = vTxt ? '<div class="ev-verdict ' + (presente ? "ok" : "no") + '">' + (presente ? ICON.check : ICON.alert) + '<span>' + vTxt + '</span></div>' : "";
+
+    return '<div class="ev"><div class="ev-inner">' +
+      '<div class="ev-top">' +
+        '<div class="ev-bot"><span class="ev-avatar ' + avatarCls + '">' + initial + '</span>' +
+          '<span class="ev-who"><span class="ev-engine">' + esc(engineName) + '</span><span class="ev-when">respondeu à pergunta de um cliente</span></span></div>' +
+        '<span class="ev-flag ' + (presente ? "ok" : "no") + '">' + (presente ? "✓ citou você" : "✗ não citou você") + '</span>' +
+      '</div>' +
+      '<div class="ev-ask">' + ICON.search + '<span class="ev-q">"' + esc(it.pergunta) + '"</span></div>' +
       '<blockquote class="ev-a">' + corpo + '</blockquote>' +
-      (presente ? "" : citou) +
-      bridge +
-    '</div>';
+      cited + verdict +
+    '</div></div>';
   }
 
   const ICON = {
@@ -362,6 +399,7 @@ fbq('track', 'PageView');
     pin:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
     bulb:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>',
     star:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.3 6.2 6.2 2.3-6.2 2.3L12 19.5l-2.3-6.2-6.2-2.3 6.2-2.3L12 2.5z"/></svg>',
+    search:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
   };
 
   // ---- disparo de eventos GA4 (idempotente) ----
