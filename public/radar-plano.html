@@ -207,18 +207,49 @@ fbq('track', 'PageView');
   .engine-lines::before,.engine-lines::after{content:"";position:absolute;top:50%;width:110px;height:1px;background:linear-gradient(90deg,transparent,#7C8BFF);}
   .engine-lines::before{left:0;} .engine-lines::after{right:0;transform:scaleX(-1);}
 
-  /* ── Oferta / CTA (banda escura premium com checkout real) ── */
-  .cta{padding:56px 0 68px;}
+  /* ── Oferta — cardápio de 3 planos (banda escura premium) ── */
+  .cta{padding:60px 0 72px;color:#fff;background:radial-gradient(circle at 15% 20%,rgba(109,93,251,.2),transparent 20rem),linear-gradient(135deg,var(--dark),#171359);}
+  .plans-head{text-align:center;max-width:640px;margin:0 auto 34px;}
+  .plans-head .section-label{color:#9CBFFF;}
+  .plans-head .section-h{color:#fff;}
+  .plans-head .section-sub{color:#CAD7EA;margin-left:auto;margin-right:auto;}
+  .plans{display:grid;gap:16px;}
+  .plan{position:relative;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:26px 22px;display:flex;flex-direction:column;}
+  .plan.featured{background:linear-gradient(180deg,rgba(109,93,251,.16),rgba(255,255,255,.03));border-color:rgba(142,168,255,.5);box-shadow:0 24px 60px rgba(109,93,251,.22);}
+  .plan-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:#0B1220;background:var(--dark-hi);border-radius:999px;padding:5px 13px;white-space:nowrap;}
+  .plan-name{font-size:20px;font-weight:900;letter-spacing:-.02em;color:#fff;}
+  .plan-tag{font-size:12px;font-weight:800;color:#9CBFFF;text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
+  .plan-price{display:flex;align-items:baseline;gap:4px;margin:16px 0 4px;}
+  .plan-price .pv{font-size:38px;font-weight:900;letter-spacing:-.03em;color:#fff;}
+  .plan-price .pp{font-size:15px;color:var(--dark-sub);}
+  .plan-for{font-size:13px;color:var(--dark-sub);line-height:1.5;margin-bottom:16px;}
+  .plan-lead{font-size:12.5px;font-weight:800;color:#EAF1FF;margin-bottom:11px;}
+  .plan-feats{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:10px;flex:1;}
+  .plan-feats li{display:flex;gap:9px;font-size:13.5px;color:#DCE6F5;line-height:1.45;}
+  .plan-feats li svg{width:16px;height:16px;stroke:var(--dark-hi);flex:0 0 auto;margin-top:2px;}
+  .plan-btn{display:flex;align-items:center;justify-content:center;height:52px;border-radius:13px;font-size:15px;font-weight:900;cursor:pointer;transition:filter .15s,background .15s;}
+  .plan-btn.primary{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;box-shadow:0 14px 30px rgba(109,93,251,.28);}
+  .plan-btn.primary:hover{filter:brightness(1.06);}
+  .plan-btn.ghost{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);color:#EAF1FF;}
+  .plan-btn.ghost:hover{background:rgba(255,255,255,.12);}
+  .plans-foot{text-align:center;margin-top:28px;font-size:13px;color:var(--dark-sub);line-height:1.7;}
+  .plans-foot .wa2{display:inline-flex;align-items:center;gap:8px;margin-top:10px;color:#D7E3FC;font-weight:700;border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:11px 18px;}
+  .plans-foot .wa2:hover{background:rgba(255,255,255,.07);}
+  .plans-foot .wa2 svg{width:17px;height:17px;stroke:#D7E3FC;}
+  @media(min-width:860px){.plans{grid-template-columns:repeat(3,1fr);align-items:stretch;}.plan.featured{transform:scale(1.03);}}
   .cta-card{border-radius:28px;padding:30px;color:#fff;box-shadow:var(--shadow);
     background:radial-gradient(circle at 12% 45%,rgba(109,93,251,.2),transparent 16rem),linear-gradient(135deg,var(--dark),#171359);}
   .cta-card h2{font-size:clamp(26px,4.4vw,40px);line-height:1.08;letter-spacing:-.04em;font-weight:900;text-wrap:balance;}
   .incl{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:10px;}
   .incl li{display:flex;gap:10px;font-size:14.5px;color:#DCE6F5;}
   .incl li svg{width:18px;height:18px;stroke:var(--dark-hi);flex:0 0 auto;margin-top:1px;}
-  .price{display:flex;align-items:baseline;gap:10px;margin:24px 0 4px;}
+  .pa-badge{display:inline-flex;align-items:center;font-size:11.5px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:#0B1220;background:#F6B73C;border-radius:999px;padding:5px 12px;margin:24px 0 12px;}
+  .price{display:flex;align-items:baseline;gap:11px;margin:0 0 5px;}
+  .price .was{font-size:20px;font-weight:700;color:var(--dark-sub);text-decoration:line-through;text-decoration-color:rgba(175,192,216,.55);}
   .price .v{font-size:40px;font-weight:900;letter-spacing:-.03em;}
   .price .per{color:var(--dark-sub);font-size:14px;}
   .anchor{font-size:13px;color:var(--dark-sub);margin-bottom:20px;}
+  .anchor b{color:var(--dark-hi);}
   .anchor b{color:var(--dark-hi);}
   .lead-form{display:grid;gap:12px;}
   .lf-field{display:grid;gap:6px;}
@@ -633,36 +664,53 @@ fbq('track', 'PageView');
   }
 
   // ── OFERTA / CTA — o checkout real, na pele premium do mockup ──
+  // Oferta — cardápio de 3 planos (assinatura mensal, cancele quando quiser).
+  // Botões → WhatsApp com o plano escolhido. O motor de assinatura recorrente
+  // (Mercado Pago PreApproval) será ligado na sequência — por ora o fechamento
+  // é assistido, sem checkout self-service quebrado com preço divergente.
   function renderOferta(diag){
-    const incl = [
-      "Otimização completa do seu perfil no Google",
-      "Preparação técnica do seu site pras IAs",
-      "Conteúdo no formato que as IAs citam",
-      "Gestão das suas avaliações",
-      "Relatório mensal de evolução",
+    const bizName = diag.nome || "";
+    const waFor = (label) => "https://wa.me/5511976944026?text=" + encodeURIComponent("Oi! Quero o plano " + label + " da StarTouch" + (bizName ? " pra " + bizName : "") + ".");
+    const waAsk = "https://wa.me/5511976944026?text=" + encodeURIComponent("Oi! Vi meu plano de trabalho do Radar" + (bizName ? " (" + bizName + ")" : "") + " e quero tirar uma dúvida antes de escolher.");
+
+    const plans = [
+      { key:'start', name:'Start', tag:'Apareça', price:'R$99', per:'/mês', val:99, featured:false,
+        forWho:'Pra quem está invisível e quer entrar no jogo.', lead:'',
+        feats:['Perfil do Google otimizado e mantido','Informações iguais e certas em todo lugar','Preparação técnica pras IAs — a "linguagem"','Teste nas IAs + relatório mensal'] },
+      { key:'business', name:'Business', tag:'Seja recomendado', price:'R$199', per:'/mês', val:199, featured:true,
+        forWho:'Pra quem quer ser citado de verdade. A escolha da maioria.', lead:'Tudo do Start, e mais:',
+        feats:['Conteúdo novo todo mês que as IAs citam','Presença reforçada nos bairros e serviços','Acompanhamento dos concorrentes','Ajustes contínuos + sua evolução no relatório','Kit NFC de brinde'] },
+      { key:'gold', name:'Gold', tag:'Domine sua categoria', price:'R$499', per:'/mês', val:499, featured:false,
+        forWho:'Pra negócio ambicioso, mercado disputado ou várias unidades.', lead:'Tudo do Business, e mais:',
+        feats:['Mais conteúdo + cadência quinzenal','Estrategista dedicado (reuniões e plano sob medida)','Múltiplas unidades ou vários serviços','Prioridade + monitoramento ativo de concorrentes'] },
     ];
-    const msg = "Vi meu plano de trabalho do Radar (" + (diag.nome || "") + ") e quero começar";
-    const wa = "https://wa.me/5511976944026?text=" + encodeURIComponent(msg);
-    // Preço real do Mercado Pago (api/billing.js, IA_PACKAGE): R$ 599 em até 6x.
-    return '<section class="cta reveal-up"><div class="container"><div class="cta-card">' +
-      '<div class="cta-lead">' +
-        '<h2>Nós resolvemos tudo isso pra você</h2>' +
-        '<ul class="incl">' + incl.map(i => '<li>' + ICON.check + ' ' + esc(i) + '</li>').join("") + '</ul>' +
-        '<div class="price"><span class="v">R$599</span><span class="per">· programa de 6 meses</span></div>' +
-        '<div class="anchor">em até <b>6x de R$ 99,83</b> no cartão · Kit NFC de brinde</div>' +
+
+    const cards = plans.map(p => {
+      const feats = (p.lead ? '<div class="plan-lead">' + esc(p.lead) + '</div>' : '') +
+        '<ul class="plan-feats">' + p.feats.map(f => '<li>' + ICON.check + '<span>' + esc(f) + '</span></li>').join("") + '</ul>';
+      const btnCls = 'plan-btn wa-cta ' + (p.featured ? 'primary' : 'ghost');
+      return '<div class="plan' + (p.featured ? ' featured' : '') + '">' +
+        (p.featured ? '<span class="plan-badge">Mais popular</span>' : '') +
+        '<div class="plan-name">' + esc(p.name) + '</div>' +
+        '<div class="plan-tag">' + esc(p.tag) + '</div>' +
+        '<div class="plan-price"><span class="pv">' + esc(p.price) + '</span><span class="pp">' + esc(p.per) + '</span></div>' +
+        '<div class="plan-for">' + esc(p.forWho) + '</div>' +
+        feats +
+        '<a class="' + btnCls + '" data-plan="' + p.key + '" data-val="' + p.val + '" href="' + waFor(p.name + ' (' + p.price + p.per + ')') + '" target="_blank" rel="noopener">Escolher ' + esc(p.name) + '</a>' +
+      '</div>';
+    }).join("");
+
+    return '<section class="cta reveal-up"><div class="container">' +
+      '<div class="plans-head">' +
+        '<div class="section-label">O plano de tratamento</div>' +
+        '<h2 class="section-h">Escolha por onde começar.</h2>' +
+        '<p class="section-sub">Trabalho contínuo pra sua empresa ser recomendada pelas inteligências artificiais. Sem fidelidade — cancele quando quiser.</p>' +
       '</div>' +
-      '<div>' +
-        '<div class="lead-form" id="leadForm">' +
-          '<div class="lf-field"><label for="leadNome">Seu nome</label><input id="leadNome" type="text" autocomplete="name"/></div>' +
-          '<div class="lf-field"><label for="leadWhats">WhatsApp</label><input id="leadWhats" type="tel" inputmode="tel" placeholder="(11) 99999-9999" autocomplete="tel"/></div>' +
-          '<div class="lf-field"><label for="leadEmail">Email</label><input id="leadEmail" type="email" autocomplete="email"/></div>' +
-          '<button class="cta-btn" id="contratarBtn" type="button">Ir para o pagamento →</button>' +
-          '<div id="leadErr"></div>' +
-        '</div>' +
-        '<div class="undercta">Pagamento seguro via Mercado Pago · primeiros ajustes em 7 dias</div>' +
-        '<a class="cta-ghost" id="ctaWa" href="' + wa + '" target="_blank" rel="noopener">' + ICON.wa + ' Prefiro falar antes no WhatsApp</a>' +
+      '<div class="plans">' + cards + '</div>' +
+      '<div class="plans-foot">Cancele quando quiser · primeiros ajustes em 7 dias' +
+        '<div><a class="wa2 wa-cta" data-plan="duvida" data-val="0" href="' + waAsk + '" target="_blank" rel="noopener">' + ICON.wa + ' Ainda com dúvida? Fale com a gente</a></div>' +
       '</div>' +
-    '</div></div></section>';
+    '</div></section>';
   }
 
   // Ranking LOCAL no Google (grade). Preenche quando a grade responde.
@@ -788,15 +836,21 @@ fbq('track', 'PageView');
       document.querySelectorAll(".reveal-up").forEach(el => el.classList.add("in"));
     }
 
-    // Checkout só existe no DOM depois do innerHTML acima.
-    wireCheckout(diag);
-
-    const cta = $("ctaWa");
-    if (cta) cta.addEventListener("click", () => {
-      const p = { origem: ORIGEM };
-      if (typeof lastPend === "number") p.pendencias = lastPend;
-      if (window.gtag) gtag("event", "plano_cta_click", p);
-    });
+    // Botões dos planos → WhatsApp (o motor de assinatura recorrente entra
+    // depois). Disparam generate_lead (só nos planos, não no "tirar dúvida") +
+    // plano_cta_click; a navegação segue no target _blank.
+    document.querySelectorAll(".wa-cta").forEach(el => el.addEventListener("click", () => {
+      const plano = el.getAttribute("data-plan") || "";
+      const val = Number(el.getAttribute("data-val")) || 0;
+      try {
+        if (window.gtag) {
+          if (val > 0) gtag("event", "generate_lead", { value: val, currency: "BRL", plano });
+          const p = { origem: ORIGEM, plano };
+          if (typeof lastPend === "number") p.pendencias = lastPend;
+          gtag("event", "plano_cta_click", p);
+        }
+      } catch (e) {}
+    }));
 
     // Ranking LOCAL (grade) — fire-and-forget.
     if (diag.place_id) {
