@@ -184,6 +184,13 @@ fbq('track', 'PageView');
   .protocol-item .num{color:var(--dark-hi);font-size:12px;font-weight:900;letter-spacing:.08em;margin-bottom:12px;}
   .protocol-item h3{color:#fff;font-size:16.5px;font-weight:900;letter-spacing:-.02em;}
   .protocol-item p{margin-top:9px;color:#BFD0E8;font-size:13.2px;line-height:1.55;}
+  /* Faixa de autoridade — os ajustes técnicos reais (termos expostos de propósito) */
+  .proto-tech{margin-top:34px;padding-top:26px;border-top:1px solid rgba(255,255,255,.12);}
+  .proto-tech-lbl{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.09em;color:#9CBFFF;margin-bottom:6px;}
+  .proto-tech-sub{font-size:13.5px;color:#CAD7EA;line-height:1.55;margin-bottom:16px;max-width:660px;}
+  .proto-tech-tags{display:flex;flex-wrap:wrap;gap:9px;}
+  .ptag{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#DCE6F5;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 12px;}
+  .ptag .pdot{width:6px;height:6px;border-radius:50%;background:var(--dark-hi);flex:0 0 auto;box-shadow:0 0 0 3px rgba(142,168,255,.18);}
 
   /* ── Bastidores (check-list + motor) ── */
   .backstage-grid{display:grid;gap:30px;align-items:center;}
@@ -571,12 +578,32 @@ fbq('track', 'PageView');
       '<article class="protocol-item"><div class="num">' + String(i+1).padStart(2,'0') + '</div>' +
       '<h3>' + esc(p[0]) + '</h3><p>' + esc(p[1]) + '</p></article>'
     ).join("");
+    // Camada de AUTORIDADE: os ajustes técnicos REAIS por baixo dos pilares.
+    // (Decisão do Ricardo 12/07: expor os termos técnicos gera autoridade — abre
+    // exceção à regra "zero jargão" do brief SÓ nesta faixa. Os pilares acima
+    // seguem em linguagem de dono pra não perder o cliente não-técnico.)
+    const tech = [
+      'Dados estruturados (Schema.org)',
+      'Arquivo llms.txt para IAs',
+      'Sitemap.xml & robots.txt',
+      'URLs canônicas',
+      'Otimização para o Google Search',
+      'GEO — otimização para IAs',
+      'Ficha do Google Business',
+      'Performance (Core Web Vitals)',
+    ];
+    const techTags = tech.map(t => '<span class="ptag"><span class="pdot"></span>' + esc(t) + '</span>').join("");
     return '<section class="protocol reveal-up"><div class="container">' +
       '<div class="section-label">04 · O tratamento</div>' +
       '<div class="proto-badge"><span class="dot"></span>Protocolo StarTouch AI Engine™</div>' +
       '<h2 class="section-h">Não vendemos tarefas soltas. Vendemos um método.</h2>' +
       '<p class="section-sub">É o conjunto de processos técnicos e estratégicos que executamos continuamente para fortalecer os sinais que as inteligências artificiais usam para entender, confiar e considerar a sua empresa.</p>' +
       '<div class="protocol-grid">' + rows + '</div>' +
+      '<div class="proto-tech">' +
+        '<div class="proto-tech-lbl">A engenharia por baixo</div>' +
+        '<div class="proto-tech-sub">Sem caixa-preta: estes são os ajustes técnicos reais que implementamos para a sua empresa ser lida e considerada pelas inteligências artificiais.</div>' +
+        '<div class="proto-tech-tags">' + techTags + '</div>' +
+      '</div>' +
     '</div></section>';
   }
 
