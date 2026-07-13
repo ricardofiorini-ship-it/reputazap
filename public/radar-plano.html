@@ -237,6 +237,23 @@ fbq('track', 'PageView');
   .plans-foot .wa2:hover{background:rgba(255,255,255,.07);}
   .plans-foot .wa2 svg{width:17px;height:17px;stroke:#D7E3FC;}
   @media(min-width:860px){.plans{grid-template-columns:repeat(3,1fr);align-items:stretch;}.plan.featured{transform:scale(1.03);}}
+
+  /* Modal de assinatura */
+  .pm-overlay{position:fixed;inset:0;z-index:100;background:rgba(7,20,38,.62);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;}
+  .pm-card{position:relative;width:100%;max-width:420px;background:#fff;color:var(--ink);border-radius:22px;padding:30px 26px 26px;box-shadow:var(--shadow);}
+  .pm-x{position:absolute;top:14px;right:14px;width:32px;height:32px;border:0;background:var(--surf);border-radius:9px;color:var(--ink-3);font-size:15px;cursor:pointer;line-height:1;}
+  .pm-x:hover{background:#EEF2F8;}
+  .pm-badge{display:inline-flex;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:var(--blue);background:var(--blue-soft);border-radius:999px;padding:6px 12px;margin-bottom:14px;}
+  .pm-h{font-size:22px;font-weight:900;letter-spacing:-.025em;}
+  .pm-sub{font-size:13.5px;color:var(--ink-2);margin:6px 0 18px;line-height:1.5;}
+  .pm-form{display:grid;gap:11px;}
+  .pm-form input{width:100%;height:50px;border:1px solid var(--line);border-radius:12px;padding:0 14px;font-family:inherit;font-size:15px;color:var(--ink);outline:none;transition:border-color .15s;}
+  .pm-form input:focus{border-color:var(--blue);}
+  #pmSubmit{height:54px;border:0;border-radius:13px;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-size:15.5px;font-weight:900;cursor:pointer;margin-top:4px;transition:filter .15s;}
+  #pmSubmit:hover{filter:brightness(1.06);}
+  #pmSubmit:disabled{opacity:.6;cursor:progress;}
+  .pm-err{margin-top:2px;background:#FCE8E6;border:1px solid #F5C6C0;border-radius:10px;padding:10px 12px;color:#A50E0E;font-size:13px;line-height:1.4;}
+  .pm-foot{text-align:center;font-size:12px;color:var(--ink-3);margin-top:15px;}
   .cta-card{border-radius:28px;padding:30px;color:#fff;box-shadow:var(--shadow);
     background:radial-gradient(circle at 12% 45%,rgba(109,93,251,.2),transparent 16rem),linear-gradient(135deg,var(--dark),#171359);}
   .cta-card h2{font-size:clamp(26px,4.4vw,40px);line-height:1.08;letter-spacing:-.04em;font-weight:900;text-wrap:balance;}
@@ -300,6 +317,24 @@ fbq('track', 'PageView');
   <div id="page" style="display:none;"></div>
   <div id="pagefoot" class="pagefoot" style="display:none;">
     Diagnóstico gerado a partir de perguntas reais a inteligências artificiais e de dados públicos do seu Google e do seu site.
+  </div>
+
+  <!-- Modal de assinatura: abre ao escolher um plano; cria a assinatura mensal no MP -->
+  <div id="planModal" class="pm-overlay" style="display:none;">
+    <div class="pm-card" role="dialog" aria-modal="true" aria-label="Assinar plano">
+      <button class="pm-x" id="pmClose" type="button" aria-label="Fechar">✕</button>
+      <div class="pm-badge" id="pmPlan">Plano</div>
+      <h3 class="pm-h">Falta pouco pra começar</h3>
+      <p class="pm-sub">Assinatura mensal no seu cartão · cancele quando quiser.</p>
+      <div class="pm-form">
+        <input id="pmNome" type="text" placeholder="Seu nome" autocomplete="name"/>
+        <input id="pmWhats" type="tel" inputmode="tel" placeholder="WhatsApp (11) 99999-9999" autocomplete="tel"/>
+        <input id="pmEmail" type="email" placeholder="Seu email" autocomplete="email"/>
+        <button id="pmSubmit" type="button">Assinar e ir pro pagamento →</button>
+        <div id="pmErr"></div>
+      </div>
+      <div class="pm-foot">Pagamento seguro via Mercado Pago</div>
+    </div>
   </div>
 </main>
 
@@ -705,7 +740,7 @@ fbq('track', 'PageView');
     const cards = plans.map(p => {
       const feats = (p.lead ? '<div class="plan-lead">' + esc(p.lead) + '</div>' : '') +
         '<ul class="plan-feats">' + p.feats.map(f => '<li>' + ICON.check + '<span>' + esc(f) + '</span></li>').join("") + '</ul>';
-      const btnCls = 'plan-btn wa-cta ' + (p.featured ? 'primary' : 'ghost');
+      const btnCls = 'plan-btn plan-choose ' + (p.featured ? 'primary' : 'ghost');
       return '<div class="plan' + (p.featured ? ' featured' : '') + '">' +
         (p.featured ? '<span class="plan-badge">Mais popular</span>' : '') +
         '<div class="plan-name">' + esc(p.name) + '</div>' +
@@ -713,7 +748,7 @@ fbq('track', 'PageView');
         '<div class="plan-price"><span class="pv">' + esc(p.price) + '</span><span class="pp">' + esc(p.per) + '</span></div>' +
         '<div class="plan-for">' + esc(p.forWho) + '</div>' +
         feats +
-        '<a class="' + btnCls + '" data-plan="' + p.key + '" data-val="' + p.val + '" href="' + waFor(p.name + ' (' + p.price + p.per + ')') + '" target="_blank" rel="noopener">Escolher ' + esc(p.name) + '</a>' +
+        '<button type="button" class="' + btnCls + '" data-plan="' + p.key + '" data-name="' + esc(p.name) + '" data-price="' + esc(p.price) + '" data-per="' + esc(p.per) + '" data-val="' + p.val + '">Escolher ' + esc(p.name) + '</button>' +
       '</div>';
     }).join("");
 
@@ -853,21 +888,50 @@ fbq('track', 'PageView');
       document.querySelectorAll(".reveal-up").forEach(el => el.classList.add("in"));
     }
 
-    // Botões dos planos → WhatsApp (o motor de assinatura recorrente entra
-    // depois). Disparam generate_lead (só nos planos, não no "tirar dúvida") +
-    // plano_cta_click; a navegação segue no target _blank.
+    // "Ainda com dúvida?" → WhatsApp: dispara plano_cta_click (duvida).
     document.querySelectorAll(".wa-cta").forEach(el => el.addEventListener("click", () => {
       const plano = el.getAttribute("data-plan") || "";
-      const val = Number(el.getAttribute("data-val")) || 0;
-      try {
-        if (window.gtag) {
-          if (val > 0) gtag("event", "generate_lead", { value: val, currency: "BRL", plano });
-          const p = { origem: ORIGEM, plano };
-          if (typeof lastPend === "number") p.pendencias = lastPend;
-          gtag("event", "plano_cta_click", p);
-        }
-      } catch (e) {}
+      try { if (window.gtag) gtag("event", "plano_cta_click", { origem: ORIGEM, plano }); } catch (e) {}
     }));
+
+    // Botões dos planos → modal → assinatura mensal (PreApproval no Mercado Pago).
+    const modal = $("planModal");
+    let curPlan = null;
+    const closeModal = () => { modal.style.display = "none"; };
+    document.querySelectorAll(".plan-choose").forEach(btn => btn.addEventListener("click", () => {
+      curPlan = btn.getAttribute("data-plan");
+      $("pmPlan").textContent = "Plano " + btn.getAttribute("data-name") + " · " + btn.getAttribute("data-price") + btn.getAttribute("data-per");
+      $("pmErr").innerHTML = "";
+      modal.style.display = "flex";
+      const p = { origem: ORIGEM, plano: curPlan };
+      if (typeof lastPend === "number") p.pendencias = lastPend;
+      try { if (window.gtag) gtag("event", "plano_cta_click", p); } catch (e) {}
+    }));
+    $("pmClose").addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+    $("pmSubmit").addEventListener("click", async () => {
+      const nome = $("pmNome").value.trim();
+      const whatsapp = $("pmWhats").value.trim();
+      const email = $("pmEmail").value.trim();
+      const err = $("pmErr"); err.innerHTML = "";
+      if (!nome || !email) { err.innerHTML = '<div class="pm-err">Preencha seu nome e email.</div>'; return; }
+      const b = $("pmSubmit"); b.disabled = true; const lbl = b.textContent; b.textContent = "Gerando assinatura…";
+      try {
+        const local = diag.local || {};
+        const r = await fetch("/api/billing?action=checkout-plano", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plano: curPlan, nome, email, whatsapp, biz_name: diag.nome || "", cidade: local.cidade || "", bairro: local.bairro || "", ...gaIds() }),
+        });
+        const data = await r.json();
+        if (!r.ok || !data.url) throw new Error(data.error || "Não foi possível gerar a assinatura.");
+        const val = Number({ start: 99, business: 199, gold: 499 }[curPlan]) || 0;
+        try { if (window.gtag) gtag("event", "generate_lead", { value: val, currency: "BRL", plano: curPlan }); } catch (e) {}
+        window.location.href = data.url;
+      } catch (e) {
+        err.innerHTML = '<div class="pm-err">' + (e.message || "Erro ao gerar a assinatura.") + '</div>';
+        b.disabled = false; b.textContent = lbl;
+      }
+    });
 
     // Ranking LOCAL (grade) — fire-and-forget.
     if (diag.place_id) {

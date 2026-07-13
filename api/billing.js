@@ -188,6 +188,25 @@ async function notifyAdminIaOrder({ pay }) {
   await sendOrderEmail({ userId: "admin", subject: `🎯 Contratação Pacote IA — ${fmtBRL(totalCents)}`, html });
 }
 
+// Aviso ao admin de nova ASSINATURA de plano (Start/Business/Gold). O contato
+// completo (nome/whatsapp) vem da coluna `shipping` do pedido, gravada no
+// checkout-plano; o `pp` é o PreApproval do Mercado Pago.
+async function notifyAdminPlanoOrder({ order, pp }) {
+  const c = order?.shipping || {};
+  const plano = c.plano || "";
+  const label = (PLANOS[plano] && PLANOS[plano].label) || `Plano ${plano}`;
+  const totalCents = order?.total_cents != null ? order.total_cents : Math.round((pp?.auto_recurring?.transaction_amount || 0) * 100);
+  const html =
+    `<h2>🔁 Nova assinatura na StarTouch</h2>` +
+    `<p><strong>Plano:</strong> ${escapeHtmlLite(label)} — ${fmtBRL(totalCents)}/mês</p>` +
+    `<p><strong>Cliente:</strong> ${escapeHtmlLite(c.name || "—")} &lt;${escapeHtmlLite(order?.email || c.email || pp?.payer_email || "—")}&gt;</p>` +
+    `<p><strong>WhatsApp:</strong> ${escapeHtmlLite(c.phone || "—")}</p>` +
+    `<p><strong>Negócio:</strong> ${escapeHtmlLite(order?.biz_name || "—")}</p>` +
+    `<p><strong>Assinatura (MP):</strong> ${pp?.id || ""} · ${pp?.status}</p>` +
+    `<p>Gerencie a assinatura no painel do Mercado Pago. Contato também em <code>radar_leads</code>.</p>`;
+  await sendOrderEmail({ userId: "admin", subject: `🔁 Nova assinatura ${label} — ${fmtBRL(totalCents)}/mês`, html });
+}
+
 // ─────────────────────────────────────────────────────────────
 // MERCADO PAGO — provedor ativo
 // ─────────────────────────────────────────────────────────────
@@ -580,6 +599,89 @@ async function handleCheckoutServicoMP(req, res) {
   }
 }
 
+// ── Assinatura recorrente dos PLANOS (Start/Business/Gold) — do /radar/plano ──
+// Público (sem login): o cliente vem do funil do Radar. Cria um PreApproval
+// mensal no Mercado Pago (mesmo mecanismo do Plano Pro) e devolve o init_point.
+// "Cancele quando quiser" = o cliente cancela pelo MP ou a gente cancela via API.
+const PLANOS = {
+  start:    { label: "Plano Start",    price: 99 },
+  business: { label: "Plano Business", price: 199 },
+  gold:     { label: "Plano Gold",     price: 499 },
+};
+
+async function handleCheckoutPlanoMP(req, res) {
+  try {
+    const b = parseJson(await getRawBody(req));
+    const plano = (b.plano || "").toString().trim().toLowerCase();
+    const p = PLANOS[plano];
+    if (!p) return res.status(400).json({ error: "Plano inválido." });
+
+    const nome = (b.nome || "").toString().trim();
+    const email = (b.email || "").toString().trim();
+    const whatsapp = (b.whatsapp || "").toString().trim();
+    const biz_name = (b.biz_name || "").toString().trim();
+    const cidade = (b.cidade || "").toString().trim();
+    const bairro = (b.bairro || "").toString().trim();
+    if (!nome || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({ error: "Informe nome e um email válido." });
+    }
+
+    // Lead (best-effort — não derruba o checkout se a tabela/coluna faltar).
+    try {
+      await supabase.from("radar_leads").insert({ nome, email, whatsapp, biz_name, cidade, bairro });
+    } catch (e) { console.warn("[mp/checkout-plano] lead insert falhou:", e?.message); }
+
+    const mp = getMP();
+    const preapproval = new PreApproval(mp);
+    const origin = req.headers.origin || `https://${req.headers.host}`;
+    const [first_name, ...rest] = nome.split(/\s+/).filter(Boolean);
+    const last_name = rest.join(" ") || first_name || "";
+    const extRef = `plano_${plano}_${Date.now()}`;
+
+    const result = await preapproval.create({
+      body: {
+        reason: `${p.label} StarTouch — presença em IA (mensal)`,
+        external_reference: extRef,
+        payer_email: email,
+        back_url: `${origin}/radar?assinado=1`,
+        notification_url: `${origin}/api/billing?action=webhook`,
+        auto_recurring: {
+          frequency: 1,
+          frequency_type: "months",
+          transaction_amount: p.price,
+          currency_id: "BRL",
+        },
+        ...(first_name && { payer: { first_name, last_name } }),
+        status: "pending",
+      },
+    });
+
+    // Pedido pending com o contato completo (na coluna `shipping`, jsonb) + a
+    // atribuição do GA4 — o webhook marca 'paid' e notifica quando MP autoriza.
+    try {
+      await supabase.from("orders").insert({
+        external_reference: extRef,
+        user_id: null,
+        email,
+        biz_name: biz_name || null,
+        items: [{ name: `${p.label} (mensal)`, qty: 1, unit_price: p.price }],
+        total_cents: Math.round(p.price * 100),
+        status: "pending",
+        shipping: {
+          name: nome, phone: whatsapp, email, plano,
+          ga_client_id: (b.ga_client_id || "").toString(),
+          ga_session_id: (b.ga_session_id || "").toString(),
+        },
+      });
+    } catch (e) { console.warn("[mp/checkout-plano] order insert falhou:", e?.message); }
+
+    return res.json({ url: result.init_point });
+  } catch (err) {
+    console.error("[mp/checkout-plano] erro:", err);
+    return res.status(500).json({ error: err?.message || "Erro ao criar a assinatura." });
+  }
+}
+
 // Cancela a assinatura Pro do usuario logado (substitui o portal do Stripe).
 async function handlePortalMP(req, res) {
   const auth = await authUser(req);
@@ -678,6 +780,36 @@ async function handleWebhookMP(req, res) {
       const pp = await preapproval.get({ id });
 
       const externalRef = pp.external_reference || "";
+
+      // ── Assinatura de PLANO (start/business/gold) do /radar/plano ──
+      // Idempotente: marca o pedido pending→paid SÓ na 1ª vez que fica
+      // 'authorized' — só então notifica o admin e mede a venda no GA4.
+      if (externalRef.startsWith("plano_")) {
+        console.log(`[mp/webhook] preapproval PLANO ${pp.id} ref=${externalRef} status=${pp.status}`);
+        if (pp.status === "authorized") {
+          let order = null;
+          try {
+            const r = await supabase.from("orders")
+              .update({ status: "paid", mp_payment_id: String(pp.id), paid_at: new Date().toISOString() })
+              .eq("external_reference", externalRef).eq("status", "pending")
+              .select().maybeSingle();
+            order = r.data;
+          } catch (e) { console.warn("[mp/webhook] update plano order:", e?.message); }
+          if (order) {
+            await notifyAdminPlanoOrder({ order, pp });
+            const c = order.shipping || {};
+            await sendGa4Purchase({
+              clientId: c.ga_client_id,
+              sessionId: c.ga_session_id,
+              transactionId: pp.id,
+              valueCents: order.total_cents,
+              items: order.items,
+            });
+          }
+        }
+        return res.json({ ok: true, type: "preapproval-plano", id, status: pp.status });
+      }
+
       if (!externalRef.startsWith("pro_")) {
         console.log("[mp/webhook] preapproval não-Pro — ignorado", externalRef);
         return res.json({ ok: true, ignored: "not pro" });
@@ -1305,8 +1437,9 @@ export default async function handler(req, res) {
     if (action === "checkout-kit") return await handleCheckoutKitMP(req, res);
     if (action === "checkout-kit-guest") return await handleCheckoutKitGuestMP(req, res);
     if (action === "checkout-ia") return await handleCheckoutServicoMP(req, res);
+    if (action === "checkout-plano") return await handleCheckoutPlanoMP(req, res);
     if (action === "portal") return await handlePortalMP(req, res);
-    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|checkout-kit-guest|checkout-ia|portal|webhook|debug" });
+    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|checkout-kit-guest|checkout-ia|checkout-plano|portal|webhook|debug" });
   } catch (err) {
     console.error("[billing] erro nao tratado:", err);
     if (!res.headersSent) return res.status(500).json({ error: err?.message || "Erro interno" });
