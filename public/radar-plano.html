@@ -596,14 +596,14 @@ fbq('track', 'PageView');
   // ── O TRATAMENTO — Protocolo StarTouch AI Engine™ (metodologia, não features) ──
   function renderProtocolo(){
     const pillars = [
-      ['Arquitetura da Informação','Reorganizamos seu site e seu perfil no Google para o essencial — o que você faz, onde e para quem — ficar fácil de achar.'],
-      ['Contexto Semântico','Reescrevemos os textos da sua empresa deixando claro seus serviços, suas especialidades e quando você é a melhor escolha.'],
-      ['Consistência de Dados Públicos','Igualamos nome, endereço, telefone e horários em todos os lugares onde sua empresa aparece — Google, site e redes.'],
-      ['Estrutura Técnica','Fazemos os ajustes por trás do site pra ele carregar bem e apresentar suas informações de um jeito que as IAs leem.'],
-      ['Autoridade Digital','Reunimos e destacamos suas provas de confiança — avaliações, tempo de mercado, especialidades e reconhecimentos.'],
-      ['Relevância Local','Deixamos explícito os bairros e regiões que você atende e reforçamos sua presença em cada um deles.'],
-      ['Cobertura de Conteúdo','Criamos páginas e respostas sobre seus serviços e as dúvidas dos clientes — o conteúdo que as IAs buscam pra citar você.'],
-      ['Monitoramento Contínuo','Testamos sua empresa nas IAs todo mês, acompanhamos os concorrentes e ajustamos o trabalho — com um relatório do que mudou.'],
+      ['Ficha do Google impecável','Otimizamos sua ficha de ponta a ponta — categorias certas, serviços descritos, fotos, horários e posts. É a fonte nº1 que as IAs consultam sobre negócios locais.'],
+      ['Motor de avaliações','Suas avaliações viram prova de confiança pra IA: pedido automático de avaliação toda semana, resposta a cada uma e o conteúdo certo nelas (seus serviços citados pelos próprios clientes).'],
+      ['Site que as IAs entendem','Reorganizamos e reescrevemos seu site com uma página por serviço e uma seção de perguntas e respostas, dizendo com clareza o que você faz e pra quem.'],
+      ['Conteúdo que vira resposta','Descobrimos as perguntas reais que seus clientes fazem às IAs sobre seu ramo e criamos conteúdo respondendo cada uma — pra você ser a resposta, não o concorrente.'],
+      ['Marcação técnica pras IAs','Marcamos seu site com dados estruturados (Schema), o arquivo llms.txt e os ajustes que fazem as IAs lerem e entenderem sua empresa sem erro.'],
+      ['Dados iguais em todo lugar','Conferimos e padronizamos nome, endereço, telefone, horário e serviços em todos os lugares — informação divergente derruba a confiança da IA.'],
+      ['Autoridade fora do site','Colocamos sua empresa nos diretórios e listas certas do seu ramo e reforçamos os sinais de credibilidade que as IAs cruzam pra decidir quem indicar.'],
+      ['Medição e ajuste todo mês','Testamos sua empresa nas IAs de novo todo mês, medimos a evolução, vemos o que os concorrentes fizeram e ajustamos o trabalho — com relatório do que mudou.'],
     ];
     const rows = pillars.map((p,i) =>
       '<article class="protocol-item"><div class="num">' + String(i+1).padStart(2,'0') + '</div>' +
@@ -675,14 +675,31 @@ fbq('track', 'PageView');
 
     const plans = [
       { key:'start', name:'Start', tag:'Apareça', price:'R$99', per:'/mês', val:99, featured:false,
-        forWho:'Pra quem está invisível e quer entrar no jogo.', lead:'',
-        feats:['Perfil do Google otimizado e mantido','Informações iguais e certas em todo lugar','Preparação técnica pras IAs — a "linguagem"','Teste nas IAs + relatório mensal'] },
+        forWho:'A fundação: fazer sua empresa ser lida e encontrada pelas IAs.', lead:'',
+        feats:[
+          'Ficha do Google otimizada de ponta a ponta (categorias, serviços, fotos, horários)',
+          'Seu site marcado com os dados que as IAs leem — Schema + llms.txt',
+          'Nome, endereço, telefone e serviços iguais em todo lugar',
+          'Teste nas IAs todo mês + relatório da sua evolução',
+        ] },
       { key:'business', name:'Business', tag:'Seja recomendado', price:'R$199', per:'/mês', val:199, featured:true,
-        forWho:'Pra quem quer ser citado de verdade. A escolha da maioria.', lead:'Tudo do Start, e mais:',
-        feats:['Conteúdo novo todo mês que as IAs citam','Presença reforçada nos bairros e serviços','Acompanhamento dos concorrentes','Ajustes contínuos + sua evolução no relatório','Kit NFC de brinde'] },
+        forWho:'O motor completo: fazer sua empresa ser citada de verdade.', lead:'Tudo do Start, e mais:',
+        feats:[
+          'Motor de avaliações: pedido toda semana, respostas e o Kit NFC pra sua equipe coletar',
+          'Uma página por serviço + perguntas e respostas no seu site',
+          'Conteúdo novo todo mês respondendo o que perguntam às IAs no seu ramo',
+          'Sua empresa nos diretórios e listas certas + presença reforçada nos seus bairros',
+          'Acompanhamento dos concorrentes que aparecem no seu lugar',
+        ] },
       { key:'gold', name:'Gold', tag:'Domine sua categoria', price:'R$499', per:'/mês', val:499, featured:false,
-        forWho:'Pra negócio ambicioso, mercado disputado ou várias unidades.', lead:'Tudo do Business, e mais:',
-        feats:['Mais conteúdo + cadência quinzenal','Estrategista dedicado (reuniões e plano sob medida)','Múltiplas unidades ou vários serviços','Prioridade + monitoramento ativo de concorrentes'] },
+        forWho:'Velocidade, escala e estratégia dedicada pra liderar sua categoria.', lead:'Tudo do Business, e mais:',
+        feats:[
+          'Mais volume de conteúdo + medição quinzenal (resultados mais rápidos)',
+          'Estrategista dedicado: reuniões e um plano sob medida pro seu mercado',
+          'Autoridade avançada: entrar em listas "melhores de" e imprensa local',
+          'Otimização de múltiplas unidades ou vários serviços',
+          'Prioridade na fila + trabalho ativo contra os concorrentes à sua frente',
+        ] },
     ];
 
     const cards = plans.map(p => {
