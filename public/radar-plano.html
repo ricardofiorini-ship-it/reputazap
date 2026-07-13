@@ -920,7 +920,7 @@ fbq('track', 'PageView');
         const local = diag.local || {};
         const r = await fetch("/api/billing?action=checkout-plano", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ plano: curPlan, nome, email, whatsapp, biz_name: diag.nome || "", cidade: local.cidade || "", bairro: local.bairro || "", ...gaIds() }),
+          body: JSON.stringify({ plano: curPlan, code: CODE, nome, email, whatsapp, biz_name: diag.nome || "", cidade: local.cidade || "", bairro: local.bairro || "", ...gaIds() }),
         });
         const data = await r.json();
         if (!r.ok || !data.url) throw new Error(data.error || "Não foi possível gerar a assinatura.");

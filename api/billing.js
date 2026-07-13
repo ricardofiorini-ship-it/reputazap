@@ -622,6 +622,7 @@ async function handleCheckoutPlanoMP(req, res) {
     const biz_name = (b.biz_name || "").toString().trim();
     const cidade = (b.cidade || "").toString().trim();
     const bairro = (b.bairro || "").toString().trim();
+    const code = (b.code || "").toString().trim();
     if (!nome || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       return res.status(400).json({ error: "Informe nome e um email válido." });
     }
@@ -643,7 +644,7 @@ async function handleCheckoutPlanoMP(req, res) {
         reason: `${p.label} StarTouch — presença em IA (mensal)`,
         external_reference: extRef,
         payer_email: email,
-        back_url: `${origin}/radar?assinado=1`,
+        back_url: `${origin}/bem-vindo?plano=${plano}` + (code ? `&code=${encodeURIComponent(code)}` : ""),
         notification_url: `${origin}/api/billing?action=webhook`,
         auto_recurring: {
           frequency: 1,
@@ -679,6 +680,41 @@ async function handleCheckoutPlanoMP(req, res) {
   } catch (err) {
     console.error("[mp/checkout-plano] erro:", err);
     return res.status(500).json({ error: err?.message || "Erro ao criar a assinatura." });
+  }
+}
+
+// Onboarding pós-pagamento (tela /bem-vindo): objetivo + site/redes + urgência.
+// Público. Envia o "doc de arranque" pro time por email (cruza com o email de
+// "nova assinatura" pra pegar o contato) e tenta salvar numa tabela opcional.
+async function handleOnboarding(req, res) {
+  try {
+    const b = parseJson(await getRawBody(req));
+    const code = (b.code || "").toString().trim();
+    const plano = (b.plano || "").toString().trim();
+    const biz_name = (b.biz_name || "").toString().trim();
+    const objetivo = (b.objetivo || "").toString().trim();
+    const site = (b.site || "").toString().trim();
+    const urgente = (b.urgente || "").toString().trim();
+
+    try {
+      await supabase.from("onboarding").insert({ code, plano, biz_name, objetivo, site, urgente });
+    } catch (e) { /* tabela pode não existir — o email cobre */ }
+
+    const html =
+      `<h2>🚀 Onboarding — novo assinante começou</h2>` +
+      `<p><strong>Negócio:</strong> ${escapeHtmlLite(biz_name || "—")}</p>` +
+      `<p><strong>Plano:</strong> ${escapeHtmlLite(plano || "—")}</p>` +
+      `<p><strong>Objetivo:</strong> ${escapeHtmlLite(objetivo || "—")}</p>` +
+      `<p><strong>Site/redes:</strong> ${escapeHtmlLite(site || "—")}</p>` +
+      `<p><strong>Prioridade urgente:</strong> ${escapeHtmlLite(urgente || "—")}</p>` +
+      `<p><strong>Radar code:</strong> ${escapeHtmlLite(code || "—")}</p>` +
+      `<p>Contato completo (nome/WhatsApp/email) está no email de "nova assinatura" e em <code>radar_leads</code>.</p>`;
+    try { await sendOrderEmail({ userId: "admin", subject: `🚀 Onboarding — ${biz_name || plano || "novo assinante"}`, html }); } catch (e) { console.warn("[onboarding] email admin falhou:", e?.message); }
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("[onboarding] erro:", err);
+    return res.status(500).json({ error: err?.message || "Erro no onboarding" });
   }
 }
 
@@ -1438,8 +1474,9 @@ export default async function handler(req, res) {
     if (action === "checkout-kit-guest") return await handleCheckoutKitGuestMP(req, res);
     if (action === "checkout-ia") return await handleCheckoutServicoMP(req, res);
     if (action === "checkout-plano") return await handleCheckoutPlanoMP(req, res);
+    if (action === "onboarding") return await handleOnboarding(req, res);
     if (action === "portal") return await handlePortalMP(req, res);
-    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|checkout-kit-guest|checkout-ia|checkout-plano|portal|webhook|debug" });
+    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|checkout-kit-guest|checkout-ia|checkout-plano|onboarding|portal|webhook|debug" });
   } catch (err) {
     console.error("[billing] erro nao tratado:", err);
     if (!res.headersSent) return res.status(500).json({ error: err?.message || "Erro interno" });
