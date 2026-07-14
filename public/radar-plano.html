@@ -180,10 +180,13 @@ fbq('track', 'PageView');
   .proto-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--dark-hi);box-shadow:0 0 0 4px rgba(142,168,255,.2);}
   .protocol .section-sub{color:#CAD7EA;}
   .protocol-grid{margin-top:32px;display:grid;gap:14px;}
-  .protocol-item{border:1px solid rgba(255,255,255,.14);border-radius:18px;background:rgba(255,255,255,.04);padding:20px;}
+  .protocol-item{position:relative;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:rgba(255,255,255,.04);padding:20px;}
   .protocol-item .num{color:var(--dark-hi);font-size:12px;font-weight:900;letter-spacing:.08em;margin-bottom:12px;}
+  /* Badge de plano no canto (mapeia o processo → plano que o inclui) */
+  .pi-tier{position:absolute;top:16px;right:16px;font-size:10.5px;font-weight:800;letter-spacing:.03em;color:#BFD0E8;border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:3px 9px;white-space:nowrap;}
   .protocol-item h3{color:#fff;font-size:16.5px;font-weight:900;letter-spacing:-.02em;}
   .protocol-item p{margin-top:9px;color:#BFD0E8;font-size:13.2px;line-height:1.55;}
+  .protocol-item p b{color:#fff;font-weight:800;}
   /* Faixa de autoridade — os ajustes técnicos reais (termos expostos de propósito) */
   .proto-tech{margin-top:34px;padding-top:26px;border-top:1px solid rgba(255,255,255,.12);}
   .proto-tech-lbl{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.09em;color:#9CBFFF;margin-bottom:6px;}
@@ -209,7 +212,9 @@ fbq('track', 'PageView');
 
   /* ── Oferta — cardápio de 3 planos (banda escura premium) ── */
   .cta{padding:60px 0 72px;color:#fff;background:radial-gradient(circle at 15% 20%,rgba(109,93,251,.2),transparent 20rem),linear-gradient(135deg,var(--dark),#171359);}
-  .plans-head{text-align:center;max-width:640px;margin:0 auto 34px;}
+  .plans-head{text-align:center;max-width:640px;margin:0 auto 30px;}
+  .plans-anchor{text-align:center;max-width:540px;margin:14px auto 0;font-size:13.5px;color:var(--dark-sub);line-height:1.5;}
+  .plans-anchor b{color:#F6B73C;font-weight:800;}
   .plans-head .section-label{color:#9CBFFF;}
   .plans-head .section-h{color:#fff;}
   .plans-head .section-sub{color:#CAD7EA;margin-left:auto;margin-right:auto;}
@@ -222,11 +227,14 @@ fbq('track', 'PageView');
   .plan-price{display:flex;align-items:baseline;gap:4px;margin:16px 0 4px;}
   .plan-price .pv{font-size:38px;font-weight:900;letter-spacing:-.03em;color:#fff;}
   .plan-price .pp{font-size:15px;color:var(--dark-sub);}
+  .plan-forwho{font-size:12.5px;font-weight:800;color:#9CBFFF;letter-spacing:.01em;margin-bottom:6px;}
   .plan-for{font-size:13px;color:var(--dark-sub);line-height:1.5;margin-bottom:16px;}
   .plan-lead{font-size:12.5px;font-weight:800;color:#EAF1FF;margin-bottom:11px;}
   .plan-feats{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:10px;flex:1;}
   .plan-feats li{display:flex;gap:9px;font-size:13.5px;color:#DCE6F5;line-height:1.45;}
   .plan-feats li svg{width:16px;height:16px;stroke:var(--dark-hi);flex:0 0 auto;margin-top:2px;}
+  /* Chip com o nº do processo — liga o item ao bloco do método (01–08) */
+  .pf-num{flex:0 0 auto;min-width:24px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;background:rgba(142,168,255,.2);border:1px solid rgba(142,168,255,.4);border-radius:7px;padding:0 6px;font-variant-numeric:tabular-nums;}
   .plan-btn{display:flex;align-items:center;justify-content:center;height:52px;border-radius:13px;font-size:15px;font-weight:900;cursor:pointer;transition:filter .15s,background .15s;}
   .plan-btn.primary{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;box-shadow:0 14px 30px rgba(109,93,251,.28);}
   .plan-btn.primary:hover{filter:brightness(1.06);}
@@ -632,7 +640,7 @@ fbq('track', 'PageView');
   function renderProtocolo(){
     const pillars = [
       ['Ficha do Google impecável','Otimizamos sua ficha de ponta a ponta — categorias certas, serviços descritos, fotos, horários e posts. É a fonte nº1 que as IAs consultam sobre negócios locais.'],
-      ['Motor de avaliações','Suas avaliações viram prova de confiança pra IA: pedido automático de avaliação toda semana, resposta a cada uma e o conteúdo certo nelas (seus serviços citados pelos próprios clientes).'],
+      ['Motor de avaliações','Suas avaliações viram prova de confiança pra IA: pedido automático de avaliação toda semana — e **NÓS respondemos cada uma por você**, com o conteúdo certo (seus serviços citados pelos próprios clientes).'],
       ['Site que as IAs entendem','Reorganizamos e reescrevemos seu site com uma página por serviço e uma seção de perguntas e respostas, dizendo com clareza o que você faz e pra quem.'],
       ['Conteúdo que vira resposta','Descobrimos as perguntas reais que seus clientes fazem às IAs sobre seu ramo e criamos conteúdo respondendo cada uma — pra você ser a resposta, não o concorrente.'],
       ['Marcação técnica pras IAs','Marcamos seu site com dados estruturados (Schema), o arquivo llms.txt e os ajustes que fazem as IAs lerem e entenderem sua empresa sem erro.'],
@@ -640,10 +648,17 @@ fbq('track', 'PageView');
       ['Autoridade fora do site','Colocamos sua empresa nos diretórios e listas certas do seu ramo e reforçamos os sinais de credibilidade que as IAs cruzam pra decidir quem indicar.'],
       ['Medição e ajuste todo mês','Testamos sua empresa nas IAs de novo todo mês, medimos a evolução, vemos o que os concorrentes fizeram e ajustamos o trabalho — com relatório do que mudou.'],
     ];
-    const rows = pillars.map((p,i) =>
-      '<article class="protocol-item"><div class="num">' + String(i+1).padStart(2,'0') + '</div>' +
-      '<h3>' + esc(p[0]) + '</h3><p>' + esc(p[1]) + '</p></article>'
-    ).join("");
+    // Mapa processo → plano (badge no canto). Os planos usam a MESMA numeração:
+    // se a ordem dos pilares mudar, atualizar os dois juntos (teste de aceite).
+    const START_BLOCKS = [1, 5, 6, 8];
+    const rows = pillars.map((p, i) => {
+      const n = i + 1;
+      const tier = START_BLOCKS.includes(n) ? 'Start' : 'Business+';
+      const desc = esc(p[1]).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+      return '<article class="protocol-item"><span class="pi-tier">' + esc(tier) + '</span>' +
+        '<div class="num">' + String(n).padStart(2, '0') + '</div>' +
+        '<h3>' + esc(p[0]) + '</h3><p>' + desc + '</p></article>';
+    }).join("");
     // Camada de AUTORIDADE: os ajustes técnicos REAIS por baixo dos pilares.
     // (Decisão do Ricardo 12/07: expor os termos técnicos gera autoridade — abre
     // exceção à regra "zero jargão" do brief SÓ nesta faixa. Os pilares acima
@@ -708,45 +723,54 @@ fbq('track', 'PageView');
     const waFor = (label) => "https://wa.me/5511976944026?text=" + encodeURIComponent("Oi! Quero o plano " + label + " da StarTouch" + (bizName ? " pra " + bizName : "") + ".");
     const waAsk = "https://wa.me/5511976944026?text=" + encodeURIComponent("Oi! Vi meu plano de trabalho do Radar" + (bizName ? " (" + bizName + ")" : "") + " e quero tirar uma dúvida antes de escolher.");
 
+    // Os nºs (01–08) batem 1:1 com os blocos do card do método (renderProtocolo).
     const plans = [
       { key:'start', name:'Start', tag:'Apareça', price:'R$99', per:'/mês', val:99, featured:false,
-        forWho:'A fundação: fazer sua empresa ser lida e encontrada pelas IAs.', lead:'',
+        praQuem:'Pra quem quer começar a aparecer nas IAs.',
+        desc:'A fundação: sua empresa lida e confiável pras inteligências artificiais.',
+        lead:'',
         feats:[
-          'Ficha do Google otimizada de ponta a ponta (categorias, serviços, fotos, horários)',
-          'Seu site marcado com os dados que as IAs leem — Schema + llms.txt',
-          'Nome, endereço, telefone e serviços iguais em todo lugar',
-          'Teste nas IAs todo mês + relatório da sua evolução',
+          { n:'01', t:'Ficha do Google impecável' },
+          { n:'05', t:'Marcação técnica pras IAs (Schema + llms.txt)' },
+          { n:'06', t:'Dados iguais em todo lugar' },
+          { n:'08', t:'Medição e ajuste todo mês (relatório da evolução)' },
         ] },
       { key:'business', name:'Business', tag:'Seja recomendado', price:'R$199', per:'/mês', val:199, featured:true,
-        forWho:'O motor completo: fazer sua empresa ser citada de verdade.', lead:'Tudo do Start, e mais:',
+        praQuem:'Pra quem quer virar a recomendação da região.',
+        desc:'O método completo — os 8 processos do Protocolo rodando na sua empresa.',
+        lead:'Tudo do Start, e mais:',
         feats:[
-          'Motor de avaliações: pedido automático toda semana + resposta a cada avaliação',
-          'Uma página por serviço + perguntas e respostas no seu site',
-          'Conteúdo novo todo mês respondendo o que perguntam às IAs no seu ramo',
-          'Sua empresa nos diretórios e listas certas + presença reforçada nos seus bairros',
-          'Acompanhamento dos concorrentes que aparecem no seu lugar',
+          { n:'02', t:'Motor de avaliações (pedido semanal + nós respondemos cada uma)' },
+          { n:'03', t:'Site que as IAs entendem (página por serviço + perguntas e respostas)' },
+          { n:'04', t:'Conteúdo que vira resposta (novo todo mês)' },
+          { n:'07', t:'Autoridade fora do site (diretórios e listas do seu ramo)' },
         ] },
       { key:'gold', name:'Gold', tag:'Domine sua categoria', price:'R$499', per:'/mês', val:499, featured:false,
-        forWho:'Velocidade, escala e estratégia dedicada pra liderar sua categoria.', lead:'Tudo do Business, e mais:',
+        praQuem:'Pra quem disputa mercado concorrido ou tem várias unidades.',
+        desc:'O método completo, em dobro de velocidade + estratégia dedicada.',
+        lead:'',
         feats:[
-          'Mais volume de conteúdo + medição quinzenal (resultados mais rápidos)',
-          'Estrategista dedicado: reuniões e um plano sob medida pro seu mercado',
-          'Autoridade avançada: entrar em listas "melhores de" e imprensa local',
-          'Otimização de múltiplas unidades ou vários serviços',
-          'Prioridade na fila + trabalho ativo contra os concorrentes à sua frente',
+          { t:'Os 8 processos com o dobro de conteúdo e medição quinzenal' },
+          { t:'Estrategista dedicado: reunião mensal + plano sob medida pro seu mercado' },
+          { t:'Autoridade avançada: listas "melhores de" + imprensa local' },
+          { t:'Múltiplas unidades ou vários serviços + prioridade na fila' },
         ] },
     ];
 
     const cards = plans.map(p => {
       const feats = (p.lead ? '<div class="plan-lead">' + esc(p.lead) + '</div>' : '') +
-        '<ul class="plan-feats">' + p.feats.map(f => '<li>' + ICON.check + '<span>' + esc(f) + '</span></li>').join("") + '</ul>';
+        '<ul class="plan-feats">' + p.feats.map(f => {
+          const marker = f.n ? '<span class="pf-num">' + esc(f.n) + '</span>' : ICON.check;
+          return '<li>' + marker + '<span>' + esc(f.t) + '</span></li>';
+        }).join("") + '</ul>';
       const btnCls = 'plan-btn plan-choose ' + (p.featured ? 'primary' : 'ghost');
       return '<div class="plan' + (p.featured ? ' featured' : '') + '">' +
         (p.featured ? '<span class="plan-badge">Mais popular</span>' : '') +
         '<div class="plan-name">' + esc(p.name) + '</div>' +
         '<div class="plan-tag">' + esc(p.tag) + '</div>' +
         '<div class="plan-price"><span class="pv">' + esc(p.price) + '</span><span class="pp">' + esc(p.per) + '</span></div>' +
-        '<div class="plan-for">' + esc(p.forWho) + '</div>' +
+        '<div class="plan-forwho">' + esc(p.praQuem) + '</div>' +
+        '<div class="plan-for">' + esc(p.desc) + '</div>' +
         feats +
         '<button type="button" class="' + btnCls + '" data-plan="' + p.key + '" data-name="' + esc(p.name) + '" data-price="' + esc(p.price) + '" data-per="' + esc(p.per) + '" data-val="' + p.val + '">Escolher ' + esc(p.name) + '</button>' +
       '</div>';
@@ -757,6 +781,7 @@ fbq('track', 'PageView');
         '<div class="section-label">O plano de tratamento</div>' +
         '<h2 class="section-h">Escolha por onde começar.</h2>' +
         '<p class="section-sub">Trabalho contínuo pra sua empresa ser recomendada pelas inteligências artificiais. Sem fidelidade — cancele quando quiser.</p>' +
+        '<div class="plans-anchor">Uma agência de marketing cobra <b>R$1.500+/mês</b> por metade deste trabalho.</div>' +
       '</div>' +
       '<div class="plans">' + cards + '</div>' +
       '<div class="plans-foot">Cancele quando quiser · primeiros ajustes em 7 dias' +
@@ -905,7 +930,7 @@ fbq('track', 'PageView');
       modal.style.display = "flex";
       const p = { origem: ORIGEM, plano: curPlan };
       if (typeof lastPend === "number") p.pendencias = lastPend;
-      try { if (window.gtag) gtag("event", "plano_cta_click", p); } catch (e) {}
+      try { if (window.gtag) { gtag("event", "plan_select_click", { plan: curPlan }); gtag("event", "plano_cta_click", p); } } catch (e) {}
     }));
     $("pmClose").addEventListener("click", closeModal);
     modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
