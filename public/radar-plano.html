@@ -227,7 +227,7 @@ fbq('track', 'PageView');
   .plan-price{display:flex;align-items:baseline;gap:4px;margin:16px 0 4px;}
   .plan-price .pv{font-size:38px;font-weight:900;letter-spacing:-.03em;color:#fff;}
   .plan-price .pp{font-size:15px;color:var(--dark-sub);}
-  .plan-forwho{font-size:12.5px;font-weight:800;color:#9CBFFF;letter-spacing:.01em;margin-bottom:6px;}
+  .plan-forwho{font-size:13px;font-weight:800;color:#9CBFFF;letter-spacing:.01em;line-height:1.45;margin-bottom:16px;}
   .plan-for{font-size:13px;color:var(--dark-sub);line-height:1.5;margin-bottom:16px;}
   .plan-lead{font-size:12.5px;font-weight:800;color:#EAF1FF;margin-bottom:11px;}
   .plan-feats{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:10px;flex:1;}
@@ -640,7 +640,7 @@ fbq('track', 'PageView');
   function renderProtocolo(){
     const pillars = [
       ['Ficha do Google impecável','Otimizamos sua ficha de ponta a ponta — categorias certas, serviços descritos, fotos, horários e posts. É a fonte nº1 que as IAs consultam sobre negócios locais.'],
-      ['Motor de avaliações','Suas avaliações viram prova de confiança pra IA: pedido automático de avaliação toda semana — e **NÓS respondemos cada uma por você**, com o conteúdo certo (seus serviços citados pelos próprios clientes).'],
+      ['Presença que a IA confere','Reforçamos os sinais públicos de confiança que as IAs checam antes de recomendar (perfil ativo, informações vivas, credibilidade externa).'],
       ['Site que as IAs entendem','Reorganizamos e reescrevemos seu site com uma página por serviço e uma seção de perguntas e respostas, dizendo com clareza o que você faz e pra quem.'],
       ['Conteúdo que vira resposta','Descobrimos as perguntas reais que seus clientes fazem às IAs sobre seu ramo e criamos conteúdo respondendo cada uma — pra você ser a resposta, não o concorrente.'],
       ['Marcação técnica pras IAs','Marcamos seu site com dados estruturados (Schema), o arquivo llms.txt e os ajustes que fazem as IAs lerem e entenderem sua empresa sem erro.'],
@@ -723,46 +723,39 @@ fbq('track', 'PageView');
     const waFor = (label) => "https://wa.me/5511976944026?text=" + encodeURIComponent("Oi! Quero o plano " + label + " da StarTouch" + (bizName ? " pra " + bizName : "") + ".");
     const waAsk = "https://wa.me/5511976944026?text=" + encodeURIComponent("Oi! Vi meu plano de trabalho do Radar" + (bizName ? " (" + bizName + ")" : "") + " e quero tirar uma dúvida antes de escolher.");
 
-    // Os nºs (01–08) batem 1:1 com os blocos do card do método (renderProtocolo).
     const plans = [
       { key:'start', name:'Start', tag:'Apareça', price:'R$99', per:'/mês', val:99, featured:false,
-        praQuem:'Pra quem quer começar a aparecer nas IAs.',
-        desc:'A fundação: sua empresa lida e confiável pras inteligências artificiais.',
+        praQuem:'Pra quem quer começar a aparecer quando perguntam pra inteligência artificial.',
         lead:'',
         feats:[
-          { n:'01', t:'Ficha do Google impecável' },
-          { n:'05', t:'Marcação técnica pras IAs (Schema + llms.txt)' },
-          { n:'06', t:'Dados iguais em todo lugar' },
-          { n:'08', t:'Medição e ajuste todo mês (relatório da evolução)' },
+          'Arrumamos seu perfil do Google por completo: categoria certa, fotos, serviços e horários',
+          'Ajustamos seu site por dentro pra o ChatGPT e o Gemini conseguirem ler quem você é',
+          'Corrigimos seu nome, endereço e telefone pra ficarem iguais em toda a internet',
+          'Todo mês testamos: perguntamos às IAs sobre o seu ramo e te mostramos se você apareceu',
         ] },
       { key:'business', name:'Business', tag:'Seja recomendado', price:'R$199', per:'/mês', val:199, featured:true,
-        praQuem:'Pra quem quer virar a recomendação da região.',
-        desc:'O método completo — os 8 processos do Protocolo rodando na sua empresa.',
+        praQuem:'Pra quem quer ser o negócio que a inteligência artificial recomenda na região.',
         lead:'Tudo do Start, e mais:',
         feats:[
-          { n:'02', t:'Motor de avaliações (pedido semanal + nós respondemos cada uma)' },
-          { n:'03', t:'Site que as IAs entendem (página por serviço + perguntas e respostas)' },
-          { n:'04', t:'Conteúdo que vira resposta (novo todo mês)' },
-          { n:'07', t:'Autoridade fora do site (diretórios e listas do seu ramo)' },
+          'Criamos no seu site as respostas pras perguntas que seus clientes fazem às IAs',
+          'Todo mês, conteúdo novo pra sua empresa continuar sendo a resposta',
+          'Cadastramos sua empresa nos sites que as IAs consultam antes de recomendar',
+          'Todo mês você vê quem está aparecendo no seu lugar — e o que fizemos pra virar o jogo',
         ] },
       { key:'gold', name:'Gold', tag:'Domine sua categoria', price:'R$499', per:'/mês', val:499, featured:false,
-        praQuem:'Pra quem disputa mercado concorrido ou tem várias unidades.',
-        desc:'O método completo, em dobro de velocidade + estratégia dedicada.',
-        lead:'',
+        praQuem:'Pra quem tem muita concorrência ou mais de uma unidade.',
+        lead:'Tudo do Business, e mais:',
         feats:[
-          { t:'Os 8 processos com o dobro de conteúdo e medição quinzenal' },
-          { t:'Estrategista dedicado: reunião mensal + plano sob medida pro seu mercado' },
-          { t:'Autoridade avançada: listas "melhores de" + imprensa local' },
-          { t:'Múltiplas unidades ou vários serviços + prioridade na fila' },
+          'Tudo em dobro: 2x mais conteúdo e medição a cada 15 dias — resultado na metade do tempo',
+          'Um estrategista cuidando só de você: reunião todo mês + plano feito pro seu mercado',
+          'Colocamos sua empresa em rankings "melhores da região" e na imprensa local',
+          'Atende várias unidades — e seu trabalho fura a fila',
         ] },
     ];
 
     const cards = plans.map(p => {
       const feats = (p.lead ? '<div class="plan-lead">' + esc(p.lead) + '</div>' : '') +
-        '<ul class="plan-feats">' + p.feats.map(f => {
-          const marker = f.n ? '<span class="pf-num">' + esc(f.n) + '</span>' : ICON.check;
-          return '<li>' + marker + '<span>' + esc(f.t) + '</span></li>';
-        }).join("") + '</ul>';
+        '<ul class="plan-feats">' + p.feats.map(f => '<li>' + ICON.check + '<span>' + esc(f) + '</span></li>').join("") + '</ul>';
       const btnCls = 'plan-btn plan-choose ' + (p.featured ? 'primary' : 'ghost');
       return '<div class="plan' + (p.featured ? ' featured' : '') + '">' +
         (p.featured ? '<span class="plan-badge">Mais popular</span>' : '') +
@@ -770,7 +763,6 @@ fbq('track', 'PageView');
         '<div class="plan-tag">' + esc(p.tag) + '</div>' +
         '<div class="plan-price"><span class="pv">' + esc(p.price) + '</span><span class="pp">' + esc(p.per) + '</span></div>' +
         '<div class="plan-forwho">' + esc(p.praQuem) + '</div>' +
-        '<div class="plan-for">' + esc(p.desc) + '</div>' +
         feats +
         '<button type="button" class="' + btnCls + '" data-plan="' + p.key + '" data-name="' + esc(p.name) + '" data-price="' + esc(p.price) + '" data-per="' + esc(p.per) + '" data-val="' + p.val + '">Escolher ' + esc(p.name) + '</button>' +
       '</div>';
