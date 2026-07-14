@@ -210,6 +210,15 @@ fbq('track', 'PageView');
   .engine-lines::before,.engine-lines::after{content:"";position:absolute;top:50%;width:110px;height:1px;background:linear-gradient(90deg,transparent,#7C8BFF);}
   .engine-lines::before{left:0;} .engine-lines::after{right:0;transform:scaleX(-1);}
 
+  /* ── Como funciona — 5 passos educativos (bridge método → planos) ── */
+  .howto{background:var(--surf);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .howto-steps{display:grid;gap:14px;margin-top:30px;}
+  .howto-step{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 12px 34px rgba(15,23,42,.04);}
+  .hs-n{width:32px;height:32px;border-radius:10px;background:var(--blue-soft);color:var(--blue);font-weight:900;font-size:15px;display:grid;place-items:center;margin-bottom:13px;}
+  .howto-step h4{font-size:15.5px;font-weight:800;color:var(--ink);letter-spacing:-.01em;line-height:1.2;}
+  .howto-step p{margin-top:7px;font-size:13.5px;color:var(--ink-2);line-height:1.5;}
+  @media(min-width:900px){.howto-steps{grid-template-columns:repeat(5,1fr);}}
+
   /* ── Oferta — cardápio de 3 planos (banda escura premium) ── */
   .cta{padding:60px 0 72px;color:#fff;background:radial-gradient(circle at 15% 20%,rgba(109,93,251,.2),transparent 20rem),linear-gradient(135deg,var(--dark),#171359);}
   .plans-head{text-align:center;max-width:640px;margin:0 auto 30px;}
@@ -642,8 +651,8 @@ fbq('track', 'PageView');
       ['Ficha do Google impecável','Otimizamos sua ficha de ponta a ponta — categorias certas, serviços descritos, fotos, horários e posts. É a fonte nº1 que as IAs consultam sobre negócios locais.'],
       ['Presença que a IA confere','Reforçamos os sinais públicos de confiança que as IAs checam antes de recomendar (perfil ativo, informações vivas, credibilidade externa).'],
       ['Site que as IAs entendem','Reorganizamos e reescrevemos seu site com uma página por serviço e uma seção de perguntas e respostas, dizendo com clareza o que você faz e pra quem.'],
-      ['Conteúdo que vira resposta','Descobrimos as perguntas reais que seus clientes fazem às IAs sobre seu ramo e criamos conteúdo respondendo cada uma — pra você ser a resposta, não o concorrente.'],
-      ['Marcação técnica pras IAs','Marcamos seu site com dados estruturados (Schema), o arquivo llms.txt e os ajustes que fazem as IAs lerem e entenderem sua empresa sem erro.'],
+      ['Conteúdo que vira resposta','Descobrimos as perguntas reais que seus clientes fazem às IAs sobre seu ramo e escrevemos artigos publicados no seu site respondendo cada uma — pra você ser a resposta, não o concorrente.'],
+      ['Marcação técnica pras IAs','Marcamos seu site com dados estruturados (Schema), o arquivo llms.txt e cuidamos da indexação no Google (Search Console + sitemap) — pra as IAs acharem e entenderem sua empresa sem erro.'],
       ['Dados iguais em todo lugar','Conferimos e padronizamos nome, endereço, telefone, horário e serviços em todos os lugares — informação divergente derruba a confiança da IA.'],
       ['Autoridade fora do site','Colocamos sua empresa nos diretórios e listas certas do seu ramo e reforçamos os sinais de credibilidade que as IAs cruzam pra decidir quem indicar.'],
       ['Medição e ajuste todo mês','Testamos sua empresa nas IAs de novo todo mês, medimos a evolução, vemos o que os concorrentes fizeram e ajustamos o trabalho — com relatório do que mudou.'],
@@ -713,6 +722,28 @@ fbq('track', 'PageView');
     '</div></section>';
   }
 
+  // Seção educativa — os 5 passos, do começo ao fim (tom educativo, sem CTA).
+  // Existe pra o dono pensar "entendi como funciona, quero que façam por mim".
+  function renderComoFunciona(){
+    const steps = [
+      ['Sua empresa legível','Perfil do Google e site que os robôs entendem.'],
+      ['Sua empresa encontrável','Indexada no Google, que é onde as inteligências artificiais pesquisam.'],
+      ['Sua empresa como resposta','Artigos no seu site respondendo o que perguntam no seu ramo.'],
+      ['Sua empresa confirmada','Presente nos sites que as IAs cruzam antes de recomendar.'],
+      ['Tudo medido','Testamos nas IAs todo mês e ajustamos o que precisar.'],
+    ];
+    const cards = steps.map((s, i) =>
+      '<div class="howto-step"><div class="hs-n">' + (i + 1) + '</div>' +
+      '<h4>' + esc(s[0]) + '</h4><p>' + esc(s[1]) + '</p></div>'
+    ).join("");
+    return '<section class="howto reveal-up"><div class="container">' +
+      '<div class="section-label">Como funciona</div>' +
+      '<h2 class="section-h">Como fazemos as inteligências artificiais notarem a sua empresa</h2>' +
+      '<p class="section-sub">Cinco passos, do começo ao fim — todos feitos por nós.</p>' +
+      '<div class="howto-steps">' + cards + '</div>' +
+    '</div></section>';
+  }
+
   // ── OFERTA / CTA — o checkout real, na pele premium do mockup ──
   // Oferta — cardápio de 3 planos (assinatura mensal, cancele quando quiser).
   // Botões → WhatsApp com o plano escolhido. O motor de assinatura recorrente
@@ -730,6 +761,7 @@ fbq('track', 'PageView');
         feats:[
           'Arrumamos seu perfil do Google por completo: categoria certa, fotos, serviços e horários',
           'Ajustamos seu site por dentro pra o ChatGPT e o Gemini conseguirem ler quem você é',
+          'Colocamos seu site no radar do Google: cadastro no Search Console, mapa do site e pedido de indexação de cada página',
           'Corrigimos seu nome, endereço e telefone pra ficarem iguais em toda a internet',
           'Todo mês testamos: perguntamos às IAs sobre o seu ramo e te mostramos se você apareceu',
         ] },
@@ -738,7 +770,7 @@ fbq('track', 'PageView');
         lead:'Tudo do Start, e mais:',
         feats:[
           'Criamos no seu site as respostas pras perguntas que seus clientes fazem às IAs',
-          'Todo mês, conteúdo novo pra sua empresa continuar sendo a resposta',
+          'Escrevemos e publicamos artigos no seu site todo mês — respondendo o que as pessoas perguntam às IAs sobre o seu ramo',
           'Cadastramos sua empresa nos sites que as IAs consultam antes de recomendar',
           'Todo mês você vê quem está aparecendo no seu lugar — e o que fizemos pra virar o jogo',
         ] },
@@ -889,6 +921,7 @@ fbq('track', 'PageView');
       renderPorque(diag) +
       renderProtocolo() +
       renderBastidores() +
+      renderComoFunciona() +
       renderOferta(diag);
     $("boot").style.display = "none";
     $("page").style.display = "";
