@@ -35,6 +35,11 @@ ALTER TABLE alert_preferences DROP CONSTRAINT IF EXISTS email_frequency_check;
 ALTER TABLE alert_preferences ADD CONSTRAINT email_frequency_check
   CHECK (email_frequency IN ('realtime', 'daily_digest', 'weekly_digest'));
 
+-- Interruptor separado da "dica da semana" (cron weekly-tips). Independente
+-- de email_enabled: descadastrar da dica NÃO derruba o resumo de desempenho,
+-- e vice-versa. Default TRUE = todo mundo recebe até optar por sair.
+ALTER TABLE alert_preferences ADD COLUMN IF NOT EXISTS tips_enabled BOOLEAN DEFAULT TRUE;
+
 -- ============================================================
 -- RLS: user só vê/edita as próprias preferências.
 -- Crons usam SERVICE_KEY (ignora RLS) pra ler todos.

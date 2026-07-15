@@ -540,6 +540,140 @@ function starRow(n) {
   return `<span style="color:#FBBC04;letter-spacing:1px;">${"★".repeat(full)}${"☆".repeat(5 - full)}</span>`;
 }
 
+// ─────────────────────────────────────────────────────────────
+// DICA DA SEMANA — email educativo DEDICADO (cron weekly-tips).
+// Banco de dicas sobre Google Meu Negócio e presença em IA, na
+// língua do dono de negócio local (sem jargão). Ordenado alternando
+// Google/IA — assim semanas seguidas variam de tema. Cada dica tem
+// por que importa (why) + o que fazer hoje (action) + CTA opcional.
+// Rende meses sem repetir. Editar aqui = muda o email da semana.
+// ─────────────────────────────────────────────────────────────
+const RADAR_URL = "https://startouch.com.br/radar?utm_source=email&utm_medium=dica&utm_campaign=dica_semanal";
+const APP_URL = "https://startouch.com.br/app?login=1";
+
+const EDU_TIPS = [
+  { tag: "Google", t: "Responda toda avaliação, boa ou ruim",
+    why: "Responder mostra a quem chega que tem gente atenta do outro lado — e o Google dá mais visibilidade a perfis ativos. Avaliação sem resposta parece negócio no automático.",
+    action: "Reserve 5 minutos hoje e responda as últimas avaliações. Nas boas, agradeça citando o que a pessoa elogiou; nas ruins, responda com calma e ofereça resolver.",
+    cta: { url: APP_URL, text: "Ver minhas avaliações →" } },
+
+  { tag: "IA", t: "Por que o ChatGPT recomenda um negócio e não outro",
+    why: "Quando alguém pergunta a uma IA 'melhor [seu ramo] na [sua cidade]', ela não sorteia — junta o que encontra sobre você espalhado pela web. Quem tem informação clara e repetida em vários lugares é lembrado; quem quase não aparece, some da resposta.",
+    action: "Faça o teste: pergunte isso no ChatGPT sobre o seu ramo e a sua cidade. Se você não aparecer, é sinal de que falta presença — e dá pra corrigir.",
+    cta: { url: RADAR_URL, text: "Medir minha presença nas IAs →" } },
+
+  { tag: "Google", t: "Peça a avaliação no momento certo",
+    why: "O melhor momento pra pedir uma avaliação é logo depois de um bom atendimento, com o cliente ainda satisfeito e no local. Pedir dias depois, por mensagem, rende muito menos.",
+    action: "Combine com a equipe: ao fechar um bom atendimento, apontar o dispositivo StarTouch pro cliente. Ele avalia em segundos, ali na hora." },
+
+  { tag: "IA", t: "Nome, endereço e telefone iguais em todo lugar",
+    why: "Se o seu telefone está de um jeito no Google, outro no Instagram e um terceiro num guia antigo, a IA (e o próprio Google) ficam em dúvida sobre qual é o certo — e negócio com informação confusa é deixado de lado.",
+    action: "Escolha a versão oficial do seu nome, endereço e telefone e deixe idêntica em todos os cantos: Google, redes, site. Igualzinho, até a abreviação." },
+
+  { tag: "Google", t: "Complete 100% do seu perfil",
+    why: "Foto, horário, telefone, categoria e endereço preenchidos aumentam sua visibilidade nas buscas locais. Perfil pela metade aparece menos — e passa menos confiança.",
+    action: "Abra seu Google Meu Negócio e preencha todo campo em branco. Cada item completo ainda conta ponto no seu Score do StarTouch.",
+    cta: { url: APP_URL, text: "Ver o que falta no meu Score →" } },
+
+  { tag: "IA", t: "Avaliação também alimenta a IA",
+    why: "Não é só o Google que lê suas avaliações — as IAs também. Quanto mais gente fala bem de você online, mais a IA te trata como referência do seu ramo e te inclui nas respostas.",
+    action: "Todo review novo é uma menção a mais falando bem de você na web. Mantenha a coleta constante — é o que constrói sua reputação aos olhos do Google e das IAs ao mesmo tempo." },
+
+  { tag: "Google", t: "Use os Posts do Google toda semana",
+    why: "Poucos donos usam, mas o Google deixa você publicar novidades, promoções e avisos direto no seu perfil — e mostra isso pra quem te busca. Além de aparecer mais, sinaliza que o negócio está vivo.",
+    action: "Publique um Post esta semana: uma novidade, um prato do dia, uma promoção. Leva 2 minutos e vale repetir toda semana." },
+
+  { tag: "IA", t: "Tenha uma frase que te define",
+    why: "A IA aprende a te encaixar nas respostas pela forma como você é descrito. 'Padaria' é vago; 'padaria artesanal com café da manhã no [bairro]' diz exatamente quando te recomendar.",
+    action: "Escreva uma frase curta que diga o que você é, pra quem e onde — e use ela na descrição do Google, na bio das redes e no site." },
+
+  { tag: "Google", t: "Suba fotos novas com frequência",
+    why: "Perfis com fotos recentes aparecem mais e recebem mais cliques. Foto parada há um ano passa impressão de negócio abandonado.",
+    action: "Tire uma foto hoje — do produto, do ambiente, da equipe — e suba no Google Meu Negócio. Crie o hábito de uma foto nova por semana." },
+
+  { tag: "IA", t: "Teste você mesmo nas IAs",
+    why: "Você não precisa adivinhar como as IAs te enxergam — dá pra perguntar direto pra elas. É o jeito mais honesto de saber se você aparece ou está invisível pra quem busca por IA.",
+    action: "Pergunte a mesma coisa no ChatGPT, no Gemini e no Perplexity: 'melhor [seu ramo] na [sua cidade]'. Nosso Radar faz esse teste completo por você e te mostra o resultado.",
+    cta: { url: RADAR_URL, text: "Rodar meu Radar de IA →" } },
+
+  { tag: "Google", t: "Preencha produtos e serviços",
+    why: "Cada produto ou serviço que você lista no perfil vira uma palavra que o Google associa a você. É de graça e a maioria dos concorrentes não faz.",
+    action: "Liste seus principais produtos ou serviços no Google Meu Negócio, com nome e, se der, preço. Quanto mais específico, melhor o Google entende o que você faz." },
+
+  { tag: "IA", t: "Apareça em mais de um lugar na web",
+    why: "A IA cruza fontes: Google, redes sociais, guias locais, seu site. Quem só existe num canto tem pouca prova pra ser recomendado; quem aparece em vários lugares vira referência.",
+    action: "Garanta que seu negócio existe e está atualizado em pelo menos 3 lugares: Google, Instagram e um site ou página simples. Mesma informação em todos." },
+
+  { tag: "Google", t: "Confira o horário antes de todo feriado",
+    why: "Horário errado no Google gera o pior dos mundos: cliente na porta fechada, frustrado, deixando avaliação de 1 estrela por algo que era só um campo desatualizado.",
+    action: "Antes de cada feriado, atualize o horário especial no Google Meu Negócio. Dois minutos que evitam uma nota ruim injusta." },
+
+  { tag: "IA", t: "Um site simples, com informação clara, ajuda a IA",
+    why: "Você não precisa de um site sofisticado. Precisa de um lugar seu, claro, dizendo o que faz, onde fica e como falar com você — a IA lê isso e usa como fonte confiável sobre o seu negócio.",
+    action: "Se você não tem site, uma página simples já ajuda. Se tem, revise: o que você faz, endereço, telefone e horário estão claros e atualizados?" },
+
+  { tag: "Google", t: "Escreva a descrição com as palavras do cliente",
+    why: "O cliente não busca pelo nome da sua loja — ele busca pelo que precisa. Sua descrição precisa ter as palavras que ele digita, não só o nome fantasia.",
+    action: "Reescreva sua descrição pensando no que o cliente busca: ramo, especialidade e bairro. Ex: 'hamburgueria artesanal com opções veganas no [bairro]'." },
+
+  { tag: "IA", t: "Responda as perguntas frequentes no seu perfil",
+    why: "O Google tem uma seção de Perguntas e Respostas — e tanto ele quanto as IAs leem o que está ali. Deixar as dúvidas comuns já respondidas te ajuda a aparecer quando alguém pergunta exatamente aquilo.",
+    action: "Poste você mesmo 3 perguntas que os clientes mais fazem ('tem estacionamento?', 'aceita cartão?', 'faz entrega?') e já responda cada uma." },
+
+  { tag: "Google", t: "Ative e responda as mensagens",
+    why: "O Google deixa o cliente te mandar mensagem direto do perfil. Responder rápido melhora sua reputação e evita que a pessoa vá pro concorrente que respondeu antes.",
+    action: "Ative as mensagens no Google Meu Negócio e combine com alguém da equipe pra responder no mesmo dia. Rapidez fecha venda." },
+
+  { tag: "IA", t: "Informação atualizada, sempre — a consistência conta",
+    why: "Presença em IA não é tarefa de uma vez só. Negócio que mantém tudo atualizado ao longo do tempo — horário, fotos, avaliações novas — vai ganhando confiança das IAs; quem congela, vai perdendo espaço.",
+    action: "Marque 10 minutos por semana pra dar uma olhada: alguma informação mudou? Tem foto ou avaliação nova pra adicionar? Constância é o que te mantém no topo." },
+];
+
+// Escolhe a dica educativa da semana (rotaciona por número da semana —
+// estável dentro da mesma semana, igual pra todos naquele envio).
+export function pickEduTip(weekIndex) {
+  const i = Number.isFinite(weekIndex) ? weekIndex : Math.floor(Date.now() / (7 * 24 * 3600 * 1000));
+  const n = EDU_TIPS.length;
+  return EDU_TIPS[((i % n) + n) % n];
+}
+
+// Email DEDICADO de dica da semana. Um assunto por dica, corpo focado:
+// badge do tema + título + "por que importa" + "faça isso hoje" + CTA.
+export function weeklyTipEmail({ tip, unsubUrl }) {
+  const t = tip || EDU_TIPS[0];
+  const isIA = t.tag === "IA";
+  const accent = isIA ? "#6D28D9" : "#1A73E8";
+  const badgeBg = isIA ? "#F3EEFF" : "#EAF2FE";
+  const badgeText = isIA ? "Presença em IA" : "Google Meu Negócio";
+
+  return {
+    subject: `💡 Dica da semana: ${t.t}`,
+    html: shell({
+      title: "💡 DICA DA SEMANA",
+      headerColor: accent,
+      unsubUrl,
+      body: `
+        <div style="display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:${accent};background:${badgeBg};border-radius:999px;padding:5px 12px;margin:0 0 12px;">${badgeText}</div>
+        <h1 style="margin:0 0 14px;font-size:23px;color:#202124;line-height:1.3;">${escapeHtml(t.t)}</h1>
+
+        <p style="font-size:12px;font-weight:700;color:#202124;margin:0 0 6px;text-transform:uppercase;letter-spacing:0.05em;">Por que importa</p>
+        <p style="font-size:15px;color:#5F6368;line-height:1.65;margin:0 0 20px;">${escapeHtml(t.why)}</p>
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F0FBF4;border:1px solid #BBF0CD;border-radius:12px;margin:0 0 8px;">
+          <tr><td style="padding:16px 18px;">
+            <div style="font-size:12px;font-weight:700;color:#137333;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">✅ Faça isso hoje</div>
+            <div style="font-size:14.5px;color:#202124;line-height:1.6;">${escapeHtml(t.action)}</div>
+          </td></tr>
+        </table>
+
+        ${t.cta ? cta(t.cta.url, t.cta.text, accent) : ""}
+
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:18px 0 0;">Uma dica nova toda semana, do time StarTouch — pra você aparecer mais no Google e nas IAs sem complicação.</p>
+      `
+    })
+  };
+}
+
 // Manifesto de artigos do blog (MAIS RECENTE PRIMEIRO). Ao publicar um novo,
 // adicione no TOPO — o resumo semanal usa o primeiro como "artigo da semana".
 const ARTICLES = [

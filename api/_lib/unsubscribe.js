@@ -29,6 +29,9 @@ export function verifyUnsubToken(userId, token) {
   }
 }
 
-export function unsubUrl(userId) {
-  return `${BASE}/api/unsubscribe?u=${encodeURIComponent(userId)}&t=${unsubToken(userId)}`;
+// unsubUrl(userId)            → descadastra tudo (usado pelo resumo semanal)
+// unsubUrl(userId, "tips")    → descadastra SÓ a dica da semana (k=tips)
+export function unsubUrl(userId, kind) {
+  const base = `${BASE}/api/unsubscribe?u=${encodeURIComponent(userId)}&t=${unsubToken(userId)}`;
+  return kind ? `${base}&k=${encodeURIComponent(kind)}` : base;
 }
