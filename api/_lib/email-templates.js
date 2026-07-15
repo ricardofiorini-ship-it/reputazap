@@ -561,13 +561,14 @@ const REFERRAL_TIP_WA = "https://wa.me/?text=" + encodeURIComponent(REFERRAL_TIP
 // caminho de propósito — o dono aprende por repetição.
 const EDU_TIPS = [
   { tag: "Google", t: "Responda toda avaliação, boa ou ruim",
-    why: "Responder mostra a quem chega que tem gente atenta do outro lado — e o Google dá mais visibilidade a perfis ativos. Avaliação sem resposta parece negócio no automático.",
+    why: "Quando você responde, mostra a quem chega que tem gente atenta do outro lado — e o Google dá mais visibilidade a quem interage. Avaliação sem resposta passa a impressão de que você não está por perto.",
     steps: [
       "No celular, entre no Google com a conta do seu negócio e pesquise o nome da sua empresa. Vai aparecer o painel de gerência (ou abra o app Google Maps → sua foto no canto → 'Seu perfil de empresa').",
       "Toque no botão 'Avaliações'.",
       "Embaixo de cada avaliação, toque em 'Responder', escreva e envie.",
       "Nas boas, agradeça citando o elogio ('valeu pelo carinho com nosso atendimento!'); nas ruins, responda com calma e ofereça resolver por telefone.",
     ],
+    closing: "Pronto: em 5 minutos você mostrou que está por perto e se importa. Faça disso um hábito de toda semana.",
     cta: { url: APP_URL, text: "Ver minhas avaliações →" } },
 
   { tag: "IA", t: "Por que o ChatGPT recomenda um negócio e não outro",
@@ -578,6 +579,7 @@ const EDU_TIPS = [
       "Veja se o nome do seu negócio aparece na resposta.",
       "Se não aparecer, é sinal de que falta presença — as próximas dicas (perfil completo, informação igual em todo lugar, avaliações) resolvem isso.",
     ],
+    closing: "Saber onde você está hoje já é meio caminho. Com presença consistente, da próxima vez o seu nome aparece nessa resposta.",
     cta: { url: RADAR_URL, text: "Medir minha presença nas IAs →" } },
 
   { tag: "Google", t: "Peça a avaliação no momento certo",
@@ -587,25 +589,28 @@ const EDU_TIPS = [
       "Ao fim de um bom atendimento, diga algo simples: 'Se puder deixar uma nota aqui, ajuda muito a gente.'",
       "Aproxime o celular do cliente do dispositivo (ou peça pra ele escanear o QR) — abre direto a tela de avaliação.",
       "Combine com toda a equipe pra fazer isso virar hábito em cada atendimento.",
-    ] },
+    ],
+    closing: "É simples assim: quando você pede na hora certa, com o dispositivo à mão, seu perfil enche de avaliações sem esforço." },
 
   { tag: "IA", t: "Nome, endereço e telefone iguais em todo lugar",
-    why: "Se o seu telefone está de um jeito no Google, outro no Instagram e um terceiro num guia antigo, a IA (e o próprio Google) ficam em dúvida sobre qual é o certo — e negócio com informação confusa é deixado de lado.",
+    why: "Se o seu telefone está de um jeito no Google, outro no Instagram e um terceiro num guia antigo, a IA (e o próprio Google) ficam em dúvida sobre qual é o certo — e acabam deixando você de lado.",
     steps: [
       "Escreva num papel a versão OFICIAL: nome exato, endereço completo e telefone com DDD.",
       "No Google: pesquise sua empresa (logado) → 'Editar perfil' → confira nome, endereço e telefone.",
       "No Instagram/Facebook: confira a bio e a seção de informações da página.",
       "No seu site, se tiver. Deixe tudo IDÊNTICO — até a abreviação ('Av.' num lugar e 'Avenida' no outro já confunde).",
-    ] },
+    ],
+    closing: "Informação idêntica em todo lugar faz o Google e a IA confiarem em você — é um dos ajustes mais rápidos e que mais rendem." },
 
   { tag: "Google", t: "Complete 100% do seu perfil",
-    why: "Foto, horário, telefone, categoria e endereço preenchidos aumentam sua visibilidade nas buscas locais. Perfil pela metade aparece menos — e passa menos confiança.",
+    why: "Com foto, horário, telefone, categoria e endereço preenchidos, você aparece mais nas buscas locais. Perfil pela metade aparece menos — e passa menos confiança.",
     steps: [
       "Pesquise sua empresa no Google (logado na conta dela) e toque em 'Editar perfil'.",
       "Preencha campo por campo, sem deixar nada em branco: categoria, endereço, telefone, site e horário.",
       "Adicione os atributos que se aplicam ('aceita cartão', 'acessível para cadeirantes', 'Wi-Fi grátis').",
       "Depois, no painel StarTouch, veja exatamente o que ainda falta pro seu Score subir.",
     ],
+    closing: "Quando você completa tudo, aparece mais e passa mais confiança. Cada campo preenchido hoje é cliente te achando amanhã.",
     cta: { url: APP_URL, text: "Ver o que falta no meu Score →" } },
 
   { tag: "IA", t: "Avaliação também alimenta a IA",
@@ -615,16 +620,18 @@ const EDU_TIPS = [
       "Use o dispositivo StarTouch em todo bom atendimento pra manter o fluxo constante.",
       "Responda as avaliações — o texto da sua resposta também é lido pela IA.",
       "Meta simples e realista: algumas avaliações novas toda semana, sem parar.",
-    ] },
+    ],
+    closing: "Coletando sempre, você não melhora só a nota: constrói sua reputação aos olhos do Google e das IAs ao mesmo tempo." },
 
   { tag: "Google", t: "Use os Posts do Google toda semana",
-    why: "Poucos donos usam, mas o Google deixa você publicar novidades, promoções e avisos direto no seu perfil — e mostra isso pra quem te busca. Além de aparecer mais, sinaliza que o negócio está vivo.",
+    why: "Poucos donos usam, mas o Google deixa você publicar novidades, promoções e avisos direto no seu perfil — e mostra isso pra quem te busca. Além de aparecer mais, você mostra que está ativo e presente.",
     steps: [
       "Pesquise sua empresa no Google (logado) e toque em 'Adicionar novidade' (ou 'Promoções').",
       "Escolha o tipo: Novidade, Oferta ou Evento.",
       "Escreva um texto curto, coloque uma foto boa e, se quiser, um botão ('Ligar', 'Saiba mais').",
       "Toque em 'Publicar'. Repita uma vez por semana — vira hábito de 2 minutos.",
-    ] },
+    ],
+    closing: "Dois minutos por semana mantêm seu perfil vivo — o Google percebe e você aparece mais. Comece hoje." },
 
   { tag: "IA", t: "Tenha uma frase que te define",
     why: "A IA aprende a te encaixar nas respostas pela forma como você é descrito. 'Padaria' é vago; 'padaria artesanal com café da manhã no [bairro]' diz exatamente quando te recomendar.",
@@ -633,16 +640,18 @@ const EDU_TIPS = [
       "No Google: 'Editar perfil' → campo 'Descrição da empresa' → cole a frase no começo.",
       "No Instagram: coloque a mesma frase na bio.",
       "No site, se tiver: use ela no topo da página inicial.",
-    ] },
+    ],
+    closing: "Com uma frase clara repetida em todo lugar, você ensina o Google e a IA exatamente quando te recomendar." },
 
   { tag: "Google", t: "Suba fotos novas com frequência",
-    why: "Perfis com fotos recentes aparecem mais e recebem mais cliques. Foto parada há um ano passa impressão de negócio abandonado.",
+    why: "Com fotos recentes, você aparece mais e recebe mais cliques. Foto parada há um ano passa impressão de negócio abandonado.",
     steps: [
       "Tire 1 foto hoje, com boa luz: um produto, o ambiente ou a equipe trabalhando.",
       "Pesquise sua empresa no Google (logado) e toque em 'Adicionar foto'.",
       "Escolha a categoria certa (fachada, ambiente, produto) e envie.",
       "Crie o hábito de uma foto nova por semana — coloque um lembrete no celular.",
-    ] },
+    ],
+    closing: "Foto nova toda semana mantém seu perfil atraente e ativo — e é de graça. Vale virar hábito." },
 
   { tag: "IA", t: "Teste você mesmo nas IAs",
     why: "Você não precisa adivinhar como as IAs te enxergam — dá pra perguntar direto pra elas. É o jeito mais honesto de saber se você aparece ou está invisível pra quem busca por IA.",
@@ -652,6 +661,7 @@ const EDU_TIPS = [
       "Anote em quais você aparece — e quais concorrentes aparecem no seu lugar.",
       "Pra não fazer isso na mão, o Radar roda esse teste completo e te entrega num relatório.",
     ],
+    closing: "Agora você sabe como as IAs te enxergam. O próximo passo é corrigir o que falta — e o Radar te mostra por onde começar.",
     cta: { url: RADAR_URL, text: "Rodar meu Radar de IA →" } },
 
   { tag: "Google", t: "Preencha produtos e serviços",
@@ -661,16 +671,18 @@ const EDU_TIPS = [
       "Adicione item por item: nome, categoria e, se der, preço e uma foto.",
       "Capriche no nome do item — é a palavra que o Google vai ligar a você.",
       "Liste pelo menos os 5 principais que você quer que apareçam nas buscas.",
-    ] },
+    ],
+    closing: "Cada item listado é uma palavra a mais te ligando a quem procura. Trabalho de uma vez que rende sempre." },
 
   { tag: "IA", t: "Apareça em mais de um lugar na web",
-    why: "A IA cruza fontes: Google, redes sociais, guias locais, seu site. Quem só existe num canto tem pouca prova pra ser recomendado; quem aparece em vários lugares vira referência.",
+    why: "A IA cruza fontes: Google, redes sociais, guias locais, seu site. Se você só existe num canto, tem pouca prova pra ser recomendado; se aparece em vários lugares, vira referência.",
     steps: [
       "Garanta o perfil no Google ativo e completo (é a base de tudo).",
       "Tenha um Instagram (ou Facebook) com as MESMAS informações do Google.",
       "Tenha um site ou uma página simples — mesmo que seja só uma página.",
       "Confirme que nome, endereço e telefone estão iguais nos três lugares.",
-    ] },
+    ],
+    closing: "Quanto mais lugares confirmam quem você é, mais a IA te trata como referência. Presença espalhada = mais chances de ser indicado." },
 
   { tag: "Google", t: "Confira o horário antes de todo feriado",
     why: "Horário errado no Google gera o pior dos mundos: cliente na porta fechada, frustrado, deixando avaliação de 1 estrela por algo que era só um campo desatualizado.",
@@ -679,7 +691,8 @@ const EDU_TIPS = [
       "Toque em 'Editar perfil' → 'Horários' → 'Horários especiais' (ou 'Feriados').",
       "Adicione a data do feriado com o horário certo — ou marque 'Fechado'.",
       "Pronto: 2 minutos que evitam cliente na porta fechada e uma nota ruim injusta.",
-    ] },
+    ],
+    closing: "Dois minutos antes do feriado evitam uma nota 1 estrela injusta. Coloque um lembrete pra não esquecer." },
 
   { tag: "IA", t: "Um site simples, com informação clara, ajuda a IA",
     why: "Você não precisa de um site sofisticado. Precisa de um lugar seu, claro, dizendo o que faz, onde fica e como falar com você — a IA lê isso e usa como fonte confiável sobre o seu negócio.",
@@ -688,7 +701,8 @@ const EDU_TIPS = [
       "Se você JÁ tem site: abra e leia como um cliente novo leria.",
       "Confirme que estão visíveis e atualizados: o que você faz, endereço, telefone e horário.",
       "Adicione um mapa e um botão de WhatsApp pra facilitar o contato.",
-    ] },
+    ],
+    closing: "Um cantinho seu, claro e atualizado, vira fonte confiável pra IA falar de você. Não precisa ser perfeito — precisa existir." },
 
   { tag: "Google", t: "Escreva a descrição com as palavras do cliente",
     why: "O cliente não busca pelo nome da sua loja — ele busca pelo que precisa. Sua descrição precisa ter as palavras que ele digita, não só o nome fantasia.",
@@ -697,7 +711,8 @@ const EDU_TIPS = [
       "No Google: 'Editar perfil' → campo 'Descrição da empresa'.",
       "Escreva usando essas palavras. Ex: 'Hamburgueria artesanal com opções veganas na Vila Hortência.'",
       "Evite só elogios genéricos ('somos os melhores') — foque no que a pessoa procura.",
-    ] },
+    ],
+    closing: "Falar a língua de quem busca é o que te coloca na busca certa. Reescreva hoje e sinta a diferença." },
 
   { tag: "IA", t: "Responda as perguntas frequentes no seu perfil",
     why: "No seu perfil do Google (na tela que o cliente vê no Maps) existe uma seção de 'Perguntas e respostas' — e tanto o Google quanto as IAs leem o que está ali. Deixar as dúvidas comuns já respondidas te ajuda a aparecer quando alguém pergunta exatamente aquilo.",
@@ -706,7 +721,8 @@ const EDU_TIPS = [
       "Role a tela pra baixo até achar a seção 'Perguntas e respostas' (fica perto das avaliações).",
       "Toque em 'Faça uma pergunta' e escreva uma dúvida comum — ex: 'Vocês têm estacionamento?'.",
       "Em seguida, responda você mesmo (aparece como resposta do dono). Repita com as 3 perguntas que os clientes mais fazem: 'aceita cartão?', 'faz entrega?', 'precisa agendar?'.",
-    ] },
+    ],
+    closing: "Com as dúvidas comuns já respondidas, você aparece bem na hora que alguém pergunta aquilo — e passa mais confiança. Vale os 5 minutos." },
 
   { tag: "Google", t: "Ative e responda as mensagens",
     why: "O Google deixa o cliente te mandar mensagem direto do perfil. Responder rápido melhora sua reputação e evita que a pessoa vá pro concorrente que respondeu antes.",
@@ -715,16 +731,18 @@ const EDU_TIPS = [
       "Configure uma mensagem de boas-vindas automática (ex: 'Oi! Já respondemos, um instante.').",
       "Instale o app do Google Maps no celular pra receber e responder de qualquer lugar.",
       "Combine com a equipe de responder no mesmo dia — rapidez fecha venda.",
-    ] },
+    ],
+    closing: "Responder rápido é o que fecha a venda antes do concorrente. Ative hoje e combine quem cuida das respostas." },
 
   { tag: "IA", t: "Informação atualizada, sempre — a consistência conta",
-    why: "Presença em IA não é tarefa de uma vez só. Negócio que mantém tudo atualizado ao longo do tempo — horário, fotos, avaliações novas — vai ganhando confiança das IAs; quem congela, vai perdendo espaço.",
+    why: "Presença em IA não é tarefa de uma vez só. Se você mantém tudo atualizado ao longo do tempo — horário, fotos, avaliações novas — vai ganhando confiança das IAs; se congela, vai perdendo espaço.",
     steps: [
       "Marque 10 minutos fixos por semana na agenda (ex: toda segunda de manhã) só pra isso.",
       "Confira: horário, telefone e endereço continuam certos no Google?",
       "Tem foto nova pra subir? Tem avaliação nova pra responder?",
       "Fez algo mudar (novo produto, nova promoção)? Publique um Post. Constância é o que te mantém no topo.",
-    ] },
+    ],
+    closing: "Dez minutos por semana é o que separa quem sobe de quem congela. Constância é o seu maior aliado." },
 ];
 
 // Escolhe a dica educativa da semana (rotaciona por número da semana —
@@ -778,6 +796,8 @@ export function weeklyTipEmail({ tip, unsubUrl }) {
             ${stepsHtml}
           </td></tr>
         </table>
+
+        ${t.closing ? `<p style="font-size:14.5px;color:#202124;line-height:1.65;font-weight:600;margin:16px 2px 0;">${escapeHtml(t.closing)}</p>` : ""}
 
         ${t.cta ? cta(t.cta.url, t.cta.text, accent) : ""}
 
