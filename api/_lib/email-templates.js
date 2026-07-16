@@ -560,15 +560,17 @@ const REFERRAL_TIP_WA = "https://wa.me/?text=" + encodeURIComponent(REFERRAL_TIP
 // gerencia direto na Busca/Maps, logado na conta dona. As dicas repetem esse
 // caminho de propósito — o dono aprende por repetição.
 const EDU_TIPS = [
-  { tag: "Google", t: "Responda toda avaliação, boa ou ruim",
-    why: "Quando você responde, mostra a quem chega que tem gente atenta do outro lado — e o Google dá mais visibilidade a quem interage. Avaliação sem resposta passa a impressão de que você não está por perto.",
+  { tag: "Google", t: "Responda toda avaliação — a boa e, principalmente, a ruim",
+    subject: "A resposta que você dá numa avaliação é lida por dezenas de futuros clientes",
+    why: "Quem escreveu a avaliação já é seu cliente. Quem lê a sua resposta ainda vai decidir se te procura — e essa gente é muito mais numerosa. Uma crítica respondida com calma vale mais pra quem está lendo do que a própria estrela. E tem o outro lado: o Google dá mais visibilidade a perfis ativos, e responder é um dos sinais mais simples de que tem alguém atento ali. Avaliação pendurada sem resposta passa a impressão de negócio no piloto automático — no sentido ruim.",
     steps: [
-      "No celular, entre no Google com a conta do seu negócio e pesquise o nome da sua empresa. Vai aparecer o painel de gerência (ou abra o app Google Maps → sua foto no canto → 'Seu perfil de empresa').",
-      "Toque no botão 'Avaliações'.",
-      "Embaixo de cada avaliação, toque em 'Responder', escreva e envie.",
-      "Nas boas, agradeça citando o elogio ('valeu pelo carinho com nosso atendimento!'); nas ruins, responda com calma e ofereça resolver por telefone.",
+      "No celular, abra o Google logado na conta da empresa e pesquise o nome do seu negócio. Vai aparecer o painel de gerência (ou app Google Maps → sua foto no canto → 'Seu perfil de empresa').",
+      "Toque em 'Avaliações'.",
+      "Embaixo de cada uma, toque em 'Responder', escreva e envie.",
+      "Nas boas, agradeça citando o que a pessoa elogiou — 'que bom que você gostou do corte, volta sempre!' soa real; 'obrigado pela avaliação' soa robô. Nas ruins, responda com calma, sem discutir ponto a ponto: reconheça o ocorrido e leve pro privado — 'sinto muito por isso, me chama no [telefone] que a gente resolve'.",
     ],
-    closing: "Pronto: em 5 minutos você mostrou que está por perto e se importa. Faça disso um hábito de toda semana.",
+    note: { label: "Nunca", text: "responder no impulso, brigar com o cliente ou expor dados dele em público. Quem lê julga muito mais o seu tom do que o motivo da reclamação." },
+    closing: "Feche essa lista uma vez por semana e seu perfil já sai na frente de metade dos concorrentes — que simplesmente não respondem.",
     cta: { url: APP_URL, text: "Ver minhas avaliações →" } },
 
   { tag: "IA", t: "Por que o ChatGPT recomenda um negócio e não outro",
@@ -685,14 +687,16 @@ const EDU_TIPS = [
     closing: "Quanto mais lugares confirmam quem você é, mais a IA te trata como referência. Presença espalhada = mais chances de ser indicado." },
 
   { tag: "Google", t: "Confira o horário antes de todo feriado",
-    why: "Horário errado no Google gera o pior dos mundos: cliente na porta fechada, frustrado, deixando avaliação de 1 estrela por algo que era só um campo desatualizado.",
+    subject: "2 minutos antes do feriado que evitam uma nota 1 estrela injusta",
+    why: "Horário errado no Google é o pior tipo de nota ruim: a que você não merecia. O cliente confia no que o Google mostra, se desloca, encontra a porta fechada — e descarrega a frustração numa estrela. Não foi seu produto nem seu atendimento; foi um campo desatualizado. Pior: quando o Google percebe que você não cadastrou o feriado, ele mesmo avisa o cliente que 'o horário pode variar' — o que já derruba a confiança antes de a pessoa sair de casa.",
     steps: [
-      "Alguns dias antes do feriado, pesquise sua empresa no Google (logado).",
+      "Alguns dias antes do feriado, pesquise sua empresa no Google (logado na conta da empresa).",
       "Toque em 'Editar perfil' → 'Horários' → 'Horários especiais' (ou 'Feriados').",
-      "Adicione a data do feriado com o horário certo — ou marque 'Fechado'.",
-      "Pronto: 2 minutos que evitam cliente na porta fechada e uma nota ruim injusta.",
+      "Adicione a data com o horário certo — ou marque 'Fechado'.",
+      "Confira também véspera e emenda, quando o movimento e o horário costumam mudar.",
     ],
-    closing: "Dois minutos antes do feriado evitam uma nota 1 estrela injusta. Coloque um lembrete pra não esquecer." },
+    closing: "Transforme isso num gatilho fixo: todo feriado à vista, dois minutos no perfil antes de fechar a semana. Vale um lembrete no celular pra não escapar.",
+    cta: { url: APP_URL, text: "Atualizar meu horário →" } },
 
   { tag: "IA", t: "Um site simples, com informação clara, ajuda a IA",
     why: "Você não precisa de um site sofisticado. Precisa de um lugar seu, claro, dizendo o que faz, onde fica e como falar com você — a IA lê isso e usa como fonte confiável sobre o seu negócio.",
@@ -714,15 +718,18 @@ const EDU_TIPS = [
     ],
     closing: "Falar a língua de quem busca é o que te coloca na busca certa. Reescreva hoje e sinta a diferença." },
 
-  { tag: "IA", t: "Responda as perguntas frequentes no seu perfil",
-    why: "No seu perfil do Google (na tela que o cliente vê no Maps) existe uma seção de 'Perguntas e respostas' — e tanto o Google quanto as IAs leem o que está ali. Deixar as dúvidas comuns já respondidas te ajuda a aparecer quando alguém pergunta exatamente aquilo.",
+  { tag: "IA", t: "Preencha você mesmo as perguntas frequentes do seu perfil",
+    subject: "O concorrente pode responder as perguntas do SEU perfil — adiante-se",
+    why: "Poucos donos sabem disso: a seção 'Perguntas e respostas' do seu perfil é aberta. Qualquer pessoa pode perguntar e responder — inclusive um cliente mal informado ou um concorrente. Se você não ocupa esse espaço, alguém ocupa por você, com a informação que quiser. E tem um ganho novo: tanto o Google quanto as IAs (ChatGPT, Gemini) leem esse conteúdo pra decidir o que recomendar. Deixar as dúvidas comuns já respondidas, com as suas palavras, te ajuda a aparecer na hora em que alguém pergunta exatamente aquilo.",
     steps: [
-      "Abra o seu negócio no Google Maps (ou pesquise o nome dele no Google), logado na conta da empresa.",
-      "Role a tela pra baixo até achar a seção 'Perguntas e respostas' (fica perto das avaliações).",
-      "Toque em 'Faça uma pergunta' e escreva uma dúvida comum — ex: 'Vocês têm estacionamento?'.",
-      "Em seguida, responda você mesmo (aparece como resposta do dono). Repita com as 3 perguntas que os clientes mais fazem: 'aceita cartão?', 'faz entrega?', 'precisa agendar?'.",
+      "Abra seu negócio no Google Maps (ou pesquise o nome no Google), logado na conta da empresa.",
+      "Role até 'Perguntas e respostas', perto das avaliações.",
+      "Toque em 'Faça uma pergunta' e escreva uma dúvida real de cliente — 'Vocês têm estacionamento?'.",
+      "Responda você mesmo (aparece como resposta do dono). Repita com as 3 ou 4 perguntas que mais chegam no seu balcão: 'aceita Pix?', 'faz entrega?', 'precisa agendar?', 'atende no sábado?'.",
     ],
-    closing: "Com as dúvidas comuns já respondidas, você aparece bem na hora que alguém pergunta aquilo — e passa mais confiança. Vale os 5 minutos." },
+    note: { label: "Dica", text: "as melhores perguntas são as que você mais ouve no dia a dia. Se um cliente já perguntou pessoalmente, outros dez pesquisaram no Google sem perguntar." },
+    closing: "Cinco minutos preenchendo isso e você controla o que o Google e as IAs mostram sobre você — em vez de deixar no acaso.",
+    cta: { url: APP_URL, text: "Ver meu perfil →" } },
 
   { tag: "Google", t: "Ative e responda as mensagens",
     why: "O Google deixa o cliente te mandar mensagem direto do perfil. Responder rápido melhora sua reputação e evita que a pessoa vá pro concorrente que respondeu antes.",
@@ -776,8 +783,20 @@ export function weeklyTipEmail({ tip, unsubUrl }) {
         </table>`).join("")
     : `<div style="font-size:14.5px;color:#202124;line-height:1.6;">${escapeHtml(t.action || "")}</div>`;
 
+  // Bloco de alerta/dica opcional (ex: "Nunca: …" ou "Dica: …") entre os
+  // passos e a conclusão. Estilo de aviso (vermelho) se o rótulo for negativo.
+  const note = t.note;
+  const noteWarn = note && /^(nunca|evite|cuidado|jamais)/i.test(note.label || "");
+  const noteHtml = note
+    ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${noteWarn ? "#FEF2F2" : "#EFF6FF"};border:1px solid ${noteWarn ? "#FBD5D5" : "#CFE0FB"};border-radius:10px;margin:12px 0 0;">
+          <tr><td style="padding:12px 14px;font-size:13.5px;color:#202124;line-height:1.55;">
+            <strong style="color:${noteWarn ? "#B42318" : "#1A56DB"};">${noteWarn ? "🚫" : "💡"} ${escapeHtml(note.label)}:</strong> ${escapeHtml(note.text)}
+          </td></tr>
+        </table>`
+    : "";
+
   return {
-    subject: `💡 Dica da semana: ${t.t}`,
+    subject: t.subject || `💡 Dica da semana: ${t.t}`,
     html: shell({
       title: "💡 DICA DA SEMANA",
       headerColor: accent,
@@ -796,6 +815,8 @@ export function weeklyTipEmail({ tip, unsubUrl }) {
             ${stepsHtml}
           </td></tr>
         </table>
+
+        ${noteHtml}
 
         ${t.closing ? `<p style="font-size:14.5px;color:#202124;line-height:1.65;font-weight:600;margin:16px 2px 0;">${escapeHtml(t.closing)}</p>` : ""}
 
