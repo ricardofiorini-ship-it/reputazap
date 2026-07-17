@@ -126,6 +126,35 @@ export async function sendTransactionalEmail({
 }
 
 /**
+ * Envio CRU — sem email_log e sem dedupe. Use pra emails internos/admin
+ * (ex: prévia da dica pro Ricardo aprovar) onde a dedupe é controlada em
+ * outro lugar (tip_approvals.previewed_at). Retorna { sent, error }.
+ */
+export async function sendRawEmail({ to, subject, html, headers, bcc }) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { skipped: true, reason: "RESEND_API_KEY ausente" };
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: EMAIL_FROM,
+        to: [to],
+        subject,
+        html,
+        ...(bcc && (Array.isArray(bcc) ? bcc.length : bcc) ? { bcc: Array.isArray(bcc) ? bcc : [bcc] } : {}),
+        ...(headers && Object.keys(headers).length ? { headers } : {})
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) return { error: data?.message || "Resend falhou" };
+    return { sent: true, resend_id: data.id };
+  } catch (err) {
+    return { error: err.message };
+  }
+}
+
+/**
  * Versão "fire and forget" — chama em background, não trava o caller.
  * Use quando o email é desejável mas não crítico pro fluxo.
  */
