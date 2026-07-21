@@ -716,3 +716,192 @@ export function tipPreviewEmail({ tip, approveUrl, articleUrl, sendDate }) {
     })
   };
 }
+
+// ─────────────────────────────────────────────────────────────
+// RESUMO SEMANAL (weekly-digest) — RESTAURADO 2026-07-20.
+// Removido por engano no refactor de dicas (commit 8fbd2b6, 17/jul),
+// o que derrubou api/cron/weekly-digest.js E api/billing.js (ambos
+// importam estas 4 funcoes). Estava fora do ar desde o deploy de sexta.
+// ─────────────────────────────────────────────────────────────
+const ARTICLES = [
+  { slug: "como-subir-no-ranking-do-google-meu-negocio", title: "Como subir no ranking do Google Meu Negócio: guia prático 2026", excerpt: "O passo a passo pra aparecer mais alto nas buscas locais." },
+  { slug: "como-pedir-avaliacao-no-google-sem-parecer-chato", title: "Como pedir avaliação no Google sem parecer chato", excerpt: "Roteiros prontos pra pedir review sem constrangimento." },
+  { slug: "como-melhorar-a-nota-no-google", title: "Como melhorar a nota no Google: do 3 ao 5 estrelas", excerpt: "O que fazer pra a média subir de verdade." },
+  { slug: "como-conseguir-mais-avaliacoes-no-google", title: "Como conseguir mais avaliações no Google: 7 estratégias", excerpt: "Táticas que realmente trazem mais avaliações." },
+  { slug: "como-aparecer-primeiro-no-google-maps", title: "Como aparecer em primeiro no Google Maps", excerpt: "Os fatores que mais pesam no ranking local." },
+];
+export function latestArticle() {
+  const a = ARTICLES[0];
+  return a ? { title: a.title, excerpt: a.excerpt, url: `https://startouch.com.br/artigos/${a.slug}` } : null;
+}
+
+// Próximo marco de avaliações (motivacional). Retorna null se já passou de tudo.
+const MILESTONES = [10, 20, 30, 50, 75, 100, 150, 200, 300, 500, 1000];
+export function nextMilestone(total) {
+  const n = Number(total) || 0;
+  const target = MILESTONES.find((m) => m > n);
+  return target ? { target, remaining: target - n } : null;
+}
+
+// Veredito da semana — tom adapta ao ritmo de coleta (newThisWeek = avaliações
+// dos últimos 7 dias). Leve quando fraco (lembrete pra equipe, sem ralhar),
+// parabéns quando bom. Obs: newThisWeek satura em 5 (Google só devolve as 5
+// mais recentes), então >=5 já é "semana excelente".
+export function weekVerdict(newThisWeek) {
+  const n = Number(newThisWeek) || 0;
+  const GREEN = { color: "#137333", bg: "#ECFDF5", border: "#A7F3D0" };
+  const AMBER = { color: "#B7791F", bg: "#FFF8E1", border: "#FCE8A6" };
+  if (n >= 5) return { ...GREEN, emoji: "🎉", title: "Que semana!", msg: "Foram 5 ou mais avaliações novas nos últimos 7 dias — esse é o ritmo que faz subir no Google. Continue assim!" };
+  if (n >= 3) return { ...GREEN, emoji: "🙌", title: "Boa semana!", msg: `${n} avaliações novas. Tá no caminho certo — mantenha o time pedindo a cada bom atendimento.` };
+  if (n >= 1) return { ...AMBER, emoji: "💪", title: "Dá pra acelerar", msg: `${n === 1 ? "1 avaliação nova" : n + " avaliações novas"} esta semana. Combine com a equipe de pedir a avaliação em todo bom atendimento — apontar o dispositivo StarTouch pro cliente já acelera.` };
+  return { ...AMBER, emoji: "📣", title: "Vamos buscar avaliações?", msg: "Nenhuma avaliação nova nos últimos 7 dias. Vale lembrar a equipe de pedir ao final de cada atendimento — com seu dispositivo StarTouch à vista, o cliente avalia em segundos." };
+}
+
+// Score StarTouch — MESMA fórmula do painel (src/AppV2.jsx → scoreBreakdown,
+// pesos 35/30/20/15). Mantida em paralelo aqui (sem módulo compartilhado
+// front/back). ⚠️ Se mudar a fórmula no painel, atualize aqui também.
+export function emailScore({ rating, reviews, total, pos, photo, phone, category }) {
+  const rt = Number(rating) || 0;
+  const rv = Number(reviews) || 0;
+  const tot = Number(total) || 0;
+  const p = Number(pos) || tot;
+  const notaPts = (rt / 5) * 35;
+  const volPts = Math.min(rv / 100, 1) * 30;
+  const posPts = tot > 0 ? ((tot - p + 1) / tot) * 20 : 10;
+  const hasPhoto = !!photo, hasPhone = !!phone, hasCat = !!category;
+  const perfilPts = (hasPhoto ? 5 : 0) + (hasPhone ? 5 : 0) + (hasCat ? 5 : 0);
+  const score = Math.max(0, Math.min(100, Math.round(notaPts + volPts + posPts + perfilPts)));
+  const missing = [];
+  if (perfilPts < 15) {
+    const f = [!hasPhoto && "foto", !hasPhone && "telefone", !hasCat && "categoria"].filter(Boolean);
+    missing.push(`complete o perfil no Google (${f.join(", ")})`);
+  }
+  if (rv < 100) missing.push("colete mais avaliações");
+  return { score, missing };
+}
+
+// Indicação — MESMO mecanismo honesto do ativar-codigo.html (link UTM +
+// mensagem pronta de WhatsApp, sem recompensa inventada, sem backend).
+// utm_campaign distingue indicações vindas do email semanal no GA4.
+const REFERRAL_LINK = "https://startouch.com.br/?utm_source=indicacao&utm_medium=whatsapp&utm_campaign=email_semanal";
+const REFERRAL_MSG = "Oi! Tô usando o StarTouch pra receber mais avaliações no Google — tá ajudando demais. Acho que ia ser útil pro seu negócio também 👉 " + REFERRAL_LINK;
+const REFERRAL_WA = "https://wa.me/?text=" + encodeURIComponent(REFERRAL_MSG);
+
+export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl }) {
+  const biz = escapeHtml(bizName || "seu negócio");
+  const note = (typeof rating === "number" && rating > 0) ? rating.toFixed(1).replace(".", ",") : "—";
+  const tot = Number(total) || 0;
+  const nw = Number(newThisWeek) || 0;
+  const t = tip || WEEKLY_TIPS[0];
+
+  const newLine = nw > 0
+    ? `<span style="color:#137333;font-weight:700;">▲ +${nw} ${nw === 1 ? "nova" : "novas"}</span>`
+    : `<span style="color:#5F6368;font-weight:600;">— nenhuma nova</span>`;
+
+  const row = (label, value) => `
+    <tr>
+      <td style="padding:11px 0;border-bottom:1px solid #eef0f3;font-size:14px;color:#5F6368;">${label}</td>
+      <td style="padding:11px 0;border-bottom:1px solid #eef0f3;font-size:15px;color:#202124;font-weight:700;text-align:right;white-space:nowrap;">${value}</td>
+    </tr>`;
+
+  const reviewsBlock = (recentReviews && recentReviews.length)
+    ? `
+      <p style="font-size:12px;font-weight:700;color:#202124;margin:22px 0 8px;text-transform:uppercase;letter-spacing:0.05em;">Últimas avaliações</p>
+      ${recentReviews.slice(0, 2).map((rv) => `
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin:0 0 8px;">
+          <tr><td style="padding:12px 14px;">
+            <div style="font-size:13.5px;color:#202124;"><strong>${escapeHtml(rv.author || "Cliente Google")}</strong> &nbsp;${starRow(rv.rating)} <span style="color:#A8B0BB;font-size:12px;">· ${escapeHtml(rv.date || "")}</span></div>
+            ${rv.text ? `<div style="font-size:13px;color:#5F6368;line-height:1.55;margin-top:4px;">"${escapeHtml(rv.text.length > 160 ? rv.text.slice(0, 160) + "…" : rv.text)}"</div>` : ""}
+          </td></tr>
+        </table>`).join("")}
+    `
+    : "";
+
+  // Veredito da semana (tom adapta ao ritmo de coleta)
+  const v = weekVerdict(nw);
+  const verdictBlock = `
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${v.bg};border:1px solid ${v.border};border-radius:12px;margin:14px 0;">
+      <tr><td style="padding:14px 16px;">
+        <div style="font-size:15px;color:${v.color};font-weight:800;margin-bottom:3px;">${v.emoji} ${escapeHtml(v.title)}</div>
+        <div style="font-size:13px;color:#5F6368;line-height:1.55;">${escapeHtml(v.msg)}</div>
+      </td></tr>
+    </table>`;
+
+  // Bloco Score StarTouch (0–100) + o que falta pros 100
+  const scoreBlock = score && typeof score.score === "number"
+    ? `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#FFF8E1;border:1px solid #FCE8A6;border-radius:12px;margin:14px 0;">
+        <tr><td style="padding:14px 16px;">
+          <div style="font-size:12px;font-weight:700;color:#B7791F;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">🏅 Seu Score StarTouch</div>
+          <div style="font-size:26px;font-weight:800;color:#202124;line-height:1;">${score.score}<span style="font-size:15px;color:#5F6368;font-weight:700;"> / 100</span></div>
+          ${score.missing && score.missing.length
+            ? `<div style="font-size:13px;color:#5F6368;line-height:1.5;margin-top:6px;">Pra subir: ${escapeHtml(score.missing[0])}. <a href="https://startouch.com.br/app?login=1" style="color:#1A73E8;text-decoration:none;font-weight:600;">Ver o que falta →</a></div>`
+            : `<div style="font-size:13px;color:#137333;font-weight:600;margin-top:6px;">Presença completa! 🎉</div>`}
+        </td></tr>
+      </table>`
+    : "";
+
+  // Linha de próximo marco de avaliações
+  const milestoneLine = milestone && milestone.remaining > 0
+    ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;margin:12px 0;"><tr><td style="padding:11px 14px;font-size:13.5px;color:#202124;line-height:1.5;">🎯 <strong>Faltam ${milestone.remaining} ${milestone.remaining === 1 ? "avaliação" : "avaliações"}</strong> pra você chegar a ${milestone.target} no Google.</td></tr></table>`
+    : "";
+
+  // Bloco artigo da semana (newsletter consolidada aqui)
+  const articleBlock = article && article.title
+    ? `
+      <p style="font-size:12px;font-weight:700;color:#202124;margin:22px 0 8px;text-transform:uppercase;letter-spacing:0.05em;">📖 Leia esta semana</p>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin:0 0 4px;">
+        <tr><td style="padding:14px 16px;">
+          <a href="${article.url}" target="_blank" style="font-size:15px;font-weight:700;color:#1A73E8;text-decoration:none;line-height:1.3;">${escapeHtml(article.title)}</a>
+          ${article.excerpt ? `<div style="font-size:13px;color:#5F6368;line-height:1.55;margin-top:5px;">${escapeHtml(article.excerpt)}</div>` : ""}
+          <div style="margin-top:8px;"><a href="${article.url}" target="_blank" style="font-size:13px;color:#1A73E8;text-decoration:none;font-weight:600;">Ler artigo →</a></div>
+        </td></tr>
+      </table>`
+    : "";
+
+  return {
+    subject: `📊 Sua semana no Google — ${biz}`,
+    html: shell({
+      title: "📊 SEU RESUMO DA SEMANA",
+      headerColor: "#1A73E8",
+      unsubUrl,
+      body: `
+        <h1 style="margin:0 0 8px;font-size:22px;color:#202124;line-height:1.3;">Como ${biz} foi essa semana</h1>
+        <p style="font-size:14.5px;color:#5F6368;line-height:1.6;margin:0 0 16px;">Um resumo rápido da sua presença no Google nos últimos 7 dias.</p>
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:6px 16px;margin:14px 0;">
+          ${row("Sua nota no Google", `${note} ⭐`)}
+          ${row("Total de avaliações", String(tot))}
+          ${row("Novas nesta semana", newLine)}
+        </table>
+
+        ${verdictBlock}
+        ${milestoneLine}
+        ${scoreBlock}
+        ${reviewsBlock}
+        ${articleBlock}
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#EAF2FE;border:1px solid #cfe0fb;border-radius:12px;margin:18px 0 4px;">
+          <tr><td style="padding:14px 16px;">
+            <div style="font-size:12px;font-weight:700;color:#1A73E8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">💡 Dica da semana</div>
+            <div style="font-size:14px;color:#202124;font-weight:700;margin-bottom:3px;">${escapeHtml(t.t)}</div>
+            <div style="font-size:13px;color:#5F6368;line-height:1.55;">${escapeHtml(t.d)}</div>
+          </td></tr>
+        </table>
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F0FBF4;border:1px solid #BBF0CD;border-radius:12px;margin:14px 0 4px;">
+          <tr><td style="padding:16px;">
+            <div style="font-size:14px;color:#202124;font-weight:700;margin-bottom:3px;">🤝 Indique para um amigo</div>
+            <div style="font-size:13px;color:#5F6368;line-height:1.55;margin-bottom:10px;">Conhece outro comércio que merece mais avaliações no Google? Indicar leva 10 segundos — e ajuda outro negócio da sua região.</div>
+            <table role="presentation" cellspacing="0" cellpadding="0"><tr><td style="border-radius:10px;background:#25D366;">
+              <a href="${REFERRAL_WA}" target="_blank" style="display:inline-block;padding:11px 22px;font-size:14px;font-weight:700;color:#fff;text-decoration:none;border-radius:10px;font-family:Arial,sans-serif;">Indicar pelo WhatsApp →</a>
+            </td></tr></table>
+          </td></tr>
+        </table>
+
+        ${cta("https://startouch.com.br/app?login=1", "Ver no painel →")}
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:8px 0 0;">Quer mais avaliações? <a href="https://startouch.com.br/kit" style="color:#1A73E8;text-decoration:none;font-weight:600;">Adicione uma placa ou cartão NFC →</a></p>
+      `
+    })
+  };
+}
