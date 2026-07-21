@@ -62,7 +62,7 @@
     "api/radar.js": { "maxDuration": 90 }
   },
   "crons": [
-    { "path": "/api/cron/review-alerts", "schedule": "0 */6 * * *" },
+    { "path": "/api/cron/review-alerts", "schedule": "0 11 * * *" },
     { "path": "/api/cron/db-health", "schedule": "0 * * * *" },
     { "path": "/api/cron/api-health", "schedule": "30 * * * *" },
     { "path": "/api/cron/weekly-digest", "schedule": "0 12 * * 1" }
