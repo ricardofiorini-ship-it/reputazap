@@ -83,4 +83,36 @@ Origem no código (a atribuição em si está **correta**; o GA4 é que não sab
 | 5 | Marcar `/avaliar` como redirecionamento (opcional) | GA4 | Painel | ⬜ Pendente |
 | 6 | Revisar conversão da `/kit` (opcional) | `public/kit.html` / `landing.html` | Código/UX | ⬜ Backlog |
 
+---
+
+## Adendo (2026-07-15) — Verificação do rastreamento de conversão
+
+Estado verificado ao vivo no GA4 e no Google Ads:
+
+- **GA4 ↔ Google Ads: vinculado ✓** (conta Star Touch 398-430-4796, desde 03/jul, publicidade personalizada ativada).
+- **Eventos-chave no GA4:** 8 marcados — `click_competitors_tab`, `click_score_details`, `diag_report`, `generate_lead`, `guest_panel_view`, `radar_land_buscar`, `radar_resultado`, `view_panel`. **`purchase` NÃO está marcado e está sem dados de streaming** (o evento não chega ao GA4).
+- **Conversões no Google Ads:** metas importadas e ativas nas 2 campanhas (padrão da conta): **Compra**, **Enviar formulário de lead**, **Engajamento**, **Visualização de página**. Resultados 0 até agora.
+
+**Problemas de configuração:**
+
+1. **Metas largas demais como principais.** "Engajamento" e "Visualização de página" guiam o lance, mas são micro-interação (não resultado). Quando voltar ao lance inteligente, o algoritmo otimizará pra clique de baixo valor. **Correção correta:** como "Engajamento"/"Visualização de página" são **metas padrão da conta**, o toggle principal/secundária no nível da ação é ignorado. O certo é, na campanha, escolher **metas de conversão específicas** (só Compra + Enviar formulário de lead) — ou remover essas duas do conjunto padrão da conta. **Sem efeito enquanto a campanha estiver em Maximizar cliques**; fazer no momento de migrar pra lance inteligente.
+2. **`purchase` sem dados no GA4 — NÃO é falta de código no cliente.** O `purchase` já é enviado **server-side** pelo `billing.js` (`sendGa4Purchase`, Measurement Protocol, disparado no webhook do MP quando o pagamento vira aprovado — implementado 2026-07-12). O `kit.html` **não** deve disparar `purchase` no cliente (duplicaria). Portanto o "sem dados" no GA4 tem 2 causas possíveis, a verificar **nesta ordem**: (a) simplesmente **não houve venda de kit** nos últimos 28 dias (volume baixo — provável); (b) **`GA4_API_SECRET` não está setada na Vercel**, então o servidor pula o envio com warning (`[ga4] GA4_API_SECRET ausente — purchase não enviado`). **Verificado (15/jul):** `?action=debug` retornou `ga4_purchase.ready: true` e `api_secret_set: true` → a env está setada e o envio server-side está ativo. Logo, o `purchase` "sem dados" no GA4 é **só volume** (nenhuma venda de kit nos últimos 28 dias), **nada a corrigir**. Confirmado também que `purchase` **já é evento-chave** no GA4 (marcação automática, não removível) e já está importado como meta "Compra" ativa nas 2 campanhas. **Conclusão: a cadeia da venda (servidor → GA4 → Ads) está completa e funcional; só falta venda pra popular.**
+3. **Falta evento de cadastro (`sign_up`).** A conversão de topo plantada em `ativar.html` precisa de um evento GA4 próprio pra virar evento-chave e meta de lead.
+
+**Ajuste de campanha já aplicado (15/jul):** "pesquisa StarTouch" recebeu **limite de CPC máximo de R$ 2,00** (estratégia Maximizar cliques). PMax segue pausada.
+
 **Dados de referência (janela 3–5/jul):** 252 sessões / ~239 usuários. Canais: Unassigned 117, Paid Search 97 (8 conv), Cross-network 18, Direct 10 (3 conv), Organic 6, Referral 4. Landing pages: `/landing` 127 sess / 61% bounce / 8 conv; `/avaliar` 109 sess / 87% bounce / 0 conv; `/app` 7 sess / 3 conv; `/kit` 1 sess / 100% bounce. Google Ads (2–4/jul vs período anterior): cliques 148 vs 86, custo R$141 vs R$90, CTR 5,4% vs 3,0%, CPC R$0,96 vs R$1,05, **0 conversões nos dois períodos**.
+
+---
+
+## Adendo (2026-07-18) — Análise de termos de pesquisa + limpeza de palavras-chave negativas
+
+**Diagnóstico (relatório de Termos de pesquisa, 30 dias 18/jun–17/jul — 34 cliques visíveis, 930 impressões, CPC R$ 1,90, R$ 64,55):** a maior parte do tráfego é de **baixa intenção de compra** — buscas DIY do tipo "como colocar/cadastrar minha empresa no Google Maps" e "anúncio no google grátis" (pessoas querendo se cadastrar de graça, não contratar ferramenta de avaliações). Vêm do grupo **"Diagnóstico - Presença Local"** com correspondência ampla. Os poucos termos com intenção certa (`qr code avaliação google`, CTR 25%) estão no grupo **"Solução - Mais Avaliações"**. Isso também explica o bounce de 61% do tráfego pago na `/landing`.
+
+**Mudanças aplicadas ao vivo na campanha `pesquisa StarTouch` (18/jul):**
+
+- **Removidas 4 palavras-chave negativas** que bloqueavam intenção de compra (QR code de avaliação = produto StarTouch): `[gerar qr code google avaliação]`, `[como criar qr code para avaliação no google]`, `[como gerar qr code de avaliações do google]`, `[como pegar o qr code de avaliação do google]`.
+- **Adicionadas 2 negativas (ampla)** pra cortar tráfego DIY de cadastro: `colocar`, `cadastrar`. Deliberadamente **sem** o negativo "como" (bloquearia os "como gerar qr code de avaliação" recém-liberados). `grátis`/`gratuito`/`curso`/`como fazer` já existiam.
+- Lista de negativas: 22 → 18 → **20**.
+
+**Configuração de campanha no momento:** PMax pausada; `pesquisa StarTouch` ativa em **Maximizar cliques** com teto de CPC **R$ 2,00**. Decisão do cliente: deixar juntar cliques uns dias e reavaliar os termos antes de novos ajustes.
