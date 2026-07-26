@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
+import { comCachePlaces, freshAutorizado, TTL } from "./_lib/places-cache.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -8,23 +9,39 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  // Sem cache — Google Places mudou ou banco mudou e queremos refletir na hora
+  // Sem cache de HTTP/CDN: o `plan` é dado nosso e muda na hora do pagamento.
+  // O que era caro (a chamada ao Google) tem cache próprio no banco, abaixo.
   res.setHeader("Cache-Control", "private, no-store, no-cache, max-age=0");
   const { place_id } = req.query;
   if (!place_id) return res.status(400).json({ error: "place_id obrigatório" });
 
   const API_KEY = process.env.PLACES_API_KEY;
   try {
-    const [googleRes, bizRes] = await Promise.all([
-      fetchWithTimeout(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,rating,user_ratings_total,photos,formatted_address,formatted_phone_number,international_phone_number,url,types&language=pt-BR&key=${API_KEY}`, {}, 6000).then(r => r.json()),
+    // O Places (Details) é a parte cara — cacheada por horas. O `plan` vem
+    // sempre do banco, fresco: é ele que libera recurso pago.
+    const [google, bizRes] = await Promise.all([
+      comCachePlaces({
+        key: `bizinfo:v1:${place_id}`,
+        ttlMs: TTL.BIZINFO,
+        fresh: freshAutorizado(req),
+        produce: async () => {
+          const r = await fetchWithTimeout(
+            `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,rating,user_ratings_total,photos,formatted_address,formatted_phone_number,international_phone_number,url,types&language=pt-BR&key=${API_KEY}`,
+            {}, 6000
+          );
+          const j = await r.json();
+          return j.result || null;   // sem result: não cacheia o "não achei"
+        }
+      }),
       supabase.from("businesses").select("plan").eq("place_id", place_id).maybeSingle()
     ]);
 
-    const result = googleRes.result;
+    const result = google.data;
     if (!result) return res.status(404).json({ error: "Negócio não encontrado" });
 
     // Photo URL pra avatar — usa a primeira foto se houver. Key fica na URL;
     // restringir o PLACES_API_KEY por HTTP referrer em GCP é recomendado.
+    // A key NÃO entra no cache: só o photo_reference é guardado.
     let photoUrl = null;
     const ref = result.photos?.[0]?.photo_reference;
     if (ref) {
@@ -45,7 +62,10 @@ export default async function handler(req, res) {
       gmapsUrl: result.url || null,
       category,
       types: result.types || [],
-      plan: bizRes.data?.plan || "free"
+      plan: bizRes.data?.plan || "free",
+      // Diagnóstico de custo: dá pra ver na resposta se veio do cache e de quando.
+      cached: google.cached,
+      measuredAt: google.measuredAt
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

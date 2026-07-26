@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from "./fetch-timeout.js";
+import { comCachePlaces, chaveDe, TTL } from "./places-cache.js";
 
 // ============================================================
 // StarTouch — Helper de busca de concorrentes (compartilhado)
@@ -593,7 +594,29 @@ export const VISIBILITY_LENSES = [
   { key: "regiao", label: "Na sua região",     radius: 3000 },
 ];
 
-export async function fetchVisibilityLenses({ placeId, keyword, cep }) {
+/**
+ * Lentes COM cache curto (6h). Cada lente custa 1 Text Search + o Details da
+ * âncora — eram 3 chamadas ao Google em TODA abertura do diagnóstico, sem
+ * guardar nada. Posição e concorrentes não mudam de hora em hora.
+ *
+ * A chave inclui os parâmetros que mudam o resultado (termo pedido e CEP da
+ * âncora); `v1` versiona o formato do payload.
+ *
+ * @param {boolean} [fresh=false] mede na hora (queima Places). Só use atrás de
+ *   segredo — ver freshAutorizado() em places-cache.js.
+ */
+export async function fetchVisibilityLenses({ placeId, keyword, cep, fresh = false }) {
+  const cepKey = (cep || "").toString().replace(/\D/g, "");
+  const { data, cached, measuredAt } = await comCachePlaces({
+    key: `lenses:v1:${placeId}|${chaveDe(keyword)}|${cepKey}`,
+    ttlMs: TTL.LENSES,
+    fresh,
+    produce: () => medirLentes({ placeId, keyword, cep })
+  });
+  return { ...data, cached, measuredAt };
+}
+
+async function medirLentes({ placeId, keyword, cep }) {
   if (!placeId) throw new Error("placeId obrigatório");
   if (!API_KEY) throw new Error("PLACES_API_KEY ausente no ambiente");
 

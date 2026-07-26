@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
+import { comCachePlaces, freshAutorizado, TTL } from "./_lib/places-cache.js";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -12,17 +13,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log("[reviews] Buscando reviews do place_id:", place_id);
-
-    const detailRes = await fetchWithTimeout(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,rating,user_ratings_total,reviews&reviews_sort=newest&language=pt-BR&key=${API_KEY}`,
-      {}, 6000
-    );
-    const detailData = await detailRes.json();
-    const result = detailData.result;
+    // Details + Atmosphere (reviews) é o tier mais caro do Places. Cache de
+    // algumas horas: o cliente não perde nada (avaliação nova não chega de
+    // minuto em minuto) e o alerta de avaliação negativa continua vindo do cron,
+    // que bate no Google direto — sem passar por aqui.
+    const { data: result, cached, measuredAt } = await comCachePlaces({
+      key: `reviews:v1:${place_id}`,
+      ttlMs: TTL.REVIEWS,
+      fresh: freshAutorizado(req),
+      produce: async () => {
+        console.log("[reviews] Buscando reviews do place_id:", place_id);
+        const detailRes = await fetchWithTimeout(
+          `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,rating,user_ratings_total,reviews&reviews_sort=newest&language=pt-BR&key=${API_KEY}`,
+          {}, 6000
+        );
+        const detailData = await detailRes.json();
+        if (!detailData.result) {
+          console.error("[reviews] Resposta do Google sem 'result':", detailData);
+          return null;   // não cacheia falha
+        }
+        return detailData.result;
+      }
+    });
 
     if (!result) {
-      console.error("[reviews] Resposta do Google sem 'result':", detailData);
       return res.status(404).json({ error: "Detalhes do negócio não encontrados" });
     }
 
@@ -30,6 +44,8 @@ export default async function handler(req, res) {
       name: result.name,
       rating: result.rating,
       total: result.user_ratings_total,
+      cached,
+      measuredAt,
       reviews: (result.reviews || []).map(r => {
         // Guard contra author_name null (Google permite reviews anônimas em alguns países)
         const name = (r.author_name || "Cliente Google").toString();
