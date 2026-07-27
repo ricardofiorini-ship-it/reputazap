@@ -167,6 +167,8 @@ export default async function handler(req, res) {
         rank: L.rank,
         total: L.total,
         inResults: L.inResults,
+        // Descartados por estarem além do raio (o radius do Google é bias, não cerca).
+        beyondRadius: L.beyondRadius ?? 0,
         // Nomes liberados (sem blur) — concorrentes são free no projeto e o dono
         // precisa ver pra validar a fidelidade do ranking.
         top: (L.top || []).slice(0, 6).map((c, i) => ({

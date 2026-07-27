@@ -555,6 +555,38 @@ async function geocodeCep(cep) {
   return null;
 }
 
+// ============================================================
+// DISTÂNCIA REAL (o `radius` do Google é BIAS, não cerca)
+// ============================================================
+// No Text Search, `radius` só INCLINA o resultado pra perto do ponto — não
+// exclui ninguém. Negócios muito proeminentes vazam de fora do raio. Caso real
+// (20/jul): no diagnóstico da Padaria Michelli (Alto de Pinheiros), a lente
+// "Na sua região (3 km)" listou a Padaria Bella Paulista (56 mil avaliações,
+// Haddock Lobo) — que fica a ~4,5 km. O rótulo prometia recorte geográfico e o
+// mecanismo entregava "o que o Google mostra a quem busca por perto", fazendo o
+// negócio de bairro parecer pior no próprio bairro.
+//
+// Conserto: depois do Text Search, descarta quem está além do raio medindo a
+// distância de verdade (haversine), como o searchbiz.js já fazia.
+const DIST_SLACK = 1.10; // 10% de folga: 3,1 km não é "fora da região"
+
+function haversineM(a, b) {
+  if (!a || !b || a.lat == null || b.lat == null) return Infinity;
+  const R = 6371000;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat), lat2 = toRad(b.lat);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+// Sem coordenada não há como medir → mantém (não descarta por falta de dado).
+function dentroDoRaio(p, anchor, radiusM) {
+  if (p.lat == null || p.lng == null) return true;
+  return haversineM(anchor, { lat: p.lat, lng: p.lng }) <= radiusM * DIST_SLACK;
+}
+
 // Roda um Text Search ancorado e devolve a ORDEM do Google (sem re-ranquear).
 async function runTextSearch(term, lat, lng, radius) {
   const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(term)}&location=${lat},${lng}&radius=${radius}&language=pt-BR&region=br&key=${API_KEY}`;
@@ -608,7 +640,10 @@ export const VISIBILITY_LENSES = [
 export async function fetchVisibilityLenses({ placeId, keyword, cep, fresh = false }) {
   const cepKey = (cep || "").toString().replace(/\D/g, "");
   const { data, cached, measuredAt } = await comCachePlaces({
-    key: `lenses:v1:${placeId}|${chaveDe(keyword)}|${cepKey}`,
+    // v2 = com corte por distância real (26/jul). Subir a versão INVALIDA o que
+    // ficou guardado no v1: senão o cache serviria por 6h justamente os gigantes
+    // distantes que acabamos de remover.
+    key: `lenses:v2:${placeId}|${chaveDe(keyword)}|${cepKey}`,
     ttlMs: TTL.LENSES,
     fresh,
     produce: () => medirLentes({ placeId, keyword, cep })
@@ -652,8 +687,16 @@ async function medirLentes({ placeId, keyword, cep }) {
 
   // 2. Roda cada lente (ordem real do Google) — em paralelo
   const lenses = await Promise.all(VISIBILITY_LENSES.map(async (L) => {
-    let raw = [];
-    try { raw = await runTextSearch(term, aLat, aLng, L.radius); } catch { raw = []; }
+    let bruto = [];
+    try { bruto = await runTextSearch(term, aLat, aLng, L.radius); } catch { bruto = []; }
+
+    // 1º corte: DISTÂNCIA REAL até a âncora (centro do CEP, ou o próprio
+    // negócio quando não há CEP). É o que o rótulo "3 km" promete.
+    // O PRÓPRIO NEGÓCIO nunca é descartado: se o centroide do CEP escorregar,
+    // jogá-lo fora zeraria a posição dele — o oposto do que queremos medir.
+    const ancora = { lat: aLat, lng: aLng };
+    const raw = bruto.filter((p) => p.place_id === placeId || dentroDoRaio(p, ancora, L.radius));
+    const beyondRadius = bruto.length - raw.length;
 
     // Filtra (só aplica se sobrar >=2). NÃO injeta o próprio negócio: a posição
     // só existe se o Places REALMENTE o retornar pra essa categoria+região. Se o
@@ -674,6 +717,9 @@ async function medirLentes({ placeId, keyword, cep }) {
       rank: idx >= 0 ? idx + 1 : null,
       inResults: idx >= 0,
       filtered,
+      // Quantos o Google devolveu de FORA do raio e foram descartados. Fica na
+      // resposta pra dar pra auditar o corte sem ter que ler log.
+      beyondRadius,
       top
     };
   }));
