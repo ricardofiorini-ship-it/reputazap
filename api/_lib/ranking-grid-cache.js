@@ -11,6 +11,12 @@ import { fetchGridRanking } from "./competitors.js";
 
 const TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
+// Versão do FORMATO/CÁLCULO do resultado guardado. Subir invalida o cache sem
+// mexer na tabela — necessário quando a medição muda de significado, senão o
+// painel serve por até 7 dias um número que a gente acabou de corrigir.
+// v2 (27/jul): pontos passam a cortar concorrentes fora do raio (haversine).
+const RESULT_V = 2;
+
 let _sb = null;
 function sb() {
   if (_sb) return _sb;
@@ -51,6 +57,9 @@ async function getCached(placeId, term) {
     // Guard de formato: entradas antigas (antes da agregação) não têm `ranking`.
     // Trata como miss → recomputa no formato novo (auto-conserta o cache velho).
     if (!data.result || data.result.ranking === undefined) return null;
+    // Guard de VERSÃO: entrada medida por uma regra anterior (ex: sem corte de
+    // distância) também é miss — número velho não pode sobreviver ao conserto.
+    if ((data.result.v || 1) < RESULT_V) return null;
     // Carimba QUANDO foi medido. Sem isso o painel mostra a posição de até 7 dias
     // atrás como se fosse a de hoje — e não há como distinguir, olhando a tela,
     // um bug de ranking de um cache velho.
@@ -104,7 +113,7 @@ export async function fetchGridRankingCached({ placeId, terms, spacingM, radius,
   if (cold.length) {
     computed = await fetchGridRanking({ placeId, terms: cold, spacingM, radius });
     await Promise.all((computed.terms || []).map((t) =>
-      setCached(placeId, t.term, { ...t, name: computed.name, center: computed.center })
+      setCached(placeId, t.term, { ...t, v: RESULT_V, name: computed.name, center: computed.center })
     ));
   }
 

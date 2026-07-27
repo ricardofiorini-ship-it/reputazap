@@ -929,13 +929,20 @@ export async function fetchGridRanking({ placeId, terms, spacingM = 1000, radius
         console.warn(`[grid] ponto ${pt.dir} descartado (${erro?.message || "erro"})`);
         return { dir: pt.dir, ok: false, rank: null, total: 0, list: [] };
       }
-      const idx = ordered.findIndex((p) => p.place_id === placeId);
+      // CORTE POR DISTÂNCIA, medido a partir DESTE ponto — não da loja. A grade
+      // pergunta "como você aparece pra quem está nesta esquina?", então quem
+      // compete ali é quem está perto DELA. Sem isso, os gigantes distantes
+      // ocupavam a fila e empurravam o negócio de bairro pra baixo: a Michelli
+      // saía 13º/14º na grade enquanto as lentes (já corrigidas) diziam 3º/5º.
+      const perto = ordered.filter((p) => p.place_id === placeId || dentroDoRaio(p, pt, radius));
+      const idx = perto.findIndex((p) => p.place_id === placeId);
       return {
         dir: pt.dir,
         ok: true,
         rank: idx >= 0 ? idx + 1 : null,   // null = ausente de verdade (NUNCA inserido)
-        total: ordered.length,
-        list: ordered.slice(0, 20),        // lista ordenada do ponto (pra agregar)
+        total: perto.length,
+        beyondRadius: ordered.length - perto.length,
+        list: perto.slice(0, 20),          // lista ordenada do ponto (pra agregar)
       };
     }));
     const pts = allPts.filter((p) => p.ok);   // só pontos realmente medidos entram na conta
@@ -987,7 +994,7 @@ export async function fetchGridRanking({ placeId, terms, spacingM = 1000, radius
     // sabemos nada; o chamador NÃO pode ler isso como "fora da lista".
     return {
       term,
-      points: allPts.map(({ dir, ok, rank, total }) => ({ dir, ok, rank, total })),
+      points: allPts.map(({ dir, ok, rank, total, beyondRadius }) => ({ dir, ok, rank, total, beyondRadius: beyondRadius || 0 })),
       avg, score, coverage: present.length, measured: nPts,
       rank, total: rankingArr.length, ranking,
     };

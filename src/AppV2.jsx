@@ -3738,9 +3738,26 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
           {gridPos ? (
             gridPos.coverage > 0 && gridPos.score != null ? (
               <>
-                <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>{gridPos.score.toFixed(1).replace('.', ',')}</div>
-                <div style={{ fontSize: 13, color: T.textMuted }}>posição média no Google</div>
-                <div style={{ fontSize: 12, color: T.textDim }}>como {gridPos.term} · aparece em {gridPos.coverage}/{gridPos.measured} pontos ao redor do seu endereço</div>
+                {/* DESTAQUE = COBERTURA (decidido 27/jul). Antes o número grande
+                    era a "posição média" penalizada: com 2 pontos em 13º/14º e 3
+                    ausências valendo 21, saía "18,0" — e o dono lia "sou o 18º".
+                    63 dos 90 pontos dessa média vinham de ausência, não de
+                    posição ruim. Cobertura é o que ele entende e pode melhorar;
+                    a posição vira detalhe, e mostrada como os ordinais REAIS
+                    (13º e 14º), não como média inventada. */}
+                <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>
+                  {gridPos.coverage}<span style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.textMuted }}> de {gridPos.measured}</span>
+                </div>
+                <div style={{ fontSize: 13, color: T.textMuted }}>pontos onde você aparece</div>
+                <div style={{ fontSize: 12, color: T.textDim }}>
+                  como {gridPos.term}
+                  {(() => {
+                    const ranks = (gridPos.points || []).filter(p => p.ok && p.rank != null).map(p => p.rank).sort((a, b) => a - b)
+                    if (!ranks.length) return null
+                    if (ranks.length <= 3) return <> · {ranks.map(r => `${r}º`).join(' e ')} onde aparece</>
+                    return <> · entre {ranks[0]}º e {ranks[ranks.length - 1]}º onde aparece</>
+                  })()}
+                </div>
                 <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button>
               </>
             ) : (
@@ -5729,7 +5746,8 @@ function RankingGrid({ data }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, color: T.text, fontWeight: 600 }}>Como {t.term}</div>
                 <div style={{ fontSize: 12.5, color: T.textMuted, marginTop: 1 }}>
-                  {t.coverage > 0 ? <>posição média <b style={{ color: T.text }}>{t.score.toFixed(1).replace('.', ',')}</b> · {t.coverage}/{t.measured} pontos</> : 'não aparece nesta busca'}
+                  {/* Mesma hierarquia do Hero: cobertura primeiro, média depois. */}
+                  {t.coverage > 0 ? <>aparece em <b style={{ color: T.text }}>{t.coverage}/{t.measured}</b> pontos · posição média {t.score.toFixed(1).replace('.', ',')}</> : 'não aparece nesta busca'}
                 </div>
               </div>
               <span style={{ fontSize: 10.5, fontWeight: 800, textTransform:'uppercase', letterSpacing:'.04em', color: s.color, background: s.bg, padding:'4px 9px', borderRadius: 999, flexShrink: 0 }}>{s.label}</span>
