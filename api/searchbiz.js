@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
+import { limitou, LIMITES } from "./_lib/rate-limit.js";
 
 // Haversine — distância em metros entre dois pontos lat/lng
 function haversine(a, b) {
@@ -71,6 +72,10 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   const { q, cep, name } = req.query;
   if (!q) return res.status(400).json({ error: "Query obrigatória" });
+
+  // Endpoint público: cada busca gasta Geocoding + Text Search (cota finita).
+  // Freio depois do 400 — requisição malformada não consome cota de ninguém.
+  if (await limitou(req, res, LIMITES.searchbiz)) return;
 
   const API_KEY = process.env.PLACES_API_KEY;
   const cepDigits = (cep || "").replace(/\D/g, "");

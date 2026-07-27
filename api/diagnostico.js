@@ -12,6 +12,7 @@
 import { fetchRankingByTerm, fetchVisibilityLenses, applyNameLocking, suggestTerms, fetchPlaceSeed } from "./_lib/competitors.js";
 import { fetchGridRankingCached } from "./_lib/ranking-grid-cache.js";
 import { freshAutorizado } from "./_lib/places-cache.js";
+import { limitou, LIMITES } from "./_lib/rate-limit.js";
 
 const gscore = (rt, rv) => (rt || 0) * Math.log10((rv || 0) + 1);
 
@@ -97,6 +98,13 @@ export default async function handler(req, res) {
   const rIn = parseInt(req.query.radius, 10);
   const radius = Number.isFinite(rIn) ? Math.min(Math.max(rIn, 500), 3000) : 3000;
   if (!placeId) return res.status(400).json({ error: "place_id obrigatório" });
+
+  // Endpoint público e o mais caro do site: uma visita pode virar 5 chamadas ao
+  // Places (grade) ou 3 (lentes). Freio por IP/hora + teto diário GLOBAL — este
+  // segundo existe porque quem quer abusar troca de IP, e desde 26/jul a cota do
+  // Google é finita: sem teto, um ataque consome a cota e derruba o painel de
+  // quem paga. O 400 acima vem antes: request malformada não gasta cota.
+  if (await limitou(req, res, LIMITES.diagnostico)) return;
 
   // Sugestão de termos (chips do formulário) a partir da categoria/nome do Google.
   if (req.query.suggest) {

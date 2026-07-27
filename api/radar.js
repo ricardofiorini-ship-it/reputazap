@@ -22,6 +22,7 @@ import { lookupCep } from "./_lib/radar/cep.js";
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { resolveRadarCategory } from "./_lib/competitors.js";
 import { maybeSendPlanoEmail } from "./_lib/radar/plano-email.js";
+import { limitou, LIMITES } from "./_lib/rate-limit.js";
 
 // Com o place_id do fluxo "ache seu negócio no Google", puxa do Places o que o
 // motor de IA precisa (nome, categoria em pt-BR, cidade) + o site (pra auditoria).
@@ -153,6 +154,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Informe nome e categoria." });
   }
 
+  // Freio durável (Postgres). O contador em memória abaixo virou reserva: ele
+  // valia por INSTÂNCIA da Vercel, então o limite real era 5 × nº de instâncias
+  // quentes. Cada diagnóstico aqui queima tokens de 3 motores de IA.
+  if (await limitou(req, res, LIMITES.radar)) return;
   if (rateLimited(getIp(req))) {
     return res.status(429).json({ error: "Muitos diagnósticos seguidos. Tente novamente em alguns minutos." });
   }

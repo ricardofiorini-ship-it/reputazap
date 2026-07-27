@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { comCachePlaces, freshAutorizado, TTL } from "./_lib/places-cache.js";
+import { limitou, LIMITES } from "./_lib/rate-limit.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -14,6 +15,10 @@ export default async function handler(req, res) {
   res.setHeader("Cache-Control", "private, no-store, no-cache, max-age=0");
   const { place_id } = req.query;
   if (!place_id) return res.status(400).json({ error: "place_id obrigatório" });
+
+  // Freio só contra laço/robô (120/h por IP). SEM teto diário global: este
+  // endpoint alimenta o painel de quem já é cliente e não pode cair num ataque.
+  if (await limitou(req, res, LIMITES.bizinfo)) return;
 
   const API_KEY = process.env.PLACES_API_KEY;
   try {

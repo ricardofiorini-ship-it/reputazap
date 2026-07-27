@@ -1,5 +1,6 @@
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { comCachePlaces, freshAutorizado, TTL } from "./_lib/places-cache.js";
+import { limitou, LIMITES } from "./_lib/rate-limit.js";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -11,6 +12,9 @@ export default async function handler(req, res) {
   if (!place_id) {
     return res.status(400).json({ error: "place_id é obrigatório" });
   }
+
+  // Igual ao bizinfo: freio contra laço, sem teto global (painel de cliente).
+  if (await limitou(req, res, LIMITES.reviews)) return;
 
   try {
     // Details + Atmosphere (reviews) é o tier mais caro do Places. Cache de
