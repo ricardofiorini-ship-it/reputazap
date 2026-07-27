@@ -5799,6 +5799,13 @@ function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGues
   const [showInfo, setShowInfo] = React.useState(false)
   const lenses = (data && data.lenses) || []
   const active = lenses.length ? lenses[Math.min(tab, lenses.length - 1)] : null
+  // Quantos concorrentes DE VERDADE (fora você) sobraram nesta lente. Desde o
+  // corte por distância real (26/jul) a lente de 1km pode ficar com pouca gente
+  // — ou só com o próprio negócio. Sem tratar, a tela fica vazia e parece
+  // quebrada, quando na verdade está dando a melhor notícia possível.
+  const rivais = (active?.top || []).filter(c => !c.isMe).length
+  const outraLenteIdx = lenses.findIndex((L, i) => i !== tab)
+  const outraLente = outraLenteIdx >= 0 ? lenses[outraLenteIdx] : null
   // GA4: ranking_not_classified_impression — 1x por (categoria, lente) não classificada.
   const firedRef = React.useRef(new Set())
   React.useEffect(() => {
@@ -5848,7 +5855,7 @@ function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGues
           {active && (
             <div>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 12, marginBottom: 8 }}>
-                <div style={{ fontSize: 12, color: T.textMuted }}>raio ~{active.radiusKm} km · {active.total} negócios</div>
+                <div style={{ fontSize: 12, color: T.textMuted }}>raio ~{active.radiusKm} km · {active.total} {active.total === 1 ? 'negócio' : 'negócios'}</div>
                 {active.inResults && (
                   <div style={{ textAlign:'right', flexShrink: 0 }}>
                     <span style={{ fontSize: 22, fontWeight: 800, color: active.rank <= 3 ? T.success : T.text, letterSpacing:'-0.02em' }}>#{active.rank}</span>
@@ -5870,6 +5877,40 @@ function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGues
                     </a>
                   </div>
                 </div>
+              )}
+              {/* SÓ VOCÊ nesse raio: não é tela vazia, é a melhor posição possível.
+                  Nasceu do corte por distância real — a lente de 1km da Padaria
+                  Michelli caiu de 20 para 3 negócios, e num bairro mais calmo
+                  pode sobrar só o próprio dono. */}
+              {active.inResults && rivais === 0 && (
+                <div style={{ display:'flex', gap: 10, alignItems:'flex-start', background: T.greenSoft, border:'1px solid #A7F3D0', borderRadius: 10, padding:'11px 12px', marginBottom: 12 }}>
+                  <span style={{ color: T.success, flexShrink: 0, marginTop: 1, display:'inline-flex' }}><Award size={18}/></span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color:'#065F46', marginBottom: 3 }}>Só o seu negócio aparece nesse raio</div>
+                    <p style={{ fontSize: 12.5, color:'#047857', lineHeight: 1.5, margin: 0 }}>
+                      {/* Sem concordância de gênero: `category` é texto livre (vem do
+                          termo de busca ou da categoria escolhida pelo dono), então
+                          "outra/outro" sairia errado em metade dos casos. */}
+                      Dentro de {active.radiusKm} km, o Google não mostra nenhum outro resultado para <b>{category || 'sua categoria'}</b>. Quem busca por aqui encontra você — ou não encontra ninguém.
+                      {outraLente && <> Pra ver com quem você disputa de fato, olhe o raio de {outraLente.radiusKm} km.</>}
+                    </p>
+                    {outraLente && (
+                      <button onClick={() => setTab(outraLenteIdx)}
+                        style={{ marginTop: 6, background:'none', border:'none', padding: 0, cursor:'pointer', fontFamily:'inherit',
+                          display:'inline-flex', alignItems:'center', gap: 3, fontSize: 12.5, fontWeight: 700, color:'#047857' }}>
+                        Ver o raio de {outraLente.radiusKm} km <ChevronRight size={14}/>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* Nem você nem concorrente: o Google não devolveu nada nesse raio.
+                  O aviso "não classificado" acima já explica o seu caso; aqui só
+                  evita a área em branco logo abaixo dele. */}
+              {!active.inResults && rivais === 0 && (
+                <p style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.5, margin:'0 0 4px' }}>
+                  O Google também não devolveu nenhum concorrente dentro de {active.radiusKm} km{outraLente ? <> — tente o raio de {outraLente.radiusKm} km.</> : '.'}
+                </p>
               )}
               {(active.top || []).map((c, i) => {
                 const meFirst = c.isMe && c.pos === 1
