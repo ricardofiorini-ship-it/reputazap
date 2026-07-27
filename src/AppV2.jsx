@@ -5623,6 +5623,12 @@ function TermBar({ term, isGuest, placeId, isMobile }) {
 function useLensesData({ placeId, term, cep, mock }) {
   const [data, setData] = React.useState(mock || null)
   const [loading, setLoading] = React.useState(!mock)
+  // FALHA TEM QUE SER VISÍVEL. Antes o erro era engolido (`.catch(() => {})`) e
+  // data ficava null — o bloco de concorrentes desaparecia calado e o dono lia
+  // "não tenho concorrente" quando a verdade era "não consegui carregar". Foi
+  // exatamente o que aconteceu em 27/jul, quando o freio por IP devolveu 429.
+  const [error, setError] = React.useState(null)
+  const [nonce, setNonce] = React.useState(0)
   React.useEffect(() => {
     if (mock) { setData(mock); setLoading(false); return }
     if (!placeId) { setLoading(false); return }
@@ -5631,10 +5637,25 @@ function useLensesData({ placeId, term, cep, mock }) {
     const url = `/api/diagnostico?lenses=1&place_id=${encodeURIComponent(placeId)}`
       + (term ? `&keyword=${encodeURIComponent(term)}` : '')
       + (cep ? `&cep=${encodeURIComponent(cep)}` : '')
-    fetch(url).then(r => r.json()).then(d => { if (!cancelled) setData(d) }).catch(() => {}).finally(() => { if (!cancelled) setLoading(false) })
+    fetch(url)
+      .then(async (r) => {
+        const d = await r.json().catch(() => null)
+        if (cancelled) return
+        // 429/500 respondem JSON válido com `error` — sem esta checagem eles
+        // passariam como "resposta ok sem lente nenhuma".
+        if (!r.ok || !d || d.error) {
+          setData(null)
+          setError({ status: r.status, message: d?.error || 'falha ao carregar' })
+          return
+        }
+        setError(null)
+        setData(d)
+      })
+      .catch(() => { if (!cancelled) { setData(null); setError({ status: 0, message: 'sem conexão' }) } })
+      .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [placeId, term, cep, mock])
-  return { data, loading }
+  }, [placeId, term, cep, mock, nonce])
+  return { data, loading, error, refetch: () => setNonce((n) => n + 1) }
 }
 
 // Info da lente "Bem perto de você" (1km) — fonte única pro Hero Coluna B.
@@ -5653,6 +5674,10 @@ function pertoLensInfo(lensData) {
 // ─────────────────────────────────────────────────────────────
 function useGridData({ placeId, terms }) {
   const [data, setData] = React.useState(null)
+  // Mesmo motivo do useLensesData: erro precisa chegar na tela, não virar
+  // silêncio. Sem isso, um 429 aqui derruba o número do Hero sem explicação.
+  const [error, setError] = React.useState(null)
+  const [nonce, setNonce] = React.useState(0)
   const termsQ = (Array.isArray(terms) ? terms : []).filter(Boolean).slice(0, 3).join(',')
   React.useEffect(() => {
     if (!placeId) { setData(null); return }
@@ -5661,13 +5686,19 @@ function useGridData({ placeId, terms }) {
       try {
         const r = await fetch('/api/diagnostico?grid=1&place_id=' + encodeURIComponent(placeId) + (termsQ ? '&terms=' + encodeURIComponent(termsQ) : ''))
         if (!alive) return
-        const d = r.ok ? await r.json() : null
+        const d = await r.json().catch(() => null)
+        if (!r.ok || !d || d.error) {
+          setData(null)
+          setError({ status: r.status, message: d?.error || 'falha ao carregar' })
+          return
+        }
+        setError(null)
         setData(d?.grid || null)
-      } catch { if (alive) setData(null) }
+      } catch { if (alive) { setData(null); setError({ status: 0, message: 'sem conexão' }) } }
     })()
     return () => { alive = false }
-  }, [placeId, termsQ])
-  return data
+  }, [placeId, termsQ, nonce])
+  return { grid: data, error, refetch: () => setNonce((n) => n + 1) }
 }
 
 // Rótulo/cor por termo (forte / melhorar / subir / oportunidade).
@@ -5791,6 +5822,34 @@ function GridRankingList({ data, isGuest, signupUrl }) {
         </div>
       )}
     </Card>
+  )
+}
+
+// Ranking indisponível (falha de rede, 429 do freio por IP, erro do Places).
+// Existe pra NUNCA mais uma falha virar "você não tem concorrente" — que é como
+// o painel se comportava até 27/jul: sumia com o bloco e não dizia nada.
+function RankingUnavailable({ status, onRetry }) {
+  const barrado = status === 429
+  return (
+    <div style={{ display:'flex', gap: 10, alignItems:'flex-start', background: T.bg, border:`1px solid ${T.border}`, borderRadius: 10, padding:'14px 14px' }}>
+      <span style={{ color: T.textMuted, flexShrink: 0, marginTop: 1, display:'inline-flex' }}><RefreshCw size={18}/></span>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 3 }}>
+          Não conseguimos medir sua posição agora
+        </div>
+        <p style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.5, margin:'0 0 8px' }}>
+          {barrado
+            ? 'Você fez muitas consultas em pouco tempo e o sistema pausou a medição. Espere alguns minutos e tente de novo.'
+            : 'A consulta ao Google não respondeu. Isso costuma ser momentâneo.'}
+          {' '}<b>Isso não significa que você não tem concorrentes</b> — é uma falha nossa de leitura.
+        </p>
+        <button onClick={onRetry}
+          style={{ background: T.surface, border:`1px solid ${T.border}`, borderRadius: 8, padding:'7px 12px', cursor:'pointer', fontFamily:'inherit',
+            display:'inline-flex', alignItems:'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: T.primary }}>
+          <RefreshCw size={14}/> Tentar de novo
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -6602,7 +6661,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   const heroPos = pertoLensInfo(lensState.data)
   // Ranking por GRADE (posição média real). Alimenta o Hero (termo principal) e o
   // card de termos extras. Uma busca só, compartilhada.
-  const gridData = useGridData({ placeId: guestContext?.placeId || d.biz?.placeId, terms: guestContext?.terms })
+  const { grid: gridData, error: gridError, refetch: refetchGrid } = useGridData({ placeId: guestContext?.placeId || d.biz?.placeId, terms: guestContext?.terms })
   // measured === 0 → o Places falhou em TODOS os pontos. Não sabemos nada; cair
   // no fallback das lentes é melhor que anunciar "Fora da lista" (que seria
   // inventar uma má notícia a partir de uma falha de infraestrutura).
@@ -6824,6 +6883,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
               Sem grade (fallback), usa as lentes 1/3km antigas. */}
           {gridPrimary ? (
             <GridRankingList data={gridPrimary} isGuest={isGuest} signupUrl={guestSignupUrl} />
+          ) : (gridError || lensState.error) && !lensState.loading && !(lensState.data?.lenses?.length) ? (
+            /* As DUAS medições falharam (ou foram barradas): mostra a falha em
+               vez de esconder o bloco e deixar parecer "sem concorrente". */
+            <RankingUnavailable
+              status={lensState.error?.status || gridError?.status}
+              onRetry={() => { refetchGrid(); lensState.refetch() }}
+            />
           ) : (
             <VisibilityLenses
               data={lensState.data}

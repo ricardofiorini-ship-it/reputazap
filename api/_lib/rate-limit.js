@@ -109,11 +109,27 @@ export async function limitou(req, res, { nome, porIpHora, globalDia }) {
   return false;
 }
 
-/** Tetos por endpoint, num lugar só. Dimensionados com ~5x de folga sobre o uso real de 26/jul. */
+/**
+ * Tetos por endpoint, num lugar só.
+ *
+ * CALIBRAÇÃO (27/jul): a 1ª versão (30/h no diagnostico) era apertada demais e
+ * barrou o próprio Ricardo testando o produto. O motivo: UMA abertura de painel
+ * dispara 2–3 chamadas ao `diagnostico` (lentes + grade + sugestão de termos),
+ * então 30/h ≈ 10 visitas/hora por IP — nada pra um dono trocando termos, ou
+ * pra duas pessoas atrás do mesmo IP (loja, café, casa).
+ *
+ * O freio continua matando laço maluco (90/h ≈ 1 chamada a cada 40s sustentada)
+ * e o teto diário continua limitando ataque com troca de IP. Quem segura o
+ * dinheiro de verdade é a cota do Google (1.000/dia) com o cache na frente —
+ * este freio aqui é o primeiro filtro, não a última linha.
+ */
 export const LIMITES = {
-  // Marketing/público, cada chamada pode virar 1–5 chamadas ao Places:
-  diagnostico: { nome: "diagnostico", porIpHora: 30, globalDia: 200 },
-  searchbiz:   { nome: "searchbiz",   porIpHora: 40, globalDia: 200 },
+  // Marketing/público, cada chamada pode virar 1–5 chamadas ao Places (mas o
+  // cache de 6h/7d absorve a maioria das repetições):
+  diagnostico: { nome: "diagnostico", porIpHora: 90, globalDia: 1000 },
+  // searchbiz NÃO tem cache (cada busca é Geocoding + Text Search de verdade),
+  // por isso segue mais curto que o diagnostico.
+  searchbiz:   { nome: "searchbiz",   porIpHora: 40, globalDia: 400 },
   // IA custa por token e é o mais caro por chamada — mantém o 5/h de antes,
   // agora valendo de verdade (era por instância).
   radar:       { nome: "radar",       porIpHora: 5,  globalDia: 100 },
