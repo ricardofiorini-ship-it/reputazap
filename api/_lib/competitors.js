@@ -443,7 +443,7 @@ export function detectFromName(name) {
  *     reviews, lat, lng, is_me }
  *   - ahead: { reviews, rating, name } | null  (quem está 1 posição acima)
  */
-export async function fetchRankingByTerm({ placeId, keyword, radius, cep }) {
+export async function fetchRankingByTerm({ placeId, keyword, radius }) {
   if (!placeId) throw new Error("placeId obrigatório");
   if (!API_KEY) throw new Error("PLACES_API_KEY ausente no ambiente");
   const safeRadius = Math.min(parseInt(radius, 10) || 3000, 25000);
@@ -467,10 +467,10 @@ export async function fetchRankingByTerm({ placeId, keyword, radius, cep }) {
     return { enough: false, total: 0, category: null, radius: safeRadius, me, myRank: null, inResults: false, ahead: null, top: [] };
   }
 
-  // Âncora: centro do CEP (igual às lentes de visibilidade). Sem CEP, ponto do negócio.
-  const cepCoordR = await geocodeCep(cep);
-  const aLat = cepCoordR?.lat ?? lat;
-  const aLng = cepCoordR?.lng ?? lng;
+  // Âncora: o ENDEREÇO DO NEGÓCIO no Google (coords exatas do place_id).
+  // NÃO o CEP digitado na busca — ver a nota "ÂNCORA" acima de medirLentes.
+  const aLat = lat;
+  const aLng = lng;
 
   // 3. Text Search do termo ancorado no local — ordem do Google
   const tsUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(term)}&location=${aLat},${aLng}&radius=${safeRadius}&language=pt-BR&region=br&key=${API_KEY}`;
@@ -541,20 +541,6 @@ function resolveTerm(keyword, meR) {
   return term;
 }
 
-// Geocodifica um CEP brasileiro → coordenadas do CENTRO do CEP (o que o Google
-// usa quando você busca "termo + CEP"). Sem CEP válido, retorna null.
-async function geocodeCep(cep) {
-  const digits = (cep || "").replace(/\D/g, "");
-  if (digits.length !== 8) return null;
-  try {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${digits}&components=country:BR&key=${API_KEY}`;
-    const r = await (await fetchWithTimeout(url, {}, 6000)).json();
-    const loc = r.results?.[0]?.geometry?.location;
-    if (loc && typeof loc.lat === "number") return { lat: loc.lat, lng: loc.lng };
-  } catch {}
-  return null;
-}
-
 // ============================================================
 // DISTÂNCIA REAL (o `radius` do Google é BIAS, não cerca)
 // ============================================================
@@ -620,7 +606,28 @@ async function runTextSearch(term, lat, lng, radius) {
   return ordered;
 }
 
-// Lentes padrão: mesma busca (CEP/região × termo), ancorada no centro do CEP.
+// ============================================================
+// ÂNCORA: o endereço do NEGÓCIO, não o CEP digitado
+// ============================================================
+// O CEP que o cliente digita na landing ("Ver minha presença") existe pra UMA
+// coisa: achar o negócio DELE entre homônimos (é âncora e corte de distância no
+// searchbiz.js, onde faz todo sentido). Ele NÃO é — e nunca foi pra ser — o
+// centro da medição de concorrência.
+//
+// Até 26/jul as lentes e o ranking do diagnóstico usavam o centroide desse CEP
+// como âncora, "pra imitar quem busca 'termo + CEP' no Google". Dois problemas:
+//   1. O centroide de um CEP cai no meio de um trecho de rua e pode ficar a
+//      centenas de metros da loja. Com o corte por distância (mesmo dia), esse
+//      desvio passou a decidir quem entra na lista de 1 km.
+//   2. O painel logado (api/competitors.js) já chamava SEM cep, ancorando no
+//      negócio — então diagnóstico e painel mediam coisas diferentes.
+// Agora as duas telas usam a MESMA âncora: as coordenadas exatas que o Google
+// devolve pro place_id. É o que "a 1 km de você" quer dizer.
+//
+// Efeito colateral bom: o CEP saiu da chave do cache, então o mesmo negócio +
+// termo reaproveita a medição independente do CEP que a pessoa digitou.
+//
+// Lentes padrão: mesmo termo em dois raios, ancoradas no negócio.
 export const VISIBILITY_LENSES = [
   { key: "perto",  label: "Bem perto de você", radius: 1000 },
   { key: "regiao", label: "Na sua região",     radius: 3000 },
@@ -631,27 +638,26 @@ export const VISIBILITY_LENSES = [
  * âncora — eram 3 chamadas ao Google em TODA abertura do diagnóstico, sem
  * guardar nada. Posição e concorrentes não mudam de hora em hora.
  *
- * A chave inclui os parâmetros que mudam o resultado (termo pedido e CEP da
- * âncora); `v1` versiona o formato do payload.
+ * A chave só precisa do que MUDA o resultado: negócio + termo. O CEP saiu dela
+ * (não é mais âncora) — mesmo negócio e mesmo termo reaproveitam a medição.
  *
  * @param {boolean} [fresh=false] mede na hora (queima Places). Só use atrás de
  *   segredo — ver freshAutorizado() em places-cache.js.
  */
-export async function fetchVisibilityLenses({ placeId, keyword, cep, fresh = false }) {
-  const cepKey = (cep || "").toString().replace(/\D/g, "");
+export async function fetchVisibilityLenses({ placeId, keyword, fresh = false }) {
   const { data, cached, measuredAt } = await comCachePlaces({
-    // v2 = com corte por distância real (26/jul). Subir a versão INVALIDA o que
-    // ficou guardado no v1: senão o cache serviria por 6h justamente os gigantes
-    // distantes que acabamos de remover.
-    key: `lenses:v2:${placeId}|${chaveDe(keyword)}|${cepKey}`,
+    // v3 = âncora no negócio e sem CEP na chave (26/jul). v2 = corte por
+    // distância. Subir a versão INVALIDA o que ficou guardado: senão o cache
+    // serviria por 6h medições ancoradas no CEP errado.
+    key: `lenses:v3:${placeId}|${chaveDe(keyword)}`,
     ttlMs: TTL.LENSES,
     fresh,
-    produce: () => medirLentes({ placeId, keyword, cep })
+    produce: () => medirLentes({ placeId, keyword })
   });
   return { ...data, cached, measuredAt };
 }
 
-async function medirLentes({ placeId, keyword, cep }) {
+async function medirLentes({ placeId, keyword }) {
   if (!placeId) throw new Error("placeId obrigatório");
   if (!API_KEY) throw new Error("PLACES_API_KEY ausente no ambiente");
 
@@ -675,12 +681,10 @@ async function medirLentes({ placeId, keyword, cep }) {
   const term = resolveTerm(keyword, meR);
   if (!term) return { term: null, me, lenses: [] };
 
-  // Âncora: centro do CEP (igual à busca manual "termo + CEP" no Google).
-  // Sem CEP válido, cai pro ponto do próprio negócio.
-  const cepCoord = await geocodeCep(cep);
-  const aLat = cepCoord?.lat ?? lat;
-  const aLng = cepCoord?.lng ?? lng;
-  const anchoredAtCep = !!cepCoord;
+  // Âncora = o próprio negócio (coords exatas do Google). Ver a nota "ÂNCORA"
+  // acima: o CEP digitado serve pra ACHAR o negócio, não pra medir a região.
+  const aLat = lat;
+  const aLng = lng;
 
   // Filtro de categoria/intenção (tipo primário igual + guard de nome).
   const keep = makeCategoryFilter(meR, placeId);
@@ -690,10 +694,9 @@ async function medirLentes({ placeId, keyword, cep }) {
     let bruto = [];
     try { bruto = await runTextSearch(term, aLat, aLng, L.radius); } catch { bruto = []; }
 
-    // 1º corte: DISTÂNCIA REAL até a âncora (centro do CEP, ou o próprio
-    // negócio quando não há CEP). É o que o rótulo "3 km" promete.
-    // O PRÓPRIO NEGÓCIO nunca é descartado: se o centroide do CEP escorregar,
-    // jogá-lo fora zeraria a posição dele — o oposto do que queremos medir.
+    // 1º corte: DISTÂNCIA REAL até o negócio. É o que "a 1 km de você" promete.
+    // O PRÓPRIO NEGÓCIO nunca é descartado (distância 0 dele mesmo, mas a guarda
+    // fica: protege caso o Google devolva coordenada estranha).
     const ancora = { lat: aLat, lng: aLng };
     const raw = bruto.filter((p) => p.place_id === placeId || dentroDoRaio(p, ancora, L.radius));
     const beyondRadius = bruto.length - raw.length;
@@ -724,7 +727,7 @@ async function medirLentes({ placeId, keyword, cep }) {
     };
   }));
 
-  return { term, me, lenses, anchoredAtCep, category: primarySpecificType(meR.types) };
+  return { term, me, lenses, anchoredAt: "negocio", category: primarySpecificType(meR.types) };
 }
 
 /**

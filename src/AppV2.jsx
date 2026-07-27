@@ -5831,7 +5831,7 @@ function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGues
       </div>
       {showInfo && (
         <div style={{ fontSize: 12, color: T.textMuted, lineHeight: 1.5, marginBottom: 12, background: T.bg, border:`1px solid ${T.border}`, borderRadius: 10, padding:'10px 12px' }}>
-          Amostra da concorrência via Google Places, filtrada pela sua categoria{data && data.anchoredAtCep ? ', ancorada no centro do seu CEP' : ''}. Não é o ranking exato do Google Maps — ele varia conforme quem busca e de onde. Estamos finalizando a medição exata.
+          Amostra da concorrência via Google Places, filtrada pela sua categoria e medida a partir do endereço do seu negócio no Google. Não é o ranking exato do Google Maps — ele varia conforme quem busca e de onde. Estamos finalizando a medição exata.
         </div>
       )}
 
@@ -6588,7 +6588,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     const me = (d.ranking || []).find(r => r.you)
     const top = (d.ranking || []).map(r => ({ pos: r.pos, name: r.name, rating: r.rating, reviews: r.reviews, isMe: !!r.you }))
     const lens = (key, label, radiusKm, total) => ({ key, label, radiusKm, total, rank: me ? me.pos : null, inResults: !!me, top })
-    return { lenses: [lens('perto', 'Bem perto de você', 1, 8), lens('regiao', 'Na sua região', 3, 12)], anchoredAtCep: true }
+    return { lenses: [lens('perto', 'Bem perto de você', 1, 8), lens('regiao', 'Na sua região', 3, 12)], anchoredAt: 'negocio' }
   }, [demoMode, d])
 
   // Lentes 1/3km — busca ÚNICA, compartilhada entre o Hero (Coluna B) e o bloco

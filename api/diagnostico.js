@@ -93,7 +93,9 @@ export default async function handler(req, res) {
 
   const placeId = req.query.place_id || req.query.place;
   const keyword = (req.query.keyword || "").trim();
-  const cep = (req.query.cep || "").toString();
+  // `?cep=` ainda pode chegar do front (é usado na BUSCA do negócio, em
+  // searchbiz), mas aqui é ignorado de propósito: a medição ancora no endereço
+  // do negócio no Google. Ver a nota "ÂNCORA" em _lib/competitors.js.
   // Diagnóstico trava em até 3km (recorte fiel ao que o cliente percorre).
   const rIn = parseInt(req.query.radius, 10);
   const radius = Number.isFinite(rIn) ? Math.min(Math.max(rIn, 500), 3000) : 3000;
@@ -159,7 +161,7 @@ export default async function handler(req, res) {
       // viraria conta no Google.
       const fresh = freshAutorizado(req);
       if (fresh) res.setHeader("Cache-Control", "no-store");
-      const vis = await fetchVisibilityLenses({ placeId, keyword, cep, fresh });
+      const vis = await fetchVisibilityLenses({ placeId, keyword, fresh });
       const lenses = (vis.lenses || []).map((L) => ({
         key: L.key,
         label: L.label,
@@ -183,7 +185,8 @@ export default async function handler(req, res) {
         ok: true,
         term: vis.term,
         name: vis.me?.name || null,
-        anchoredAtCep: !!vis.anchoredAtCep,
+        // Medição ancorada no endereço do negócio no Google (não no CEP digitado).
+        anchoredAt: vis.anchoredAt || "negocio",
         lenses,
         cached: !!vis.cached,
         measuredAt: vis.measuredAt || null
@@ -195,7 +198,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const snap = await fetchRankingByTerm({ placeId, keyword, radius, cep });
+    const snap = await fetchRankingByTerm({ placeId, keyword, radius });
 
     if (!snap.enough) {
       return res.json({
