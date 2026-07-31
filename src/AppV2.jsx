@@ -7,7 +7,7 @@ import {
   Download, Send, FileText, Radar, Sparkles, Key, Gift, DoorOpen, Map, CreditCard,
   Image as ImageIcon, Store, PartyPopper, Construction, Monitor, Bookmark, RefreshCw,
   Truck, ShieldCheck, Siren, ClipboardList, Inbox, Tag, UtensilsCrossed, Hand, ChevronRight,
-  Smartphone, QrCode
+  Smartphone, QrCode, Pencil
 } from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────
@@ -4838,7 +4838,43 @@ const PRODUCT_SHOWCASE = [
 function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, isMobile }) {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [showCode, setShowCode] = React.useState(false)
+  // Renomear apelido (30/jul): o nome era escrito só na ativação e ficava preso.
+  // `renamed` guarda o que já salvamos nesta sessão pra lista refletir na hora,
+  // sem recarregar a página — a lista vem por prop de cima.
+  const [editingId, setEditingId] = React.useState(null)
+  const [draft, setDraft] = React.useState('')
+  const [savingId, setSavingId] = React.useState(null)
+  const [renameError, setRenameError] = React.useState('')
+  const [renamed, setRenamed] = React.useState({})
   const platesList = (plates || []).slice().sort((a,b) => (b.total_taps || 0) - (a.total_taps || 0))
+
+  function startEdit(p) {
+    setRenameError('')
+    setEditingId(p.id)
+    setDraft(nickOf(p) || '')
+  }
+  // Apelido corrente: o que salvamos nesta sessão vence o que veio na prop.
+  function nickOf(p) {
+    return Object.prototype.hasOwnProperty.call(renamed, p.id) ? renamed[p.id] : p.channel_name
+  }
+  async function saveNick(p) {
+    const nick = draft.trim()
+    if (nick.length > 40) { setRenameError('O apelido pode ter no máximo 40 caracteres.'); return }
+    if (nick === (nickOf(p) || '')) { setEditingId(null); return }  // nada mudou
+    setSavingId(p.id); setRenameError('')
+    try {
+      const r = await apiCall('/api/plates?action=rename-plate', {
+        method: 'POST',
+        body: JSON.stringify({ plate_id: p.id, channel_name: nick || null })
+      })
+      setRenamed(prev => ({ ...prev, [p.id]: r?.plate?.channel_name ?? (nick || null) }))
+      setEditingId(null)
+    } catch (err) {
+      setRenameError(err.message || 'Não deu pra salvar o nome. Tente de novo.')
+    } finally {
+      setSavingId(null)
+    }
+  }
   const total = platesList.reduce((s, p) => s + (p.total_taps || 0), 0)
   const isEmpty = platesList.length === 0
   const hasReviews = (reviewCount || 0) > 0  // tom de ACELERADOR (não "falta pré-requisito")
@@ -4927,7 +4963,7 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
                 {total === 0
                   ? `Posicione ${hasMultiple ? 'os dispositivos' : 'o dispositivo'} num lugar visível e peça pra avaliarem.`
                   : hasMultiple
-                  ? `${platesList.length} dispositivos ativos · ${topPlate?.channel_name || 'o dispositivo principal'} é o campeão`
+                  ? `${platesList.length} dispositivos ativos · ${(topPlate && nickOf(topPlate)) || 'o dispositivo principal'} é o campeão`
                   : 'Continue assim! Cada toque pode virar uma avaliação no Google.'}
               </div>
             </div>
@@ -4951,7 +4987,9 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
             {platesList.map((p, idx) => {
               const taps = p.total_taps || 0
               const isTop = hasMultiple && idx === 0 && taps > 0
-              const displayName = p.channel_name || (PRODUCT_LABELS[p.product_type] || 'Dispositivo')
+              const displayName = nickOf(p) || (PRODUCT_LABELS[p.product_type] || 'Dispositivo')
+              const isEditing = editingId === p.id
+              const isSaving = savingId === p.id
               const productLabel = PRODUCT_LABELS[p.product_type] || p.product_type
               return (
                 <div key={p.id} style={{
@@ -4972,12 +5010,57 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
                         : { maxWidth:'100%', maxHeight:'100%', objectFit:'contain', display:'block' }}/>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap' }}>
-                      <span style={{ fontSize: 15, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>
-                        {displayName}
-                      </span>
-                      {isTop && <span style={{ fontSize: 10.5, fontWeight: 800, color: T.blueDk, background:'#fff', padding:'1px 7px', borderRadius: 4 }}>MAIS USADA</span>}
-                    </div>
+                    {isEditing ? (
+                      <form onSubmit={(e) => { e.preventDefault(); saveNick(p) }}
+                        style={{ display:'flex', alignItems:'center', gap: 6, flexWrap:'wrap' }}>
+                        <input
+                          autoFocus
+                          value={draft}
+                          onChange={(e) => setDraft(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Escape') { setEditingId(null); setRenameError('') } }}
+                          maxLength={40}
+                          disabled={isSaving}
+                          placeholder={PRODUCT_LABELS[p.product_type] || 'Dispositivo'}
+                          aria-label="Nome do dispositivo"
+                          style={{
+                            flex:'1 1 140px', minWidth: 0, fontSize: 15, fontWeight: 700, color: T.text,
+                            fontFamily:"'Inter', sans-serif", padding:'5px 9px', borderRadius: 8,
+                            border:`1.5px solid ${T.blue}`, outline:'none', background:'#fff'
+                          }}/>
+                        <button type="submit" disabled={isSaving} style={{
+                          background: T.blue, color:'#fff', border:'none', borderRadius: 8,
+                          padding:'6px 12px', fontSize: 12.5, fontWeight: 700,
+                          cursor: isSaving ? 'default' : 'pointer', opacity: isSaving ? 0.6 : 1,
+                          fontFamily:"'Inter', sans-serif"
+                        }}>{isSaving ? 'Salvando…' : 'Salvar'}</button>
+                        <button type="button" disabled={isSaving}
+                          onClick={() => { setEditingId(null); setRenameError('') }}
+                          style={{
+                            background:'transparent', color: T.textMid, border:'none', borderRadius: 8,
+                            padding:'6px 8px', fontSize: 12.5, fontWeight: 500, cursor:'pointer'
+                          }}>Cancelar</button>
+                      </form>
+                    ) : (
+                      <div style={{ display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap' }}>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>
+                          {displayName}
+                        </span>
+                        <button type="button" onClick={() => startEdit(p)}
+                          title="Mudar o nome deste dispositivo"
+                          aria-label={`Mudar o nome de ${displayName}`}
+                          style={{
+                            background:'transparent', border:'none', padding: 4, margin: -4,
+                            cursor:'pointer', color: T.textDim, display:'inline-flex', alignItems:'center',
+                            lineHeight: 1, borderRadius: 6
+                          }}>
+                          <Pencil size={13}/>
+                        </button>
+                        {isTop && <span style={{ fontSize: 10.5, fontWeight: 800, color: T.blueDk, background:'#fff', padding:'1px 7px', borderRadius: 4 }}>MAIS USADA</span>}
+                      </div>
+                    )}
+                    {isEditing && renameError && (
+                      <div style={{ fontSize: 11.5, color: T.danger, marginTop: 4 }}>{renameError}</div>
+                    )}
                     <div style={{ fontSize: 12, color: T.textMid, marginTop: 2 }}>
                       {productLabel}{p.last_tapped_at && taps > 0 ? ' · último toque ' + relativeDate(p.last_tapped_at) : ''}
                     </div>

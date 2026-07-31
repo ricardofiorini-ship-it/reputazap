@@ -1,7 +1,7 @@
 // ============================================================
 // StarTouch — API de placas (dispatcher por ?action=)
 // Actions admin: create-batch | list-batches | list-stock
-// Action cliente: activate (ETAPA 7)
+// Actions cliente: activate (ETAPA 7) | my-businesses | my-plates | rename-plate
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { generateBatchCodes } from "./_lib/plates.js";
@@ -311,6 +311,62 @@ async function handleMyPlates(req, res, user) {
   return res.json({ ok: true, plates: data || [] });
 }
 
+// ── CLIENTE: renomear o apelido de um dispositivo ───────────
+// Até 30/jul o apelido só podia ser escrito UMA vez, na ativação — quem errava
+// (ou mudava a placa de lugar) ficava preso ao nome antigo. Aqui só o
+// `channel_name` muda: código, vínculo, status e contagem de toques não são
+// tocados — o apelido é etiqueta, não identidade da placa.
+const MAX_NICK = 40;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function handleRenamePlate(req, res, user) {
+  if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
+  const { plate_id, channel_name } = req.body || {};
+  // Guarda o formato antes de ir no banco: id fora do padrão UUID faria o
+  // Postgres estourar (22P02) e virar um 500 sem sentido pro cliente.
+  if (!plate_id || !UUID_RE.test(String(plate_id))) {
+    return res.status(400).json({ error: "plate_id inválido" });
+  }
+
+  // Apelido vazio volta pro nome padrão do produto — é opcional, igual na ativação.
+  const raw = channel_name == null ? "" : String(channel_name).trim();
+  if (raw.length > MAX_NICK) {
+    return res.status(400).json({ error: `O apelido pode ter no máximo ${MAX_NICK} caracteres` });
+  }
+  const nick = raw || null;
+
+  const { data: plate, error: plateErr } = await supabase
+    .from("plates")
+    .select("id, business_id")
+    .eq("id", plate_id)
+    .maybeSingle();
+  if (plateErr) return res.status(500).json({ error: plateErr.message });
+  if (!plate) return res.status(404).json({ error: "Dispositivo não encontrado" });
+  if (!plate.business_id) return res.status(400).json({ error: "Esse dispositivo ainda não foi ativado" });
+
+  // DONO: a placa precisa estar num negócio DESTE usuário. Sem essa checagem,
+  // qualquer logado renomearia placa alheia — a rota roda com SERVICE_KEY e
+  // passa por cima do RLS.
+  const { data: biz, error: bizErr } = await supabase
+    .from("businesses")
+    .select("id")
+    .eq("id", plate.business_id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (bizErr) return res.status(500).json({ error: bizErr.message });
+  if (!biz) return res.status(403).json({ error: "Esse dispositivo não é seu" });
+
+  const { data: updated, error: updErr } = await supabase
+    .from("plates")
+    .update({ channel_name: nick })
+    .eq("id", plate.id)
+    .select("id, code, channel_name")
+    .single();
+  if (updErr) return res.status(500).json({ error: updErr.message });
+
+  return res.json({ ok: true, plate: updated });
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -329,8 +385,9 @@ export default async function handler(req, res) {
       case "activate":       return await handleActivate(req, res, auth.user);
       case "my-businesses":  return await handleMyBusinesses(req, res, auth.user);
       case "my-plates":      return await handleMyPlates(req, res, auth.user);
+      case "rename-plate":   return await handleRenamePlate(req, res, auth.user);
       default:
-        return res.status(400).json({ error: "Unknown action. Use ?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates" });
+        return res.status(400).json({ error: "Unknown action. Use ?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates|rename-plate" });
     }
   } catch (err) {
     console.error("[plates] erro não tratado:", err);
