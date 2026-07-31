@@ -6562,22 +6562,54 @@ function inpStyle() {
 // pros 100?". Cada fator traz earned/max + uma ação acionável pra fechar o gap.
 //   • Nota Google       — 35 pts  (nota/5 × 35)
 //   • Volume avaliações — 30 pts  (satura em 100 avaliações)
-//   • Posição categoria — 20 pts  (melhor posição = mais pts)
+//   • Lugar no Google   — 20 pts  (posição média da GRADE: 1,0 = 20, 21 = 0)
 //   • Perfil completo   — 15 pts  (5 cada: foto · telefone · categoria no Google)
 function scoreBreakdown(d) {
   const rating  = d.kpis?.rating || 0
   const reviews = d.kpis?.reviewCount || 0
-  const total   = d.kpis?.totalCompetitors || 0
-  const pos     = d.kpis?.rankingPos || total
   const bi = d.businessInfo || {}
 
   // 1) Nota — 35
   const notaPts = (rating / 5) * 35
   // 2) Volume — 30 (satura em 100 avaliações)
   const volPts = Math.min(reviews / 100, 1) * 30
-  // 3) Posição — 20 (sem ranking ainda: meio termo de 10)
-  const hasRank = total > 0
-  const posPts = hasRank ? ((total - pos + 1) / total) * 20 : 10
+
+  // 3) Posição — 20. DUAS COISAS MUDARAM EM 30/JUL:
+  //
+  // (a) FONTE. Vinha de `d.kpis.rankingPos` (/api/competitors: um raio só, ordem
+  //     crua do Google), que discorda da GRADE que o Hero mostra. O painel dizia
+  //     "1º de 13" no topo e computava os pontos como se ele fosse 3º — o número
+  //     grande do painel era calculado por uma medição que a própria tela
+  //     contradizia. Agora sai da grade, igual ao Hero e à lista (`d.gridPos`).
+  //
+  // (b) CONTA: relativa → absoluta. A antiga era (total-pos+1)/total, que
+  //     dependia de quantos vizinhos por acaso foram medidos: 1º de 4 valia os
+  //     mesmos 20 pts que 1º de 50, e 3º de 4 (10 pts) valia MENOS que 3º de 50
+  //     (19,2 pts). Quanto mais deserto o bairro, mais barato o ponto — e o
+  //     score deixava de ser comparável entre dois clientes. Agora usa a POSIÇÃO
+  //     MÉDIA da grade (o mesmo "Lugar no Google" da tabela; ausência num ponto
+  //     conta como 21ª): 1,0 → 20 pts, 11,0 → 10 pts, 21 → 0.
+  //
+  // Fonte na MESMA ordem do Hero: grade → lente de 1km → nada (10 pts neutros).
+  // `d.kpis.rankingPos` saiu da conta inteira, nem como último recurso: nenhum
+  // estado do Hero mostra aquele número, então mantê-lo aqui só garantiria a
+  // contradição de volta num dia de 429.
+  const g = d.gridPos
+  const gridAvg = (g && g.coverage > 0 && g.score != null) ? g.score : null
+  // Medido em pelo menos 1 ponto e não apareceu em NENHUM: sabemos que está
+  // fora, não é falta de dado. Dar os 10 pts "neutros" aqui seria premiar o pior
+  // caso — o Hero já diz "Fora da lista" na cara dele.
+  const gridForaDeTudo = !!(g && g.measured > 0 && g.coverage === 0)
+  // Fallback (grade falhou/429): a lente de 1km, que é o que o Hero mostra nesse
+  // estado. Ordinal dentro do raio → conta relativa, a única possível aqui.
+  const lp = d.lensPos
+  const lens = (!g && lp && lp.inResults && lp.rank != null && lp.total > 0) ? lp : null
+  const posPts =
+      gridAvg != null ? Math.max(0, Math.min(1, (21 - gridAvg) / 20)) * 20
+    : gridForaDeTudo  ? 0
+    : lens            ? ((lens.total - lens.rank + 1) / lens.total) * 20
+    : 10                                           // sem medição nenhuma: meio termo honesto
+
   // 4) Perfil completo — 15 (5 cada: foto, telefone, categoria)
   const hasPhoto = !!bi.photoUrl
   const hasPhone = !!(bi.phone && String(bi.phone).trim())
@@ -6605,12 +6637,24 @@ function scoreBreakdown(d) {
         : `Colete mais avaliações com as placas e cartões NFC${reviews < 100 ? ` (faltam ~${100 - reviews} pra a pontuação cheia)` : ''}.`
     },
     {
-      key: 'posicao', icon: 'mappin', label: 'Posição na sua categoria',
+      // Mesmo nome e mesmo número da tabela de concorrentes ("Lugar no Google").
+      key: 'posicao', icon: 'mappin', label: 'Seu lugar no Google',
       earned: Math.round(posPts), max: 20,
-      detail: hasRank ? `#${pos} de ${total} negócios por perto.` : 'Ainda sem dados de concorrentes por perto.',
-      hint: hasRank
-        ? 'Suba coletando mais avaliações que os vizinhos da mesma categoria.'
-        : 'Assim que houver concorrentes mapeados, sua posição entra na conta.'
+      detail: gridAvg != null
+        ? `Você aparece, em média, na posição ${gridAvg.toFixed(1).replace('.', ',')} nas buscas por ${g.term} aqui perto.`
+        : gridForaDeTudo
+          ? `Você não aparece em nenhum dos ${g.measured} pontos que medimos na busca por ${g.term}.`
+          : lens ? `${lens.rank}º de ${lens.total} negócios bem perto de você.`
+          : 'Ainda não conseguimos medir sua posição.',
+      hint: gridAvg != null
+        ? (gridAvg <= 3
+            ? 'Você já aparece no topo — continue coletando avaliações pra não perder o lugar.'
+            : 'O que mais move essa posição: perfil completo no Google e avaliações novas toda semana.')
+        : gridForaDeTudo
+          ? 'Confira se a categoria do seu Google é a que as pessoas de fato buscam e complete o perfil — sem aparecer, o resto rende pouco.'
+          : lens
+            ? 'O que mais move essa posição: perfil completo no Google e avaliações novas toda semana.'
+            : 'Assim que a medição rodar, sua posição entra na conta.'
     },
     {
       key: 'perfil', icon: 'id', label: 'Perfil completo no Google',
@@ -6919,6 +6963,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   // inventar uma má notícia a partir de uma falha de infraestrutura).
   const gp = gridData?.terms?.[0]
   const gridPrimary = gp && gp.measured > 0 ? gp : null
+  // Pendura a grade no `d` pra o Score StarTouch enxergar a MESMA posição do Hero
+  // (ver a nota longa em scoreBreakdown). Feito por injeção, e não trocando a
+  // assinatura de scoreBreakdown, porque ela é chamada de 3 lugares (Hero, modal
+  // do score, ação da semana) e todos recebem `d`: mudar 3 assinaturas é convite
+  // pra um deles ficar lendo a fonte velha e o painel voltar a se contradizer.
+  // Seguro: buildData() devolve um objeto novo a cada render, não um compartilhado.
+  d.gridPos = gridPrimary
+  d.lensPos = heroPos      // fallback do score quando a grade falha (mesmo do Hero)
   // ARGUMENTO DO CONVIDADO (tarja + exit-intent) — FONTE ÚNICA COM O HERO.
   // Bug de 30/jul: a tarja vinha de `d.kpis` (ranking do /api/competitors, que é
   // outra arena: um raio só, ordem crua do Google) enquanto o Hero vinha da
@@ -6941,14 +6993,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         return { rank: i + 1, total, gap: gap || null }
       }
     }
-    // Sem grade: mantém o comportamento antigo (melhor que tarja genérica).
-    if (!hasComp) return { rank: null, total: null, gap: null }
-    return {
-      rank: d.kpis.rankingPos ?? null,
-      total: d.kpis.totalCompetitors ?? null,
-      gap: d.kpis.nextGoal?.reviewsToNext ?? null
-    }
-  }, [gridPrimary, hasComp, d])
+    // SEM GRADE → tarja GENÉRICA, de propósito. A tentação é cair no
+    // /api/competitors pra não perder a personalização, mas ali o negócio pode
+    // ser "1º" numa arena onde o Hero (que nesse estado mostra a lente de 1km)
+    // diz que ele é 3º — e a tarja gritaria liderança contra a própria tela.
+    // Argumento específico só com a medição que está na tela; senão, genérico.
+    return { rank: null, total: null, gap: null }
+  }, [gridPrimary])
 
   // Categoria mostrada e URL do perfil do Google (p/ "corrigir categoria" / "Responder").
   const lensCategory = lensState.data?.term || d.activeCategory || 'sua categoria'
