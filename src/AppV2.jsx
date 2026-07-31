@@ -3738,26 +3738,51 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
           {gridPos ? (
             gridPos.coverage > 0 && gridPos.score != null ? (
               <>
-                {/* DESTAQUE = COBERTURA (decidido 27/jul). Antes o número grande
-                    era a "posição média" penalizada: com 2 pontos em 13º/14º e 3
-                    ausências valendo 21, saía "18,0" — e o dono lia "sou o 18º".
-                    63 dos 90 pontos dessa média vinham de ausência, não de
-                    posição ruim. Cobertura é o que ele entende e pode melhorar;
-                    a posição vira detalhe, e mostrada como os ordinais REAIS
-                    (13º e 14º), não como média inventada. */}
-                <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>
-                  {gridPos.coverage}<span style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.textMuted }}> de {gridPos.measured}</span>
-                </div>
-                <div style={{ fontSize: 13, color: T.textMuted }}>pontos onde você aparece</div>
-                <div style={{ fontSize: 12, color: T.textDim }}>
-                  como {gridPos.term}
-                  {(() => {
-                    const ranks = (gridPos.points || []).filter(p => p.ok && p.rank != null).map(p => p.rank).sort((a, b) => a - b)
-                    if (!ranks.length) return null
-                    if (ranks.length <= 3) return <> · {ranks.map(r => `${r}º`).join(' e ')} onde aparece</>
-                    return <> · entre {ranks[0]}º e {ranks[ranks.length - 1]}º onde aparece</>
-                  })()}
-                </div>
+                {/* QUAL NÚMERO VAI GRANDE: o que carrega a NOTÍCIA (27/jul, 2ª rodada).
+                    1ª tentativa foi "posição média" penalizada: a Michelli via
+                    "18,0" e leu "sou o 18º" (63 dos 90 pontos vinham de ausência).
+                    2ª foi cobertura sempre: a bikeweb, que é a MELHOR do bairro,
+                    via "5 de 5 pontos onde você aparece" — prêmio de participação,
+                    enterrando a boa notícia. Ricardo: "está espantando clientes".
+                    Agora:
+                      · aparece em TODOS os pontos → manchete é a POSIÇÃO na região
+                        ("1º de 9"), que é a pergunta do dono, com a média ao lado
+                        pra não esconder o viés de auto-centragem;
+                      · falta ponto → manchete é a COBERTURA, porque aí a notícia
+                        é a ausência, não a posição. */}
+                {(() => {
+                  const cheia = gridPos.coverage >= gridPos.measured
+                  const temOrdinal = gridPos.rank != null && gridPos.total > 1
+                  const media = gridPos.score != null ? gridPos.score.toFixed(1).replace('.', ',') : null
+                  if (cheia && temOrdinal) return (
+                    <>
+                      <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: gridPos.rank <= 3 ? T.success : T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>
+                        {gridPos.rank}º<span style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.textMuted }}> de {gridPos.total}</span>
+                      </div>
+                      <div style={{ fontSize: 13, color: T.textMuted }}>na sua região, como {gridPos.term}</div>
+                      <div style={{ fontSize: 12, color: T.textDim }}>
+                        você aparece nos {gridPos.measured} pontos medidos{media ? <> · posição média {media}</> : null}
+                      </div>
+                    </>
+                  )
+                  return (
+                    <>
+                      <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.accent, lineHeight: 1, letterSpacing:'-0.02em' }}>
+                        {gridPos.coverage}<span style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.textMuted }}> de {gridPos.measured}</span>
+                      </div>
+                      <div style={{ fontSize: 13, color: T.textMuted }}>pontos onde você aparece</div>
+                      <div style={{ fontSize: 12, color: T.textDim }}>
+                        como {gridPos.term}
+                        {(() => {
+                          const ranks = (gridPos.points || []).filter(p => p.ok && p.rank != null).map(p => p.rank).sort((a, b) => a - b)
+                          if (!ranks.length) return null
+                          if (ranks.length <= 3) return <> · {ranks.map(r => `${r}º`).join(' e ')} onde aparece</>
+                          return <> · entre {ranks[0]}º e {ranks[ranks.length - 1]}º onde aparece</>
+                        })()}
+                      </div>
+                    </>
+                  )
+                })()}
                 <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button>
               </>
             ) : (
