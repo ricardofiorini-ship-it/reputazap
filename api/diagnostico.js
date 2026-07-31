@@ -11,8 +11,55 @@
 // ============================================================
 import { fetchRankingByTerm, fetchVisibilityLenses, applyNameLocking, suggestTerms, fetchPlaceSeed } from "./_lib/competitors.js";
 import { fetchGridRankingCached } from "./_lib/ranking-grid-cache.js";
-import { freshAutorizado } from "./_lib/places-cache.js";
+import { freshAutorizado, TTL } from "./_lib/places-cache.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
+import { createClient } from "@supabase/supabase-js";
+
+// ── Plano de quem está perguntando (30/jul) ─────────────────
+// A rota segue PÚBLICA: sem token, responde igual a sempre. O token só é lido
+// pra decidir de quanto em quanto tempo a medição pode ser refeita:
+//
+//   anon  → 6h   (visitante no diagnóstico da landing: é o funil, não mexer)
+//   free  → 7 dias  (uma medição por semana — o que o site promete)
+//   pro   → 6h + pode forçar "medir agora"
+//
+// Free logado ficar mais lento que anônimo é uma brecha conhecida: dá pra sair
+// da conta e remedir pelo diagnóstico público. Aceita de propósito — fechar
+// custaria degradar o funil de captação, que vale mais. Os freios por IP/dia
+// continuam limitando o estrago.
+let _sbDiag = null;
+function sbDiag() {
+  if (_sbDiag) return _sbDiag;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY;
+  if (!url || !key) return null;
+  _sbDiag = createClient(url, key, { auth: { persistSession: false } });
+  return _sbDiag;
+}
+
+const ADMIN_EMAILS = ["ricardo.fiorini@gmail.com"];
+
+/** 'anon' | 'free' | 'pro'. Nunca lança: token podre vira 'anon'. */
+async function planoDoRequest(req) {
+  const token = req.headers.authorization?.replace("Bearer ", "").trim();
+  if (!token) return "anon";
+  const supabase = sbDiag();
+  if (!supabase) return "anon";
+  try {
+    const { data, error } = await supabase.auth.getUser(token);
+    const user = data?.user;
+    if (error || !user) return "anon";
+    if (ADMIN_EMAILS.includes((user.email || "").toLowerCase())) return "pro";
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("plan")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    return biz?.plan === "pro" ? "pro" : "free";
+  } catch {
+    return "anon";  // falha de banco não pode derrubar o diagnóstico
+  }
+}
 
 const gscore = (rt, rv) => (rt || 0) * Math.log10((rv || 0) + 1);
 
@@ -88,7 +135,13 @@ function getIp(req) {
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Cache-Control", "public, max-age=600");
+  // CUIDADO: `public, max-age=600` deixa a CDN da Vercel guardar e reentregar a
+  // MESMA resposta pra todo mundo que pedir a mesma URL. Desde que a resposta
+  // passou a depender do plano (30/jul), isso vazaria a medição de um cliente
+  // pro outro — a CDN não olha o header Authorization. Com token, a resposta é
+  // privada e não entra em cache compartilhado.
+  const autenticado = !!req.headers.authorization;
+  res.setHeader("Cache-Control", autenticado ? "private, no-store" : "public, max-age=600");
   if (req.method !== "GET") return res.status(405).json({ error: "Método não permitido" });
 
   const placeId = req.query.place_id || req.query.place;
@@ -107,6 +160,10 @@ export default async function handler(req, res) {
   // Google é finita: sem teto, um ataque consome a cota e derruba o painel de
   // quem paga. O 400 acima vem antes: request malformada não gasta cota.
   if (await limitou(req, res, LIMITES.diagnostico)) return;
+
+  // Só custa uma ida ao banco quando vem token; visitante nem consulta.
+  const plano = autenticado ? await planoDoRequest(req) : "anon";
+  const cadenciaMs = plano === "free" ? TTL.LENSES_FREE : TTL.LENSES;
 
   // Sugestão de termos (chips do formulário) a partir da categoria/nome do Google.
   if (req.query.suggest) {
@@ -140,12 +197,17 @@ export default async function handler(req, res) {
       // reaproveitar nada. É ferramenta de diagnóstico, NÃO pode ser pública —
       // um F5 repetido viraria conta no Google. Exige o segredo; sem a env, some.
       const segredo = process.env.GRID_FRESH_SECRET;
-      const fresh = !!req.query.fresh && !!segredo && req.query.secret === segredo;
+      // Pro também remede sob demanda (30/jul) — é o produto que ele comprou.
+      // A grade custa 5 chamadas Places POR TERMO (até 15 numa request), então
+      // aqui só entra com `remedir=1` explícito: nunca no carregamento normal
+      // do painel, senão todo Pro que abre a tela queima a cota.
+      const fresh = (!!req.query.fresh && !!segredo && req.query.secret === segredo)
+        || (plano === "pro" && !!req.query.remedir);
       // O handler seta `max-age=600` no topo. Numa medição "sem cache" isso
       // devolveria uma resposta de até 10min do CDN — o bolor que viemos matar.
       if (fresh) res.setHeader("Cache-Control", "no-store");
       const grid = await fetchGridRankingCached({ placeId, terms, fresh });
-      return res.json({ ok: true, grid });
+      return res.json({ ok: true, grid, plano });
     } catch (err) {
       console.error("[diagnostico/grid] erro:", err);
       return res.status(500).json({ error: err.message || "Erro na grade" });
@@ -159,9 +221,12 @@ export default async function handler(req, res) {
       // As lentes têm cache de 6h no banco (places_cache). ?fresh=1 fura o
       // cache, mas só com o segredo — num caminho público, um F5 repetido
       // viraria conta no Google.
-      const fresh = freshAutorizado(req);
+      // "Medir agora" é o que se vende: só Pro (ou o segredo de admin) fura o
+      // cache. No grátis o pedido é ignorado em silêncio — devolve a medição da
+      // semana, e a UI explica por quê em vez de dar erro na cara do dono.
+      const fresh = freshAutorizado(req) || (plano === "pro" && !!req.query.remedir);
       if (fresh) res.setHeader("Cache-Control", "no-store");
-      const vis = await fetchVisibilityLenses({ placeId, keyword, fresh });
+      const vis = await fetchVisibilityLenses({ placeId, keyword, fresh, ttlMs: cadenciaMs });
       const lenses = (vis.lenses || []).map((L) => ({
         key: L.key,
         label: L.label,
@@ -189,7 +254,14 @@ export default async function handler(req, res) {
         anchoredAt: vis.anchoredAt || "negocio",
         lenses,
         cached: !!vis.cached,
-        measuredAt: vis.measuredAt || null
+        measuredAt: vis.measuredAt || null,
+        // Quem perguntou e de quanto em quanto tempo essa medição se renova —
+        // é o que a UI usa pra dizer "medido há X · próxima em Y" em vez de
+        // fingir que o número é de agora.
+        plano,
+        proximaMedicao: vis.measuredAt
+          ? new Date(new Date(vis.measuredAt).getTime() + cadenciaMs).toISOString()
+          : null
       });
     } catch (err) {
       console.error("[diagnostico/lenses] erro:", err);

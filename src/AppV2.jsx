@@ -291,6 +291,14 @@ const MOCK = {
 // Estratégia: real sobrescreve mock. Telas sem backend ainda
 // continuam mostrando mock automaticamente.
 // ─────────────────────────────────────────────────────────────
+// Cabeçalho de identificação pras rotas PÚBLICAS que respondem diferente pra
+// quem está logado (hoje: a cadência de medição do /api/diagnostico). Sem token
+// devolve {} — a rota continua funcionando pro visitante.
+function authHeader() {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('rz_token') : null
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
 async function apiCall(path, opts = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('rz_token') : null
   const res = await fetch(path, {
@@ -5754,15 +5762,26 @@ function useLensesData({ placeId, term, cep, mock }) {
   // exatamente o que aconteceu em 27/jul, quando o freio por IP devolveu 429.
   const [error, setError] = React.useState(null)
   const [nonce, setNonce] = React.useState(0)
+  // "Medir agora" (Pro). Fica num ref, não no state, de propósito: se entrasse
+  // nas dependências do efeito, apagá-lo depois do fetch dispararia uma segunda
+  // busca. Aqui o pedido é CONSUMIDO na entrada do efeito e vale uma vez só —
+  // um refetch comum (trocar de termo, tentar de novo) nunca remede sem querer.
+  const remedirRef = React.useRef(false)
   React.useEffect(() => {
     if (mock) { setData(mock); setLoading(false); return }
     if (!placeId) { setLoading(false); return }
+    const remedir = remedirRef.current
+    remedirRef.current = false
     let cancelled = false
     setLoading(true)
     const url = `/api/diagnostico?lenses=1&place_id=${encodeURIComponent(placeId)}`
       + (term ? `&keyword=${encodeURIComponent(term)}` : '')
       + (cep ? `&cep=${encodeURIComponent(cep)}` : '')
-    fetch(url)
+      + (remedir ? '&remedir=1' : '')
+    // Manda o token quando existe: é ele que diz ao backend a cadência da
+    // medição (grátis = 1x por semana, Pro = quando quiser). Visitante segue
+    // anônimo e recebe o mesmo diagnóstico de sempre.
+    fetch(url, { headers: authHeader() })
       .then(async (r) => {
         const d = await r.json().catch(() => null)
         if (cancelled) return
@@ -5780,7 +5799,11 @@ function useLensesData({ placeId, term, cep, mock }) {
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [placeId, term, cep, mock, nonce])
-  return { data, loading, error, refetch: () => setNonce((n) => n + 1) }
+  return {
+    data, loading, error,
+    refetch: () => setNonce((n) => n + 1),
+    remeasure: () => { remedirRef.current = true; setNonce((n) => n + 1) }
+  }
 }
 
 // Info da lente "Bem perto de você" (1km) — fonte única pro Hero Coluna B.
@@ -5803,13 +5826,19 @@ function useGridData({ placeId, terms }) {
   // silêncio. Sem isso, um 429 aqui derruba o número do Hero sem explicação.
   const [error, setError] = React.useState(null)
   const [nonce, setNonce] = React.useState(0)
+  // Mesmo mecanismo do useLensesData: o pedido de remedir é consumido uma vez.
+  // A grade é a parte CARA (5 chamadas Places por termo), então ela nunca
+  // remede sozinha — só quando o Pro pede.
+  const remedirRef = React.useRef(false)
   const termsQ = (Array.isArray(terms) ? terms : []).filter(Boolean).slice(0, 3).join(',')
   React.useEffect(() => {
     if (!placeId) { setData(null); return }
+    const remedir = remedirRef.current
+    remedirRef.current = false
     let alive = true
     ;(async () => {
       try {
-        const r = await fetch('/api/diagnostico?grid=1&place_id=' + encodeURIComponent(placeId) + (termsQ ? '&terms=' + encodeURIComponent(termsQ) : ''))
+        const r = await fetch('/api/diagnostico?grid=1&place_id=' + encodeURIComponent(placeId) + (termsQ ? '&terms=' + encodeURIComponent(termsQ) : '') + (remedir ? '&remedir=1' : ''), { headers: authHeader() })
         if (!alive) return
         const d = await r.json().catch(() => null)
         if (!r.ok || !d || d.error) {
@@ -5823,7 +5852,11 @@ function useGridData({ placeId, terms }) {
     })()
     return () => { alive = false }
   }, [placeId, termsQ, nonce])
-  return { grid: data, error, refetch: () => setNonce((n) => n + 1) }
+  return {
+    grid: data, error,
+    refetch: () => setNonce((n) => n + 1),
+    remeasure: () => { remedirRef.current = true; setNonce((n) => n + 1) }
+  }
 }
 
 // Rótulo/cor por termo (forte / melhorar / subir / oportunidade).
@@ -5979,7 +6012,7 @@ function RankingUnavailable({ status, onRetry }) {
   )
 }
 
-function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGuest, signupUrl }) {
+function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGuest, signupUrl, onRemeasure }) {
   const [tab, setTab] = React.useState(0)
   const [showInfo, setShowInfo] = React.useState(false)
   const lenses = (data && data.lenses) || []
@@ -6138,7 +6171,74 @@ function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGues
           )}
         </>
       )}
+
+      {/* Rodapé de FRESCOR — quando essa medição foi feita e quando se renova.
+          Sem isso o painel finge que o número é de agora: no grátis ele pode
+          ter até uma semana, e o dono tomaria decisão com dado velho sem saber.
+          É também onde o "medir quando quiser" do Pro fica óbvio, mostrando o
+          que ele compra em vez de esconder a tela atrás de um cadeado. */}
+      {!isGuest && data?.measuredAt && (
+        <MedicaoFooter
+          measuredAt={data.measuredAt}
+          proximaMedicao={data.proximaMedicao}
+          plano={data.plano}
+          loading={loading}
+          onRemeasure={onRemeasure}
+        />
+      )}
     </Card>
+  )
+}
+
+// Linha de frescor da medição + ação de remedir (Pro) ou convite (grátis).
+function MedicaoFooter({ measuredAt, proximaMedicao, plano, loading, onRemeasure }) {
+  const agora = Date.now()
+  const medidoMs = new Date(measuredAt).getTime()
+  if (!Number.isFinite(medidoMs)) return null
+  const proximaMs = proximaMedicao ? new Date(proximaMedicao).getTime() : null
+  const liberada = proximaMs == null || agora >= proximaMs
+  const isPro = plano === 'pro'
+
+  const quando = (() => {
+    const min = Math.floor((agora - medidoMs) / 60000)
+    if (min < 2) return 'agora há pouco'
+    if (min < 60) return `há ${min} minutos`
+    const h = Math.floor(min / 60)
+    if (h < 24) return `há ${h} ${h === 1 ? 'hora' : 'horas'}`
+    const dias = Math.floor(h / 24)
+    return `há ${dias} ${dias === 1 ? 'dia' : 'dias'}`
+  })()
+
+  const faltam = (() => {
+    if (proximaMs == null || liberada) return null
+    const h = Math.ceil((proximaMs - agora) / 3600000)
+    if (h < 24) return `${h} ${h === 1 ? 'hora' : 'horas'}`
+    const dias = Math.ceil(h / 24)
+    return `${dias} ${dias === 1 ? 'dia' : 'dias'}`
+  })()
+
+  return (
+    <div style={{
+      marginTop: 14, paddingTop: 12, borderTop: `1px solid ${T.border}`,
+      display:'flex', alignItems:'center', justifyContent:'space-between',
+      gap: 10, flexWrap:'wrap', fontSize: 12, color: T.textDim
+    }}>
+      <span>
+        Medido {quando}
+        {!isPro && faltam ? <> · próxima medição em {faltam}</> : null}
+      </span>
+      {isPro ? (
+        <button onClick={onRemeasure} disabled={loading} style={{
+          background:'transparent', color: T.blue, border:`1px solid ${T.blue}`,
+          borderRadius: 8, padding:'5px 12px', fontSize: 12, fontWeight: 700,
+          cursor: loading ? 'wait' : 'pointer', fontFamily:"'Inter', sans-serif"
+        }}>{loading ? 'Medindo…' : 'Medir agora'}</button>
+      ) : faltam ? (
+        <a href="/plano-pro" style={{
+          color: T.blue, fontWeight: 700, textDecoration:'none', fontSize: 12
+        }}>Medir quando quiser →</a>
+      ) : null}
+    </div>
   )
 }
 
@@ -6787,7 +6887,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   const heroPos = pertoLensInfo(lensState.data)
   // Ranking por GRADE (posição média real). Alimenta o Hero (termo principal) e o
   // card de termos extras. Uma busca só, compartilhada.
-  const { grid: gridData, error: gridError, refetch: refetchGrid } = useGridData({ placeId: guestContext?.placeId || d.biz?.placeId, terms: guestContext?.terms })
+  const { grid: gridData, error: gridError, refetch: refetchGrid, remeasure: remeasureGrid } = useGridData({ placeId: guestContext?.placeId || d.biz?.placeId, terms: guestContext?.terms })
   // measured === 0 → o Places falhou em TODOS os pontos. Não sabemos nada; cair
   // no fallback das lentes é melhor que anunciar "Fora da lista" (que seria
   // inventar uma má notícia a partir de uma falha de infraestrutura).
@@ -7025,6 +7125,10 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
               category={lensCategory}
               isGuest={isGuest}
               signupUrl={guestSignupUrl}
+              // Uma medição só: lentes e grade envelhecem juntas, então remedir
+              // renova as DUAS — senão o botão atualiza os concorrentes e deixa
+              // o número grande do Hero para trás.
+              onRemeasure={() => { lensState.remeasure(); remeasureGrid() }}
             />
           )}
           {!demoMode && (

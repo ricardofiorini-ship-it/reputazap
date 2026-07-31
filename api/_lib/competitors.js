@@ -651,13 +651,16 @@ export const VISIBILITY_LENSES = [
  * @param {boolean} [fresh=false] mede na hora (queima Places). Só use atrás de
  *   segredo — ver freshAutorizado() em places-cache.js.
  */
-export async function fetchVisibilityLenses({ placeId, keyword, fresh = false }) {
+export async function fetchVisibilityLenses({ placeId, keyword, fresh = false, ttlMs = TTL.LENSES }) {
   const { data, cached, measuredAt } = await comCachePlaces({
     // v3 = âncora no negócio e sem CEP na chave (26/jul). v2 = corte por
     // distância. Subir a versão INVALIDA o que ficou guardado: senão o cache
     // serviria por 6h medições ancoradas no CEP errado.
     key: `lenses:v3:${placeId}|${chaveDe(keyword)}`,
-    ttlMs: TTL.LENSES,
+    // A CHAVE é a mesma pra todos os planos de propósito: quem tem Pro remede e
+    // o resultado fresco passa a valer também pro grátis do mesmo negócio. O
+    // plano muda só o quanto o dado pode envelhecer (ttlMs), não o que se mede.
+    ttlMs,
     fresh,
     produce: () => medirLentes({ placeId, keyword })
   });

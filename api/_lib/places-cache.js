@@ -129,5 +129,10 @@ export function freshAutorizado(req) {
 export const TTL = {
   BIZINFO: 6 * 60 * 60 * 1000,   // nota, endereço, telefone, foto: mudam devagar
   REVIEWS: 3 * 60 * 60 * 1000,   // avaliações recentes: janela mais curta
-  LENSES:  6 * 60 * 60 * 1000    // posição/concorrentes: não muda de hora em hora
+  LENSES:  6 * 60 * 60 * 1000,   // posição/concorrentes: não muda de hora em hora
+  // Cliente logado no plano grátis: UMA medição por semana (30/jul). Não é
+  // política de custo, é limite de produto — o que se vende no Pro é medir
+  // quando quiser. Casa com o TTL de 7 dias da grade, pra as duas metades do
+  // painel envelhecerem juntas em vez de uma contradizer a outra.
+  LENSES_FREE: 7 * 24 * 60 * 60 * 1000
 };
