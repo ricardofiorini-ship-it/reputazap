@@ -416,6 +416,13 @@ const KEYWORD_DICT = [
   ["churrascaria","churrascaria"],["churrasco","churrascaria"],
   ["gelateria","gelateria"],["sorveteria","sorveteria"],
   ["academia","academia"],["crossfit","academia"],
+  // Bike: caso real (27/jul) da "Bike Leopoldina", que o Google classifica como
+  // `service` → "Serviços". Sem ler o nome, o painel comparava uma bicicletaria
+  // contra "Serviços" e anunciava "Fora da lista" (0/5 pontos). Com o termo
+  // certo ela aparece em 5/5, entre 2º e 3º. Ver [nota ÂNCORA/termo].
+  // (sem "ciclo": o casamento é por substring e pegaria "reciclagem")
+  ["bicicletaria","bicicletaria"],["bicicletas","bicicletaria"],["bicicleta","bicicletaria"],
+  ["bike","bicicletaria"],["bikes","bicicletaria"],
   ["hortifruti","hortifruti"],["mercearia","mercado"],["mercado","mercado"],
   ["pastelaria","pastelaria"],["esfiharia","esfiharia"],
   ["rodízio","restaurante"],["rodizio","restaurante"],["restaurante","restaurante"],
