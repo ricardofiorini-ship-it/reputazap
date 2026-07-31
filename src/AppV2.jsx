@@ -3998,7 +3998,12 @@ function RadarWidgetSlot({ d, isMobile }) {
 // Sugestões REAIS da semana — calculadas do estado competitivo do próprio
 // negócio (mesma fórmula do ranking: gscore = nota × log10(avaliações+1)).
 // Sem MOCK: cada negócio recebe conselho dos seus próprios números.
-// Só roda quando há dado real de concorrente (chamada gated por hasComp).
+//
+// ⚠️ CÓDIGO MORTO hoje (ninguém chama — quem manda na ação da semana é
+// WeeklyAction). Se for religado, TROCAR A FONTE: `d.kpis.rankingPos` é o
+// ranking do /api/competitors, que discorda da GRADE que o Hero mostra. Foi
+// exatamente essa mistura que fez o painel dizer "1º de 13" no topo e "faltam
+// 293 avaliações pro 2º lugar" na tarja (30/jul). Posição na tela vem da grade.
 function realWeekActions(d) {
   const actions = []
   const rating = d.kpis.rating
@@ -5527,15 +5532,24 @@ function GuestSearch({ isMobile }) {
 // Tarja fixa do modo convidado — CTA de cadastro (conversão).
 // Personalizada com os números REAIS do negócio (gap pro topo) + urgência
 // (diagnóstico temporário). Genérico converte menos que específico.
-function GuestBanner({ url, isMobile, bizName, rank, gap, targetPos }) {
+//
+// Os números vêm de `guestPitch`, que sai da MESMA grade do Hero. Nunca voltar a
+// alimentar isto de outra fonte: o dono lê a tarja e o Hero na mesma tela, e
+// dois rankings discordando ali destroem a credibilidade dos dois.
+function GuestBanner({ url, isMobile, bizName, term, rank, total, gap }) {
   const name = bizName || 'seu negócio'
+  const naBusca = term ? <> na busca por <b>{term}</b></> : null
   let msg
   if (rank === 1) {
     // Já é líder → medo de PERDER a liderança.
-    msg = <><b>{bizName || 'Seu negócio'}</b> é o <b>1º da categoria</b>! Crie conta grátis pra <b>manter a liderança</b> e ser avisado se um concorrente chegar perto.</>
-  } else if (gap && gap > 0 && targetPos) {
-    // Tem gap real → mostra exatamente quanto falta pra subir.
-    msg = <>Faltam <b>{gap} {gap === 1 ? 'avaliação' : 'avaliações'}</b> pro <b>{targetPos}º lugar</b>. Este diagnóstico é temporário — crie conta grátis e comece a subir hoje.</>
+    msg = total > 1
+      ? <><b>{bizName || 'Seu negócio'}</b> aparece <b>na frente dos outros {total - 1}</b>{naBusca} aqui perto. Crie conta grátis pra <b>manter a liderança</b> e ser avisado quando alguém chegar perto.</>
+      : <><b>{bizName || 'Seu negócio'}</b> é quem o Google mostra <b>na frente</b>{naBusca} aqui perto. Crie conta grátis pra <b>manter a liderança</b> e ser avisado quando alguém chegar perto.</>
+  } else if (gap && gap > 0) {
+    // Tem gap real de avaliações. Diz o FATO (quem está na frente tem X a mais),
+    // não a promessa ("faltam X pro 2º lugar") — a grade ordena por posição, não
+    // por volume, então prometer o lugar seria inventar causa.
+    msg = <>Quem está na sua frente{naBusca} tem <b>{gap} {gap === 1 ? 'avaliação' : 'avaliações'} a mais</b> que você. Este diagnóstico é temporário — crie conta grátis e comece a virar isso hoje.</>
   } else {
     // Sem dado de ranking → foca em salvar/acompanhar (perecibilidade).
     msg = <>Prévia do painel de <b>{name}</b>. Este diagnóstico é temporário — crie conta grátis pra <b>salvar</b>, acompanhar sua evolução e receber alertas.</>
@@ -5617,7 +5631,7 @@ function GuestFollowTeaser({ url, isMobile }) {
 // convidado leva o cursor pra fora pela borda de cima (indo fechar/trocar de
 // aba). Só desktop (touch não tem "mouseleave" útil), 1x por sessão (não perturba).
 // Mensagem personalizada com os números reais (mesma lógica da tarja).
-function ExitIntentModal({ url, bizName, rank, gap, targetPos, isMobile }) {
+function ExitIntentModal({ url, bizName, term, rank, total, gap, isMobile }) {
   const [show, setShow] = React.useState(false)
   const firedRef = React.useRef(false)
   React.useEffect(() => {
@@ -5638,13 +5652,16 @@ function ExitIntentModal({ url, bizName, rank, gap, targetPos, isMobile }) {
 
   if (!show) return null
 
+  // Mesma fonte e mesma lógica da tarja (guestPitch → grade do Hero).
   let headline, sub
   if (rank === 1) {
-    headline = `${bizName || 'Seu negócio'} é o 1º da categoria!`
-    sub = 'Crie conta grátis pra manter a liderança e ser avisado se um concorrente chegar perto.'
-  } else if (gap && gap > 0 && targetPos) {
-    headline = `Faltam ${gap} ${gap === 1 ? 'avaliação' : 'avaliações'} pro ${targetPos}º lugar`
-    sub = 'Não perca esse diagnóstico. Crie conta grátis e comece a subir hoje.'
+    headline = total > 1
+      ? `${bizName || 'Seu negócio'} aparece na frente dos outros ${total - 1} aqui perto`
+      : `${bizName || 'Seu negócio'} aparece na frente aqui perto`
+    sub = `Crie conta grátis pra manter a liderança${term ? ` em "${term}"` : ''} e ser avisado quando alguém chegar perto.`
+  } else if (gap && gap > 0) {
+    headline = `Quem está na sua frente tem ${gap} ${gap === 1 ? 'avaliação' : 'avaliações'} a mais que você`
+    sub = 'Não perca esse diagnóstico. Crie conta grátis e comece a virar isso hoje.'
   } else {
     headline = 'Antes de sair…'
     sub = `Salve o diagnóstico de ${bizName || 'seu negócio'} e acompanhe sua evolução. É grátis.`
@@ -6902,6 +6919,37 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   // inventar uma má notícia a partir de uma falha de infraestrutura).
   const gp = gridData?.terms?.[0]
   const gridPrimary = gp && gp.measured > 0 ? gp : null
+  // ARGUMENTO DO CONVIDADO (tarja + exit-intent) — FONTE ÚNICA COM O HERO.
+  // Bug de 30/jul: a tarja vinha de `d.kpis` (ranking do /api/competitors, que é
+  // outra arena: um raio só, ordem crua do Google) enquanto o Hero vinha da
+  // GRADE. As duas discordavam na mesma tela — a Blue Bike lia "1º de 13" no
+  // topo e "faltam 293 avaliações pro 2º lugar" na tarja. Quem é 1º não tem
+  // ninguém na frente; o número mais alarmante ganhava e destruía a credibilidade
+  // dos dois. Agora o pitch sai da MESMA lista que o dono vê logo abaixo.
+  const guestPitch = React.useMemo(() => {
+    const g = gridPrimary
+    const rows = Array.isArray(g?.ranking) ? g.ranking : null
+    if (g && g.coverage > 0 && rows && rows.length) {
+      const total = g.total || rows.length
+      const i = rows.findIndex(r => r.is_me)
+      if (i === 0) return { rank: 1, total, gap: null }
+      if (i > 0) {
+        const gap = Math.max(0, (rows[i - 1].reviews || 0) - (rows[i].reviews || 0))
+        // Gap 0 = quem está na frente NÃO tem mais avaliações que ele. A grade
+        // ordena por posição média, não por volume, então isso acontece — e aí
+        // falar de avaliações seria mentira. Cai no genérico.
+        return { rank: i + 1, total, gap: gap || null }
+      }
+    }
+    // Sem grade: mantém o comportamento antigo (melhor que tarja genérica).
+    if (!hasComp) return { rank: null, total: null, gap: null }
+    return {
+      rank: d.kpis.rankingPos ?? null,
+      total: d.kpis.totalCompetitors ?? null,
+      gap: d.kpis.nextGoal?.reviewsToNext ?? null
+    }
+  }, [gridPrimary, hasComp, d])
+
   // Categoria mostrada e URL do perfil do Google (p/ "corrigir categoria" / "Responder").
   const lensCategory = lensState.data?.term || d.activeCategory || 'sua categoria'
   const googleProfileUrl = (guestContext?.placeId || d.biz?.placeId)
@@ -6988,17 +7036,15 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         url={guestSignupUrl}
         isMobile={isMobile}
         bizName={d.businessInfo?.name || d.biz?.name || ''}
-        rank={hasComp ? d.kpis.rankingPos : null}
-        gap={hasComp ? (d.kpis.nextGoal?.reviewsToNext ?? null) : null}
-        targetPos={hasComp ? (d.kpis.nextGoal?.targetPosition ?? null) : null}
+        term={gridPrimary?.term || null}
+        {...guestPitch}
       />}
       {isGuest && <ExitIntentModal
         url={guestSignupUrl}
         isMobile={isMobile}
         bizName={d.businessInfo?.name || d.biz?.name || ''}
-        rank={hasComp ? d.kpis.rankingPos : null}
-        gap={hasComp ? (d.kpis.nextGoal?.reviewsToNext ?? null) : null}
-        targetPos={hasComp ? (d.kpis.nextGoal?.targetPosition ?? null) : null}
+        term={gridPrimary?.term || null}
+        {...guestPitch}
       />}
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl} />
       {!isMobile && <TopTabs active={tab} onChange={navigateFromMore} plan={plan} isMobile={false} />}
