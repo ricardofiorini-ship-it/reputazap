@@ -3767,9 +3767,11 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
                       <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: gridPos.rank <= 3 ? T.success : T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>
                         {gridPos.rank}º<span style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.textMuted }}> de {gridPos.total}</span>
                       </div>
-                      <div style={{ fontSize: 13, color: T.textMuted }}>na sua região, como {gridPos.term}</div>
+                      <div style={{ fontSize: 13, color: T.textMuted }}>pra quem busca {gridPos.term}</div>
                       <div style={{ fontSize: 12, color: T.textDim }}>
-                        você aparece nos {gridPos.measured} pontos medidos{media ? <> · lugar no Google {media}</> : null}
+                        {/* "na sua região" não respondia "região de onde?" (dono, 01/ago).
+                            A âncora é o endereço dele, e a distância vem do backend. */}
+                        aparece nos {gridPos.measured} pontos medidos {raioTxt(gridPos.spacingM)}{media ? <> · lugar no Google {media}</> : null}
                       </div>
                     </>
                   )
@@ -3778,9 +3780,9 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
                       <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.accent, lineHeight: 1, letterSpacing:'-0.02em' }}>
                         {gridPos.coverage}<span style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.textMuted }}> de {gridPos.measured}</span>
                       </div>
-                      <div style={{ fontSize: 13, color: T.textMuted }}>pontos onde você aparece</div>
+                      <div style={{ fontSize: 13, color: T.textMuted }}>pontos {raioTxt(gridPos.spacingM)} onde você aparece</div>
                       <div style={{ fontSize: 12, color: T.textDim }}>
-                        como {gridPos.term}
+                        buscando {gridPos.term}
                         {(() => {
                           const ranks = (gridPos.points || []).filter(p => p.ok && p.rank != null).map(p => p.rank).sort((a, b) => a - b)
                           if (!ranks.length) return null
@@ -3798,14 +3800,14 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
                 <div style={{ display:'inline-flex', alignItems:'center', gap: 6, fontSize: isMobile ? 20 : 24, fontWeight: 800, color: T.accent, lineHeight: 1.1, letterSpacing:'-0.01em' }}>
                   <AlertTriangle size={isMobile ? 20 : 22}/> Fora da lista
                 </div>
-                <div style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.4 }}>Não aparece pra "{gridPos.term}" em nenhum dos {gridPos.measured} pontos medidos na sua região.</div>
+                <div style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.4 }}>Não aparece pra "{gridPos.term}" em nenhum dos {gridPos.measured} pontos que medimos ao redor do seu endereço.</div>
                 <button onClick={onSeeCompetitors} style={{ ...link, color: T.accent }}>Ver concorrentes <ChevronRight size={14}/></button>
               </>
             )
           ) : showPos ? (
             <>
               <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>#{pos}</div>
-              <div style={{ fontSize: 13, color: T.textMuted }}>de {total} na sua região</div>
+              <div style={{ fontSize: 13, color: T.textMuted }}>de {total} negócios {raioTxt((position?.radiusKm || 1) * 1000)}</div>
               {posDelta != null && (
                 <div style={{ display:'inline-flex', alignItems:'center', gap: 4, fontSize: 12.5, fontWeight: 700, color: posDelta >= 0 ? T.success : T.danger }}>
                   {posDelta >= 0 ? <TrendingUp size={15}/> : <TrendingDown size={15}/>}
@@ -5536,20 +5538,21 @@ function GuestSearch({ isMobile }) {
 // Os números vêm de `guestPitch`, que sai da MESMA grade do Hero. Nunca voltar a
 // alimentar isto de outra fonte: o dono lê a tarja e o Hero na mesma tela, e
 // dois rankings discordando ali destroem a credibilidade dos dois.
-function GuestBanner({ url, isMobile, bizName, term, rank, total, gap }) {
+function GuestBanner({ url, isMobile, bizName, term, spacingM, rank, total, gap }) {
   const name = bizName || 'seu negócio'
-  const naBusca = term ? <> na busca por <b>{term}</b></> : null
+  const naBusca = term ? <> <b>{term}</b></> : null
+  const raio = raioTxt(spacingM)
   let msg
   if (rank === 1) {
     // Já é líder → medo de PERDER a liderança.
     msg = total > 1
-      ? <><b>{bizName || 'Seu negócio'}</b> aparece <b>na frente dos outros {total - 1}</b>{naBusca} aqui perto. Crie conta grátis pra <b>manter a liderança</b> e ser avisado quando alguém chegar perto.</>
-      : <><b>{bizName || 'Seu negócio'}</b> é quem o Google mostra <b>na frente</b>{naBusca} aqui perto. Crie conta grátis pra <b>manter a liderança</b> e ser avisado quando alguém chegar perto.</>
+      ? <><b>{bizName || 'Seu negócio'}</b> aparece <b>na frente dos outros {total - 1} negócios</b> pra quem busca{naBusca} {raio}. Crie conta grátis pra <b>manter a liderança</b> e ser avisado quando alguém chegar perto.</>
+      : <><b>{bizName || 'Seu negócio'}</b> é quem o Google mostra <b>na frente</b> pra quem busca{naBusca} {raio}. Crie conta grátis pra <b>manter a liderança</b> e ser avisado quando alguém chegar perto.</>
   } else if (gap && gap > 0) {
     // Tem gap real de avaliações. Diz o FATO (quem está na frente tem X a mais),
     // não a promessa ("faltam X pro 2º lugar") — a grade ordena por posição, não
     // por volume, então prometer o lugar seria inventar causa.
-    msg = <>Quem está na sua frente{naBusca} tem <b>{gap} {gap === 1 ? 'avaliação' : 'avaliações'} a mais</b> que você. Este diagnóstico é temporário — crie conta grátis e comece a virar isso hoje.</>
+    msg = <>Quem aparece na sua frente pra quem busca{naBusca} {raio} tem <b>{gap} {gap === 1 ? 'avaliação' : 'avaliações'} a mais</b> que você. Este diagnóstico é temporário — crie conta grátis e comece a virar isso hoje.</>
   } else {
     // Sem dado de ranking → foca em salvar/acompanhar (perecibilidade).
     msg = <>Prévia do painel de <b>{name}</b>. Este diagnóstico é temporário — crie conta grátis pra <b>salvar</b>, acompanhar sua evolução e receber alertas.</>
@@ -5631,7 +5634,7 @@ function GuestFollowTeaser({ url, isMobile }) {
 // convidado leva o cursor pra fora pela borda de cima (indo fechar/trocar de
 // aba). Só desktop (touch não tem "mouseleave" útil), 1x por sessão (não perturba).
 // Mensagem personalizada com os números reais (mesma lógica da tarja).
-function ExitIntentModal({ url, bizName, term, rank, total, gap, isMobile }) {
+function ExitIntentModal({ url, bizName, term, spacingM, rank, total, gap, isMobile }) {
   const [show, setShow] = React.useState(false)
   const firedRef = React.useRef(false)
   React.useEffect(() => {
@@ -5653,14 +5656,15 @@ function ExitIntentModal({ url, bizName, term, rank, total, gap, isMobile }) {
   if (!show) return null
 
   // Mesma fonte e mesma lógica da tarja (guestPitch → grade do Hero).
+  const raio = raioTxt(spacingM)
   let headline, sub
   if (rank === 1) {
     headline = total > 1
-      ? `${bizName || 'Seu negócio'} aparece na frente dos outros ${total - 1} aqui perto`
-      : `${bizName || 'Seu negócio'} aparece na frente aqui perto`
+      ? `${bizName || 'Seu negócio'} aparece na frente dos outros ${total - 1} negócios ${raio}`
+      : `${bizName || 'Seu negócio'} é quem o Google mostra na frente ${raio}`
     sub = `Crie conta grátis pra manter a liderança${term ? ` em "${term}"` : ''} e ser avisado quando alguém chegar perto.`
   } else if (gap && gap > 0) {
-    headline = `Quem está na sua frente tem ${gap} ${gap === 1 ? 'avaliação' : 'avaliações'} a mais que você`
+    headline = `Quem aparece na sua frente tem ${gap} ${gap === 1 ? 'avaliação' : 'avaliações'} a mais que você`
     sub = 'Não perca esse diagnóstico. Crie conta grátis e comece a virar isso hoje.'
   } else {
     headline = 'Antes de sair…'
@@ -5701,7 +5705,7 @@ function ExitIntentModal({ url, bizName, term, rank, total, gap, isMobile }) {
 // Logado: salva category_override no banco e recalcula (reload garante que TODOS
 // os números — lentes 1/3km, KPIs, ranking — batam com a nova categoria).
 // Convidado: troca o keyword da sessão.
-function TermBar({ term, isGuest, placeId, isMobile }) {
+function TermBar({ term, spacingM, isGuest, placeId, isMobile }) {
   const [editing, setEditing] = React.useState(false)
   const [val, setVal] = React.useState(term || '')
   const [saving, setSaving] = React.useState(false)
@@ -5742,7 +5746,7 @@ function TermBar({ term, isGuest, placeId, isMobile }) {
           {/* "Categoria" era jargão do Meu Negócio e não é o que medimos: o que
               medimos é a BUSCA que a pessoa digita. Uma palavra só, em todo o
               bloco — busca. */}
-          <span>Medindo a busca <b>“{term || 'sua categoria'}”</b> perto do seu endereço</span>
+          <span>Medindo quem busca <b>“{term || 'sua categoria'}”</b> {raioTxt(spacingM)}</span>
           <button onClick={() => setEditing(true)} style={{
             background: '#fff', color: T.blue, border: `1px solid ${T.blue}`, borderRadius: 7,
             padding: '5px 13px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'
@@ -5832,7 +5836,8 @@ function useLensesData({ placeId, term, cep, mock }) {
 function pertoLensInfo(lensData) {
   const lens = lensData?.lenses?.find(l => l.key === 'perto') || lensData?.lenses?.[0]
   if (!lens) return null
-  return { rank: lens.rank, total: lens.total, inResults: !!lens.inResults }
+  // radiusKm entra junto: os textos do fallback também precisam dizer "de onde".
+  return { rank: lens.rank, total: lens.total, inResults: !!lens.inResults, radiusKm: lens.radiusKm ?? 1 }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -5879,6 +5884,20 @@ function useGridData({ placeId, terms }) {
   }
 }
 
+// "Perto de onde?" — a pergunta que o dono fez ao ler "aqui perto" (01/ago) e
+// que a tela não respondia. A grade mede em 5 pontos AO REDOR DO ENDEREÇO DELE,
+// então a âncora é o endereço e a distância vem do backend (`spacingM` de cada
+// termo), nunca hardcodada: se a grade mudar de 1 km, o texto muda junto.
+// Fonte única — todo texto que fala de área usa este helper.
+function raioTxt(spacingM) {
+  const m = spacingM || 1000
+  const km = m / 1000
+  const n = km >= 1
+    ? `${(Math.round(km * 10) / 10).toString().replace('.', ',')} km`
+    : `${Math.round(m)} m`
+  return `a até ${n} do seu endereço`
+}
+
 // Rótulo/cor por termo (forte / melhorar / subir / oportunidade).
 function gridStatus(t) {
   if (!t || !t.coverage) return { label: 'oportunidade', color: '#A50E0E', bg: '#FCE8E6' }
@@ -5910,7 +5929,9 @@ function RankingGrid({ data }) {
                   {/* Mesma hierarquia do Hero: cobertura primeiro, média depois.
                       Mesmo nome do número da tabela ("lugar no Google") — antes
                       isto dizia "posição média" e a tabela dizia outra coisa. */}
-                  {t.coverage > 0 ? <>te encontra em <b style={{ color: T.text }}>{t.coverage} de {t.measured}</b> pontos · lugar no Google {t.score.toFixed(1).replace('.', ',')}</> : 'não te encontra em nenhum ponto'}
+                  {t.coverage > 0
+                    ? <>te encontra em <b style={{ color: T.text }}>{t.coverage} de {t.measured}</b> pontos {raioTxt(t.spacingM)} · lugar no Google {t.score.toFixed(1).replace('.', ',')}</>
+                    : `não te encontra em nenhum dos ${t.measured} pontos medidos ao redor do seu endereço`}
                 </div>
               </div>
               <span style={{ fontSize: 10.5, fontWeight: 800, textTransform:'uppercase', letterSpacing:'.04em', color: s.color, background: s.bg, padding:'4px 9px', borderRadius: 999, flexShrink: 0 }}>{s.label}</span>
@@ -5951,8 +5972,8 @@ function GridRankingList({ data, isGuest, signupUrl }) {
           média existe e é o único número de posição da tabela: ela diz a verdade
           que um ordinal esconderia. */}
       <div style={{ fontSize: 12.5, color: T.textMuted, marginBottom: 12, lineHeight: 1.45 }}>
-        Quem o Google mostra quando alguém busca <b style={{ color: T.textMid }}>{data.term}</b> perto de você.
-        Do melhor pro pior, medido em {data.measured} pontos ao redor do seu endereço.
+        Quem o Google mostra pra quem busca <b style={{ color: T.textMid }}>{data.term}</b> {raioTxt(data.spacingM)}.
+        Do melhor pro pior, medido em {data.measured} pontos ao redor dele.
       </div>
 
       <div style={{ display:'flex', alignItems:'flex-end', gap: 8, padding:'0 8px 6px', borderBottom:`1px solid ${T.border}`, marginBottom: 4 }}>
@@ -6641,10 +6662,10 @@ function scoreBreakdown(d) {
       key: 'posicao', icon: 'mappin', label: 'Seu lugar no Google',
       earned: Math.round(posPts), max: 20,
       detail: gridAvg != null
-        ? `Você aparece, em média, na posição ${gridAvg.toFixed(1).replace('.', ',')} nas buscas por ${g.term} aqui perto.`
+        ? `Você aparece, em média, na posição ${gridAvg.toFixed(1).replace('.', ',')} pra quem busca ${g.term} ${raioTxt(g.spacingM)}.`
         : gridForaDeTudo
-          ? `Você não aparece em nenhum dos ${g.measured} pontos que medimos na busca por ${g.term}.`
-          : lens ? `${lens.rank}º de ${lens.total} negócios bem perto de você.`
+          ? `Você não aparece em nenhum dos ${g.measured} pontos que medimos ao redor do seu endereço na busca por ${g.term}.`
+          : lens ? `${lens.rank}º de ${lens.total} negócios ${raioTxt((lens.radiusKm || 1) * 1000)}.`
           : 'Ainda não conseguimos medir sua posição.',
       hint: gridAvg != null
         ? (gridAvg <= 3
@@ -7088,6 +7109,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         isMobile={isMobile}
         bizName={d.businessInfo?.name || d.biz?.name || ''}
         term={gridPrimary?.term || null}
+        spacingM={gridPrimary?.spacingM}
         {...guestPitch}
       />}
       {isGuest && <ExitIntentModal
@@ -7095,6 +7117,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         isMobile={isMobile}
         bizName={d.businessInfo?.name || d.biz?.name || ''}
         term={gridPrimary?.term || null}
+        spacingM={gridPrimary?.spacingM}
         {...guestPitch}
       />}
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl} />
@@ -7214,6 +7237,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           {!demoMode && (
             <TermBar
               term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
+              spacingM={gridPrimary?.spacingM}
               isGuest={isGuest}
               placeId={guestContext?.placeId || d.biz?.placeId}
               isMobile={isMobile}

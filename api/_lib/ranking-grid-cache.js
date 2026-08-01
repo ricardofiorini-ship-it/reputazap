@@ -7,7 +7,7 @@
 // Best-effort: falha de cache nunca derruba o cálculo.
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
-import { fetchGridRanking } from "./competitors.js";
+import { fetchGridRanking, GRID_SPACING_M } from "./competitors.js";
 
 const TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -118,14 +118,19 @@ export async function fetchGridRankingCached({ placeId, terms, spacingM, radius,
   }
 
   // 3. Remonta na ordem pedida (cache + fresco).
+  // `spacingM` vai junto em CADA termo (não só no topo) porque quem consome no
+  // front é o termo — a tabela, o Score e a tarja recebem `terms[0]` e todos
+  // precisam dizer de que distância estão falando. Sem isso o texto teria que
+  // hardcodar "1 km" e mentiria no dia em que a grade mudasse.
+  const spacing = spacingM ?? GRID_SPACING_M;
   const outTerms = termList.map((term) => {
     const c = cachedByTerm[norm(term)];
     if (c) return { ...c, cached: true };
     const f = (computed?.terms || []).find((t) => norm(t.term) === norm(term));
     return f ? { ...f, name: computed.name, center: computed.center, cached: false, measuredAt: measuredNow } : null;
-  }).filter(Boolean);
+  }).filter(Boolean).map((t) => ({ ...t, spacingM: spacing }));
 
   const name = computed?.name || outTerms[0]?.name || null;
   const center = computed?.center || outTerms[0]?.center || null;
-  return { placeId, name, center, terms: outTerms };
+  return { placeId, name, center, spacingM: spacing, terms: outTerms };
 }

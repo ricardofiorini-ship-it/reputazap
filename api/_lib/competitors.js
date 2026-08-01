@@ -907,7 +907,14 @@ function gridPoints(lat, lng, spacingM) {
  * @returns {Promise<Object>} { placeId, name, center, spacingM, radius, terms:[
  *   { term, points:[{dir,rank|null,total,top[]}], avg, coverage, competitors[] } ] }
  */
-export async function fetchGridRanking({ placeId, terms, spacingM = 1000, radius = 1000 }) {
+// Distância dos 4 pontos cardeais até o endereço do negócio. Exportado porque a
+// TELA cita esse número ("a até 1 km do seu endereço") — o dono perguntou "perto
+// de onde?" e a resposta tem que ser exata. Se mudar aqui, o texto acompanha
+// sozinho em vez de virar mentira. Mexeu neste valor? Suba o RESULT_V do cache,
+// senão medições antigas ficam rotuladas com a distância nova.
+export const GRID_SPACING_M = 1000;
+
+export async function fetchGridRanking({ placeId, terms, spacingM = GRID_SPACING_M, radius = 1000 }) {
   if (!placeId) throw new Error("placeId obrigatório");
   if (!API_KEY) throw new Error("PLACES_API_KEY ausente no ambiente");
   const termList = (Array.isArray(terms) ? terms : [terms])
