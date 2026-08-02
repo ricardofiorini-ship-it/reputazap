@@ -5777,7 +5777,7 @@ function TermBar({ term, spacingM, isGuest, placeId, isMobile }) {
 // Hook compartilhado: busca as lentes (1/3km) UMA vez, pra o Hero (Coluna B) e o
 // bloco de concorrentes consumirem a MESMA fonte de dados. Com `mock`, usa
 // dados estáticos (modo demo), sem fetch.
-function useLensesData({ placeId, term, cep, mock }) {
+function useLensesData({ placeId, term, cep, mock, enabled = true }) {
   const [data, setData] = React.useState(mock || null)
   const [loading, setLoading] = React.useState(!mock)
   // FALHA TEM QUE SER VISÍVEL. Antes o erro era engolido (`.catch(() => {})`) e
@@ -5793,6 +5793,13 @@ function useLensesData({ placeId, term, cep, mock }) {
   const remedirRef = React.useRef(false)
   React.useEffect(() => {
     if (mock) { setData(mock); setLoading(false); return }
+    // RESERVA, NÃO ROTINA (01/ago). As lentes existiam pra alimentar o Hero
+    // antes da grade e hoje só entram quando a grade falha — mas continuavam
+    // sendo buscadas em TODA abertura de painel, e o resultado ia pro lixo.
+    // Custava 1 ficha do Google (com a sobretaxa cara de nota/avaliações) + 2
+    // buscas por medição: R$0,47 jogados fora, toda vez. Agora só disparam se
+    // `enabled` — o painel liga isso apenas quando a grade não resolveu.
+    if (!enabled) { setLoading(false); return }
     if (!placeId) { setLoading(false); return }
     const remedir = remedirRef.current
     remedirRef.current = false
@@ -5822,7 +5829,7 @@ function useLensesData({ placeId, term, cep, mock }) {
       .catch(() => { if (!cancelled) { setData(null); setError({ status: 0, message: 'sem conexão' }) } })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [placeId, term, cep, mock, nonce])
+  }, [placeId, term, cep, mock, nonce, enabled])
   return {
     data, loading, error,
     refetch: () => setNonce((n) => n + 1),
@@ -5847,6 +5854,10 @@ function pertoLensInfo(lensData) {
 // ─────────────────────────────────────────────────────────────
 function useGridData({ placeId, terms }) {
   const [data, setData] = React.useState(null)
+  // `loading` existe pra as LENTES saberem esperar: elas são a reserva da grade
+  // e só devem gastar chamada depois que a grade der o veredito. Sem isso as
+  // duas disparavam juntas e uma das duas era desperdício garantido.
+  const [loading, setLoading] = React.useState(true)
   // Mesmo motivo do useLensesData: erro precisa chegar na tela, não virar
   // silêncio. Sem isso, um 429 aqui derruba o número do Hero sem explicação.
   const [error, setError] = React.useState(null)
@@ -5857,10 +5868,14 @@ function useGridData({ placeId, terms }) {
   const remedirRef = React.useRef(false)
   const termsQ = (Array.isArray(terms) ? terms : []).filter(Boolean).slice(0, 3).join(',')
   React.useEffect(() => {
-    if (!placeId) { setData(null); return }
+    // Sem place_id não há o que medir — e é um estado RESOLVIDO, não "carregando".
+    // Se ficasse `loading: true` aqui, as lentes esperariam pra sempre e o
+    // painel do modo demo (que não tem place_id) ficaria sem reserva nenhuma.
+    if (!placeId) { setData(null); setLoading(false); return }
     const remedir = remedirRef.current
     remedirRef.current = false
     let alive = true
+    setLoading(true)
     ;(async () => {
       try {
         const r = await fetch('/api/diagnostico?grid=1&place_id=' + encodeURIComponent(placeId) + (termsQ ? '&terms=' + encodeURIComponent(termsQ) : '') + (remedir ? '&remedir=1' : ''), { headers: authHeader() })
@@ -5874,11 +5889,12 @@ function useGridData({ placeId, terms }) {
         setError(null)
         setData(d?.grid || null)
       } catch { if (alive) { setData(null); setError({ status: 0, message: 'sem conexão' }) } }
+      finally { if (alive) setLoading(false) }
     })()
     return () => { alive = false }
   }, [placeId, termsQ, nonce])
   return {
-    grid: data, error,
+    grid: data, error, loading,
     refetch: () => setNonce((n) => n + 1),
     remeasure: () => { remedirRef.current = true; setNonce((n) => n + 1) }
   }
@@ -6967,23 +6983,29 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     return { lenses: [lens('perto', 'Bem perto de você', 1, 8), lens('regiao', 'Na sua região', 3, 12)], anchoredAt: 'negocio' }
   }, [demoMode, d])
 
-  // Lentes 1/3km — busca ÚNICA, compartilhada entre o Hero (Coluna B) e o bloco
-  // de concorrentes (mesma fonte de dados). No demo, usa demoLenses (mock).
+  // A GRADE VEM PRIMEIRO (01/ago). Ela é a fonte oficial do Hero e da lista; as
+  // lentes viraram só a reserva de quando ela falha. A ordem aqui não é estética:
+  // é ela que permite as lentes esperarem o veredito da grade em vez de gastarem
+  // chamada em paralelo. Antes as duas disparavam juntas em TODA abertura de
+  // painel e o resultado das lentes ia direto pro lixo — R$0,47 por medição.
+  const { grid: gridData, error: gridError, loading: gridLoading, refetch: refetchGrid, remeasure: remeasureGrid } = useGridData({ placeId: guestContext?.placeId || d.biz?.placeId, terms: guestContext?.terms })
+  const gpRaw = gridData?.terms?.[0]
+  const gradeResolveu = !gridLoading && !!(gpRaw && gpRaw.measured > 0)
+
+  // Lentes 1/3km — RESERVA. Só busca quando a grade já respondeu e não serviu.
+  // No demo continua usando o mock (sem rede), como antes.
   const lensState = useLensesData({
     placeId: guestContext?.placeId || d.biz?.placeId,
     term: (real.competitors && real.competitors.category) || d.activeCategory || '',
     cep: guestContext?.cep || '',
-    mock: demoLenses
+    mock: demoLenses,
+    enabled: !gridLoading && !gradeResolveu
   })
   const heroPos = pertoLensInfo(lensState.data)
-  // Ranking por GRADE (posição média real). Alimenta o Hero (termo principal) e o
-  // card de termos extras. Uma busca só, compartilhada.
-  const { grid: gridData, error: gridError, refetch: refetchGrid, remeasure: remeasureGrid } = useGridData({ placeId: guestContext?.placeId || d.biz?.placeId, terms: guestContext?.terms })
   // measured === 0 → o Places falhou em TODOS os pontos. Não sabemos nada; cair
   // no fallback das lentes é melhor que anunciar "Fora da lista" (que seria
   // inventar uma má notícia a partir de uma falha de infraestrutura).
-  const gp = gridData?.terms?.[0]
-  const gridPrimary = gp && gp.measured > 0 ? gp : null
+  const gridPrimary = gradeResolveu ? gpRaw : null
   // Pendura a grade no `d` pra o Score StarTouch enxergar a MESMA posição do Hero
   // (ver a nota longa em scoreBreakdown). Feito por injeção, e não trocando a
   // assinatura de scoreBreakdown, porque ela é chamada de 3 lugares (Hero, modal

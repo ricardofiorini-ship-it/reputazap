@@ -88,6 +88,37 @@ export default async function handler(req, res) {
   const { data: usersList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
   const emailById = new Map((usersList?.users || []).map(u => [u.id, u.email]));
 
+  // 2b. CONTAGEM DE CUSTO (01/ago) — só mede, NÃO muda quem recebe alerta.
+  // Este cron varre TODO negócio com place_id, pra sempre: quem se cadastrou e
+  // sumiu continua sendo consultado todo dia. Cada consulta pede o campo de
+  // avaliações, que dispara a sobretaxa cara do Google (~R$0,125). Ou seja,
+  // conta que só cresce — cada cadastro novo soma ~R$3,75/mês eternamente.
+  // Antes de cortar alguém (decisão de produto: tem gente que só lê o email e
+  // nunca entra no site), o número precisa existir. Isto o produz, de graça:
+  // o listUsers acima já traz last_sign_in_at, então não custa consulta nenhuma.
+  const CUSTO_POR_CONSULTA = 0.125;   // R$, observado na fatura de julho
+  const ultimoLoginPorUser = new Map(
+    (usersList?.users || []).map(u => [u.id, u.last_sign_in_at ? new Date(u.last_sign_in_at).getTime() : null])
+  );
+  const dias = (ms) => ms == null ? null : Math.floor((Date.now() - ms) / 86400000);
+  const faixas = { ativo_30d: 0, parado_30_60d: 0, parado_60_90d: 0, parado_90d_mais: 0, nunca_entrou: 0 };
+  for (const b of bizs) {
+    const d = dias(ultimoLoginPorUser.get(b.user_id));
+    if (d == null) faixas.nunca_entrou++;
+    else if (d <= 30) faixas.ativo_30d++;
+    else if (d <= 60) faixas.parado_30_60d++;
+    else if (d <= 90) faixas.parado_60_90d++;
+    else faixas.parado_90d_mais++;
+  }
+  const inativos90 = faixas.parado_90d_mais + faixas.nunca_entrou;
+  stats.custo = {
+    negocios_varridos: bizs.length,
+    por_faixa_de_ultimo_login: faixas,
+    custo_mensal_estimado: +(bizs.length * 30 * CUSTO_POR_CONSULTA).toFixed(2),
+    // Quanto voltaria pro caixa cortando quem não entra há 90+ dias:
+    economia_se_cortar_90d: +(inativos90 * 30 * CUSTO_POR_CONSULTA).toFixed(2),
+  };
+
   // 3. Preferências de alerta (respeita quem desligou email)
   const userIds = [...new Set(bizs.map(b => b.user_id))];
   const { data: prefsRows } = await supabase
