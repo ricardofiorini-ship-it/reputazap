@@ -135,8 +135,29 @@ export default async function handler(req, res) {
   const cep = (body.cep || "").toString().trim();
   const placeId = (body.place_id || "").toString().trim();
 
-  // Fluxo "ache seu negócio no Google": veio place_id → puxa nome/categoria/
-  // cidade/site do Places (dado real) e preenche o que faltar.
+  // 1. VALIDAÇÃO BARATA — antes do freio, de propósito: requisição malformada
+  //    não pode consumir a cota de ninguém (mesma convenção do searchbiz.js).
+  //    Aqui só dá pra exigir o mínimo: ou veio place_id (e o Places preenche o
+  //    resto adiante), ou vieram nome e categoria na mão.
+  if (!placeId && (!nome || !categoria)) {
+    return res.status(400).json({ error: "Informe nome e categoria." });
+  }
+
+  // 2. FREIO ANTES DE QUALQUER COISA PAGA (02/ago).
+  //    Ele estava DEPOIS do resolveBusinessFromPlace, que é uma consulta paga
+  //    ao Google (~R$0,12). Resultado: o visitante barrado já tinha gasto antes
+  //    de receber o 429, e o teto diário não era hermético — 1.000 tentativas
+  //    bloqueadas ainda custariam uns R$120. Um teto que gasta quando bloqueia
+  //    não é um teto.
+  //    O contador em memória logo abaixo é reserva: ele valia por INSTÂNCIA da
+  //    Vercel, então o limite real era 5 × nº de instâncias quentes.
+  if (await limitou(req, res, LIMITES.radar)) return;
+  if (rateLimited(getIp(req))) {
+    return res.status(429).json({ error: "Muitos diagnósticos seguidos. Tente novamente em alguns minutos." });
+  }
+
+  // 3. Fluxo "ache seu negócio no Google": veio place_id → puxa nome/categoria/
+  //    cidade/site do Places (dado real) e preenche o que faltar.
   let site = null;
   let nicho = "";           // nicho do nome ("padaria artesanal") → pergunta extra
   if (placeId) {
@@ -150,16 +171,11 @@ export default async function handler(req, res) {
     }
   }
 
+  // 4. Depois do Places: se o place_id não rendeu nome/categoria, não dá pra
+  //    montar as perguntas. Aqui o gasto já aconteceu — inevitável, porque só
+  //    o Google sabia dizer.
   if (!nome || !categoria) {
     return res.status(400).json({ error: "Informe nome e categoria." });
-  }
-
-  // Freio durável (Postgres). O contador em memória abaixo virou reserva: ele
-  // valia por INSTÂNCIA da Vercel, então o limite real era 5 × nº de instâncias
-  // quentes. Cada diagnóstico aqui queima tokens de 3 motores de IA.
-  if (await limitou(req, res, LIMITES.radar)) return;
-  if (rateLimited(getIp(req))) {
-    return res.status(429).json({ error: "Muitos diagnósticos seguidos. Tente novamente em alguns minutos." });
   }
 
   // CEP (opcional) → descobre o bairro pra refinar as perguntas; se faltar
