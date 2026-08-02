@@ -17,6 +17,80 @@ const supabase = createClient(
 // Util compartilhado
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * Grava no Supabase e GRITA quando falha.
+ *
+ * POR QUE ISTO EXISTE (02/ago/2026). O arquivo tinha 6 gravações no formato:
+ *
+ *     try { await supabase.from("x").insert(...) } catch (e) { console.warn(...) }
+ *
+ * que parece defensivo e não é: **o cliente do Supabase NÃO lança erro** quando
+ * a tabela não existe, a coluna falta ou a permissão barra — ele devolve o erro
+ * DENTRO do retorno. O `catch` nunca dispara e o `console.warn` nunca é escrito.
+ *
+ * Descoberto do jeito caro: a tabela `radar_leads` nunca tinha sido criada no
+ * banco, e TODO contato (nome, email, WhatsApp) de quem começou a comprar o
+ * Pacote de IA foi descartado — sem uma linha de log em lugar nenhum. Quem não
+ * concluiu o pagamento sumiu pra sempre.
+ *
+ * Retorna { ok, novo, data }:
+ *   ok=false  → falhou de verdade, já logado como erro
+ *   novo=false com ok=true → chave duplicada (23505), que é o mecanismo de
+ *     idempotência do webhook do Mercado Pago (ele repete a notificação). Isso
+ *     é esperado e NÃO polui o log.
+ */
+async function gravar(tabela, linha, onde, { retornar = false } = {}) {
+  try {
+    const q = supabase.from(tabela).insert(linha);
+    const { data, error } = retornar ? await q.select().maybeSingle() : await q;
+    if (!error) return { ok: true, novo: true, data };
+    if (error.code === "23505") return { ok: true, novo: false, data: null };
+    console.error(
+      `[${onde}] NÃO GRAVOU em "${tabela}": ${error.message}` +
+      (error.code ? ` (code ${error.code})` : "") +
+      (error.code === "42P01"
+        ? ` — A TABELA NÃO EXISTE no Supabase. Rode o SQL do schema correspondente.`
+        : "")
+    );
+    return { ok: false, novo: false, data: null, error };
+  } catch (e) {
+    // Rede/timeout: aqui o throw é real.
+    console.error(`[${onde}] NÃO GRAVOU em "${tabela}" (exceção): ${e?.message || e}`);
+    return { ok: false, novo: false, data: null, error: e };
+  }
+}
+
+/**
+ * Irmão do `gravar`, para UPDATE que devolve a linha alterada.
+ *
+ * Os dois updates que marcam pedido como "paid" no webhook faziam
+ * `order = r.data` sem olhar `r.error`. Se a tabela/coluna falta ou a permissão
+ * barra, `data` vem null — exatamente igual a "nenhum pedido pendente achado",
+ * que é o sinal legítimo de webhook repetido. Ou seja: uma VENDA PAGA podia
+ * passar sem email pro admin e sem conversão no GA4, e o log ficava idêntico ao
+ * de um reenvio normal do Mercado Pago. Impossível de descobrir olhando.
+ *
+ * Aqui os dois casos ficam distintos: `data: null` com `ok: true` é idempotência
+ * (silencioso, esperado); erro é erro e vai pro log como erro.
+ */
+async function atualizarUm(query, tabela, onde) {
+  try {
+    const { data, error } = await query.select().maybeSingle();
+    if (error) {
+      console.error(
+        `[${onde}] NÃO ATUALIZOU "${tabela}": ${error.message}` +
+        (error.code ? ` (code ${error.code})` : "") +
+        (error.code === "42P01" ? ` — A TABELA NÃO EXISTE no Supabase.` : "")
+      );
+      return { ok: false, data: null };
+    }
+    return { ok: true, data };
+  } catch (e) {
+    console.error(`[${onde}] NÃO ATUALIZOU "${tabela}" (exceção): ${e?.message || e}`);
+    return { ok: false, data: null };
+  }
+}
+
 async function getRawBody(req) {
   const chunks = [];
   for await (const chunk of req) chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
@@ -362,19 +436,15 @@ async function handleCheckoutKitMP(req, res) {
 
     // Salva o pedido (pending) — itens confiáveis no momento da criação.
     // O webhook marca como 'paid' e notifica quando o pagamento é aprovado.
-    try {
-      await supabase.from("orders").insert({
-        external_reference: extRef,
-        user_id: auth.user.id,
-        email: auth.user.email,
-        biz_name,
-        items: mpItems.map((i) => ({ id: i.id, name: i.title, qty: i.quantity, unit_price: i.unit_price })),
-        total_cents: totalCents,
-        status: "pending",
-      });
-    } catch (e) {
-      console.warn("[checkout-kit] order insert falhou:", e?.message);
-    }
+    await gravar("orders", {
+      external_reference: extRef,
+      user_id: auth.user.id,
+      email: auth.user.email,
+      biz_name,
+      items: mpItems.map((i) => ({ id: i.id, name: i.title, qty: i.quantity, unit_price: i.unit_price })),
+      total_cents: totalCents,
+      status: "pending",
+    }, "checkout-kit");
 
     return res.json({ url: result.init_point });
   } catch (err) {
@@ -500,20 +570,16 @@ async function handleCheckoutKitGuestMP(req, res) {
 
     // Salva o pedido (pending) com o endereço de entrega. O webhook marca 'paid'
     // e notifica o admin (com o endereço) quando o pagamento é aprovado.
-    try {
-      await supabase.from("orders").insert({
-        external_reference: extRef,
-        user_id: null,
-        email: c.email,
-        biz_name: null,
-        items: mpItems.map((i) => ({ id: i.id, name: i.title, qty: i.quantity, unit_price: i.unit_price })),
-        total_cents: totalCents,
-        status: "pending",
-        shipping: c,
-      });
-    } catch (e) {
-      console.warn("[checkout-kit-guest] order insert falhou:", e?.message);
-    }
+    await gravar("orders", {
+      external_reference: extRef,
+      user_id: null,
+      email: c.email,
+      biz_name: null,
+      items: mpItems.map((i) => ({ id: i.id, name: i.title, qty: i.quantity, unit_price: i.unit_price })),
+      total_cents: totalCents,
+      status: "pending",
+      shipping: c,
+    }, "checkout-kit-guest");
 
     return res.json({ url: result.init_point });
   } catch (err) {
@@ -548,12 +614,10 @@ async function handleCheckoutServicoMP(req, res) {
       return res.status(400).json({ error: "Informe nome e um email válido." });
     }
 
-    // Captura do lead (best-effort — não derruba o checkout se a tabela faltar).
-    try {
-      await supabase.from("radar_leads").insert({ nome, email, whatsapp, biz_name, cidade, bairro, score, want_kit });
-    } catch (e) {
-      console.warn("[mp/checkout-ia] lead insert falhou:", e?.message);
-    }
+    // Captura do lead. Continua best-effort (não derruba o checkout de quem está
+    // comprando), mas agora FALHA ALTO: era exatamente aqui que os contatos
+    // sumiam calados porque a tabela não existia.
+    await gravar("radar_leads", { nome, email, whatsapp, biz_name, cidade, bairro, score, want_kit }, "mp/checkout-ia");
 
     const mp = getMP();
     const preference = new Preference(mp);
@@ -627,10 +691,8 @@ async function handleCheckoutPlanoMP(req, res) {
       return res.status(400).json({ error: "Informe nome e um email válido." });
     }
 
-    // Lead (best-effort — não derruba o checkout se a tabela/coluna faltar).
-    try {
-      await supabase.from("radar_leads").insert({ nome, email, whatsapp, biz_name, cidade, bairro });
-    } catch (e) { console.warn("[mp/checkout-plano] lead insert falhou:", e?.message); }
+    // Lead — mesmo caso do checkout-ia: best-effort, mas ruidoso quando falha.
+    await gravar("radar_leads", { nome, email, whatsapp, biz_name, cidade, bairro }, "mp/checkout-plano");
 
     const mp = getMP();
     const preapproval = new PreApproval(mp);
@@ -659,22 +721,20 @@ async function handleCheckoutPlanoMP(req, res) {
 
     // Pedido pending com o contato completo (na coluna `shipping`, jsonb) + a
     // atribuição do GA4 — o webhook marca 'paid' e notifica quando MP autoriza.
-    try {
-      await supabase.from("orders").insert({
-        external_reference: extRef,
-        user_id: null,
-        email,
-        biz_name: biz_name || null,
-        items: [{ name: `${p.label} (mensal)`, qty: 1, unit_price: p.price }],
-        total_cents: Math.round(p.price * 100),
-        status: "pending",
-        shipping: {
-          name: nome, phone: whatsapp, email, plano,
-          ga_client_id: (b.ga_client_id || "").toString(),
-          ga_session_id: (b.ga_session_id || "").toString(),
-        },
-      });
-    } catch (e) { console.warn("[mp/checkout-plano] order insert falhou:", e?.message); }
+    await gravar("orders", {
+      external_reference: extRef,
+      user_id: null,
+      email,
+      biz_name: biz_name || null,
+      items: [{ name: `${p.label} (mensal)`, qty: 1, unit_price: p.price }],
+      total_cents: Math.round(p.price * 100),
+      status: "pending",
+      shipping: {
+        name: nome, phone: whatsapp, email, plano,
+        ga_client_id: (b.ga_client_id || "").toString(),
+        ga_session_id: (b.ga_session_id || "").toString(),
+      },
+    }, "mp/checkout-plano");
 
     return res.json({ url: result.init_point });
   } catch (err) {
@@ -696,9 +756,9 @@ async function handleOnboarding(req, res) {
     const site = (b.site || "").toString().trim();
     const urgente = (b.urgente || "").toString().trim();
 
-    try {
-      await supabase.from("onboarding").insert({ code, plano, biz_name, objetivo, site, urgente });
-    } catch (e) { /* tabela pode não existir — o email cobre */ }
+    // O email pro admin cobre este caso, mas silêncio total escondia a tabela
+    // faltando por meses. Agora o log diz qual schema rodar.
+    await gravar("onboarding", { code, plano, biz_name, objetivo, site, urgente }, "onboarding");
 
     const html =
       `<h2>🚀 Onboarding — novo assinante começou</h2>` +
@@ -744,7 +804,11 @@ async function handlePortalMP(req, res) {
     });
 
     // O webhook deve atualizar o Supabase, mas marcamos pre-emptivamente aqui.
-    await supabase
+    // A resposta segue "cancelado" mesmo se esta gravação falhar — e está certo,
+    // porque o cancelamento no Mercado Pago JÁ aconteceu acima e é ele que vale.
+    // O que não podia continuar é falhar calado: o cliente lia "cancelado com
+    // sucesso", o banco seguia dizendo `pro`, e não havia log pra descobrir.
+    const { error: errCancel } = await supabase
       .from("businesses")
       .update({
         plan: "free",
@@ -752,6 +816,12 @@ async function handlePortalMP(req, res) {
         stripe_cancel_at_period_end: true
       })
       .eq("user_id", auth.user.id);
+    if (errCancel) {
+      console.error(
+        `[mp/portal] assinatura CANCELADA no Mercado Pago, mas o banco NÃO foi atualizado ` +
+        `(user=${auth.user.id}): ${errCancel.message}. O plano vai continuar "pro" até o webhook corrigir.`
+      );
+    }
 
     return res.json({ ok: true, cancelled: true, message: "Assinatura cancelada com sucesso." });
   } catch (err) {
@@ -823,14 +893,13 @@ async function handleWebhookMP(req, res) {
       if (externalRef.startsWith("plano_")) {
         console.log(`[mp/webhook] preapproval PLANO ${pp.id} ref=${externalRef} status=${pp.status}`);
         if (pp.status === "authorized") {
-          let order = null;
-          try {
-            const r = await supabase.from("orders")
+          const up = await atualizarUm(
+            supabase.from("orders")
               .update({ status: "paid", mp_payment_id: String(pp.id), paid_at: new Date().toISOString() })
-              .eq("external_reference", externalRef).eq("status", "pending")
-              .select().maybeSingle();
-            order = r.data;
-          } catch (e) { console.warn("[mp/webhook] update plano order:", e?.message); }
+              .eq("external_reference", externalRef).eq("status", "pending"),
+            "orders", "mp/webhook/plano"
+          );
+          const order = up.data;
           if (order) {
             await notifyAdminPlanoOrder({ order, pp });
             const c = order.shipping || {};
@@ -888,19 +957,14 @@ async function handleWebhookMP(req, res) {
           // Marca o pedido como pago SÓ se ainda estiver 'pending' — isso torna
           // o webhook idempotente: se o MP reenviar, não acha pendente e não
           // reenvia o email. Só notifica quando de fato virou pago agora.
-          let order = null;
-          try {
-            const r = await supabase
-              .from("orders")
+          const up = await atualizarUm(
+            supabase.from("orders")
               .update({ status: "paid", mp_payment_id: String(id), paid_at: new Date().toISOString() })
               .eq("external_reference", externalRef)
-              .eq("status", "pending")
-              .select()
-              .maybeSingle();
-            order = r.data;
-          } catch (e) {
-            console.warn("[mp/webhook] update order falhou:", e?.message);
-          }
+              .eq("status", "pending"),
+            "orders", "mp/webhook/kit"
+          );
+          const order = up.data;
           if (order) {
             await notifyAdminKitOrder({ order, pay, userId });
             // Mede a venda no GA4 (→ importa como "Compra" no Google Ads).
@@ -922,22 +986,24 @@ async function handleWebhookMP(req, res) {
       // Idempotência via insert único por external_reference (conflito = já notificado).
       if (externalRef.startsWith("ia_") && pay.status === "approved") {
         const m = pay.metadata || {};
-        let isNew = false;
-        try {
-          const r = await supabase.from("orders").insert({
-            external_reference: externalRef,
-            email: m.email || pay?.payer?.email || null,
-            biz_name: m.biz_name || null,
-            items: [{ name: "Pacote Presença em IA", qty: 1, unit_price: pay.transaction_amount || 599 }],
-            total_cents: Math.round((pay.transaction_amount || 0) * 100),
-            status: "paid",
-            mp_payment_id: String(id),
-            paid_at: new Date().toISOString(),
-          }).select().maybeSingle();
-          isNew = !!(r && r.data && !r.error);
-        } catch (e) {
-          console.warn("[mp/webhook] insert ia order:", e?.message);
-        }
+        // Idempotência: só a PRIMEIRA gravação deste external_reference dispara
+        // email e conversão. O MP repete o webhook, e chave duplicada (23505) é
+        // o sinal de "já tratei" — o helper devolve ok:true, novo:false e não
+        // suja o log. Já uma tabela faltando devolve ok:false E GRITA: antes,
+        // esse caso virava `isNew=false` calado, ou seja, uma VENDA PAGA sem
+        // aviso pro admin e sem conversão no GA4, indistinguível de um webhook
+        // repetido.
+        const ins = await gravar("orders", {
+          external_reference: externalRef,
+          email: m.email || pay?.payer?.email || null,
+          biz_name: m.biz_name || null,
+          items: [{ name: "Pacote Presença em IA", qty: 1, unit_price: pay.transaction_amount || 599 }],
+          total_cents: Math.round((pay.transaction_amount || 0) * 100),
+          status: "paid",
+          mp_payment_id: String(id),
+          paid_at: new Date().toISOString(),
+        }, "mp/webhook/ia", { retornar: true });
+        const isNew = ins.ok && ins.novo && !!ins.data
         if (isNew) {
           await notifyAdminIaOrder({ pay });
           await sendGa4Purchase({
