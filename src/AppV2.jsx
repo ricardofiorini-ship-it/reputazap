@@ -3775,7 +3775,11 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
                 {(() => {
                   const pts = (gridPos.points || []).filter(p => p.ok)
                   const top3 = pts.filter(p => p.rank != null && p.rank <= 3).length
-                  const media = gridPos.score
+                  // `avg` (lugar onde APARECE), não `score` (que já embute a
+                  // punição por ausência). O score punido no topo brigava com a
+                  // lista logo abaixo: 8,4 aqui e a linha dele em 1º lá. A
+                  // ausência não sumiu da tela — virou a linha de cobertura.
+                  const media = gridPos.avg != null ? gridPos.avg : gridPos.score
                   const cor = media <= 3 ? T.success : media <= 10 ? T.accent : T.danger
                   return (
                     <>
@@ -5957,8 +5961,10 @@ function RankingGrid({ data }) {
                   {/* Mesma hierarquia do Hero: cobertura primeiro, média depois.
                       Mesmo nome do número da tabela ("lugar no Google") — antes
                       isto dizia "posição média" e a tabela dizia outra coisa. */}
+                  {/* Mesmo par de números da tabela: onde aparece + em quantos
+                      pontos. Aqui era `score` (punido) e brigava com a lista. */}
                   {t.coverage > 0
-                    ? <>te encontra em <b style={{ color: T.text }}>{t.coverage} de {t.measured}</b> pontos {raioTxt(t.spacingM)} · lugar no Google {t.score.toFixed(1).replace('.', ',')}</>
+                    ? <>aparece no <b style={{ color: T.text }}>{(t.avg != null ? t.avg : t.score).toFixed(1).replace('.', ',')}º lugar</b>, em {t.coverage} de {t.measured} pontos {raioTxt(t.spacingM)}</>
                     : `não te encontra em nenhum dos ${t.measured} pontos medidos ao redor do seu endereço`}
                 </div>
               </div>
@@ -5995,13 +6001,22 @@ function GridRankingList({ data, isGuest, signupUrl }) {
         <Search size={18} style={{ color: T.primary }}/>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Concorrentes por perto</h3>
       </div>
-      {/* A lista é medida a partir do ENDEREÇO DO DONO (a grade é centrada
-          nele), então favorece quem está no centro — ele. Por isso a coluna da
-          média existe e é o único número de posição da tabela: ela diz a verdade
-          que um ordinal esconderia. */}
+      {/* UM NÚMERO NÃO PODE FAZER DOIS TRABALHOS (01/ago, achado do Ricardo).
+          Até aqui a tabela mostrava e ordenava pelo `score` — a posição média JÁ
+          com a punição de 21 por ausência embutida. Resultado: a Salve Man
+          aparecia no TOPO da lista com 8,4 enquanto um concorrente que o Google
+          mostra em 1º lugar ficava lá embaixo com 13,0. Os números estavam em
+          ordem, mas a ordem mentia, porque a punição só cai em quem some — e
+          quem some é sempre o concorrente, já que os 5 pontos são desenhados ao
+          redor da porta do dono.
+          Agora as duas coisas aparecem SEPARADAS: em que lugar ele aparece
+          (`avg`, ordena a lista) e em quantos pontos ele aparece. Nada de
+          fórmula escondida invertendo a ordem — o dono vê os dois fatos e
+          conclui sozinho. O viés de fundo (grade centrada nele) só some com a
+          malha compartilhada; isto para de escondê-lo. */}
       <div style={{ fontSize: 12.5, color: T.textMuted, marginBottom: 12, lineHeight: 1.45 }}>
         Quem o Google mostra pra quem busca <b style={{ color: T.textMid }}>{data.term}</b> {raioTxt(data.spacingM)}.
-        Do melhor pro pior, medido em {data.measured} pontos ao redor dele.
+        Do melhor colocado pro pior, medido em {data.measured} pontos ao redor dele.
       </div>
 
       <div style={{ display:'flex', alignItems:'flex-end', gap: 8, padding:'0 8px 6px', borderBottom:`1px solid ${T.border}`, marginBottom: 4 }}>
@@ -6011,20 +6026,28 @@ function GridRankingList({ data, isGuest, signupUrl }) {
         <span style={{ ...th, ...num, width: COL.reviews }}>Avaliações</span>
       </div>
 
-      {data.ranking.map((r, i) => {
+      {[...data.ranking]
+        // Ordena pelo lugar REAL. Empate → quem aparece em mais pontos primeiro.
+        .sort((a, b) => (a.avg ?? 99) - (b.avg ?? 99) || (b.points ?? 0) - (a.points ?? 0))
+        .map((r, i) => {
         const me = r.is_me
         const blurName = isGuest && !me
+        const some = r.points != null && r.points < data.measured
         return (
           <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'8px', borderRadius: 8, marginBottom: 2, background: me ? T.primarySoft : 'transparent' }}>
             <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: me ? 700 : 500, color: me ? T.primaryDark : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
               ...(blurName && { filter:'blur(5px)', userSelect:'none', pointerEvents:'none' }) }}>
               {me ? `${r.name || 'Você'} (você)` : (r.name || 'Concorrente')}
             </span>
-            <span title={r.score != null
-                ? `Aparece em ${r.points} de ${data.measured} pontos${r.points < data.measured ? ` (nos outros ${data.measured - r.points}, fica fora do top 20)` : ''}`
-                : 'Não apareceu em nenhum ponto'}
-              style={{ ...num, width: COL.avg, fontSize: 13, fontWeight: 700, color: me ? T.primaryDark : T.text }}>
-              {r.score != null ? r.score.toFixed(1).replace('.', ',') : '—'}
+            <span style={{ ...num, width: COL.avg }}>
+              <span style={{ display:'block', fontSize: 13, fontWeight: 700, color: me ? T.primaryDark : T.text }}>
+                {r.avg != null ? `${r.avg.toFixed(1).replace('.', ',')}º` : '—'}
+              </span>
+              {/* A cobertura vem colada no número, e não numa coluna nova, pra
+                  caber no celular sem espremer o nome do negócio. */}
+              <span style={{ display:'block', fontSize: 10, lineHeight: 1.2, marginTop: 1, color: some ? T.accent : T.textDim, fontWeight: some ? 700 : 500 }}>
+                em {r.points ?? 0} de {data.measured}
+              </span>
             </span>
             <span style={{ ...num, width: COL.rating, fontSize: 12, color: T.textMuted, display:'inline-flex', alignItems:'center', justifyContent:'flex-end', gap: 2 }}>
               {r.rating != null ? r.rating.toFixed(1).replace('.', ',') : '—'}<Star size={11} fill={T.accent} color={T.accent} strokeWidth={0}/>
@@ -6035,13 +6058,13 @@ function GridRankingList({ data, isGuest, signupUrl }) {
           </div>
         )
       })}
-      {/* Uma frase, um número. A legenda antiga tinha 3 linhas porque precisava
-          conciliar "Ordem" com "Posição média" — sem a coluna de ordinal, sobra
-          explicar só o que "1,0" e "9,4" querem dizer. */}
       <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.55 }}>
-        <b style={{ color: T.textMuted }}>Lugar no Google</b>: em média, em que posição o Google mostra cada negócio nas buscas
-        que fizemos ao redor do seu endereço. Menor é melhor — 1,0 é o primeiro resultado.
-        Quem não entra nos 20 primeiros de uma dessas buscas conta como 21º naquele ponto.
+        <b style={{ color: T.textMuted }}>Lugar no Google</b>: em média, em que posição o Google mostra o negócio
+        nos pontos onde ele aparece. Menor é melhor — 1,0 é o primeiro resultado.
+        <div style={{ marginTop: 3 }}>
+          <b style={{ color: T.textMuted }}>Em X de {data.measured}</b>: em quantos dos pontos medidos ele aparece.
+          Estar bem colocado em poucos pontos alcança menos gente do que estar razoável em todos.
+        </div>
       </div>
       {isGuest && data.ranking.some(r => !r.is_me) && (
         <div style={{ marginTop: 12, display:'flex', alignItems:'center', gap: 12, flexWrap:'wrap', background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 12, padding:'12px 14px' }}>
@@ -6689,8 +6712,13 @@ function scoreBreakdown(d) {
       // Mesmo nome e mesmo número da tabela de concorrentes ("Lugar no Google").
       key: 'posicao', icon: 'mappin', label: 'Seu lugar no Google',
       earned: Math.round(posPts), max: 20,
+      // O TEXTO usa os dois fatos separados (lugar onde aparece + em quantos
+      // pontos), igual ao Hero e à tabela. A CONTA acima continua usando o valor
+      // punido, porque sumir tem que custar pontos — mas dizer "posição 8,4"
+      // aqui brigaria com o "5,3º" do topo. Explicar os dois resolve os dois.
       detail: gridAvg != null
-        ? `Você aparece, em média, na posição ${gridAvg.toFixed(1).replace('.', ',')} pra quem busca ${g.term} ${raioTxt(g.spacingM)}.`
+        ? `Você aparece no ${(g.avg != null ? g.avg : gridAvg).toFixed(1).replace('.', ',')}º lugar pra quem busca ${g.term} ${raioTxt(g.spacingM)}`
+          + (g.coverage < g.measured ? `, mas só em ${g.coverage} dos ${g.measured} pontos medidos.` : `, nos ${g.measured} pontos medidos.`)
         : gridForaDeTudo
           ? `Você não aparece em nenhum dos ${g.measured} pontos que medimos ao redor do seu endereço na busca por ${g.term}.`
           : lens ? `${lens.rank}º de ${lens.total} negócios ${raioTxt((lens.radiusKm || 1) * 1000)}.`
