@@ -15,6 +15,18 @@
 //
 // Auth: Bearer ${CRON_SECRET} ou header x-vercel-cron.
 // ============================================================
+// ⚠️ FORA DO AGENDAMENTO DESDE 02/08/2026 — não roda mais sozinho.
+// O alerta de avaliação negativa passou para o `weekly-digest.js`, que já
+// buscava as MESMAS avaliações no mesmo dia: eram duas consultas pagas pelo
+// mesmo dado. Rodando diário aqui custava ~R$206/mês (55 negócios × 30 dias ×
+// ~R$0,125), a maior linha da fatura do Google — mais que todo o resto do site
+// somado. Agora o alerta custa zero, pegando carona no resumo semanal.
+// Preço: o aviso chega em até 7 dias em vez de 24h (decisão do dono; o serviço
+// é grátis e nunca prometemos imediato).
+//
+// O arquivo FICA porque continua útil: o `?test=1` manda um alerta de exemplo,
+// e ele é a base pronta pro alerta DIÁRIO como diferencial do plano Pro — aí
+// sim rodando só pra quem paga. Pra religar, devolva a linha em vercel.json.
 import { createClient } from "@supabase/supabase-js";
 import { fetchWithTimeout } from "../_lib/fetch-timeout.js";
 import { sendTransactionalEmail } from "../_lib/email-sender.js";

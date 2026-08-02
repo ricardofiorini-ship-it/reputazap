@@ -6,6 +6,7 @@
 // ============================================================
 
 import { themeLabel } from "./tips-content.js";
+import { calcularScore } from "./score-core.js";
 
 function escapeHtml(s) {
   return String(s || "").replace(/[&<>"']/g, (m) => ({
@@ -757,27 +758,29 @@ export function weekVerdict(newThisWeek) {
   return { ...AMBER, emoji: "📣", title: "Vamos buscar avaliações?", msg: "Nenhuma avaliação nova nos últimos 7 dias. Vale lembrar a equipe de pedir ao final de cada atendimento — com seu dispositivo StarTouch à vista, o cliente avalia em segundos." };
 }
 
-// Score StarTouch — MESMA fórmula do painel (src/AppV2.jsx → scoreBreakdown,
-// pesos 35/30/20/15). Mantida em paralelo aqui (sem módulo compartilhado
-// front/back). ⚠️ Se mudar a fórmula no painel, atualize aqui também.
-export function emailScore({ rating, reviews, total, pos, photo, phone, category }) {
-  const rt = Number(rating) || 0;
-  const rv = Number(reviews) || 0;
-  const tot = Number(total) || 0;
-  const p = Number(pos) || tot;
-  const notaPts = (rt / 5) * 35;
-  const volPts = Math.min(rv / 100, 1) * 30;
-  const posPts = tot > 0 ? ((tot - p + 1) / tot) * 20 : 10;
-  const hasPhoto = !!photo, hasPhone = !!phone, hasCat = !!category;
-  const perfilPts = (hasPhoto ? 5 : 0) + (hasPhone ? 5 : 0) + (hasCat ? 5 : 0);
-  const score = Math.max(0, Math.min(100, Math.round(notaPts + volPts + posPts + perfilPts)));
+// Score StarTouch — a conta vem de `score-core.js`, A MESMA que o painel usa.
+// Aqui só se monta a frase.
+//
+// Antes esta função tinha uma CÓPIA da fórmula, com um aviso pedindo pra manter
+// em sincronia com o painel. Não foi mantida: em 02/ago o mesmo negócio saiu
+// com 74 no painel e 59 no email. Duas diferenças, ambas por fonte:
+//   · posição — o email lia a arena antiga (`/api/diagnostico` sem grade), que
+//     não devolveu nada e virou "meio termo"; o painel usava a grade;
+//   · perfil — cada lado lia a categoria de um lugar.
+// Agora a matemática é uma só. `gridAvg`/`gridSemCobertura` vêm do cache da
+// grade (ver weekly-digest.js), que é exatamente o que o painel mostra.
+export function emailScore({ rating, reviews, gridAvg, gridSemCobertura, photo, phone, category }) {
+  const c = calcularScore({
+    rating, reviews,
+    gridAvg: gridAvg ?? null,
+    gridSemCobertura: !!gridSemCobertura,
+    photo, phone, category,
+  });
   const missing = [];
-  if (perfilPts < 15) {
-    const f = [!hasPhoto && "foto", !hasPhone && "telefone", !hasCat && "categoria"].filter(Boolean);
-    missing.push(`complete o perfil no Google (${f.join(", ")})`);
-  }
-  if (rv < 100) missing.push("colete mais avaliações");
-  return { score, missing };
+  if (c.faltando.length) missing.push(`complete o perfil no Google (${c.faltando.join(", ")})`);
+  if ((Number(reviews) || 0) < 100) missing.push("colete mais avaliações");
+  if (c.posFonte === "fora") missing.push("você não está aparecendo nas buscas da sua região");
+  return { score: c.score, missing };
 }
 
 // Indicação — MESMO mecanismo honesto do ativar-codigo.html (link UTM +

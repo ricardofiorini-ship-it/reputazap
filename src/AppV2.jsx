@@ -1,4 +1,9 @@
 import React from 'react'
+// A conta do Score StarTouch é COMPARTILHADA com o email semanal. Importar de
+// dentro de `api/` é de propósito: o arquivo é puro (sem Node, sem React) e é
+// o único jeito de garantir que painel e email nunca mais mostrem números
+// diferentes pro mesmo negócio. Ver a nota longa em score-core.js.
+import { calcularScore } from '../api/_lib/score-core.js'
 import {
   Home, Star, ShoppingBag, ShoppingCart, Menu, Lock, Unlock, TrendingUp, TrendingDown,
   Bell, Target, Search, Award, Medal, Rocket, AlertTriangle, MessageSquare, Info,
@@ -6641,55 +6646,33 @@ function scoreBreakdown(d) {
   const reviews = d.kpis?.reviewCount || 0
   const bi = d.businessInfo || {}
 
-  // 1) Nota — 35
-  const notaPts = (rating / 5) * 35
-  // 2) Volume — 30 (satura em 100 avaliações)
-  const volPts = Math.min(reviews / 100, 1) * 30
-
-  // 3) Posição — 20. DUAS COISAS MUDARAM EM 30/JUL:
-  //
-  // (a) FONTE. Vinha de `d.kpis.rankingPos` (/api/competitors: um raio só, ordem
-  //     crua do Google), que discorda da GRADE que o Hero mostra. O painel dizia
-  //     "1º de 13" no topo e computava os pontos como se ele fosse 3º — o número
-  //     grande do painel era calculado por uma medição que a própria tela
-  //     contradizia. Agora sai da grade, igual ao Hero e à lista (`d.gridPos`).
-  //
-  // (b) CONTA: relativa → absoluta. A antiga era (total-pos+1)/total, que
-  //     dependia de quantos vizinhos por acaso foram medidos: 1º de 4 valia os
-  //     mesmos 20 pts que 1º de 50, e 3º de 4 (10 pts) valia MENOS que 3º de 50
-  //     (19,2 pts). Quanto mais deserto o bairro, mais barato o ponto — e o
-  //     score deixava de ser comparável entre dois clientes. Agora usa a POSIÇÃO
-  //     MÉDIA da grade (o mesmo "Lugar no Google" da tabela; ausência num ponto
-  //     conta como 21ª): 1,0 → 20 pts, 11,0 → 10 pts, 21 → 0.
-  //
-  // Fonte na MESMA ordem do Hero: grade → lente de 1km → nada (10 pts neutros).
-  // `d.kpis.rankingPos` saiu da conta inteira, nem como último recurso: nenhum
-  // estado do Hero mostra aquele número, então mantê-lo aqui só garantiria a
-  // contradição de volta num dia de 429.
+  // A CONTA NÃO MORA MAIS AQUI (02/ago). Ela está em `api/_lib/score-core.js`,
+  // importada também pelo email semanal. Antes eram duas cópias com um aviso
+  // pedindo pra manter em sincronia — e não estavam: o mesmo negócio aparecia
+  // com 74 no painel e 59 no email, no mesmo dia. Aqui sobra só a MONTAGEM dos
+  // cards de detalhe; o número é o mesmo dos dois lados, por construção.
   const g = d.gridPos
   const gridAvg = (g && g.coverage > 0 && g.score != null) ? g.score : null
   // Medido em pelo menos 1 ponto e não apareceu em NENHUM: sabemos que está
-  // fora, não é falta de dado. Dar os 10 pts "neutros" aqui seria premiar o pior
-  // caso — o Hero já diz "Fora da lista" na cara dele.
+  // fora, não é falta de dado. O Hero já diz "Fora da lista" na cara dele.
   const gridForaDeTudo = !!(g && g.measured > 0 && g.coverage === 0)
-  // Fallback (grade falhou/429): a lente de 1km, que é o que o Hero mostra nesse
-  // estado. Ordinal dentro do raio → conta relativa, a única possível aqui.
+  // Reserva (grade falhou/429): a lente de 1 km, que é o que o Hero mostra nesse
+  // estado. `d.kpis.rankingPos` NÃO entra — é a arena que a tela contradizia.
   const lp = d.lensPos
   const lens = (!g && lp && lp.inResults && lp.rank != null && lp.total > 0) ? lp : null
-  const posPts =
-      gridAvg != null ? Math.max(0, Math.min(1, (21 - gridAvg) / 20)) * 20
-    : gridForaDeTudo  ? 0
-    : lens            ? ((lens.total - lens.rank + 1) / lens.total) * 20
-    : 10                                           // sem medição nenhuma: meio termo honesto
 
-  // 4) Perfil completo — 15 (5 cada: foto, telefone, categoria)
   const hasPhoto = !!bi.photoUrl
   const hasPhone = !!(bi.phone && String(bi.phone).trim())
   const hasCat   = !!(bi.category && String(bi.category).trim())
-  const perfilPts = (hasPhoto ? 5 : 0) + (hasPhone ? 5 : 0) + (hasCat ? 5 : 0)
-  const faltando = [!hasPhoto && 'foto', !hasPhone && 'telefone', !hasCat && 'categoria'].filter(Boolean)
 
-  const score = Math.max(0, Math.min(100, Math.round(notaPts + volPts + posPts + perfilPts)))
+  const calc = calcularScore({
+    rating, reviews,
+    gridAvg, gridSemCobertura: gridForaDeTudo,
+    lensRank: lens ? lens.rank : null,
+    lensTotal: lens ? lens.total : null,
+    photo: hasPhoto, phone: hasPhone, category: hasCat,
+  })
+  const { score, notaPts, volPts, posPts, perfilPts, faltando } = calc
 
   const factors = [
     {
