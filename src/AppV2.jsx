@@ -3792,15 +3792,24 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
                         {media.toFixed(1).replace('.', ',')}
                         <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: T.textMuted }}>º lugar</span>
                       </div>
-                      <div style={{ fontSize: 13, color: T.textMuted }}>é onde o Google te mostra, na média</div>
+                      {/* "PONTO" ERA PALAVRA NOSSA (02/ago). O dono não sabe o
+                          que é um ponto de medição — ele sabe o que é um LUGAR.
+                          E a frase toda pressupunha algo que nunca foi dito na
+                          tela: que o Google mostra listas diferentes conforme
+                          de onde a pessoa procura. Sem isso, "4 de 5 pontos" é
+                          código interno. O conceito passou a ser ensinado uma
+                          vez, no topo da lista de concorrentes; aqui só sobra o
+                          resultado, em português. Também saiu o "a até 1 km do
+                          seu endereço", que se repetia em toda frase. */}
+                      <div style={{ fontSize: 13, color: T.textMuted }}>é a posição em que o Google costuma te mostrar</div>
                       <div style={{ fontSize: 12, color: T.textDim, lineHeight: 1.45 }}>
-                        pra quem busca {gridPos.term} {raioTxt(gridPos.spacingM)}
+                        quando alguém perto de você busca {gridPos.term}
                         <div style={{ marginTop: 2, fontWeight: 600, color: top3 === pts.length ? T.success : T.textMuted }}>
                           {top3 === pts.length
-                            ? `entre os 3 primeiros em todos os ${pts.length} pontos`
+                            ? `você fica entre os 3 primeiros nos ${pts.length} lugares testados`
                             : top3 > 0
-                              ? `entre os 3 primeiros em só ${top3} dos ${pts.length} pontos`
-                              : `em nenhum dos ${pts.length} pontos você entra nos 3 primeiros`}
+                              ? `você fica entre os 3 primeiros em ${top3} dos ${pts.length} lugares testados`
+                              : `em nenhum dos ${pts.length} lugares testados você entra nos 3 primeiros`}
                         </div>
                       </div>
                     </>
@@ -3813,7 +3822,7 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
                 <div style={{ display:'inline-flex', alignItems:'center', gap: 6, fontSize: isMobile ? 20 : 24, fontWeight: 800, color: T.accent, lineHeight: 1.1, letterSpacing:'-0.01em' }}>
                   <AlertTriangle size={isMobile ? 20 : 22}/> Fora da lista
                 </div>
-                <div style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.4 }}>Não aparece pra "{gridPos.term}" em nenhum dos {gridPos.measured} pontos que medimos ao redor do seu endereço.</div>
+                <div style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.4 }}>Testamos {gridPos.measured} lugares ao redor do seu endereço. Em nenhum deles você aparece pra quem busca "{gridPos.term}".</div>
                 <button onClick={onSeeCompetitors} style={{ ...link, color: T.accent }}>Ver concorrentes <ChevronRight size={14}/></button>
               </>
             )
@@ -5554,17 +5563,20 @@ function GuestSearch({ isMobile }) {
 function GuestBanner({ url, isMobile, bizName, term, spacingM, posicao, top3, medidos, gap }) {
   const name = bizName || 'seu negócio'
   const naBusca = term ? <> <b>{term}</b></> : null
-  const raio = raioTxt(spacingM)
+  // "pontos" e "a até 1 km do seu endereço" saíram daqui (02/ago): a tarja tinha
+  // quatro ideias empilhadas e duas delas em vocabulário nosso. Aqui fica UMA
+  // frase de fato + UMA de convite. O detalhe da distância vive no bloco de
+  // concorrentes, onde o conceito é explicado.
   let msg
   if (medidos && top3 === medidos) {
-    // Forte de verdade: está no bloco dos 3 em TODOS os pontos → medo de perder.
-    msg = <><b>{bizName || 'Seu negócio'}</b> aparece <b>entre os 3 primeiros</b> pra quem busca{naBusca} {raio}. Crie conta grátis pra <b>não perder esse lugar</b> e ser avisado quando um concorrente chegar perto.</>
+    // Forte de verdade: está entre os 3 em TODOS os lugares → medo de perder.
+    msg = <><b>{bizName || 'Seu negócio'}</b> aparece <b>entre os 3 primeiros</b> pra quem busca{naBusca} por perto. Crie conta grátis pra <b>não perder esse lugar</b> e ser avisado quando um concorrente chegar perto.</>
   } else if (medidos && top3 === 0) {
-    // A dor mais forte, e é verdade: ele não entra no bloco em lugar nenhum.
-    msg = <><b>{bizName || 'Seu negócio'}</b> <b>não aparece entre os 3 primeiros</b> em nenhum dos {medidos} pontos que medimos {raio}. Quem busca{naBusca} por perto não te encontra. Crie conta grátis e veja o que fazer.</>
+    // A dor mais forte, e é verdade: ele não entra nos 3 em lugar nenhum.
+    msg = <>Testamos {medidos} lugares ao redor da <b>{bizName || 'sua loja'}</b>. Em <b>nenhum</b> deles você aparece entre os 3 primeiros pra quem busca{naBusca}. Crie conta grátis e veja o que fazer.</>
   } else if (medidos) {
-    // O caso do meio: aparece bem em parte do pedaço e some no resto.
-    msg = <><b>{bizName || 'Seu negócio'}</b> só aparece entre os 3 primeiros em <b>{top3} de {medidos} pontos</b> {raio}. No resto, quem busca{naBusca} não te vê. Crie conta grátis e veja o que fazer.</>
+    // O caso do meio: aparece bem em parte da região e some no resto.
+    msg = <><b>{bizName || 'Seu negócio'}</b> aparece entre os 3 primeiros em <b>{top3} dos {medidos} lugares</b> que testamos ao redor da sua loja. {medidos - top3 === 1 ? 'No lugar que falta' : `Nos outros ${medidos - top3}`}, quem busca{naBusca} não te encontra. Crie conta grátis e veja o que fazer.</>
   } else if (gap && gap > 0) {
     // Sem cobertura calculável, mas com diferença real de avaliações: diz o FATO,
     // não a promessa — a lista ordena por posição, não por volume.
@@ -5671,19 +5683,18 @@ function ExitIntentModal({ url, bizName, term, spacingM, posicao, top3, medidos,
 
   if (!show) return null
 
-  // Mesma fonte e mesma lógica da tarja (guestPitch → grade do Hero).
-  const raio = raioTxt(spacingM)
-  // Mesma lógica e mesma fonte da tarja — sem ordinal (ver nota em guestPitch).
+  // Mesma fonte, mesma lógica e MESMO VOCABULÁRIO da tarja — "lugares", não
+  // "pontos", e sem repetir a distância (ver nota em GuestBanner).
   let headline, sub
   if (medidos && top3 === medidos) {
-    headline = `${bizName || 'Seu negócio'} aparece entre os 3 primeiros ${raio}`
+    headline = `${bizName || 'Seu negócio'} aparece entre os 3 primeiros por aqui`
     sub = `Crie conta grátis pra não perder esse lugar${term ? ` em "${term}"` : ''} e ser avisado quando um concorrente chegar perto.`
   } else if (medidos && top3 === 0) {
-    headline = `Você não aparece entre os 3 primeiros em nenhum dos ${medidos} pontos ${raio}`
+    headline = `Testamos ${medidos} lugares e você não aparece entre os 3 primeiros em nenhum`
     sub = 'Quem busca por perto não te encontra. Crie conta grátis e veja o que fazer.'
   } else if (medidos) {
-    headline = `Você só aparece entre os 3 primeiros em ${top3} de ${medidos} pontos`
-    sub = 'No resto do seu pedaço, quem busca não te vê. Crie conta grátis e veja o que fazer.'
+    headline = `Você aparece entre os 3 primeiros em ${top3} dos ${medidos} lugares que testamos`
+    sub = `${medidos - top3 === 1 ? 'No lugar que falta' : `Nos outros ${medidos - top3}`}, quem busca não te encontra. Crie conta grátis e veja o que fazer.`
   } else if (gap && gap > 0) {
     headline = `Quem aparece na sua frente tem ${gap} ${gap === 1 ? 'avaliação' : 'avaliações'} a mais que você`
     sub = 'Não perca esse diagnóstico. Crie conta grátis e comece a virar isso hoje.'
@@ -5926,13 +5937,16 @@ function useGridData({ placeId, terms }) {
 // então a âncora é o endereço e a distância vem do backend (`spacingM` de cada
 // termo), nunca hardcodada: se a grade mudar de 1 km, o texto muda junto.
 // Fonte única — todo texto que fala de área usa este helper.
-function raioTxt(spacingM) {
+// Só a distância ("1 km"), pra frases que já dizem de onde é a distância.
+function raioNum(spacingM) {
   const m = spacingM || 1000
   const km = m / 1000
-  const n = km >= 1
+  return km >= 1
     ? `${(Math.round(km * 10) / 10).toString().replace('.', ',')} km`
     : `${Math.round(m)} m`
-  return `a até ${n} do seu endereço`
+}
+function raioTxt(spacingM) {
+  return `a até ${raioNum(spacingM)} do seu endereço`
 }
 
 // Rótulo/cor por termo (forte / melhorar / subir / oportunidade).
@@ -5969,8 +5983,8 @@ function RankingGrid({ data }) {
                   {/* Mesmo par de números da tabela: onde aparece + em quantos
                       pontos. Aqui era `score` (punido) e brigava com a lista. */}
                   {t.coverage > 0
-                    ? <>aparece no <b style={{ color: T.text }}>{(t.avg != null ? t.avg : t.score).toFixed(1).replace('.', ',')}º lugar</b>, em {t.coverage} de {t.measured} pontos {raioTxt(t.spacingM)}</>
-                    : `não te encontra em nenhum dos ${t.measured} pontos medidos ao redor do seu endereço`}
+                    ? <>aparece no <b style={{ color: T.text }}>{(t.avg != null ? t.avg : t.score).toFixed(1).replace('.', ',')}º lugar</b>, em {t.coverage} dos {t.measured} lugares testados</>
+                    : `não aparece em nenhum dos ${t.measured} lugares testados`}
                 </div>
               </div>
               <span style={{ fontSize: 10.5, fontWeight: 800, textTransform:'uppercase', letterSpacing:'.04em', color: s.color, background: s.bg, padding:'4px 9px', borderRadius: 999, flexShrink: 0 }}>{s.label}</span>
@@ -6019,9 +6033,13 @@ function GridRankingList({ data, isGuest, signupUrl }) {
           fórmula escondida invertendo a ordem — o dono vê os dois fatos e
           conclui sozinho. O viés de fundo (grade centrada nele) só some com a
           malha compartilhada; isto para de escondê-lo. */}
-      <div style={{ fontSize: 12.5, color: T.textMuted, marginBottom: 12, lineHeight: 1.45 }}>
-        Quem o Google mostra pra quem busca <b style={{ color: T.textMid }}>{data.term}</b> {raioTxt(data.spacingM)}.
-        Do melhor colocado pro pior, medido em {data.measured} pontos ao redor dele.
+      {/* AQUI a ideia é ensinada, UMA vez. Sem esta frase, todo o resto da tela
+          ("4 de 5", "lugar no Google") vira código interno — o dono não tem por
+          que saber que a resposta do Google muda conforme a localização de quem
+          procura. É justamente essa variação que o produto vende. */}
+      <div style={{ fontSize: 12.5, color: T.textMuted, marginBottom: 12, lineHeight: 1.5 }}>
+        O Google não mostra a mesma lista pra todo mundo: ela muda conforme o lugar de onde a pessoa procura.
+        Testamos <b style={{ color: T.textMid }}>{data.term}</b> em {data.measured} lugares ao redor do seu endereço, até {raioNum(data.spacingM)} de distância.
       </div>
 
       <div style={{ display:'flex', alignItems:'flex-end', gap: 8, padding:'0 8px 6px', borderBottom:`1px solid ${T.border}`, marginBottom: 4 }}>
@@ -6064,11 +6082,12 @@ function GridRankingList({ data, isGuest, signupUrl }) {
         )
       })}
       <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.55 }}>
-        <b style={{ color: T.textMuted }}>Lugar no Google</b>: em média, em que posição o Google mostra o negócio
-        nos pontos onde ele aparece. Menor é melhor — 1,0 é o primeiro resultado.
+        <b style={{ color: T.textMuted }}>Lugar no Google</b> — a posição em que o negócio costuma aparecer.
+        1,0 é o primeiro da lista; quanto menor, melhor.
         <div style={{ marginTop: 3 }}>
-          <b style={{ color: T.textMuted }}>Em X de {data.measured}</b>: em quantos dos pontos medidos ele aparece.
-          Estar bem colocado em poucos pontos alcança menos gente do que estar razoável em todos.
+          <b style={{ color: T.textMuted }}>Em 4 de {data.measured}</b> — em quantos dos {data.measured} lugares
+          testados o negócio apareceu. Aparecer bem em poucos lugares alcança menos gente
+          do que aparecer razoável em todos.
         </div>
       </div>
       {isGuest && data.ranking.some(r => !r.is_me) && (
@@ -6700,10 +6719,10 @@ function scoreBreakdown(d) {
       // punido, porque sumir tem que custar pontos — mas dizer "posição 8,4"
       // aqui brigaria com o "5,3º" do topo. Explicar os dois resolve os dois.
       detail: gridAvg != null
-        ? `Você aparece no ${(g.avg != null ? g.avg : gridAvg).toFixed(1).replace('.', ',')}º lugar pra quem busca ${g.term} ${raioTxt(g.spacingM)}`
-          + (g.coverage < g.measured ? `, mas só em ${g.coverage} dos ${g.measured} pontos medidos.` : `, nos ${g.measured} pontos medidos.`)
+        ? `Você aparece no ${(g.avg != null ? g.avg : gridAvg).toFixed(1).replace('.', ',')}º lugar pra quem busca ${g.term} por perto`
+          + (g.coverage < g.measured ? `, mas só em ${g.coverage} dos ${g.measured} lugares testados.` : `, nos ${g.measured} lugares testados.`)
         : gridForaDeTudo
-          ? `Você não aparece em nenhum dos ${g.measured} pontos que medimos ao redor do seu endereço na busca por ${g.term}.`
+          ? `Testamos ${g.measured} lugares ao redor do seu endereço e você não aparece em nenhum pra quem busca ${g.term}.`
           : lens ? `${lens.rank}º de ${lens.total} negócios ${raioTxt((lens.radiusKm || 1) * 1000)}.`
           : 'Ainda não conseguimos medir sua posição.',
       hint: gridAvg != null
