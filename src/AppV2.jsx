@@ -3746,49 +3746,53 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
           {gridPos ? (
             gridPos.coverage > 0 && gridPos.score != null ? (
               <>
-                {/* QUAL NÚMERO VAI GRANDE: o que carrega a NOTÍCIA (27/jul, 2ª rodada).
-                    1ª tentativa foi "posição média" penalizada: a Michelli via
-                    "18,0" e leu "sou o 18º" (63 dos 90 pontos vinham de ausência).
-                    2ª foi cobertura sempre: a bikeweb, que é a MELHOR do bairro,
-                    via "5 de 5 pontos onde você aparece" — prêmio de participação,
-                    enterrando a boa notícia. Ricardo: "está espantando clientes".
-                    Agora:
-                      · aparece em TODOS os pontos → manchete é a POSIÇÃO na região
-                        ("1º de 9"), que é a pergunta do dono, com a média ao lado
-                        pra não esconder o viés de auto-centragem;
-                      · falta ponto → manchete é a COBERTURA, porque aí a notícia
-                        é a ausência, não a posição. */}
+                {/* QUAL NÚMERO VAI GRANDE — histórico das tentativas, pra não
+                    repetir nenhuma:
+                      1ª (jul): posição média penalizada. A Michelli via "18,0" e
+                         leu "sou o 18º" — 63 dos 90 pontos vinham de ausência.
+                      2ª (jul): cobertura sempre. A bikeweb, a MELHOR do bairro,
+                         via "5 de 5 pontos onde você aparece" — prêmio de
+                         participação. Ricardo: "está espantando clientes".
+                      3ª (27/jul): ordinal quando a cobertura era cheia ("1º de
+                         9"). Caiu em 01/ago: o teste de calibragem mostrou que
+                         o ordinal é 1 pra 17 de cada 20 negócios.
+                      4ª (01/ago, atual): a POSIÇÃO média — o único número que
+                         sobreviveu ao teste (bate com o Google real, erro de 1
+                         lugar) — com a cobertura do TOP 3 como linha de apoio. */}
+                {/* O "Xº de N" MORREU AQUI (01/ago). O teste de calibragem com 20
+                    negócios reais mostrou que ele não media nada: 17 saíram "1º",
+                    e 8 desses nem estavam no top 3 do Google. A causa é estrutural
+                    — a grade é centrada na porta do dono, então ele é o único
+                    perto dos 5 pontos e a punição por ausência cai só nos
+                    concorrentes. Não tinha conserto de fórmula; tinha que sair.
+                    Duas barbearias a 1,3 km recebiam as duas "1º lugar".
+
+                    No lugar dele vai o número que sobreviveu ao teste: em que
+                    lugar o Google de fato mostra o negócio. E, como manchete de
+                    apoio, quantos dos pontos medidos o colocam no BLOCO DOS 3
+                    PRIMEIROS — que é o que o Google exibe e o que o cliente vê
+                    sem rolar a tela. Ser 4º é quase ser 20º. */}
                 {(() => {
-                  const cheia = gridPos.coverage >= gridPos.measured
-                  const temOrdinal = gridPos.rank != null && gridPos.total > 1
-                  const media = gridPos.score != null ? gridPos.score.toFixed(1).replace('.', ',') : null
-                  if (cheia && temOrdinal) return (
-                    <>
-                      <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: gridPos.rank <= 3 ? T.success : T.text, lineHeight: 1, letterSpacing:'-0.02em' }}>
-                        {gridPos.rank}º<span style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.textMuted }}> de {gridPos.total}</span>
-                      </div>
-                      <div style={{ fontSize: 13, color: T.textMuted }}>pra quem busca {gridPos.term}</div>
-                      <div style={{ fontSize: 12, color: T.textDim }}>
-                        {/* "na sua região" não respondia "região de onde?" (dono, 01/ago).
-                            A âncora é o endereço dele, e a distância vem do backend. */}
-                        aparece nos {gridPos.measured} pontos medidos {raioTxt(gridPos.spacingM)}{media ? <> · lugar no Google {media}</> : null}
-                      </div>
-                    </>
-                  )
+                  const pts = (gridPos.points || []).filter(p => p.ok)
+                  const top3 = pts.filter(p => p.rank != null && p.rank <= 3).length
+                  const media = gridPos.score
+                  const cor = media <= 3 ? T.success : media <= 10 ? T.accent : T.danger
                   return (
                     <>
-                      <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: T.accent, lineHeight: 1, letterSpacing:'-0.02em' }}>
-                        {gridPos.coverage}<span style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.textMuted }}> de {gridPos.measured}</span>
+                      <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: cor, lineHeight: 1, letterSpacing:'-0.02em' }}>
+                        {media.toFixed(1).replace('.', ',')}
+                        <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: T.textMuted }}>º lugar</span>
                       </div>
-                      <div style={{ fontSize: 13, color: T.textMuted }}>pontos {raioTxt(gridPos.spacingM)} onde você aparece</div>
-                      <div style={{ fontSize: 12, color: T.textDim }}>
-                        buscando {gridPos.term}
-                        {(() => {
-                          const ranks = (gridPos.points || []).filter(p => p.ok && p.rank != null).map(p => p.rank).sort((a, b) => a - b)
-                          if (!ranks.length) return null
-                          if (ranks.length <= 3) return <> · {ranks.map(r => `${r}º`).join(' e ')} onde aparece</>
-                          return <> · entre {ranks[0]}º e {ranks[ranks.length - 1]}º onde aparece</>
-                        })()}
+                      <div style={{ fontSize: 13, color: T.textMuted }}>é onde o Google te mostra, na média</div>
+                      <div style={{ fontSize: 12, color: T.textDim, lineHeight: 1.45 }}>
+                        pra quem busca {gridPos.term} {raioTxt(gridPos.spacingM)}
+                        <div style={{ marginTop: 2, fontWeight: 600, color: top3 === pts.length ? T.success : T.textMuted }}>
+                          {top3 === pts.length
+                            ? `entre os 3 primeiros em todos os ${pts.length} pontos`
+                            : top3 > 0
+                              ? `entre os 3 primeiros em só ${top3} dos ${pts.length} pontos`
+                              : `em nenhum dos ${pts.length} pontos você entra nos 3 primeiros`}
+                        </div>
                       </div>
                     </>
                   )
@@ -5538,20 +5542,23 @@ function GuestSearch({ isMobile }) {
 // Os números vêm de `guestPitch`, que sai da MESMA grade do Hero. Nunca voltar a
 // alimentar isto de outra fonte: o dono lê a tarja e o Hero na mesma tela, e
 // dois rankings discordando ali destroem a credibilidade dos dois.
-function GuestBanner({ url, isMobile, bizName, term, spacingM, rank, total, gap }) {
+function GuestBanner({ url, isMobile, bizName, term, spacingM, posicao, top3, medidos, gap }) {
   const name = bizName || 'seu negócio'
   const naBusca = term ? <> <b>{term}</b></> : null
   const raio = raioTxt(spacingM)
   let msg
-  if (rank === 1) {
-    // Já é líder → medo de PERDER a liderança.
-    msg = total > 1
-      ? <><b>{bizName || 'Seu negócio'}</b> aparece <b>na frente dos outros {total - 1} negócios</b> pra quem busca{naBusca} {raio}. Crie conta grátis pra <b>manter a liderança</b> e ser avisado quando alguém chegar perto.</>
-      : <><b>{bizName || 'Seu negócio'}</b> é quem o Google mostra <b>na frente</b> pra quem busca{naBusca} {raio}. Crie conta grátis pra <b>manter a liderança</b> e ser avisado quando alguém chegar perto.</>
+  if (medidos && top3 === medidos) {
+    // Forte de verdade: está no bloco dos 3 em TODOS os pontos → medo de perder.
+    msg = <><b>{bizName || 'Seu negócio'}</b> aparece <b>entre os 3 primeiros</b> pra quem busca{naBusca} {raio}. Crie conta grátis pra <b>não perder esse lugar</b> e ser avisado quando um concorrente chegar perto.</>
+  } else if (medidos && top3 === 0) {
+    // A dor mais forte, e é verdade: ele não entra no bloco em lugar nenhum.
+    msg = <><b>{bizName || 'Seu negócio'}</b> <b>não aparece entre os 3 primeiros</b> em nenhum dos {medidos} pontos que medimos {raio}. Quem busca{naBusca} por perto não te encontra. Crie conta grátis e veja o que fazer.</>
+  } else if (medidos) {
+    // O caso do meio: aparece bem em parte do pedaço e some no resto.
+    msg = <><b>{bizName || 'Seu negócio'}</b> só aparece entre os 3 primeiros em <b>{top3} de {medidos} pontos</b> {raio}. No resto, quem busca{naBusca} não te vê. Crie conta grátis e veja o que fazer.</>
   } else if (gap && gap > 0) {
-    // Tem gap real de avaliações. Diz o FATO (quem está na frente tem X a mais),
-    // não a promessa ("faltam X pro 2º lugar") — a grade ordena por posição, não
-    // por volume, então prometer o lugar seria inventar causa.
+    // Sem cobertura calculável, mas com diferença real de avaliações: diz o FATO,
+    // não a promessa — a lista ordena por posição, não por volume.
     msg = <>Quem aparece na sua frente pra quem busca{naBusca} {raio} tem <b>{gap} {gap === 1 ? 'avaliação' : 'avaliações'} a mais</b> que você. Este diagnóstico é temporário — crie conta grátis e comece a virar isso hoje.</>
   } else {
     // Sem dado de ranking → foca em salvar/acompanhar (perecibilidade).
@@ -5634,7 +5641,7 @@ function GuestFollowTeaser({ url, isMobile }) {
 // convidado leva o cursor pra fora pela borda de cima (indo fechar/trocar de
 // aba). Só desktop (touch não tem "mouseleave" útil), 1x por sessão (não perturba).
 // Mensagem personalizada com os números reais (mesma lógica da tarja).
-function ExitIntentModal({ url, bizName, term, spacingM, rank, total, gap, isMobile }) {
+function ExitIntentModal({ url, bizName, term, spacingM, posicao, top3, medidos, gap, isMobile }) {
   const [show, setShow] = React.useState(false)
   const firedRef = React.useRef(false)
   React.useEffect(() => {
@@ -5657,12 +5664,17 @@ function ExitIntentModal({ url, bizName, term, spacingM, rank, total, gap, isMob
 
   // Mesma fonte e mesma lógica da tarja (guestPitch → grade do Hero).
   const raio = raioTxt(spacingM)
+  // Mesma lógica e mesma fonte da tarja — sem ordinal (ver nota em guestPitch).
   let headline, sub
-  if (rank === 1) {
-    headline = total > 1
-      ? `${bizName || 'Seu negócio'} aparece na frente dos outros ${total - 1} negócios ${raio}`
-      : `${bizName || 'Seu negócio'} é quem o Google mostra na frente ${raio}`
-    sub = `Crie conta grátis pra manter a liderança${term ? ` em "${term}"` : ''} e ser avisado quando alguém chegar perto.`
+  if (medidos && top3 === medidos) {
+    headline = `${bizName || 'Seu negócio'} aparece entre os 3 primeiros ${raio}`
+    sub = `Crie conta grátis pra não perder esse lugar${term ? ` em "${term}"` : ''} e ser avisado quando um concorrente chegar perto.`
+  } else if (medidos && top3 === 0) {
+    headline = `Você não aparece entre os 3 primeiros em nenhum dos ${medidos} pontos ${raio}`
+    sub = 'Quem busca por perto não te encontra. Crie conta grátis e veja o que fazer.'
+  } else if (medidos) {
+    headline = `Você só aparece entre os 3 primeiros em ${top3} de ${medidos} pontos`
+    sub = 'No resto do seu pedaço, quem busca não te vê. Crie conta grátis e veja o que fazer.'
   } else if (gap && gap > 0) {
     headline = `Quem aparece na sua frente tem ${gap} ${gap === 1 ? 'avaliação' : 'avaliações'} a mais que você`
     sub = 'Não perca esse diagnóstico. Crie conta grátis e comece a virar isso hoje.'
@@ -7025,23 +7037,25 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     const g = gridPrimary
     const rows = Array.isArray(g?.ranking) ? g.ranking : null
     if (g && g.coverage > 0 && rows && rows.length) {
-      const total = g.total || rows.length
+      // NADA DE ORDINAL AQUI TAMBÉM (01/ago). A tarja dizia "na frente dos
+      // outros 23" quando o ordinal era 1 — e o ordinal sai 1 pra 17 de cada 20
+      // negócios, por construção da grade. Era a mesma mentira do Hero, servida
+      // pro visitante que ainda nem é cliente. O argumento agora é o BLOCO DOS
+      // 3 PRIMEIROS: verificável, e é a dor de verdade — quem não está nos 3
+      // não é visto, e é isso que a StarTouch conserta.
+      const pts = (g.points || []).filter(p => p.ok)
+      const top3 = pts.filter(p => p.rank != null && p.rank <= 3).length
       const i = rows.findIndex(r => r.is_me)
-      if (i === 0) return { rank: 1, total, gap: null }
-      if (i > 0) {
-        const gap = Math.max(0, (rows[i - 1].reviews || 0) - (rows[i].reviews || 0))
-        // Gap 0 = quem está na frente NÃO tem mais avaliações que ele. A grade
-        // ordena por posição média, não por volume, então isso acontece — e aí
-        // falar de avaliações seria mentira. Cai no genérico.
-        return { rank: i + 1, total, gap: gap || null }
-      }
+      // Quantas avaliações a mais tem quem aparece melhor que ele? Se não tiver
+      // mais, não inventa causa — o gap some e a tarja usa só a cobertura.
+      const gap = i > 0 ? (Math.max(0, (rows[i - 1].reviews || 0) - (rows[i].reviews || 0)) || null) : null
+      return { posicao: g.score, top3, medidos: pts.length, gap }
     }
     // SEM GRADE → tarja GENÉRICA, de propósito. A tentação é cair no
     // /api/competitors pra não perder a personalização, mas ali o negócio pode
-    // ser "1º" numa arena onde o Hero (que nesse estado mostra a lente de 1km)
-    // diz que ele é 3º — e a tarja gritaria liderança contra a própria tela.
-    // Argumento específico só com a medição que está na tela; senão, genérico.
-    return { rank: null, total: null, gap: null }
+    // parecer líder numa arena que a tela não mostra — a tarja gritaria contra
+    // o próprio painel. Argumento específico só com a medição que está na tela.
+    return { posicao: null, top3: null, medidos: null, gap: null }
   }, [gridPrimary])
 
   // Categoria mostrada e URL do perfil do Google (p/ "corrigir categoria" / "Responder").
