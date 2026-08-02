@@ -600,10 +600,17 @@ async function goToStep2(){
   btn.innerHTML='<span class="spinner">⟳</span> Criando conta...';
 
   try {
+    // O id anônimo do navegador (o MESMO que o /app usa em rz_anon) vai junto:
+    // é ele que costura "viu a posição" com "criou a conta". Sem isso o
+    // signup_complete nasce órfão e o funil sabe QUANTOS se cadastraram, mas
+    // nunca POR QUE — foi o que impediu de responder, em 01/ago, quantos
+    // clientes vieram do diagnóstico. Não cria id novo: se o visitante nunca
+    // passou pelo painel, manda null e o evento só conta.
+    let anonId=null; try{ anonId=localStorage.getItem("rz_anon"); }catch(e){}
     const res=await fetch("/api/register",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({name,email,phone,password:pass})
+      body:JSON.stringify({name,email,phone,password:pass,anon_id:anonId})
     });
     const data=await res.json();
     if(!res.ok){alert(data.error||"Erro ao criar conta");btn.disabled=false;btn.innerHTML="Continuar →";return;}
