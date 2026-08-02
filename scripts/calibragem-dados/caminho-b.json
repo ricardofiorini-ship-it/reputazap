@@ -1,0 +1,40 @@
+[
+  {
+    "place_id": "ChIJfTQjoIZXzpQR_DnfLDIPSNs",
+    "nome": "Rancho do Açaí",
+    "termo": "açaí",
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": null,
+        "total": 20
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": null,
+        "total": 20
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": null,
+        "total": 20
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": null,
+        "total": 20
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": null,
+        "total": 20
+      }
+    ],
+    "lugar_no_google": 21
+  }
+]

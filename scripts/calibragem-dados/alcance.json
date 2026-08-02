@@ -1,0 +1,202 @@
+[
+  {
+    "place_id": "ChIJfTQjoIZXzpQR_DnfLDIPSNs",
+    "nome": "Rancho do Açaí",
+    "termo": "açaí",
+    "r1000": 1,
+    "r3000": 1,
+    "r10000": 1,
+    "maps18": 3,
+    "maps16": 10
+  },
+  {
+    "place_id": "ChIJr8XQBRVZzpQRAhJ5-PNP45U",
+    "nome": "BARBEIRO AT HOME 24h 💈💇🏻‍♂️🏠",
+    "termo": "barbearia",
+    "r1000": 1,
+    "r3000": 1,
+    "r10000": 1,
+    "maps18": 1,
+    "maps16": 1
+  },
+  {
+    "place_id": "ChIJ4RYp2KhXzpQRAFhyLfWSJPI",
+    "nome": "Bicicletário da Estação Pinheiros",
+    "termo": "bicicletaria",
+    "r1000": 1,
+    "r3000": 1,
+    "r10000": 1,
+    "maps18": 3,
+    "maps16": null
+  },
+  {
+    "place_id": "ChIJI5W_oKVXzpQR8MQCccdhkfY",
+    "nome": "Panificadora Vipão",
+    "termo": "padaria",
+    "r1000": 2,
+    "r3000": 17,
+    "r10000": 19,
+    "maps18": 3,
+    "maps16": 11
+  },
+  {
+    "place_id": "ChIJ9RSJmLpXzpQR_5Cc4S1tMto",
+    "nome": "Bráz Pizzaria - Pinheiros",
+    "termo": "pizzaria",
+    "r1000": 1,
+    "r3000": 1,
+    "r10000": 1,
+    "maps18": 3,
+    "maps16": 5
+  },
+  {
+    "place_id": "ChIJmZf9b2ZRzpQRIME_L31RzKg",
+    "nome": "Açaí do Gordão - Santo Amaro",
+    "termo": "açaí",
+    "r1000": 1,
+    "r3000": 1,
+    "r10000": 1,
+    "maps18": 1,
+    "maps16": 1
+  },
+  {
+    "place_id": "ChIJhe-BPXtRzpQROKpqpis3BM4",
+    "nome": "A Barbearia Express - Mais Shopping",
+    "termo": "barbearia",
+    "r1000": 1,
+    "r3000": 6,
+    "r10000": 8,
+    "maps18": 3,
+    "maps16": 13
+  },
+  {
+    "place_id": "ChIJmaKnNdpRzpQRC-ssVzZhJG0",
+    "nome": "Bicicletário Terminal Santo Amaro",
+    "termo": "bicicletaria",
+    "r1000": 1,
+    "r3000": 1,
+    "r10000": 1,
+    "maps18": 1,
+    "maps16": 8
+  },
+  {
+    "place_id": "ChIJVVVVVfhQzpQRT3MRnlKHjaQ",
+    "nome": "Panificadora Nova Carmel",
+    "termo": "padaria",
+    "r1000": 1,
+    "r3000": 2,
+    "r10000": 4,
+    "maps18": 2,
+    "maps16": 5
+  },
+  {
+    "place_id": "ChIJgdNbwfdVzpQR0a7Yylaep64",
+    "nome": "O Cãoselheiro",
+    "termo": "pet shop",
+    "r1000": 1,
+    "r3000": 1,
+    "r10000": 1,
+    "maps18": 3,
+    "maps16": null
+  },
+  {
+    "place_id": "ChIJN9o9av9QzpQRNDshWQUS5zE",
+    "nome": "Pizzaborosa - Santo Amaro e Alto da boa Vista",
+    "termo": "pizzaria",
+    "r1000": 1,
+    "r3000": 1,
+    "r10000": 1,
+    "maps18": 1,
+    "maps16": 7
+  },
+  {
+    "place_id": "ChIJ9xLHNt1ezpQRII5942OtrII",
+    "nome": "Manga & Açaí",
+    "termo": "açaí",
+    "r1000": 1,
+    "r3000": 1,
+    "r10000": 1,
+    "maps18": 3,
+    "maps16": 10
+  },
+  {
+    "place_id": "ChIJI5lW3JNfzpQRcrfeRYuae6o",
+    "nome": "Trezentos Barber Shop Tatuapé",
+    "termo": "barbearia",
+    "r1000": 2,
+    "r3000": null,
+    "r10000": null,
+    "maps18": 2,
+    "maps16": 15
+  },
+  {
+    "place_id": "ChIJsUZpWcBezpQRr8WIyr9n7js",
+    "nome": "NCN Bikes",
+    "termo": "bicicletaria",
+    "r1000": 1,
+    "r3000": 2,
+    "r10000": 2,
+    "maps18": 1,
+    "maps16": 3
+  },
+  {
+    "place_id": "ChIJzfbPDt1ezpQR0Gp1TsM_yK4",
+    "nome": "Padaria Vera Cruz",
+    "termo": "padaria",
+    "r1000": 1,
+    "r3000": 1,
+    "r10000": 1,
+    "maps18": 1,
+    "maps16": 5
+  },
+  {
+    "place_id": "ChIJUb4wW8JfzpQR2gvycmXgmJk",
+    "nome": "Petshop - Petlove Loja Tatuapé",
+    "termo": "pet shop",
+    "r1000": 4,
+    "r3000": 3,
+    "r10000": 3,
+    "maps18": 1,
+    "maps16": 1
+  },
+  {
+    "place_id": "ChIJgUq6o3FfzpQR4W7nUADU7f4",
+    "nome": "Pizza Yes",
+    "termo": "pizzaria",
+    "r1000": 3,
+    "r3000": 1,
+    "r10000": 1,
+    "maps18": 2,
+    "maps16": 8
+  },
+  {
+    "place_id": "ChIJd08TG6ZXzpQRXvPWY-CdYgk",
+    "nome": "Açaí Pinheiros",
+    "termo": "açaí",
+    "r1000": 3,
+    "r3000": 14,
+    "r10000": 20,
+    "maps18": 2,
+    "maps16": 2
+  },
+  {
+    "place_id": "ChIJ4eao8aFXzpQRlM8cW5MoM80",
+    "nome": "BARBEARIA SALVE MAN",
+    "termo": "barbearia",
+    "r1000": 4,
+    "r3000": 6,
+    "r10000": 6,
+    "maps18": 2,
+    "maps16": 18
+  },
+  {
+    "place_id": "ChIJDWMNM6tXzpQR4UY32bMOyYQ",
+    "nome": "Bike Jonny",
+    "termo": "bicicletaria",
+    "r1000": 3,
+    "r3000": 2,
+    "r10000": 2,
+    "maps18": 1,
+    "maps16": 11
+  }
+]

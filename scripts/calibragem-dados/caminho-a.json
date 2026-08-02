@@ -1,0 +1,782 @@
+[
+  {
+    "place_id": "ChIJfTQjoIZXzpQR_DnfLDIPSNs",
+    "nome": "Rancho do Açaí",
+    "termo": "açaí",
+    "centro": {
+      "lat": -23.5563767,
+      "lng": -46.6752742
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 2
+      }
+    ],
+    "lugar_no_google": 1.4,
+    "ordinal": 1,
+    "total": 10
+  },
+  {
+    "place_id": "ChIJr8XQBRVZzpQRAhJ5-PNP45U",
+    "nome": "BARBEIRO AT HOME 24h 💈💇🏻‍♂️🏠",
+    "termo": "barbearia",
+    "centro": {
+      "lat": -23.5605528,
+      "lng": -46.6901147
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 1
+      }
+    ],
+    "lugar_no_google": 1,
+    "ordinal": 1,
+    "total": 42
+  },
+  {
+    "place_id": "ChIJ4RYp2KhXzpQRAFhyLfWSJPI",
+    "nome": "Bicicletário da Estação Pinheiros",
+    "termo": "bicicletaria",
+    "centro": {
+      "lat": -23.5674184,
+      "lng": -46.70135820000001
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": null
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": null
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": null
+      }
+    ],
+    "lugar_no_google": 13,
+    "ordinal": 7,
+    "total": 20
+  },
+  {
+    "place_id": "ChIJI5W_oKVXzpQR8MQCccdhkfY",
+    "nome": "Panificadora Vipão",
+    "termo": "padaria",
+    "centro": {
+      "lat": -23.56304,
+      "lng": -46.6982976
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 7
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 9
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 2
+      }
+    ],
+    "lugar_no_google": 4.4,
+    "ordinal": 1,
+    "total": 22
+  },
+  {
+    "place_id": "ChIJ9RSJmLpXzpQR_5Cc4S1tMto",
+    "nome": "Bráz Pizzaria - Pinheiros",
+    "termo": "pizzaria",
+    "centro": {
+      "lat": -23.5601089,
+      "lng": -46.698589
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 5
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 6
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 1
+      }
+    ],
+    "lugar_no_google": 3,
+    "ordinal": 1,
+    "total": 38
+  },
+  {
+    "place_id": "ChIJmZf9b2ZRzpQRIME_L31RzKg",
+    "nome": "Açaí do Gordão - Santo Amaro",
+    "termo": "açaí",
+    "centro": {
+      "lat": -23.6462646,
+      "lng": -46.7096129
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 1
+      }
+    ],
+    "lugar_no_google": 1,
+    "ordinal": 1,
+    "total": 7
+  },
+  {
+    "place_id": "ChIJhe-BPXtRzpQROKpqpis3BM4",
+    "nome": "A Barbearia Express - Mais Shopping",
+    "termo": "barbearia",
+    "centro": {
+      "lat": -23.6534552,
+      "lng": -46.7104933
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 4
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 1
+      }
+    ],
+    "lugar_no_google": 1.6,
+    "ordinal": 1,
+    "total": 24
+  },
+  {
+    "place_id": "ChIJmaKnNdpRzpQRC-ssVzZhJG0",
+    "nome": "Bicicletário Terminal Santo Amaro",
+    "termo": "bicicletaria",
+    "centro": {
+      "lat": -23.6545677,
+      "lng": -46.7113404
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": null
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": null
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": null
+      }
+    ],
+    "lugar_no_google": 13,
+    "ordinal": 2,
+    "total": 10
+  },
+  {
+    "place_id": "ChIJVVVVVfhQzpQRT3MRnlKHjaQ",
+    "nome": "Panificadora Nova Carmel",
+    "termo": "padaria",
+    "centro": {
+      "lat": -23.6443824,
+      "lng": -46.7019451
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 3
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 4
+      }
+    ],
+    "lugar_no_google": 2.2,
+    "ordinal": 1,
+    "total": 16
+  },
+  {
+    "place_id": "ChIJgdNbwfdVzpQR0a7Yylaep64",
+    "nome": "O Cãoselheiro",
+    "termo": "pet shop",
+    "centro": {
+      "lat": -23.6522213,
+      "lng": -46.7110974
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": null
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": null
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": null
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": null
+      }
+    ],
+    "lugar_no_google": 17,
+    "ordinal": 6,
+    "total": 19
+  },
+  {
+    "place_id": "ChIJN9o9av9QzpQRNDshWQUS5zE",
+    "nome": "Pizzaborosa - Santo Amaro e Alto da boa Vista",
+    "termo": "pizzaria",
+    "centro": {
+      "lat": -23.6481953,
+      "lng": -46.7056261
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 4
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 3
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 4
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 4
+      }
+    ],
+    "lugar_no_google": 3.2,
+    "ordinal": 1,
+    "total": 29
+  },
+  {
+    "place_id": "ChIJ9xLHNt1ezpQRII5942OtrII",
+    "nome": "Manga & Açaí",
+    "termo": "açaí",
+    "centro": {
+      "lat": -23.5367384,
+      "lng": -46.5752913
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 3
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 1
+      }
+    ],
+    "lugar_no_google": 1.4,
+    "ordinal": 1,
+    "total": 22
+  },
+  {
+    "place_id": "ChIJI5lW3JNfzpQRcrfeRYuae6o",
+    "nome": "Trezentos Barber Shop Tatuapé",
+    "termo": "barbearia",
+    "centro": {
+      "lat": -23.5418199,
+      "lng": -46.57737119999999
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": null
+      }
+    ],
+    "lugar_no_google": 5.8,
+    "ordinal": 1,
+    "total": 45
+  },
+  {
+    "place_id": "ChIJsUZpWcBezpQRr8WIyr9n7js",
+    "nome": "NCN Bikes",
+    "termo": "bicicletaria",
+    "centro": {
+      "lat": -23.545464,
+      "lng": -46.576134
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 3
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": null
+      }
+    ],
+    "lugar_no_google": 5.6,
+    "ordinal": 1,
+    "total": 6
+  },
+  {
+    "place_id": "ChIJzfbPDt1ezpQR0Gp1TsM_yK4",
+    "nome": "Padaria Vera Cruz",
+    "termo": "padaria",
+    "centro": {
+      "lat": -23.5353068,
+      "lng": -46.57568029999999
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 1
+      }
+    ],
+    "lugar_no_google": 1,
+    "ordinal": 1,
+    "total": 20
+  },
+  {
+    "place_id": "ChIJUb4wW8JfzpQR2gvycmXgmJk",
+    "nome": "Petshop - Petlove Loja Tatuapé",
+    "termo": "pet shop",
+    "centro": {
+      "lat": -23.5426944,
+      "lng": -46.5679814
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 4
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 6
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 8
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 3
+      }
+    ],
+    "lugar_no_google": 4.6,
+    "ordinal": 1,
+    "total": 38
+  },
+  {
+    "place_id": "ChIJgUq6o3FfzpQR4W7nUADU7f4",
+    "nome": "Pizza Yes",
+    "termo": "pizzaria",
+    "centro": {
+      "lat": -23.5360225,
+      "lng": -46.5716
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 3
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 3
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 7
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 8
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 7
+      }
+    ],
+    "lugar_no_google": 5.6,
+    "ordinal": 1,
+    "total": 46
+  },
+  {
+    "place_id": "ChIJd08TG6ZXzpQRXvPWY-CdYgk",
+    "nome": "Açaí Pinheiros",
+    "termo": "açaí",
+    "centro": {
+      "lat": -23.5664975,
+      "lng": -46.6991567
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 3
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 1
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": null
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 4
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 2
+      }
+    ],
+    "lugar_no_google": 6.2,
+    "ordinal": 1,
+    "total": 8
+  },
+  {
+    "place_id": "ChIJ4eao8aFXzpQRlM8cW5MoM80",
+    "nome": "BARBEARIA SALVE MAN",
+    "termo": "barbearia",
+    "centro": {
+      "lat": -23.5682265,
+      "lng": -46.6994423
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 4
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 7
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 4
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": null
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 6
+      }
+    ],
+    "lugar_no_google": 8.4,
+    "ordinal": 1,
+    "total": 29
+  },
+  {
+    "place_id": "ChIJDWMNM6tXzpQR4UY32bMOyYQ",
+    "nome": "Bike Jonny",
+    "termo": "bicicletaria",
+    "centro": {
+      "lat": -23.5708333,
+      "lng": -46.7088889
+    },
+    "pontos": [
+      {
+        "dir": "centro",
+        "ok": true,
+        "rank": 3
+      },
+      {
+        "dir": "N",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "S",
+        "ok": true,
+        "rank": 2
+      },
+      {
+        "dir": "L",
+        "ok": true,
+        "rank": 4
+      },
+      {
+        "dir": "O",
+        "ok": true,
+        "rank": 3
+      }
+    ],
+    "lugar_no_google": 2.8,
+    "ordinal": 1,
+    "total": 18
+  }
+]

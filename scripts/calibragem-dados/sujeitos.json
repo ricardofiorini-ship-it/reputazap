@@ -1,0 +1,162 @@
+[
+  {
+    "place_id": "ChIJfTQjoIZXzpQR_DnfLDIPSNs",
+    "nome": "Rancho do Açaí",
+    "termo": "açaí",
+    "bairro": "Pinheiros, São Paulo",
+    "posicao_na_amostragem": 5,
+    "endereco": "R. Teodoro Sampaio, 481 - Pinheiros, São Paulo - SP, 05405-000"
+  },
+  {
+    "place_id": "ChIJr8XQBRVZzpQRAhJ5-PNP45U",
+    "nome": "BARBEIRO AT HOME 24h 💈💇🏻‍♂️🏠",
+    "termo": "barbearia",
+    "bairro": "Pinheiros, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "R. Inácio Pereira da Rocha, 363 - sala03 - Pinheiros, São Paulo - SP, 05432-011"
+  },
+  {
+    "place_id": "ChIJ4RYp2KhXzpQRAFhyLfWSJPI",
+    "nome": "Bicicletário da Estação Pinheiros",
+    "termo": "bicicletaria",
+    "bairro": "Pinheiros, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "R. Capri, 145 - Pinheiros, São Paulo - SP, 05425-030"
+  },
+  {
+    "place_id": "ChIJI5W_oKVXzpQR8MQCccdhkfY",
+    "nome": "Panificadora Vipão",
+    "termo": "padaria",
+    "bairro": "Pinheiros, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "R. Ferreira de Araújo, 604 - Pinheiros, São Paulo - SP, 05428-001"
+  },
+  {
+    "place_id": "ChIJ9RSJmLpXzpQR_5Cc4S1tMto",
+    "nome": "Bráz Pizzaria - Pinheiros",
+    "termo": "pizzaria",
+    "bairro": "Pinheiros, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "R. Vupabussu, 271 - Pinheiros, São Paulo - SP, 05429-040"
+  },
+  {
+    "place_id": "ChIJmZf9b2ZRzpQRIME_L31RzKg",
+    "nome": "Açaí do Gordão - Santo Amaro",
+    "termo": "açaí",
+    "bairro": "Santo Amaro, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "Av. João Dias, 915 - Santo Amaro, São Paulo - SP, 04723-001"
+  },
+  {
+    "place_id": "ChIJhe-BPXtRzpQROKpqpis3BM4",
+    "nome": "A Barbearia Express - Mais Shopping",
+    "termo": "barbearia",
+    "bairro": "Santo Amaro, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "Mais Shopping - R. Amador Bueno, 229 - Santo Amaro, São Paulo - SP, 04752-005"
+  },
+  {
+    "place_id": "ChIJmaKnNdpRzpQRC-ssVzZhJG0",
+    "nome": "Bicicletário Terminal Santo Amaro",
+    "termo": "bicicletaria",
+    "bairro": "Santo Amaro, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "Av. Padre José Maria, 12 - Santo Amaro, São Paulo - SP, 04753-060"
+  },
+  {
+    "place_id": "ChIJVVVVVfhQzpQRT3MRnlKHjaQ",
+    "nome": "Panificadora Nova Carmel",
+    "termo": "padaria",
+    "bairro": "Santo Amaro, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "Av. João Dias, 99 - Santo Amaro, São Paulo - SP, 04723-000"
+  },
+  {
+    "place_id": "ChIJgdNbwfdVzpQR0a7Yylaep64",
+    "nome": "O Cãoselheiro",
+    "termo": "pet shop",
+    "bairro": "Santo Amaro, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "R. Amador Bueno, 328 - Sl 2 - Térreo - Santo Amaro, São Paulo - SP, 04752-005"
+  },
+  {
+    "place_id": "ChIJN9o9av9QzpQRNDshWQUS5zE",
+    "nome": "Pizzaborosa - Santo Amaro e Alto da boa Vista",
+    "termo": "pizzaria",
+    "bairro": "Santo Amaro, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "R. Cel. Luís Barroso, 240 - Santo Amaro, São Paulo - SP, 04750-030"
+  },
+  {
+    "place_id": "ChIJ9xLHNt1ezpQRII5942OtrII",
+    "nome": "Manga & Açaí",
+    "termo": "açaí",
+    "bairro": "Tatuapé, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "R. Tuiuti, 1287 - Tatuapé, São Paulo - SP, 03081-000"
+  },
+  {
+    "place_id": "ChIJI5lW3JNfzpQRcrfeRYuae6o",
+    "nome": "Trezentos Barber Shop Tatuapé",
+    "termo": "barbearia",
+    "bairro": "Tatuapé, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "Rua Domingos Agostim, 91 - Lj 14s - Cidade Mãe do Céu, São Paulo - SP, 03306-900"
+  },
+  {
+    "place_id": "ChIJsUZpWcBezpQRr8WIyr9n7js",
+    "nome": "NCN Bikes",
+    "termo": "bicicletaria",
+    "bairro": "Tatuapé, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "R. Bom Sucesso, 559 - Cidade Mãe do Céu, São Paulo - SP, 03305-000"
+  },
+  {
+    "place_id": "ChIJzfbPDt1ezpQR0Gp1TsM_yK4",
+    "nome": "Padaria Vera Cruz",
+    "termo": "padaria",
+    "bairro": "Tatuapé, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "Av. Celso Garcia, 3784 - Tatuapé, São Paulo - SP, 03064-000"
+  },
+  {
+    "place_id": "ChIJUb4wW8JfzpQR2gvycmXgmJk",
+    "nome": "Petshop - Petlove Loja Tatuapé",
+    "termo": "pet shop",
+    "bairro": "Tatuapé, São Paulo",
+    "posicao_na_amostragem": 5,
+    "endereco": "R. Airi, 421 - Vila Gomes Cardim, São Paulo - SP, 03310-010"
+  },
+  {
+    "place_id": "ChIJgUq6o3FfzpQR4W7nUADU7f4",
+    "nome": "Pizza Yes",
+    "termo": "pizzaria",
+    "bairro": "Tatuapé, São Paulo",
+    "posicao_na_amostragem": 1,
+    "endereco": "Av. Celso Garcia, 4214 - Tatuapé, São Paulo - SP, 03064-000"
+  },
+  {
+    "place_id": "ChIJd08TG6ZXzpQRXvPWY-CdYgk",
+    "nome": "Açaí Pinheiros",
+    "termo": "açaí",
+    "bairro": "Pinheiros, São Paulo",
+    "posicao_na_amostragem": 10,
+    "endereco": "R. Amaro Cavalheiro, 127 - Pinheiros, São Paulo - SP, 05425-010"
+  },
+  {
+    "place_id": "ChIJ4eao8aFXzpQRlM8cW5MoM80",
+    "nome": "BARBEARIA SALVE MAN",
+    "termo": "barbearia",
+    "bairro": "Pinheiros, São Paulo",
+    "posicao_na_amostragem": 5,
+    "endereco": "R. Amaro Cavalheiro, 320 - Pinheiros, São Paulo - SP, 05425-011"
+  },
+  {
+    "place_id": "ChIJDWMNM6tXzpQR4UY32bMOyYQ",
+    "nome": "Bike Jonny",
+    "termo": "bicicletaria",
+    "bairro": "Pinheiros, São Paulo",
+    "posicao_na_amostragem": 5,
+    "endereco": "R. Camargo, 382 - Butantã, São Paulo - SP, 05510-050"
+  }
+]

@@ -563,7 +563,7 @@ function resolveTerm(keyword, meR) {
 // distância de verdade (haversine), como o searchbiz.js já fazia.
 const DIST_SLACK = 1.10; // 10% de folga: 3,1 km não é "fora da região"
 
-function haversineM(a, b) {
+export function haversineM(a, b) {
   if (!a || !b || a.lat == null || b.lat == null) return Infinity;
   const R = 6371000;
   const toRad = (d) => (d * Math.PI) / 180;
@@ -575,13 +575,13 @@ function haversineM(a, b) {
 }
 
 // Sem coordenada não há como medir → mantém (não descarta por falta de dado).
-function dentroDoRaio(p, anchor, radiusM) {
+export function dentroDoRaio(p, anchor, radiusM) {
   if (p.lat == null || p.lng == null) return true;
   return haversineM(anchor, { lat: p.lat, lng: p.lng }) <= radiusM * DIST_SLACK;
 }
 
 // Roda um Text Search ancorado e devolve a ORDEM do Google (sem re-ranquear).
-async function runTextSearch(term, lat, lng, radius) {
+export async function runTextSearch(term, lat, lng, radius) {
   const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(term)}&location=${lat},${lng}&radius=${radius}&language=pt-BR&region=br&key=${API_KEY}`;
   const ts = await (await fetchWithTimeout(url, {}, 8000)).json();
   // O Places devolve `DEADLINE_EXCEEDED` de forma intermitente (medido: 3 em 6
