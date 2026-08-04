@@ -4501,53 +4501,6 @@ function GuestSearch({ isMobile }) {
   )
 }
 
-// Tarja fixa do modo convidado — CTA de cadastro (conversão).
-// Personalizada com os números REAIS do negócio (gap pro topo) + urgência
-// (diagnóstico temporário). Genérico converte menos que específico.
-//
-// Os números vêm de `guestPitch`, que sai da MESMA grade do Hero. Nunca voltar a
-// alimentar isto de outra fonte: o dono lê a tarja e o Hero na mesma tela, e
-// dois rankings discordando ali destroem a credibilidade dos dois.
-function GuestBanner({ url, isMobile, bizName, term, spacingM, posicao, top3, medidos, gap }) {
-  const name = bizName || 'seu negócio'
-  const naBusca = term ? <> <b>{term}</b></> : null
-  // "pontos" e "a até 1 km do seu endereço" saíram daqui (02/ago): a tarja tinha
-  // quatro ideias empilhadas e duas delas em vocabulário nosso. Aqui fica UMA
-  // frase de fato + UMA de convite. O detalhe da distância vive no bloco de
-  // concorrentes, onde o conceito é explicado.
-  let msg
-  if (medidos && top3 === medidos) {
-    // Forte de verdade: está entre os 3 em TODOS os lugares → medo de perder.
-    msg = <><b>{bizName || 'Seu negócio'}</b> aparece <b>entre os 3 primeiros</b> pra quem busca{naBusca} por perto. Crie conta grátis pra <b>não perder esse lugar</b> e ser avisado quando um concorrente chegar perto.</>
-  } else if (medidos && top3 === 0) {
-    // A dor mais forte, e é verdade: ele não entra nos 3 em lugar nenhum.
-    msg = <>Testamos {medidos} lugares ao redor da <b>{bizName || 'sua loja'}</b>. Em <b>nenhum</b> deles você aparece entre os 3 primeiros pra quem busca{naBusca}. Crie conta grátis e veja o que fazer.</>
-  } else if (medidos) {
-    // O caso do meio: aparece bem em parte da região e some no resto.
-    msg = <><b>{bizName || 'Seu negócio'}</b> aparece entre os 3 primeiros em <b>{top3} dos {medidos} lugares</b> que testamos ao redor da sua loja. {medidos - top3 === 1 ? 'No lugar que falta' : `Nos outros ${medidos - top3}`}, quem busca{naBusca} não te encontra. Crie conta grátis e veja o que fazer.</>
-  } else if (gap && gap > 0) {
-    // Sem cobertura calculável, mas com diferença real de avaliações: diz o FATO,
-    // não a promessa — a lista ordena por posição, não por volume.
-    msg = <>Quem aparece na sua frente pra quem busca{naBusca} {raio} tem <b>{gap} {gap === 1 ? 'avaliação' : 'avaliações'} a mais</b> que você. Este diagnóstico é temporário — crie conta grátis e comece a virar isso hoje.</>
-  } else {
-    // Sem dado de ranking → foca em salvar/acompanhar (perecibilidade).
-    msg = <>Prévia do painel de <b>{name}</b>. Este diagnóstico é temporário — crie conta grátis pra <b>salvar</b>, acompanhar sua evolução e receber alertas.</>
-  }
-  return (
-    <div style={{
-      background: T.primarySoft, color: T.text, borderLeft: `4px solid ${T.primary}`,
-      display:'flex', alignItems:'center', justifyContent:'center', gap: isMobile?8:12, flexWrap:'wrap',
-      padding: isMobile ? '10px 14px' : '11px 18px', fontSize: isMobile?12:13.5, fontWeight:600, textAlign:'center'
-    }}>
-      <span>{msg}</span>
-      <a href={url} onClick={() => trackFunnel('guest_signup_click', { from: 'banner' })} style={{
-        background: T.primary, color:'#fff', textDecoration:'none', fontWeight:700,
-        padding:'7px 15px', borderRadius: 8, fontSize: isMobile?12.5:13, whiteSpace:'nowrap'
-      }}>Salvar meu diagnóstico →</a>
-    </div>
-  )
-}
-
 // Tela de bloqueio pra recursos que exigem conta (settings, etc.) no modo convidado.
 function GuestGate({ url, feature, isMobile }) {
   return (
@@ -4593,8 +4546,11 @@ function ExitIntentModal({ url, bizName, term, spacingM, posicao, top3, medidos,
 
   if (!show) return null
 
-  // Mesma fonte, mesma lógica e MESMO VOCABULÁRIO da tarja — "lugares", não
-  // "pontos", e sem repetir a distância (ver nota em GuestBanner).
+  // Os números saem de `guestPitch` — a MESMA grade do Hero. Nunca alimentar
+  // isto de outra fonte: o dono lê o modal e o painel na mesma tela, e dois
+  // rankings discordando ali destroem a credibilidade dos dois. Vocabulário:
+  // "lugares", não "pontos", e sem repetir a distância (que vive no bloco de
+  // concorrentes, onde o conceito é explicado).
   let headline, sub
   if (medidos && top3 === medidos) {
     headline = `${bizName || 'Seu negócio'} aparece entre os 3 primeiros por aqui`
@@ -6087,14 +6043,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       // Espaço pro bottom tab bar não cobrir o conteúdo final (só mobile)
       paddingBottom: isMobile ? 'calc(72px + env(safe-area-inset-bottom, 0))' : 0
     }}>
-      {isGuest && <GuestBanner
-        url={guestSignupUrl}
-        isMobile={isMobile}
-        bizName={d.businessInfo?.name || d.biz?.name || ''}
-        term={gridPrimary?.term || null}
-        spacingM={gridPrimary?.spacingM}
-        {...guestPitch}
-      />}
+      {/* A TARJA FIXA DO CONVIDADO SAIU (03/ago). Ela repetia, no topo e em voz
+          alta, o que o painel inteiro já mostra logo abaixo — e o pedido de
+          cadastro ficava colado na cara do dono o tempo todo, poluindo a
+          leitura do diagnóstico. O convite ficou só no modal de saída, que
+          aparece uma vez, na hora em que ele ia embora mesmo. */}
       {isGuest && <ExitIntentModal
         url={guestSignupUrl}
         isMobile={isMobile}
