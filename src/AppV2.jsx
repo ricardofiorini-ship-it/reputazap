@@ -2850,7 +2850,11 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
                           dele. O detalhe (a busca medida, os 5 lugares, quem
                           está na frente) continua logo abaixo, no bloco de
                           concorrentes, pra quem quiser ir fundo. */}
-                      <div style={{ fontSize: 13, color: T.textMuted, lineHeight: 1.45 }}>é a colocação média da sua empresa no Google Meu Negócio</div>
+                      {/* "Google Maps", e não "Google Meu Negócio": a colocação
+                          acontece na busca/Maps. No Meu Negócio o dono só edita
+                          o perfil — não existe ranking naquela tela, e ele iria
+                          procurar lá sem achar. É de onde a medição vem. */}
+                      <div style={{ fontSize: 13, color: T.textMuted, lineHeight: 1.45 }}>é a colocação média da sua empresa no Google Maps</div>
                     </>
                   )
                 })()}
