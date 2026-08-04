@@ -352,40 +352,8 @@ function relativeDate(unixOrIso) {
   return `há ${Math.floor(diffDays/30)} meses`
 }
 
-// Adapta a resposta do /api/diagnostico (público) pro shape que o buildData
-// espera do /api/competitors. Usado no modo CONVIDADO (sem login) — o ranking
-// vem do endpoint público (nomes de concorrente já bloqueados).
-function diagnosticoToCompetitors(diag, placeId) {
-  if (!diag || !diag.enough) return null
-  const top = (diag.top || []).map(c => ({
-    place_id: c.isMe ? placeId : null,
-    name: c.name,            // null pros concorrentes (locked no público)
-    rating: c.rating,
-    reviews: c.reviews,
-    lat: null, lng: null,
-    is_me: !!c.isMe,
-    weekGrowth: null,
-    history: null
-  }))
-  const meReviews = diag.reviews || 0
-  const ahead = (diag.rank && diag.rank > 1)
-    ? { reviews: meReviews + (diag.reviewsToNext || 0), rating: null }
-    : null
-  return {
-    enough: true,
-    total: diag.total,
-    category: diag.category,
-    radius: diag.radius,
-    me: { place_id: placeId, name: diag.name, rating: diag.rating, reviews: meReviews },
-    rank_google: diag.rank,
-    ahead,
-    names_locked: true,
-    top
-  }
-}
-
 // Hook que carrega dados reais do user logado (ou do convidado, via place_id).
-// Retorna { loading, error, authExpired, biz, reviews, bizInfo, competitors, plates, hasBusiness }
+// Retorna { loading, error, authExpired, biz, reviews, bizInfo, plates, hasBusiness }
 function useRealData(user, demoMode, guestMode = false, guestContext = null) {
   const [state, setState] = React.useState({
     loading: !demoMode && (!!user || guestMode),
@@ -394,7 +362,6 @@ function useRealData(user, demoMode, guestMode = false, guestContext = null) {
     biz: null,
     reviews: [],
     bizInfo: null,
-    competitors: null,
     plates: null,
     alertPreferences: null,
     hasBusiness: false
@@ -419,25 +386,26 @@ function useRealData(user, demoMode, guestMode = false, guestContext = null) {
         try {
           const pid = guestContext.placeId
           const kw = (guestContext.keyword || '').trim()
-          const gcep = (guestContext.cep || '').trim()
-          const diagUrl = `/api/diagnostico?place_id=${encodeURIComponent(pid)}&radius=1000`
-            + (kw ? `&keyword=${encodeURIComponent(kw)}` : '')
-            + (gcep ? `&cep=${encodeURIComponent(gcep)}` : '')
-          const [bizInfoRes, reviewsRes, diagRes] = await Promise.all([
+          // A CHAMADA DA ARENA VELHA SAIU (03/ago). O convidado disparava
+          // /api/diagnostico (raio único, ordem crua do Google) em TODA abertura
+          // do painel, e o resultado só alimentava a lista de concorrentes que a
+          // GRADE já substituiu na tela. Era uma medição paga ao Google por
+          // visita, no caminho mais movimentado do site (anúncios), pra um
+          // número que ninguém via. A grade continua medindo normalmente.
+          const [bizInfoRes, reviewsRes] = await Promise.all([
             fetch(`/api/bizinfo?place_id=${encodeURIComponent(pid)}`).then(r => r.json()).catch(() => ({})),
-            fetch(`/api/reviews?place_id=${encodeURIComponent(pid)}`).then(r => r.json()).catch(() => ({})),
-            fetch(diagUrl).then(r => r.json()).catch(() => ({}))
+            fetch(`/api/reviews?place_id=${encodeURIComponent(pid)}`).then(r => r.json()).catch(() => ({}))
           ])
           if (cancelled) return
-          const name = reviewsRes.name || bizInfoRes.name || diagRes.name || 'Seu negócio'
+          const name = reviewsRes.name || bizInfoRes.name || 'Seu negócio'
           const biz = { id: null, place_id: pid, name, category_override: kw, plan: 'free' }
           setState({
             loading: false, error: null, authExpired: false,
             biz,
             reviews: reviewsRes.reviews || [],
             bizInfo: {
-              rating: reviewsRes.rating ?? bizInfoRes.rating ?? diagRes.rating ?? null,
-              total: reviewsRes.total ?? bizInfoRes.total ?? diagRes.reviews ?? null,
+              rating: reviewsRes.rating ?? bizInfoRes.rating ?? null,
+              total: reviewsRes.total ?? bizInfoRes.total ?? null,
               name,
               address: bizInfoRes.address || null,
               phone: bizInfoRes.phone || null,
@@ -445,7 +413,6 @@ function useRealData(user, demoMode, guestMode = false, guestContext = null) {
               category: bizInfoRes.category || null,
               photoUrl: bizInfoRes.photoUrl || null
             },
-            competitors: diagnosticoToCompetitors(diagRes, pid),
             plates: [],
             alertPreferences: null,
             hasBusiness: true
@@ -462,7 +429,7 @@ function useRealData(user, demoMode, guestMode = false, guestContext = null) {
         const myBizRes = await apiCall('/api/mybiz' + cb)
         const biz = myBizRes.business || null
         if (!biz || !biz.place_id) {
-          if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, competitors: null, plates: null, alertPreferences: null, hasBusiness: false })
+          if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, plates: null, alertPreferences: null, hasBusiness: false })
           return
         }
         // Categoria customizada — fonte única é businesses.category_override no banco.
@@ -471,16 +438,16 @@ function useRealData(user, demoMode, guestMode = false, guestContext = null) {
         if (typeof window !== 'undefined' && localStorage.getItem('rz_activity')) {
           try { localStorage.removeItem('rz_activity') } catch {}
         }
-        const keyword = (biz.category_override || '').trim()
-        const competitorsUrl = keyword
-          ? `/api/competitors?radius=1000&keyword=${encodeURIComponent(keyword)}`
-          : '/api/competitors?radius=1000'
-
-        // 5 chamadas em paralelo: reviews + bizinfo (públicas), competitors + plates + alert prefs (auth)
-        const [reviewsRes, bizInfoRes, competitorsRes, platesRes, alertPrefsRes] = await Promise.all([
+        // O /api/competitors SAIU daqui (03/ago) — mesma faxina do convidado.
+        // Ele custava uma medição no Google a cada abertura de painel e o que
+        // sobrava dele na tela era o rótulo da busca (que agora vem da grade) e
+        // uma frase da saudação (idem). A posição nunca mais sai dele: é a arena
+        // que se contradizia com o Hero. O endpoint segue de pé pro /App.jsx
+        // antigo e pros snapshots.
+        // 4 chamadas em paralelo: reviews + bizinfo (públicas), plates + alert prefs (auth)
+        const [reviewsRes, bizInfoRes, platesRes, alertPrefsRes] = await Promise.all([
           fetch(`/api/reviews?place_id=${encodeURIComponent(biz.place_id)}`).then(r => r.json()).catch(() => ({})),
           fetch(`/api/bizinfo?place_id=${encodeURIComponent(biz.place_id)}`).then(r => r.json()).catch(() => ({})),
-          apiCall(competitorsUrl).catch(() => null),
           apiCall('/api/plates?action=my-plates').catch(() => null),
           apiCall('/api/alerts?action=preferences').catch(() => null)
         ])
@@ -499,7 +466,6 @@ function useRealData(user, demoMode, guestMode = false, guestContext = null) {
               category: bizInfoRes.category || null,
               photoUrl: bizInfoRes.photoUrl || null
             },
-            competitors: competitorsRes,
             plates: platesRes?.plates || [],
             alertPreferences: alertPrefsRes?.preferences || null,
             hasBusiness: true
@@ -513,7 +479,7 @@ function useRealData(user, demoMode, guestMode = false, guestContext = null) {
           loading: false,
           error: e.message,
           authExpired: isAuth,
-          biz: null, reviews: [], bizInfo: null, competitors: null, plates: null, alertPreferences: null, hasBusiness: false
+          biz: null, reviews: [], bizInfo: null, plates: null, alertPreferences: null, hasBusiness: false
         })
       }
     })()
@@ -536,7 +502,7 @@ const PRODUCT_LABELS = {
 // Compõe `d` (dados pra UI) misturando real + MOCK. Real sobrescreve, mock preenche gaps.
 function buildData(real, user, demoMode) {
   if (demoMode || !real.hasBusiness) return MOCK
-  const { biz, bizInfo, reviews, competitors, plates, alertPreferences } = real
+  const { biz, bizInfo, reviews, plates, alertPreferences } = real
 
   // Capture points reais: agrupa plates ATIVAS por product_type, soma total_taps
   const activePlates = (plates || []).filter(p => p.status === 'active')
@@ -554,75 +520,16 @@ function buildData(real, user, demoMode) {
   const rating = bizInfo?.rating ?? MOCK.kpis.rating
   const total  = bizInfo?.total  ?? MOCK.kpis.reviewCount
 
-  // Concorrentes — só sobrescreve se a API retornou algo válido
-  const compData = (competitors && competitors.enough && competitors.top) ? (() => {
-    // IMPORTANTE: backend já manda `top` na ordem real do Google (gscore = rating × log10(reviews))
-    // NÃO reordenar — senão posição do KPI (rank_google) fica diferente da posição na lista.
-
-    // Coordenadas do "me" pra calcular distância dos concorrentes (Haversine)
-    const myCoord = competitors.top.find(c => c.is_me)
-    const myLat = myCoord?.lat ?? null
-    const myLng = myCoord?.lng ?? null
-
-    const list = competitors.top.map((c, i) => {
-      const isLocked = !c.name && !c.is_me  // name veio null e não sou eu → backend bloqueou
-
-      // Calcula distância + ângulo se temos lat/lng (snapshot real)
-      let distance = null
-      let angle = null
-      if (!c.is_me && myLat != null && myLng != null && c.lat != null && c.lng != null) {
-        // Haversine em metros
-        const R = 6371000
-        const toRad = (d) => (d * Math.PI) / 180
-        const dLat = toRad(c.lat - myLat)
-        const dLng = toRad(c.lng - myLng)
-        const lat1 = toRad(myLat), lat2 = toRad(c.lat)
-        const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2
-        distance = Math.round(2 * R * Math.asin(Math.sqrt(h)))
-
-        // Ângulo (bearing simplificado) — usado só pra posicionar o pino no SVG
-        // 0 = leste, π/2 = sul, π = oeste, -π/2 = norte
-        angle = Math.atan2(c.lat - myLat, c.lng - myLng) * -1  // invertido porque SVG y cresce pra baixo
-      }
-
-      // weekGrowth / history vêm null da API (calculado no backend a partir de snapshots)
-      // mantemos esses do snapshot real (já vem enriched do endpoint refatorado na Fase 1)
-
-      return {
-        id: c.place_id || i,
-        pos: i + 1,
-        medal: i === 0 ? 'medal1' : i === 1 ? 'medal2' : i === 2 ? 'medal3' : '',
-        name: c.name || (isLocked ? null : `Concorrente ${i + 1}`),
-        locked: isLocked,
-        rating: c.rating,
-        reviews: c.reviews,
-        weekGrowth: c.weekGrowth ?? null,
-        history: c.history ?? null,
-        distance,
-        angle,
-        lat: c.lat ?? null,
-        lng: c.lng ?? null,
-        color: isLocked ? '#94A3B8' : colorFromName(c.name || `${i}`),
-        initials: isLocked ? '' : initialsFromName(c.name || `C${i}`),
-        isYou: c.is_me
-      }
-    })
-    return {
-      rankingPos: competitors.rank_google,
-      totalCompetitors: competitors.total,
-      reviewsToNext: competitors.ahead ? Math.max(0, competitors.ahead.reviews - (competitors.me?.reviews || 0)) : 0,
-      list,
-      // Mini ranking pro Painel (top 5) — inclui weekGrowth pro teaser de movimento
-      rankingMini: list.slice(0, 5).map(c => ({
-        pos: c.pos, medal: c.medal, name: c.name, rating: c.rating, reviews: c.reviews, you: c.isYou, weekGrowth: c.weekGrowth ?? null
-      }))
-    }
-  })() : null
-
-  // Hero "quanto falta pra subir" baseado em dados reais quando disponível
-  const hero = compData?.reviewsToNext != null
-    ? { reviewsToNext: compData.reviewsToNext, progressPct: Math.min(100, Math.max(10, 100 - compData.reviewsToNext * 6)) }
-    : MOCK.hero
+  // A ARENA VELHA SAIU DAQUI (03/ago). Este bloco traduzia a resposta do
+  // /api/competitors (um raio só, ordem crua do Google) em posição, "faltam N
+  // avaliações pro próximo" e lista de concorrentes. Era a SEGUNDA medição de
+  // posição do painel — a que discordava do Hero e fazia o mesmo negócio ler
+  // "1º de 13" em cima e "faltam 293 pro 2º lugar" na tarja. A GRADE é a fonte
+  // única agora; quem precisa de posição lê `d.gridPos`, não daqui.
+  //
+  // Os campos continuam existindo como `null` DE PROPÓSITO: `...MOCK` espalha
+  // os valores de demonstração por cima, e sem o null explícito o painel de um
+  // negócio real voltaria a exibir o "#3 de 12" do mock como se fosse dele.
 
   return {
     ...MOCK,
@@ -633,16 +540,12 @@ function buildData(real, user, demoMode) {
       reviewCount: typeof total === 'number' ? total : MOCK.kpis.reviewCount,
       // Sem dado real de ranking → null (NÃO cair no MOCK "#3 de 12", que
       // aparecia igual pra todos e mentia a posição no card do score StarTouch).
-      rankingPos: compData?.rankingPos ?? null,
-      totalCompetitors: compData?.totalCompetitors ?? null,
-      nextGoal: compData
-        ? { reviewsToNext: compData.reviewsToNext, targetPosition: Math.max(1, (compData.rankingPos || 2) - 1) }
-        : MOCK.kpis.nextGoal
+      rankingPos: null,
+      totalCompetitors: null,
+      nextGoal: null
     },
-    hero,
-    // Se a API retornou dados reais, usa; senão mostra vazio (NÃO mock) pra UI ser honesta
-    ranking: compData?.rankingMini ?? [],
-    competitors: compData?.list ?? [],
+    hero: { reviewsToNext: null, progressPct: null },
+    ranking: [],
     // capturePoints reais — array vazio se não tem placa ativa (empty state honesto)
     capturePoints: realCapturePoints,
     // Lista bruta das placas ativas (com código, channel_name, taps) — pro detalhamento na UI
@@ -823,9 +726,10 @@ function Trend({ value, suffix = '' }) {
 // ─────────────────────────────────────────────────────────────
 const TABS = [
   { id: 'painel',       icon: 'chart', label: 'Painel',       pro: false },
-  // TEMPORÁRIO: Concorrentes/Alertas/Relatórios (Pro) escondidos até termos
-  // segurança pra vender. Pra reexibir, descomente as 3 linhas abaixo.
-  // { id: 'concorrentes', icon: 'trophy', label: 'Concorrentes', pro: true },
+  // TEMPORÁRIO: Alertas/Relatórios (Pro) escondidos até termos segurança pra
+  // vender. Pra reexibir, descomente as 2 linhas abaixo.
+  // (Concorrentes NÃO está aqui: a tela foi removida em 03/ago — ver a nota no
+  // render. Reconstruir sobre a grade, não descomentar.)
   // { id: 'alertas',      icon: 'bell', label: 'Alertas',      pro: true },
   { id: 'avaliacoes',   icon: 'star', label: 'Avaliações',   pro: false },
   // { id: 'relatorios',   icon: 'trendup', label: 'Relatórios',   pro: true },
@@ -840,8 +744,6 @@ const MOBILE_PRIMARY_TABS = [
   { id: 'painel',       icon: 'home', label: 'Painel'       },
   { id: 'avaliacoes',   icon: 'star', label: 'Avaliações'   },
   { id: 'loja',         icon: 'bag', label: 'Loja'         },
-  // TEMPORÁRIO: Concorrentes (Pro) escondido. Reexibir trocando 'loja' acima
-  // por { id:'concorrentes', icon:'trophy', label:'Concorrentes', pro:true }.
   { id: 'more',         icon: 'menu',  label: 'Mais'         }
 ]
 
@@ -1279,693 +1181,6 @@ function ComingSoon({ icon, title, desc, plan }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────
-// TELA: CONCORRENTES (Inteligência Competitiva)
-// ─────────────────────────────────────────────────────────────
-
-// Sparkline mini-chart (linha + área)
-function Sparkline({ data, color = T.blue, w = 80, h = 28 }) {
-  // Sem dados, sem variação ou data inválida → não renderiza (evita crash com null/[])
-  if (!Array.isArray(data) || data.length < 2) return null
-  const max = Math.max(...data), min = Math.min(...data)
-  if (max === min) return null
-  const range = max - min
-  const xs = data.map((_, i) => (i / (data.length - 1)) * w)
-  const ys = data.map(v => h - ((v - min) / range) * (h - 4) - 2)
-  const path = xs.map((x, i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ')
-  const area = `${path} L ${w},${h} L 0,${h} Z`
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} style={{ display:'block' }}>
-      <path d={area} fill={color} opacity="0.12"/>
-      <path d={path} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
-
-function CompetitorStats({ youPos, total, reviewsToNext, risingCount, isMobile }) {
-  const Item = ({ label, value, sub, accent }) => (
-    <div style={{
-      flex: 1,
-      padding: isMobile ? '14px 16px' : '18px 20px',
-      borderRight: !isMobile ? `1px solid ${T.border}` : 'none',
-      borderBottom: isMobile ? `1px solid ${T.border}` : 'none'
-    }}>
-      <div style={{ fontSize: 11.5, fontWeight: 600, color: T.textDim, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 6 }}>{label}</div>
-      <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 24, fontWeight: 700, color: accent || T.text, letterSpacing:'-0.02em', lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 12, color: T.textMid, marginTop: 4 }}>{sub}</div>
-    </div>
-  )
-  return (
-    <Card padded={false} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow:'hidden' }}>
-      <Item label="Sua posição" value={`#${youPos}`} sub={`de ${total} empresas`} accent={T.blue}/>
-      {youPos <= 1
-        ? <Item label="Liderança" value="1º lugar" sub="ninguém à sua frente" accent={T.green}/>
-        : <Item label="Falta pra subir" value={reviewsToNext > 0 ? `${reviewsToNext} ${reviewsToNext === 1 ? 'avaliação' : 'avaliações'}` : '—'} sub={`pra alcançar a #${youPos - 1}`} accent={T.amber}/>}
-      <Item label="Em alta na sua categoria" value={`${risingCount} concorrente${risingCount > 1 ? 's' : ''}`} sub="cresceu essa semana" accent={T.green}/>
-    </Card>
-  )
-}
-
-function FilterChips({ active, onChange, counts }) {
-  const chips = [
-    { id: 'all',    label: 'Todos',          count: counts.all },
-    { id: 'ahead',  label: 'À sua frente',   count: counts.ahead },
-    { id: 'behind', label: 'Atrás de você',  count: counts.behind },
-    { id: 'rising', label: 'Em alta ',     count: counts.rising }
-  ]
-  return (
-    <div style={{ display:'flex', gap: 8, flexWrap:'wrap', marginBottom: 16 }}>
-      {chips.map(c => {
-        const isActive = active === c.id
-        return (
-          <button key={c.id}
-            onClick={() => onChange(c.id)}
-            style={{
-              padding: '8px 14px',
-              borderRadius: 999,
-              border: `1px solid ${isActive ? T.blue : T.border}`,
-              background: isActive ? T.blue : '#fff',
-              color: isActive ? '#fff' : T.textMid,
-              fontFamily:"'Inter', sans-serif",
-              fontSize: 13, fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all .12s'
-            }}>
-            {c.label} <span style={{ opacity: 0.7, marginLeft: 4 }}>({c.count})</span>
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-function CompetitorCard({ comp, youReviews }) {
-  const diff = comp.reviews - youReviews // positivo = à frente, negativo = atrás
-  const aheadOfYou = diff > 0
-  const isYou = comp.isYou
-  const isLocked = comp.locked
-  const closeTarget = aheadOfYou && diff <= 3 && !isLocked // alvo próximo
-
-  return (
-    <Card style={{
-      padding: '16px 18px',
-      background: isYou ? T.blueSoft : '#fff',
-      border: isYou ? `1.5px solid #B9D6FB` : `1px solid ${T.border}`
-    }}>
-      <div style={{ display:'flex', gap: 14, alignItems:'flex-start' }}>
-        {/* Position + medal */}
-        <div style={{
-          flexShrink: 0,
-          width: 44, height: 44, borderRadius: 11,
-          background: isYou ? T.blue : '#F1F5F9',
-          color: isYou ? '#fff' : T.textMid,
-          display:'flex', alignItems:'center', justifyContent:'center',
-          fontWeight: 700, fontSize: 15
-        }}>
-          {comp.medal ? <Ico name={comp.medal} size={16}/> : `#${comp.pos}`}
-        </div>
-
-        {/* Body */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4, flexWrap:'wrap' }}>
-            {isLocked ? (
-              <span style={{ fontSize: 15, fontWeight: 700, color: T.textMid, display:'inline-flex', alignItems:'center', gap: 6 }}>
-                Concorrente oculto
-                <a href="/plano-pro" style={{ fontSize: 11, fontWeight: 700, color: T.blue, background: T.blueSoft, padding:'2px 7px', borderRadius: 5, textDecoration:'none' }}>Desbloquear</a>
-              </span>
-            ) : (
-              <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{comp.name}</span>
-            )}
-            {isYou && <span style={{ fontSize: 10.5, fontWeight: 700, color: T.blue, background:'#fff', border:`1px solid ${T.blue}`, borderRadius: 5, padding:'1px 6px' }}>VOCÊ</span>}
-            {closeTarget && !isYou && <span style={{ fontSize: 10.5, fontWeight: 700, color:'#92400E', background:'#FEF3C7', border:'1px solid #FCD34D', borderRadius: 5, padding:'1px 6px' }}>ALVO PRÓXIMO</span>}
-          </div>
-          <div style={{ display:'flex', alignItems:'center', gap: 10, fontSize: 12.5, color: T.textMid, marginBottom: 10, flexWrap:'wrap' }}>
-            <span style={{ display:'inline-flex', alignItems:'center', gap: 4 }}>
-              <Stars rating={comp.rating} size={11}/> <strong style={{ color: T.text, fontSize: 12 }}>{comp.rating.toFixed(1)}</strong>
-            </span>
-            <span style={{ color: T.textDim }}>·</span>
-            <span><strong style={{ color: T.text, fontSize: 12 }}>{comp.reviews}</strong> avaliações</span>
-            <span style={{ color: T.textDim }}>·</span>
-            <span style={{
-              display:'inline-flex', alignItems:'center', gap: 3,
-              color: comp.weekGrowth > 0 ? T.green : comp.weekGrowth < 0 ? T.red : T.textDim,
-              fontWeight: 600
-            }}>
-              {comp.weekGrowth > 0 ? '▲' : comp.weekGrowth < 0 ? '▼' : '—'} {Math.abs(comp.weekGrowth) || 0} essa semana
-            </span>
-          </div>
-
-          {/* Diff vs você (texto contextual) */}
-          {!isYou && (
-            <div style={{ fontSize: 12.5, color: T.textMid, marginBottom: 10 }}>
-              {aheadOfYou
-                ? <>Falta <strong style={{ color: T.text }}>{diff} avaliações</strong> pra você ultrapassar</>
-                : <>Você está <strong style={{ color: T.text }}>{Math.abs(diff)} avaliação{Math.abs(diff) !== 1 ? 'es' : ''} à frente</strong></>
-              }
-            </div>
-          )}
-        </div>
-
-        {/* Sparkline */}
-        <div style={{ flexShrink: 0, paddingTop: 4 }}>
-          <Sparkline data={comp.history} color={isYou ? T.blue : aheadOfYou ? T.amber : '#94A3B8'} w={70} h={32}/>
-          <div style={{ fontSize: 10.5, color: T.textDim, textAlign:'center', marginTop: 2 }}>90 dias</div>
-        </div>
-      </div>
-    </Card>
-  )
-}
-
-function MyGoalsCard({ goals }) {
-  return (
-    <Card>
-      <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 14 }}>
-        <span style={{ display:'inline-flex', color: T.primary }}><Target size={22}/></span>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin: 0 }}>Minhas Metas no Ranking</h3>
-      </div>
-      <p style={{ fontSize: 13, color: T.textMid, margin:'0 0 18px' }}>Acompanhe sua jornada rumo ao topo da sua categoria.</p>
-      <div style={{ display:'flex', flexDirection:'column', gap: 12 }}>
-        {goals.map((g, i) => {
-          const isCurrent = g.current
-          return (
-            <div key={i} style={{
-              padding: '12px 14px',
-              borderRadius: 12,
-              background: g.achieved ? T.greenSoft : '#F8FAFC',
-              border: `1px solid ${isCurrent ? T.green : g.achieved ? '#86EFAC' : T.border}`
-            }}>
-              <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 8 }}>
-                <span style={{
-                  width: 24, height: 24, borderRadius: '50%',
-                  background: g.achieved ? T.green : T.border,
-                  color: g.achieved ? '#fff' : T.textMid,
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  fontSize: 13, fontWeight: 700, flexShrink: 0
-                }}>{g.achieved ? <Check size={13} strokeWidth={3}/> : '○'}</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{g.label}</span>
-                {isCurrent && <span style={{ fontSize: 10.5, fontWeight: 700, color: T.green, background:'#fff', border:`1px solid ${T.green}`, borderRadius: 5, padding:'1px 6px' }}>VOCÊ ESTÁ AQUI</span>}
-                <span style={{ marginLeft:'auto', fontSize: 12, fontWeight: 600, color: g.achieved ? '#065F46' : T.textMid }}>
-                  {g.achieved ? 'Conquistado' : `Faltam ${g.reviewsToNext} avaliações`}
-                </span>
-              </div>
-              {!g.achieved && (
-                <>
-                  <div style={{ height: 6, background: T.border, borderRadius: 999, overflow:'hidden' }}>
-                    <div style={{ height:'100%', width: g.progressPct + '%', background: T.blue, borderRadius: 999 }}/>
-                  </div>
-                  {g.target && <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 6 }}>Alvo: {g.target}</div>}
-                </>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </Card>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// Benchmark da categoria — sua nota vs média/top/mediana
-// ─────────────────────────────────────────────────────────────
-function CategoryBenchmark({ data, list, isMobile }) {
-  if (!list.length) return null
-  const others = list.filter(c => !c.isYou && !c.locked)
-  const allReviews = [...others.map(c => c.reviews), data.kpis.reviewCount].sort((a,b) => a-b)
-  const allRatings = [...others.map(c => c.rating), data.kpis.rating]
-
-  const avgRating = (allRatings.reduce((s,r) => s+r, 0) / allRatings.length).toFixed(1)
-  const topReviews = Math.max(...allReviews)
-  const topComp = list.find(c => c.reviews === topReviews) || null
-  const median = allReviews[Math.floor(allReviews.length / 2)]
-  const youRating = data.kpis.rating
-  const youReviews = data.kpis.reviewCount
-
-  const ratingDelta = (youRating - parseFloat(avgRating)).toFixed(1)
-
-  const items = [
-    {
-      label:'Sua nota',
-      value: youRating.toFixed(1),
-      hint: youRating >= parseFloat(avgRating)
-        ? <span style={{ color: T.green }}>{ratingDelta > 0 ? `+${ratingDelta}` : ratingDelta} vs média</span>
-        : <span style={{ color: T.red }}>{ratingDelta} vs média</span>,
-      icon:'star',
-      accent: T.blue
-    },
-    {
-      label:'Média da categoria',
-      value: avgRating,
-      hint:`com ${allRatings.length} negócios`,
-      icon:'chart',
-      accent: T.textMid
-    },
-    {
-      label:'Líder em volume',
-      value: topReviews,
-      hint: topComp ? (topComp.locked ? 'nome oculto' : topComp.isYou ? '(você!)' : topComp.name) : '—',
-      icon:'medal1',
-      accent: T.amber
-    },
-    {
-      label:'Mediana da região',
-      value: median,
-      hint: youReviews >= median ? <span style={{ color: T.green }}>Acima da mediana</span> : <span style={{ color: T.red }}>Abaixo da mediana</span>,
-      icon:'mappin',
-      accent: T.textMid
-    }
-  ]
-
-  return (
-    <Card>
-      <div style={{ marginBottom: 12 }}>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-          Benchmark da categoria
-        </h3>
-        <div style={{ fontSize: 12.5, color: T.textMid }}>Como você se compara nos índices da sua categoria.</div>
-      </div>
-      <div style={{ display:'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 10 }}>
-        {items.map((it, i) => (
-          <div key={i} style={{ padding: 14, background: T.bg, border:'1px solid '+T.border, borderRadius: 10 }}>
-            <div style={{ fontSize: 11, color: T.textMid, fontWeight: 600, letterSpacing:'.02em', textTransform:'uppercase', marginBottom: 4, display:'flex', alignItems:'center', gap: 4 }}>
-              <span style={{ display:'inline-flex', marginRight:2 }}><Ico name={it.icon} size={13}/></span>{it.label}
-            </div>
-            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 26, fontWeight: 800, color: it.accent, letterSpacing:'-0.02em', lineHeight: 1, marginBottom: 4 }}>
-              {it.value}
-            </div>
-            <div style={{ fontSize: 11.5, color: T.textDim, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{it.hint}</div>
-          </div>
-        ))}
-      </div>
-    </Card>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// Mapa SVG dos concorrentes
-// ─────────────────────────────────────────────────────────────
-function CompetitorMap({ list, isMobile }) {
-  if (!list.length) return null
-
-  // Sem distâncias reais (backend ainda não retorna lat/lng) → empty state honesto
-  const hasAnyDistance = list.some(c => !c.isYou && typeof c.distance === 'number' && c.distance > 0)
-  if (!hasAnyDistance) {
-    return (
-      <Card padded={false} style={{ padding: 22 }}>
-        <div style={{ marginBottom: 12 }}>
-          <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-            Mapa de concorrência
-          </h3>
-          <div style={{ fontSize: 12.5, color: T.textMid }}>Em breve: posição geográfica de cada concorrente em relação a você.</div>
-        </div>
-        <div style={{
-          padding: 28, borderRadius: 12, background: T.bg,
-          border:'1px dashed '+T.border, textAlign:'center'
-        }}>
-          <div style={{ marginBottom: 8, color: T.textDim, display:'flex', justifyContent:'center' }}><MapPin size={40}/></div>
-          <div style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.5, maxWidth: 420, margin:'0 auto' }}>
-            Estamos integrando o Google Maps pra mostrar onde cada concorrente está em volta de você. Por enquanto, veja o ranking detalhado abaixo.
-          </div>
-        </div>
-      </Card>
-    )
-  }
-
-  const W = isMobile ? 340 : 720
-  const H = isMobile ? 340 : 380
-  const cx = W / 2, cy = H / 2
-  const maxR = Math.min(W, H) / 2 - 30
-  // Math.max em array vazio retorna -Infinity → quebra. Guard explicit.
-  const distances = list.filter(c => !c.isYou && typeof c.distance === 'number' && c.distance > 0).map(c => c.distance)
-  const maxDistance = distances.length > 0 ? Math.max(...distances) : 2000
-  const scale = maxR / Math.max(maxDistance, 1)  // evita divisão por zero
-
-  const others = list.filter(c => !c.isYou && c.distance != null && c.angle != null)
-  const me = list.find(c => c.isYou)
-
-  return (
-    <Card padded={false} style={{ padding: 18 }}>
-      <div style={{ marginBottom: 14, display:'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent:'space-between', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
-        <div>
-          <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-            Mapa de concorrência
-          </h3>
-          <div style={{ fontSize: 12.5, color: T.textMid }}>Quem disputa o cliente que está pertinho de você.</div>
-        </div>
-        <div style={{ display:'flex', gap: 10, fontSize: 11, flexWrap:'wrap' }}>
-          <span style={{ display:'inline-flex', alignItems:'center', gap: 5 }}><span style={{ width: 10, height: 10, borderRadius:'50%', background: T.blue, display:'inline-block' }}/>Você</span>
-          <span style={{ display:'inline-flex', alignItems:'center', gap: 5 }}><span style={{ width: 10, height: 10, borderRadius:'50%', background: T.amber, display:'inline-block' }}/>À sua frente</span>
-          <span style={{ display:'inline-flex', alignItems:'center', gap: 5 }}><span style={{ width: 10, height: 10, borderRadius:'50%', background:'#CBD5E1', display:'inline-block' }}/>Atrás</span>
-        </div>
-      </div>
-
-      <div style={{
-        position:'relative', borderRadius: 12, overflow:'hidden',
-        background:'linear-gradient(135deg,#F1F5F9 0%, #E2E8F0 100%)',
-        border:'1px solid '+T.border, aspectRatio: `${W}/${H}`
-      }}>
-        <svg viewBox={`0 0 ${W} ${H}`} style={{ width:'100%', height:'auto', display:'block' }}>
-          {/* Grid lines (estilo mapa abstrato) */}
-          <defs>
-            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#CBD5E1" strokeWidth="0.5" opacity="0.5"/>
-            </pattern>
-          </defs>
-          <rect width={W} height={H} fill="url(#grid)"/>
-
-          {/* Anéis de distância */}
-          {[0.33, 0.66, 1].map((p, i) => (
-            <circle key={i} cx={cx} cy={cy} r={maxR * p}
-              fill="none" stroke="#94A3B8" strokeWidth="0.8" strokeDasharray="3 5" opacity="0.5"/>
-          ))}
-          {/* Labels dos anéis */}
-          {[0.33, 0.66, 1].map((p, i) => {
-            const m = Math.round((maxDistance * p) / 100) * 100
-            return (
-              <text key={i} x={cx} y={cy - maxR * p - 4} fontSize="9.5" fill="#94A3B8" textAnchor="middle" fontWeight="600">
-                {m < 1000 ? `${m}m` : `${(m/1000).toFixed(1)}km`}
-              </text>
-            )
-          })}
-
-          {/* Linhas radiais sutis */}
-          {[0, 1, 2, 3].map(i => (
-            <line key={i}
-              x1={cx} y1={cy}
-              x2={cx + Math.cos(i * Math.PI / 4) * maxR}
-              y2={cy + Math.sin(i * Math.PI / 4) * maxR}
-              stroke="#CBD5E1" strokeWidth="0.6" strokeDasharray="2 4" opacity="0.4"/>
-          ))}
-
-          {/* Concorrentes */}
-          {others.map(c => {
-            const r = (c.distance || 0) * scale
-            const x = cx + Math.cos(c.angle) * r
-            const y = cy + Math.sin(c.angle) * r
-            const ahead = c.reviews > (me?.reviews || 0)
-            const pinColor = ahead ? T.amber : '#CBD5E1'
-            return (
-              <g key={c.id}>
-                {/* "rastro" do pino */}
-                <ellipse cx={x} cy={y + 9} rx={7} ry={2.5} fill="rgba(15,23,42,.18)"/>
-                <circle cx={x} cy={y} r={11} fill={pinColor} stroke="#fff" strokeWidth="2"/>
-                <text x={x} y={y + 3.5} fontSize="9" fontWeight="800" fill="#fff" textAnchor="middle">{c.pos}</text>
-              </g>
-            )
-          })}
-
-          {/* Você (centro, destaque) */}
-          {me && (
-            <g>
-              <circle cx={cx} cy={cy} r={20} fill={T.blue} opacity="0.12"/>
-              <circle cx={cx} cy={cy} r={14} fill={T.blue} opacity="0.25"/>
-              <ellipse cx={cx} cy={cy + 11} rx={9} ry={3} fill="rgba(15,23,42,.25)"/>
-              <circle cx={cx} cy={cy} r={13} fill={T.blue} stroke="#fff" strokeWidth="2.5"/>
-              <text x={cx} y={cy + 4} fontSize="11" fontWeight="800" fill="#fff" textAnchor="middle">VC</text>
-            </g>
-          )}
-        </svg>
-      </div>
-
-      <div style={{ marginTop: 12, fontSize: 11.5, color: T.textDim, textAlign:'center', display:'flex', justifyContent:'center', alignItems:'center', gap: 6 }}>
-        <span></span>
-        <span>Posições relativas das {others.length} cafeterias da sua categoria. Anéis = distância até você.</span>
-      </div>
-    </Card>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// Linha de concorrente premium — com distância, alvo e CTA
-// ─────────────────────────────────────────────────────────────
-function EnhancedCompetitorRow({ comp, youPos, isMobile }) {
-  const posDiff = comp.pos - youPos        // negativo = à frente de você
-  const aheadOfYou = posDiff < 0
-  const isYou = comp.isYou
-  const isLocked = comp.locked
-  const closeTarget = posDiff === -1 && !isLocked   // logo na sua frente
-  const distance = comp.distance != null
-    ? (comp.distance < 1000 ? `${comp.distance}m` : `${(comp.distance/1000).toFixed(1)}km`)
-    : null
-
-  return (
-    <div style={{
-      padding: 14, borderRadius: 12,
-      background: isYou ? T.blueSoft : '#fff',
-      border: isYou ? '1.5px solid #B9D6FB' : '1px solid '+T.border,
-      display:'flex', gap: 12, alignItems:'flex-start'
-    }}>
-      {/* Posição + medalha */}
-      <div style={{
-        width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-        background: isYou ? T.blue : '#F1F5F9', color: isYou ? '#fff' : T.textMid,
-        display:'grid', placeItems:'center', fontWeight: 800, fontSize: 14
-      }}>
-        {comp.medal || `#${comp.pos}`}
-      </div>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display:'flex', alignItems:'center', gap: 6, marginBottom: 4, flexWrap:'wrap' }}>
-          {isLocked ? (
-            <span style={{ fontSize: 14, fontWeight: 700, color: T.textMid, display:'inline-flex', alignItems:'center', gap: 6 }}>
-              Concorrente oculto
-              <a href="/plano-pro" style={{ fontSize: 10, fontWeight: 700, color: T.blue, background: T.blueSoft, padding:'2px 6px', borderRadius: 4, textDecoration:'none' }}>Desbloquear</a>
-            </span>
-          ) : (
-            <span style={{ fontSize: 14.5, fontWeight: 700, color: T.text }}>{comp.name}</span>
-          )}
-          {isYou && <span style={{ fontSize: 10, fontWeight: 700, color: T.blue, background:'#fff', border:`1px solid ${T.blue}`, borderRadius: 4, padding:'1px 5px' }}>VOCÊ</span>}
-          {closeTarget && !isYou && <span style={{ fontSize: 10, fontWeight: 700, color:'#92400E', background:'#FEF3C7', border:'1px solid #FCD34D', borderRadius: 4, padding:'1px 5px' }}>ALVO</span>}
-        </div>
-
-        {/* Métricas em linha */}
-        <div style={{ display:'flex', alignItems:'center', gap: 10, fontSize: 12, color: T.textMid, flexWrap:'wrap', marginBottom: 6 }}>
-          <span style={{ display:'inline-flex', alignItems:'center', gap: 3 }}>
-            <Stars rating={comp.rating} size={10}/>
-            <strong style={{ color: T.text, fontSize: 11.5 }}>{comp.rating.toFixed(1)}</strong>
-          </span>
-          <span style={{ color: T.textDim }}>·</span>
-          <span><strong style={{ color: T.text, fontSize: 11.5 }}>{comp.reviews}</strong> {comp.reviews === 1 ? 'avaliação' : 'avaliações'}</span>
-          {comp.weekGrowth != null && (
-            <>
-              <span style={{ color: T.textDim }}>·</span>
-              <span style={{
-                display:'inline-flex', alignItems:'center', gap: 2,
-                color: comp.weekGrowth > 0 ? T.green : comp.weekGrowth < 0 ? T.red : T.textDim,
-                fontWeight: 600
-              }}>
-                {comp.weekGrowth > 0 ? '▲' : comp.weekGrowth < 0 ? '▼' : '—'}{Math.abs(comp.weekGrowth) || 0}/sem
-              </span>
-            </>
-          )}
-          {distance && (
-            <>
-              <span style={{ color: T.textDim }}>·</span>
-              <span style={{ display:'inline-flex', alignItems:'center', gap: 3 }}>{distance}</span>
-            </>
-          )}
-        </div>
-
-        {/* Diff vs você — por posição no ranking */}
-        {!isYou && (
-          <div style={{ fontSize: 12.5, color: T.textMid }}>
-            {aheadOfYou
-              ? <><strong style={{ color: T.text }}>{Math.abs(posDiff)} {Math.abs(posDiff) === 1 ? 'posição' : 'posições'}</strong> à sua frente</>
-              : <>Você está <strong style={{ color: T.text }}>{posDiff} {posDiff === 1 ? 'posição' : 'posições'} à frente</strong></>
-            }
-          </div>
-        )}
-      </div>
-
-      {/* Mini sparkline — só renderiza se tem histórico com variação real */}
-      {!isMobile && Array.isArray(comp.history) && comp.history.length >= 2 && (
-        <div style={{ flexShrink: 0 }}>
-          <Sparkline data={comp.history} color={isYou ? T.blue : aheadOfYou ? T.amber : '#94A3B8'} w={60} h={28}/>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// Simulador de crescimento
-// ─────────────────────────────────────────────────────────────
-function GrowthSimulator({ data, list, isMobile }) {
-  const [perWeek, setPerWeek] = React.useState(2)
-  const youReviews = data.kpis.reviewCount
-
-  // Projeta o VOLUME de avaliações (real). Não dá pra prever a posição exata do
-  // Google só por reviews (o ranking não é só volume) — então projetamos o ganho
-  // de avaliações, que é honesto e motivador. Mais avaliações = posição mais forte.
-  const proj = (weeks) => ({ total: youReviews + perWeek * weeks, add: perWeek * weeks })
-  const w4  = proj(4)   // ~30 dias
-  const w8  = proj(8)   // ~60 dias
-  const w12 = proj(12)  // ~90 dias
-
-  return (
-    <Card>
-      <div style={{ marginBottom: 14 }}>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-          Simulador de crescimento
-        </h3>
-        <div style={{ fontSize: 12.5, color: T.textMid }}>"E se eu conseguisse <strong>{perWeek}</strong> nova{perWeek !== 1 ? 's' : ''} avaliação/semana?"</div>
-      </div>
-
-      {/* Slider */}
-      <div style={{ padding:'8px 4px 16px' }}>
-        <input
-          type="range"
-          min="1" max="10" step="1"
-          value={perWeek}
-          onChange={(e) => setPerWeek(parseInt(e.target.value))}
-          style={{ width:'100%', accentColor: T.blue, cursor:'pointer' }}
-        />
-        <div style={{ display:'flex', justifyContent:'space-between', fontSize: 11, color: T.textDim, marginTop: 4 }}>
-          <span>1/sem</span>
-          <span>5/sem</span>
-          <span>10/sem</span>
-        </div>
-      </div>
-
-      {/* Projeções */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap: 10 }}>
-        {[
-          { label:'Em 30 dias', p: w4 },
-          { label:'Em 60 dias', p: w8 },
-          { label:'Em 90 dias', p: w12 }
-        ].map((it, i) => (
-          <div key={i} style={{
-            padding: isMobile ? 12 : 14, borderRadius: 10,
-            background: T.bg, border:'1px solid '+T.border, textAlign:'center'
-          }}>
-            <div style={{ fontSize: 10.5, color: T.textDim, fontWeight: 600, letterSpacing:'.04em', textTransform:'uppercase', marginBottom: 4 }}>{it.label}</div>
-            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 20 : 26, fontWeight: 800, color: T.text, letterSpacing:'-0.02em', lineHeight: 1, marginBottom: 4 }}>
-              {it.p.total}
-            </div>
-            <div style={{ fontSize: 11, color: T.green, fontWeight: 700, marginBottom: 4 }}>
-              +{it.p.add} avaliações
-            </div>
-            <div style={{ fontSize: 11, color: T.textDim }}>
-              total acumulado
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ marginTop: 12, fontSize: 12, color: T.textMid, textAlign:'center', lineHeight: 1.5 }}>
-        Volume constante de avaliações fortalece sua posição no Google ao longo do tempo.
-      </div>
-
-      <div style={{
-        marginTop: 12, padding: 12, background: T.blueSoft, borderRadius: 8,
-        fontSize: 12.5, color: T.blueDk, lineHeight: 1.5
-      }}>
-        <b>Como capitar {perWeek}/semana?</b> {
-          perWeek <= 2 ? 'Ative a placa de balcão — toque do cliente após pagar gera ~3 avaliações/semana automaticamente.' :
-          perWeek <= 5 ? 'Combine placa de balcão + cartão NFC do garçom — multiplica os pontos de contato em 2-3x.' :
-                         'Kit completo (placa + cartão + pulseira) + treinamento da equipe pra pedir avaliação no fim do atendimento.'
-        }
-      </div>
-    </Card>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// Oportunidades acionáveis
-// ─────────────────────────────────────────────────────────────
-function OpportunitiesPanel({ data, list, isMobile }) {
-  if (!list.length) return null
-  const youPos = data.kpis.rankingPos
-  const youReviews = data.kpis.reviewCount
-  const rising = list.filter(c => !c.isYou && !c.locked && c.weekGrowth >= 2)
-  // Concorrente logo na sua frente (posição imediatamente acima)
-  const closeUp = list.find(c => !c.isYou && c.pos === youPos - 1)
-  const top1 = list.find(c => c.pos === 1)
-
-  const ops = []
-  if (closeUp) {
-    const gap = (closeUp.reviews || 0) - youReviews
-    ops.push({
-      icon:'target',
-      color: T.green,
-      bg: T.greenSoft,
-      title:`Subir pro ${youPos - 1}º lugar está ao seu alcance`,
-      text: gap > 0
-        ? `${closeUp.locked ? 'O concorrente logo à sua frente' : 'A ' + closeUp.name} tem ${gap} ${gap === 1 ? 'avaliação' : 'avaliações'} a mais que você. Coletar mais avaliações é o caminho pra passar.`
-        : `Você tem volume parecido com ${closeUp.locked ? 'o concorrente à sua frente' : 'a ' + closeUp.name} — foque em avaliações 5pra ultrapassar.`,
-      cta:{ label:'Ativar mais dispositivos', href:'/ativar-codigo' }
-    })
-  }
-  if (rising.length > 0) {
-    const r = rising[0]
-    ops.push({
-      icon:'siren',
-      color: T.red,
-      bg:'#FEF2F2',
-      title:`${r.locked ? 'Um concorrente' : r.name} está acelerando`,
-      text:`Cresce ${r.weekGrowth} ${r.weekGrowth === 1 ? 'avaliação' : 'avaliações'} por semana${r.pos > youPos ? ' e pode te alcançar' : ''}. Fique de olho e mantenha o ritmo de coleta pra não perder posição.`,
-      cta:{ label:'Ver simulador', href:'#simulador' }
-    })
-  }
-  if (top1 && !top1.isYou && data.kpis.rating >= 4.8) {
-    ops.push({
-      icon:'star',
-      color: T.blue,
-      bg: T.blueSoft,
-      title:'Sua nota é igual ou maior que a do líder',
-      text:`Sua reputação de qualidade está no topo. Falta volume: o líder tem ${top1.reviews} avaliações e você ${youReviews}.`,
-      cta:{ label:'Comprar dispositivos', href:'/kit' }
-    })
-  }
-  if (youPos <= 3) {
-    ops.push({
-      icon:'trophy',
-      color: T.amber,
-      bg:'#FFFBEB',
-      title:'Você está no Top 3 — capitalize',
-      text:'97% dos clientes escolhem entre os 3 primeiros. Compartilhe seu link nas redes sociais e flyers pra manter o ritmo.',
-      cta:{ label:'Pegar link de avaliação', href:'/app?tab=loja' }
-    })
-  }
-
-  if (ops.length === 0) return null
-
-  return (
-    <Card>
-      <div style={{ marginBottom: 12 }}>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 2px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-          Oportunidades pra subir
-        </h3>
-        <div style={{ fontSize: 12.5, color: T.textMid }}>O que fazer agora pra ganhar posições com mais velocidade.</div>
-      </div>
-
-      <div style={{ display:'flex', flexDirection:'column', gap: 10 }}>
-        {ops.map((op, i) => (
-          <div key={i} style={{
-            padding: 14, borderRadius: 10, background: op.bg,
-            border:`1px solid ${op.color}33`
-          }}>
-            <div style={{ display:'flex', gap: 10, alignItems:'flex-start' }}>
-              <span style={{ lineHeight: 1, flexShrink: 0, display:'inline-flex' }}><Ico name={op.icon} size={20} style={{ color: T.primary }}/></span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 4, lineHeight: 1.35 }}>
-                  {op.title}
-                </div>
-                <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.5, marginBottom: 8 }}>
-                  {op.text}
-                </div>
-                <a href={op.cta.href} style={{
-                  display:'inline-block', fontSize: 12, fontWeight: 700, color: op.color,
-                  textDecoration:'none', borderBottom:`1px dashed ${op.color}`
-                }}>{op.cta.label} →</a>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Card>
-  )
-}
-
 // Preview Pro borrado — Free vê a tela cheia (com dados de demonstração) atrás
 // de um vidro fosco + card de upsell, pra entender o que está perdendo.
 function ProPreview({ tab, isMobile, children }) {
@@ -2011,168 +1226,6 @@ function ProPreview({ tab, isMobile, children }) {
         </Card>
       </div>
     </div>
-  )
-}
-
-function CompetitorsScreen({ data, isMobile }) {
-  const [filter, setFilter] = React.useState('all')
-  const [sortMode, setSortMode] = React.useState('position') // 'position' | 'distance' | 'growth'
-  const youReviews = data.kpis.reviewCount
-  const youPos = data.kpis.rankingPos
-  const list = data.competitors || []
-
-  // Empty state — API ainda não retornou concorrentes (ou negócio em região rarefeita)
-  if (list.length === 0) {
-    return (
-      <main style={{ maxWidth: 720, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
-        <div style={{ marginBottom: 22 }}>
-          <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
-            Inteligência Competitiva
-          </h1>
-        </div>
-        <Card style={{ textAlign:'center', padding: 48 }}>
-          <div style={{ marginBottom: 16, color: T.primary, display:'flex', justifyContent:'center' }}><Radar size={48}/></div>
-          <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, margin:'0 0 8px' }}>
-            Coletando concorrentes da sua região
-          </h2>
-          <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, margin:'0 0 18px' }}>
-            A gente está vasculhando o Google pra encontrar quem disputa o ranking com você na sua categoria e raio.
-            Isso pode levar alguns segundos no primeiro acesso.
-          </p>
-          <button onClick={() => window.location.reload()} style={{
-            background: T.blue, color:'#fff', border:'none', borderRadius: 9,
-            padding:'10px 20px', fontSize: 13.5, fontWeight: 700, cursor:'pointer'
-          }}>Recarregar</button>
-        </Card>
-      </main>
-    )
-  }
-
-  // Filtros: cada filtro mostra SÓ os concorrentes da categoria — sem injetar "você" no topo.
-  // Quem quer ver "você no contexto" usa o filtro Todos (que preserva a ordem do ranking).
-  // À frente / atrás é por POSIÇÃO no ranking (ordem do Google), não por nº de
-  // avaliações — senão um #1 com poucas reviews mostra concorrentes "à frente".
-  const ahead  = list.filter(c => !c.isYou && c.pos < youPos)
-  const behind = list.filter(c => !c.isYou && c.pos > youPos)
-  const rising = list.filter(c => !c.isYou && c.weekGrowth != null && c.weekGrowth >= 2)
-
-  let visible = filter === 'ahead'  ? ahead
-              : filter === 'behind'  ? behind
-              : filter === 'rising'  ? rising
-              : list  // 'all' mantém ordem natural (do ranking) com você no meio
-
-  // Ordenação secundária — só aplica em 'all' (filtros já têm ordem implícita)
-  if (filter === 'all') {
-    if (sortMode === 'distance') {
-      visible = [...visible].sort((a, b) => (a.distance ?? 9e9) - (b.distance ?? 9e9))
-    } else if (sortMode === 'growth') {
-      visible = [...visible].sort((a, b) => (b.weekGrowth ?? -9e9) - (a.weekGrowth ?? -9e9))
-    }
-    // sortMode === 'position' usa a ordem natural (pos do ranking)
-  }
-
-  const counts = { all: list.length, ahead: ahead.length, behind: behind.length, rising: rising.length }
-
-  const sortChips = [
-    { key:'position', label:'Por posição' },
-    { key:'distance', label:'Por distância' },
-    { key:'growth',   label:'Em alta' }
-  ]
-
-  return (
-    <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
-      <div style={{ marginBottom: 22 }}>
-        <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
-          Inteligência Competitiva
-        </h1>
-        <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
-          {data.kpis.totalCompetitors > 0 ? `${data.kpis.totalCompetitors} negócios na sua categoria num raio de 3km. Sua presença local em detalhe.` : 'Sua presença local em detalhe.'}
-        </p>
-      </div>
-
-      {/* Quick stats */}
-      <Section>
-        <CompetitorStats
-          youPos={youPos}
-          total={list.length}
-          reviewsToNext={data.hero.reviewsToNext}
-          risingCount={rising.length}
-          isMobile={isMobile}
-        />
-      </Section>
-
-      {/* BENCHMARK da categoria (MyGoalsCard removido — era MOCK; metas reais
-          virão do modelo de posição depois) */}
-      <Section>
-        <CategoryBenchmark data={data} list={list} isMobile={isMobile}/>
-      </Section>
-
-      {/* MAPA + LISTA + SIMULADOR/OPORTUNIDADES */}
-      <Section>
-        <div style={{
-          display:'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) 380px',
-          gap: isMobile ? 16 : 20
-        }}>
-          {/* Esquerda: Mapa em cima + Lista */}
-          <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
-            <CompetitorMap list={list} isMobile={isMobile}/>
-
-            <Card>
-              <div style={{ marginBottom: 12 }}>
-                <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin:'0 0 8px', display:'inline-flex', alignItems:'center', gap: 8 }}>
-                  Ranking detalhado
-                </h3>
-                <FilterChips active={filter} onChange={setFilter} counts={counts}/>
-                {/* Ordenação secundária só faz sentido no filtro Todos */}
-                {filter === 'all' && (
-                  <div style={{ display:'flex', gap: 6, marginTop: 8, flexWrap:'wrap' }}>
-                    <span style={{ fontSize: 10.5, color: T.textDim, fontWeight: 600, alignSelf:'center', letterSpacing:'.04em', textTransform:'uppercase' }}>Ordenar:</span>
-                    {sortChips.map(s => {
-                      const a = sortMode === s.key
-                      return (
-                        <button key={s.key} onClick={() => setSortMode(s.key)} style={{
-                          fontSize: 11, fontWeight: 600, padding:'4px 10px', borderRadius: 6,
-                          border:'1px solid', borderColor: a ? T.blue : T.border,
-                          background: a ? T.blueSoft : '#fff',
-                          color: a ? T.blueDk : T.textMid, cursor:'pointer'
-                        }}>{s.label}</button>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {visible.length === 0 ? (
-                <div style={{
-                  padding: 28, borderRadius: 10, background: T.bg, border:'1px dashed '+T.border,
-                  textAlign:'center', fontSize: 13, color: T.textMid
-                }}>
-                  {filter === 'ahead' ? 'Você está em 1º lugar — ninguém à frente!' :
-                   filter === 'behind' ? 'Você está em último — todo mundo à frente.' :
-                   filter === 'rising' ? 'Nenhum concorrente acelerando essa semana.' :
-                   'Nenhum concorrente encontrado.'}
-                </div>
-              ) : (
-                <div style={{ display:'flex', flexDirection:'column', gap: 8 }}>
-                  {visible.map(c => (
-                    <EnhancedCompetitorRow key={c.id} comp={c} youPos={youPos} isMobile={isMobile}/>
-                  ))}
-                </div>
-              )}
-            </Card>
-          </div>
-
-          {/* Direita: Simulador + Oportunidades */}
-          <div style={{ display:'flex', flexDirection:'column', gap: 16 }}>
-            <div id="simulador">
-              <GrowthSimulator data={data} list={list} isMobile={isMobile}/>
-            </div>
-            <OpportunitiesPanel data={data} list={list} isMobile={isMobile}/>
-          </div>
-        </div>
-      </Section>
-    </main>
   )
 }
 
@@ -4019,101 +3072,6 @@ function RadarWidgetSlot({ d, isMobile }) {
   )
 }
 
-// Sugestões REAIS da semana — calculadas do estado competitivo do próprio
-// negócio (mesma fórmula do ranking: gscore = nota × log10(avaliações+1)).
-// Sem MOCK: cada negócio recebe conselho dos seus próprios números.
-//
-// ⚠️ CÓDIGO MORTO hoje (ninguém chama — quem manda na ação da semana é
-// WeeklyAction). Se for religado, TROCAR A FONTE: `d.kpis.rankingPos` é o
-// ranking do /api/competitors, que discorda da GRADE que o Hero mostra. Foi
-// exatamente essa mistura que fez o painel dizer "1º de 13" no topo e "faltam
-// 293 avaliações pro 2º lugar" na tarja (30/jul). Posição na tela vem da grade.
-function realWeekActions(d) {
-  const actions = []
-  const rating = d.kpis.rating
-  const reviews = d.kpis.reviewCount
-  const pos = d.kpis.rankingPos
-  const comp = d.competitors || []
-  const toNext = d.kpis.nextGoal?.reviewsToNext ?? 0
-  const targetPos = d.kpis.nextGoal?.targetPosition ?? Math.max(1, pos - 1)
-  // Tem alguém à frente com MENOS avaliações que você? Então a posição é
-  // dominada por proximidade/relevância, não por volume — avaliações não resolvem.
-  const aheadWithFewer = comp.filter(c => !c.isYou && c.pos < pos && (c.reviews || 0) < reviews)
-
-  // 1) Como subir de posição (ou manter o topo).
-  // O ranking vem da ORDEM REAL do Google (relevância + proximidade + prominência),
-  // não de uma fórmula nota×reviews — então NUNCA aconselhamos "aumentar a nota"
-  // (até porque pode já estar no teto).
-  if (pos <= 1) {
-    actions.push({ icon: 'trophy', text: 'Você é #1 na sua categoria. Continue coletando avaliações toda semana pra manter a liderança — quem para de coletar acaba ultrapassado.', kind: 'goal' })
-  } else if (aheadWithFewer.length > 0) {
-    // Caso da SAIF: gente na frente com menos avaliações → é proximidade/relevância.
-    actions.push({ icon: 'mappin', text: `Tem negócio na sua frente com MENOS avaliações que você — sinal de que aqui o ranking é dominado por proximidade (quão perto você está de quem busca) e relevância pro termo, não pelo volume de avaliações. O acionável: confira se a categoria do seu Google é a certa pra esse termo e deixe o perfil completo (fotos, horário, descrição, produtos).`, kind: 'goal' })
-  } else if (toNext > 0) {
-    actions.push({ icon: 'target', text: `Faltam ~${toNext} ${toNext === 1 ? 'avaliação' : 'avaliações'} pra alcançar a ${targetPos}ª posição. Foque em coletar no atendimento essa semana.`, kind: 'goal' })
-  } else {
-    actions.push({ icon: 'target', text: `Você já tem volume de avaliações parecido com quem está na sua frente${rating >= 4.8 ? ' (e nota no topo)' : ''}. No ranking do Google também pesam proximidade e relevância, não só a nota — siga coletando e mantenha o perfil completo: categoria certa, fotos e horário.`, kind: 'goal' })
-  }
-
-  // 2) Coleta ligada aos pontos de captação (placas)
-  const hasActivePlates = (d.activePlates || []).length > 0
-  if (hasActivePlates) {
-    actions.push({ icon: 'phone', text: 'Peça pro cliente tocar a placa logo após o atendimento — o momento da satisfação é quando ele mais avalia.', kind: 'action' })
-  } else {
-    actions.push({ icon: 'phone', text: 'Ative um dispositivo (placa de balcão ou cartão NFC) pra coletar avaliações no automático — cada toque do cliente vira uma avaliação.', kind: 'action' })
-  }
-
-  // 3) Qualidade da nota (se ainda não chegou no teto)
-  if (rating < 4.9) {
-    actions.push({ icon: 'star', text: 'Atendeu bem? Peça a avaliação na hora. Notas 5recentes puxam sua média pra cima e te separam dos concorrentes.', kind: 'tip' })
-  }
-
-  return actions.slice(0, 3)
-}
-
-// Gatilho de conversão pro Pro no Painel Free — FOMO baseado em movimento REAL
-// dos concorrentes (weekGrowth dos snapshots). Sem dados ainda → pitch de vigilância.
-function ProTriggerCard({ data, isMobile }) {
-  const comps = (data.competitors || []).filter(c => !c.isYou)
-  const rising = comps.filter(c => (c.weekGrowth || 0) >= 2)
-  const anyMovement = comps.some(c => typeof c.weekGrowth === 'number' && c.weekGrowth !== 0)
-  const threat = comps.filter(c => (c.weekGrowth || 0) >= 1).sort((a, b) => (b.weekGrowth || 0) - (a.weekGrowth || 0))[0]
-
-  let headline, sub
-  if (rising.length > 0) {
-    headline = `${rising.length} concorrente${rising.length > 1 ? 's' : ''} acelerando essa semana`
-    sub = (threat && threat.weekGrowth)
-      ? `Um deles ganhou ${threat.weekGrowth} ${threat.weekGrowth === 1 ? 'avaliação' : 'avaliações'} e está se aproximando de você. Veja quem — e seja avisado na hora que te passar.`
-      : 'Veja quem está crescendo e seja avisado quando te ultrapassarem.'
-  } else if (anyMovement) {
-    headline = 'Teve movimentação no seu ranking essa semana'
-    sub = 'Concorrentes se mexeram. Acompanhe quem subiu e seja avisado quando algo te ameaçar.'
-  } else {
-    headline = 'A gente vigia seus concorrentes toda semana'
-    sub = 'Seja avisado na hora em que um concorrente te ultrapassar, sair do Top ou disparar em avaliações.'
-  }
-
-  return (
-    <Card style={{
-      background: 'linear-gradient(135deg,#FFF8E1,#FFFFFF)',
-      border: '1px solid #FDE68A',
-      display: 'flex', flexDirection: isMobile ? 'column' : 'row',
-      alignItems: isMobile ? 'flex-start' : 'center', gap: 14
-    }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Inter',sans-serif", fontSize: 15.5, fontWeight: 800, color: '#78350F', marginBottom: 4, lineHeight: 1.3 }}>{headline}</div>
-        <div style={{ fontSize: 13, color: '#92722A', lineHeight: 1.5 }}>{sub}</div>
-      </div>
-      <a href="/plano-pro" style={{
-        flexShrink: 0, background: '#1A73E8', color: '#fff', textDecoration: 'none',
-        padding: '12px 18px', borderRadius: 10, fontSize: 13.5, fontWeight: 700,
-        whiteSpace: 'nowrap', boxShadow: '0 4px 14px rgba(26,115,232,0.28)',
-        width: isMobile ? '100%' : 'auto', textAlign: 'center'
-      }}>Ativar alertas (Pro)</a>
-    </Card>
-  )
-}
-
 // Sugestões da semana (push de direção pro dono)
 function WeekActions({ items, isMobile }) {
   return (
@@ -5748,7 +4706,10 @@ function TermBar({ term, spacingM, isGuest, placeId, isMobile }) {
     if (!t) return
     setSaving(true)
     if (isGuest) {
-      window.location.href = `/app?place_id=${encodeURIComponent(placeId || '')}&keyword=${encodeURIComponent(t)}`
+      // `terms` é o que a GRADE lê; `keyword` é o que as lentes (reserva) leem.
+      // Só o keyword ia na URL — então o visitante trocava a busca, o rótulo
+      // mudava e a medição continuava a mesma. Mesmo placebo do lado logado.
+      window.location.href = `/app?place_id=${encodeURIComponent(placeId || '')}&keyword=${encodeURIComponent(t)}&terms=${encodeURIComponent(t)}`
       return
     }
     try {
@@ -6877,11 +5838,16 @@ function ScoreModal({ d, onClose, isGuest, signupUrl }) {
 // Subtítulo HONESTO da saudação — só afirma o que tem base (sem "está
 // crescendo" no vazio). Prioridade alta (subiu posição / ganhou avaliações
 // na semana) depende de histórico — pausado por ora, então fica de fora.
-function greetingSubtitle(d) {
-  const comps = (d.competitors || []).filter(c => !c.isYou && typeof c.rating === 'number')
+//
+// A média da região sai da GRADE (03/ago), a mesma lista que o dono lê logo
+// abaixo. Vinha do /api/competitors: outros vizinhos, outro raio — a frase
+// dizia "acima da média" enquanto a tabela na tela mostrava concorrentes com
+// nota maior. Sem grade, não afirma nada.
+function greetingSubtitle(d, grid) {
+  const comps = (grid?.ranking || []).filter(c => !c.is_me && typeof c.rating === 'number')
   if (comps.length) {
     const avg = comps.reduce((s, c) => s + c.rating, 0) / comps.length
-    if ((d.kpis.rating || 0) > avg + 0.05) return 'Sua nota está acima da média da sua região · atualizado agora'
+    if ((d.kpis.rating || 0) > avg + 0.05) return 'Sua nota está acima da média dos concorrentes por perto · atualizado agora'
   }
   return 'Veja como está sua presença local · atualizado agora'
 }
@@ -7011,10 +5977,6 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   // Compõe dados: real sobrescreve mock; mock preenche lacunas
   const d = buildData(real, user, demoMode)
 
-  // Tem dados REAIS de concorrente? (lista vazia = API não retornou ranking).
-  // Usado pra esconder KPIs de ranking/posição quando seriam MOCK num negócio real.
-  const hasComp = (d.competitors && d.competitors.length > 0)
-
   // Lentes MOCK pro modo demo — o VisibilityLenses real busca via API; no demo,
   // alimenta o mesmo componente (abas 1/3km) com os dados de exemplo do MOCK.
   const demoLenses = React.useMemo(() => {
@@ -7038,7 +6000,10 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   // No demo continua usando o mock (sem rede), como antes.
   const lensState = useLensesData({
     placeId: guestContext?.placeId || d.biz?.placeId,
-    term: (real.competitors && real.competitors.category) || d.activeCategory || '',
+    // Mesma busca do resto da tela: a que o dono salvou (`category_override`,
+    // dentro de activeCategory) ou a categoria do Google. Antes vinha do
+    // /api/competitors, terceira fonte de termo no mesmo painel.
+    term: d.activeCategory || '',
     cep: guestContext?.cep || '',
     mock: demoLenses,
     enabled: !gridLoading && !gradeResolveu
@@ -7189,8 +6154,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl} />
       {!isMobile && <TopTabs active={tab} onChange={navigateFromMore} plan={plan} isMobile={false} />}
 
-      {/* Aba: CONCORRENTES — free pra todos (sem mais preview borrado) */}
-      {tab === 'concorrentes' && <CompetitorsScreen data={d} isMobile={isMobile}/>}
+      {/* A aba CONCORRENTES foi REMOVIDA em 03/ago. Ela era uma tela inteira
+          (mapa, simulador, oportunidades) construída sobre o /api/competitors —
+          a arena velha. Estava escondida do menu havia meses, então ninguém a
+          via; o risco era religá-la um dia e o painel voltar a se contradizer
+          sozinho, que é exatamente como o bug de 30/jul nasceu. Quando o Pro
+          existir, essa tela nasce de novo lendo a GRADE. A lista de
+          concorrentes que o cliente vê hoje é a do Painel (GridRankingList). */}
 
       {/* Aba: ALERTAS — free pra logado; convidado precisa de conta (email) */}
       {tab === 'alertas' && (isGuest
@@ -7219,8 +6189,10 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           : <ConfigScreen data={d} isMobile={isMobile} plan={plan} isReal={!demoMode && real.hasBusiness} isAdmin={isAdminUser(user)}/>
       )}
 
-      {/* Fallback p/ abas desconhecidas (as Pro já são tratadas acima com preview) */}
-      {tab !== 'painel' && tab !== 'concorrentes' && tab !== 'alertas' && tab !== 'relatorios' && tab !== 'loja' && tab !== 'avaliacoes' && tab !== 'config' && (
+      {/* Fallback p/ abas desconhecidas (as Pro já são tratadas acima com preview).
+          'concorrentes' voltou pra cá quando a tela saiu (03/ago): sem tela E sem
+          fallback, um link velho renderizaria uma página em branco. */}
+      {tab !== 'painel' && tab !== 'alertas' && tab !== 'relatorios' && tab !== 'loja' && tab !== 'avaliacoes' && tab !== 'config' && (
         <ComingSoon
           icon={tab === 'concorrentes' ? 'trophy' : tab === 'alertas' ? 'bell' : tab === 'relatorios' ? 'trendup' : 'star'}
           title={
@@ -7248,7 +6220,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             Olá, {d.biz.name}.
           </h1>
           <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
-            {demoMode ? 'Veja como seu negócio está crescendo · atualizado agora' : greetingSubtitle(d)}
+            {demoMode ? 'Veja como seu negócio está crescendo · atualizado agora' : greetingSubtitle(d, gridPrimary)}
           </p>
         </div>
 
@@ -7269,13 +6241,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             real salvo (d.biz.id). Convidado (biz.id null) e demo (sem id) não veem. */}
         {!guestMode && !demoMode && d?.biz?.id && <RadarWidgetSlot d={d} isMobile={isMobile} />}
 
-        {/* GATILHO PRO (FOMO) — ESCONDIDO TEMPORARIAMENTE (sem segurança pra
-            vender Pro ainda). Pra reexibir, troque `false &&` por `(demoMode || hasComp)`. */}
-        {false && plan === 'free' && (
-        <Section>
-          <ProTriggerCard data={d} isMobile={isMobile} />
-        </Section>
-        )}
+        {/* O GATILHO PRO (FOMO) saiu junto (03/ago): estava desligado por
+            `false &&` desde que decidimos não vender Pro ainda, e o texto dele
+            ("N concorrentes acelerando") vinha do crescimento semanal do
+            /api/competitors — dado que o painel não busca mais. Quando o Pro
+            voltar, o gatilho se apoia no histórico da grade. */}
 
         {/* BLOCO 3 — Ação da semana (1 só).
             Convidado: portão suave — teaser do "acompanhar" (evolução/alertas/ação).
@@ -7301,8 +6271,17 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
               de que busca se tratava, e o controle de trocar a busca aparecia
               depois de tudo, parecendo enfeite. */}
           {!demoMode && (
+            /* A BUSCA MOSTRADA É A BUSCA MEDIDA (03/ago). O rótulo vinha do
+               /api/competitors — a arena velha, com o tipo cru do Google
+               ("bakery") — enquanto a grade logo abaixo media outro termo
+               ("padaria"). Duas buscas na mesma tela, e o botão "Trocar busca"
+               mudava só o rótulo: a grade ignorava a escolha do dono. Agora o
+               rótulo é `gridPrimary.term`, o termo que de fato foi medido, e o
+               backend obedece o que ele salvou. Enquanto a grade carrega (ou
+               quando ela falha e as lentes assumem), cai na categoria ativa —
+               que é a mesma fonte que as lentes usam. */
             <TermBar
-              term={(real.competitors && real.competitors.category) || d.activeCategory || ''}
+              term={gridPrimary?.term || d.activeCategory || ''}
               spacingM={gridPrimary?.spacingM}
               isGuest={isGuest}
               placeId={guestContext?.placeId || d.biz?.placeId}

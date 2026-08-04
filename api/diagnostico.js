@@ -39,25 +39,42 @@ function sbDiag() {
 
 const ADMIN_EMAILS = ["ricardo.fiorini@gmail.com"];
 
-/** 'anon' | 'free' | 'pro'. Nunca lança: token podre vira 'anon'. */
-async function planoDoRequest(req) {
+const CTX_ANON = { plano: "anon", termoSalvo: null, placeIdDoDono: null };
+
+/**
+ * Quem está perguntando: plano ('anon'|'free'|'pro') + a BUSCA que o dono
+ * escolheu no painel. Nunca lança: token podre vira 'anon'.
+ *
+ * O termo salvo vem junto de propósito (03/ago). Até aqui a grade media sempre
+ * um termo derivado da categoria do Google e IGNORAVA o `category_override` —
+ * então o botão "Trocar busca" do painel salvava a escolha, o rótulo mudava, e
+ * os números da tela continuavam os mesmos. Um controle que não controla nada.
+ * Ler o termo aqui custa zero: a consulta ao banco já acontecia pro plano.
+ */
+async function contextoDoRequest(req) {
   const token = req.headers.authorization?.replace("Bearer ", "").trim();
-  if (!token) return "anon";
+  if (!token) return CTX_ANON;
   const supabase = sbDiag();
-  if (!supabase) return "anon";
+  if (!supabase) return CTX_ANON;
   try {
     const { data, error } = await supabase.auth.getUser(token);
     const user = data?.user;
-    if (error || !user) return "anon";
-    if (ADMIN_EMAILS.includes((user.email || "").toLowerCase())) return "pro";
+    if (error || !user) return CTX_ANON;
     const { data: biz } = await supabase
       .from("businesses")
-      .select("plan")
+      .select("plan, place_id, category_override")
       .eq("user_id", user.id)
       .maybeSingle();
-    return biz?.plan === "pro" ? "pro" : "free";
+    const admin = ADMIN_EMAILS.includes((user.email || "").toLowerCase());
+    return {
+      plano: admin || biz?.plan === "pro" ? "pro" : "free",
+      termoSalvo: (biz?.category_override || "").trim() || null,
+      // Só vale pro negócio DELE: com o place_id de outro na URL, o termo salvo
+      // não pode vazar pra medição alheia.
+      placeIdDoDono: biz?.place_id || null,
+    };
   } catch {
-    return "anon";  // falha de banco não pode derrubar o diagnóstico
+    return CTX_ANON;  // falha de banco não pode derrubar o diagnóstico
   }
 }
 
@@ -162,7 +179,8 @@ export default async function handler(req, res) {
   if (await limitou(req, res, LIMITES.diagnostico)) return;
 
   // Só custa uma ida ao banco quando vem token; visitante nem consulta.
-  const plano = autenticado ? await planoDoRequest(req) : "anon";
+  const ctx = autenticado ? await contextoDoRequest(req) : CTX_ANON;
+  const plano = ctx.plano;
   const cadenciaMs = plano === "free" ? TTL.LENSES_FREE : TTL.LENSES;
 
   // Sugestão de termos (chips do formulário) a partir da categoria/nome do Google.
@@ -187,7 +205,15 @@ export default async function handler(req, res) {
       if (gridRateLimited(getIp(req))) {
         return res.status(429).json({ error: "Muitas consultas seguidas. Tente de novo em alguns minutos." });
       }
+      // ORDEM DA BUSCA MEDIDA — do mais explícito pro mais automático:
+      //   1. `?terms=` na URL (convidado escolhendo os chips)
+      //   2. a busca que o DONO salvou no painel ("Trocar busca")
+      //   3. a categoria oficial do Google (chute inicial, primeira visita)
+      // O passo 2 não existia: a escolha do dono era salva e ignorada.
       let terms = (req.query.terms || "").toString().split(",").map((t) => t.trim()).filter(Boolean).slice(0, 3);
+      if (!terms.length && ctx.termoSalvo && ctx.placeIdDoDono === placeId) {
+        terms = [ctx.termoSalvo];
+      }
       if (!terms.length) {
         const seed = await fetchPlaceSeed(placeId);
         terms = suggestTerms(seed?.name, seed?.types, seed?.primaryDisplay, seed?.primaryType).slice(0, 1);

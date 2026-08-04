@@ -33,7 +33,10 @@ function Root() {
   const guestKeyword = params?.get('keyword') || ''
   const guestCep = params?.get('cep') || ''
   // Termos escolhidos no formulário (grade por termo). Ex: ?terms=restaurante,pizzaria
-  const guestTerms = (params?.get('terms') || '').split(',').map(t => t.trim()).filter(Boolean).slice(0, 3)
+  // Sem `terms`, um `keyword` na URL vale como termo: são links antigos (e o
+  // "Trocar busca" de antes de 03/ago) que só sabiam mandar keyword. Sem isso a
+  // grade ignora a busca pedida e mede outra coisa.
+  const guestTerms = (params?.get('terms') || params?.get('keyword') || '').split(',').map(t => t.trim()).filter(Boolean).slice(0, 3)
 
   // ?next= sinaliza ação que EXIGE conta (ex: assinar Pro). Mostra Login (que
   // tem link "criar conta") e, após autenticar, manda pro destino. Só paths
