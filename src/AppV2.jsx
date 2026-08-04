@@ -4564,44 +4564,6 @@ function GuestGate({ url, feature, isMobile }) {
   )
 }
 
-// Teaser do "acompanhar" — portão SUAVE do modo convidado. Mantém o retrato
-// (posição, concorrentes) aberto e tranca só o que exige conta e faz sentido ao
-// longo do tempo: evolução semanal, alertas e sugestões de ação. Cria desejo
-// sem esconder o "aha".
-function GuestFollowTeaser({ url, isMobile }) {
-  return (
-    <Card>
-      <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 8 }}>
-        <span style={{ display:'inline-flex', color: T.primary }}><Lock size={20}/></span>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 16 : 18, fontWeight: 700, color: T.text, margin: 0, letterSpacing:'-0.01em' }}>
-          Acompanhe sua evolução — crie conta grátis
-        </h3>
-      </div>
-      <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, margin:'0 0 14px' }}>
-        Você já viu onde está hoje. Com uma conta (também grátis), o StarTouch passa a <b>trabalhar por você toda semana</b>:
-      </p>
-      <ul style={{ listStyle:'none', padding: 0, margin:'0 0 18px', display:'flex', flexDirection:'column', gap: 10 }}>
-        {[
-          [TrendingUp, <>Evolução <b>semana a semana</b> — veja se subiu ou caiu no ranking</>],
-          [Bell, <>Alerta <b>na hora</b> quando um concorrente te ultrapassar</>],
-          [Target, <>O que fazer <b>essa semana</b> pra subir de posição</>],
-        ].map(([IconC, txt], i) => (
-          <li key={i} style={{ display:'flex', alignItems:'flex-start', gap: 10, fontSize: 13.5, color: T.text }}>
-            <span style={{ flexShrink: 0, lineHeight: 1.3, color: T.primary, display:'inline-flex' }}><IconC size={18} strokeWidth={2}/></span>
-            <span style={{ lineHeight: 1.4 }}>{txt}</span>
-          </li>
-        ))}
-      </ul>
-      <a href={url} style={{
-        display:'inline-flex', alignItems:'center', gap: 8,
-        background: T.blue, color:'#fff', textDecoration:'none',
-        padding:'12px 22px', borderRadius: 11, fontSize: 14, fontWeight: 700,
-        boxShadow:'0 4px 14px rgba(26,115,232,0.28)'
-      }}>Criar conta grátis e acompanhar →</a>
-    </Card>
-  )
-}
-
 // Modal de EXIT-INTENT (rede de segurança de conversão) — dispara quando o
 // convidado leva o cursor pra fora pela borda de cima (indo fechar/trocar de
 // aba). Só desktop (touch não tem "mouseleave" útil), 1x por sessão (não perturba).
@@ -6320,12 +6282,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} isAdmin={isAdminUser(user)} reviewCount={d.kpis.reviewCount} isMobile={isMobile} />
         </Section>
 
-        {/* BLOCO 7 — Card criar conta (só na prévia/convidado). Spec seção 3. */}
-        {isGuest && (
-        <Section>
-          <GuestFollowTeaser url={guestSignupUrl} isMobile={isMobile} />
-        </Section>
-        )}
+        {/* O card "Acompanhe sua evolução — crie conta grátis" SAIU (03/ago).
+            Ele prometia três coisas de graça por criar conta (evolução semanal,
+            alerta de ultrapassagem, ação da semana) — e essas passam a ser da
+            mensalidade. Prometer no rodapé o que vai ser pago é começar a
+            relação devendo. */}
 
       </main>
       )}
