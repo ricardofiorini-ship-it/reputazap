@@ -2831,8 +2831,6 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
                     PRIMEIROS — que é o que o Google exibe e o que o cliente vê
                     sem rolar a tela. Ser 4º é quase ser 20º. */}
                 {(() => {
-                  const pts = (gridPos.points || []).filter(p => p.ok)
-                  const top3 = pts.filter(p => p.rank != null && p.rank <= 3).length
                   // `avg` (lugar onde APARECE), não `score` (que já embute a
                   // punição por ausência). O score punido no topo brigava com a
                   // lista logo abaixo: 8,4 aqui e a linha dele em 1º lá. A
@@ -2845,26 +2843,14 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
                         {media.toFixed(1).replace('.', ',')}
                         <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: T.textMuted }}>º lugar</span>
                       </div>
-                      {/* "PONTO" ERA PALAVRA NOSSA (02/ago). O dono não sabe o
-                          que é um ponto de medição — ele sabe o que é um LUGAR.
-                          E a frase toda pressupunha algo que nunca foi dito na
-                          tela: que o Google mostra listas diferentes conforme
-                          de onde a pessoa procura. Sem isso, "4 de 5 pontos" é
-                          código interno. O conceito passou a ser ensinado uma
-                          vez, no topo da lista de concorrentes; aqui só sobra o
-                          resultado, em português. Também saiu o "a até 1 km do
-                          seu endereço", que se repetia em toda frase. */}
-                      <div style={{ fontSize: 13, color: T.textMuted }}>é a posição em que o Google costuma te mostrar</div>
-                      <div style={{ fontSize: 12, color: T.textDim, lineHeight: 1.45 }}>
-                        quando alguém perto de você busca {gridPos.term}
-                        <div style={{ marginTop: 2, fontWeight: 600, color: top3 === pts.length ? T.success : T.textMuted }}>
-                          {top3 === pts.length
-                            ? `você fica entre os 3 primeiros nos ${pts.length} lugares testados`
-                            : top3 > 0
-                              ? `você fica entre os 3 primeiros em ${top3} dos ${pts.length} lugares testados`
-                              : `em nenhum dos ${pts.length} lugares testados você entra nos 3 primeiros`}
-                        </div>
-                      </div>
+                      {/* UMA LINHA SÓ (03/ago, decisão do Ricardo). Eram três:
+                          o que o número é, pra qual busca, e em quantos lugares
+                          ele fica no top 3. Explicação demais pra uma manchete —
+                          o dono só precisa saber que aquele número é a colocação
+                          dele. O detalhe (a busca medida, os 5 lugares, quem
+                          está na frente) continua logo abaixo, no bloco de
+                          concorrentes, pra quem quiser ir fundo. */}
+                      <div style={{ fontSize: 13, color: T.textMuted, lineHeight: 1.45 }}>é a colocação média da sua empresa no Google Meu Negócio</div>
                     </>
                   )
                 })()}
