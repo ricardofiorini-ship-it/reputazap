@@ -44,7 +44,7 @@
   </url>
   <url>
     <loc>https://startouch.com.br/artigos</loc>
-    <lastmod>2026-07-04</lastmod>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -117,6 +117,24 @@
   <url>
     <loc>https://startouch.com.br/artigos/nfc-ou-qr-code-avaliacoes</loc>
     <lastmod>2026-07-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://startouch.com.br/artigos/otimizar-google-meu-negocio</loc>
+    <lastmod>2026-07-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://startouch.com.br/artigos/quantas-avaliacoes-google-precisa</loc>
+    <lastmod>2026-07-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://startouch.com.br/artigos/review-gating-google</loc>
+    <lastmod>2026-08-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
