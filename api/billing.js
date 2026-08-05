@@ -1207,6 +1207,49 @@ export default async function handler(req, res) {
     return await handleWebhookMP(req, res);
   }
 
+  // ───────────────────────────────────────────────────────────
+  // PORTA DOS DIAGNÓSTICOS (fechada em 05/ago/2026)
+  //
+  // Estas actions eram ABERTAS: sem login, sem segredo, qualquer um na internet
+  // via o mapa da casa — quais envs existem, o prefixo do token do Mercado Pago,
+  // o domínio de email configurado, o status do banco. E `test-email` DISPARAVA
+  // email de verdade pro admin: um robô num laço queimaria a cota do Resend e
+  // encheria a caixa. Nada disso vazava a senha em si, mas dizia exatamente onde
+  // bater.
+  //
+  // O segredo é o `CRON_SECRET` que já existe na Vercel (os crons usam) — assim
+  // não há env nova pra criar. Se um dia quiser um separado, basta setar
+  // `DIAG_SECRET`, que tem prioridade.
+  //
+  // FECHA POR PADRÃO: sem segredo configurado, ninguém entra. O contrário
+  // ("se não tem env, libera") é a armadilha clássica — uma env que some no
+  // deploy reabriria a porta em silêncio, e ninguém perceberia.
+  // ───────────────────────────────────────────────────────────
+  const DIAG_ACTIONS = ["debug", "health", "resend-dns", "test-email", "test-weekly", "mp-probe"];
+  if (DIAG_ACTIONS.includes(action)) {
+    const esperado = process.env.DIAG_SECRET || process.env.CRON_SECRET || "";
+    const enviado = String(
+      req.query.secret || (req.headers.authorization || "").replace(/^Bearer\s+/i, "") || ""
+    );
+    // Comparação de tempo constante: um `===` vaza, pelo tempo de resposta,
+    // quantos caracteres do começo estão certos — dá pra adivinhar letra a letra.
+    let ok = false;
+    if (esperado && enviado) {
+      const a = Buffer.from(enviado);
+      const b = Buffer.from(esperado);
+      ok = a.length === b.length && crypto.timingSafeEqual(a, b);
+    }
+    if (!ok) {
+      // Log explícito: uma porta que barra sem deixar rastro é irmã da falha
+      // silenciosa. Assim dá pra ver no log da Vercel se alguém está batendo.
+      console.warn(
+        `[billing/diag] acesso negado a "${action}"` +
+        (esperado ? "" : " — nenhum DIAG_SECRET/CRON_SECRET configurado na Vercel")
+      );
+      return res.status(404).json({ error: "Not found" });
+    }
+  }
+
   // Diagnostico GET — mostra prefixo dos tokens e quais envs estao setadas (nao vaza segredos).
   if (action === "debug" || action === "health") {
     const mpToken = process.env.MP_ACCESS_TOKEN || "";

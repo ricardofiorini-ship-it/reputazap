@@ -35,8 +35,14 @@ const PROBE_TIMEOUT_MS = 10000; // sem resposta em 10s = considera fora
 // Endpoints críticos (dinheiro/confiança) que importam helpers diferentes —
 // se um import compartilhado quebrar, ao menos um destes acusa. GET simples:
 // mesmo com método/params "errados", um 4xx já prova que a função LIGOU.
+// `auth: true` manda o CRON_SECRET no cabeçalho Authorization. Necessário desde
+// 05/ago/2026, quando os diagnósticos do billing passaram a exigir segredo: sem
+// isso a sonda levaria 404. O 404 não derrubaria o monitor (404 < 500 já conta
+// como "a função ligou"), mas a sonda deixaria de ver o conteúdo do diagnóstico
+// — viraria um teste de que o servidor responde, não de que o pagamento está
+// configurado. Vai no cabeçalho, e não na URL, pra o segredo não cair em log.
 const PROBES = [
-  { nome: "Pagamento (billing)",      url: `${BASE}/api/billing?action=debug`, papel: "checkout e webhook do Mercado Pago" },
+  { nome: "Pagamento (billing)",      url: `${BASE}/api/billing?action=debug`, papel: "checkout e webhook do Mercado Pago", auth: true },
   { nome: "Resumo semanal (digest)",  url: `${BASE}/api/cron/weekly-digest`,   papel: "email semanal pros clientes" },
   { nome: "IA Radar",                 url: `${BASE}/api/radar`,                papel: "diagnóstico e Pacote Presença em IA" },
   { nome: "Meus negócios (mybiz)",    url: `${BASE}/api/mybiz`,                papel: "dados do painel do cliente" },
@@ -57,7 +63,8 @@ async function probe(p) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), PROBE_TIMEOUT_MS);
   try {
-    const r = await fetch(p.url, { method: "GET", signal: ctrl.signal, redirect: "manual" });
+    const headers = (p.auth && CRON_SECRET) ? { Authorization: `Bearer ${CRON_SECRET}` } : undefined;
+    const r = await fetch(p.url, { method: "GET", signal: ctrl.signal, redirect: "manual", headers });
     clearTimeout(timer);
     const status = r.status;
     return { ...p, status, ok: status < 500, took_ms: Date.now() - t0 };
