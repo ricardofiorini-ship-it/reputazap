@@ -207,9 +207,13 @@ function FeedbackActions({ fb, onReplied, onResolved, onContactExternal, compact
     if (!text.trim()) { setError("Escreva uma resposta antes de enviar."); return; }
     setSending(true); setError("");
     try {
+      // O token vai junto desde 05/ago/2026: o servidor passou a exigir login +
+      // ser dono do negócio pra responder (antes qualquer um com o id mandava
+      // email em nome do negócio).
+      const token = localStorage.getItem("rz_token");
       const res = await fetch("/api/feedback", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ id: fb.id, reply_text: text.trim() })
       });
       const data = await res.json();
@@ -1138,7 +1142,7 @@ export default function StarTouch({ user, onLogout }) {
               try {
                 const res = await fetch("/api/feedback", {
                   method: "POST",
-                  headers: { "Content-Type": "application/json" },
+                  headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                   body: JSON.stringify({ id, resolved: true })
                 });
                 if (!res.ok) throw new Error("falha na resposta");
@@ -1929,7 +1933,7 @@ export default function StarTouch({ user, onLogout }) {
               try {
                 const res = await fetch("/api/feedback", {
                   method: "POST",
-                  headers: { "Content-Type": "application/json" },
+                  headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                   body: JSON.stringify({ id, resolved: true })
                 });
                 if (!res.ok) throw new Error();

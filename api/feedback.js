@@ -124,6 +124,68 @@ async function listPending(req, res) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// DONO DO FEEDBACK (fechado em 05/ago/2026)
+//
+// Os ramos "responder ao cliente" e "atualizar" aceitavam qualquer POST com um
+// `id`: sem login, sem nada. Quem descobrisse um id disparava email saindo de
+// feedback@startouch.com.br, assinado com o nome do negócio do cliente, com
+// texto livre — phishing com a nossa reputação — e podia alterar o status de
+// feedback alheio. O id é um UUID (difícil de adivinhar), mas segredo de URL
+// não é controle de acesso: ele vaza em log, histórico e print.
+//
+// Duas checagens, nesta ordem: (1) o token é válido? (2) o feedback pertence a
+// um negócio DESTE usuário? A segunda é a que importa — só exigir login deixaria
+// qualquer cliente cadastrado responder pelo feedback de outro.
+// ─────────────────────────────────────────────────────────────
+
+/** Valida o token. Devolve { user } ou { erro, status }. */
+async function usuarioDoToken(req) {
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
+  if (!token) return { erro: "Token obrigatório", status: 401 };
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data?.user) return { erro: "Token inválido", status: 401 };
+  return { user: data.user };
+}
+
+/**
+ * Confere que o feedback existe E é de um negócio do usuário.
+ * Devolve { fb, biz } ou { erro, status }.
+ *
+ * Responde 404 (e não 403) pro feedback de outra pessoa: 403 confirmaria que
+ * aquele id existe. Mesmo raciocínio do 404 nos diagnósticos do billing.
+ */
+async function feedbackDoUsuario(user_id, feedbackId) {
+  const { data: fb, error } = await supabase
+    .from("feedbacks")
+    .select("id, place_id, contact, text, rating")
+    .eq("id", feedbackId)
+    .maybeSingle();
+  if (error) {
+    // Falha de banco NÃO é "não encontrado" — dizer 404 aqui mandaria o dono
+    // caçar um problema que não existe. 503 diz a verdade: o banco tropeçou.
+    console.error("[feedback/auth] erro ao buscar feedback:", error);
+    return { erro: "Banco indisponível — tente de novo em instantes", status: 503 };
+  }
+  if (!fb) return { erro: "Feedback não encontrado", status: 404 };
+
+  const { data: biz, error: bizErr } = await supabase
+    .from("businesses")
+    .select("id, name, user_id")
+    .eq("place_id", fb.place_id)
+    .eq("user_id", user_id)
+    .maybeSingle();
+  if (bizErr) {
+    console.error("[feedback/auth] erro ao buscar negócio:", bizErr);
+    return { erro: "Banco indisponível — tente de novo em instantes", status: 503 };
+  }
+  if (!biz) {
+    console.warn(`[feedback/auth] usuário ${user_id} tentou mexer no feedback ${feedbackId}, que não é de um negócio dele`);
+    return { erro: "Feedback não encontrado", status: 404 };
+  }
+  return { fb, biz };
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -142,17 +204,17 @@ export default async function handler(req, res) {
     const cleanReply = (reply_text || "").trim();
     if (!cleanReply) return res.status(400).json({ error: "reply_text vazio" });
     try {
-      // Busca o feedback pra pegar contato e place_id
-      const { data: fb, error: fbErr } = await supabase
-        .from("feedbacks").select("contact, place_id, text, rating").eq("id", id).single();
-      if (fbErr || !fb) return res.status(404).json({ error: "Feedback não encontrado" });
+      // AUTH: precisa estar logado E ser o dono do negócio deste feedback.
+      // Este ramo dispara email em nome do negócio — é o de maior estrago.
+      const auth = await usuarioDoToken(req);
+      if (auth.erro) return res.status(auth.status).json({ error: auth.erro });
+      const dono = await feedbackDoUsuario(auth.user.id, id);
+      if (dono.erro) return res.status(dono.status).json({ error: dono.erro });
+
+      const { fb, biz } = dono;
       if (!fb.contact || !fb.contact.includes("@")) {
         return res.status(400).json({ error: "Cliente não deixou email — use o botão de WhatsApp" });
       }
-
-      // Busca biz pro nome
-      const { data: biz } = await supabase
-        .from("businesses").select("name").eq("place_id", fb.place_id).maybeSingle();
       const bizName = biz?.name || "Seu negócio";
 
       // Envia email pro cliente
@@ -187,7 +249,15 @@ export default async function handler(req, res) {
         .from("feedbacks")
         .update({ reply_text: cleanReply, replied_at: new Date().toISOString(), resolved_at: new Date().toISOString() })
         .eq("id", id);
-      if (updErr) console.error("[feedback/reply] erro ao salvar resposta:", updErr);
+      if (updErr) {
+        // O email JÁ FOI. Não dá pra fingir sucesso completo: o dono veria o
+        // feedback voltar à lista de pendentes e responderia de novo, mandando
+        // dois emails pro mesmo cliente. Melhor dizer o que houve.
+        console.error("[feedback/reply] resposta enviada mas NÃO salva:", updErr);
+        return res.status(500).json({
+          error: "Sua resposta foi enviada ao cliente, mas não conseguimos registrar aqui. Não responda de novo — o cliente já recebeu."
+        });
+      }
 
       return res.json({ ok: true });
     } catch (err) {
@@ -201,6 +271,18 @@ export default async function handler(req, res) {
     if (decision && !["wait", "public"].includes(decision)) {
       return res.status(400).json({ error: "decision inválida" });
     }
+
+    // AUTH: mesmo tratamento do ramo de resposta. Este ramo nasceu para a
+    // "peneira" (o visitante escolhia resolver no privado ou publicar), mas a
+    // peneira foi REMOVIDA em 2026-05-23 — as telas ficaram como código morto e
+    // nunca aparecem. Hoje quem chama aqui é só o painel do dono, marcando como
+    // resolvido. Por isso dá pra exigir login no ramo inteiro sem quebrar o
+    // visitante: não existe mais visitante chamando isto.
+    const auth = await usuarioDoToken(req);
+    if (auth.erro) return res.status(auth.status).json({ error: auth.erro });
+    const dono = await feedbackDoUsuario(auth.user.id, id);
+    if (dono.erro) return res.status(dono.status).json({ error: dono.erro });
+
     const patch = {};
     if (decision) patch.decision = decision;
     if (contact !== undefined) patch.contact = contact || null;
@@ -210,7 +292,14 @@ export default async function handler(req, res) {
       .from("feedbacks")
       .update(patch)
       .eq("id", id);
-    if (updError) console.error("[feedback] Erro ao atualizar:", updError);
+    if (updError) {
+      // Antes isto respondia ok:true com o banco tendo recusado a escrita. O
+      // painel some com o item da lista na hora (update otimista) e o dono
+      // acredita que resolveu — até o item reaparecer no próximo carregamento,
+      // sem explicação. Devolver erro faz o painel desfazer e avisar.
+      console.error("[feedback] Erro ao atualizar:", updError);
+      return res.status(500).json({ error: "Não foi possível salvar. Tente de novo." });
+    }
     return res.json({ ok: true });
   }
 
