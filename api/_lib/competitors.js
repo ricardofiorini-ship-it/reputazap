@@ -514,6 +514,115 @@ export function detectSpecialtiesFromName(name, types) {
     .filter((term) => ![...(ESPECIALIDADE_COBERTA_POR[term] || [])].some((t) => tipos.has(t)));
 }
 
+// ============================================================
+// FORÇA COMPETITIVA (o que o negócio TEM, não o que o Google mostra)
+// ============================================================
+// Decisão do Ricardo (08/ago) depois de ver o protótipo. A medição de POSIÇÃO é
+// instável — o mesmo negócio deu "ausente" e "5º" no mesmo minuto, só mudando a
+// forma de perguntar — e, num bairro denso, comprime todo mundo entre 9 e 11
+// (os 4 pontos a 1 km sempre têm 8-10 concorrentes mais perto de quem busca
+// ali). A Brascatta, 2ª mais forte do bairro com 2.784 avaliações, recebia a
+// manchete "8,8º lugar".
+//
+// Nota e avaliações não têm esse problema: não mudam com o método e o dono
+// confere cada uma no próprio celular. E apontam pro remédio que a gente vende.
+//
+// O caso que decidiu: a Tutto Buona é 1º lugar em posição e 7ª de 11 em força —
+// segura o topo com 148 avaliações contra 2.234 e 2.784 das vizinhas. Nenhuma
+// medição de posição diz isso; é a diferença entre os dois números que conta a
+// história. Por isso a força NÃO substitui a posição, ela vira a manchete e a
+// posição vira o alarme embaixo.
+//
+// A fórmula vai NA TELA (decisão do Ricardo). É a única conta nossa aqui — o
+// resto são fatos do Google —, e a vantagem inteira desta métrica é o dono poder
+// conferir cada pedaço. Esconder a conta seria jogar fora essa vantagem.
+//
+// `log10` porque avaliação tem retorno decrescente: sair de 10 pra 100 muda a
+// vida do negócio, de 3.000 pra 3.090 não muda nada. Sem o log, o volume
+// esmagaria a nota e a métrica viraria "quem tem mais avaliação", que já é o que
+// o dono vê sozinho.
+const FORCA_RAIO_M = 1000;   // 1 km — a tela cita este número, mexeu aqui, mexeu no texto
+export function calcForca(rating, reviews) {
+  const n = Number(rating) || 0;
+  const v = Number(reviews) || 0;
+  return Math.round(n * Math.log10(v + 1) * 10) / 10;
+}
+
+/**
+ * Força competitiva do negócio entre os vizinhos do mesmo termo, num raio de 1 km.
+ * UMA chamada ao Places (contra 5 por termo da grade).
+ *
+ * @returns {Promise<Object>} { term, radiusM, formula, me, posicao, total,
+ *   percentil, lider, lista[] }
+ */
+export async function fetchForcaCompetitiva({ placeId, term, radius = FORCA_RAIO_M }) {
+  if (!placeId) throw new Error("placeId obrigatório");
+  if (!API_KEY) throw new Error("PLACES_API_KEY ausente no ambiente");
+  const termo = (term || "").toString().trim();
+  if (!termo) throw new Error("termo obrigatório");
+
+  const detUrl =
+    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
+    `&fields=name,rating,user_ratings_total,geometry&language=pt-BR&key=${API_KEY}`;
+  const det = (await (await fetchWithTimeout(detUrl, {}, 6000)).json()).result;
+  if (!det?.geometry?.location) throw new Error("negócio sem coordenadas no Google");
+  const { lat, lng } = det.geometry.location;
+  const ancora = { lat, lng };
+
+  let vizinhos = [];
+  try {
+    vizinhos = await runTextSearch(termo, lat, lng, radius);
+  } catch (e) {
+    console.warn("[forca] Text Search falhou:", e.message);
+    vizinhos = [];
+  }
+
+  // Corte por distância REAL, sem a folga de 10% do resto do arquivo: a tela
+  // promete "a 1 km" e aqui o número é literal, não uma vizinhança aproximada.
+  const perto = vizinhos.filter((p) => p.place_id !== placeId && haversineM(ancora, p) <= radius);
+
+  // O DONO entra na lista sempre, inclusive quando o Text Search não o devolve
+  // (é o caso do Limão e Brasa em "restaurante"). Isso NÃO fere a regra de
+  // "nunca injetar o negócio" que vale pro ranking de POSIÇÃO: lá a ausência é o
+  // dado (o Google não o mostra); aqui a lista é ordenada por nota e volume, que
+  // são fatos do cadastro dele — some da busca, não deixa de existir.
+  const eu = {
+    place_id: placeId,
+    name: det.name,
+    rating: typeof det.rating === "number" ? det.rating : 0,
+    reviews: det.user_ratings_total || 0,
+  };
+
+  const lista = [eu, ...perto]
+    .map((p) => ({
+      name: p.name,
+      rating: p.rating || 0,
+      reviews: p.reviews ?? p.user_ratings_total ?? 0,
+      forca: calcForca(p.rating, p.reviews ?? p.user_ratings_total),
+      is_me: p.place_id === placeId,
+    }))
+    .sort((a, b) => b.forca - a.forca);
+
+  const idx = lista.findIndex((c) => c.is_me);
+  const total = lista.length;
+  // "Mais forte que X%": quantos vizinhos ficaram ATRÁS dele. Com 1 negócio só na
+  // lista não existe comparação — devolve null em vez de "100%", que seria um
+  // troféu por não ter concorrente (o mesmo vício do "1º de 1").
+  const percentil = total > 1 ? Math.round(((total - idx - 1) / (total - 1)) * 100) : null;
+
+  return {
+    term: termo,
+    radiusM: radius,
+    formula: "nota × log10(avaliações + 1)",
+    me: { ...lista[idx] },
+    posicao: idx + 1,
+    total,
+    percentil,
+    lider: lista[0]?.is_me ? (lista[1] || null) : (lista[0] || null),
+    lista,
+  };
+}
+
 /**
  * Ranqueia como o GOOGLE de verdade: Text Search do termo (o que o cliente
  * digita) ancorado no local, lendo a ORDEM do Google — SEM re-ranquear.

@@ -2771,7 +2771,7 @@ function ScoreRing({ score, size = 128 }) {
   )
 }
 
-function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
+function HeroBlock({ d, position, gridPos, forca, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
   const score = calcStarTouchScore(d)
   // Coluna B consome a MESMA fonte do ranking (lente "Bem perto de você") — não o
   // d.kpis.rankingPos, que ficava null e mostrava placeholder mesmo com ranking cheio.
@@ -2801,7 +2801,71 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
             numa arena neutra o Iroha ganha por larga margem. A média (Sankayo
             3,2 · Iroha 1,4) é o número que não mente. */}
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 6, paddingLeft: isMobile ? 4 : 8 }}>
-          {gridPos ? (
+          {/* MANCHETE = FORÇA (08/ago). A posição desceu pra linha de alarme logo
+              abaixo. Motivo, medido: a posição é instável (o mesmo negócio deu
+              "ausente" e "5º" no mesmo minuto, só mudando a forma de perguntar) e
+              num bairro denso comprime todo mundo entre 9 e 11 — a Brascatta, 2ª
+              mais forte do bairro com 2.784 avaliações, recebia "8,8º lugar".
+              Força não muda com o método e o dono confere cada pedaço no celular.
+              Se a chamada falhar, `forca` vem null e TODO o bloco antigo assume
+              intacto — nada aqui embaixo foi removido. */}
+          {forca ? (
+            <>
+              {(() => {
+                // Cor pelo percentil, não pela colocação crua: "9º" num bairro de
+                // 40 concorrentes é bom e num de 10 é ruim.
+                const pc = forca.percentil
+                const cor = pc == null ? T.text : pc >= 70 ? T.success : pc >= 40 ? T.accent : T.danger
+                const num = (v) => (v || 0).toLocaleString('pt-BR')
+                return (
+                  <>
+                    <div style={{ fontSize: isMobile ? 38 : 46, fontWeight: 800, color: cor, lineHeight: 1, letterSpacing:'-0.02em' }}>
+                      {forca.posicao}º
+                      <span style={{ fontSize: isMobile ? 16 : 19, fontWeight: 700, color: T.textMuted }}> de {forca.total}</span>
+                    </div>
+                    <div style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.4 }}>
+                      em força, entre quem faz “{forca.term}” a 1 km
+                    </div>
+                    <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.55, display:'flex', flexDirection:'column', gap: 1 }}>
+                      <span>Você: <b style={{ color: T.text }}>{(forca.me?.rating || 0).toFixed(1).replace('.', ',')}</b> ★ · <b style={{ color: T.text }}>{num(forca.me?.reviews)}</b> avaliações</span>
+                      {forca.lider && (
+                        <span style={{ color: T.textMuted }}>
+                          Líder: {forca.lider.name} · {(forca.lider.rating || 0).toFixed(1).replace('.', ',')} ★ · {num(forca.lider.reviews)}
+                        </span>
+                      )}
+                      {pc != null && <span>Mais forte que <b style={{ color: T.text }}>{pc}%</b> dos vizinhos</span>}
+                    </div>
+                    {/* A fórmula fica À VISTA (decisão do Ricardo, 08/ago). É a
+                        única conta nossa na tela — nota e avaliações são fatos do
+                        Google — e a vantagem inteira desta métrica é o dono poder
+                        conferir cada pedaço. Esconder a conta jogaria fora
+                        justamente o que ela tem de melhor. */}
+                    {/* A fórmula vem do BACKEND (`forca.formula`), não escrita de
+                        novo aqui: fórmula duplicada é fórmula que um dia mente —
+                        muda a conta lá e a tela segue anunciando a antiga. */}
+                    <div style={{ fontSize: 11, color: T.textMuted, fontVariantNumeric:'tabular-nums' }}>
+                      força = {forca.formula} = <b>{(forca.me?.forca ?? 0).toFixed(1).replace('.', ',')}</b>
+                    </div>
+                    {/* ALARME: a posição, que era a manchete. Fica porque força
+                        sozinha é cega pro negócio forte e mal cadastrado — sem
+                        ela, esse cliente sai do painel achando que está tudo bem. */}
+                    {gridPos && (
+                      <div style={{
+                        marginTop: 4, paddingTop: 8, borderTop: `1px solid ${T.border}`, width:'100%',
+                        fontSize: 12.5, lineHeight: 1.45,
+                        color: gridPos.coverage > 0 ? T.textMid : T.accent, fontWeight: gridPos.coverage > 0 ? 400 : 700
+                      }}>
+                        {gridPos.coverage > 0 && (gridPos.avg ?? gridPos.score) != null
+                          ? <>No Google, aparece no <b style={{ color: T.text }}>{(gridPos.avg ?? gridPos.score).toFixed(1).replace('.', ',')}º lugar</b></>
+                          : <>No Google, não aparece em nenhum dos {gridPos.measured} lugares testados</>}
+                      </div>
+                    )}
+                  </>
+                )
+              })()}
+              <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button>
+            </>
+          ) : gridPos ? (
             gridPos.coverage > 0 && gridPos.score != null ? (
               <>
                 {/* QUAL NÚMERO VAI GRANDE — histórico das tentativas, pra não
@@ -4775,6 +4839,36 @@ function pertoLensInfo(lensData) {
 // o Hero (Coluna B, termo principal) e o card de termos EXTRAS. Fonte LAB:
 // /api/diagnostico?grid=1 (público). Passo 4 troca pela fonte definitiva + flag.
 // ─────────────────────────────────────────────────────────────
+// FORÇA COMPETITIVA — a manchete do painel desde 08/ago (ver a nota longa em
+// fetchForcaCompetitiva, no back). Barata: 1 chamada Places, contra 5 por termo
+// da grade. Recebe o termo QUE A GRADE MEDIU (`gridPrimary.term`), não o termo
+// pedido: se a segunda tentativa trocou a busca, os vizinhos têm que ser os
+// dessa mesma busca — senão o painel compara o dono com uma vizinhança e mede a
+// posição dele em outra, que foi exatamente o bug de 30/jul entre a tarja e o
+// Hero.
+function useForcaData({ placeId, term }) {
+  const [data, setData] = React.useState(null)
+  const [loading, setLoading] = React.useState(false)
+  React.useEffect(() => {
+    if (!placeId || !term) { setData(null); setLoading(false); return }
+    let alive = true
+    setLoading(true)
+    ;(async () => {
+      try {
+        const r = await fetch('/api/diagnostico?forca=1&place_id=' + encodeURIComponent(placeId) + '&term=' + encodeURIComponent(term), { headers: authHeader() })
+        const d = await r.json().catch(() => null)
+        if (!alive) return
+        // Falha aqui NÃO derruba o Hero: sem força, o painel volta a mostrar a
+        // posição como manchete (o comportamento anterior, intacto).
+        setData(r.ok && d && !d.error ? (d.forca || null) : null)
+      } catch { if (alive) setData(null) }
+      finally { if (alive) setLoading(false) }
+    })()
+    return () => { alive = false }
+  }, [placeId, term])
+  return { forca: data, loading }
+}
+
 function useGridData({ placeId, terms }) {
   const [data, setData] = React.useState(null)
   // `loading` existe pra as LENTES saberem esperar: elas são a reserva da grade
@@ -5955,6 +6049,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   // Seguro: buildData() devolve um objeto novo a cada render, não um compartilhado.
   d.gridPos = gridPrimary
   d.lensPos = heroPos      // fallback do score quando a grade falha (mesmo do Hero)
+  // Força competitiva: mesma busca que a grade acabou medindo (ver useForcaData).
+  const { forca: forcaData } = useForcaData({
+    placeId: guestContext?.placeId || d.biz?.placeId,
+    term: gridPrimary?.term || d.activeCategory || ''
+  })
   // ARGUMENTO DO CONVIDADO (tarja + exit-intent) — FONTE ÚNICA COM O HERO.
   // Bug de 30/jul: a tarja vinha de `d.kpis` (ranking do /api/competitors, que é
   // outra arena: um raio só, ordem crua do Google) enquanto o Hero vinha da
@@ -6159,6 +6258,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <Section>
           <HeroBlock
             gridPos={gridPrimary}
+            forca={forcaData}
             d={d}
             position={heroPos}
             demoMode={demoMode}

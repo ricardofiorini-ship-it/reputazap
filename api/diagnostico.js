@@ -9,7 +9,7 @@
 // Uso: /api/diagnostico?place_id=XXX  (opcional &keyword= &radius=)
 // É marketing — mostra nomes dos líderes (diferente do paywall do app).
 // ============================================================
-import { fetchRankingByTerm, fetchVisibilityLenses, applyNameLocking, suggestTerms, fetchPlaceSeed } from "./_lib/competitors.js";
+import { fetchRankingByTerm, fetchVisibilityLenses, applyNameLocking, suggestTerms, fetchPlaceSeed, fetchForcaCompetitiva } from "./_lib/competitors.js";
 import { fetchGridRankingCached } from "./_lib/ranking-grid-cache.js";
 import { freshAutorizado, TTL } from "./_lib/places-cache.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
@@ -275,6 +275,37 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error("[diagnostico/grid] erro:", err);
       return res.status(500).json({ error: err.message || "Erro na grade" });
+    }
+  }
+
+  // Modo FORÇA COMPETITIVA — o que o negócio TEM (nota + avaliações) entre os
+  // vizinhos do mesmo termo, num raio de 1 km. Vira a MANCHETE do painel; a
+  // grade acima continua existindo como alarme (ver a nota longa em
+  // fetchForcaCompetitiva).
+  //
+  // Público pela mesma razão da grade (09/07: ranking é tudo free) e com o mesmo
+  // freio por IP. Barato: UMA chamada Places, contra 5 por termo da grade — se um
+  // dia a grade virar item secundário, a conta do Places cai bastante.
+  if (req.query.forca) {
+    try {
+      if (gridRateLimited(getIp(req))) {
+        return res.status(429).json({ error: "Muitas consultas seguidas. Tente de novo em alguns minutos." });
+      }
+      // MESMA ordem de resolução do termo da grade — o painel não pode comparar
+      // o dono com os vizinhos de uma busca e medir a posição dele em outra.
+      let termo = (req.query.terms || req.query.term || "").toString().split(",")[0].trim();
+      if (!termo && ctx.termoSalvo && ctx.placeIdDoDono === placeId) termo = ctx.termoSalvo;
+      if (!termo) {
+        const seed = await fetchPlaceSeed(placeId);
+        termo = suggestTerms(seed?.name, seed?.types, seed?.primaryDisplay, seed?.primaryType)[0] || "";
+      }
+      if (!termo) return res.json({ ok: true, forca: null });
+
+      const forca = await fetchForcaCompetitiva({ placeId, term: termo });
+      return res.json({ ok: true, forca, plano });
+    } catch (err) {
+      console.error("[diagnostico/forca] erro:", err);
+      return res.status(500).json({ error: err.message || "Erro na força competitiva" });
     }
   }
 
