@@ -4402,6 +4402,16 @@ function GuestSearch({ isMobile }) {
             <div style={{ marginBottom:14 }}>
               <label style={labelStyle}>Nome do negócio</label>
               <input style={inputStyle} value={q} onChange={e=>setQ(e.target.value)} placeholder="Ex: Padaria do João" autoFocus/>
+              {/* Uma palavra errada no nome joga a busca pra outro estado: o
+                  Google prefere quem casa EXATO com o que foi digitado, mesmo a
+                  2.000 km, em vez do acerto parcial que está na esquina. Testado
+                  com "Farol da Ilha" (o negócio é "Farol da Villa"): voltaram um
+                  apartamento em São Vicente e uma ilha ecológica, e o restaurante
+                  a 0 km ficou de fora. A dica é mais barata que adivinhar o nome
+                  torto — e diz a CONSEQUÊNCIA, senão ninguém obedece. */}
+              <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
+                Escreva <b>exatamente como está no Google</b>. Uma palavra diferente e a busca traz negócios de outra cidade.
+              </span>
             </div>
             <div style={{ marginBottom:14 }}>
               <label style={labelStyle}>CEP do seu negócio</label>
@@ -5407,6 +5417,10 @@ function NoBusinessScreen({ user }) {
               style={inpStyle()}
               disabled={saving}
             />
+            {/* Mesma dica da busca do convidado — ver a nota lá. */}
+            <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
+              Escreva <b>exatamente como está no Google</b>. Uma palavra diferente e a busca traz negócios de outra cidade.
+            </span>
           </div>
           <div>
             <label style={{ fontSize: 12.5, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>CEP do negócio</label>
