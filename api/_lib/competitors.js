@@ -627,11 +627,10 @@ export async function fetchForcaCompetitiva({ placeId, term, radius = FORCA_RAIO
     return tokensDoTermo.some((t) => n.includes(t));
   }
 
-  const perto = noRaio.filter((p) => {
+  let perto = noRaio.filter((p) => {
     const ramo = mesmoRamo(p);
     return ramo === null ? nomeCompete(p) : ramo;
   });
-  const descartados = noRaio.length - perto.length;
 
   // O DONO entra na lista sempre, inclusive quando o Text Search não o devolve
   // (é o caso do Limão e Brasa em "restaurante"). Isso NÃO fere a regra de
@@ -645,6 +644,63 @@ export async function fetchForcaCompetitiva({ placeId, term, radius = FORCA_RAIO
     reviews: det.user_ratings_total || 0,
   };
 
+  // CRIVO 3 — CATEGORIA OFICIAL, só pra quem está ACIMA do dono.
+  // O crivo do nome erra nos dois sentidos: barrou o CEAGESP (bom) mas deixou
+  // passar o "Pedal Fit - Bike Studio", que é academia de spinning e entrou como
+  // líder de uma bicicletaria só por ter "Bike" no nome. Nome é pista fraca.
+  //
+  // A categoria oficial (Places API New) resolve, mas custa 1 chamada por
+  // candidato. Barateia assim: só verifica quem tem categoria VAGA no Google *e*
+  // está na frente do dono — quem está atrás não muda a posição dele nem a linha
+  // do líder, então pagar pra conferir seria desperdício. Na prática são 0 a 3
+  // chamadas, e o teto de VERIFICA_MAX garante que nunca vira conta grande.
+  //
+  // Só derruba quem tem categoria oficial de OUTRO ramo conhecido. Categoria
+  // vaga ("Serviços") é mantida de propósito: é assim que o Google classifica a
+  // Bike Leopoldina, que é concorrente de verdade.
+  // Categorias que o Google usa quando não sabe dizer o ramo. Elas NÃO derrubam
+  // ninguém: é assim que ele classifica a Bike Leopoldina, a Jaguaré Bikes e a
+  // Oficina Madruga ("Serviços"), todas bicicletarias de verdade. Comparar o
+  // código do tipo direto, sem traduzir pelo dicionário, é o que pega o "Pedal
+  // Fit - Bike Studio": ele é `sports_club` ("Clube"), um tipo específico que só
+  // não estava no nosso dicionário — a versão anterior leu isso como "vaga" e o
+  // deixou entrar como líder de uma bicicletaria.
+  const TIPOS_VAGOS = new Set(["service", "establishment", "point_of_interest", "premise", "store", "food"]);
+  const VERIFICA_MAX = 5;
+  const forcaDoDono = calcForca(eu.rating, eu.reviews);
+  const suspeitos = perto
+    .filter((p) => !primarySpecificType(p.types) && calcForca(p.rating, p.reviews) > forcaDoDono)
+    .slice(0, VERIFICA_MAX);
+
+  if (suspeitos.length) {
+    const tipoOficial = async (id) => {
+      try {
+        const r = await fetchWithTimeout(
+          `https://places.googleapis.com/v1/places/${encodeURIComponent(id)}?languageCode=pt-BR`,
+          { headers: { "X-Goog-Api-Key": API_KEY, "X-Goog-FieldMask": "primaryType" } },
+          5000
+        );
+        return (await r.json())?.primaryType || null;
+      } catch { return null; }
+    };
+    // O tipo do DONO também vem da API nova, e só agora: derivar dos types
+    // antigos daria o primeiro em ordem alfabética, que é justamente a armadilha
+    // que já nos custou uma regressão aqui.
+    const [meuTipo, ...deles] = await Promise.all([tipoOficial(placeId), ...suspeitos.map((p) => tipoOficial(p.place_id))]);
+    if (meuTipo) {
+      const fora = new Set(
+        suspeitos
+          .filter((_, i) => {
+            const t = deles[i];
+            if (!t || t === meuTipo) return false;   // igual ao meu, ou não sabemos → fica
+            return !TIPOS_VAGOS.has(t);              // específico e diferente → fora
+          })
+          .map((p) => p.place_id)
+      );
+      if (fora.size) perto = perto.filter((p) => !fora.has(p.place_id));
+    }
+  }
+
   const lista = [eu, ...perto]
     .map((p) => ({
       name: p.name,
@@ -655,6 +711,7 @@ export async function fetchForcaCompetitiva({ placeId, term, radius = FORCA_RAIO
     }))
     .sort((a, b) => b.forca - a.forca);
 
+  const descartados = noRaio.length - perto.length;
   const idx = lista.findIndex((c) => c.is_me);
   const total = lista.length;
   // "Mais forte que X%": quantos vizinhos ficaram ATRÁS dele. Com 1 negócio só na

@@ -2887,17 +2887,27 @@ function HeroBlock({ d, position, gridPos, forca, demoMode, isMobile, onScoreDet
                     {/* ALARME: a posição, que era a manchete. Fica porque força
                         sozinha é cega pro negócio forte e mal cadastrado — sem
                         ela, esse cliente sai do painel achando que está tudo bem. */}
-                    {gridPos && (
-                      <div style={{
-                        marginTop: 4, paddingTop: 8, borderTop: `1px solid ${T.border}`, width:'100%',
-                        fontSize: 12.5, lineHeight: 1.45,
-                        color: gridPos.coverage > 0 ? T.textMid : T.accent, fontWeight: gridPos.coverage > 0 ? 400 : 700
-                      }}>
-                        {gridPos.coverage > 0 && (gridPos.avg ?? gridPos.score) != null
-                          ? <>No Google, você aparece em média no <b style={{ color: T.text }}>{(gridPos.avg ?? gridPos.score).toFixed(1).replace('.', ',')}º lugar</b></>
-                          : <>No Google, não aparece em nenhum dos {gridPos.measured} lugares testados</>}
-                      </div>
-                    )}
+                    {/* A posição vira ESTADO, não segundo número. Dois ordinais no
+                        mesmo cartão ("3º de 4" em força e "1,8º lugar" no Google)
+                        contam coisas diferentes e o olho lê como contradição — o
+                        Ricardo estranhou duas vezes, e ele conhece o produto por
+                        dentro. O número não sumiu: ele reaparece dentro do
+                        veredito, onde vem com a frase que o explica. */}
+                    {(() => {
+                      if (!gridPos || !gridPos.measured) return null
+                      const media = gridPos.coverage > 0 ? (gridPos.avg ?? gridPos.score) : null
+                      const st = media == null ? { txt: 'Invisível na busca', cor: T.danger, bg: T.amberBg }
+                        : media <= 5 ? { txt: 'Bem visível na busca', cor: T.success, bg: T.greenSoft }
+                        : { txt: 'Pouco visível na busca', cor: T.accent, bg: T.amberBg }
+                      return (
+                        <div style={{ marginTop: 4, paddingTop: 8, borderTop: `1px solid ${T.border}`, width:'100%', display:'flex', justifyContent:'center' }}>
+                          <span style={{
+                            fontSize: 11, fontWeight: 800, textTransform:'uppercase', letterSpacing:'.05em',
+                            color: st.cor, background: st.bg, padding:'4px 10px', borderRadius: 999
+                          }}>{st.txt}</span>
+                        </div>
+                      )
+                    })()}
                     {/* O VEREDITO — a frase que junta os dois números. Sem ela a
                         tela empilha "1º de 15" e "9,5º lugar" e parece se
                         contradizer; foi a primeira coisa que o Ricardo estranhou
