@@ -214,9 +214,17 @@ export default async function handler(req, res) {
       if (!terms.length && ctx.termoSalvo && ctx.placeIdDoDono === placeId) {
         terms = [ctx.termoSalvo];
       }
+      // Reservas pro caso do termo automático não achar o negócio (ver o bloco
+      // "SEGUNDA TENTATIVA" abaixo). Só existem quando NINGUÉM escolheu o termo:
+      // escolha explícita do convidado ou do dono é pra ser obedecida, mesmo que
+      // dê "fora da lista" — trocar a busca dele por baixo seria mentir sobre o
+      // que foi medido.
+      let reservas = [];
       if (!terms.length) {
         const seed = await fetchPlaceSeed(placeId);
-        terms = suggestTerms(seed?.name, seed?.types, seed?.primaryDisplay, seed?.primaryType).slice(0, 1);
+        const sugeridos = suggestTerms(seed?.name, seed?.types, seed?.primaryDisplay, seed?.primaryType);
+        terms = sugeridos.slice(0, 1);
+        reservas = sugeridos.slice(1, 3);
       }
       if (!terms.length) return res.json({ ok: true, grid: null });
       // ?fresh=1 fura o cache e mede na hora: 15 chamadas Places por request, sem
@@ -232,7 +240,37 @@ export default async function handler(req, res) {
       // O handler seta `max-age=600` no topo. Numa medição "sem cache" isso
       // devolveria uma resposta de até 10min do CDN — o bolor que viemos matar.
       if (fresh) res.setHeader("Cache-Control", "no-store");
-      const grid = await fetchGridRankingCached({ placeId, terms, fresh });
+      let grid = await fetchGridRankingCached({ placeId, terms, fresh });
+
+      // SEGUNDA TENTATIVA — quando o termo automático dá "fora da lista".
+      // Caso que originou isto (08/ago): "Limão e Brasa — Bar | Carnes | Peixes",
+      // 4,9 com 463 avaliações, cadastrado só como "Restaurante". Em "restaurante"
+      // ele não aparece em nenhum dos 5 pontos; em "bar e restaurante" é 3º de 19.
+      // O painel abria em "Fora da lista" — verdade, mas a pior leitura possível
+      // da vida do dono, e sem pista de que existe busca em que ele ganha.
+      //
+      // Só remede quando as três coisas valem:
+      //   1. o termo foi ESCOLHIDO POR NÓS (`reservas` só é preenchido aí);
+      //   2. o negócio ficou de fora DE VERDADE — `rank == null` com `measured>0`.
+      //      `measured === 0` é falha do Places, não ausência: remedir aí seria
+      //      gastar Places pra fugir de uma má notícia que nem existe;
+      //   3. há chip reserva (especialidade lida no nome).
+      // Custo: +5 chamadas Places, só no caso em que a resposta atual não vale
+      // nada — e cacheadas por 7 dias como qualquer termo.
+      const primeiro = grid?.terms?.[0];
+      const foraDeVerdade = primeiro && primeiro.rank == null && primeiro.measured > 0;
+      if (foraDeVerdade && reservas.length) {
+        for (const reserva of reservas) {
+          const alt = await fetchGridRankingCached({ placeId, terms: [reserva], fresh });
+          if (alt?.terms?.[0]?.rank != null) {
+            // Devolve a medição do termo que ACHOU o negócio, carimbando de onde
+            // ela veio. O front precisa dizer isso na cara do dono — o número não
+            // pode aparecer como se fosse da busca que ele imagina estar vendo.
+            grid = { ...alt, termoTrocado: { de: primeiro.term, para: reserva } };
+            break;
+          }
+        }
+      }
       return res.json({ ok: true, grid, plano });
     } catch (err) {
       console.error("[diagnostico/grid] erro:", err);

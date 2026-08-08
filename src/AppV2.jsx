@@ -4603,7 +4603,7 @@ function ExitIntentModal({ url, bizName, term, spacingM, posicao, top3, medidos,
 // Logado: salva category_override no banco e recalcula (reload garante que TODOS
 // os números — lentes 1/3km, KPIs, ranking — batam com a nova categoria).
 // Convidado: troca o keyword da sessão.
-function TermBar({ term, spacingM, isGuest, placeId, isMobile }) {
+function TermBar({ term, spacingM, isGuest, placeId, isMobile, trocadoDe }) {
   const [editing, setEditing] = React.useState(false)
   const [val, setVal] = React.useState(term || '')
   const [saving, setSaving] = React.useState(false)
@@ -4652,6 +4652,18 @@ function TermBar({ term, spacingM, isGuest, placeId, isMobile }) {
             background: '#fff', color: T.blue, border: `1px solid ${T.blue}`, borderRadius: 7,
             padding: '5px 13px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'
           }}>Trocar busca</button>
+          {/* O servidor troca a busca sozinho quando a automática não acha o
+              negócio em ponto nenhum (ver "SEGUNDA TENTATIVA" no diagnostico.js).
+              Trocar sem avisar seria a mesma falha silenciosa de sempre: o dono
+              veria um número bom e não saberia que ele veio de outra busca — nem
+              que na busca genérica ele está invisível, que é a notícia que
+              importa. */}
+          {trocadoDe && (
+            <div style={{ flexBasis: '100%', fontSize: isMobile ? 12 : 12.5, lineHeight: 1.45, opacity: 0.9 }}>
+              Em <b>“{trocadoDe}”</b> você não aparece em nenhum ponto da região. Medimos por{' '}
+              <b>“{term}”</b>, que veio do seu próprio nome.
+            </div>
+          )}
         </>
       ) : (
         <>
@@ -6188,6 +6200,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             <TermBar
               term={gridPrimary?.term || d.activeCategory || ''}
               spacingM={gridPrimary?.spacingM}
+              trocadoDe={gridData?.termoTrocado?.de}
               isGuest={isGuest}
               placeId={guestContext?.placeId || d.biz?.placeId}
               isMobile={isMobile}

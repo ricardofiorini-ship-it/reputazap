@@ -437,6 +437,83 @@ export function detectFromName(name) {
   return best;
 }
 
+// ============================================================
+// ESPECIALIDADE LIDA NO NOME (só os chips do painel)
+// ============================================================
+// Caso real (08/ago): "Limão e Brasa — Bar | Carnes | Peixes", 4,9 com 463
+// avaliações, cadastrado no Meu Negócio com uma categoria só: "Restaurante".
+// Medido na grade: FORA da lista nos 5 pontos em "restaurante" E em "bar" — mas
+// 3º de 30 em "bar e restaurante" (aparece em 3 dos 5 pontos) e 1º em
+// "restaurante de carnes" (nos 5). O
+// painel sugeria um único chip, "Restaurante", que é exatamente o termo onde ele
+// é invisível: a primeira tela do dono era "Fora da lista", sem pista nenhuma de
+// que existe busca em que ele ganha. Quem mais precisa da ferramenta é justamente
+// quem está mal categorizado — e era pra ele que a gente dava a pior leitura.
+//
+// Por que os termos são COMPOSTOS (categoria + especialidade) e nunca a palavra
+// solta: medido no mesmo negócio, "bar" sozinho dá 0/5 e "churrascaria" também.
+// O composto ainda mantém uma fila real (19 e 10 concorrentes), enquanto o nicho
+// puro esvazia a fila e produz "1º de 1" — vitória vazia, o vício oposto e igual-
+// mente desonesto (ver calibragem de 01/ago).
+//
+// Casamento por PALAVRA INTEIRA, não substring: "bar" não pode casar com
+// "barbearia"/"barraca" (a KEYWORD_DICT acima já levou esse tombo com "ciclo" x
+// "reciclagem"). Pontuação conta como separador — os nomes reais vêm cheios de
+// "|", "—" e "·".
+const SPECIALTY_DICT = [
+  [["bar", "boteco", "botequim", "petiscos", "chopp"], "bar e restaurante"],
+  [["carnes", "carne", "costela", "picanha", "parrilla"], "restaurante de carnes"],
+  [["peixes", "peixe", "pescados", "frutos do mar", "marisco", "mariscos"], "restaurante de frutos do mar"],
+  [["massas", "macarrao"], "restaurante de massas"],
+  [["self service", "por quilo", "por kilo", "buffet"], "restaurante self-service"],
+  [["espetinho", "espetinhos", "espeto"], "espetinho"],
+];
+// Tipos que autorizam um termo composto de restaurante. Sem esta trava, uma
+// "Casa de Carnes" (açougue) viraria "restaurante de carnes" — o nome diz a
+// mesma palavra, a intenção de busca é outra.
+const FOOD_TYPES_ESPECIALIDADE = new Set([
+  "restaurant", "bar", "meal_takeaway", "meal_delivery", "steak_house",
+  "seafood_restaurant", "brazilian_restaurant", "italian_restaurant",
+]);
+// Especialidade que a categoria oficial JÁ diz não vira chip nenhum. Pego na
+// regressão: o "Atol Bar", cadastrado como Bar, ganhava "bar e restaurante" na
+// frente do próprio "Bar" — trocar a categoria certa por uma paráfrase dela não
+// informa nada e ainda joga o negócio numa fila mais misturada. A especialidade
+// só serve pra dizer o que o cadastro NÃO diz.
+const ESPECIALIDADE_COBERTA_POR = {
+  "bar e restaurante": new Set(["bar"]),
+  "restaurante de carnes": new Set(["steak_house"]),
+  "restaurante de frutos do mar": new Set(["seafood_restaurant"]),
+  "restaurante self-service": new Set(["buffet_restaurant"]),
+};
+
+/**
+ * Especialidades que o NOME revela e a categoria oficial não cobre.
+ * Devolve termos compostos, na ordem em que aparecem no nome — a ordem é a
+ * ênfase do próprio dono ("Bar | Carnes | Peixes" pede bar antes de carnes),
+ * e não um palpite nosso de qual nicho importa mais.
+ * @returns {string[]} 0-N termos; [] se o negócio não for de comida.
+ */
+export function detectSpecialtiesFromName(name, types) {
+  if (!(types || []).some((t) => FOOD_TYPES_ESPECIALIDADE.has(t))) return [];
+  // Pontuação vira espaço pra o casamento ser por palavra inteira.
+  const n = ` ${normalizeName(name).replace(/[^a-z0-9]+/g, " ").trim()} `;
+  const achados = [];
+  for (const [tokens, term] of SPECIALTY_DICT) {
+    let pos = -1;
+    for (const tok of tokens) {
+      const p = n.indexOf(` ${tok} `);
+      if (p >= 0 && (pos < 0 || p < pos)) pos = p;
+    }
+    if (pos >= 0) achados.push({ pos, term });
+  }
+  const tipos = new Set(types || []);
+  return achados
+    .sort((a, b) => a.pos - b.pos)
+    .map((a) => a.term)
+    .filter((term) => ![...(ESPECIALIDADE_COBERTA_POR[term] || [])].some((t) => tipos.has(t)));
+}
+
 /**
  * Ranqueia como o GOOGLE de verdade: Text Search do termo (o que o cliente
  * digita) ancorado no local, lendo a ORDEM do Google — SEM re-ranquear.
@@ -842,6 +919,20 @@ export function suggestTerms(name, types, primaryDisplay, primaryType) {
   // O guard é no TIPO (código), não no texto pt-BR.
   const primaryVazio = GENERIC_TYPES.has(primaryType) || BROAD_TYPES.has(primaryType);
   const primaryEstrutural = STRUCTURAL_TYPES.has(primaryType);
+  // A ESPECIALIDADE NÃO PASSA NA FRENTE DA CATEGORIA — e isso foi medido, não
+  // suposto. A primeira versão desta mudança promovia a especialidade sempre que
+  // a categoria fosse guarda-chuva, e a grade mostrou o preço: a "Santa Fé A
+  // Costela" (4,8 com 3.181 avaliações) ia de média 1,5 em "restaurante" pra 2,8
+  // em "restaurante de carnes", numa fila menor. Faz sentido — quem já domina o
+  // termo genérico não tem nada a ganhar num nicho. O mesmo movimento que salva
+  // o negócio invisível rebaixa o negócio dominante, e sem medir não dá pra saber
+  // em qual dos dois se está mexendo.
+  //
+  // Então aqui a especialidade só ENTRA na lista (chips a mais, nada perdido), e
+  // quem decide trocar a busca padrão é a MEDIÇÃO, no `?grid` do diagnostico.js:
+  // se o termo automático voltar "fora da lista", ele remede no próximo chip.
+  // Custa 5 chamadas Places só pro caso em que a resposta atual não vale nada.
+  const especialidades = detectSpecialtiesFromName(name, types);
   if (primaryDisplay && !primaryVazio && !primaryEstrutural) push(primaryDisplay);
   push(detectFromName(name));
   const specific = (types || []).filter(
@@ -852,6 +943,13 @@ export function suggestTerms(name, types, primaryDisplay, primaryType) {
     push(typeToTermStrict(t));
     if (out.length >= 3) break;
   }
+  // As especialidades entram aqui, no FIM da fila: viram chip se sobrar slot e
+  // nunca empurram a categoria oficial pra fora. Medido em 24 negócios reais da
+  // Vila Leopoldina: 3 ganharam chip novo, e NENHUM teve o primeiro termo (o que
+  // o painel de fato mede) alterado. É o que dá ao Pecorino o "bar e restaurante"
+  // sem tirar dele o "restaurante italiano", e ao Limão e Brasa as duas opções
+  // que salvam a tela dele.
+  especialidades.forEach(push);
   // Fallback: sem tipo específico (ex: "loja de utilidades"), usa o tipo amplo
   // traduzido — melhor uma semente fraca que chip nenhum (o dono edita depois).
   if (!out.length) {
