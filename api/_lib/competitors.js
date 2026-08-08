@@ -517,6 +517,27 @@ export function detectSpecialtiesFromName(name, types) {
 // ============================================================
 // FORÇA COMPETITIVA (o que o negócio TEM, não o que o Google mostra)
 // ============================================================
+// ⚠️ DORMENTE desde 08/ago, à tarde. NADA no front chama isto — o Hero foi
+// revertido pro estado anterior no mesmo dia, a pedido do Ricardo. O código fica
+// porque a medição está certa e testada; o que não funcionou foi a TELA.
+//
+// Por que voltou atrás, pra não repetir quando alguém retomar:
+//   1. Virou painel, não manchete. O cartão acumulou 9 informações (colocação,
+//      termo, raio, seus números, os do líder, percentil, fórmula, selo de
+//      estado e uma frase) — cada uma consertando uma queixa, e o conjunto pior
+//      que o começo.
+//   2. Jargão. "força", "percentil", "log10" não são palavras do dono da
+//      padaria. A fórmula foi pro rosto dele porque ele pediu que aparecesse,
+//      mas ninguém perguntou se ela AJUDAVA.
+//   3. A vizinhança encolheu. Apertando o filtro pra tirar o CEAGESP e a
+//      academia de spinning, sobraram 3-4 vizinhos: "3 de 4" ao lado de um
+//      ranking com dezenas parece defeito — e é o "1º de 1" de novo, com outra
+//      roupa. Se retomar, o TAMANHO da vizinhança é o problema a resolver antes
+//      de qualquer coisa de tela.
+// O que a próxima tentativa deve mostrar, em português de gente e sem ordinal:
+// "Você tem 83 avaliações. A melhor perto de você tem 429. Sua nota é melhor
+// que a dela." Dois números crus que o dono confere no celular em 10 segundos.
+// ============================================================
 // Decisão do Ricardo (08/ago) depois de ver o protótipo. A medição de POSIÇÃO é
 // instável — o mesmo negócio deu "ausente" e "5º" no mesmo minuto, só mudando a
 // forma de perguntar — e, num bairro denso, comprime todo mundo entre 9 e 11

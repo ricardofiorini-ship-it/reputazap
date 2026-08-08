@@ -2771,40 +2771,7 @@ function ScoreRing({ score, size = 128 }) {
   )
 }
 
-// O QUADRANTE EM UMA FRASE. Força diz o que o negócio TEM; a grade diz o que o
-// Google FAZ com isso. Cada cruzamento é uma conversa diferente com o dono — e
-// sem essa frase os dois números ficam empilhados parecendo contradição.
-//
-// `apareceBem` é média <= 5, não <= 3: a média já é uma média (5 pontos), e uma
-// média 4 significa que na maioria dos pontos o cliente vê o negócio sem rolar
-// a tela. Exigir <= 3 numa média classificaria a Tutto Buona — 1º lugar de fato
-// — como "não aparece bem".
-function vereditoForca(forca, gridPos) {
-  if (!forca) return null
-  const pc = forca.percentil
-  if (pc == null) return null                     // sem vizinho, não há veredito honesto
-  const forte = pc >= 60
-  const temGrade = !!gridPos && gridPos.measured > 0
-  const media = temGrade && gridPos.coverage > 0 ? (gridPos.avg ?? gridPos.score) : null
-  const sumiu = temGrade && gridPos.coverage === 0
-  const n = (v) => (v || 0).toLocaleString('pt-BR')
-  const fmt = (v) => v.toFixed(1).replace('.', ',')
-  const r = forca.rival
-
-  if (forte) {
-    if (sumiu) return { tom: 'alerta', texto: 'Você é dos mais fortes da região e mesmo assim não aparece em nenhum ponto medido. Aqui o problema não é avaliação — é como seu perfil está cadastrado no Google.' }
-    if (media != null && media > 5) return { tom: 'alerta', texto: `Você é dos mais fortes da região e o Google te mostra só no ${fmt(media)}º lugar. Isso não é falta de avaliação: é alcance.` }
-    return { tom: 'ok', texto: 'Sua colocação tem lastro: você é dos mais fortes do bairro e o Google te mostra. O trabalho aqui é manter.' }
-  }
-  // Fraco e BEM COLOCADO — o caso mais valioso e o mais invisível sem os dois
-  // números: a Tutto Buona é 1º lugar segurando isso com 148 avaliações.
-  if (media != null && media <= 5) {
-    return { tom: 'alerta', texto: `Você aparece bem hoje${r ? ` com ${n(forca.me?.reviews)} avaliações, contra ${n(r.reviews)} de ${r.name}` : ''}. Essa posição não se sustenta sozinha.` }
-  }
-  return { tom: 'alerta', texto: `Faltam avaliações: você tem ${n(forca.me?.reviews)}${r ? ` contra ${n(r.reviews)} de ${r.name}` : ''}. É o que puxa sua posição pra baixo.` }
-}
-
-function HeroBlock({ d, position, gridPos, forca, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
+function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
   const score = calcStarTouchScore(d)
   // Coluna B consome a MESMA fonte do ranking (lente "Bem perto de você") — não o
   // d.kpis.rankingPos, que ficava null e mostrava placeholder mesmo com ranking cheio.
@@ -2834,103 +2801,7 @@ function HeroBlock({ d, position, gridPos, forca, demoMode, isMobile, onScoreDet
             numa arena neutra o Iroha ganha por larga margem. A média (Sankayo
             3,2 · Iroha 1,4) é o número que não mente. */}
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 6, paddingLeft: isMobile ? 4 : 8 }}>
-          {/* MANCHETE = FORÇA (08/ago). A posição desceu pra linha de alarme logo
-              abaixo. Motivo, medido: a posição é instável (o mesmo negócio deu
-              "ausente" e "5º" no mesmo minuto, só mudando a forma de perguntar) e
-              num bairro denso comprime todo mundo entre 9 e 11 — a Brascatta, 2ª
-              mais forte do bairro com 2.784 avaliações, recebia "8,8º lugar".
-              Força não muda com o método e o dono confere cada pedaço no celular.
-              Se a chamada falhar, `forca` vem null e TODO o bloco antigo assume
-              intacto — nada aqui embaixo foi removido. */}
-          {forca ? (
-            <>
-              {(() => {
-                // Cor pelo percentil, não pela colocação crua: "9º" num bairro de
-                // 40 concorrentes é bom e num de 10 é ruim.
-                const pc = forca.percentil
-                const cor = pc == null ? T.text : pc >= 70 ? T.success : pc >= 40 ? T.accent : T.danger
-                const num = (v) => (v || 0).toLocaleString('pt-BR')
-                return (
-                  <>
-                    <div style={{ fontSize: isMobile ? 38 : 46, fontWeight: 800, color: cor, lineHeight: 1, letterSpacing:'-0.02em' }}>
-                      {forca.posicao}º
-                      <span style={{ fontSize: isMobile ? 16 : 19, fontWeight: 700, color: T.textMuted }}> de {forca.total}</span>
-                    </div>
-                    <div style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.4 }}>
-                      em força, na busca “{forca.term}” · raio de 1 km
-                    </div>
-                    <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.55, display:'flex', flexDirection:'column', gap: 1 }}>
-                      <span>Você: <b style={{ color: T.text }}>{(forca.me?.rating || 0).toFixed(1).replace('.', ',')}</b> ★ · <b style={{ color: T.text }}>{num(forca.me?.reviews)}</b> avaliações</span>
-                      {/* "Líder" só quando ele NÃO é o líder. A primeira versão
-                          rotulava de líder quem estava atrás: a Brascatta Vila
-                          Leopoldina saía "1º de 15" e logo abaixo "Líder: Mamma
-                          Pizzeria" — um negócio que ela está ganhando. */}
-                      {forca.rival && (
-                        <span style={{ color: T.textMuted }}>
-                          {forca.souLider ? 'Logo atrás' : 'Líder'}: {forca.rival.name} · {(forca.rival.rating || 0).toFixed(1).replace('.', ',')} ★ · {num(forca.rival.reviews)}
-                        </span>
-                      )}
-                      {/* Redundante quando ele é o 1º — "1º de 15" já disse. */}
-                      {pc != null && !forca.souLider && <span>Mais forte que <b style={{ color: T.text }}>{pc}%</b> dos vizinhos</span>}
-                    </div>
-                    {/* A fórmula fica À VISTA (decisão do Ricardo, 08/ago). É a
-                        única conta nossa na tela — nota e avaliações são fatos do
-                        Google — e a vantagem inteira desta métrica é o dono poder
-                        conferir cada pedaço. Esconder a conta jogaria fora
-                        justamente o que ela tem de melhor. */}
-                    {/* A fórmula vem do BACKEND (`forca.formula`), não escrita de
-                        novo aqui: fórmula duplicada é fórmula que um dia mente —
-                        muda a conta lá e a tela segue anunciando a antiga. */}
-                    <div style={{ fontSize: 11, color: T.textMuted, fontVariantNumeric:'tabular-nums' }}>
-                      força = {forca.formula} = <b>{(forca.me?.forca ?? 0).toFixed(1).replace('.', ',')}</b>
-                    </div>
-                    {/* ALARME: a posição, que era a manchete. Fica porque força
-                        sozinha é cega pro negócio forte e mal cadastrado — sem
-                        ela, esse cliente sai do painel achando que está tudo bem. */}
-                    {/* A posição vira ESTADO, não segundo número. Dois ordinais no
-                        mesmo cartão ("3º de 4" em força e "1,8º lugar" no Google)
-                        contam coisas diferentes e o olho lê como contradição — o
-                        Ricardo estranhou duas vezes, e ele conhece o produto por
-                        dentro. O número não sumiu: ele reaparece dentro do
-                        veredito, onde vem com a frase que o explica. */}
-                    {(() => {
-                      if (!gridPos || !gridPos.measured) return null
-                      const media = gridPos.coverage > 0 ? (gridPos.avg ?? gridPos.score) : null
-                      const st = media == null ? { txt: 'Invisível na busca', cor: T.danger, bg: T.amberBg }
-                        : media <= 5 ? { txt: 'Bem visível na busca', cor: T.success, bg: T.greenSoft }
-                        : { txt: 'Pouco visível na busca', cor: T.accent, bg: T.amberBg }
-                      return (
-                        <div style={{ marginTop: 4, paddingTop: 8, borderTop: `1px solid ${T.border}`, width:'100%', display:'flex', justifyContent:'center' }}>
-                          <span style={{
-                            fontSize: 11, fontWeight: 800, textTransform:'uppercase', letterSpacing:'.05em',
-                            color: st.cor, background: st.bg, padding:'4px 10px', borderRadius: 999
-                          }}>{st.txt}</span>
-                        </div>
-                      )
-                    })()}
-                    {/* O VEREDITO — a frase que junta os dois números. Sem ela a
-                        tela empilha "1º de 15" e "9,5º lugar" e parece se
-                        contradizer; foi a primeira coisa que o Ricardo estranhou
-                        ("ela é primeira e aparece em nono"). Os dois números não
-                        brigam: um diz o que ela TEM, o outro o que o Google FAZ
-                        com isso — e a distância entre eles é o diagnóstico. */}
-                    {(() => {
-                      const v = vereditoForca(forca, gridPos)
-                      if (!v) return null
-                      return (
-                        <div style={{
-                          marginTop: 8, padding: '9px 11px', borderRadius: 9, width:'100%',
-                          background: v.tom === 'alerta' ? T.amberBg : T.blueSoft,
-                          color: T.text, fontSize: 12.5, lineHeight: 1.5, textAlign:'left'
-                        }}>{v.texto}</div>
-                      )
-                    })()}
-                  </>
-                )
-              })()}
-              <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button>
-            </>
-          ) : gridPos ? (
+          {gridPos ? (
             gridPos.coverage > 0 && gridPos.score != null ? (
               <>
                 {/* QUAL NÚMERO VAI GRANDE — histórico das tentativas, pra não
@@ -4904,36 +4775,6 @@ function pertoLensInfo(lensData) {
 // o Hero (Coluna B, termo principal) e o card de termos EXTRAS. Fonte LAB:
 // /api/diagnostico?grid=1 (público). Passo 4 troca pela fonte definitiva + flag.
 // ─────────────────────────────────────────────────────────────
-// FORÇA COMPETITIVA — a manchete do painel desde 08/ago (ver a nota longa em
-// fetchForcaCompetitiva, no back). Barata: 1 chamada Places, contra 5 por termo
-// da grade. Recebe o termo QUE A GRADE MEDIU (`gridPrimary.term`), não o termo
-// pedido: se a segunda tentativa trocou a busca, os vizinhos têm que ser os
-// dessa mesma busca — senão o painel compara o dono com uma vizinhança e mede a
-// posição dele em outra, que foi exatamente o bug de 30/jul entre a tarja e o
-// Hero.
-function useForcaData({ placeId, term }) {
-  const [data, setData] = React.useState(null)
-  const [loading, setLoading] = React.useState(false)
-  React.useEffect(() => {
-    if (!placeId || !term) { setData(null); setLoading(false); return }
-    let alive = true
-    setLoading(true)
-    ;(async () => {
-      try {
-        const r = await fetch('/api/diagnostico?forca=1&place_id=' + encodeURIComponent(placeId) + '&term=' + encodeURIComponent(term), { headers: authHeader() })
-        const d = await r.json().catch(() => null)
-        if (!alive) return
-        // Falha aqui NÃO derruba o Hero: sem força, o painel volta a mostrar a
-        // posição como manchete (o comportamento anterior, intacto).
-        setData(r.ok && d && !d.error ? (d.forca || null) : null)
-      } catch { if (alive) setData(null) }
-      finally { if (alive) setLoading(false) }
-    })()
-    return () => { alive = false }
-  }, [placeId, term])
-  return { forca: data, loading }
-}
-
 function useGridData({ placeId, terms }) {
   const [data, setData] = React.useState(null)
   // `loading` existe pra as LENTES saberem esperar: elas são a reserva da grade
@@ -6114,11 +5955,6 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   // Seguro: buildData() devolve um objeto novo a cada render, não um compartilhado.
   d.gridPos = gridPrimary
   d.lensPos = heroPos      // fallback do score quando a grade falha (mesmo do Hero)
-  // Força competitiva: mesma busca que a grade acabou medindo (ver useForcaData).
-  const { forca: forcaData } = useForcaData({
-    placeId: guestContext?.placeId || d.biz?.placeId,
-    term: gridPrimary?.term || d.activeCategory || ''
-  })
   // ARGUMENTO DO CONVIDADO (tarja + exit-intent) — FONTE ÚNICA COM O HERO.
   // Bug de 30/jul: a tarja vinha de `d.kpis` (ranking do /api/competitors, que é
   // outra arena: um raio só, ordem crua do Google) enquanto o Hero vinha da
@@ -6323,7 +6159,6 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <Section>
           <HeroBlock
             gridPos={gridPrimary}
-            forca={forcaData}
             d={d}
             position={heroPos}
             demoMode={demoMode}

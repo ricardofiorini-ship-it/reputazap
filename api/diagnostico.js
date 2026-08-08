@@ -279,9 +279,12 @@ export default async function handler(req, res) {
   }
 
   // Modo FORÇA COMPETITIVA — o que o negócio TEM (nota + avaliações) entre os
-  // vizinhos do mesmo termo, num raio de 1 km. Vira a MANCHETE do painel; a
-  // grade acima continua existindo como alarme (ver a nota longa em
-  // fetchForcaCompetitiva).
+  // vizinhos do mesmo termo, num raio de 1 km.
+  //
+  // ⚠️ SEM CHAMADOR desde 08/ago: o painel voltou a mostrar só a posição, e este
+  // ramo ficou dormente (ver a nota longa em fetchForcaCompetitiva, com os 3
+  // motivos da volta atrás). Custo zero enquanto ninguém chama — mas se for
+  // retomar, revisar o tamanho da vizinhança ANTES de mexer em tela.
   //
   // Público pela mesma razão da grade (09/07: ranking é tudo free) e com o mesmo
   // freio por IP. Barato: UMA chamada Places, contra 5 por termo da grade — se um
