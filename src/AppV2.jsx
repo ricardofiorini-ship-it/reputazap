@@ -2771,6 +2771,39 @@ function ScoreRing({ score, size = 128 }) {
   )
 }
 
+// O QUADRANTE EM UMA FRASE. Força diz o que o negócio TEM; a grade diz o que o
+// Google FAZ com isso. Cada cruzamento é uma conversa diferente com o dono — e
+// sem essa frase os dois números ficam empilhados parecendo contradição.
+//
+// `apareceBem` é média <= 5, não <= 3: a média já é uma média (5 pontos), e uma
+// média 4 significa que na maioria dos pontos o cliente vê o negócio sem rolar
+// a tela. Exigir <= 3 numa média classificaria a Tutto Buona — 1º lugar de fato
+// — como "não aparece bem".
+function vereditoForca(forca, gridPos) {
+  if (!forca) return null
+  const pc = forca.percentil
+  if (pc == null) return null                     // sem vizinho, não há veredito honesto
+  const forte = pc >= 60
+  const temGrade = !!gridPos && gridPos.measured > 0
+  const media = temGrade && gridPos.coverage > 0 ? (gridPos.avg ?? gridPos.score) : null
+  const sumiu = temGrade && gridPos.coverage === 0
+  const n = (v) => (v || 0).toLocaleString('pt-BR')
+  const fmt = (v) => v.toFixed(1).replace('.', ',')
+  const r = forca.rival
+
+  if (forte) {
+    if (sumiu) return { tom: 'alerta', texto: 'Você é dos mais fortes da região e mesmo assim não aparece em nenhum ponto medido. Aqui o problema não é avaliação — é como seu perfil está cadastrado no Google.' }
+    if (media != null && media > 5) return { tom: 'alerta', texto: `Você é dos mais fortes da região e o Google te mostra só no ${fmt(media)}º lugar. Isso não é falta de avaliação: é alcance.` }
+    return { tom: 'ok', texto: 'Sua colocação tem lastro: você é dos mais fortes do bairro e o Google te mostra. O trabalho aqui é manter.' }
+  }
+  // Fraco e BEM COLOCADO — o caso mais valioso e o mais invisível sem os dois
+  // números: a Tutto Buona é 1º lugar segurando isso com 148 avaliações.
+  if (media != null && media <= 5) {
+    return { tom: 'alerta', texto: `Você aparece bem hoje${r ? ` com ${n(forca.me?.reviews)} avaliações, contra ${n(r.reviews)} de ${r.name}` : ''}. Essa posição não se sustenta sozinha.` }
+  }
+  return { tom: 'alerta', texto: `Faltam avaliações: você tem ${n(forca.me?.reviews)}${r ? ` contra ${n(r.reviews)} de ${r.name}` : ''}. É o que puxa sua posição pra baixo.` }
+}
+
 function HeroBlock({ d, position, gridPos, forca, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
   const score = calcStarTouchScore(d)
   // Coluna B consome a MESMA fonte do ranking (lente "Bem perto de você") — não o
@@ -2824,16 +2857,21 @@ function HeroBlock({ d, position, gridPos, forca, demoMode, isMobile, onScoreDet
                       <span style={{ fontSize: isMobile ? 16 : 19, fontWeight: 700, color: T.textMuted }}> de {forca.total}</span>
                     </div>
                     <div style={{ fontSize: 12.5, color: T.textMuted, lineHeight: 1.4 }}>
-                      em força, entre quem faz “{forca.term}” a 1 km
+                      em força, na busca “{forca.term}” · raio de 1 km
                     </div>
                     <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.55, display:'flex', flexDirection:'column', gap: 1 }}>
                       <span>Você: <b style={{ color: T.text }}>{(forca.me?.rating || 0).toFixed(1).replace('.', ',')}</b> ★ · <b style={{ color: T.text }}>{num(forca.me?.reviews)}</b> avaliações</span>
-                      {forca.lider && (
+                      {/* "Líder" só quando ele NÃO é o líder. A primeira versão
+                          rotulava de líder quem estava atrás: a Brascatta Vila
+                          Leopoldina saía "1º de 15" e logo abaixo "Líder: Mamma
+                          Pizzeria" — um negócio que ela está ganhando. */}
+                      {forca.rival && (
                         <span style={{ color: T.textMuted }}>
-                          Líder: {forca.lider.name} · {(forca.lider.rating || 0).toFixed(1).replace('.', ',')} ★ · {num(forca.lider.reviews)}
+                          {forca.souLider ? 'Logo atrás' : 'Líder'}: {forca.rival.name} · {(forca.rival.rating || 0).toFixed(1).replace('.', ',')} ★ · {num(forca.rival.reviews)}
                         </span>
                       )}
-                      {pc != null && <span>Mais forte que <b style={{ color: T.text }}>{pc}%</b> dos vizinhos</span>}
+                      {/* Redundante quando ele é o 1º — "1º de 15" já disse. */}
+                      {pc != null && !forca.souLider && <span>Mais forte que <b style={{ color: T.text }}>{pc}%</b> dos vizinhos</span>}
                     </div>
                     {/* A fórmula fica À VISTA (decisão do Ricardo, 08/ago). É a
                         única conta nossa na tela — nota e avaliações são fatos do
@@ -2856,10 +2894,27 @@ function HeroBlock({ d, position, gridPos, forca, demoMode, isMobile, onScoreDet
                         color: gridPos.coverage > 0 ? T.textMid : T.accent, fontWeight: gridPos.coverage > 0 ? 400 : 700
                       }}>
                         {gridPos.coverage > 0 && (gridPos.avg ?? gridPos.score) != null
-                          ? <>No Google, aparece no <b style={{ color: T.text }}>{(gridPos.avg ?? gridPos.score).toFixed(1).replace('.', ',')}º lugar</b></>
+                          ? <>No Google, você aparece em média no <b style={{ color: T.text }}>{(gridPos.avg ?? gridPos.score).toFixed(1).replace('.', ',')}º lugar</b></>
                           : <>No Google, não aparece em nenhum dos {gridPos.measured} lugares testados</>}
                       </div>
                     )}
+                    {/* O VEREDITO — a frase que junta os dois números. Sem ela a
+                        tela empilha "1º de 15" e "9,5º lugar" e parece se
+                        contradizer; foi a primeira coisa que o Ricardo estranhou
+                        ("ela é primeira e aparece em nono"). Os dois números não
+                        brigam: um diz o que ela TEM, o outro o que o Google FAZ
+                        com isso — e a distância entre eles é o diagnóstico. */}
+                    {(() => {
+                      const v = vereditoForca(forca, gridPos)
+                      if (!v) return null
+                      return (
+                        <div style={{
+                          marginTop: 8, padding: '9px 11px', borderRadius: 9, width:'100%',
+                          background: v.tom === 'alerta' ? T.amberBg : T.blueSoft,
+                          color: T.text, fontSize: 12.5, lineHeight: 1.5, textAlign:'left'
+                        }}>{v.texto}</div>
+                      )
+                    })()}
                   </>
                 )
               })()}

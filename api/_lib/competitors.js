@@ -563,7 +563,7 @@ export async function fetchForcaCompetitiva({ placeId, term, radius = FORCA_RAIO
 
   const detUrl =
     `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}` +
-    `&fields=name,rating,user_ratings_total,geometry&language=pt-BR&key=${API_KEY}`;
+    `&fields=name,rating,user_ratings_total,geometry,types&language=pt-BR&key=${API_KEY}`;
   const det = (await (await fetchWithTimeout(detUrl, {}, 6000)).json()).result;
   if (!det?.geometry?.location) throw new Error("negócio sem coordenadas no Google");
   const { lat, lng } = det.geometry.location;
@@ -579,7 +579,59 @@ export async function fetchForcaCompetitiva({ placeId, term, radius = FORCA_RAIO
 
   // Corte por distância REAL, sem a folga de 10% do resto do arquivo: a tela
   // promete "a 1 km" e aqui o número é literal, não uma vizinhança aproximada.
-  const perto = vizinhos.filter((p) => p.place_id !== placeId && haversineM(ancora, p) <= radius);
+  const noRaio = vizinhos.filter((p) => p.place_id !== placeId && haversineM(ancora, p) <= radius);
+
+  // FILTRO DE CATEGORIA — o mesmo que as lentes já usavam, e que faltava aqui.
+  // Sem ele a lista pegava carona em qualquer coisa que o Text Search devolvesse:
+  // buscando "Loja de bicicleta" perto da Bike Web, o CEAGESP entrou na lista com
+  // 21.822 avaliações, virou "líder" e jogou a bicicletaria pra 5º de 6 — sendo
+  // que no Google ela aparece em 1,8º, a melhor do bairro. Um POI gigante e de
+  // outro ramo domina qualquer conta baseada em volume.
+  // A guarda `>= 2` é a mesma das lentes: filtro que zera a vizinhança faz mais
+  // mal que filtro nenhum (o dono ficaria "1º de 1", troféu vazio).
+  // CRIVO 1 — INTERSEÇÃO de tipos, não igualdade do primeiro.
+  // Não dá pra reusar o makeCategoryFilter das lentes aqui: ele compara o
+  // PRIMEIRO tipo específico de cada lado, e o Google devolve os tipos em ordem
+  // ALFABÉTICA. Medido: a Tutto Buona sai `meal_delivery`, a Soggiorno sai
+  // `restaurant` e a Brascatta sai `bar` — três pizzarias da mesma rua viram
+  // três ramos diferentes. Com aquele filtro a Tutto Buona perdia as duas
+  // concorrentes mais fortes e subia de 9º pra 3º: um filtro que a favorece,
+  // que é o vício que esta métrica existe pra não ter.
+  const meusTipos = new Set((det.types || []).filter((t) => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t)));
+  // true = mesmo ramo | false = ramo diferente | null = candidato sem categoria,
+  // decide o crivo do nome abaixo.
+  function mesmoRamo(p) {
+    const seus = (p.types || []).filter((t) => !GENERIC_TYPES.has(t) && !BROAD_TYPES.has(t));
+    if (!seus.length) return null;
+    if (!meusTipos.size) return true;        // eu é que não tenho categoria: não julgo ninguém
+    return seus.some((t) => meusTipos.has(t));
+  }
+
+  // CRIVO 2, pelo NOME — necessário porque categoria não separa tudo.
+  // Medido na vizinhança da Bike Web: o CEAGESP e a Bike Leopoldina têm tipos
+  // IDÊNTICOS no Google (`establishment, point_of_interest` e nada mais). Um é
+  // entreposto hortifrúti com 21.822 avaliações, o outro é bicicletaria de
+  // verdade. Nenhuma regra de categoria distingue os dois; o nome distingue.
+  // Só se aplica a quem NÃO tem categoria específica — quem tem já foi julgado
+  // pelo crivo de cima, e aí o nome não precisa provar nada (a "Villa Del Capo"
+  // é pizzaria sem dizer isso no nome).
+  const conceitoDoTermo = detectFromName(termo);
+  const tokensDoTermo = normalizeName(termo).split(/[^a-z0-9]+/).filter((t) => t.length >= 4);
+  function nomeCompete(p) {
+    // Sem dicionário nem token pra comparar, não dá pra julgar — mantém. Cortar
+    // por não conseguir avaliar seria inventar uma exclusão.
+    if (!conceitoDoTermo && !tokensDoTermo.length) return true;
+    const conceito = detectFromName(p.name);
+    if (conceitoDoTermo && conceito && conceito === conceitoDoTermo) return true;
+    const n = normalizeName(p.name);
+    return tokensDoTermo.some((t) => n.includes(t));
+  }
+
+  const perto = noRaio.filter((p) => {
+    const ramo = mesmoRamo(p);
+    return ramo === null ? nomeCompete(p) : ramo;
+  });
+  const descartados = noRaio.length - perto.length;
 
   // O DONO entra na lista sempre, inclusive quando o Text Search não o devolve
   // (é o caso do Limão e Brasa em "restaurante"). Isso NÃO fere a regra de
@@ -610,6 +662,13 @@ export async function fetchForcaCompetitiva({ placeId, term, radius = FORCA_RAIO
   // troféu por não ter concorrente (o mesmo vício do "1º de 1").
   const percentil = total > 1 ? Math.round(((total - idx - 1) / (total - 1)) * 100) : null;
 
+  // `rival` = com quem a tela compara o dono. Quando ele é o 1º, é quem vem
+  // LOGO ATRÁS; quando não é, é o líder. Isso vem separado de `lider` porque a
+  // primeira versão mandava só um campo chamado "lider" e o front rotulava tudo
+  // de líder: a Brascatta Vila Leopoldina apareceu "1º de 15" com a linha
+  // "Líder: Mamma Pizzeria" logo abaixo — anunciando como líder um negócio que
+  // ela está ganhando. A tela se contradizia sozinha.
+  const souLider = idx === 0;
   return {
     term: termo,
     radiusM: radius,
@@ -618,7 +677,10 @@ export async function fetchForcaCompetitiva({ placeId, term, radius = FORCA_RAIO
     posicao: idx + 1,
     total,
     percentil,
-    lider: lista[0]?.is_me ? (lista[1] || null) : (lista[0] || null),
+    souLider,
+    lider: lista[0] || null,                                   // topo da lista, mesmo sendo o dono
+    rival: souLider ? (lista[1] || null) : (lista[0] || null), // com quem comparar na tela
+    descartados,   // vizinhos cortados por não competirem de fato (auditoria)
     lista,
   };
 }
