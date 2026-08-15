@@ -3956,7 +3956,7 @@ function CapturePoints({ items, plates, businessId, bizName, isAdmin, reviewCoun
 <title>Relatório de toques — ${esc(bizName || 'StarTouch')}</title>
 <style>
   *{box-sizing:border-box}
-  body{font-family:'Inter',-apple-system,Segoe UI,Roboto,sans-serif;color:#0F172A;margin:0;padding:32px;max-width:820px}
+  body{font-family:'Inter',-apple-system,Segoe UI,Roboto,sans-serif;color:#0F172A;margin:0 auto;padding:32px;max-width:820px}
   header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1A73E8;padding-bottom:12px;margin-bottom:20px}
   .marca{font-size:19px;font-weight:800;color:#1A73E8;letter-spacing:-.02em}
   .emissao{font-size:11px;color:#64748B;text-align:right}
