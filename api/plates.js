@@ -323,6 +323,12 @@ async function handleMyPlates(req, res, user) {
 //     de um log com 5 dias de vida não pode parecer queda de movimento.
 const TAP_WINDOWS = [7, 30, 90];
 const TAP_ROW_CAP = 20000;
+const TAP_MAX_RANGE_DAYS = 366;   // período livre: teto pra não varrer o banco inteiro
+
+// Dia em que o log toque-a-toque entrou no ar. Antes disso só existe o contador
+// acumulado — sem data, sem como reconstruir. A tela precisa dizer isso na cara
+// do cliente; por isso a data viaja na resposta em vez de ficar escrita no front.
+const TAP_LOG_START = "2026-08-15";
 
 // O dia do cliente é o dia do Brasil, não o UTC do servidor: um toque às 21h
 // de SP é 00h UTC do dia seguinte e cairia no dia errado do gráfico.
@@ -332,9 +338,52 @@ function brDay(iso) {
   return new Date(new Date(iso).getTime() - BR_OFFSET_MS).toISOString().slice(0, 10);
 }
 
-async function handleTapsHistory(req, res, user) {
-  const asked = parseInt(req.query.days, 10);
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DAY_MS = 86400000;
+
+// Converte um dia brasileiro (YYYY-MM-DD) no instante UTC em que ele começa.
+function brDayStartIso(day) {
+  return new Date(new Date(`${day}T00:00:00.000Z`).getTime() + BR_OFFSET_MS).toISOString();
+}
+function addDays(day, n) {
+  return new Date(new Date(`${day}T00:00:00.000Z`).getTime() + n * DAY_MS).toISOString().slice(0, 10);
+}
+
+// Resolve o período pedido: ou um atalho (`days=7|30|90`) ou datas livres
+// (`from`/`to`, YYYY-MM-DD). Devolve sempre o par de dias brasileiros.
+function resolveTapPeriod(query, todayBr) {
+  const from = String(query.from || "");
+  const to = String(query.to || "");
+
+  if (DAY_RE.test(from) && DAY_RE.test(to)) {
+    // Datas invertidas são engano de digitação, não erro do cliente: destroca.
+    let a = from <= to ? from : to;
+    let b = from <= to ? to : from;
+    // Futuro não tem toque pra mostrar; corta no dia de hoje.
+    if (b > todayBr) b = todayBr;
+    if (a > b) a = b;
+    // Teto de tamanho: preserva a ponta mais recente, que é a que interessa.
+    const span = Math.round((new Date(`${b}T00:00:00Z`) - new Date(`${a}T00:00:00Z`)) / DAY_MS) + 1;
+    if (span > TAP_MAX_RANGE_DAYS) a = addDays(b, -(TAP_MAX_RANGE_DAYS - 1));
+    return { fromDay: a, toDay: b, custom: true };
+  }
+
+  const asked = parseInt(query.days, 10);
   const days = TAP_WINDOWS.includes(asked) ? asked : 30;
+  return { fromDay: addDays(todayBr, -(days - 1)), toDay: todayBr, custom: false, days };
+}
+
+async function handleTapsHistory(req, res, user) {
+  // Janela alinhada ao dia brasileiro: "últimos 7 dias" inclui hoje inteiro
+  // + os 6 anteriores, não as últimas 168 horas corridas.
+  const todayBr = brDay(new Date().toISOString());
+  const period = resolveTapPeriod(req.query, todayBr);
+  const { fromDay, toDay } = period;
+  const days = Math.round((new Date(`${toDay}T00:00:00Z`) - new Date(`${fromDay}T00:00:00Z`)) / DAY_MS) + 1;
+  const base = {
+    days, from_day: fromDay, to_day: toDay, custom: !!period.custom,
+    log_start: TAP_LOG_START
+  };
 
   const { data: bizs, error: bizErr } = await supabase
     .from("businesses")
@@ -343,20 +392,18 @@ async function handleTapsHistory(req, res, user) {
   if (bizErr) return res.status(500).json({ error: bizErr.message });
   const bizIds = (bizs || []).map((b) => b.id);
   if (!bizIds.length) {
-    return res.json({ ok: true, available: true, days, total: 0, by_plate: {}, by_day: [], by_medium: {}, measuring_since: null });
+    return res.json({ ...base, ok: true, available: true, total: 0, by_plate: {}, by_day: [], by_medium: {}, measuring_since: null });
   }
 
-  // Janela alinhada ao começo do dia brasileiro: "últimos 7 dias" inclui hoje
-  // inteiro + os 6 anteriores, não as últimas 168 horas corridas.
-  const todayBr = brDay(new Date().toISOString());
-  const fromMs = new Date(`${todayBr}T00:00:00.000Z`).getTime() + BR_OFFSET_MS - (days - 1) * 86400000;
-  const fromIso = new Date(fromMs).toISOString();
+  const fromIso = brDayStartIso(fromDay);
+  const toIso = brDayStartIso(addDays(toDay, 1));   // exclusivo: pega o dia final inteiro
 
   const { data: rows, error } = await supabase
     .from("plate_taps")
     .select("plate_id, tapped_at, medium")
     .in("business_id", bizIds)
     .gte("tapped_at", fromIso)
+    .lt("tapped_at", toIso)
     .order("tapped_at", { ascending: true })
     .limit(TAP_ROW_CAP);
 
@@ -364,7 +411,7 @@ async function handleTapsHistory(req, res, user) {
   // rodou). Isso é "não sei", não "zero" — a tela precisa saber a diferença.
   if (error) {
     console.error("[plates] histórico de toques indisponível:", error.message || error);
-    return res.json({ ok: true, available: false, days, total: 0, by_plate: {}, by_day: [], by_medium: {}, measuring_since: null });
+    return res.json({ ...base, ok: true, available: false, total: 0, by_plate: {}, by_day: [], by_medium: {}, measuring_since: null });
   }
 
   const byPlate = {};
@@ -381,8 +428,8 @@ async function handleTapsHistory(req, res, user) {
   // Série com TODOS os dias da janela, inclusive os zerados — senão o gráfico
   // encosta os dias movimentados um no outro e some com o buraco.
   const byDay = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(new Date(`${todayBr}T00:00:00.000Z`).getTime() - i * 86400000).toISOString().slice(0, 10);
+  for (let i = 0; i < days; i++) {
+    const d = addDays(fromDay, i);
     byDay.push({ day: d, taps: byDayMap[d] || 0 });
   }
 
@@ -398,9 +445,9 @@ async function handleTapsHistory(req, res, user) {
   if (firstRow?.tapped_at) measuringSince = firstRow.tapped_at;
 
   return res.json({
+    ...base,
     ok: true,
     available: true,
-    days,
     from: fromIso,
     measuring_since: measuringSince,
     total: (rows || []).length,

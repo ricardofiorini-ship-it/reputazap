@@ -3834,30 +3834,54 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
 
   // ── Filtro por data (15/ago) ──────────────────────────────
   // Até aqui a tela só sabia o TOTAL de sempre: um contador que nunca desce e
-  // não responde "e esta semana?". `win` é a janela escolhida (0 = sempre) e
-  // `hist` guarda o que o backend devolveu por janela, pra não repetir chamada.
-  const [win, setWin] = React.useState(0)
+  // não responde "e esta semana?". `period` é o recorte escolhido — null é
+  // "sempre", {days:N} são os atalhos e {from,to} é o período livre que o dono
+  // digita. `hist` guarda o que o backend já devolveu, pra não repetir chamada.
+  const [period, setPeriod] = React.useState(null)
+  const [pickerOpen, setPickerOpen] = React.useState(false)
+  const [fromDraft, setFromDraft] = React.useState('')
+  const [toDraft, setToDraft] = React.useState('')
+  const [rangeError, setRangeError] = React.useState('')
   const [hist, setHist] = React.useState({})
   const [histLoading, setHistLoading] = React.useState(false)
   const [histError, setHistError] = React.useState('')
 
+  const periodKey = !period ? '' : (period.days ? `d${period.days}` : `r${period.from}_${period.to}`)
+  const periodQs  = !period ? '' : (period.days ? `days=${period.days}` : `from=${period.from}&to=${period.to}`)
+
   React.useEffect(() => {
-    if (!win || hist[win]) return
+    if (!period || hist[periodKey]) return
     let alive = true
     setHistLoading(true); setHistError('')
-    apiCall(`/api/plates?action=taps-history&days=${win}`)
-      .then(r => { if (alive) setHist(prev => ({ ...prev, [win]: r })) })
+    apiCall(`/api/plates?action=taps-history&${periodQs}`)
+      .then(r => { if (alive) setHist(prev => ({ ...prev, [periodKey]: r })) })
       .catch(err => { if (alive) setHistError(err.message || 'Não deu pra carregar o período.') })
       .finally(() => { if (alive) setHistLoading(false) })
     return () => { alive = false }
-  }, [win])
+  }, [periodKey])
 
-  const h = win ? hist[win] : null
-  const histReady = !win || (h && h.available !== false)
-  // Número de UM dispositivo na janela atual. Sem janela, é o contador de sempre.
+  const h = period ? hist[periodKey] : null
+  const histReady = !period || (h && h.available !== false)
+  // Número de UM dispositivo no recorte atual. Sem recorte, é o contador de sempre.
   function tapsOf(p) {
-    if (!win) return p.total_taps || 0
+    if (!period) return p.total_taps || 0
     return (h && h.by_plate && h.by_plate[p.id]) || 0
+  }
+  // '2026-08-15' → '15/08'. Feito na mão porque `new Date('2026-08-15')` é lido
+  // como UTC e, no fuso do Brasil, voltaria o dia anterior.
+  const dayBR = (d) => d ? `${d.slice(8,10)}/${d.slice(5,7)}` : ''
+  const dayBRFull = (d) => d ? `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}` : ''
+  const periodLabel = !period ? '' : (period.days ? `nos últimos ${period.days} dias` : `de ${dayBR(period.from)} a ${dayBR(period.to)}`)
+
+  function applyRange(e) {
+    e && e.preventDefault()
+    if (!fromDraft || !toDraft) { setRangeError('Escolha as duas datas.'); return }
+    setRangeError('')
+    // Datas trocadas são engano de digitação — arruma em vez de reclamar.
+    const a = fromDraft <= toDraft ? fromDraft : toDraft
+    const b = fromDraft <= toDraft ? toDraft : fromDraft
+    setPeriod({ from: a, to: b })
+    setPickerOpen(false)
   }
   const platesList = (plates || []).slice().sort((a,b) => tapsOf(b) - tapsOf(a))
 
@@ -3889,7 +3913,7 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
     }
   }
   const totalAll = platesList.reduce((s, p) => s + (p.total_taps || 0), 0)
-  const total = win ? (h?.total || 0) : totalAll
+  const total = period ? (h?.total || 0) : totalAll
   const isEmpty = platesList.length === 0
   const hasReviews = (reviewCount || 0) > 0  // tom de ACELERADOR (não "falta pré-requisito")
   // Detecta a placa mais usada — útil pra "estrela" visual
@@ -3902,23 +3926,62 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>
           {isEmpty && hasReviews ? 'Capte ainda mais avaliações no automático' : 'Onde seus clientes avaliam'}
         </h3>
-        {!isEmpty && (
-          <div style={{ display:'flex', gap: 4, flexWrap:'wrap' }}>
-            {[{ v: 0, label:'Sempre' }, { v: 7, label:'7 dias' }, { v: 30, label:'30 dias' }, { v: 90, label:'90 dias' }].map(opt => (
-              <button key={opt.v} type="button" onClick={() => setWin(opt.v)}
-                aria-pressed={win === opt.v}
-                style={{
-                  background: win === opt.v ? T.blueSoft : 'transparent',
-                  color: win === opt.v ? T.blueDk : T.textMid,
-                  border: `1px solid ${win === opt.v ? '#B9D6FB' : T.border}`,
-                  borderRadius: 999, padding:'4px 10px', fontSize: 11.5,
-                  fontWeight: win === opt.v ? 700 : 500, cursor:'pointer',
-                  fontFamily:"'Inter', sans-serif", lineHeight: 1.4
-                }}>{opt.label}</button>
-            ))}
-          </div>
-        )}
+        {!isEmpty && (() => {
+          const isCustom = !!(period && period.from)
+          const pill = (on) => ({
+            background: on ? T.blueSoft : 'transparent',
+            color: on ? T.blueDk : T.textMid,
+            border: `1px solid ${on ? '#B9D6FB' : T.border}`,
+            borderRadius: 999, padding:'4px 10px', fontSize: 11.5,
+            fontWeight: on ? 700 : 500, cursor:'pointer',
+            fontFamily:"'Inter', sans-serif", lineHeight: 1.4
+          })
+          return (
+            <div style={{ display:'flex', gap: 4, flexWrap:'wrap' }}>
+              {[{ v: null, label:'Sempre' }, { v: 7, label:'7 dias' }, { v: 30, label:'30 dias' }, { v: 90, label:'90 dias' }].map(opt => {
+                const on = opt.v === null ? !period : (period && period.days === opt.v)
+                return (
+                  <button key={opt.label} type="button"
+                    onClick={() => { setPeriod(opt.v === null ? null : { days: opt.v }); setPickerOpen(false) }}
+                    aria-pressed={!!on} style={pill(!!on)}>{opt.label}</button>
+                )
+              })}
+              <button type="button" onClick={() => setPickerOpen(o => !o)}
+                aria-expanded={pickerOpen} style={pill(isCustom)}>
+                {isCustom ? `${dayBR(period.from)} – ${dayBR(period.to)}` : 'Escolher datas'}
+              </button>
+            </div>
+          )
+        })()}
       </div>
+
+      {/* Período livre — o dono pergunta "de tal dia a tal dia", não "últimos N". */}
+      {!isEmpty && pickerOpen && (
+        <form onSubmit={applyRange} style={{
+          display:'flex', alignItems:'flex-end', gap: 8, flexWrap:'wrap',
+          background: T.blueSoft, border:`1px solid ${T.border}`, borderRadius: 10,
+          padding:'10px 12px', marginBottom: 12
+        }}>
+          <label style={{ fontSize: 11, color: T.textMid, fontWeight: 600 }}>
+            <span style={{ display:'block', marginBottom: 3 }}>De</span>
+            <input type="date" value={fromDraft} max={toDraft || undefined}
+              onChange={(e) => setFromDraft(e.target.value)}
+              style={{ fontSize: 12.5, padding:'6px 8px', borderRadius: 8, border:`1px solid ${T.border}`, background:'#fff', color: T.text, fontFamily:"'Inter', sans-serif" }}/>
+          </label>
+          <label style={{ fontSize: 11, color: T.textMid, fontWeight: 600 }}>
+            <span style={{ display:'block', marginBottom: 3 }}>Até</span>
+            <input type="date" value={toDraft} min={fromDraft || undefined}
+              onChange={(e) => setToDraft(e.target.value)}
+              style={{ fontSize: 12.5, padding:'6px 8px', borderRadius: 8, border:`1px solid ${T.border}`, background:'#fff', color: T.text, fontFamily:"'Inter', sans-serif" }}/>
+          </label>
+          <button type="submit" style={{
+            background: T.blue, color:'#fff', border:'none', borderRadius: 8,
+            padding:'7px 14px', fontSize: 12.5, fontWeight: 700, cursor:'pointer',
+            fontFamily:"'Inter', sans-serif"
+          }}>Ver período</button>
+          {rangeError && <span style={{ fontSize: 11.5, color: T.danger, alignSelf:'center' }}>{rangeError}</span>}
+        </form>
+      )}
 
       {isEmpty ? (
         <>
@@ -3985,12 +4048,12 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
               <div style={{ fontSize: 14, fontWeight: 700, color: T.text, lineHeight: 1.3 }}>
                 {!histReady
                   ? 'Ainda não consigo separar por data'
-                  : win
+                  : period
                   ? (total === 0
-                      ? `Nenhum toque nos últimos ${win} dias`
+                      ? `Nenhum toque ${periodLabel}`
                       : total === 1
-                      ? `1 toque nos últimos ${win} dias`
-                      : `${total} toques nos últimos ${win} dias`)
+                      ? `1 toque ${periodLabel}`
+                      : `${total} toques ${periodLabel}`)
                   : total === 0
                   ? 'Aguardando o primeiro toque'
                   : total === 1
@@ -4000,7 +4063,7 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
               <div style={{ fontSize: 12.5, color: T.textMid, marginTop: 2 }}>
                 {!histReady
                   ? 'A contagem por dia acabou de ser ligada. O total de sempre continua valendo.'
-                  : win
+                  : period
                   ? (total === 0 && h?.measuring_since
                       // Só sugere conferir a placa quando já existe medição rodando —
                       // com o log recém-ligado, "0" não é sinal de placa parada.
@@ -4030,12 +4093,12 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
 
           {/* GRÁFICO POR DIA — só existe com janela escolhida. É o que o contador
               nunca deu: onde o movimento aconteceu dentro do período. */}
-          {win > 0 && histReady && total > 0 && h?.by_day?.length > 0 && (() => {
+          {period && histReady && total > 0 && h?.by_day?.length > 0 && (() => {
             const maxDay = Math.max(1, ...h.by_day.map(d => d.taps))
-            const fmt = (iso) => { const [y,m,dd] = iso.split('-'); return `${dd}/${m}` }
+            const fmt = (iso) => `${iso.slice(8,10)}/${iso.slice(5,7)}`
             return (
               <div style={{ marginBottom: 14 }}>
-                <div style={{ display:'flex', alignItems:'flex-end', gap: win > 30 ? 1 : 3, height: 54 }}>
+                <div style={{ display:'flex', alignItems:'flex-end', gap: h.by_day.length > 30 ? 1 : 3, height: 54 }}>
                   {h.by_day.map(d => (
                     <div key={d.day} title={`${fmt(d.day)}: ${d.taps} ${d.taps === 1 ? 'toque' : 'toques'}`}
                       style={{
@@ -4048,26 +4111,28 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
                 </div>
                 <div style={{ display:'flex', justifyContent:'space-between', fontSize: 10.5, color: T.textDim, marginTop: 4 }}>
                   <span>{fmt(h.by_day[0].day)}</span>
-                  <span>hoje</span>
+                  {/* Atalho sempre termina hoje; período livre pode terminar no passado. */}
+                  <span>{period.days ? 'hoje' : fmt(h.by_day[h.by_day.length - 1].day)}</span>
                 </div>
               </div>
             )
           })()}
 
-          {/* Honestidade: o log por dia começou numa data. Sem este aviso, pedir
-              90 dias de um log com 5 dias de vida pareceria queda de movimento —
-              e "0 toques" leria como placa parada, não como medição recém-ligada.
-              Dois casos: log ainda sem nenhuma linha, e log mais novo que a janela. */}
-          {win > 0 && histReady && !h?.measuring_since && totalAll > 0 && (
-            <div style={{ fontSize: 11.5, color: T.textDim, marginTop: -6, marginBottom: 12, lineHeight: 1.45 }}>
-              A contagem dia a dia acabou de ser ligada e ainda não registrou nenhum toque. Os {totalAll} toques que você já tinha continuam no total de sempre — eles são de antes e não têm data guardada.
-            </div>
-          )}
-          {win > 0 && histReady && h?.measuring_since && (
-            new Date(h.measuring_since).getTime() > new Date(h.from).getTime() + 86400000
-          ) && (
-            <div style={{ fontSize: 11.5, color: T.textDim, marginTop: -6, marginBottom: 12, lineHeight: 1.45 }}>
-              Contando dia a dia desde {new Date(h.measuring_since).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' })} — toques anteriores a essa data entram só no total de sempre.
+          {/* AVISO EXPLÍCITO — a regra do dado, não um rodapé tímido.
+              Filtrar por data só existe a partir do dia em que o log entrou no ar;
+              antes disso há apenas o total acumulado. Sem dizer isso em voz alta,
+              um período antigo devolveria "0 toques" e leria como placa parada. */}
+          {period && histReady && h?.log_start && (
+            <div style={{
+              display:'flex', gap: 8, alignItems:'flex-start',
+              background:'#FFFBEB', border:'1px solid #FDE68A', borderRadius: 10,
+              padding:'10px 12px', marginBottom: 12
+            }}>
+              <Info size={15} style={{ color:'#B45309', flexShrink: 0, marginTop: 1 }}/>
+              <div style={{ fontSize: 12, color:'#78350F', lineHeight: 1.5 }}>
+                O registro dia a dia começou em <strong>{dayBRFull(h.log_start)}</strong>. Antes dessa data o sistema guardava só o total acumulado — no seu caso <strong>{totalAll} {totalAll === 1 ? 'toque' : 'toques'}</strong> — sem separar por dia, então não é possível filtrar esse período.
+                {h.from_day < h.log_start && ' O período que você escolheu começa antes disso: o trecho anterior aparece zerado aqui, mas continua contado no "Sempre".'}
+              </div>
             </div>
           )}
 
