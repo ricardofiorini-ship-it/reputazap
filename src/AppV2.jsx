@@ -4130,7 +4130,7 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
             }}>
               <Info size={15} style={{ color:'#B45309', flexShrink: 0, marginTop: 1 }}/>
               <div style={{ fontSize: 12, color:'#78350F', lineHeight: 1.5 }}>
-                O registro dia a dia começou em <strong>{dayBRFull(h.log_start)}</strong>. Antes dessa data o sistema guardava só o total acumulado — no seu caso <strong>{totalAll} {totalAll === 1 ? 'toque' : 'toques'}</strong> — sem separar por dia, então não é possível filtrar esse período.
+                O registro dia a dia começou em <strong>{dayBRFull(h.log_start)}</strong>. O que veio antes foi somado no total de sempre — hoje em <strong>{totalAll} {totalAll === 1 ? 'toque' : 'toques'}</strong> — mas sem data guardada, então não dá pra filtrar período anterior a essa data.
                 {h.from_day < h.log_start && ' O período que você escolheu começa antes disso: o trecho anterior aparece zerado aqui, mas continua contado no "Sempre".'}
               </div>
             </div>
