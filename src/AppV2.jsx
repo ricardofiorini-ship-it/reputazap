@@ -4001,7 +4001,9 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
                 {!histReady
                   ? 'A contagem por dia acabou de ser ligada. O total de sempre continua valendo.'
                   : win
-                  ? (total === 0
+                  ? (total === 0 && h?.measuring_since
+                      // Só sugere conferir a placa quando já existe medição rodando —
+                      // com o log recém-ligado, "0" não é sinal de placa parada.
                       ? `De sempre, ${totalAll} ${totalAll === 1 ? 'toque' : 'toques'}. Vale conferir se o dispositivo continua num lugar visível.`
                       : `De sempre, ${totalAll} ${totalAll === 1 ? 'toque' : 'toques'}.`)
                   : total === 0
@@ -4028,7 +4030,7 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
 
           {/* GRÁFICO POR DIA — só existe com janela escolhida. É o que o contador
               nunca deu: onde o movimento aconteceu dentro do período. */}
-          {win > 0 && histReady && h?.by_day?.length > 0 && (() => {
+          {win > 0 && histReady && total > 0 && h?.by_day?.length > 0 && (() => {
             const maxDay = Math.max(1, ...h.by_day.map(d => d.taps))
             const fmt = (iso) => { const [y,m,dd] = iso.split('-'); return `${dd}/${m}` }
             return (
@@ -4053,7 +4055,14 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
           })()}
 
           {/* Honestidade: o log por dia começou numa data. Sem este aviso, pedir
-              90 dias de um log com 5 dias de vida pareceria queda de movimento. */}
+              90 dias de um log com 5 dias de vida pareceria queda de movimento —
+              e "0 toques" leria como placa parada, não como medição recém-ligada.
+              Dois casos: log ainda sem nenhuma linha, e log mais novo que a janela. */}
+          {win > 0 && histReady && !h?.measuring_since && totalAll > 0 && (
+            <div style={{ fontSize: 11.5, color: T.textDim, marginTop: -6, marginBottom: 12, lineHeight: 1.45 }}>
+              A contagem dia a dia acabou de ser ligada e ainda não registrou nenhum toque. Os {totalAll} toques que você já tinha continuam no total de sempre — eles são de antes e não têm data guardada.
+            </div>
+          )}
           {win > 0 && histReady && h?.measuring_since && (
             new Date(h.measuring_since).getTime() > new Date(h.from).getTime() + 86400000
           ) && (
