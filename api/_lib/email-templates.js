@@ -103,6 +103,66 @@ export function welcomeEmail({ userName }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// 1b. NOVIDADE DO PAINEL — histórico de toques por data (ago/2026)
+// ─────────────────────────────────────────────────────────────
+// Email de anúncio, não transacional: leva descadastro de 1 clique.
+// Tom: o que mudou pro dono, em uma frase, e como usar. Sem manual.
+export function tapsHistoryNewsEmail({ userName, unsubUrl }) {
+  const name = escapeHtml(userName?.split(" ")[0] || "tudo bem");
+  return {
+    subject: "Agora dá pra ver quantos toques sua placa recebeu na semana",
+    html: shell({
+      title: "✨ NOVIDADE NO PAINEL",
+      unsubUrl,
+      // O link desliga TODOS os emails (unsubUrl sem `kind`). O rótulo tem que
+      // dizer isso: prometer "só novidades" e cortar o resumo semanal junto
+      // seria enganar quem clica.
+      unsubLabel: "receber nossos emails",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:23px;color:#202124;line-height:1.3;">
+          Olá, ${name}!
+        </h1>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          Até hoje o painel te mostrava um número só: o total de toques da sua placa desde a instalação. Servia pra saber que ela funciona, mas não respondia a pergunta do dia a dia — <strong style="color:#202124;">"e esta semana, movimentou?"</strong>
+        </p>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          Isso mudou. Em <strong style="color:#202124;">Onde seus clientes avaliam</strong>, agora você escolhe o período:
+        </p>
+
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin:14px 0;">
+          <ul style="font-size:14px;color:#202124;line-height:1.7;margin:0;padding-left:20px;">
+            <li><strong>7, 30 ou 90 dias</strong>, num clique</li>
+            <li>ou <strong>datas livres</strong> — o mês passado, o fim de semana do feriado</li>
+            <li>quanto <strong>cada dispositivo</strong> recebeu no período, com gráfico por dia</li>
+            <li>e a <strong>comparação com o período anterior</strong>, pra saber se subiu ou caiu</li>
+          </ul>
+        </div>
+
+        <p style="font-size:14.5px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          Também dá pra <strong style="color:#202124;">zerar a contagem</strong> de um dispositivo — útil quando você muda a placa de lugar e quer contar do zero. Nada é apagado, e tem desfazer. E dá pra <strong style="color:#202124;">baixar um relatório em PDF</strong> do período, por dispositivo.
+        </p>
+
+        <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:14px 16px;margin:14px 0;">
+          <p style="font-size:13.5px;color:#78350F;line-height:1.6;margin:0;">
+            <strong>Uma observação honesta:</strong> a contagem por dia começou em <strong>15 de agosto</strong>. Os toques anteriores continuam no seu total, mas sem data — então períodos antes disso não aparecem detalhados. Daqui pra frente, tudo fica registrado.
+          </p>
+        </div>
+
+        ${cta("https://startouch.com.br/app?login=1", "Ver meu painel →")}
+
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:22px 0 0;font-style:italic;">
+          As melhorias do painel são custeadas pela venda dos nossos dispositivos. Enquanto as vendas forem bem, a intenção é manter esse acompanhamento gratuito por muito tempo.
+        </p>
+
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:16px 0 0;">
+          Qualquer dúvida, é só responder esse email — a gente lê tudo.
+        </p>
+      `
+    })
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
 // 2. NEGÓCIO VINCULADO
 // ─────────────────────────────────────────────────────────────
 export function businessLinkedEmail({ userName, bizName }) {
