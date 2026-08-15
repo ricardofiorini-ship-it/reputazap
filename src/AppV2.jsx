@@ -4051,7 +4051,10 @@ ${corte}
       setSavingId(null)
     }
   }
-  const totalAll = platesList.reduce((s, p) => s + (p.total_taps || 0), 0)
+  // O "Sempre" soma os PARCIAIS, não os brutos: se um dispositivo foi zerado,
+  // o número grande tem que bater com a soma das linhas abaixo dele. Somar o
+  // bruto aqui deixava o topo dizendo 36 com as linhas somando 33.
+  const totalAll = platesList.reduce((s, p) => s + partialOf(p), 0)
   const total = period ? (h?.total || 0) : totalAll
   const isEmpty = platesList.length === 0
   const hasReviews = (reviewCount || 0) > 0  // tom de ACELERADOR (não "falta pré-requisito")
