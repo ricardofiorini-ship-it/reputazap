@@ -40,6 +40,40 @@ function withUtm(dest, utm) {
   return dest + (dest.includes("?") ? "&" : "?") + utm;
 }
 
+// ── Contexto do toque (pro log de eventos) ──────────────────
+// Regra: nada de dado pessoal. Sem IP, sem identificador de aparelho.
+// Só o suficiente pra responder "quando" e "por qual meio".
+function firstStr(v) {
+  const s = Array.isArray(v) ? v[0] : v;
+  if (s == null || String(s) === "") return null;
+  return String(s).slice(0, 120);
+}
+
+// Meio físico do toque. A URL gravada no chip/QR traz utm_medium=nfc|qr;
+// placa antiga veio sem parâmetro nenhum e, como o toque é o caso comum,
+// entra como 'nfc' — mesma premissa já usada no redirect (buildPlateUtm).
+function tapMedium(query) {
+  const m = (firstStr(query.utm_medium) || "").toLowerCase();
+  if (m === "nfc" || m === "qr" || m === "link") return m;
+  return m ? "outro" : "nfc";
+}
+
+function deviceKind(ua) {
+  const s = String(ua || "").toLowerCase();
+  if (!s) return null;
+  if (/mobile|android|iphone|ipad|ipod/.test(s)) return "mobile";
+  return "desktop";
+}
+
+function refererHost(ref) {
+  if (!ref) return null;
+  try {
+    return new URL(String(ref)).hostname.slice(0, 120);
+  } catch {
+    return null;
+  }
+}
+
 // Tenta uma consulta ao Supabase até `tries` vezes antes de desistir.
 // Crucial pro fluxo de placa: uma falha transitória de banco NÃO pode ser
 // confundida com "placa não existe" — senão uma placa ativa, no balcão do
@@ -155,13 +189,39 @@ export default async function handler(req, res) {
 
     // Incrementa contador de taps (await rápido pra garantir gravação)
     const wasFirstTap = (plate.total_taps || 0) === 0;
+    const tappedAt = new Date().toISOString();
     try {
       await supabase
         .from("plates")
-        .update({ total_taps: (plate.total_taps || 0) + 1, last_tapped_at: new Date().toISOString() })
+        .update({ total_taps: (plate.total_taps || 0) + 1, last_tapped_at: tappedAt })
         .eq("id", plate.id);
     } catch (e) {
       console.error("[r/code] falha ao incrementar taps:", e);
+    }
+
+    // Log do toque (linha com data) — é o que permite "toques desta semana".
+    // O contador acima diz QUANTOS; só esta linha diz QUANDO.
+    // Precisa ser await (serverless corta promise órfã), mas NUNCA pode
+    // derrubar o redirect: se a tabela não existir ou o banco tropeçar,
+    // o cliente segue pro Google e a gente só perde a linha do log.
+    try {
+      const { error: tapErr } = await supabase.from("plate_taps").insert({
+        plate_id: plate.id,
+        business_id: plate.business_id,
+        code: plate.code,
+        tapped_at: tappedAt,
+        medium: tapMedium(req.query),
+        source: firstStr(req.query.utm_source) || "placa",
+        campaign: firstStr(req.query.utm_campaign),
+        device: deviceKind(req.headers["user-agent"]),
+        referer_host: refererHost(req.headers.referer || req.headers.referrer)
+      });
+      // Supabase devolve erro em vez de estourar exceção — sem este check a
+      // falha seria silenciosa (o bug nº1 daqui) e a tela mostraria "0 toques"
+      // como se ninguém tivesse tocado a placa.
+      if (tapErr) console.error("[r/code] falha ao registrar toque:", tapErr.message || tapErr);
+    } catch (e) {
+      console.error("[r/code] falha ao registrar toque:", e);
     }
 
     // Se é a PRIMEIRA avaliação capturada por esse user (em qualquer dispositivo),

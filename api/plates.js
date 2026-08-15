@@ -311,6 +311,106 @@ async function handleMyPlates(req, res, user) {
   return res.json({ ok: true, plates: data || [] });
 }
 
+// ── CLIENTE: histórico de toques por data ───────────────────
+// `plates.total_taps` é um contador: sabe QUANTOS toques, nunca QUANDO.
+// Esta action lê o log `plate_taps` e responde a pergunta que o cliente faz
+// de verdade: "quantos toques nos últimos 7/30/90 dias, e em qual placa".
+//
+// Duas honestidades embutidas na resposta:
+//   • `available: false` quando a tabela de log ainda não existe — a tela
+//     avisa em vez de mostrar "0 toques", que pareceria placa parada.
+//   • `measuring_since`: o log começou num dia específico. Pedir "90 dias"
+//     de um log com 5 dias de vida não pode parecer queda de movimento.
+const TAP_WINDOWS = [7, 30, 90];
+const TAP_ROW_CAP = 20000;
+
+// O dia do cliente é o dia do Brasil, não o UTC do servidor: um toque às 21h
+// de SP é 00h UTC do dia seguinte e cairia no dia errado do gráfico.
+// (Sem horário de verão no Brasil desde 2019, o deslocamento fixo basta.)
+const BR_OFFSET_MS = 3 * 60 * 60 * 1000;
+function brDay(iso) {
+  return new Date(new Date(iso).getTime() - BR_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+async function handleTapsHistory(req, res, user) {
+  const asked = parseInt(req.query.days, 10);
+  const days = TAP_WINDOWS.includes(asked) ? asked : 30;
+
+  const { data: bizs, error: bizErr } = await supabase
+    .from("businesses")
+    .select("id")
+    .eq("user_id", user.id);
+  if (bizErr) return res.status(500).json({ error: bizErr.message });
+  const bizIds = (bizs || []).map((b) => b.id);
+  if (!bizIds.length) {
+    return res.json({ ok: true, available: true, days, total: 0, by_plate: {}, by_day: [], by_medium: {}, measuring_since: null });
+  }
+
+  // Janela alinhada ao começo do dia brasileiro: "últimos 7 dias" inclui hoje
+  // inteiro + os 6 anteriores, não as últimas 168 horas corridas.
+  const todayBr = brDay(new Date().toISOString());
+  const fromMs = new Date(`${todayBr}T00:00:00.000Z`).getTime() + BR_OFFSET_MS - (days - 1) * 86400000;
+  const fromIso = new Date(fromMs).toISOString();
+
+  const { data: rows, error } = await supabase
+    .from("plate_taps")
+    .select("plate_id, tapped_at, medium")
+    .in("business_id", bizIds)
+    .gte("tapped_at", fromIso)
+    .order("tapped_at", { ascending: true })
+    .limit(TAP_ROW_CAP);
+
+  // Tabela ainda não criada no Supabase (o SQL de schema-plate-taps.sql não
+  // rodou). Isso é "não sei", não "zero" — a tela precisa saber a diferença.
+  if (error) {
+    console.error("[plates] histórico de toques indisponível:", error.message || error);
+    return res.json({ ok: true, available: false, days, total: 0, by_plate: {}, by_day: [], by_medium: {}, measuring_since: null });
+  }
+
+  const byPlate = {};
+  const byMedium = {};
+  const byDayMap = {};
+  for (const r of rows || []) {
+    byPlate[r.plate_id] = (byPlate[r.plate_id] || 0) + 1;
+    const m = r.medium || "nfc";
+    byMedium[m] = (byMedium[m] || 0) + 1;
+    const d = brDay(r.tapped_at);
+    byDayMap[d] = (byDayMap[d] || 0) + 1;
+  }
+
+  // Série com TODOS os dias da janela, inclusive os zerados — senão o gráfico
+  // encosta os dias movimentados um no outro e some com o buraco.
+  const byDay = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(new Date(`${todayBr}T00:00:00.000Z`).getTime() - i * 86400000).toISOString().slice(0, 10);
+    byDay.push({ day: d, taps: byDayMap[d] || 0 });
+  }
+
+  // Desde quando existe log pra ESTE cliente (1ª linha registrada, de qualquer época).
+  let measuringSince = null;
+  const { data: firstRow } = await supabase
+    .from("plate_taps")
+    .select("tapped_at")
+    .in("business_id", bizIds)
+    .order("tapped_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (firstRow?.tapped_at) measuringSince = firstRow.tapped_at;
+
+  return res.json({
+    ok: true,
+    available: true,
+    days,
+    from: fromIso,
+    measuring_since: measuringSince,
+    total: (rows || []).length,
+    by_plate: byPlate,
+    by_medium: byMedium,
+    by_day: byDay,
+    capped: (rows || []).length >= TAP_ROW_CAP
+  });
+}
+
 // ── CLIENTE: renomear o apelido de um dispositivo ───────────
 // Até 30/jul o apelido só podia ser escrito UMA vez, na ativação — quem errava
 // (ou mudava a placa de lugar) ficava preso ao nome antigo. Aqui só o
@@ -386,8 +486,9 @@ export default async function handler(req, res) {
       case "my-businesses":  return await handleMyBusinesses(req, res, auth.user);
       case "my-plates":      return await handleMyPlates(req, res, auth.user);
       case "rename-plate":   return await handleRenamePlate(req, res, auth.user);
+      case "taps-history":   return await handleTapsHistory(req, res, auth.user);
       default:
-        return res.status(400).json({ error: "Unknown action. Use ?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates|rename-plate" });
+        return res.status(400).json({ error: "Unknown action. Use ?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates|rename-plate|taps-history" });
     }
   } catch (err) {
     console.error("[plates] erro não tratado:", err);

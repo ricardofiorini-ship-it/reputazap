@@ -3831,7 +3831,35 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
   const [savingId, setSavingId] = React.useState(null)
   const [renameError, setRenameError] = React.useState('')
   const [renamed, setRenamed] = React.useState({})
-  const platesList = (plates || []).slice().sort((a,b) => (b.total_taps || 0) - (a.total_taps || 0))
+
+  // ── Filtro por data (15/ago) ──────────────────────────────
+  // Até aqui a tela só sabia o TOTAL de sempre: um contador que nunca desce e
+  // não responde "e esta semana?". `win` é a janela escolhida (0 = sempre) e
+  // `hist` guarda o que o backend devolveu por janela, pra não repetir chamada.
+  const [win, setWin] = React.useState(0)
+  const [hist, setHist] = React.useState({})
+  const [histLoading, setHistLoading] = React.useState(false)
+  const [histError, setHistError] = React.useState('')
+
+  React.useEffect(() => {
+    if (!win || hist[win]) return
+    let alive = true
+    setHistLoading(true); setHistError('')
+    apiCall(`/api/plates?action=taps-history&days=${win}`)
+      .then(r => { if (alive) setHist(prev => ({ ...prev, [win]: r })) })
+      .catch(err => { if (alive) setHistError(err.message || 'Não deu pra carregar o período.') })
+      .finally(() => { if (alive) setHistLoading(false) })
+    return () => { alive = false }
+  }, [win])
+
+  const h = win ? hist[win] : null
+  const histReady = !win || (h && h.available !== false)
+  // Número de UM dispositivo na janela atual. Sem janela, é o contador de sempre.
+  function tapsOf(p) {
+    if (!win) return p.total_taps || 0
+    return (h && h.by_plate && h.by_plate[p.id]) || 0
+  }
+  const platesList = (plates || []).slice().sort((a,b) => tapsOf(b) - tapsOf(a))
 
   function startEdit(p) {
     setRenameError('')
@@ -3860,7 +3888,8 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
       setSavingId(null)
     }
   }
-  const total = platesList.reduce((s, p) => s + (p.total_taps || 0), 0)
+  const totalAll = platesList.reduce((s, p) => s + (p.total_taps || 0), 0)
+  const total = win ? (h?.total || 0) : totalAll
   const isEmpty = platesList.length === 0
   const hasReviews = (reviewCount || 0) > 0  // tom de ACELERADOR (não "falta pré-requisito")
   // Detecta a placa mais usada — útil pra "estrela" visual
@@ -3873,6 +3902,22 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>
           {isEmpty && hasReviews ? 'Capte ainda mais avaliações no automático' : 'Onde seus clientes avaliam'}
         </h3>
+        {!isEmpty && (
+          <div style={{ display:'flex', gap: 4, flexWrap:'wrap' }}>
+            {[{ v: 0, label:'Sempre' }, { v: 7, label:'7 dias' }, { v: 30, label:'30 dias' }, { v: 90, label:'90 dias' }].map(opt => (
+              <button key={opt.v} type="button" onClick={() => setWin(opt.v)}
+                aria-pressed={win === opt.v}
+                style={{
+                  background: win === opt.v ? T.blueSoft : 'transparent',
+                  color: win === opt.v ? T.blueDk : T.textMid,
+                  border: `1px solid ${win === opt.v ? '#B9D6FB' : T.border}`,
+                  borderRadius: 999, padding:'4px 10px', fontSize: 11.5,
+                  fontWeight: win === opt.v ? 700 : 500, cursor:'pointer',
+                  fontFamily:"'Inter', sans-serif", lineHeight: 1.4
+                }}>{opt.label}</button>
+            ))}
+          </div>
+        )}
       </div>
 
       {isEmpty ? (
@@ -3935,17 +3980,31 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
             <div style={{
               fontFamily:"'Inter', sans-serif", fontSize: 36, fontWeight: 800,
               color: T.blue, letterSpacing:'-0.03em', lineHeight: 1
-            }}>{total}</div>
+            }}>{histLoading ? '…' : total}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: T.text, lineHeight: 1.3 }}>
-                {total === 0
+                {!histReady
+                  ? 'Ainda não consigo separar por data'
+                  : win
+                  ? (total === 0
+                      ? `Nenhum toque nos últimos ${win} dias`
+                      : total === 1
+                      ? `1 toque nos últimos ${win} dias`
+                      : `${total} toques nos últimos ${win} dias`)
+                  : total === 0
                   ? 'Aguardando o primeiro toque'
                   : total === 1
                   ? 'Cliente tocou no seu dispositivo 1 vez'
                   : `Seus clientes tocaram ${total} vezes`}
               </div>
               <div style={{ fontSize: 12.5, color: T.textMid, marginTop: 2 }}>
-                {total === 0
+                {!histReady
+                  ? 'A contagem por dia acabou de ser ligada. O total de sempre continua valendo.'
+                  : win
+                  ? (total === 0
+                      ? `De sempre, ${totalAll} ${totalAll === 1 ? 'toque' : 'toques'}. Vale conferir se o dispositivo continua num lugar visível.`
+                      : `De sempre, ${totalAll} ${totalAll === 1 ? 'toque' : 'toques'}.`)
+                  : total === 0
                   ? `Posicione ${hasMultiple ? 'os dispositivos' : 'o dispositivo'} num lugar visível e peça pra avaliarem.`
                   : hasMultiple
                   ? `${platesList.length} dispositivos ativos · ${(topPlate && nickOf(topPlate)) || 'o dispositivo principal'} é o campeão`
@@ -3967,10 +4026,50 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
             )}
           </div>
 
+          {/* GRÁFICO POR DIA — só existe com janela escolhida. É o que o contador
+              nunca deu: onde o movimento aconteceu dentro do período. */}
+          {win > 0 && histReady && h?.by_day?.length > 0 && (() => {
+            const maxDay = Math.max(1, ...h.by_day.map(d => d.taps))
+            const fmt = (iso) => { const [y,m,dd] = iso.split('-'); return `${dd}/${m}` }
+            return (
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ display:'flex', alignItems:'flex-end', gap: win > 30 ? 1 : 3, height: 54 }}>
+                  {h.by_day.map(d => (
+                    <div key={d.day} title={`${fmt(d.day)}: ${d.taps} ${d.taps === 1 ? 'toque' : 'toques'}`}
+                      style={{
+                        flex: 1, minWidth: 0,
+                        height: `${Math.max(3, Math.round((d.taps / maxDay) * 100))}%`,
+                        background: d.taps > 0 ? T.blue : T.border,
+                        borderRadius: 2
+                      }}/>
+                  ))}
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize: 10.5, color: T.textDim, marginTop: 4 }}>
+                  <span>{fmt(h.by_day[0].day)}</span>
+                  <span>hoje</span>
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Honestidade: o log por dia começou numa data. Sem este aviso, pedir
+              90 dias de um log com 5 dias de vida pareceria queda de movimento. */}
+          {win > 0 && histReady && h?.measuring_since && (
+            new Date(h.measuring_since).getTime() > new Date(h.from).getTime() + 86400000
+          ) && (
+            <div style={{ fontSize: 11.5, color: T.textDim, marginTop: -6, marginBottom: 12, lineHeight: 1.45 }}>
+              Contando dia a dia desde {new Date(h.measuring_since).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' })} — toques anteriores a essa data entram só no total de sempre.
+            </div>
+          )}
+
+          {histError && (
+            <div style={{ fontSize: 12, color: T.danger, marginBottom: 12 }}>{histError}</div>
+          )}
+
           {/* LISTA SIMPLIFICADA — uma placa por linha, sem badges/códigos confusos */}
           <div style={{ display:'flex', flexDirection:'column', gap: 8 }}>
             {platesList.map((p, idx) => {
-              const taps = p.total_taps || 0
+              const taps = tapsOf(p)
               const isTop = hasMultiple && idx === 0 && taps > 0
               const displayName = nickOf(p) || (PRODUCT_LABELS[p.product_type] || 'Dispositivo')
               const isEditing = editingId === p.id
@@ -4047,7 +4146,9 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
                       <div style={{ fontSize: 11.5, color: T.danger, marginTop: 4 }}>{renameError}</div>
                     )}
                     <div style={{ fontSize: 12, color: T.textMid, marginTop: 2 }}>
-                      {productLabel}{p.last_tapped_at && taps > 0 ? ' · último toque ' + relativeDate(p.last_tapped_at) : ''}
+                      {/* "último toque" olha o contador de sempre, não a janela:
+                          dispositivo com 0 na semana ainda tem um último toque real. */}
+                      {productLabel}{p.last_tapped_at && (p.total_taps || 0) > 0 ? ' · último toque ' + relativeDate(p.last_tapped_at) : ''}
                     </div>
                     {showCode && (
                       <div style={{ fontSize: 10.5, color: T.textDim, marginTop: 2, fontFamily:'monospace' }}>{p.code}</div>
@@ -4059,7 +4160,7 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
                       fontSize: 24, fontWeight: 800,
                       color: taps > 0 ? T.text : T.textDim,
                       lineHeight: 1, letterSpacing:'-0.02em'
-                    }}>{taps}</div>
+                    }}>{histLoading ? '…' : taps}</div>
                     <div style={{ fontSize: 11, color: T.textDim, marginTop: 3, fontWeight: 500 }}>
                       {taps === 1 ? 'toque' : 'toques'}
                     </div>
