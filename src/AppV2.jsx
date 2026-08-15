@@ -3978,11 +3978,16 @@ function CapturePoints({ items, plates, businessId, bizName, isAdmin, reviewCoun
   .axis{display:flex;justify-content:space-between;font-size:10px;color:#94A3B8;margin-top:4px}
   .nota,.rodape{font-size:11px;color:#64748B;line-height:1.5}
   .rodape{border-top:1px solid #E2E8F0;margin-top:28px;padding-top:12px}
-  @media print{body{padding:0}@page{margin:16mm}}
+  .salvar{background:#1A73E8;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+  /* O botão é da tela, não do documento: some no papel. */
+  @media print{body{padding:0}.salvar{display:none}@page{margin:16mm}}
 </style></head><body>
 <header>
   <div><div class="marca">StarTouch</div></div>
-  <div class="emissao">Emitido em ${hoje}</div>
+  <div class="emissao">
+    <button class="salvar" onclick="window.print()">Salvar em PDF</button>
+    <div style="margin-top:6px">Emitido em ${hoje}</div>
+  </div>
 </header>
 <h1>Relatório de toques</h1>
 <p class="sub">${esc(bizName || 'Seu negócio')} · ${esc(titulo)}</p>
@@ -3999,7 +4004,6 @@ ${corte}
   <strong>O que é um toque:</strong> é um cliente encostando o celular no dispositivo (ou lendo o QR Code) e sendo levado à sua página de avaliação no Google.
   Toque não é o mesmo que avaliação publicada: parte dos clientes conclui a avaliação, parte desiste no caminho. Este relatório conta toques, não avaliações.
 </div>
-<script>window.onload=function(){window.print()}<\/script>
 </body></html>`
 
     const w = window.open('', '_blank')
