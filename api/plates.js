@@ -302,13 +302,81 @@ async function handleMyPlates(req, res, user) {
   const bizIds = (bizs || []).map((b) => b.id);
   if (!bizIds.length) return res.json({ ok: true, plates: [] });
 
-  const { data, error } = await supabase
+  const BASE_COLS = "id, code, product_type, status, channel_name, total_taps, last_tapped_at, activated_at";
+  const RESET_COLS = ", counter_reset_at, counter_reset_taps";
+
+  let { data, error } = await supabase
     .from("plates")
-    .select("id, code, product_type, status, channel_name, total_taps, last_tapped_at, activated_at")
+    .select(BASE_COLS + RESET_COLS)
     .in("business_id", bizIds)
     .order("activated_at", { ascending: false });
+
+  // As colunas do marco zero chegaram depois (ALTER em schema-plate-taps.sql).
+  // Enquanto o ALTER não roda, pedir por elas derrubaria a LISTA INTEIRA de
+  // dispositivos — o cliente perderia a tela por causa de um recurso novo.
+  // Sem elas, a lista volta completa; só o botão de zerar fica de fora.
+  if (error) {
+    console.error("[plates] select com marco zero falhou, caindo pro basico:", error.message || error);
+    ({ data, error } = await supabase
+      .from("plates")
+      .select(BASE_COLS)
+      .in("business_id", bizIds)
+      .order("activated_at", { ascending: false }));
+  }
+
   if (error) return res.status(500).json({ error: error.message });
   return res.json({ ok: true, plates: data || [] });
+}
+
+// ── CLIENTE: zerar a contagem de um dispositivo (marco zero) ─
+// É o parcial do hodômetro, não a borracha: guarda QUANDO zerou e QUANTO o
+// contador marcava. Nada é apagado — nem a linha do log, nem o total. Por isso
+// desfazer existe e é seguro. Apagar toque de verdade é operação de admin,
+// pra limpar teste, e não mora aqui.
+async function handleResetCounter(req, res, user) {
+  if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
+  const { plate_id, undo } = req.body || {};
+  if (!plate_id || !UUID_RE.test(String(plate_id))) {
+    return res.status(400).json({ error: "plate_id inválido" });
+  }
+
+  const { data: plate, error: plateErr } = await supabase
+    .from("plates")
+    .select("id, business_id, total_taps")
+    .eq("id", plate_id)
+    .maybeSingle();
+  if (plateErr) return res.status(500).json({ error: plateErr.message });
+  if (!plate) return res.status(404).json({ error: "Dispositivo não encontrado" });
+  if (!plate.business_id) return res.status(400).json({ error: "Esse dispositivo ainda não foi ativado" });
+
+  // DONO: a rota roda com SERVICE_KEY e passa por cima do RLS, então a posse
+  // é conferida na mão — igual ao renomear.
+  const { data: biz, error: bizErr } = await supabase
+    .from("businesses")
+    .select("id")
+    .eq("id", plate.business_id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (bizErr) return res.status(500).json({ error: bizErr.message });
+  if (!biz) return res.status(403).json({ error: "Esse dispositivo não é seu" });
+
+  const patch = undo
+    ? { counter_reset_at: null, counter_reset_taps: 0 }
+    : { counter_reset_at: new Date().toISOString(), counter_reset_taps: plate.total_taps || 0 };
+
+  const { data: updated, error: updErr } = await supabase
+    .from("plates")
+    .update(patch)
+    .eq("id", plate.id)
+    .select("id, code, total_taps, counter_reset_at, counter_reset_taps")
+    .single();
+  // Erro aqui quase sempre é o ALTER que não rodou. Diz isso em vez de "erro interno".
+  if (updErr) {
+    console.error("[plates] marco zero falhou:", updErr.message || updErr);
+    return res.status(500).json({ error: "Não deu pra zerar agora. Se o problema persistir, o banco ainda não tem as colunas do marco zero." });
+  }
+
+  return res.json({ ok: true, plate: updated });
 }
 
 // ── CLIENTE: histórico de toques por data ───────────────────
@@ -433,6 +501,24 @@ async function handleTapsHistory(req, res, user) {
     byDay.push({ day: d, taps: byDayMap[d] || 0 });
   }
 
+  // Período anterior de MESMO tamanho, colado no início deste. "42 toques" não
+  // diz nada sozinho; "42, contra 31 no período anterior" diz. Só conta linhas
+  // (head+count), sem trazer dado nenhum — é barato.
+  // Só compara se o período anterior estiver inteiro depois do início do log:
+  // comparar com uma época sem registro daria "caiu 100%", que é mentira.
+  let prevTotal = null;
+  const prevToDay = addDays(fromDay, -1);
+  const prevFromDay = addDays(fromDay, -days);
+  if (prevFromDay >= TAP_LOG_START) {
+    const { count, error: prevErr } = await supabase
+      .from("plate_taps")
+      .select("id", { count: "exact", head: true })
+      .in("business_id", bizIds)
+      .gte("tapped_at", brDayStartIso(prevFromDay))
+      .lt("tapped_at", brDayStartIso(fromDay));
+    if (!prevErr) prevTotal = count || 0;
+  }
+
   // Desde quando existe log pra ESTE cliente (1ª linha registrada, de qualquer época).
   let measuringSince = null;
   const { data: firstRow } = await supabase
@@ -450,6 +536,9 @@ async function handleTapsHistory(req, res, user) {
     available: true,
     from: fromIso,
     measuring_since: measuringSince,
+    prev_total: prevTotal,
+    prev_from_day: prevTotal === null ? null : prevFromDay,
+    prev_to_day: prevTotal === null ? null : prevToDay,
     total: (rows || []).length,
     by_plate: byPlate,
     by_medium: byMedium,
@@ -534,8 +623,9 @@ export default async function handler(req, res) {
       case "my-plates":      return await handleMyPlates(req, res, auth.user);
       case "rename-plate":   return await handleRenamePlate(req, res, auth.user);
       case "taps-history":   return await handleTapsHistory(req, res, auth.user);
+      case "reset-counter":  return await handleResetCounter(req, res, auth.user);
       default:
-        return res.status(400).json({ error: "Unknown action. Use ?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates|rename-plate|taps-history" });
+        return res.status(400).json({ error: "Unknown action. Use ?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates|rename-plate|taps-history|reset-counter" });
     }
   } catch (err) {
     console.error("[plates] erro não tratado:", err);

@@ -3820,7 +3820,7 @@ const PRODUCT_SHOWCASE = [
   { img: '/gadget-pulseira.png', name: 'Pulseira NFC' },
 ]
 
-function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, isMobile }) {
+function CapturePoints({ items, plates, businessId, bizName, isAdmin, reviewCount = 0, isMobile }) {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [showCode, setShowCode] = React.useState(false)
   // Renomear apelido (30/jul): o nome era escrito só na ativação e ficava preso.
@@ -3862,9 +3862,39 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
 
   const h = period ? hist[periodKey] : null
   const histReady = !period || (h && h.available !== false)
-  // Número de UM dispositivo no recorte atual. Sem recorte, é o contador de sempre.
+
+  // ── Marco zero ────────────────────────────────────────────
+  // Zerar é o parcial do hodômetro: não apaga nada, marca um recomeço.
+  // `resets` reflete na hora o que acabamos de salvar, sem recarregar a página.
+  const [resets, setResets] = React.useState({})
+  const [resetting, setResetting] = React.useState(null)
+  const resetOf = (p) => Object.prototype.hasOwnProperty.call(resets, p.id) ? resets[p.id] : (p.counter_reset_at ? { at: p.counter_reset_at, taps: p.counter_reset_taps || 0 } : null)
+  // Parcial = o que veio DEPOIS do recomeço. O total nunca é tocado.
+  function partialOf(p) {
+    const t = p.total_taps || 0
+    const r = resetOf(p)
+    return r ? Math.max(0, t - (r.taps || 0)) : t
+  }
+  async function toggleReset(p) {
+    const undo = !!resetOf(p)
+    setResetting(p.id)
+    try {
+      const r = await apiCall('/api/plates?action=reset-counter', {
+        method: 'POST',
+        body: JSON.stringify({ plate_id: p.id, undo })
+      })
+      setResets(prev => ({ ...prev, [p.id]: undo ? null : { at: r?.plate?.counter_reset_at, taps: r?.plate?.counter_reset_taps ?? (p.total_taps || 0) } }))
+    } catch (err) {
+      setHistError(err.message || 'Não deu pra zerar agora.')
+    } finally {
+      setResetting(null)
+    }
+  }
+
+  // Número de UM dispositivo no recorte atual. Sem recorte, é o parcial
+  // (o contador de sempre, respeitando um eventual recomeço).
   function tapsOf(p) {
-    if (!period) return p.total_taps || 0
+    if (!period) return partialOf(p)
     return (h && h.by_plate && h.by_plate[p.id]) || 0
   }
   // '2026-08-15' → '15/08'. Feito na mão porque `new Date('2026-08-15')` é lido
@@ -3872,6 +3902,111 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
   const dayBR = (d) => d ? `${d.slice(8,10)}/${d.slice(5,7)}` : ''
   const dayBRFull = (d) => d ? `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}` : ''
   const periodLabel = !period ? '' : (period.days ? `nos últimos ${period.days} dias` : `de ${dayBR(period.from)} a ${dayBR(period.to)}`)
+
+  // "42 toques" não diz nada sozinho. Contra o período anterior de mesmo
+  // tamanho, vira notícia. Só aparece quando dá pra comparar de verdade:
+  // sem período anterior medido, o servidor manda null e a linha some.
+  function compareText() {
+    if (!h || h.prev_total == null) return null
+    const prev = h.prev_total
+    if (prev === 0 && total === 0) return null
+    if (prev === 0) return 'O período anterior não teve nenhum toque.'
+    const diff = Math.round(((total - prev) / prev) * 100)
+    if (diff === 0) return `Mesmo movimento do período anterior (${prev}).`
+    return `${diff > 0 ? '+' : ''}${diff}% em relação ao período anterior, que teve ${prev}.`
+  }
+
+  // ── Relatório em PDF ──────────────────────────────────────
+  // Sem biblioteca de PDF: monta uma página limpa numa aba nova e deixa o
+  // navegador imprimir/salvar como PDF. Funciona no computador e no celular,
+  // não pesa no servidor e o layout é 100% nosso.
+  // Regra editorial: toque NÃO é avaliação. O relatório separa os dois; somar
+  // seria prometer o que a gente não entrega.
+  function openReport() {
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]))
+    const hoje = new Date().toLocaleDateString('pt-BR')
+    const titulo = period
+      ? (period.days ? `Últimos ${period.days} dias` : `De ${dayBRFull(period.from)} a ${dayBRFull(period.to)}`)
+      : 'Desde a instalação'
+
+    const linhas = platesList.map(p => {
+      const r = resetOf(p)
+      return `<tr>
+        <td>${esc(nickOf(p) || PRODUCT_LABELS[p.product_type] || 'Dispositivo')}</td>
+        <td>${esc(PRODUCT_LABELS[p.product_type] || p.product_type)}</td>
+        <td class="n">${tapsOf(p)}</td>
+        <td class="q">${p.last_tapped_at ? new Date(p.last_tapped_at).toLocaleDateString('pt-BR') : '—'}${!period && r ? ` <span class="obs">(contagem zerada em ${new Date(r.at).toLocaleDateString('pt-BR')})</span>` : ''}</td>
+      </tr>`
+    }).join('')
+
+    const maxDay = h?.by_day?.length ? Math.max(1, ...h.by_day.map(d => d.taps)) : 1
+    const grafico = (period && h?.by_day?.length && total > 0) ? `
+      <h2>Dia a dia</h2>
+      <div class="chart">
+        ${h.by_day.map(d => `<div class="bar" title="${dayBR(d.day)}"><i style="height:${Math.max(2, Math.round((d.taps / maxDay) * 100))}%"></i></div>`).join('')}
+      </div>
+      <div class="axis"><span>${dayBR(h.by_day[0].day)}</span><span>${dayBR(h.by_day[h.by_day.length - 1].day)}</span></div>` : ''
+
+    const corte = (period && h?.log_start && h.from_day < h.log_start)
+      ? `<p class="nota">O registro dia a dia começou em ${dayBRFull(h.log_start)}. Toques anteriores a essa data existem no total acumulado, mas sem data — por isso não aparecem no gráfico acima.</p>` : ''
+
+    const comparacao = compareText() ? `<p class="comp">${esc(compareText())}</p>` : ''
+
+    const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>
+<title>Relatório de toques — ${esc(bizName || 'StarTouch')}</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:'Inter',-apple-system,Segoe UI,Roboto,sans-serif;color:#0F172A;margin:0;padding:32px;max-width:820px}
+  header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1A73E8;padding-bottom:12px;margin-bottom:20px}
+  .marca{font-size:19px;font-weight:800;color:#1A73E8;letter-spacing:-.02em}
+  .emissao{font-size:11px;color:#64748B;text-align:right}
+  h1{font-size:20px;margin:0 0 2px}
+  .sub{font-size:13px;color:#475569;margin:0 0 18px}
+  .hero{background:#F1F6FE;border:1px solid #DBE7F8;border-radius:10px;padding:16px 18px;margin-bottom:20px}
+  .big{font-size:38px;font-weight:800;color:#1A73E8;line-height:1;letter-spacing:-.03em}
+  .comp{font-size:13px;color:#334155;margin:6px 0 0}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#64748B;margin:22px 0 8px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#64748B;border-bottom:1px solid #E2E8F0;padding:6px 8px}
+  td{padding:9px 8px;border-bottom:1px solid #F1F5F9}
+  td.n{text-align:right;font-weight:700;font-size:15px}
+  td.q,.obs{color:#64748B}
+  .obs{font-size:11px}
+  .chart{display:flex;align-items:flex-end;gap:2px;height:80px;border-bottom:1px solid #E2E8F0;padding-bottom:2px}
+  .bar{flex:1;height:100%;display:flex;align-items:flex-end}
+  .bar i{display:block;width:100%;background:#1A73E8;border-radius:2px}
+  .axis{display:flex;justify-content:space-between;font-size:10px;color:#94A3B8;margin-top:4px}
+  .nota,.rodape{font-size:11px;color:#64748B;line-height:1.5}
+  .rodape{border-top:1px solid #E2E8F0;margin-top:28px;padding-top:12px}
+  @media print{body{padding:0}@page{margin:16mm}}
+</style></head><body>
+<header>
+  <div><div class="marca">StarTouch</div></div>
+  <div class="emissao">Emitido em ${hoje}</div>
+</header>
+<h1>Relatório de toques</h1>
+<p class="sub">${esc(bizName || 'Seu negócio')} · ${esc(titulo)}</p>
+<div class="hero">
+  <div class="big">${total}</div>
+  <div style="font-size:13px;font-weight:600;margin-top:4px">${total === 1 ? 'toque registrado' : 'toques registrados'} no período</div>
+  ${comparacao}
+</div>
+<h2>Por dispositivo</h2>
+<table><thead><tr><th>Dispositivo</th><th>Tipo</th><th style="text-align:right">Toques</th><th>Último toque</th></tr></thead><tbody>${linhas}</tbody></table>
+${grafico}
+${corte}
+<div class="rodape">
+  <strong>O que é um toque:</strong> é um cliente encostando o celular no dispositivo (ou lendo o QR Code) e sendo levado à sua página de avaliação no Google.
+  Toque não é o mesmo que avaliação publicada: parte dos clientes conclui a avaliação, parte desiste no caminho. Este relatório conta toques, não avaliações.
+</div>
+<script>window.onload=function(){window.print()}<\/script>
+</body></html>`
+
+    const w = window.open('', '_blank')
+    if (!w) { setHistError('Seu navegador bloqueou a janela do relatório. Libere os pop-ups deste site e tente de novo.'); return }
+    w.document.write(html)
+    w.document.close()
+  }
 
   function applyRange(e) {
     e && e.preventDefault()
@@ -4064,11 +4199,12 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
                 {!histReady
                   ? 'A contagem por dia acabou de ser ligada. O total de sempre continua valendo.'
                   : period
-                  ? (total === 0 && h?.measuring_since
-                      // Só sugere conferir a placa quando já existe medição rodando —
-                      // com o log recém-ligado, "0" não é sinal de placa parada.
-                      ? `De sempre, ${totalAll} ${totalAll === 1 ? 'toque' : 'toques'}. Vale conferir se o dispositivo continua num lugar visível.`
-                      : `De sempre, ${totalAll} ${totalAll === 1 ? 'toque' : 'toques'}.`)
+                  // A comparação com o período anterior é a informação mais útil
+                  // que existe aqui; quando ela não dá pra ser feita, cai no total.
+                  ? (compareText()
+                      || (total === 0 && h?.measuring_since
+                          ? `De sempre, ${totalAll} ${totalAll === 1 ? 'toque' : 'toques'}. Vale conferir se o dispositivo continua num lugar visível.`
+                          : `De sempre, ${totalAll} ${totalAll === 1 ? 'toque' : 'toques'}.`))
                   : total === 0
                   ? `Posicione ${hasMultiple ? 'os dispositivos' : 'o dispositivo'} num lugar visível e peça pra avaliarem.`
                   : hasMultiple
@@ -4118,21 +4254,14 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
             )
           })()}
 
-          {/* AVISO EXPLÍCITO — a regra do dado, não um rodapé tímido.
-              Filtrar por data só existe a partir do dia em que o log entrou no ar;
-              antes disso há apenas o total acumulado. Sem dizer isso em voz alta,
-              um período antigo devolveria "0 toques" e leria como placa parada. */}
-          {period && histReady && h?.log_start && (
-            <div style={{
-              display:'flex', gap: 8, alignItems:'flex-start',
-              background:'#FFFBEB', border:'1px solid #FDE68A', borderRadius: 10,
-              padding:'10px 12px', marginBottom: 12
-            }}>
-              <Info size={15} style={{ color:'#B45309', flexShrink: 0, marginTop: 1 }}/>
-              <div style={{ fontSize: 12, color:'#78350F', lineHeight: 1.5 }}>
-                O registro dia a dia começou em <strong>{dayBRFull(h.log_start)}</strong>. O que veio antes foi somado no total de sempre — hoje em <strong>{totalAll} {totalAll === 1 ? 'toque' : 'toques'}</strong> — mas sem data guardada, então não dá pra filtrar período anterior a essa data.
-                {h.from_day < h.log_start && ' O período que você escolheu começa antes disso: o trecho anterior aparece zerado aqui, mas continua contado no "Sempre".'}
-              </div>
+          {/* Aviso do corte — SÓ quando muda a leitura do número.
+              Se o período pedido está todo depois do início do registro, o número
+              está completo e não há nada a explicar: caixa de alerta em tela onde
+              não há problema nenhum vira ruído, e ruído o dono aprende a ignorar. */}
+          {period && histReady && h?.log_start && h.from_day < h.log_start && (
+            <div style={{ display:'flex', gap: 6, alignItems:'flex-start', fontSize: 11.5, color: T.textDim, marginTop: -6, marginBottom: 12, lineHeight: 1.45 }}>
+              <Info size={13} style={{ flexShrink: 0, marginTop: 1 }}/>
+              <span>Detalhe por dia só existe a partir de {dayBR(h.log_start)}. O que veio antes está no total de sempre, mas sem data.</span>
             </div>
           )}
 
@@ -4224,6 +4353,29 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
                           dispositivo com 0 na semana ainda tem um último toque real. */}
                       {productLabel}{p.last_tapped_at && (p.total_taps || 0) > 0 ? ' · último toque ' + relativeDate(p.last_tapped_at) : ''}
                     </div>
+                    {/* Marco zero: só na visão "Sempre". Em recorte por data o
+                        número é literal — o que aconteceu naqueles dias, ponto. */}
+                    {!period && (() => {
+                      const r = resetOf(p)
+                      const busy = resetting === p.id
+                      if (!r) {
+                        return (p.total_taps || 0) > 0 ? (
+                          <button type="button" disabled={busy} onClick={() => toggleReset(p)}
+                            style={{ background:'transparent', border:'none', padding:'2px 0', margin:0, fontSize: 11, color: T.textDim, cursor: busy ? 'default' : 'pointer', textDecoration:'underline', fontFamily:"'Inter', sans-serif" }}>
+                            {busy ? 'zerando…' : 'zerar contagem'}
+                          </button>
+                        ) : null
+                      }
+                      return (
+                        <div style={{ fontSize: 11, color: T.textDim, marginTop: 1 }}>
+                          zerado em {new Date(r.at).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' })} · total desde a instalação: {p.total_taps || 0} ·{' '}
+                          <button type="button" disabled={busy} onClick={() => toggleReset(p)}
+                            style={{ background:'transparent', border:'none', padding:0, margin:0, fontSize: 11, color: T.blue, cursor: busy ? 'default' : 'pointer', textDecoration:'underline', fontFamily:"'Inter', sans-serif" }}>
+                            {busy ? 'desfazendo…' : 'desfazer'}
+                          </button>
+                        </div>
+                      )
+                    })()}
                     {showCode && (
                       <div style={{ fontSize: 10.5, color: T.textDim, marginTop: 2, fontFamily:'monospace' }}>{p.code}</div>
                     )}
@@ -4251,6 +4403,14 @@ function CapturePoints({ items, plates, businessId, isAdmin, reviewCount = 0, is
               fontFamily:"'Inter', sans-serif", textAlign:'center'
             }}>
               + Ativar novo dispositivo
+            </button>
+            <button onClick={openReport} title="Abre uma versão pra impressão — escolha 'Salvar como PDF'"
+              style={{
+                background:'transparent', color: T.textMid, border:`1px solid ${T.border}`, borderRadius: 10,
+                padding:'10px 14px', fontSize: 12.5, fontWeight: 600, cursor:'pointer',
+                fontFamily:"'Inter', sans-serif", display:'inline-flex', alignItems:'center', gap: 6
+              }}>
+              <Download size={14}/> Baixar relatório
             </button>
             {isAdmin && (
               <button onClick={() => setShowCode(s => !s)} style={{
@@ -6438,7 +6598,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
 
         {/* CAPTURE POINTS — id pra scroll automático de /app#pontos-de-captacao */}
         <Section id="pontos-de-captacao">
-          <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} isAdmin={isAdminUser(user)} reviewCount={d.kpis.reviewCount} isMobile={isMobile} />
+          <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} bizName={d.biz.name} isAdmin={isAdminUser(user)} reviewCount={d.kpis.reviewCount} isMobile={isMobile} />
         </Section>
 
         {/* O card "Acompanhe sua evolução — crie conta grátis" SAIU (03/ago).

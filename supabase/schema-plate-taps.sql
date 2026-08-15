@@ -37,6 +37,15 @@ CREATE TABLE IF NOT EXISTS plate_taps (
 CREATE INDEX IF NOT EXISTS idx_plate_taps_biz_time ON plate_taps(business_id, tapped_at DESC);
 CREATE INDEX IF NOT EXISTS idx_plate_taps_plate_time ON plate_taps(plate_id, tapped_at DESC);
 
+-- ── MARCO ZERO (parcial do hodômetro) ───────────────────────
+-- O dono vai querer "zerar o contador" — mudou a placa de lugar, quer contar
+-- a partir da campanha nova, quer limpar toques de teste. Zerar NÃO apaga:
+-- guarda a data do recomeço e quanto o contador marcava naquele instante.
+-- O parcial vira (total_taps - counter_reset_taps), o total continua intacto
+-- e desfazer é só limpar as duas colunas. Dado apagado não volta; marco volta.
+ALTER TABLE plates ADD COLUMN IF NOT EXISTS counter_reset_at TIMESTAMPTZ;
+ALTER TABLE plates ADD COLUMN IF NOT EXISTS counter_reset_taps INTEGER DEFAULT 0;
+
 -- ── RLS ─────────────────────────────────────────────────────
 -- Mesma regra das placas: o cliente enxerga só o que é dos próprios negócios.
 -- A escrita acontece no backend com SERVICE_KEY (bypassa RLS) — ninguém
