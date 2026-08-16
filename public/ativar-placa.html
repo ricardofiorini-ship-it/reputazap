@@ -19,7 +19,7 @@ fbq('track', 'PageView');
   gtag('config', 'G-HCLV0Z640L');
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Ativar nova placa — StarTouch</title>
+<title>Ativar novo dispositivo — StarTouch</title>
 <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/startouch-vars.css"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
@@ -95,7 +95,7 @@ fbq('track', 'PageView');
 <div class="biz-header" id="bizHeader" style="display:none">
   <div class="biz-header-google"></div>
   <div style="flex:1;min-width:0">
-    <div class="biz-header-label">Ativando placa para</div>
+    <div class="biz-header-label">Ativando dispositivo para</div>
     <div class="biz-header-name" id="bizName">—</div>
   </div>
 </div>
@@ -114,7 +114,7 @@ fbq('track', 'PageView');
   <div class="device-card ok" id="deviceOk" style="display:none">
     <div class="device-icon">✅</div>
     <div class="device-title">Tudo certo!</div>
-    <div class="device-desc">Seu Android com Chrome suporta gravação NFC.<br/>Vamos ativar suas placas aqui mesmo.</div>
+    <div class="device-desc">Seu Android com Chrome suporta gravação NFC.<br/>Vamos ativar seus dispositivos aqui mesmo.</div>
     <button class="btn-primary" onclick="show('screenWrite')">Começar gravação →</button>
   </div>
 
@@ -137,9 +137,9 @@ fbq('track', 'PageView');
 <!-- WRITE -->
 <div class="screen" id="screenWrite">
   <button class="btn-back" onclick="show('screenDevice')">← Voltar</button>
-  <div style="text-align:center"><span class="tag-counter">Placa #<span id="tagCounter">1</span></span></div>
-  <h2>Grave a placa NFC</h2>
-  <p class="sub">Aproxime a placa virgem na traseira do celular.</p>
+  <div style="text-align:center"><span class="tag-counter">Dispositivo #<span id="tagCounter">1</span></span></div>
+  <h2>Grave o dispositivo</h2>
+  <p class="sub">Aproxime o dispositivo novo na traseira do celular.</p>
 
   <div class="os-tabs">
     <button class="os-tab active" onclick="switchOS('android')">📱 Android</button>
@@ -149,9 +149,9 @@ fbq('track', 'PageView');
   <div id="androidSteps">
     <div class="nfc-card">
       <div class="nfc-step"><div class="nfc-n">1</div><div><h4>Clique no botão abaixo</h4><p>Vamos gravar o link específico do seu negócio.</p></div></div>
-      <div class="nfc-step"><div class="nfc-n">2</div><div><h4>Aproxime a placa NFC</h4><p>Encoste na parte traseira do celular quando o sistema pedir.</p></div></div>
+      <div class="nfc-step"><div class="nfc-n">2</div><div><h4>Aproxime o dispositivo</h4><p>Encoste na parte traseira do celular quando o sistema pedir.</p></div></div>
     </div>
-    <button class="btn-primary" onclick="writeNFC()" id="nfcBtn">📡 Gravar placa agora</button>
+    <button class="btn-primary" onclick="writeNFC()" id="nfcBtn">📡 Gravar dispositivo agora</button>
     <p class="status-msg" id="nfcStatus"></p>
   </div>
 
@@ -159,10 +159,10 @@ fbq('track', 'PageView');
     <div class="nfc-card">
       <div class="nfc-step"><div class="nfc-n">1</div><div><h4>Baixe o NFC Tools</h4><a class="app-link" href="https://apps.apple.com/br/app/nfc-tools/id1252962749" target="_blank" rel="noopener">📱 Baixar — App Store</a></div></div>
       <div class="nfc-step"><div class="nfc-n">2</div><div><h4>No app: Write → Add record → URL</h4><p>Cole este link:</p><code id="nfcLinkDisplay">—</code></div></div>
-      <div class="nfc-step"><div class="nfc-n">3</div><div><h4>Toque em Write e aproxime a placa</h4><p>Quando aparecer "Done!", a placa está pronta.</p></div></div>
+      <div class="nfc-step"><div class="nfc-n">3</div><div><h4>Toque em Write e aproxime o dispositivo</h4><p>Quando aparecer "Done!", o dispositivo está pronto.</p></div></div>
     </div>
     <button class="btn-primary" onclick="copyNFCLink()">📋 Copiar link</button>
-    <button class="btn-secondary" onclick="onIphoneWritten()">Já gravei essa placa</button>
+    <button class="btn-secondary" onclick="onIphoneWritten()">Já gravei esse dispositivo</button>
     <p class="status-msg" id="copyStatus"></p>
   </div>
 </div>
@@ -171,10 +171,10 @@ fbq('track', 'PageView');
 <div class="screen" id="screenTagSuccess">
   <div class="success-card">
     <div class="success-card-icon">✅</div>
-    <div class="success-card-title">Placa #<span id="successCount">1</span> gravada</div>
-    <div class="success-card-sub">Tudo certo. Posicione a placa no negócio.</div>
+    <div class="success-card-title">Dispositivo #<span id="successCount">1</span> gravado</div>
+    <div class="success-card-sub">Tudo certo. Posicione o dispositivo no negócio.</div>
   </div>
-  <button class="btn-primary" onclick="recordAnother()">Gravar outra placa</button>
+  <button class="btn-primary" onclick="recordAnother()">Gravar outro dispositivo</button>
   <button class="btn-secondary" onclick="finish()">Concluir e voltar ao dashboard</button>
 </div>
 
@@ -182,7 +182,7 @@ fbq('track', 'PageView');
 <div class="screen" id="screenDone">
   <div class="success-card">
     <div class="success-card-icon">🎉</div>
-    <div class="success-card-title"><span id="doneCount">1</span> placa(s) ativada(s)</div>
+    <div class="success-card-title"><span id="doneCount">1</span> dispositivo(s) ativado(s)</div>
     <div class="success-card-sub">Voltando ao dashboard…</div>
   </div>
 </div>
@@ -210,7 +210,7 @@ window.addEventListener("load", async () => {
     }
     const data = await res.json();
     if (!data.business?.place_id) {
-      alert("Você precisa cadastrar um negócio antes de ativar uma placa.");
+      alert("Você precisa cadastrar um negócio antes de ativar um dispositivo.");
       window.location.href = "/app?login=1";
       return;
     }
@@ -263,7 +263,7 @@ function show(id) {
     // reset estado do botão
     const btn = document.getElementById("nfcBtn");
     btn.disabled = false;
-    btn.innerHTML = "📡 Gravar placa agora";
+    btn.innerHTML = "📡 Gravar dispositivo agora";
     document.getElementById("nfcStatus").textContent = "";
     document.getElementById("nfcStatus").className = "status-msg";
     document.getElementById("copyStatus").textContent = "";
@@ -282,20 +282,20 @@ async function writeNFC() {
   const btn = document.getElementById("nfcBtn");
   const status = document.getElementById("nfcStatus");
   if (!("NDEFReader" in window)) {
-    status.textContent = "⚠️ Use o Chrome no Android para gravar a placa.";
+    status.textContent = "⚠️ Use o Chrome no Android para gravar o dispositivo.";
     status.className = "status-msg error";
     return;
   }
   try {
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner">⟳</span> Aproxime a placa NFC…';
-    status.textContent = "Aguardando placa…";
+    btn.innerHTML = '<span class="spinner">⟳</span> Aproxime o dispositivo…';
+    status.textContent = "Aguardando dispositivo…";
     status.className = "status-msg loading";
     const ndef = new NDEFReader();
     await ndef.write({ records: [{ recordType: "url", data: nfcLink }] });
     status.textContent = "✅ Gravado com sucesso!";
     status.className = "status-msg success";
-    btn.innerHTML = "✅ Placa gravada!";
+    btn.innerHTML = "✅ Dispositivo gravado!";
     onTagWritten();
   } catch (err) {
     status.textContent = `Erro: ${err.message || "tente novamente"}`;

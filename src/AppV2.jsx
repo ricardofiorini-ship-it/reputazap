@@ -2112,7 +2112,7 @@ function LojaScreen({ data, isMobile, plan }) {
           Loja StarTouch
         </h1>
         <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
-          Placas, cartões e pulseiras NFC pra ampliar seus pontos de captação de avaliações.
+          Dispositivos NFC pra ampliar seus pontos de captação de avaliações.
         </p>
       </div>
 
@@ -3184,7 +3184,7 @@ function ShareReviewsModal({ placeId, bizName, onClose, onActivatePlate }) {
         {/* 2. Ativar código de dispositivo que já tem */}
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: T.textMid, letterSpacing:'.04em', textTransform:'uppercase', marginBottom: 8 }}>
-            ② Já tem placa/cartão NFC?
+            ② Já tem um dispositivo StarTouch?
           </div>
           <button
             onClick={() => { onClose(); onActivatePlate && onActivatePlate() }}
@@ -3540,7 +3540,7 @@ function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate }) {
   } else if (noDevice) {
     a = {
       Icon: Rocket, type: 'activate',
-      title: 'Ative sua placa e capte avaliações no automático',
+      title: 'Ative seu dispositivo e capte avaliações no automático',
       context: 'Um dispositivo NFC coleta avaliações a cada atendimento, sem esforço.',
       badge: null, cta: 'Ativar código', onClick: onActivate
     }
@@ -5945,7 +5945,7 @@ function scoreBreakdown(d) {
       detail: `${reviews} ${reviews === 1 ? 'avaliação' : 'avaliações'}${reviews < 100 ? ' (pontuação cheia em 100)' : ''}.`,
       hint: reviews >= 100
         ? 'Volume no topo — continue coletando pra não perder posição.'
-        : `Colete mais avaliações com as placas e cartões NFC${reviews < 100 ? ` (faltam ~${100 - reviews} pra a pontuação cheia)` : ''}.`
+        : `Colete mais avaliações com os dispositivos NFC${reviews < 100 ? ` (faltam ~${100 - reviews} pra a pontuação cheia)` : ''}.`
     },
     {
       // Mesmo nome e mesmo número da tabela de concorrentes ("Lugar no Google").

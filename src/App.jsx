@@ -744,7 +744,7 @@ export default function StarTouch({ user, onLogout }) {
                 {tab==="capturar"&&"Dispositivos NFC pro seu balcão"}
                 {tab==="wall"&&"Suas melhores avaliações"}
                 {tab==="google"&&(googleConnected?"Sincronização ativa":"Configure sua conta Google")}
-                {tab==="plano"&&"Conheça o Plano Pro ou peça sua plaquinha"}
+                {tab==="plano"&&"Conheça o Plano Pro ou peça seu dispositivo"}
                 {tab==="settings"&&"Dados do seu negócio e da sua conta"}
               </div>
             </div>
@@ -1429,7 +1429,7 @@ export default function StarTouch({ user, onLogout }) {
               <div style={{marginBottom:32}}>
                 <div style={{marginBottom:18}}>
                   <div style={{fontFamily:"'General Sans',sans-serif",fontSize:20,fontWeight:700,color:"#0f172a",marginBottom:4,letterSpacing:"-0.005em"}}>Quer automatizar no balcão?</div>
-                  <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55}}>Placas, QR Codes ou cartões NFC pros clientes avaliarem sem depender da equipe.</div>
+                  <div style={{fontSize:13,color:"#6b7280",lineHeight:1.55}}>Dispositivos com NFC e QR Code pros clientes avaliarem sem depender da equipe.</div>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14}}>
                   {[
@@ -1652,7 +1652,7 @@ export default function StarTouch({ user, onLogout }) {
 
               {/* NFC card visual */}
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24,marginBottom:20}}>
-                <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:20}}>Sua Plaquinha NFC</div>
+                <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:20}}>Seu Dispositivo NFC</div>
                 <div style={{display:"flex",gap:24,alignItems:"flex-start",flexWrap:"wrap"}}>
                   <div style={{width:200,height:116,background:"linear-gradient(135deg,#e8f0fe,#a7f3d0)",borderRadius:16,border:"1px solid #a7f3d0",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,flexShrink:0,boxShadow:"0 8px 32px rgba(26,115,232,0.15)"}}>
                     <img src="/startouch-logo.png" alt="StarTouch" style={{height:30,width:"auto"}}/>
@@ -1661,7 +1661,7 @@ export default function StarTouch({ user, onLogout }) {
                   </div>
                   <div style={{flex:1,minWidth:180}}>
                     <div style={{fontSize:13,color:"#9ca3af",lineHeight:1.7,marginBottom:16}}>
-                      Plaquinha personalizada com a marca do seu negócio. Posicione no balcão, caixa ou mesa. O cliente aproxima o celular e já avalia.
+                      Dispositivo personalizado com a marca do seu negócio. Posicione no balcão, caixa ou mesa. O cliente aproxima o celular e já avalia.
                     </div>
                     <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                       {["Plaquinha de mesa","Adesivo de parede","Cartão de visita"].map((f,i)=>(
@@ -1675,7 +1675,7 @@ export default function StarTouch({ user, onLogout }) {
               {/* Preview */}
               <div style={{background:"linear-gradient(145deg,#ecfdf5,#fff)",border:"1px solid #a7f3d0",borderRadius:16,padding:24}}>
                 <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4}}>Prévia da Tela do Cliente</div>
-                <div style={{fontSize:12,color:"#9ca3af",marginBottom:16}}>Veja exatamente o que o cliente verá ao tocar na plaquinha. Cliente satisfeito vai pro Google; insatisfeito fala com você primeiro.</div>
+                <div style={{fontSize:12,color:"#9ca3af",marginBottom:16}}>Veja exatamente o que o cliente verá ao tocar no dispositivo. Cliente satisfeito vai pro Google; insatisfeito fala com você primeiro.</div>
                 <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:16}}>
                   <div style={{background:"#e8f0fe",borderRadius:10,padding:"8px 14px",fontSize:12,color:"#059669",display:"flex",alignItems:"center",gap:6}}><Check size={12}/> 😊 Ótima → Google Reviews</div>
                   <div style={{background:"#fef2f2",borderRadius:10,padding:"8px 14px",fontSize:12,color:"#fca5a5",display:"flex",alignItems:"center",gap:6}}><Check size={12}/> 😞 Ruim → Formulário privado</div>
@@ -1871,7 +1871,7 @@ export default function StarTouch({ user, onLogout }) {
               {/* Loja */}
               <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:16,padding:24}}>
                 <div style={{fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:6}}>Loja — hardware NFC</div>
-                <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6,marginBottom:18}}>Coloque sua plaquinha no balcão e capture mais avaliações com um toque do cliente.</div>
+                <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6,marginBottom:18}}>Coloque seu dispositivo no balcão e capture mais avaliações com um toque do cliente.</div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12}}>
                   <a href="https://www.mercadolivre.com.br/placa-avaliacao-qr-code-google-em-acrilico--cristal/up/MLBU763539527" target="_blank" rel="noreferrer" style={{textDecoration:"none",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:12,padding:18,display:"flex",flexDirection:"column",gap:6,transition:"border-color .15s"}}
                     onMouseEnter={e=>e.currentTarget.style.borderColor="#d1d5db"} onMouseLeave={e=>e.currentTarget.style.borderColor="#e5e7eb"}>

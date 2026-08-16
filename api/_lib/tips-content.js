@@ -304,7 +304,7 @@ export const TIPS = [
     paragraphs: [
       "A maioria dos pedidos de avaliação chega tarde demais. O cliente foi bem atendido, foi embora feliz, e três dias depois recebe um \"poderia nos avaliar?\" por mensagem — quando a lembrança já esfriou e ele está no meio de outra coisa. Quase ninguém responde a isso.",
       "O melhor momento é bem mais curto, e você já conhece: aqueles trinta segundos logo depois do serviço, com a pessoa ainda ali, satisfeita. O cabeleireiro que acabou de mostrar o resultado no espelho. O mecânico entregando a chave. A recepção da clínica confirmando o retorno. Ali o cliente está no pico da boa impressão — e é ali que ele avalia, se você facilitar.",
-      "Facilitar é a palavra. Ninguém vai parar pra procurar seu negócio no Google e digitar do zero. Mas quase todo mundo encosta o celular numa plaquinha ou escaneia um QR se você entregar pronto e disser \"dá um toque aqui, leva dez segundos\".",
+      "Facilitar é a palavra. Ninguém vai parar pra procurar seu negócio no Google e digitar do zero. Mas quase todo mundo encosta o celular num dispositivo ou escaneia um QR se você entregar pronto e disser \"dá um toque aqui, leva dez segundos\".",
       "Duas coisas ajudam muito: combinar com a equipe pra virar parte do atendimento (não algo que só o dono faz), e deixar o caminho a um toque de distância, no balcão ou no caixa.",
       "Não é sobre pedir mais. É sobre pedir na hora certa, do jeito fácil. A conta muda sozinha quando isso vira rotina.",
     ],

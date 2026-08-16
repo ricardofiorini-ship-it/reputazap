@@ -110,7 +110,7 @@ export function welcomeEmail({ userName }) {
 export function tapsHistoryNewsEmail({ userName, unsubUrl }) {
   const name = escapeHtml(userName?.split(" ")[0] || "tudo bem");
   return {
-    subject: "Agora dá pra ver quantos toques sua placa recebeu na semana",
+    subject: "Agora dá pra ver quantos toques seu dispositivo recebeu na semana",
     html: shell({
       title: "✨ NOVIDADE NO PAINEL",
       unsubUrl,
@@ -123,7 +123,7 @@ export function tapsHistoryNewsEmail({ userName, unsubUrl }) {
           Olá, ${name}!
         </h1>
         <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
-          Até hoje o painel te mostrava um número só: o total de toques da sua placa desde a instalação. Servia pra saber que ela funciona, mas não respondia a pergunta do dia a dia — <strong style="color:#202124;">"e esta semana, movimentou?"</strong>
+          Até hoje o painel te mostrava um número só: o total de toques do seu dispositivo desde a instalação. Servia pra saber que ele funciona, mas não respondia a pergunta do dia a dia — <strong style="color:#202124;">"e esta semana, movimentou?"</strong>
         </p>
         <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
           Isso mudou. Em <strong style="color:#202124;">Onde seus clientes avaliam</strong>, agora você escolhe o período:
@@ -139,7 +139,7 @@ export function tapsHistoryNewsEmail({ userName, unsubUrl }) {
         </div>
 
         <p style="font-size:14.5px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
-          Também dá pra <strong style="color:#202124;">zerar a contagem</strong> de um dispositivo — útil quando você muda a placa de lugar e quer contar do zero. Nada é apagado, e tem desfazer. E dá pra <strong style="color:#202124;">baixar um relatório em PDF</strong> do período, por dispositivo.
+          Também dá pra <strong style="color:#202124;">zerar a contagem</strong> de um dispositivo — útil quando você muda ele de lugar e quer contar do zero. Nada é apagado, e tem desfazer. E dá pra <strong style="color:#202124;">baixar um relatório em PDF</strong> do período, por dispositivo.
         </p>
 
         <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:14px 16px;margin:14px 0;">
@@ -246,7 +246,7 @@ export function firstDeviceEmail({ userName, bizName, code, channelName }) {
           </p>
         </div>
 
-        ${cta("https://startouch.com.br/app#pontos-de-captacao", "Ver minhas placas →")}
+        ${cta("https://startouch.com.br/app#pontos-de-captacao", "Ver meus dispositivos →")}
       `
     })
   };
@@ -584,7 +584,7 @@ export function weeklyReportEmail({ bizName, ratingNow, ratingDelta, reviewsDelt
 // ─────────────────────────────────────────────────────────────
 const WEEKLY_TIPS = [
   { t: "Responda às avaliações", d: "Negócios que respondem passam mais confiança — e o Google valoriza perfis ativos. Reserve 5 minutos pra responder as últimas." },
-  { t: "Peça no momento certo", d: "O melhor momento de pedir uma avaliação é logo após um bom atendimento, com o cliente ainda no local. Uma placa NFC no balcão faz isso sozinha." },
+  { t: "Peça no momento certo", d: "O melhor momento de pedir uma avaliação é logo após um bom atendimento, com o cliente ainda no local. Um dispositivo NFC no balcão faz isso sozinha." },
   { t: "Complete seu perfil no Google", d: "Foto, horário, telefone e categoria preenchidos aumentam sua visibilidade nas buscas locais — e contam pontos no seu Score." },
   { t: "Suba uma foto nova", d: "Perfis com fotos recentes aparecem mais. Tire uma foto do seu produto ou ambiente e suba no Google Meu Negócio — leva 1 minuto." },
   { t: "Repita o que você faz", d: "Ao responder avaliações, mencione naturalmente seu ramo ('obrigado por avaliar nossa pizzaria') — ajuda o Google a entender seu negócio." },
@@ -963,7 +963,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
         </table>
 
         ${cta("https://startouch.com.br/app?login=1", "Ver no painel →")}
-        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:8px 0 0;">Quer mais avaliações? <a href="https://startouch.com.br/kit" style="color:#1A73E8;text-decoration:none;font-weight:600;">Adicione uma placa ou cartão NFC →</a></p>
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:8px 0 0;">Quer mais avaliações? <a href="https://startouch.com.br/kit" style="color:#1A73E8;text-decoration:none;font-weight:600;">Adicione outro dispositivo NFC →</a></p>
       `
     })
   };

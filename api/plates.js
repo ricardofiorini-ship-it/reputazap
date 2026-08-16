@@ -147,7 +147,7 @@ async function handleActivate(req, res, user) {
     .maybeSingle();
   if (plateErr) return res.status(500).json({ error: plateErr.message });
   if (!plate) return res.status(404).json({ error: "Código não encontrado" });
-  if (plate.status === "disabled") return res.status(400).json({ error: "Essa placa está desabilitada" });
+  if (plate.status === "disabled") return res.status(400).json({ error: "Esse dispositivo está desabilitado" });
 
   // Se já está ativa, valida se o business atual realmente pertence a alguém ainda existente.
   // Caso comum: user re-cadastrou negócio (UNIQUE user_id sobrescreve o registro com novo UUID),
@@ -163,10 +163,10 @@ async function handleActivate(req, res, user) {
       currentOwnerId = currentBiz?.user_id || null;
     }
     if (currentOwnerId === user.id) {
-      return res.status(400).json({ error: "Essa placa já está ativada no seu negócio" });
+      return res.status(400).json({ error: "Esse dispositivo já está ativado no seu negócio" });
     }
     if (currentOwnerId && currentOwnerId !== user.id) {
-      return res.status(403).json({ error: "Essa placa já foi ativada por outro usuário. Se você comprou recentemente, fale com a gente." });
+      return res.status(403).json({ error: "Esse dispositivo já foi ativado por outro usuário. Se você comprou recentemente, fale com a gente." });
     }
     // Senão: dono original sumiu (placa órfã) → permite ativar
     console.log("[plates.activate] re-ativando placa orfã", { code: normalized, oldBizId: plate.business_id, newUserId: user.id });
