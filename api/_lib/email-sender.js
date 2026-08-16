@@ -17,6 +17,13 @@ const supabase = createClient(
 
 const EMAIL_FROM = process.env.RESEND_FROM || "StarTouch <onboarding@resend.dev>";
 
+// Pra onde vai a RESPOSTA do cliente.
+// O domínio startouch.com.br só ENVIA — o recebimento está desligado de
+// propósito no Resend (ligar exigiria um MX no @ que sequestraria o email do
+// domínio). Sem reply_to, todo "é só responder esse email — a gente lê tudo"
+// que os templates prometem cai no vazio. Aponta pra uma caixa de verdade.
+const REPLY_TO = process.env.REPLY_TO_EMAIL || process.env.ADMIN_NOTIFICATIONS_EMAIL || null;
+
 // Tipos únicos (só 1 vez por user, idempotente)
 const UNIQUE_TYPES = new Set([
   "welcome",
@@ -48,7 +55,9 @@ export async function sendTransactionalEmail({
   // headers: headers SMTP extras (ex: List-Unsubscribe pro digest semanal).
   headers,
   // bcc: cópia oculta (ex: cópia pro admin revisar a copy). String ou array.
-  bcc
+  bcc,
+  // replyTo: sobrescreve o destino padrão das respostas (REPLY_TO).
+  replyTo
 }) {
   if (!userId || !emailType || !to) {
     console.warn("[email-sender] params faltando:", { userId, emailType, to });
@@ -93,6 +102,7 @@ export async function sendTransactionalEmail({
         to: [to],
         subject,
         html,
+        ...(replyTo || REPLY_TO ? { reply_to: replyTo || REPLY_TO } : {}),
         ...(bcc && (Array.isArray(bcc) ? bcc.length : bcc) ? { bcc: Array.isArray(bcc) ? bcc : [bcc] } : {}),
         ...(headers && Object.keys(headers).length ? { headers } : {})
       })
@@ -130,7 +140,7 @@ export async function sendTransactionalEmail({
  * (ex: prévia da dica pro Ricardo aprovar) onde a dedupe é controlada em
  * outro lugar (tip_approvals.previewed_at). Retorna { sent, error }.
  */
-export async function sendRawEmail({ to, subject, html, headers, bcc }) {
+export async function sendRawEmail({ to, subject, html, headers, bcc, replyTo }) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { skipped: true, reason: "RESEND_API_KEY ausente" };
   try {
@@ -142,6 +152,7 @@ export async function sendRawEmail({ to, subject, html, headers, bcc }) {
         to: [to],
         subject,
         html,
+        ...(replyTo || REPLY_TO ? { reply_to: replyTo || REPLY_TO } : {}),
         ...(bcc && (Array.isArray(bcc) ? bcc.length : bcc) ? { bcc: Array.isArray(bcc) ? bcc : [bcc] } : {}),
         ...(headers && Object.keys(headers).length ? { headers } : {})
       })
