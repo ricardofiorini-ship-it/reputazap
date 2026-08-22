@@ -59,6 +59,8 @@ Fluxo end-to-end funcionando:
 
 **Log não pode viver onde a rotina que ele documenta alcança** (22/08/2026). Registro de expurgo guardado numa tabela que o próprio expurgo apaga se come: no mês 13 não há como provar o mês 1. Vale como princípio geral, não só pro caso que originou (avaliamos usar `email_log` como log da rotina de retenção e caiu por isto). O log de qualquer rotina de eliminação precisa de tabela própria, com base de guarda independente — Art. 37 da LGPD (registro das operações de tratamento) sustenta a guarda sozinho, fora dos prazos das outras tabelas.
 
+**RLS não é boa prática neste projeto, é a única defesa.** O Supabase concede `GRANT ALL` pra `anon` e `authenticated` em **toda** tabela criada no schema `public` — a chave anônima é pública e tem INSERT, UPDATE, DELETE e TRUNCATE em tudo. A única coisa que impede é a RLS. Tabela criada sem RLS nasce aberta. **Toda tabela nova nasce com RLS ligada e policies explícitas** — incluindo a tabela de log do expurgo. Descoberto do jeito caro em 22/08/2026: a policy `"Service can insert feedbacks"` (INSERT, `roles={public}`, `with_check=true`) deixava qualquer um gravar na tabela `feedbacks` direto pela chave anônima, sem passar pelo endpoint. O nome era enganoso — `service_role` ignora RLS por definição e nunca precisou de policy.
+
 **Sonda que devolve exatamente o resultado esperado precisa de controle negativo** antes de virar relatório: a mesma sonda, no mesmo formato, contra um alvo onde o resultado **deve** ser diferente de zero. Cinco zeros sem controle são indistinguíveis de grep mal escrito. Estabelecido em 22/08/2026 na verificação de que o Pixel/GA4 tinham saído da `/avaliar` — a checagem só virou conclusiva com o controle na `/landing` (`fbq: 6`, `gtag: 5`).
 
 ## Pendências
