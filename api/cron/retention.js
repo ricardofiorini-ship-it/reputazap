@@ -103,16 +103,22 @@ export default async function handler(req, res) {
         if (error) throw new Error(error.message);
         linhas = count || 0;
       } else {
-        const { data, error } = await supabase
+        // A contagem vem de `count`, NÃO de `data`. A primeira versão usava
+        // `.select("*", { head: true })` e lia `data.length` — mas `head: true`
+        // manda o PostgREST não devolver corpo nenhum, então `data` é null e a
+        // conta dava SEMPRE 0. Hoje o valor real também é 0 (nada venceu
+        // ainda), então o defeito passaria despercebido e só apareceria daqui a
+        // meses, como "o expurgo nunca apagou nada" — com o log jurando que
+        // rodou certo. Mesmo padrão de admin.js:423, que funciona.
+        const { count, error } = await supabase
           .from(alvo.tabela)
-          .delete()
-          .lt(alvo.coluna, limite)
-          .select("*", { count: "exact", head: true });
+          .delete({ count: "exact" })
+          .lt(alvo.coluna, limite);
         // O supabase-js devolve {error} em vez de lançar — sem este check a
         // falha seria muda e a tabela pareceria "limpa" sem nunca ter sido
         // tocada. É o bug nº1 deste projeto; não repetir.
         if (error) throw new Error(error.message);
-        linhas = Array.isArray(data) ? data.length : (data?.length ?? 0);
+        linhas = count || 0;
       }
     } catch (e) {
       // Falha isolada: uma tabela quebrada não pode abortar as outras quatro.
