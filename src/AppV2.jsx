@@ -1186,7 +1186,10 @@ function ComingSoon({ icon, title, desc, plan }) {
 function ProPreview({ tab, isMobile, children }) {
   const C = {
     concorrentes: { icon:'trophy', title:'Inteligência Competitiva', sub:'Veja quem disputa o ranking com você — e nunca seja pego de surpresa.',
-      bullets:['Os nomes de quem está na sua frente','Aviso na hora quando alguém te ultrapassar','Quem está crescendo mais rápido','Evolução semana a semana'] },
+      // "Aviso na hora quando alguém te ultrapassar" saiu em 22/08/2026: era
+      // promessa de venda de um recurso que NÃO existe no produto. Quem cobre
+      // "te ultrapassou" é o resumo semanal, que é grátis.
+      bullets:['Os nomes de quem está na sua frente','Quem está crescendo mais rápido','Evolução semana a semana'] },
     alertas: { icon:'bell', title:'Vigie seu ranking 24/7', sub:'O alerta de avaliação negativa já é seu, de graça. O Pro adiciona a vigilância do ranking — direto no seu email:',
       bullets:['Um concorrente te ultrapassou no ranking','Sua nota caiu — ou bateu um novo recorde','Resumo toda segunda: o que mudou e o que fazer'] },
     relatorios: { icon:'trendup', title:'Relatórios semanais', sub:'Toda segunda no seu email: sua evolução e o que fazer.',
@@ -3370,7 +3373,10 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
             </div>
             <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 10, lineHeight: 1.25 }}>Nunca seja pego de surpresa</div>
             <ul style={{ listStyle:'none', padding: 0, margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.6 }}>
-              <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0, display:'inline-flex' }}><Check size={15} strokeWidth={3}/></span><span style={{ opacity: 0.95 }}><strong>Aviso na hora</strong> quando um concorrente te ultrapassar</span></li>
+              {/* "Aviso na hora quando um concorrente te ultrapassar" saiu em
+                  22/08/2026, junto com o gêmeo em AppV2:1189 e os da landing:
+                  vendia um recurso que NÃO existe. Quem cobre "te ultrapassou"
+                  é o resumo semanal, que é grátis. */}
               <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0, display:'inline-flex' }}><Check size={15} strokeWidth={3}/></span><span style={{ opacity: 0.95 }}>Quem está crescendo mais rápido que você</span></li>
               <li style={{ display:'flex', alignItems:'flex-start', gap: 8, marginBottom: 4 }}><span style={{ color:'#FBBC04', flexShrink: 0, display:'inline-flex' }}><Check size={15} strokeWidth={3}/></span><span style={{ opacity: 0.95 }}>Os <strong>nomes</strong> de quem está na sua frente</span></li>
               <li style={{ display:'flex', alignItems:'flex-start', gap: 8 }}><span style={{ color:'#FBBC04', flexShrink: 0, display:'inline-flex' }}><Check size={15} strokeWidth={3}/></span><span style={{ opacity: 0.95 }}>Evolução do seu ranking, semana a semana</span></li>
