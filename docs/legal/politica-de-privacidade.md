@@ -205,7 +205,7 @@ Nenhum sistema é imune a incidentes. Caso ocorra incidente de segurança com ri
 | Pedidos e dados fiscais | 5 anos, contados do encerramento do exercício, por exigência fiscal |
 | Preferências de alerta | Enquanto a conta existir |
 | Registro de e-mails enviados | 12 meses |
-| Leads que não se tornaram clientes | 24 meses a partir do último contato |
+| Leads que não se tornaram clientes | 24 meses a partir do cadastro |
 | Registro de toques nos dispositivos | Indefinidamente — não contém dado pessoal |
 | Cache de avaliações do Google | Até 30 dias, limite estabelecido pelos termos da API do Google. Na prática, o conteúdo é renovado a cada poucas horas e o registro é eliminado por rotina automática de expurgo |
 | Registros de proteção contra abuso (IP) | 30 dias |
