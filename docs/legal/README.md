@@ -32,7 +32,11 @@ documento nenhum.
       recebe, o prazo de 15 dias do Art. 18 corre contra um endereço que dá
       bounce. Manter "Enable Receiving" **desligado** no Resend: a recepção vem
       do provedor no MX do domínio raiz.
-- [ ] **4. Trocar o cabeçalho de rascunho pela data real** — remover o bloco
+- [ ] **4. Trocar o cabeçalho de rascunho pela data real — ÚLTIMO PASSO, depois
+      das travas 2 e 3.** Data de vigência é declaração jurídica, não carimbo de
+      deploy: política vigente com canal de titular que dá bounce cria o
+      problema que o documento resolve. Enquanto o bloco de rascunho estiver
+      nos `.md`, as páginas saem com `noindex` e o aviso visível. Remover o bloco
       `⚠️ RASCUNHO` dos dois arquivos e preencher `[DATA DE PUBLICAÇÃO]` com a
       **data do deploy**, não a data em que o texto foi escrito. Uma política
       que entra em vigor antes de existir na web não se sustenta.

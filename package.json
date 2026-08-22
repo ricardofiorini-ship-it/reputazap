@@ -7,7 +7,7 @@
     "dev": "vite",
     "server": "node server.js",
     "check:functions": "node scripts/check-functions.mjs",
-    "build": "node scripts/check-functions.mjs && node scripts/build-articles.mjs && node node_modules/vite/bin/vite.js build",
+    "build": "node scripts/check-functions.mjs && node scripts/build-articles.mjs && node scripts/build-legal.mjs && node node_modules/vite/bin/vite.js build",
     "preview": "vite preview"
   },
   "dependencies": {

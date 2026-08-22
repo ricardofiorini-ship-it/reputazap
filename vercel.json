@@ -47,6 +47,8 @@
     { "source": "/plano-pro", "destination": "/plano-pro.html" },
     { "source": "/ajuda", "destination": "/ajuda.html" },
     { "source": "/sobre", "destination": "/sobre.html" },
+    { "source": "/privacidade", "destination": "/privacidade.html" },
+    { "source": "/termos", "destination": "/termos.html" },
     { "source": "/ranking", "destination": "/ranking.html" },
     { "source": "/radar", "destination": "/radar.html" },
     { "source": "/radar/plano", "destination": "/radar-plano.html" },
