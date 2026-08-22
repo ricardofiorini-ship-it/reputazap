@@ -47,6 +47,8 @@ Helpers em `api/_lib/` (prefixo `_` = não vira function): `plates.js` (geraçã
 
 ## Status atual
 
+**⚖️ LGPD — leia antes de mexer em qualquer coisa que colete dado.** A **Política de Privacidade vige desde 22/08/2026** (`/privacidade` e `/termos`, geradas de `docs/legal/*.md` pelo `scripts/build-legal.mjs`) e a tabela **`retention_runs` é a prova de que ela é cumprida**. Se o cron `api/cron/retention.js` parar de gravar, **a prova para junto e o silêncio parece sucesso** — o modo de falha nº 1 deste projeto, agora apontado para um documento com efeito jurídico. **Qualquer feature nova que colete dado exige revisão da Política ANTES de ir ao ar.**
+
 Fluxo end-to-end funcionando:
 - **Onboarding:** cadastro → `savebiz` → dashboard.
 - **Dashboard como vitrine:** 6 produtos (placa balcão, plaquinha mesa, placa parede, cartões NFC + QR Code próprio + link direto). Hardware com link Mercado Livre placeholder; QR e link são gerados pelo app.
