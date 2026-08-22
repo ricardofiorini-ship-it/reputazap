@@ -10,85 +10,11 @@ const supabase = createClient(
 // "StarTouch <feedback@startouch.com.br>", troca automático.
 const EMAIL_FROM = process.env.RESEND_FROM || "StarTouch <onboarding@resend.dev>";
 
-const CATEGORY_LABEL = {
-  elogio:     { name: "Elogio",     emoji: "😊", color: "#34A853" },
-  sugestao:   { name: "Sugestão",   emoji: "💡", color: "#FBBC04" },
-  reclamacao: { name: "Reclamação", emoji: "⚠️", color: "#EA4335" },
-  duvida:     { name: "Dúvida",     emoji: "❓", color: "#00C49A" }
-};
-
 const EMAIL_FOOTER = `
 <div style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#80868B;line-height:1.6;text-align:center;">
   <strong style="color:#00C49A;">StarTouch</strong> — Plataforma de relacionamento local<br/>
   <a href="https://startouch.com.br/app" style="color:#00C49A;text-decoration:none;">Abrir painel</a> &middot; <a href="https://startouch.com.br" style="color:#00C49A;text-decoration:none;">startouch.com.br</a>
 </div>`;
-
-function escapeHtml(s) {
-  return String(s || "").replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
-}
-
-async function sendEmail({ to, bizName, category, text, sender_name, contact }) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const cat = CATEGORY_LABEL[category] || { name: "Mensagem", emoji: "💬", color: "#5F6368" };
-  const subject = `[StarTouch] ${cat.name} recebida em ${bizName}`;
-
-  const textHtml = text
-    ? `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px;"><div style="font-size:12px;color:#5F6368;margin-bottom:6px;">Mensagem do cliente</div><div style="font-size:14px;line-height:1.6;white-space:pre-wrap;color:#202124;">${escapeHtml(text)}</div></div>`
-    : `<div style="background:#fff;border:1px dashed #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px;font-size:13px;color:#80868B;text-align:center;">Cliente não escreveu mensagem.</div>`;
-
-  const contactHtml = contact
-    ? `<div style="font-size:12px;color:#5F6368;margin-bottom:4px;">Contato deixado</div><div style="font-size:14px;font-weight:600;color:#202124;">${escapeHtml(contact)}</div>`
-    : `<div style="font-size:12px;color:#80868B;">Sem contato — esse cliente é anônimo.</div>`;
-
-  const nameHtml = sender_name
-    ? `<div style="font-size:12px;color:#5F6368;margin-bottom:4px;">Nome</div><div style="font-size:14px;font-weight:600;color:#202124;margin-bottom:14px;">${escapeHtml(sender_name)}</div>`
-    : "";
-
-  const htmlBody = `
-    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#202124;background:#F8F9FA;">
-      <div style="display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${cat.color};margin-bottom:6px;">${cat.emoji} ${cat.name}</div>
-      <h2 style="margin:0 0 4px;color:#202124;">Nova mensagem em ${escapeHtml(bizName)}</h2>
-      <p style="color:#5F6368;font-size:13px;margin-top:0;margin-bottom:20px;">Um cliente acabou de enviar uma mensagem direta pela sua página de avaliação.</p>
-      ${textHtml}
-      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px;">
-        ${nameHtml}
-        ${contactHtml}
-      </div>
-      <p style="font-size:11.5px;color:#80868B;line-height:1.6;">Você recebeu essa mensagem porque seu negócio usa o StarTouch. Pra responder ou marcar como resolvido, abra o painel.</p>
-      ${EMAIL_FOOTER}
-    </div>
-  `;
-
-  if (!apiKey) {
-    // Sem o destinatário: e-mail do lojista não vai pra log.
-    console.log("[feedback] RESEND_API_KEY não definida — pulando envio:", subject);
-    return { skipped: true };
-  }
-
-  // Se cliente deixou email, permite ao dono responder direto via reply
-  const customerEmail = contact && contact.includes("@") ? contact : null;
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      from: EMAIL_FROM,
-      to: [to],
-      ...(customerEmail && { reply_to: customerEmail }),
-      subject,
-      html: htmlBody
-    })
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    console.error("[feedback] Resend erro:", data);
-    return { error: data };
-  }
-  return { id: data.id };
-}
 
 async function listPending(req, res) {
   const token = req.headers.authorization?.replace("Bearer ", "");
@@ -321,57 +247,4 @@ export default async function handler(req, res) {
   // propósito — e antes fechar contrato de operador com o lojista, que nesse
   // fluxo é o controlador do dado do consumidor.
   return res.status(410).json({ error: "Este canal foi descontinuado." });
-
-  // Mensagem nova (fluxo público compliant): aceita category opcional + texto opcional
-  const validCategories = ["elogio", "sugestao", "reclamacao", "duvida"];
-  const cleanCategory = category && validCategories.includes(category) ? category : null;
-
-  try {
-    // 1. Salva feedback (sempre — mesmo sem texto, é registro de intenção)
-    const insertPayload = {
-      place_id,
-      text: (text || "").trim() || null,
-      rating: rating ?? null,
-      category: cleanCategory,
-      sender_name: sender_name || null,
-      contact: contact || null
-    };
-    const { data: inserted, error: insertError } = await supabase
-      .from("feedbacks")
-      .insert(insertPayload)
-      .select("id")
-      .single();
-    if (insertError) console.error("[feedback] Erro ao salvar:", insertError);
-    const feedbackId = inserted?.id ?? null;
-
-    // 2. Busca o negócio + email do dono
-    const { data: biz } = await supabase
-      .from("businesses")
-      .select("user_id, name, manager_email")
-      .eq("place_id", place_id)
-      .maybeSingle();
-
-    if (!biz) {
-      console.warn("[feedback] Negócio não encontrado para place_id:", place_id);
-      return res.json({ ok: true, id: feedbackId, emailSent: false });
-    }
-
-    // 3. Resolve email do destinatário (manager_email > auth email do dono)
-    let recipient = biz.manager_email;
-    if (!recipient) {
-      const { data: userData } = await supabase.auth.admin.getUserById(biz.user_id);
-      recipient = userData?.user?.email;
-    }
-    if (!recipient) {
-      console.warn("[feedback] Sem email do destinatário pra place_id:", place_id);
-      return res.json({ ok: true, id: feedbackId, emailSent: false });
-    }
-
-    // 4. Envia email
-    const result = await sendEmail({ to: recipient, bizName: biz.name, category: cleanCategory, text, sender_name, contact });
-    res.json({ ok: true, id: feedbackId, emailSent: !result.skipped && !result.error, result });
-  } catch (err) {
-    console.error("[feedback] Erro inesperado:", err);
-    res.status(500).json({ error: err.message });
-  }
 }
