@@ -305,7 +305,22 @@ export default async function handler(req, res) {
     return res.json({ ok: true });
   }
 
-  if (!place_id) return res.status(400).json({ error: "place_id obrigatório" });
+  // ── PORTA FECHADA: insert anônimo de feedback ──────────────────────────
+  // Este ramo era o formulário privado da "peneira", removida em 2026-05-23.
+  // Nenhuma tela chama mais: avaliar.html não tem formulário (só "Obrigado" e
+  // "Erro") e o painel usa exclusivamente os ramos com `id`, que já exigem
+  // login desde 05/08. Ficava aberto SEM autenticação, aceitando gravar nome,
+  // telefone e e-mail de CONSUMIDOR FINAL vindos de qualquer origem.
+  // Fechado em 22/08/2026: a Política de Privacidade declara "não há
+  // formulário, não há cadastro" (§4.1) e isso precisa ser verdade no código.
+  //
+  // ATENÇÃO: este guard sozinho NÃO fechava a porta. Havia uma policy de RLS
+  // ("Service can insert feedbacks", INSERT, roles={public}, with_check=true)
+  // que permitia gravar direto pela chave anônima, sem passar por aqui. Ela foi
+  // removida junto. Se um dia a peneira voltar, reabrir os DOIS lados de
+  // propósito — e antes fechar contrato de operador com o lojista, que nesse
+  // fluxo é o controlador do dado do consumidor.
+  return res.status(410).json({ error: "Este canal foi descontinuado." });
 
   // Mensagem nova (fluxo público compliant): aceita category opcional + texto opcional
   const validCategories = ["elogio", "sugestao", "reclamacao", "duvida"];
