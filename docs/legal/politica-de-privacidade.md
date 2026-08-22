@@ -1,10 +1,6 @@
 # Política de Privacidade — StarTouch
 
-> ⚠️ **RASCUNHO — NÃO VIGENTE.** Este documento ainda não foi publicado e não
-> produz efeitos. A versão em vigor, quando houver, estará em
-> startouch.com.br/privacidade e startouch.com.br/termos.
-
-**Versão 1.0 — vigente a partir de [DATA DE PUBLICAÇÃO]**
+**Versão 1.0 — vigente a partir de 22 de agosto de 2026**
 
 ---
 
