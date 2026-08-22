@@ -60,7 +60,8 @@ export async function sendTransactionalEmail({
   replyTo
 }) {
   if (!userId || !emailType || !to) {
-    console.warn("[email-sender] params faltando:", { userId, emailType, to });
+    // `to` fora do log (PII). O booleano diz o que precisa pra depurar.
+    console.warn("[email-sender] params faltando:", { userId, emailType, tem_destinatario: !!to });
     return { skipped: true, reason: "params faltando" };
   }
 

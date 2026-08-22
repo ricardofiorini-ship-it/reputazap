@@ -198,6 +198,23 @@ const fmtBRL = (cents) => "R$ " + (Number(cents || 0) / 100).toFixed(2).replace(
 const escapeHtmlLite = (s) =>
   String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+// Documento mascarado pro email do admin (22/08/2026, adequação à LGPD).
+// O CPF continua guardado inteiro em `orders.shipping` — é obrigação fiscal e a
+// Política declara 5 anos. O que NÃO pode é a cópia inteira viajar pro email:
+// caixa de entrada e log do Resend ficam FORA da política de retenção — no dia
+// em que um titular pedir eliminação, o banco a gente purga e essas cópias não.
+// Vão só 3 dígitos, e NÃO são os últimos: no CPF é o terceiro grupo (posições
+// 7 a 9), convenção da Receita. Os dois finais são verificadores, deriváveis
+// dos outros nove — esconder justamente eles é o que impede remontar o número.
+// Dá pra casar o pedido, não dá pra reconstruir o documento. O completo fica no
+// painel do Mercado Pago, que é de onde a nota é emitida de qualquer jeito.
+function mascaraDoc(valor) {
+  const d = String(valor == null ? "" : valor).replace(/\D/g, "");
+  if (d.length === 11) return `•••.•••.${d.slice(6, 9)}-••`;
+  if (d.length === 14) return `••.•••.${d.slice(5, 8)}/••••-••`;
+  return d ? `•••${d.slice(-3)}` : "—";
+}
+
 async function sendOrderEmail({ userId, subject, html }) {
   const to = process.env.ADMIN_NOTIFICATIONS_EMAIL;
   if (!to) {
@@ -231,7 +248,10 @@ async function notifyAdminKitOrder({ order, pay, userId }) {
       `<h3>📦 Entrega</h3>` +
       `<p><strong>${escapeHtmlLite(ship.name || "—")}</strong>` +
       (ship.phone ? ` · ${escapeHtmlLite(ship.phone)}` : "") + `</p>` +
-      (ship.cpf_cnpj ? `<p><strong>${ship.cpf_cnpj.length === 14 ? "CNPJ" : "CPF"}:</strong> ${escapeHtmlLite(ship.cpf_cnpj)}</p>` : "") +
+      (ship.cpf_cnpj
+        ? `<p><strong>${ship.cpf_cnpj.length === 14 ? "CNPJ" : "CPF"}:</strong> ${escapeHtmlLite(mascaraDoc(ship.cpf_cnpj))} ` +
+          `<span style="color:#80868B;font-size:12px;">— número completo no painel do Mercado Pago</span></p>`
+        : "") +
       `<p>${escapeHtmlLite(linha)}${compl}<br/>` +
       `${escapeHtmlLite(cidade)}<br/>` +
       `CEP ${escapeHtmlLite(ship.cep || "—")}</p>`;

@@ -60,7 +60,8 @@ async function sendEmail({ to, bizName, category, text, sender_name, contact }) 
   `;
 
   if (!apiKey) {
-    console.log("[feedback] RESEND_API_KEY não definida — pulando envio. Email seria:", { to, subject });
+    // Sem o destinatário: e-mail do lojista não vai pra log.
+    console.log("[feedback] RESEND_API_KEY não definida — pulando envio:", subject);
     return { skipped: true };
   }
 
@@ -220,7 +221,8 @@ export default async function handler(req, res) {
       // Envia email pro cliente
       const apiKey = process.env.RESEND_API_KEY;
       if (!apiKey) {
-        console.log("[feedback/reply] RESEND_API_KEY ausente — pulando envio. Cliente:", fb.contact);
+        // Sem o contato: e-mail/telefone de consumidor final não vai pra log.
+        console.log("[feedback/reply] RESEND_API_KEY ausente — pulando envio do feedback", id);
       } else {
         const html = `
           <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#202124;">

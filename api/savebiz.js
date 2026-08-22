@@ -57,7 +57,8 @@ export default async function handler(req, res) {
       return res.json({ ok: true, category_override: cleanCat });
     }
 
-    console.log("[savebiz] Payload recebido:", req.body);
+    // Não logar req.body cru: carrega manager_email (PII). Só o que depura.
+    console.log("[savebiz] Payload recebido:", { place_id, name, tem_manager_email: manager_email !== undefined });
     if (!place_id || !name) {
       console.error("[savebiz] Campos obrigatórios faltando:", { place_id, name });
       return res.status(400).json({ error: "place_id e name obrigatórios" });
