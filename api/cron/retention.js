@@ -16,6 +16,7 @@
 // Teste manual: GET /api/cron/retention?dry=1&secret=SEU_CRON_SECRET
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
+import { sendRawEmail } from "../_lib/email-sender.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -35,6 +36,15 @@ const ALVOS = [
   // coluna de último contato. O texto foi ajustado ao dado, não o contrário.
   { tabela: "radar_leads",  coluna: "created_at",   prazo: "24 months", schema: "supabase/schema-radar.sql" }
 ];
+
+// Aviso ao Encarregado. Nunca derruba o expurgo: e-mail que falha vira log,
+// não exceção que aborta a rotina.
+async function avisarDpo(subject, html) {
+  const to = process.env.DPO_EMAIL || process.env.ADMIN_NOTIFICATIONS_EMAIL;
+  if (!to) { console.warn("[cron/retention] DPO_EMAIL ausente — lembrete pulado"); return; }
+  try { await sendRawEmail({ to, subject, html }); }
+  catch (e) { console.error("[cron/retention] lembrete falhou:", e?.message); }
+}
 
 function checkAuth(req) {
   if (req.headers["x-vercel-cron"] === "1") return true;
@@ -126,6 +136,56 @@ export default async function handler(req, res) {
     }
   }
 
+  // ── Lembrete do prazo do Art. 18 ────────────────────────────
+  // Dois disparos: D-3 e o vencimento. Só D-3 não basta — se aquele e-mail se
+  // perder, o prazo passa em silêncio, que é o modo de falha nº1 daqui.
+  // Marcado no banco (aviso_d3_em / aviso_d0_em) pra não repetir todo dia.
+  var avisos = { d3: 0, d0: 0, erro: null };
+  if (!dry) {
+    try {
+      const { data: abertos, error } = await supabase
+        .from("titular_requests")
+        .select("id, protocolo, tipo, email, prazo_em, aviso_d3_em, aviso_d0_em")
+        .eq("status", "aberto");
+      if (error) throw new Error(error.message);
+
+      const agora = Date.now();
+      for (const p of abertos || []) {
+        const faltaMs = new Date(p.prazo_em).getTime() - agora;
+        const dias = Math.ceil(faltaMs / 86400000);
+        const vencido = faltaMs <= 0;
+        const quando = vencido && !p.aviso_d0_em ? "d0"
+                     : (!vencido && dias <= 3 && !p.aviso_d3_em) ? "d3" : null;
+        if (!quando) continue;
+
+        const prazoBR = new Date(p.prazo_em).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+        const assunto = quando === "d0"
+          ? `[LGPD] PRAZO VENCIDO — ${p.protocolo}`
+          : `[LGPD] Faltam ${dias} dia(s) — ${p.protocolo}`;
+        await avisarDpo(assunto,
+          `<h2>${quando === "d0" ? "Prazo do Art. 18 VENCIDO" : "Prazo do Art. 18 se aproximando"}</h2>` +
+          `<p><strong>Protocolo:</strong> ${p.protocolo}<br/>` +
+          `<strong>Tipo:</strong> ${p.tipo}<br/>` +
+          `<strong>Titular:</strong> ${p.email}<br/>` +
+          `<strong>Prazo:</strong> ${prazoBR}</p>` +
+          `<p>Marque como atendido em <code>titular_requests</code> quando responder.</p>`);
+
+        await supabase.from("titular_requests")
+          .update(quando === "d0" ? { aviso_d0_em: new Date().toISOString() }
+                                  : { aviso_d3_em: new Date().toISOString() })
+          .eq("id", p.id);
+        avisos[quando]++;
+      }
+    } catch (e) {
+      avisos.erro = e?.message || String(e);
+      const faltando = /relation|does not exist|schema cache/i.test(avisos.erro);
+      console.error(
+        `[cron/retention] lembretes do Art. 18: ${avisos.erro}` +
+        (faltando ? " — LEMBRETES DESLIGADOS. Rode supabase/schema-titular.sql." : "")
+      );
+    }
+  }
+
   const total = resultado.reduce((s, r) => s + r.linhas, 0);
   const comErro = resultado.filter((r) => r.erro).length;
   console.log(
@@ -138,6 +198,7 @@ export default async function handler(req, res) {
     dry,
     prova_gravada: dry ? null : provaOk,
     total_linhas: total,
+    avisos_art18: dry ? null : avisos,
     tabelas: resultado,
     took_ms: Date.now() - t0
   });

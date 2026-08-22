@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<!-- SEM GA4 e SEM Meta Pixel nesta página, DE PROPÓSITO: quem vem exercer um
+     direito de privacidade não pode ser rastreado por vir. Mesma decisão da
+     /avaliar e das páginas legais. NÃO REINTRODUZIR.
+     O consent.js entra em modo "data-prefs-only": não carrega tag nenhuma. -->
+<script src="/consent.js" data-prefs-only></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Solicitação de titular de dados — StarTouch</title>
+<meta name="description" content="Exerça seus direitos previstos no Art. 18 da LGPD: confirmação, acesso, correção, eliminação, portabilidade ou revogação de consentimento."/>
+<meta name="robots" content="noindex,nofollow"/>
+<link rel="canonical" href="https://startouch.com.br/privacidade/solicitacao"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="stylesheet" href="/artigos/article.css"/>
+<style>
+  .sol-form{margin:28px 0;display:flex;flex-direction:column;gap:18px;}
+  .sol-campo{display:flex;flex-direction:column;gap:6px;}
+  .sol-campo label{font-size:13.5px;font-weight:600;color:#202124;}
+  .sol-campo input,.sol-campo select,.sol-campo textarea{
+    font:400 15px/1.4 Inter,system-ui,sans-serif;padding:12px 14px;
+    border:1px solid #DADCE0;border-radius:9px;background:#fff;color:#202124;width:100%;}
+  .sol-campo input:focus,.sol-campo select:focus,.sol-campo textarea:focus{
+    outline:none;border-color:#1A73E8;box-shadow:0 0 0 3px rgba(26,115,232,.15);}
+  .sol-campo textarea{min-height:110px;resize:vertical;}
+  .sol-dica{font-size:12.5px;color:#5F6368;line-height:1.5;}
+  .sol-btn{font:700 15px/1 Inter,system-ui,sans-serif;padding:14px 26px;border:0;border-radius:9px;
+    background:#1A73E8;color:#fff;cursor:pointer;align-self:flex-start;}
+  .sol-btn:hover{background:#174EA6;} .sol-btn:disabled{opacity:.55;cursor:wait;}
+  .sol-msg{padding:16px 18px;border-radius:10px;font-size:14px;line-height:1.6;display:none;}
+  .sol-msg.ok{display:block;background:#E6F4EA;border:1px solid #34A853;color:#0B5B2B;}
+  .sol-msg.erro{display:block;background:#FCE8E6;border:1px solid #D93025;color:#8C1D16;}
+</style>
+</head>
+<body>
+
+<header class="art-header">
+  <div class="art-header-inner">
+    <a class="art-logo" href="/" aria-label="StarTouch — início">
+      <img src="/startouch-logo-dark.png" alt="StarTouch"/>
+    </a>
+    <a class="art-header-cta" href="/app?from=web">Ver minha presença grátis</a>
+  </div>
+</header>
+
+<main class="art-container">
+  <p class="art-breadcrumb"><a href="/privacidade">Política de Privacidade</a> · Solicitação</p>
+
+  <h1 class="art-h1">Solicitação de titular de dados</h1>
+  <p class="art-lead">A LGPD garante a você o direito de saber, corrigir e eliminar seus dados pessoais. Preencha abaixo e responderemos em até 15 dias, conforme o Art. 18.</p>
+
+  <div class="art-prose">
+    <div class="sol-msg" id="msg" role="status" aria-live="polite"></div>
+
+    <form class="sol-form" id="form" novalidate>
+      <div class="sol-campo">
+        <label for="tipo">O que você quer solicitar</label>
+        <select id="tipo" name="tipo" required>
+          <option value="">Selecione…</option>
+          <option value="confirmacao">Confirmar se vocês tratam dados meus</option>
+          <option value="acesso">Acessar os dados que vocês têm sobre mim</option>
+          <option value="correcao">Corrigir dados incompletos ou desatualizados</option>
+          <option value="eliminacao">Eliminar meus dados</option>
+          <option value="portabilidade">Portabilidade dos dados</option>
+          <option value="revogacao">Revogar meu consentimento</option>
+        </select>
+      </div>
+
+      <div class="sol-campo">
+        <label for="email">Seu e-mail</label>
+        <input id="email" name="email" type="email" autocomplete="email" required placeholder="voce@exemplo.com"/>
+        <p class="sol-dica">Use o mesmo e-mail relacionado aos dados. Podemos pedir informações adicionais para confirmar sua identidade antes de executar qualquer alteração.</p>
+      </div>
+
+      <div class="sol-campo">
+        <label for="nome">Seu nome <span style="font-weight:400;color:#5F6368;">(opcional)</span></label>
+        <input id="nome" name="nome" type="text" autocomplete="name"/>
+      </div>
+
+      <div class="sol-campo">
+        <label for="mensagem">Detalhes <span style="font-weight:400;color:#5F6368;">(opcional)</span></label>
+        <textarea id="mensagem" name="mensagem" placeholder="Ex.: sou autor de uma avaliação no Google e quero que a cópia em cache seja eliminada."></textarea>
+      </div>
+
+      <button class="sol-btn" id="btn" type="submit">Enviar solicitação</button>
+    </form>
+
+    <h2>Como funciona</h2>
+    <ul>
+      <li>Você recebe um <strong>protocolo por e-mail</strong> assim que a solicitação é registrada.</li>
+      <li>O prazo de <strong>15 dias</strong> começa a correr da data da solicitação.</li>
+      <li>Nada é alterado automaticamente: toda eliminação passa por conferência humana.</li>
+      <li>Prefere escrever? <a href="mailto:privacidade@startouch.com.br">privacidade@startouch.com.br</a> — Encarregado: Ricardo Fiorini.</li>
+    </ul>
+  </div>
+</main>
+
+<footer class="art-footer">
+  <p>© StarTouch — <a href="/">Início</a> · <a href="/privacidade">Privacidade</a> · <a href="/termos">Termos</a> · <a href="#" onclick="window.stConsent&amp;&amp;window.stConsent.abrir();return false;">Preferências de cookies</a></p>
+</footer>
+
+<script>
+(function () {
+  var form = document.getElementById("form");
+  var btn = document.getElementById("btn");
+  var msg = document.getElementById("msg");
+
+  function mostra(texto, tipo) {
+    msg.textContent = texto;
+    msg.className = "sol-msg " + tipo;
+    msg.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var dados = {
+      tipo: document.getElementById("tipo").value,
+      email: document.getElementById("email").value.trim(),
+      nome: document.getElementById("nome").value.trim(),
+      mensagem: document.getElementById("mensagem").value.trim()
+    };
+    if (!dados.tipo) return mostra("Escolha o tipo de solicitação.", "erro");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(dados.email)) return mostra("Informe um e-mail válido.", "erro");
+
+    btn.disabled = true; btn.textContent = "Enviando…";
+    fetch("/api/titular", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dados)
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (r) {
+        if (!r.ok) { mostra(r.d.error || "Não foi possível enviar. Tente de novo.", "erro"); return; }
+        // A mensagem vem do servidor de propósito: é a mesma pra e-mail
+        // cadastrado ou não, pra não revelar quem está na base.
+        mostra(r.d.mensagem || "Solicitação registrada.", "ok");
+        form.style.display = "none";
+      })
+      .catch(function () { mostra("Erro de conexão. Tente de novo.", "erro"); })
+      .then(function () { btn.disabled = false; btn.textContent = "Enviar solicitação"; });
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -49,6 +49,7 @@
     { "source": "/sobre", "destination": "/sobre.html" },
     { "source": "/privacidade", "destination": "/privacidade.html" },
     { "source": "/termos", "destination": "/termos.html" },
+    { "source": "/privacidade/solicitacao", "destination": "/solicitacao.html" },
     { "source": "/ranking", "destination": "/ranking.html" },
     { "source": "/radar", "destination": "/radar.html" },
     { "source": "/radar/plano", "destination": "/radar-plano.html" },

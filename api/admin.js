@@ -464,6 +464,61 @@ async function handleDeleteUser(req, res, admin) {
       summary.warnings.push("alert_preferences: " + e.message);
     }
 
+    // ── 7b. Rastros ligados ao E-MAIL, não ao user_id (Art. 18, V) ──────────
+    // Estes ficavam de fora e faziam a exclusão ser parcial: pedido do Art. 18
+    // que deixa CPF e endereço no banco não é eliminação. Precisa do e-mail
+    // ANTES do passo 8, que apaga o usuário do auth.
+    let emailDoUser = null;
+    try {
+      const { data } = await supabase.auth.admin.getUserById(userId);
+      emailDoUser = (data?.user?.email || "").toLowerCase() || null;
+    } catch (e) {
+      summary.warnings.push("email do user: " + e.message);
+    }
+
+    if (emailDoUser) {
+      // orders: ANONIMIZA, não apaga. Nota fiscal é obrigação legal e a
+      // Política declara 5 anos pra dado fiscal — o que sai é a identificação
+      // (shipping inteiro, com CPF e endereço, MAIS a coluna `email`). Ficam
+      // valor, data e status, que é o que a obrigação exige. Zerar só o
+      // shipping e deixar o e-mail seria meia anonimização.
+      try {
+        const { count, error } = await supabase
+          .from("orders")
+          .update({ shipping: null, email: null }, { count: "exact" })
+          .eq("email", emailDoUser);
+        if (error) throw new Error(error.message);
+        summary.anonymized = { orders: count || 0 };
+      } catch (e) {
+        summary.warnings.push("orders: " + e.message);
+      }
+
+      try {
+        const { count, error } = await supabase
+          .from("radar_leads").delete({ count: "exact" }).eq("email", emailDoUser);
+        if (error) throw new Error(error.message);
+        summary.deleted.radar_leads = count || 0;
+      } catch (e) {
+        summary.warnings.push("radar_leads: " + e.message);
+      }
+
+      try {
+        const { count, error } = await supabase
+          .from("titular_requests").delete({ count: "exact" }).eq("email", emailDoUser);
+        if (error) throw new Error(error.message);
+        summary.deleted.titular_requests = count || 0;
+      } catch (e) {
+        summary.warnings.push("titular_requests: " + e.message);
+      }
+    }
+
+    // funnel_events, places_cache e rate_limits NÃO são apagados aqui, e é
+    // decisão, não esquecimento: nenhum deles guarda vínculo com este usuário.
+    // funnel_events tem id aleatório de navegador; places_cache é resposta do
+    // Google por place_id; rate_limits é IP de quem chamou. Não há chave pra
+    // achar "as linhas desta pessoa" — sair varrendo por aproximação apagaria
+    // dado de terceiro. Os três são cobertos pelo PRAZO, no cron de retenção.
+
     // 8. Por fim, deleta o user em auth.users
     const { error: authErr } = await supabase.auth.admin.deleteUser(userId);
     if (authErr) {
