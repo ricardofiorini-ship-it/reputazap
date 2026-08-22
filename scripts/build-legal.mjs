@@ -137,7 +137,11 @@ function pagina(doc, md) {
 <meta charset="UTF-8"/>
 <!-- SEM GA4 e SEM Meta Pixel nesta página, DE PROPÓSITO: quem abre uma
      política de privacidade não pode ser rastreado por abri-la. Mesma
-     decisão da /avaliar. NÃO REINTRODUZIR. -->
+     decisão da /avaliar. NÃO REINTRODUZIR.
+     O consent.js entra em modo "data-prefs-only": NAO carrega tag nenhuma,
+     só permite reabrir as preferências de cookies (revogação prometida no
+     §6.1 da Política). Sem o atributo, ele carregaria GA4 e Pixel aqui. -->
+<script src="/consent.js" data-prefs-only></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>${escAttr(doc.title)}</title>
 <meta name="description" content="${escAttr(doc.desc)}"/>
@@ -175,7 +179,7 @@ function pagina(doc, md) {
 </main>
 
 <footer class="art-footer">
-  <p>© StarTouch — <a href="/">Início</a> · <a href="/privacidade">Privacidade</a> · <a href="/termos">Termos</a> · <a href="/artigos">Artigos</a></p>
+  <p>© StarTouch — <a href="/">Início</a> · <a href="/privacidade">Privacidade</a> · <a href="/termos">Termos</a> · <a href="#" onclick="window.stConsent&amp;&amp;window.stConsent.abrir();return false;">Preferências de cookies</a> · <a href="/artigos">Artigos</a></p>
 </footer>
 
 </body>
