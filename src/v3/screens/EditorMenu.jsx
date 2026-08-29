@@ -79,7 +79,7 @@ function Previa({ draft, foto }) {
 }
 
 // ── Um item da lista ────────────────────────────────────────
-function Item({ b, tipos, erro, aberto, onAbrir, onMudar, onMover, onRemover, primeiro, ultimo, arrastando, onPegar }) {
+function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemover, primeiro, ultimo, arrastando, onPegar }) {
   const vis = visual(b.type)
   const campos = CAMPOS[b.type] || []
   const resumo = (() => {
@@ -140,7 +140,7 @@ function Item({ b, tipos, erro, aberto, onAbrir, onMudar, onMover, onRemover, pr
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, gap: 10 }}>
             <button className="v3-btn ghost" onClick={onRemover}><Trash2 size={13}/> Remover ação</button>
             <button className="v3-btn solid" onClick={onAbrir} disabled={!!erro}>
-              {erro ? 'Corrija para concluir' : 'Pronto'}
+              {erro ? (novo ? 'Corrija para inserir' : 'Corrija para concluir') : (novo ? 'Inserir' : 'Concluir')}
             </button>
           </div>
         </div>
@@ -157,6 +157,8 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   const [sujo, setSujo] = React.useState(false)
   const [aberto, setAberto] = React.useState(null)
   const [addOpen, setAddOpen] = React.useState(false)
+  // Qual ação acabou de ser adicionada — só ela mostra "Inserir".
+  const [recem, setRecem] = React.useState(null)
   const [publicando, setPublicando] = React.useState(false)
   const [erroGeral, setErroGeral] = React.useState(null)
   const [arrasto, setArrasto] = React.useState(null)
@@ -247,6 +249,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
     if (type === 'website' && dados?.info?.website) b.value = { url: dados.info.website }
     mudar({ ...draft, buttons: [...draft.buttons, b] })
     setAberto(b.id)
+    setRecem(b.id)
   }
 
   // ── Arrastar (pointer events: mouse e dedo no mesmo código) ──
@@ -491,7 +494,12 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                   arrastando={arrasto?.id === b.id}
                   primeiro={i === 0} ultimo={i === ordem.length - 1}
                   onPegar={(ev) => pegar(b.id, ev)}
-                  onAbrir={() => setAberto(aberto === b.id ? null : b.id)}
+                  novo={recem === b.id}
+                  onAbrir={() => {
+                    const fechando = aberto === b.id
+                    setAberto(fechando ? null : b.id)
+                    if (fechando) setRecem(null)   // inserida; da próxima vez é edição
+                  }}
                   onMudar={(patch) => mudarBotao(b.id, patch)}
                   onMover={(d) => moverBotao(b.id, d)}
                   onRemover={() => removerBotao(b.id)}/>
