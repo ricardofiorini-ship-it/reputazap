@@ -22,7 +22,7 @@
 // dispositivo.
 // ============================================================
 import React from 'react'
-import { Plus, Archive, Pencil, Trash2, Sparkles } from 'lucide-react'
+import { Plus, Archive, Pencil, Trash2, Sparkles, ChevronRight } from 'lucide-react'
 import { Head, Panel, Chip, Recursos, Carregando, Erro, dataBr } from '../ui.jsx'
 import { nomeProduto } from '../lib/dados.js'
 import { api } from '../lib/api.js'
@@ -41,6 +41,7 @@ export default function Experiencia({ dados }) {
     try { return new URLSearchParams(window.location.search).get('exp') } catch { return null }
   })
   const [criando, setCriando] = React.useState(false)
+  const [verExcluidos, setVerExcluidos] = React.useState(false)
 
   const carregar = React.useCallback(async () => {
     try {
@@ -221,18 +222,33 @@ export default function Experiencia({ dados }) {
         })}
       </Panel>
 
+      {/* Fechado por padrao: a lixeira e consulta ocasional, e lista aberta
+          rouba atencao dos menus que estao valendo. Vira uma linha discreta
+          que diz quantos tem e abre quando alguem procura. */}
       {arquivadas.length > 0 && (
-        <Panel titulo="Excluídos" sub="Nada foi apagado de verdade — dá para recuperar a qualquer momento">
-          {arquivadas.map(e => (
-            <div className="v3-onde" key={e.id}>
-              <span className="txt"><span className="t">{e.name}</span>
-                <span className="d">excluído em {dataBr(e.archived_at)}</span></span>
-              <button className="v3-btn" onClick={async () => { await api.experiencias.arquivar(e.id, true); carregar() }}>
-                <Archive size={13}/> Recuperar
-              </button>
+        <section className="v3-panel">
+          <button className="v3-sanfona" onClick={() => setVerExcluidos(v => !v)} aria-expanded={verExcluidos}>
+            <ChevronRight size={15} className={'seta' + (verExcluidos ? ' aberta' : '')}/>
+            <span className="t">Menus excluídos</span>
+            <span className="n">{arquivadas.length}</span>
+          </button>
+          {verExcluidos && (
+            <div className="body">
+              <p className="v3-dica" style={{ marginBottom: 8 }}>
+                Nada foi apagado de verdade — dá para recuperar a qualquer momento.
+              </p>
+              {arquivadas.map(e => (
+                <div className="v3-onde" key={e.id}>
+                  <span className="txt"><span className="t">{e.name}</span>
+                    <span className="d">excluído em {dataBr(e.archived_at)}</span></span>
+                  <button className="v3-btn" onClick={async () => { await api.experiencias.arquivar(e.id, true); carregar() }}>
+                    <Archive size={13}/> Recuperar
+                  </button>
+                </div>
+              ))}
             </div>
-          ))}
-        </Panel>
+          )}
+        </section>
       )}
 
       <Recursos itens={RECURSOS}/>
