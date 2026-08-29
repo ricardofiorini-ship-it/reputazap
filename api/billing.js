@@ -5,6 +5,7 @@ import { MercadoPagoConfig, PreApproval, Preference, Payment } from "mercadopago
 import crypto from "crypto";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
 import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle } from "./_lib/email-templates.js";
+import { resolvePlano } from "./_lib/plan.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -1318,7 +1319,66 @@ export default async function handler(req, res) {
       }
     }
 
+    // ── Estado das assinaturas ────────────────────────────────
+    // Existe por causa de uma decisão consciente tomada em 29/08/2026: um
+    // assinante cuja `next_payment_date` já passou NÃO é rebaixado. Aquela data
+    // vem do Mercado Pago e envelhece sozinha se um webhook não chegar —
+    // derrubar quem paga por causa de inconsistência nossa é pior que o
+    // problema. Em troca, o estado precisa ser VISÍVEL: benefício mantido com
+    // aviso que ninguém lê é falha silenciosa com outro nome.
+    //
+    // A classificação usa o MESMO resolvePlano() que a produção usa. Se ela
+    // tivesse regra própria, um dia o diagnóstico diria "tudo certo" sobre uma
+    // conta que o resto do sistema trata de outro jeito.
+    const COLS_BASE = "id, name, plan, stripe_subscription_status, stripe_current_period_end";
+    const COLS_TRIAL = ", trial_started_at, trial_ends_at";
+    let assinaturas;
+    try {
+      // As colunas de trial chegam com supabase/schema-experiences.sql. Enquanto
+      // o SQL não roda, pedir por elas derrubaria o diagnóstico INTEIRO — e é
+      // justamente num ambiente meio-migrado que a gente mais precisa dele.
+      let semTrial = false;
+      let { data, error } = await supabase.from("businesses").select(COLS_BASE + COLS_TRIAL);
+      if (error) {
+        semTrial = true;
+        ({ data, error } = await supabase.from("businesses").select(COLS_BASE));
+      }
+      if (error) throw new Error(error.message);
+
+      const linhas = (data || []).map((b) => ({ b, r: resolvePlano(b, null) }));
+      const atencao = linhas.filter((x) => x.r.atencao);
+
+      assinaturas = {
+        colunas_de_trial_existem: !semTrial,
+        pro: linhas.filter((x) => x.r.fonte === "assinatura").length,
+        trial_ativo: linhas.filter((x) => x.r.fonte === "trial").length,
+        free: linhas.filter((x) => x.r.plano === "free").length,
+        // O número que importa. Zero é o resultado saudável — e aparecer como
+        // zero explícito é o que diferencia "não há caso" de "ninguém olhou".
+        precisam_de_atencao: atencao.length,
+        casos: atencao.slice(0, 20).map(({ b, r }) => ({
+          business_id: b.id,
+          nome: b.name,
+          motivo: r.atencao,
+          status_no_mp: b.stripe_subscription_status,
+          proxima_cobranca_prevista: b.stripe_current_period_end,
+          dias_vencida: b.stripe_current_period_end
+            ? Math.floor((Date.now() - new Date(b.stripe_current_period_end).getTime()) / 86400000)
+            : null
+        })),
+        casos_omitidos: Math.max(0, atencao.length - 20),
+        // O que fazer com um caso: conferir a assinatura no painel do MP. Se
+        // estiver viva, foi webhook perdido (o cliente está certo, nosso dado
+        // está velho). Se estiver cancelada, o webhook de cancelamento é que
+        // não chegou e o `plan` precisa ir pra 'free' na mão.
+        como_investigar: "Abrir a assinatura no painel do Mercado Pago e comparar com status_no_mp."
+      };
+    } catch (e) {
+      assinaturas = { erro: e?.message || "falha ao consultar businesses" };
+    }
+
     return res.json({
+      assinaturas,
       order_notifications: {
         orders_table_exists: ordersTable.ok,
         orders_table_error: ordersTable.error,
