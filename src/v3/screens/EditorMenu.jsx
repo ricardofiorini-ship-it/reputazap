@@ -160,7 +160,20 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   const [publicando, setPublicando] = React.useState(false)
   const [erroGeral, setErroGeral] = React.useState(null)
   const [arrasto, setArrasto] = React.useState(null)
+  const [nome, setNome] = React.useState(exp.name)
   const listaRef = React.useRef(null)
+
+  // O nome interno vive em `experiences.name`, fora do JSON: ele não é
+  // conteúdo do menu, é etiqueta de organização. Grava ao sair do campo —
+  // salvar a cada tecla num campo de nome é pedido de rede à toa.
+  async function salvarNome() {
+    const limpo = nome.trim()
+    if (!limpo || limpo === exp.name) { setNome(exp.name); return }
+    try {
+      const r = await api.experiencias.renomear(exp.id, limpo)
+      onAtualizar?.(r.experience, { silencioso: true })
+    } catch (e) { setErroGeral(e.message); setNome(exp.name) }
+  }
 
   const publicado = exp.published || null
   const naoPublicado = React.useMemo(
@@ -317,7 +330,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           <button className="v3-btn ghost" onClick={onVoltar} style={{ marginBottom: 8 }}>
             <ArrowLeft size={13}/> Experiências
           </button>
-          <h1>{exp.name}</h1>
+          <h1>{nome || exp.name}</h1>
           <div className="sub">
             {publicado
               ? `Publicado${exp.published_at ? ' em ' + new Date(exp.published_at).toLocaleDateString('pt-BR') : ''}`
@@ -333,6 +346,20 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
       </div>
 
       {erroGeral && !erros.length && <div className="v3-callout"><div><div className="t">{erroGeral}</div></div></div>}
+
+      {/* Quem nunca viu isto não tem por que adivinhar as duas etapas. Uma
+          frase no topo poupa a descoberta por tentativa. */}
+      <div className="v3-callout info">
+        <Info size={16} color="var(--blue-dk)" style={{ flex: 'none', marginTop: 1 }}/>
+        <div>
+          <div className="t">Como funciona</div>
+          <div className="s">
+            <b>1.</b> Monte as ações e veja a prévia à direita. <b>2.</b> Clique em <b>Publicar</b> — só
+            então o que você montou passa a valer. <b>3.</b> Ligue o menu nos dispositivos, lá embaixo.
+            Enquanto você não fizer os três, seus dispositivos continuam levando direto ao Google.
+          </div>
+        </div>
+      </div>
 
       {/* Barra de estado: recusa com a lista, ou convite a publicar. */}
       {erros.length > 0 ? (
@@ -375,7 +402,29 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
       <div className="v3-edcols">
         <div>
           <section className="v3-panel">
-            <header><h2>Identificação</h2><div className="psub">O topo da página que o cliente vê</div></header>
+            <header>
+              <h2>Nome do menu</h2>
+              <div className="psub">Só você vê. Serve pra diferenciar seus menus aqui no painel.</div>
+            </header>
+            <div className="body">
+              <label className="v3-campo" style={{ marginBottom: 0 }}>
+                <input value={nome} maxLength={60}
+                  onChange={e => setNome(e.target.value)}
+                  onBlur={salvarNome}
+                  onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                  placeholder="Ex: Menu da mesa, Cartão da Mariana"/>
+                <span className="lb" style={{ marginTop: 5, marginBottom: 0 }}>
+                  O cliente nunca vê este nome — ele lê o <b>título</b>, logo abaixo.
+                </span>
+              </label>
+            </div>
+          </section>
+
+          <section className="v3-panel">
+            <header>
+              <h2>O que o cliente vê no topo</h2>
+              <div className="psub">A primeira coisa que aparece quando ele encosta o celular</div>
+            </header>
             <div className="body">
               <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 <div style={{ flex: 'none', textAlign: 'center', width: 70 }}>
@@ -388,12 +437,12 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                 </div>
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <label className="v3-campo">
-                    <span className="lb">Título</span>
+                    <span className="lb">Título — normalmente o nome do seu negócio</span>
                     <input value={draft.brand?.titulo || ''} maxLength={60}
                       onChange={e => mudar({ ...draft, brand: { ...draft.brand, titulo: e.target.value } })}/>
                   </label>
                   <label className="v3-campo" style={{ marginBottom: 0 }}>
-                    <span className="lb">Subtítulo</span>
+                    <span className="lb">Subtítulo — uma frase curta de boas-vindas</span>
                     <input value={draft.brand?.subtitulo || ''} maxLength={90}
                       onChange={e => mudar({ ...draft, brand: { ...draft.brand, subtitulo: e.target.value } })}/>
                   </label>
@@ -407,7 +456,8 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
               <div>
                 <h2>Ações</h2>
                 <div className="psub">
-                  Arraste para mudar a ordem · {draft.buttons.length} de {limites?.botoes || 12}
+                  Os botões que o cliente vê, nesta ordem. Arraste pela alça, ou use as setas.
+                  {' · '}{draft.buttons.length} de {limites?.botoes || 12}
                   {ligados > (limites?.recomendado || 6) && ' · muitas opções dificultam a escolha do cliente'}
                 </div>
               </div>
@@ -477,7 +527,12 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
 function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
   const [ocupado, setOcupado] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const devices = dados.devices || []
+  // Resposta IMEDIATA ao toque. Antes o interruptor esperava o servidor
+  // inteiro (que ainda reimprime todos os dispositivos) pra mudar de cor —
+  // parecia travado, e a pessoa clicava de novo. Agora muda na hora e o
+  // servidor confirma depois; se recusar, volta e diz por quê.
+  const [otimista, setOtimista] = React.useState({})
+  const devices = (dados.devices || []).map(d => ({ ...d, ...(otimista[d.id] || {}) }))
   const nomeDaExp = (id) => (experiencias || []).find(e => e.id === id)?.name || 'outra experiência'
 
   async function alternar(d) {
@@ -485,15 +540,17 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
     const ligar = !(usaEsta && d.experience_enabled)
 
     // Um dispositivo serve UMA experiência — ele é um ponto físico com um
-    // destino só. Mover é permitido, mas nunca em silêncio: o menu antigo
-    // perderia um ponto de contato e o dono só descobriria pelo gráfico.
+    // destino só. Mover é permitido, mas nunca em silêncio.
     let mover = false
     if (ligar && d.experience_id && d.experience_id !== exp.id) {
-      if (!confirm(`Este dispositivo está usando “${nomeDaExp(d.experience_id)}”.\n\nTrocar para “${exp.name}”? O outro menu deixa de valer neste dispositivo.`)) return
+      if (!confirm(`“${d.channel_name || 'Este dispositivo'}” está usando o menu “${nomeDaExp(d.experience_id)}”.\n\nTrocar para “${exp.name}”? O outro menu deixa de valer neste dispositivo.`)) return
       mover = true
     }
 
     setOcupado(d.id); setErro(null)
+    setOtimista(o => ({ ...o, [d.id]: ligar
+      ? { experience_id: exp.id, experience_enabled: true, served_mode: 'menu' }
+      : { experience_enabled: false, served_mode: 'google_direto' } }))
     try {
       await api.experiencias.dispositivo({
         plate_id: d.id,
@@ -502,14 +559,26 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
         mover
       })
       onAtualizar?.(null)
+      // O recarregamento traz o estado real; a suposição sai de cena.
+      setOtimista(o => { const c = { ...o }; delete c[d.id]; return c })
     } catch (e) {
+      setOtimista(o => { const c = { ...o }; delete c[d.id]; return c })   // desfaz
       setErro(e.message || 'Não foi possível alterar.')
     } finally { setOcupado(null) }
   }
 
+  const ligados = devices.filter(d => d.experience_id === exp.id && d.experience_enabled).length
+
   return (
     <section className="v3-panel">
-      <header><h2>Onde este menu está no ar</h2><div className="psub">O interruptor é por dispositivo</div></header>
+      <header>
+        <h2>Ligar em quais dispositivos</h2>
+        <div className="psub">
+          {ligados
+            ? `Este menu está valendo em ${ligados} ${ligados === 1 ? 'dispositivo' : 'dispositivos'}.`
+            : 'Enquanto você não ligar em nenhum, este menu não chega a ninguém.'}
+        </div>
+      </header>
       <div className="body">
         {!devices.length && <p className="v3-dica" style={{ padding: '8px 0' }}>Você ainda não tem dispositivos ativos.</p>}
         {devices.map(d => {
@@ -521,19 +590,18 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
               <span className="txt">
                 <span className="t">{d.channel_name || nomeProduto(d.product_type)}</span>
                 <span className="d">
-                  {nomeProduto(d.product_type)} · {d.total_taps || 0} toques no total
-                  {deOutro && ` · usando “${nomeDaExp(d.experience_id)}”`}
+                  {nomeProduto(d.product_type)}
+                  {deOutro && ` · usando o menu “${nomeDaExp(d.experience_id)}”`}
                 </span>
               </span>
-              {/* A coluna fala de DESTINO, não do estado do interruptor.
-                  Desligado aqui significa que o dispositivo leva ao Google —
-                  e é isso que precisa aparecer. */}
+              {/* A coluna fala de DESTINO, não do estado do interruptor:
+                  desligado aqui significa que o dispositivo leva ao Google. */}
               {servindoEste
                 ? <Chip tipo="g">servindo este menu</Chip>
                 : d.served_mode === 'menu'
                   ? <Chip tipo="a">servindo outro menu</Chip>
                   : <Chip tipo="n">Google Direto</Chip>}
-              <button className={'v3-switch' + (servindoEste ? '' : ' off')} disabled={ocupado === d.id}
+              <button className={'v3-switch' + (servindoEste ? '' : ' off') + (ocupado === d.id ? ' pendente' : '')}
                 onClick={() => alternar(d)} aria-pressed={servindoEste}
                 aria-label={servindoEste ? 'Desligar neste dispositivo' : 'Ligar neste dispositivo'}><i/></button>
             </div>
@@ -541,8 +609,9 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
         })}
         {erro && <p className="v3-dica" style={{ color: 'var(--red)' }}>{erro}</p>}
         <p className="v3-dica" style={{ marginTop: 10 }}>
-          Desligar devolve aquele dispositivo ao Google Direto na hora. Seu menu continua guardado, e o link
-          compartilhável segue funcionando. Cada dispositivo serve um menu de cada vez.
+          Ligado, o cliente que encostar naquele dispositivo abre este menu. Desligado, ele volta a ir direto
+          ao Google — e seu menu continua guardado aqui, pronto pra religar. Cada dispositivo serve um menu
+          de cada vez.
         </p>
       </div>
     </section>

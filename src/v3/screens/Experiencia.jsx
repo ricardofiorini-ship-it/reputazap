@@ -74,7 +74,7 @@ export default function Experiencia({ dados }) {
   async function criar() {
     setCriando(true)
     try {
-      const r = await api.experiencias.criar('Menu do ' + (estado.dados?.negocio?.name || 'meu negócio'))
+      const r = await api.experiencias.criar()   // o servidor numera: Menu 1, Menu 2...
       await carregar()
       abrir(r.experience.id)
     } catch (e) {
@@ -155,8 +155,10 @@ export default function Experiencia({ dados }) {
         extra={<><Chip>PRO</Chip><Chip tipo="n">Em construção</Chip></>}
         sub="O toque abre uma página sua em vez de ir direto ao Google">
         <p className="v3-dica" style={{ padding: '6px 0 10px' }}>
-          Avaliar no Google, cardápio, pedido no WhatsApp, Instagram, salvar contato — na ordem que você
-          definir. Editar e publicar são passos separados: você mexe à vontade e só vai ao ar quando publicar.
+          Em vez de ir direto ao Google, o toque abre uma página sua com os botões que você escolher:
+          avaliar, cardápio, pedido no WhatsApp, Instagram, salvar contato. Você monta, publica, e liga nos
+          dispositivos que quiser — cada dispositivo pode ter um menu diferente, e o que não estiver ligado
+          continua indo direto ao Google.
         </p>
 
         {!ativas.length && (
@@ -179,12 +181,12 @@ export default function Experiencia({ dados }) {
               <div className="txt">
                 <div className="t">{e.name}</div>
                 <div className="d">
-                  {e.published
-                    ? `Publicado em ${dataBr(e.published_at)}`
-                    : 'Ainda não publicado'}
-                  {' · '}
+                  {(e.published?.brand?.titulo || e.draft?.brand?.titulo)
+                    && <>o cliente vê “{e.published?.brand?.titulo || e.draft?.brand?.titulo}” · </>}
                   {(e.published?.buttons || e.draft?.buttons || []).length} ações
-                  {usando.length > 0 && ` · no ar em ${usando.length} ${usando.length === 1 ? 'dispositivo' : 'dispositivos'}`}
+                  {' · '}
+                  {e.published ? `publicado em ${dataBr(e.published_at)}` : 'ainda não publicado'}
+                  {usando.length > 0 && ` · ligado em ${usando.length} ${usando.length === 1 ? 'dispositivo' : 'dispositivos'}`}
                 </div>
               </div>
               {naoPublicado && <Chip tipo="a">alterações não publicadas</Chip>}

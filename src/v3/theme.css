@@ -399,3 +399,9 @@ table.v3-t tr:last-child td { border-bottom: 0; }
   .v3-item .d { display: none; }
   .v3-item.ruim .d { display: block; color: var(--red); }
 }
+
+/* Interruptor aguardando confirmação do servidor: já mudou de cor (a resposta
+   é imediata), mas pulsa de leve pra dizer que ainda está confirmando. */
+.v3-switch.pendente { opacity: .75; animation: v3pulso 1s ease-in-out infinite; }
+@keyframes v3pulso { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .v3-switch.pendente { animation: none; } }

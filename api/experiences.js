@@ -155,14 +155,18 @@ async function listar(req, res, biz, user) {
 }
 
 async function criar(req, res, biz) {
-  const nome = String(req.body?.name || "").trim().slice(0, MAX_NOME) || "Novo menu";
-
   const { count } = await supabase.from("experiences")
     .select("id", { count: "exact", head: true })
     .eq("business_id", biz.id).is("archived_at", null);
   if ((count || 0) >= MAX_EXPERIENCIAS) {
     return res.status(400).json({ error: `Você já tem ${MAX_EXPERIENCIAS} experiências ativas. Arquive alguma para criar outra.` });
   }
+
+  // O NOME É INTERNO — só o gestor vê, e serve pra diferenciar menus no
+  // painel ("Menu da Mesa" x "Cartão da Mariana"). Não confundir com o
+  // TÍTULO, que é o que o cliente lê no topo da página. Por isso o padrão é
+  // numerado e neutro: nomear é decisão dele, não nossa.
+  const nome = String(req.body?.name || "").trim().slice(0, MAX_NOME) || `Menu ${(count || 0) + 1}`;
 
   const draft = rascunhoInicial({ nomeDoNegocio: biz.name });
 
