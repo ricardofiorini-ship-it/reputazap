@@ -1,55 +1,108 @@
 // ============================================================
 // StarTouch V3 — Resultados
 // ============================================================
-// A camada de cruzamento: o que aconteceu DEPOIS do toque.
+// A tela conta uma história, nesta ordem: quantas pessoas interagiram → o que
+// fizeram → onde aconteceu → como está evoluindo. Relatório técnico lista
+// números; isto aqui precisa levar alguém do primeiro ao último bloco.
 //
-// A RÉGUA: a contagem de toques continua gratuita em Dispositivos. Aqui ela
-// aparece como DENOMINADOR — sem o número de baixo, o cruzamento não diz
-// nada. O que se paga é o cruzamento.
+// A RÉGUA: a contagem de toques continua gratuita em Dispositivos. Aqui ela é
+// DENOMINADOR — o número de baixo da conta. O que se paga é o cruzamento.
 //
-// A LEITURA UNIFICA OS DOIS CAMINHOS: todo toque termina de um jeito só de
-// dois — ou foi direto ao Google, ou abriu um menu e escolheu. Assim o
-// dispositivo em Google Direto não fica de fora do relatório, e a diferença
-// entre os dois aparece MEDIDA.
+// UMA ARITMÉTICA QUE PRECISA CASAR: aberturas vindas do link compartilhado
+// NÃO entram no percentual sobre toques, porque não houve toque. Misturar as
+// duas coisas colocaria dois números discordantes na mesma tela — o indicador
+// dizendo 67% e o bloco de baixo dizendo 50%. Elas aparecem à parte, com a
+// razão escrita.
 //
-// NÃO EXISTE "taxa de conversão" aqui, e é decisão, não esquecimento: toque →
-// clique nós medimos; toque → avaliação publicada o Google não devolve. Um
-// número que sugerisse a segunda leitura seria inventado.
+// NÃO EXISTE "taxa de conversão", e é decisão: toque → clique nós medimos;
+// toque → avaliação publicada o Google não devolve.
 // ============================================================
 import React from 'react'
-import { Info, TrendingUp } from 'lucide-react'
+import { Info, TrendingUp, Link2, Lightbulb } from 'lucide-react'
 import { Head, Kpi, Panel, Chip, Delta, Carregando, Erro, dataBr } from '../ui.jsx'
 import { nomeProduto } from '../lib/dados.js'
 import { get } from '../lib/api.js'
 
 const JANELAS = [7, 30, 90]
 
-const NOME_ACAO = {
-  google: 'Avaliar no Google', whatsapp: 'WhatsApp', instagram: 'Instagram',
-  food_menu: 'Cardápio', phone: 'Telefone', location: 'Como chegar',
-  website: 'Site', contact: 'Salvar contato', custom_url: 'Link personalizado'
+const ACAO = {
+  google:     { nome: 'Avaliar no Google', cor: '#F5A623', bg: '#FEF6E7', gl: '★' },
+  whatsapp:   { nome: 'WhatsApp',          cor: '#1E8E3E', bg: '#E6F4EA', gl: '✆' },
+  instagram:  { nome: 'Instagram',         cor: '#7B4BC4', bg: '#F2ECFB', gl: '◎' },
+  food_menu:  { nome: 'Cardápio',          cor: '#B06000', bg: '#FEF3E0', gl: '▤' },
+  phone:      { nome: 'Telefone',          cor: '#1557B0', bg: '#E8F0FE', gl: '☎' },
+  location:   { nome: 'Como chegar',       cor: '#4A5666', bg: '#EDF1F6', gl: '⌖' },
+  website:    { nome: 'Site',              cor: '#1557B0', bg: '#E8F0FE', gl: '⬡' },
+  contact:    { nome: 'Salvar contato',    cor: '#B3261E', bg: '#FCE8E6', gl: '⊕' },
+  custom_url: { nome: 'Link personalizado', cor: '#4A5666', bg: '#EDF1F6', gl: '↗' }
 }
-const COR_ACAO = {
-  google: '#F5A623', whatsapp: '#1E8E3E', instagram: '#7B4BC4', food_menu: '#B06000',
-  phone: '#1557B0', location: '#4A5666', website: '#1557B0', contact: '#B3261E', custom_url: '#4A5666'
+const acao = (t) => ACAO[t] || { nome: t || 'Outro', cor: '#4A5666', bg: '#EDF1F6', gl: '·' }
+
+// Piso do StarTouch recomenda. Conselho tirado de três cliques não é insight,
+// é ruído com cara de conselho — e ensina o dono a desconfiar dos próximos.
+const PISO = { cliques: 10, aberturas: 5 }
+
+// ── Gráfico de barras, largura inteira ──────────────────────
+// Sem biblioteca: são N retângulos com altura percentual. A alternância entre
+// as três séries é o que faz este gráfico ser diferente do gratuito de
+// Dispositivos — lá é a contagem de toques; aqui é a comparação.
+function Grafico({ serie, campo, cor }) {
+  const max = Math.max(1, ...serie.map(p => p[campo]))
+  const marcos = serie.length > 2 ? [0, Math.floor(serie.length / 2), serie.length - 1] : [0, serie.length - 1]
+  return (
+    <>
+      <div className="v3-graf">
+        {serie.map((p, i) => (
+          <span key={i} className={'b' + (p[campo] === max && max > 0 ? ' hi' : '')}
+            style={{ height: `${Math.max(2, (p[campo] / max) * 100)}%`, background: cor }}
+            title={`${dataBr(p.dia)}: ${p[campo]}`}/>
+        ))}
+      </div>
+      <div className="v3-eixo">
+        {marcos.map(i => <span key={i}>{dataBr(serie[i]?.dia)}</span>)}
+      </div>
+    </>
+  )
 }
 
-// Barra proporcional com rótulo. Sem biblioteca de gráfico: são linhas com
-// largura percentual, e uma dependência pra isso seria peso sem retorno.
-function Linha({ nome, cor, valor, maximo, sub }) {
-  const pct = maximo > 0 ? Math.round((valor / maximo) * 100) : 0
-  return (
-    <div className="v3-linha">
-      <span className="nm">{nome}</span>
-      <span className="barra"><i style={{ width: `${Math.max(2, pct)}%`, background: cor || 'var(--blue)' }}/></span>
-      <span className="v">{valor.toLocaleString('pt-BR')}</span>
-      {sub && <span className="s">{sub}</span>}
-    </div>
-  )
+// ── StarTouch recomenda ─────────────────────────────────────
+// O que aconteceu → o que significa → o que fazer. Devolve [] quando o dado
+// não sustenta; o bloco simplesmente não existe nesse caso.
+function recomendacoes(d) {
+  const fora = []
+  const aberturas = d.menu.aberturas
+  const cliques = d.menu.cliques
+  if (cliques < PISO.cliques || aberturas < PISO.aberturas) return fora
+
+  const acoes = Object.entries(d.menu.por_acao).sort((a, b) => b[1] - a[1])
+  if (acoes.length >= 2) {
+    const [a1, a2] = acoes
+    const pct = Math.round(((a1[1] + a2[1]) / cliques) * 100)
+    if (pct >= 60) {
+      fora.push({
+        titulo: `${acao(a1[0]).nome} e ${acao(a2[0]).nome} concentram ${pct}% das escolhas`,
+        texto: 'Vale conferir se as duas estão entre os primeiros botões do menu — a ordem muda o que as pessoas escolhem.'
+      })
+    }
+  }
+
+  // Dispositivo indo direto ao Google enquanto os com menu produzem escolhas.
+  const semMenu = (d.por_dispositivo || []).filter(p => p.servindo !== 'menu' && p.toques >= 5)
+  const media = aberturas > 0 ? cliques / aberturas : 0
+  if (semMenu.length && media >= 1) {
+    const top = semMenu.sort((a, b) => b.toques - a.toques)[0]
+    fora.push({
+      titulo: `${top.nome} recebeu ${top.toques} toques indo direto ao Google`,
+      texto: `Nos seus dispositivos com menu, cada abertura gerou ${media.toFixed(1).replace('.', ',')} ações. Talvez valha experimentar um menu nele também.`
+    })
+  }
+  return fora.slice(0, 2)
 }
 
 export default function Resultados() {
   const [dias, setDias] = React.useState(30)
+  const [serie, setSerie] = React.useState('toques')
+  const [aba, setAba] = React.useState('dispositivos')
   const [estado, setEstado] = React.useState({ carregando: true, erro: null, d: null })
 
   const carregar = React.useCallback(async (j) => {
@@ -69,20 +122,28 @@ export default function Resultados() {
 
   const d = estado.d
   const toques = d.toques.total
+  const aberturasDisp = d.menu.aberturas_de_dispositivo
+  const porLink = d.menu.aberturas_de_link
   const aberturas = d.menu.aberturas
   const cliques = d.menu.cliques
   const direto = d.toques.direto_ao_google
+  const pctDireto = toques > 0 ? Math.round((direto / toques) * 100) : 0
+  const pctMenu = toques > 0 ? Math.round((aberturasDisp / toques) * 100) : 0
+  const mediaPorAbertura = aberturas > 0 ? cliques / aberturas : null
   const acoes = Object.entries(d.menu.por_acao).sort((a, b) => b[1] - a[1])
   const maxAcao = Math.max(1, ...acoes.map(a => a[1]))
-  // Quantas escolhas cada abertura gerou. É o número honesto que temos —
-  // e não uma "conversão" que sugeriria avaliação publicada.
-  const escolhasPorAbertura = aberturas > 0 ? (cliques / aberturas) : null
-
+  const dicas = recomendacoes(d)
   const semNada = toques === 0 && aberturas === 0
+
+  const SERIES = {
+    toques:    { campo: 'toques',    cor: 'var(--blue)', rotulo: 'Toques' },
+    aberturas: { campo: 'aberturas', cor: '#1E8E3E',     rotulo: 'Aberturas' },
+    cliques:   { campo: 'cliques',   cor: '#7B4BC4',     rotulo: 'Ações' }
+  }
 
   return (
     <>
-      <Head titulo="Resultados" sub="O que aconteceu depois que alguém encostou o celular">
+      <Head titulo="Resultados" sub="Entenda o que seus clientes fizeram depois de encostar o celular">
         <div className="v3-seg">
           {JANELAS.map(j => (
             <button key={j} aria-pressed={dias === j} onClick={() => setDias(j)}>{j} dias</button>
@@ -113,152 +174,179 @@ export default function Resultados() {
         </div>
       ) : (
         <>
-          <div className="v3-kpis">
-            <Kpi rotulo="Toques nos dispositivos" valor={toques.toLocaleString('pt-BR')}
-              sub={<Delta atual={toques} anterior={d.toques.anterior}/>}/>
-            <Kpi rotulo="Abriram um menu" valor={aberturas.toLocaleString('pt-BR')}
-              sub={d.menu.aberturas_de_link > 0
-                ? `${d.menu.aberturas_de_link} ${d.menu.aberturas_de_link === 1 ? 'veio' : 'vieram'} por link, sem dispositivo`
-                : <Delta atual={aberturas} anterior={d.menu.aberturas_anterior}/>}/>
-            <Kpi rotulo="Escolhas no menu" valor={cliques.toLocaleString('pt-BR')}
-              sub={aberturas > 0 ? 'botões tocados pelos seus clientes' : null}/>
-            <Kpi
-              rotulo="Escolhas por abertura"
-              valor={escolhasPorAbertura != null ? escolhasPorAbertura.toFixed(1).replace('.', ',') : null}
-              indisponivel="sem abertura ainda"
-              sub={escolhasPorAbertura != null ? 'quantas ações cada pessoa tocou' : null}/>
+          {/* ── 1 · TOPO: três números, e o terceiro carrega a média ── */}
+          <div className="v3-kpis tres">
+            <Kpi rotulo="Toques" valor={toques.toLocaleString('pt-BR')}
+              sub={<>pessoas encostaram o celular nos seus dispositivos<br/><Delta atual={toques} anterior={d.toques.anterior}/></>}/>
+            <Kpi rotulo="Abriram o Menu" valor={aberturasDisp.toLocaleString('pt-BR')}
+              sub={<>
+                <b>{pctMenu}% dos toques</b> abriram um menu
+                {porLink > 0 && <><br/>+{porLink} {porLink === 1 ? 'abertura veio' : 'aberturas vieram'} por link</>}
+              </>}/>
+            <Kpi rotulo="Ações escolhidas" valor={cliques.toLocaleString('pt-BR')}
+              sub={mediaPorAbertura != null
+                ? `${mediaPorAbertura.toFixed(1).replace('.', ',')} ações por abertura, em média`
+                : 'nenhuma abertura de menu ainda'}/>
           </div>
-
-          {/* A leitura principal: todo toque termina de um jeito só de dois. */}
-          <Panel
-            titulo="O que aconteceu depois do toque"
-            extra={<Chip>PRO</Chip>}
-            sub={`De ${dataBr(d.de)} a ${dataBr(d.ate)}`}>
-            <p className="v3-dica" style={{ padding: '4px 0 12px' }}>
-              <b>{toques.toLocaleString('pt-BR')} {toques === 1 ? 'pessoa encostou' : 'pessoas encostaram'} o celular</b> nos
-              seus dispositivos neste período.
-            </p>
-            <Linha nome="Foram direto ao Google" cor="#F5A623" valor={direto} maximo={Math.max(1, toques)}
-              sub="dispositivos em Google Direto"/>
-            <Linha nome="Abriram um menu" cor="var(--blue)" valor={d.menu.aberturas_de_dispositivo} maximo={Math.max(1, toques)}
-              sub="dispositivos com Menu Inteligente"/>
-            {d.menu.aberturas_de_link > 0 && (
-              <div className="v3-dica" style={{ marginTop: 10 }}>
-                Mais {d.menu.aberturas_de_link} {d.menu.aberturas_de_link === 1 ? 'abertura veio' : 'aberturas vieram'} pelo
-                link compartilhado, sem passar por um dispositivo — não entram na conta acima porque não houve toque.
-              </div>
-            )}
-          </Panel>
-
-          {acoes.length > 0 && (
-            <Panel titulo="Para onde as pessoas foram" extra={<Chip>PRO</Chip>}
-              sub={`${cliques} ${cliques === 1 ? 'escolha' : 'escolhas'} de quem abriu o menu`}>
-              {acoes.map(([acao, n]) => (
-                <Linha key={acao} nome={NOME_ACAO[acao] || acao} cor={COR_ACAO[acao]} valor={n} maximo={maxAcao}
-                  sub={aberturas > 0 ? `${Math.round((n / aberturas) * 100)}% de quem abriu` : null}/>
-              ))}
-            </Panel>
-          )}
-
-          {d.menu.por_botao.length > 1 && (
-            <Panel titulo="Por botão" extra={<Chip>PRO</Chip>}
-              sub="O mesmo tipo de ação pode aparecer mais de uma vez no menu">
-              <div className="v3-table-wrap">
-                <table className="v3-t">
-                  <thead><tr><th>Botão</th><th>Ação</th><th className="num">Escolhas</th></tr></thead>
-                  <tbody>
-                    {d.menu.por_botao.map(b => (
-                      <tr key={b.button_id}>
-                        <td className="nm">{b.label || <span className="sm">botão removido do menu</span>}</td>
-                        <td className="sm">{NOME_ACAO[b.action] || b.action || '—'}</td>
-                        <td className="num">{b.cliques}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Panel>
-          )}
 
           <div className="v3-cols">
-            <Panel titulo="Por dispositivo" extra={<Chip>PRO</Chip>}
-              sub="O que cada ponto de contato produziu — a contagem de toques em si fica em Dispositivos">
-              {!d.por_dispositivo.length && <p className="v3-dica" style={{ padding: '8px 0' }}>Nenhum dispositivo com movimento no período.</p>}
-              {d.por_dispositivo.length > 0 && (
-                <div className="v3-table-wrap">
-                  <table className="v3-t">
-                    <thead><tr>
-                      <th>Dispositivo</th><th>Serve</th>
-                      <th className="num">Toques</th><th className="num">Aberturas</th><th className="num">Escolhas</th>
-                    </tr></thead>
-                    <tbody>
-                      {d.por_dispositivo.map(p => (
-                        <tr key={p.plate_id}>
-                          <td><div className="nm">{p.nome}</div><div className="sm">{nomeProduto(p.product_type)}</div></td>
-                          <td>{p.servindo === 'menu' ? <Chip>Menu</Chip> : <Chip tipo="g">Google</Chip>}</td>
-                          <td className="num">{p.toques}</td>
-                          {/* Traço, não zero: dispositivo em Google Direto não
-                              tem menu pra abrir. Zero diria que ninguém abriu. */}
-                          <td className="num">{p.servindo === 'menu' ? p.aberturas : '—'}</td>
-                          <td className="num">{p.servindo === 'menu' ? p.cliques : '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </Panel>
-
             <div>
-              {d.menu.por_experiencia.length > 0 && (
-                <Panel titulo="Por menu" extra={<Chip>PRO</Chip>} sub="Quando você tem mais de um">
-                  <div className="v3-table-wrap">
-                    <table className="v3-t">
-                      <thead><tr><th>Menu</th><th className="num">Aberturas</th><th className="num">Escolhas</th></tr></thead>
-                      <tbody>
-                        {d.menu.por_experiencia.map(e => (
-                          <tr key={e.experience_id}>
-                            <td className="nm">{e.name}</td>
-                            <td className="num">{e.aberturas}</td>
-                            <td className="num">{e.cliques}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              {/* ── 2 · A DIVISÃO, numa barra só ── */}
+              <Panel titulo="O que aconteceu depois do toque"
+                sub={`De ${dataBr(d.de)} a ${dataBr(d.ate)} · ${toques} ${toques === 1 ? 'toque' : 'toques'} nos seus dispositivos`}>
+                {/* Barra ÚNICA dividida, e não duas independentes: duas barras
+                    deixam o leitor somando de cabeça; uma barra dividida É a
+                    divisão. */}
+                <div className="v3-split">
+                  <span style={{ width: `${toques ? (direto / toques) * 100 : 50}%`, background: '#F5A623' }}/>
+                  <span style={{ width: `${toques ? (aberturasDisp / toques) * 100 : 50}%`, background: 'var(--blue)' }}/>
+                </div>
+                <div className="v3-legs">
+                  <div className="leg">
+                    <div className="top"><span className="n">{direto}</span><span className="p g">{pctDireto}%</span></div>
+                    <div className="t">Foram direto ao Google</div>
+                    <div className="sm">dispositivos em Google Direto</div>
                   </div>
-                </Panel>
-              )}
-
-              {/* O gráfico de toques por dia NÃO mora aqui. Ele é gratuito e
-                  vive em Dispositivos — repetir a mesma informação em duas
-                  telas faz o cliente não saber onde procurar, e ainda por
-                  cima colocaria dentro do Pro algo que ele já tem de graça. */}
-              <div className="v3-callout info">
-                <Info size={16} color="var(--blue-dk)" style={{ flex: 'none', marginTop: 1 }}/>
-                <div>
-                  <div className="t">Procurando a contagem de toques por dia?</div>
-                  <div className="s">
-                    Ela fica em <b>Dispositivos</b>, com histórico, meio de chegada e último toque — e
-                    continua gratuita. Aqui a gente mostra o que aconteceu <b>depois</b> do toque.
+                  <div className="leg">
+                    <div className="top"><span className="n">{aberturasDisp}</span><span className="p m">{pctMenu}%</span></div>
+                    <div className="t">Abriram um Menu Inteligente</div>
+                    <div className="sm">dispositivos com menu ligado</div>
                   </div>
                 </div>
-              </div>
+                {porLink > 0 && (
+                  <div className="v3-avisinho">
+                    <Link2 size={15} color="var(--blue-dk)" style={{ flex: 'none', marginTop: 1 }}/>
+                    <div>
+                      <b>+{porLink} {porLink === 1 ? 'abertura pelo link compartilhado' : 'aberturas pelo link compartilhado'}.</b>{' '}
+                      Não {porLink === 1 ? 'entra' : 'entram'} na divisão acima porque não houve toque em
+                      dispositivo — {porLink === 1 ? 'veio' : 'vieram'} de um link, bio ou QR Code.
+                    </div>
+                  </div>
+                )}
+              </Panel>
+
+              {/* ── 4 · ONDE, em abas ── */}
+              <section className="v3-panel">
+                <header><h2>Onde seus clientes interagiram</h2></header>
+                <div className="v3-abas">
+                  <button className={aba === 'dispositivos' ? 'on' : ''} onClick={() => setAba('dispositivos')}>Dispositivos</button>
+                  <button className={aba === 'menus' ? 'on' : ''} onClick={() => setAba('menus')}>Menus</button>
+                </div>
+                <div className="body">
+                  {aba === 'dispositivos' ? (
+                    !d.por_dispositivo.length
+                      ? <p className="v3-dica" style={{ padding: '8px 0' }}>Nenhum dispositivo com movimento no período.</p>
+                      : <div className="v3-table-wrap">
+                          <table className="v3-t">
+                            <thead><tr><th>Dispositivo</th><th>Experiência</th><th className="num">Toques</th><th className="num">Aberturas</th></tr></thead>
+                            <tbody>
+                              {d.por_dispositivo.map(p => (
+                                <tr key={p.plate_id}>
+                                  <td><div className="nm">{p.nome}</div><div className="sm">{nomeProduto(p.product_type)}</div></td>
+                                  <td>{p.servindo === 'menu' ? <Chip>Menu</Chip> : <Chip tipo="g">Google Direto</Chip>}</td>
+                                  <td className="num">{p.toques}</td>
+                                  {/* Traço, não zero: dispositivo em Google Direto
+                                      não tem menu pra abrir. */}
+                                  <td className="num">{p.servindo === 'menu' ? p.aberturas : '—'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                  ) : (
+                    !d.menu.por_experiencia.length
+                      ? <p className="v3-dica" style={{ padding: '8px 0' }}>Nenhum menu foi aberto no período.</p>
+                      : <div className="v3-table-wrap">
+                          <table className="v3-t">
+                            <thead><tr><th>Menu</th><th className="num">Aberturas</th><th className="num">Ações</th><th className="num">Média por abertura</th></tr></thead>
+                            <tbody>
+                              {d.menu.por_experiencia.map(e => (
+                                <tr key={e.experience_id}>
+                                  <td className="nm">{e.name}</td>
+                                  <td className="num">{e.aberturas}</td>
+                                  <td className="num">{e.cliques}</td>
+                                  <td className="num">
+                                    {e.aberturas > 0 ? (e.cliques / e.aberturas).toFixed(1).replace('.', ',') : '—'}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                  )}
+                </div>
+              </section>
+            </div>
+
+            {/* ── 3 · O BLOCO PRINCIPAL DO PRO ── */}
+            <div>
+              <Panel titulo="O que seus clientes escolheram" extra={<Chip>PRO</Chip>}
+                sub={aberturas > 0
+                  ? `Com base nas ${aberturas} ${aberturas === 1 ? 'abertura' : 'aberturas'} de menu do período`
+                  : 'Aparece quando alguém abrir um menu'}>
+                {!acoes.length
+                  ? <p className="v3-dica" style={{ padding: '8px 0' }}>Ninguém escolheu nenhuma ação ainda.</p>
+                  : <div className="v3-table-wrap">
+                      <table className="v3-t">
+                        <thead><tr><th>Ação</th><th></th><th className="num">Escolhas</th><th className="num">% das aberturas</th></tr></thead>
+                        <tbody>
+                          {acoes.map(([k, n]) => {
+                            const a = acao(k)
+                            return (
+                              <tr key={k}>
+                                <td>
+                                  <span className="v3-icoacao" style={{ background: a.bg, color: a.cor }}>{a.gl}</span>
+                                  <b style={{ marginLeft: 8 }}>{a.nome}</b>
+                                </td>
+                                <td style={{ width: '32%' }}>
+                                  <span className="v3-bar"><i style={{ width: `${(n / maxAcao) * 100}%`, background: a.cor }}/></span>
+                                </td>
+                                <td className="num">{n}</td>
+                                <td className="num">{aberturas > 0 ? `${Math.round((n / aberturas) * 100)}%` : '—'}</td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>}
+              </Panel>
             </div>
           </div>
+
+          {/* ── 5 · EVOLUÇÃO, largura inteira ── */}
+          <Panel
+            titulo="Interações ao longo do tempo"
+            extra={<Chip>PRO</Chip>}
+            sub={`${dataBr(d.de)} a ${dataBr(d.ate)} · dados diários do período`}>
+            <div style={{ marginBottom: 12 }}>
+              <div className="v3-seg">
+                {Object.entries(SERIES).map(([k, s]) => (
+                  <button key={k} aria-pressed={serie === k} onClick={() => setSerie(k)}>{s.rotulo}</button>
+                ))}
+              </div>
+            </div>
+            <Grafico serie={d.por_dia} campo={SERIES[serie].campo} cor={SERIES[serie].cor}/>
+          </Panel>
+
+          {/* ── 6 · RECOMENDA: só com dado que sustente ── */}
+          {dicas.map((r, i) => (
+            <div className="v3-rec" key={i}>
+              <span className="ic"><Lightbulb size={16} color="var(--amber)"/></span>
+              <div>
+                <div className="t">StarTouch recomenda</div>
+                <div className="s"><b>{r.titulo}.</b> {r.texto}</div>
+              </div>
+            </div>
+          ))}
         </>
       )}
 
-      {/* A ausência que é decisão, dita em voz alta — senão alguém acrescenta
-          o número "que falta" um dia, sem saber por que ele não estava lá. */}
-      <div className="v3-callout info">
-        <Info size={16} color="var(--blue-dk)" style={{ flex: 'none', marginTop: 1 }}/>
+      {/* ── 7 · A transparência do Google, compacta ── */}
+      <div className="v3-nota">
+        <Info size={14} style={{ flex: 'none', marginTop: 2 }}/>
         <div>
-          <div className="t">Por que não existe “taxa de conversão” aqui</div>
-          <div className="s">
-            Nós medimos quem tocou e quem escolheu cada botão. Quem de fato publicou uma avaliação depois de
-            chegar ao Google, o Google não nos informa — então qualquer número com esse nome seria estimado,
-            e a gente prefere não ter o número a ter um número inventado.
-          </div>
+          A StarTouch mede o clique em “Avaliar no Google”, mas o Google não informa se a avaliação foi
+          efetivamente publicada. Por isso não mostramos uma taxa de conversão artificial.
         </div>
       </div>
     </>
