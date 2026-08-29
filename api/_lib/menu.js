@@ -110,7 +110,14 @@ export function normalizarBotao(bruto) {
   if (!TIPOS_VALIDOS.includes(type)) return null;
 
   const b = {
-    id: /^b_[a-z0-9]{4,12}$/.test(String(bruto.id || "")) ? bruto.id : novoId(),
+    // O id é a IDENTIDADE do botão: `experience_events.button_id` aponta pra
+    // ele, e é o que permite arrastar pra reordenar sem corromper o histórico.
+    // Por isso qualquer id utilizável é PRESERVADO — o formato aceito é largo
+    // de propósito. Um filtro estreito regerava o id a cada normalização, o
+    // que fazia dois efeitos silenciosos: o rascunho parecia sempre diferente
+    // do publicado (e a tela dizia "alterações não publicadas" pra sempre) e,
+    // pior, os cliques daquele botão viravam órfãos no relatório.
+    id: /^[A-Za-z0-9_-]{1,40}$/.test(String(bruto.id || "")) ? String(bruto.id) : novoId(),
     type,
     label: limpo(bruto.label, LIMITES.label) || TIPOS[type].label,
     enabled: bruto.enabled !== false
@@ -262,6 +269,25 @@ export function montarPublicado(draft) {
     ...e,
     buttons: e.buttons.filter((b) => b.enabled && validarBotao(b).ok)
   };
+}
+
+/**
+ * Há alterações no rascunho que ainda não foram publicadas?
+ *
+ * A comparação TEM que ser contra o que o rascunho VIRARIA se publicado, e não
+ * contra o rascunho cru: o publicado é uma versão filtrada e normalizada dele
+ * (sem os botões desligados, com URLs arrumadas). Comparar cru com publicado
+ * dava "sempre diferente" — e a tela dizia "alterações não publicadas" logo
+ * depois de publicar, fazendo o botão parecer que não funcionou.
+ *
+ * Mora aqui, junto de montarPublicado, porque as duas TÊM que concordar.
+ */
+export function estaPendente(draft, published) {
+  try {
+    return JSON.stringify(montarPublicado(draft)) !== JSON.stringify(published || null);
+  } catch {
+    return true;   // na dúvida, oferece publicar: erra pro lado de não travar
+  }
 }
 
 export function tamanhoOk(json) {

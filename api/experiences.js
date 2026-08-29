@@ -29,7 +29,7 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import {
-  normalizarExperiencia, validarParaPublicar, montarPublicado,
+  normalizarExperiencia, validarParaPublicar, montarPublicado, estaPendente,
   rascunhoInicial, tamanhoOk, LIMITES, TIPOS
 } from "./_lib/menu.js";
 import { resolvePlano, decidirServido } from "./_lib/plan.js";
@@ -166,7 +166,10 @@ async function listar(req, res, biz, user) {
     ok: true,
     plano: resolucao,
     negocio: { id: biz.id, name: biz.name, place_id: biz.place_id },
-    experiences: exps || [],
+    // `pendente` vem do servidor porque é ele quem monta o publicado. Se a
+    // tela tentasse deduzir isso comparando rascunho com publicado, erraria
+    // sempre — o publicado é uma versão filtrada do rascunho.
+    experiences: (exps || []).map((e) => ({ ...e, pendente: estaPendente(e.draft, e.published) })),
     devices: plates || [],
     limites: LIMITES,
     // A biblioteca viaja daqui pro editor de propósito: se o front tivesse a
@@ -219,7 +222,11 @@ async function salvarRascunho(req, res, biz) {
   if (error) return res.status(500).json({ error: error.message });
 
   // Rascunho NÃO reimprime nada: o que está no ar continua sendo o publicado.
-  return res.json({ ok: true, experience: data, validacao: validarParaPublicar(draft) });
+  return res.json({
+    ok: true,
+    experience: { ...data, pendente: estaPendente(data.draft, data.published) },
+    validacao: validarParaPublicar(draft)
+  });
 }
 
 async function publicar(req, res, biz, user) {
@@ -243,7 +250,20 @@ async function publicar(req, res, biz, user) {
   if (error) return res.status(500).json({ error: error.message });
 
   const mudados = await reimprimir(biz, user);
-  return res.json({ ok: true, experience: data, validacao: veredito, dispositivos_atualizados: mudados });
+  return res.json({
+    ok: true,
+    experience: { ...data, pendente: estaPendente(data.draft, data.published) },
+    validacao: veredito,
+    dispositivos_atualizados: mudados,
+    // Quantos dispositivos passaram a abrir este menu agora — é o que a tela
+    // usa pra confirmar o efeito, em vez de só dizer "publicado".
+    dispositivos_com_este_menu: await (async () => {
+      const { count } = await supabase.from("plates")
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", biz.id).eq("experience_id", exp.id).eq("served_mode", "menu");
+      return count || 0;
+    })()
+  });
 }
 
 async function descartar(req, res, biz) {
@@ -256,7 +276,7 @@ async function descartar(req, res, biz) {
     .update({ draft, draft_updated_at: new Date().toISOString() })
     .eq("id", exp.id).select().single();
   if (error) return res.status(500).json({ error: error.message });
-  return res.json({ ok: true, experience: data });
+  return res.json({ ok: true, experience: { ...data, pendente: estaPendente(data.draft, data.published) } });
 }
 
 async function arquivar(req, res, biz, user) {

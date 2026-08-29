@@ -161,6 +161,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   const [recem, setRecem] = React.useState(null)
   const [publicando, setPublicando] = React.useState(false)
   const [erroGeral, setErroGeral] = React.useState(null)
+  const [publicou, setPublicou] = React.useState(null)   // confirmação do que acabou de acontecer
   const [arrasto, setArrasto] = React.useState(null)
   const [nome, setNome] = React.useState(exp.name)
   const listaRef = React.useRef(null)
@@ -178,10 +179,13 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   }
 
   const publicado = exp.published || null
-  const naoPublicado = React.useMemo(
-    () => JSON.stringify(draft) !== JSON.stringify(publicado),
-    [draft, publicado]
-  )
+  // Quem sabe se há pendência é o SERVIDOR: o publicado é uma versão filtrada
+  // e normalizada do rascunho (sem os botões desligados, com URLs arrumadas),
+  // então comparar os dois aqui dava "sempre diferente" — e a barra continuava
+  // dizendo "alterações não publicadas" logo depois de publicar, fazendo o
+  // botão parecer que não funcionou. `sujo` cobre o intervalo entre digitar e
+  // o servidor responder.
+  const naoPublicado = sujo || (exp.pendente !== false)
 
   // ── Salvamento automático, com atraso ──
   // O veredito volta do servidor: é ele que decide, aqui só exibe.
@@ -205,6 +209,13 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   }, [exp.id, onAtualizar])
 
   React.useEffect(() => () => clearTimeout(timer.current), [])
+
+  // A confirmação some sozinha: aviso que fica pra sempre vira paisagem.
+  React.useEffect(() => {
+    if (!publicou) return
+    const t = setTimeout(() => setPublicou(null), 8000)
+    return () => clearTimeout(t)
+  }, [publicou])
 
   // Salvar na hora, sem esperar o temporizador. O salvamento automatico
   // continua existindo como rede de seguranca (ninguem perde trabalho por
@@ -306,6 +317,9 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
       const r = await api.experiencias.publicar(exp.id)
       setValidacao(r.validacao || null)
       setSujo(false)
+      // Ação que dá certo em silêncio é indistinguível de ação que não
+      // aconteceu — foi exatamente assim que este botão pareceu quebrado.
+      setPublicou({ em: r.dispositivos_com_este_menu || 0, quando: Date.now() })
       onAtualizar?.(r.experience)
     } catch (e) {
       // O servidor devolve a lista do que corrigir junto com a recusa — o
@@ -414,7 +428,17 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           </span>
         </div>
       ) : (
-        <div className="v3-barra ok"><span><Check size={14}/> <b>Publicado.</b> O que você vê aqui é o que o cliente encontra.</span></div>
+        <div className="v3-barra ok">
+          <span>
+            <Check size={14}/>{' '}
+            {publicou
+              ? <><b>Menu publicado.</b>{' '}
+                  {publicou.em > 0
+                    ? `${publicou.em} ${publicou.em === 1 ? 'dispositivo já está abrindo' : 'dispositivos já estão abrindo'} esta versão.`
+                    : 'Ligue em um dispositivo abaixo para ele começar a abrir o menu.'}</>
+              : <><b>Publicado.</b> O que você vê aqui é o que aparece para o cliente.</>}
+          </span>
+        </div>
       )}
 
       {avisos.map((a, i) => (

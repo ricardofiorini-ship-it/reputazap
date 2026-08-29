@@ -256,7 +256,7 @@ export default function Experiencia({ dados }) {
         <Panel titulo="Seus menus" sub="Gerencie os menus que você criou e veja onde estão sendo usados">
           {ativas.map(e => {
             const usando = devices.filter(d => d.experience_id === e.id && d.served_mode === 'menu')
-            const naoPublicado = JSON.stringify(e.draft) !== JSON.stringify(e.published)
+            const naoPublicado = e.pendente !== false   // o servidor decide; ver estaPendente()
             const acoes = (e.published?.buttons || e.draft?.buttons || []).filter(b => b.enabled !== false)
             return (
               <div className="v3-menucard" key={e.id}>
