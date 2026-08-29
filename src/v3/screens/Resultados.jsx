@@ -305,7 +305,7 @@ export default function Resultados() {
 
               {/* ── 4 · ONDE, em abas ── */}
               <section className="v3-panel">
-                <header><h2>Onde seus clientes interagiram</h2></header>
+                <header><h2>Por dispositivo e por menu</h2></header>
                 <div className="v3-abas">
                   <button className={aba === 'dispositivos' ? 'on' : ''} onClick={() => setAba('dispositivos')}>Dispositivos</button>
                   <button className={aba === 'menus' ? 'on' : ''} onClick={() => setAba('menus')}>Menus</button>
