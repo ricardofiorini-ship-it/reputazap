@@ -155,8 +155,9 @@ export default function Dispositivos({ dados }) {
                                 if (e.key === 'Escape') setRenomeando(null)
                               }}
                               style={{
-                                font: 'inherit', fontSize: 12.5, padding: '4px 7px',
-                                border: '1px solid var(--blue)', borderRadius: 6, width: 150
+                                font: 'inherit', fontSize: 12.5, padding: '6px 8px',
+                                border: '1px solid var(--blue)', borderRadius: 6,
+                                width: 140, maxWidth: '100%', minWidth: 0
                               }}/>
                             <button className="v3-btn solid" disabled={salvando} onClick={() => salvarNome(d)}>
                               {salvando ? '…' : 'Salvar'}

@@ -10,6 +10,7 @@
 // revisados antes de qualquer abertura ao público.
 // ============================================================
 import React from 'react'
+import { Menu, X } from 'lucide-react'
 import { GRUPOS, AREAS, STATUS_TXT } from './lib/areas.js'
 import { currentUser, logout } from './lib/api.js'
 import { useDados } from './lib/dados.js'
@@ -58,6 +59,9 @@ function Legenda() {
 
 export default function App() {
   const [id, setId] = React.useState(areaDaUrl)
+  // No celular a barra lateral é uma gaveta. Começa fechada; no computador
+  // este estado é ignorado (a coluna está sempre visível pelo CSS).
+  const [gaveta, setGaveta] = React.useState(false)
   const dados = useDados()
   const user = currentUser()
 
@@ -68,10 +72,27 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
+  // Esc fecha a gaveta — quem abre um menu sobreposto espera poder sair dele
+  // sem mirar no X.
+  React.useEffect(() => {
+    if (!gaveta) return
+    const onKey = (e) => { if (e.key === 'Escape') setGaveta(false) }
+    window.addEventListener('keydown', onKey)
+    // Trava a rolagem do fundo: sem isso, arrastar dentro da gaveta rola a
+    // página atrás dela e a pessoa perde o lugar onde estava.
+    const antes = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = antes
+    }
+  }, [gaveta])
+
   const ir = React.useCallback((novo) => {
     if (!AREAS[novo]) return
     window.history.pushState({}, '', `${BASE}/${novo}`)
     setId(novo)
+    setGaveta(false)          // navegou, fecha a gaveta
     window.scrollTo(0, 0)
   }, [])
 
@@ -110,7 +131,22 @@ export default function App() {
 
   return (
     <div className="v3">
-      <nav className="v3-side" aria-label="Áreas do painel">
+      {/* Barra superior — só aparece no celular (CSS). No computador a
+          navegação é a coluna da esquerda e isto não é renderizado. */}
+      <div className="v3-topbar">
+        <button className="abrir" onClick={() => setGaveta(true)}
+          aria-label="Abrir menu" aria-expanded={gaveta}>
+          <Menu size={22}/>
+        </button>
+        <div className="titulo">{area.nome}</div>
+      </div>
+
+      {gaveta && <button className="v3-veu" aria-label="Fechar menu" onClick={() => setGaveta(false)}/>}
+
+      <nav className={'v3-side' + (gaveta ? ' aberta' : '')} aria-label="Áreas do painel">
+        <button className="fechar" onClick={() => setGaveta(false)} aria-label="Fechar menu">
+          <X size={20}/>
+        </button>
         <div className="v3-brand">
           <div className="v3-mark"/>
           <div className="v3-brandname">STARTOUCH</div>

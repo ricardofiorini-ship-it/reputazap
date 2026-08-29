@@ -15,6 +15,7 @@ import React from 'react'
 import { AlertTriangle, TrendingUp, Tablet, Star as StarIcon } from 'lucide-react'
 import { Head, Kpi, Panel, Chip, Delta, Estrelas, Carregando, desde, diasDesde } from '../ui.jsx'
 import { useToques, nomeProduto } from '../lib/dados.js'
+import { currentUser } from '../lib/api.js'
 
 // ── Os avisos ───────────────────────────────────────────────
 // Cada um só aparece se o dado SUSTENTAR. Nenhum tem texto de reserva: aviso
@@ -118,15 +119,20 @@ export default function Inicio({ dados, ir }) {
   const ativos = dispositivos.filter(d => d.status === 'active')
   const avisos = montarAvisos({ dispositivos, toques, posicao })
 
-  const primeiroNome = (() => {
-    const n = (biz?.name || '').trim()
-    return n ? n.split(/\s+/).slice(0, 3).join(' ') : 'seu negócio'
-  })()
+  // Cumprimento é pra PESSOA; o nome do negócio vive no seletor ao lado (que um
+  // dia vira o seletor de unidade). Antes eu cortava o nome do negócio em três
+  // palavras pra caber e o resultado era "Olá — SAIF - A": nome truncado no
+  // meio, que é pior do que não cumprimentar. Nome de empresa não se abrevia
+  // por conta própria.
+  const primeiroNome = ((currentUser()?.name || '').trim().split(/\s+/)[0]) || null
 
   return (
     <>
-      <Head oi={`Olá — ${primeiroNome}`} titulo="Meu negócio hoje" sub="O que aconteceu nos últimos 7 dias">
-        <div className="v3-picker">{biz?.name}</div>
+      <Head oi={primeiroNome ? `Olá, ${primeiroNome}` : null} titulo="Meu negócio hoje" sub="O que aconteceu nos últimos 7 dias">
+        {/* Nome longo é cortado com reticências no celular, e com `title` pra
+            revelar o resto — cortar mostrando que cortou é honesto; cortar
+            fingindo que aquele é o nome, não. */}
+        <div className="v3-picker" title={biz?.name}>{biz?.name}</div>
         <div className="v3-picker">Últimos 7 dias</div>
       </Head>
 
