@@ -270,7 +270,7 @@ async function definirDispositivo(req, res, biz, user) {
   if (!UUID_RE.test(String(plate_id || ""))) return res.status(400).json({ error: "Dispositivo inválido." });
 
   const { data: plate, error: eP } = await supabase.from("plates")
-    .select("id, business_id").eq("id", plate_id).eq("business_id", biz.id).maybeSingle();
+    .select("id, business_id, experience_id").eq("id", plate_id).eq("business_id", biz.id).maybeSingle();
   if (eP) return res.status(500).json({ error: eP.message });
   if (!plate) return res.status(404).json({ error: "Dispositivo não encontrado." });
 
@@ -282,6 +282,21 @@ async function definirDispositivo(req, res, biz, user) {
     } else {
       const exp = await experienciaDo(biz, experience_id);
       if (!exp) return res.status(404).json({ error: "Experiência não encontrada." });
+
+      // UM DISPOSITIVO SERVE UMA EXPERIÊNCIA. Não é política nossa: ele é um
+      // ponto físico com um destino só. Mas roubar o dispositivo de outro menu
+      // em silêncio faria o menu antigo perder um ponto de contato sem ninguém
+      // dizer nada — e o dono só descobriria pelo gráfico caindo. Exige gesto
+      // explícito (`mover: true`), pelo mesmo motivo do DEFAULT false: falhar
+      // fechado quando a intenção não está clara.
+      if (plate.experience_id && plate.experience_id !== exp.id && req.body?.mover !== true) {
+        const { data: atual } = await supabase.from("experiences")
+          .select("id, name").eq("id", plate.experience_id).maybeSingle();
+        return res.status(409).json({
+          error: `Este dispositivo já está vinculado a “${atual?.name || "outra experiência"}”.`,
+          conflito: { experience_id: plate.experience_id, name: atual?.name || null }
+        });
+      }
       patch.experience_id = exp.id;
     }
   }

@@ -137,8 +137,11 @@ function Item({ b, tipos, erro, aberto, onAbrir, onMudar, onMover, onRemover, pr
               Para o cartão de uma pessoa específica, crie uma experiência para ela.
             </p>
           )}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, gap: 10 }}>
             <button className="v3-btn ghost" onClick={onRemover}><Trash2 size={13}/> Remover ação</button>
+            <button className="v3-btn solid" onClick={onAbrir} disabled={!!erro}>
+              {erro ? 'Corrija para concluir' : 'Pronto'}
+            </button>
           </div>
         </div>
       )}
@@ -147,7 +150,7 @@ function Item({ b, tipos, erro, aberto, onAbrir, onMudar, onMover, onRemover, pr
 }
 
 // ============================================================
-export default function EditorMenu({ exp, dados, tipos, limites, foto, onVoltar, onAtualizar }) {
+export default function EditorMenu({ exp, dados, tipos, limites, foto, experiencias, onVoltar, onAtualizar }) {
   const [draft, setDraft] = React.useState(() => exp.draft || { brand: {}, buttons: [] })
   const [validacao, setValidacao] = React.useState(null)
   const [salvando, setSalvando] = React.useState(false)
@@ -298,6 +301,13 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, onVoltar,
   const ligados = (draft.buttons || []).filter(b => b.enabled).length
   const cheio = draft.buttons.length >= (limites?.botoes || 12)
 
+  // Tipo já usado some da lista — EXCETO `custom_url`, que é a válvula de
+  // escape: ninguém tem só um destino externo. Quem quiser um segundo WhatsApp
+  // ou telefone usa um link personalizado apontando pra ele.
+  const usados = new Set(draft.buttons.map(b => b.type))
+  const disponiveis = Object.entries(tipos || {})
+    .filter(([k]) => k === 'custom_url' || !usados.has(k))
+
   const vinculados = (dados.dispositivosDaExp || []).length
 
   return (
@@ -316,7 +326,9 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, onVoltar,
           </div>
         </div>
         <div className="v3-pickers">
-          <span className="v3-picker">{salvando ? 'salvando…' : sujo ? 'alterações pendentes' : 'rascunho salvo'}</span>
+          <span className="v3-picker">
+            {salvando ? 'salvando…' : sujo ? 'salvando em instantes…' : 'tudo salvo no rascunho'}
+          </span>
         </div>
       </div>
 
@@ -425,12 +437,15 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, onVoltar,
                   <>
                     <div style={{ fontSize: 11.5, color: 'var(--dim)', marginBottom: 7 }}>Escolha o tipo de ação</div>
                     <div className="v3-addgrid">
-                      {Object.entries(tipos || {}).map(([k, v]) => (
+                      {disponiveis.map(([k, v]) => (
                         <button className="v3-add" key={k} onClick={() => adicionar(k)}>
                           <span style={{ color: visual(k).cor }}>{visual(k).gl}</span> {v.label}
                         </button>
                       ))}
                     </div>
+                    {!disponiveis.length && (
+                      <p className="v3-dica">Você já usou todos os tipos de ação. Para outro destino, use “Link personalizado”.</p>
+                    )}
                     <button className="v3-btn ghost" style={{ marginTop: 8 }} onClick={() => setAddOpen(false)}>Cancelar</button>
                   </>
                 )}
@@ -438,7 +453,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, onVoltar,
             </div>
           </section>
 
-          <OndeEstaNoAr exp={exp} dados={dados} onAtualizar={onAtualizar}/>
+          <OndeEstaNoAr exp={exp} dados={dados} experiencias={experiencias} onAtualizar={onAtualizar}/>
         </div>
 
         <div className="v3-previa">
@@ -459,20 +474,32 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, onVoltar,
 // ── Onde este menu está no ar ───────────────────────────────
 // O interruptor mora aqui porque é aqui que a pergunta nasce ("esse menu está
 // valendo onde?"), e também em Dispositivos, que é onde a pessoa vai procurar.
-function OndeEstaNoAr({ exp, dados, onAtualizar }) {
+function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
   const [ocupado, setOcupado] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const devices = dados.devices || []
+  const nomeDaExp = (id) => (experiencias || []).find(e => e.id === id)?.name || 'outra experiência'
 
   async function alternar(d) {
+    const usaEsta = d.experience_id === exp.id
+    const ligar = !(usaEsta && d.experience_enabled)
+
+    // Um dispositivo serve UMA experiência — ele é um ponto físico com um
+    // destino só. Mover é permitido, mas nunca em silêncio: o menu antigo
+    // perderia um ponto de contato e o dono só descobriria pelo gráfico.
+    let mover = false
+    if (ligar && d.experience_id && d.experience_id !== exp.id) {
+      if (!confirm(`Este dispositivo está usando “${nomeDaExp(d.experience_id)}”.\n\nTrocar para “${exp.name}”? O outro menu deixa de valer neste dispositivo.`)) return
+      mover = true
+    }
+
     setOcupado(d.id); setErro(null)
     try {
-      const usaEsta = d.experience_id === exp.id
-      const ligar = !(usaEsta && d.experience_enabled)
       await api.experiencias.dispositivo({
         plate_id: d.id,
-        experience_id: ligar ? exp.id : (usaEsta ? d.experience_id : undefined),
-        enabled: ligar
+        experience_id: ligar ? exp.id : undefined,
+        enabled: ligar,
+        mover
       })
       onAtualizar?.(null)
     } catch (e) {
@@ -487,28 +514,35 @@ function OndeEstaNoAr({ exp, dados, onAtualizar }) {
         {!devices.length && <p className="v3-dica" style={{ padding: '8px 0' }}>Você ainda não tem dispositivos ativos.</p>}
         {devices.map(d => {
           const usaEsta = d.experience_id === exp.id
-          const servindo = usaEsta && d.served_mode === 'menu'
+          const servindoEste = usaEsta && d.served_mode === 'menu'
+          const deOutro = d.experience_id && !usaEsta
           return (
             <div className="v3-onde" key={d.id}>
               <span className="txt">
                 <span className="t">{d.channel_name || nomeProduto(d.product_type)}</span>
-                <span className="d">{nomeProduto(d.product_type)} · {d.total_taps || 0} toques no total</span>
+                <span className="d">
+                  {nomeProduto(d.product_type)} · {d.total_taps || 0} toques no total
+                  {deOutro && ` · usando “${nomeDaExp(d.experience_id)}”`}
+                </span>
               </span>
-              {servindo
-                ? <Chip tipo="g">servindo o Menu</Chip>
-                : usaEsta
-                  ? <Chip tipo="a">desligado</Chip>
-                  : <span className="d" style={{ fontSize: 11.5, color: 'var(--dim)' }}>Google Direto</span>}
-              <button className={'v3-switch' + (servindo ? '' : ' off')} disabled={ocupado === d.id}
-                onClick={() => alternar(d)} aria-pressed={servindo}
-                aria-label={servindo ? 'Desligar neste dispositivo' : 'Ligar neste dispositivo'}><i/></button>
+              {/* A coluna fala de DESTINO, não do estado do interruptor.
+                  Desligado aqui significa que o dispositivo leva ao Google —
+                  e é isso que precisa aparecer. */}
+              {servindoEste
+                ? <Chip tipo="g">servindo este menu</Chip>
+                : d.served_mode === 'menu'
+                  ? <Chip tipo="a">servindo outro menu</Chip>
+                  : <Chip tipo="n">Google Direto</Chip>}
+              <button className={'v3-switch' + (servindoEste ? '' : ' off')} disabled={ocupado === d.id}
+                onClick={() => alternar(d)} aria-pressed={servindoEste}
+                aria-label={servindoEste ? 'Desligar neste dispositivo' : 'Ligar neste dispositivo'}><i/></button>
             </div>
           )
         })}
         {erro && <p className="v3-dica" style={{ color: 'var(--red)' }}>{erro}</p>}
         <p className="v3-dica" style={{ marginTop: 10 }}>
           Desligar devolve aquele dispositivo ao Google Direto na hora. Seu menu continua guardado, e o link
-          compartilhável segue funcionando.
+          compartilhável segue funcionando. Cada dispositivo serve um menu de cada vez.
         </p>
       </div>
     </section>

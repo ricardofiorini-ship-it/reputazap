@@ -98,6 +98,7 @@ export default function Experiencia({ dados }) {
         exp={aberta}
         tipos={tipos}
         limites={limites}
+        experiencias={experiences}
         foto={dados.info?.photoUrl || null}
         dados={{
           info: dados.info,
