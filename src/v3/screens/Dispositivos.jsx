@@ -175,7 +175,17 @@ export default function Dispositivos({ dados }) {
                         )}
                       </td>
                       <td className="sm">{d.code}</td>
-                      <td><Chip tipo="g">Google Direto</Chip></td>
+                      <td>
+                        {d.served_mode === 'menu'
+                          ? <Chip>{d.experience_name || 'Menu Inteligente'}</Chip>
+                          : <Chip tipo="g">Google Direto</Chip>}
+                        {/* served_reason existe justamente pra o painel EXPLICAR
+                            o rebaixamento em vez de a configuração parecer
+                            perdida. Só aparece quando não é o caso trivial. */}
+                        {d.served_mode !== 'menu' && d.served_reason && d.served_reason !== 'padrao' && (
+                          <div className="sm" style={{ marginTop: 3 }}>{d.served_label || d.served_reason}</div>
+                        )}
+                      </td>
                       <td className="num">{toques?.available ? (porPlaca[d.id] || 0) : '—'}</td>
                       <td className="num">{(d.total_taps || 0).toLocaleString('pt-BR')}</td>
                       <td>

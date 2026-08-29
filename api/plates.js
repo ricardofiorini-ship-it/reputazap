@@ -4,6 +4,7 @@
 // Actions cliente: activate (ETAPA 7) | my-businesses | my-plates | rename-plate
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
+import { MOTIVO_SERVIDO } from "./_lib/plan.js";
 import { generateBatchCodes } from "./_lib/plates.js";
 import { sendInBackground } from "./_lib/email-sender.js";
 import { firstDeviceEmail, additionalDeviceEmail, adminDeviceActivatedEmail } from "./_lib/email-templates.js";
@@ -304,10 +305,14 @@ async function handleMyPlates(req, res, user) {
 
   const BASE_COLS = "id, code, product_type, status, channel_name, total_taps, last_tapped_at, activated_at";
   const RESET_COLS = ", counter_reset_at, counter_reset_taps";
+  // O que o dispositivo SERVE. Sem isto a tela mostrava "Google Direto" fixo
+  // no código — verdade por coincidência hoje, mentira no minuto em que
+  // alguém ligar um menu.
+  const SERVE_COLS = ", experience_id, experience_enabled, served_mode, served_reason";
 
   let { data, error } = await supabase
     .from("plates")
-    .select(BASE_COLS + RESET_COLS)
+    .select(BASE_COLS + RESET_COLS + SERVE_COLS)
     .in("business_id", bizIds)
     .order("activated_at", { ascending: false });
 
@@ -315,6 +320,17 @@ async function handleMyPlates(req, res, user) {
   // Enquanto o ALTER não roda, pedir por elas derrubaria a LISTA INTEIRA de
   // dispositivos — o cliente perderia a tela por causa de um recurso novo.
   // Sem elas, a lista volta completa; só o botão de zerar fica de fora.
+  // Queda em degraus: colunas novas chegam por migração, e pedir por uma que
+  // ainda não existe derrubaria a LISTA INTEIRA de dispositivos. Perder um
+  // recurso novo é aceitável; perder a tela não é.
+  if (error) {
+    console.error("[plates] select com experiencia falhou, tentando sem:", error.message || error);
+    ({ data, error } = await supabase
+      .from("plates")
+      .select(BASE_COLS + RESET_COLS)
+      .in("business_id", bizIds)
+      .order("activated_at", { ascending: false }));
+  }
   if (error) {
     console.error("[plates] select com marco zero falhou, caindo pro basico:", error.message || error);
     ({ data, error } = await supabase
@@ -325,7 +341,26 @@ async function handleMyPlates(req, res, user) {
   }
 
   if (error) return res.status(500).json({ error: error.message });
-  return res.json({ ok: true, plates: data || [] });
+
+  // O NOME da experiência e a FRASE do motivo saem daqui, não da tela: o texto
+  // que explica o rebaixamento mora junto da regra que o decide (plan.js), pra
+  // os dois nunca saírem de sincronia.
+  const plates = data || [];
+  const expIds = [...new Set(plates.map((p) => p.experience_id).filter(Boolean))];
+  let porExp = new Map();
+  if (expIds.length) {
+    const { data: exps } = await supabase
+      .from("experiences").select("id, name, archived_at").in("id", expIds);
+    porExp = new Map((exps || []).map((e) => [e.id, e]));
+  }
+  for (const p of plates) {
+    const e = p.experience_id ? porExp.get(p.experience_id) : null;
+    p.experience_name = e?.name || null;
+    p.experience_archived = !!e?.archived_at;
+    p.served_label = MOTIVO_SERVIDO[p.served_reason] || null;
+  }
+
+  return res.json({ ok: true, plates });
 }
 
 // ── CLIENTE: zerar a contagem de um dispositivo (marco zero) ─

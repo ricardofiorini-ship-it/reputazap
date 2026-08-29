@@ -555,7 +555,14 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
   // servidor confirma depois; se recusar, volta e diz por quê.
   const [otimista, setOtimista] = React.useState({})
   const devices = (dados.devices || []).map(d => ({ ...d, ...(otimista[d.id] || {}) }))
-  const nomeDaExp = (id) => (experiencias || []).find(e => e.id === id)?.name || 'outra experiência'
+  const achaExp = (id) => (experiencias || []).find(e => e.id === id) || null
+  const nomeDaExp = (id) => achaExp(id)?.name || 'outra experiência'
+  // Dispositivo vinculado a um menu EXCLUÍDO conta como livre. O vínculo é
+  // guardado de propósito (pra "Recuperar" devolver tudo funcionando), mas
+  // avisar "está usando MENU 1" sobre um menu que sumiu da lista seria
+  // confundir quem não tem como ver esse menu em lugar nenhum.
+  const ocupadoPorOutro = (d) =>
+    !!d.experience_id && d.experience_id !== exp.id && !achaExp(d.experience_id)?.archived_at
 
   async function alternar(d) {
     const usaEsta = d.experience_id === exp.id
@@ -564,7 +571,7 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
     // Um dispositivo serve UMA experiência — ele é um ponto físico com um
     // destino só. Mover é permitido, mas nunca em silêncio.
     let mover = false
-    if (ligar && d.experience_id && d.experience_id !== exp.id) {
+    if (ligar && ocupadoPorOutro(d)) {
       if (!confirm(`“${d.channel_name || 'Este dispositivo'}” está usando o menu “${nomeDaExp(d.experience_id)}”.\n\nTrocar para “${exp.name}”? O outro menu deixa de valer neste dispositivo.`)) return
       mover = true
     }
@@ -578,7 +585,10 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
         plate_id: d.id,
         experience_id: ligar ? exp.id : undefined,
         enabled: ligar,
-        mover
+        // O servidor recusa trocar de experiência sem gesto explícito. Quando
+        // o menu antigo foi excluído, o gesto já é este clique: não faz sentido
+        // perguntar sobre algo que a pessoa não enxerga.
+        mover: mover || (ligar && !!d.experience_id && d.experience_id !== exp.id)
       })
       onAtualizar?.(null)
       // O recarregamento traz o estado real; a suposição sai de cena.
@@ -613,7 +623,9 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
                 <span className="t">{d.channel_name || nomeProduto(d.product_type)}</span>
                 <span className="d">
                   {nomeProduto(d.product_type)}
-                  {deOutro && ` · usando o menu “${nomeDaExp(d.experience_id)}”`}
+                  {deOutro && (achaExp(d.experience_id)?.archived_at
+                    ? ' · o menu que usava foi excluído'
+                    : ` · usando o menu “${nomeDaExp(d.experience_id)}”`)}
                 </span>
               </span>
               {/* A coluna fala de DESTINO, não do estado do interruptor:
