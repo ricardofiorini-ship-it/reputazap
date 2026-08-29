@@ -22,7 +22,7 @@
 // dispositivo.
 // ============================================================
 import React from 'react'
-import { Plus, Archive, Pencil, ExternalLink, Sparkles } from 'lucide-react'
+import { Plus, Archive, Pencil, Trash2, Sparkles } from 'lucide-react'
 import { Head, Panel, Chip, Recursos, Carregando, Erro, dataBr } from '../ui.jsx'
 import { nomeProduto } from '../lib/dados.js'
 import { api } from '../lib/api.js'
@@ -70,6 +70,24 @@ export default function Experiencia({ dados }) {
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
+
+  // "Excluir" na linguagem de quem usa; ARQUIVAR no banco. Nada e apagado de
+  // verdade: dispositivos apontam pra esta experiencia e o historico de
+  // Resultados vai referenciar os botoes dela. O aviso diz as duas
+  // consequencias reais -- some da lista e os dispositivos voltam ao Google --
+  // e que da pra recuperar.
+  async function excluir(e, emUso) {
+    const aviso = emUso
+      ? `Excluir “${e.name}”?\n\n${emUso === 1 ? 'O dispositivo que usa este menu volta' : `Os ${emUso} dispositivos que usam este menu voltam`} a levar direto ao Google.\n\nNada é apagado: você recupera em “Excluídos”.`
+      : `Excluir “${e.name}”?\n\nNada é apagado: você recupera em “Excluídos”.`
+    if (!confirm(aviso)) return
+    try {
+      await api.experiencias.arquivar(e.id)
+      await carregar()
+    } catch (err) {
+      setEstado(st => ({ ...st, erro: err.message }))
+    }
+  }
 
   async function criar() {
     setCriando(true)
@@ -194,19 +212,23 @@ export default function Experiencia({ dados }) {
               <button className="v3-btn ghost" onClick={ev => { ev.stopPropagation(); abrir(e.id) }}>
                 <Pencil size={13}/> Editar
               </button>
+              <button className="v3-btn ghost" title="Excluir menu"
+                onClick={ev => { ev.stopPropagation(); excluir(e, usando.length) }}>
+                <Trash2 size={13}/>
+              </button>
             </div>
           )
         })}
       </Panel>
 
       {arquivadas.length > 0 && (
-        <Panel titulo="Arquivadas" sub="Nada foi apagado — dá para trazer de volta a qualquer momento">
+        <Panel titulo="Excluídos" sub="Nada foi apagado de verdade — dá para recuperar a qualquer momento">
           {arquivadas.map(e => (
             <div className="v3-onde" key={e.id}>
               <span className="txt"><span className="t">{e.name}</span>
-                <span className="d">arquivada em {dataBr(e.archived_at)}</span></span>
-              <button className="v3-btn ghost" onClick={async () => { await api.experiencias.arquivar(e.id, true); carregar() }}>
-                <Archive size={13}/> Trazer de volta
+                <span className="d">excluído em {dataBr(e.archived_at)}</span></span>
+              <button className="v3-btn" onClick={async () => { await api.experiencias.arquivar(e.id, true); carregar() }}>
+                <Archive size={13}/> Recuperar
               </button>
             </div>
           ))}

@@ -204,6 +204,22 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
 
   React.useEffect(() => () => clearTimeout(timer.current), [])
 
+  // Salvar na hora, sem esperar o temporizador. O salvamento automatico
+  // continua existindo como rede de seguranca (ninguem perde trabalho por
+  // fechar a aba); este botao existe pra a pessoa TER CERTEZA.
+  async function salvarAgora() {
+    clearTimeout(timer.current)
+    setSalvando(true); setErroGeral(null)
+    try {
+      const r = await api.experiencias.salvar(exp.id, draft)
+      setValidacao(r.validacao || null)
+      setSujo(false)
+      onAtualizar?.(r.experience, { silencioso: true })
+    } catch (e) {
+      setErroGeral(e.message || 'Não foi possível salvar.')
+    } finally { setSalvando(false) }
+  }
+
   function mudar(novo) {
     setDraft(novo)
     gravar(novo)
@@ -339,9 +355,14 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           </div>
         </div>
         <div className="v3-pickers">
-          <span className="v3-picker">
-            {salvando ? 'salvando…' : sujo ? 'salvando em instantes…' : 'tudo salvo no rascunho'}
-          </span>
+          {/* O rascunho salva sozinho, mas salvamento invisivel nao passa
+              confianca: a pessoa procura o botao, nao acha, e fica na duvida
+              se perdeu o trabalho. O botao É o indicador -- diz o estado e
+              deixa salvar na hora quem nao quiser esperar. */}
+          <button className={'v3-btn' + (sujo || salvando ? ' solid' : ' ghost')}
+            onClick={salvarAgora} disabled={salvando || !sujo}>
+            {salvando ? 'Salvando…' : sujo ? 'Salvar rascunho' : <><Check size={13}/> Rascunho salvo</>}
+          </button>
         </div>
       </div>
 
@@ -354,8 +375,9 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
         <div>
           <div className="t">Como funciona</div>
           <div className="s">
-            <b>1.</b> Monte as ações e veja a prévia à direita. <b>2.</b> Clique em <b>Publicar</b> — só
-            então o que você montou passa a valer. <b>3.</b> Ligue o menu nos dispositivos, lá embaixo.
+            <b>1.</b> Monte as ações e veja a prévia à direita — o rascunho salva sozinho, e o botão
+            <b> Salvar rascunho</b> lá em cima confirma. <b>2.</b> Clique em <b>Publicar</b> — só então o
+            que você montou passa a valer. <b>3.</b> Ligue o menu nos dispositivos, lá embaixo.
             Enquanto você não fizer os três, seus dispositivos continuam levando direto ao Google.
           </div>
         </div>
