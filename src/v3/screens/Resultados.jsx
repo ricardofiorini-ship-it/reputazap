@@ -74,14 +74,23 @@ function recomendacoes(d) {
   const cliques = d.menu.cliques
   if (cliques < PISO.cliques || aberturas < PISO.aberturas) return fora
 
-  const acoes = Object.entries(d.menu.por_acao).sort((a, b) => b[1] - a[1])
-  if (acoes.length >= 2) {
-    const [a1, a2] = acoes
-    const pct = Math.round(((a1[1] + a2[1]) / cliques) * 100)
+  // Com mais de um menu, a dica é POR MENU: "coloque no topo do menu" é
+  // ambíguo quando existem dois, e conselho ambíguo não se executa.
+  const menus = d.menu.por_experiencia || []
+  const alvos = menus.length > 1
+    ? menus.filter(m => (m.cliques || 0) >= PISO.cliques && (m.aberturas || 0) >= PISO.aberturas)
+        .map(m => ({ nome: m.name, mapa: d.menu.por_acao_por_menu?.[m.experience_id] || {}, total: m.cliques }))
+    : [{ nome: null, mapa: d.menu.por_acao, total: cliques }]
+
+  for (const alvo of alvos) {
+    const ord = Object.entries(alvo.mapa).sort((a, b) => b[1] - a[1])
+    if (ord.length < 2 || !alvo.total) continue
+    const [a1, a2] = ord
+    const pct = Math.round(((a1[1] + a2[1]) / alvo.total) * 100)
     if (pct >= 60) {
       fora.push({
-        titulo: `${acao(a1[0]).nome} e ${acao(a2[0]).nome} concentram ${pct}% das escolhas`,
-        texto: 'Vale conferir se as duas estão entre os primeiros botões do menu — a ordem muda o que as pessoas escolhem.'
+        titulo: `${acao(a1[0]).nome} e ${acao(a2[0]).nome} concentram ${pct}% das escolhas${alvo.nome ? ` em “${alvo.nome}”` : ''}`,
+        texto: `Vale conferir se as duas estão entre os primeiros botões${alvo.nome ? ' desse menu' : ' do menu'} — a ordem muda o que as pessoas escolhem.`
       })
     }
   }
@@ -103,6 +112,9 @@ export default function Resultados() {
   const [dias, setDias] = React.useState(30)
   const [serie, setSerie] = React.useState('toques')
   const [aba, setAba] = React.useState('dispositivos')
+  // Declarado AQUI, com os outros: hook depois de um `return` antecipado
+  // quebra a ordem que o React espera e derruba a tela no segundo render.
+  const [menuSel, setMenuSel] = React.useState('todos')
   const [estado, setEstado] = React.useState({ carregando: true, erro: null, d: null })
 
   const carregar = React.useCallback(async (j) => {
@@ -130,8 +142,23 @@ export default function Resultados() {
   const pctDireto = toques > 0 ? Math.round((direto / toques) * 100) : 0
   const pctMenu = toques > 0 ? Math.round((aberturasDisp / toques) * 100) : 0
   const mediaPorAbertura = aberturas > 0 ? cliques / aberturas : null
-  const acoes = Object.entries(d.menu.por_acao).sort((a, b) => b[1] - a[1])
+  // ── Escolhas: de qual menu? ──
+  // Com mais de um menu, somar as escolhas dá um número certo com um
+  // DENOMINADOR ERRADO: um botão que só existe no cartão do vendedor seria
+  // dividido pelas aberturas do menu da mesa também. Por isso o percentual só
+  // aparece quando o denominador é inequívoco — um menu escolhido, ou um menu
+  // só existindo.
+  const menus = d.menu.por_experiencia || []
+  const umMenuSo = menus.length <= 1
+  const menuAtivo = umMenuSo ? (menus[0] || null) : (menuSel === 'todos' ? null : menus.find(m => m.experience_id === menuSel))
+  const acoesBrutas = menuAtivo
+    ? (d.menu.por_acao_por_menu?.[menuAtivo.experience_id] || {})
+    : d.menu.por_acao
+  const acoes = Object.entries(acoesBrutas).sort((a, b) => b[1] - a[1])
   const maxAcao = Math.max(1, ...acoes.map(a => a[1]))
+  // O denominador honesto: aberturas do menu escolhido, ou de todos quando só
+  // existe um. Com vários menus somados, não há denominador — e aí não há %.
+  const baseAberturas = menuAtivo ? menuAtivo.aberturas : (umMenuSo ? aberturas : null)
   const dicas = recomendacoes(d)
   const semNada = toques === 0 && aberturas === 0
 
@@ -281,14 +308,26 @@ export default function Resultados() {
             {/* ── 3 · O BLOCO PRINCIPAL DO PRO ── */}
             <div>
               <Panel titulo="O que seus clientes escolheram" extra={<Chip>PRO</Chip>}
-                sub={aberturas > 0
-                  ? `Com base nas ${aberturas} ${aberturas === 1 ? 'abertura' : 'aberturas'} de menu do período`
-                  : 'Aparece quando alguém abrir um menu'}>
+                sub={baseAberturas != null
+                  ? `Com base nas ${baseAberturas} ${baseAberturas === 1 ? 'abertura' : 'aberturas'}${menuAtivo && !umMenuSo ? ` de “${menuAtivo.name}”` : ' de menu do período'}`
+                  : `Somando ${menus.length} menus — escolha um para ver o percentual`}>
+                {!umMenuSo && menus.length > 0 && (
+                  <div style={{ marginBottom: 12 }}>
+                    <select className="v3-select" value={menuSel} onChange={e => setMenuSel(e.target.value)}
+                      aria-label="Filtrar por menu">
+                      <option value="todos">Todos os menus</option>
+                      {menus.map(m => <option key={m.experience_id} value={m.experience_id}>{m.name}</option>)}
+                    </select>
+                  </div>
+                )}
                 {!acoes.length
                   ? <p className="v3-dica" style={{ padding: '8px 0' }}>Ninguém escolheu nenhuma ação ainda.</p>
                   : <div className="v3-table-wrap">
                       <table className="v3-t">
-                        <thead><tr><th>Ação</th><th></th><th className="num">Escolhas</th><th className="num">% das aberturas</th></tr></thead>
+                        <thead><tr>
+                          <th>Ação</th><th></th><th className="num">Escolhas</th>
+                          {baseAberturas != null && <th className="num">% das aberturas</th>}
+                        </tr></thead>
                         <tbody>
                           {acoes.map(([k, n]) => {
                             const a = acao(k)
@@ -302,7 +341,12 @@ export default function Resultados() {
                                   <span className="v3-bar"><i style={{ width: `${(n / maxAcao) * 100}%`, background: a.cor }}/></span>
                                 </td>
                                 <td className="num">{n}</td>
-                                <td className="num">{aberturas > 0 ? `${Math.round((n / aberturas) * 100)}%` : '—'}</td>
+                                {/* Percentual só com denominador inequívoco.
+                                    Somando vários menus, a coluna não existe —
+                                    melhor não ter o número do que ter um errado. */}
+                                {baseAberturas != null && (
+                                  <td className="num">{baseAberturas > 0 ? `${Math.round((n / baseAberturas) * 100)}%` : '—'}</td>
+                                )}
                               </tr>
                             )
                           })}

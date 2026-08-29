@@ -156,6 +156,18 @@ export default async function handler(req, res) {
     };
 
     const porAcao = conta(cliques, (c) => c.action || "outro");
+
+    // MESMA CONTA, POR MENU. Sem isto, um botão que só existe num menu era
+    // dividido pelas aberturas de TODOS: "Salvar contato — 17% das aberturas"
+    // quando a verdade era 100% de quem abriu o cartão onde ele existe. O
+    // denominador de uma escolha é a abertura DAQUELE menu, não a soma.
+    const porAcaoPorExperiencia = {};
+    for (const c of cliques) {
+      if (!c.experience_id) continue;
+      const m = (porAcaoPorExperiencia[c.experience_id] ||= {});
+      const k = c.action || "outro";
+      m[k] = (m[k] || 0) + 1;
+    }
     const porBotao = Object.entries(conta(cliques, (c) => c.button_id))
       .map(([id, n]) => ({
         button_id: id,
@@ -222,6 +234,7 @@ export default async function handler(req, res) {
         aberturas_de_link: aberturasDeLink,
         cliques: cliques.length,
         por_acao: porAcao,
+        por_acao_por_menu: porAcaoPorExperiencia,
         por_botao: porBotao,
         por_experiencia: porExperiencia
       },
