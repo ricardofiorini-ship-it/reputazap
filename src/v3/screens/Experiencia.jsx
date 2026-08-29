@@ -9,6 +9,19 @@
 // É a área que originou a regra dos selos: Google Direto é Free e continua
 // sendo (o cliente já comprou isso), o Menu é o Pro. Por isso a barra lateral
 // não leva selo nenhum e a classificação vive por dentro, recurso a recurso.
+//
+// AS DUAS SÃO EXPERIÊNCIAS IRMÃS, não etapas de uma escada (decidido 29/08):
+//   Google Direto    = experiência Free específica — NFC → Google, e só.
+//   Menu Inteligente = experiência Pro configurável — o lojista monta.
+// Consequência que muda o editor: "avaliar no Google" NÃO é obrigatório no
+// menu. É uma ação como qualquer outra, e a ordem é livre — dependendo do
+// negócio, a principal é WhatsApp, cardápio ou agendamento. Quem quer só
+// avaliação não monta menu nenhum: usa o Google Direto, que é gratuito.
+//
+// E não confundir com a peneira desmontada em 2026-05: peneira era
+// INTERCEPTAR quem ia avaliar e desviar o insatisfeito. Um menu sem botão do
+// Google não intercepta ninguém — só não oferece aquele caminho naquele
+// dispositivo. A distinção é o que mantém tudo dentro das regras do Google.
 // ============================================================
 import React from 'react'
 import { Clock } from 'lucide-react'
@@ -72,12 +85,14 @@ export default function Experiencia({ dados }) {
             'Google Direto continua o padrão de fábrica de todo dispositivo novo',
             'O que você publicar não é apagado nem alterado por cancelamento de assinatura',
             'Cada dispositivo pode ter a sua própria experiência',
-            'A experiência também vive fora do NFC, por um link próprio'
+            'A experiência também vive fora do NFC, por um link próprio',
+            'Até 6 botões é a recomendação; acima disso o editor avisa, mas publica assim mesmo',
+            'A ordem é sua: qualquer ação pode ser a primeira — Google, WhatsApp, cardápio, agendamento',
+            'Avaliar no Google é opcional aqui dentro; quem quer só avaliação usa o Google Direto'
           ]}
           falta={[
-            'Quantos botões cabem antes de virar bagunça',
-            'Se avaliar no Google pode ser sempre o primeiro botão',
-            'Quantas experiências por negócio'
+            'Quantas experiências por negócio',
+            'Como avisar que o menu ficou sem “avaliar no Google” sem parecer bloqueio'
           ]}/>
       </Panel>
 
