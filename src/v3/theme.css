@@ -555,3 +555,10 @@ table.v3-t tr:last-child td { border-bottom: 0; }
 
 .v3-select { font: inherit; font-size: 12.5px; padding: 7px 10px; border: 1px solid var(--line);
   border-radius: 7px; background: var(--surf); color: var(--ink); max-width: 100%; }
+
+/* Recarregando: os números antigos continuam (piscar a tela inteira para
+   "carregando" é pior), mas apagados e inertes, pra ninguém ler um número
+   velho achando que é o novo. */
+.v3-recarregando { opacity: .45; pointer-events: none; transition: opacity .15s; }
+.v3-picker.atualizando { color: var(--blue); border-color: var(--blue-soft); background: var(--blue-soft); }
+@media (prefers-reduced-motion: reduce) { .v3-recarregando { transition: none; } }

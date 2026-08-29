@@ -171,12 +171,23 @@ export default function Resultados() {
   return (
     <>
       <Head titulo="Resultados" sub="Entenda o que seus clientes fizeram depois de encostar o celular">
+        {/* Trocar o período recarrega tudo, e esta tela lê duas tabelas: pode
+            levar alguns segundos. Sem sinal nenhum, os números antigos ficam
+            na tela e parece que o clique não fez nada. Os antigos CONTINUAM
+            (piscar a tela inteira pra "carregando" é pior), mas apagados e
+            com o aviso ao lado — e os botões travam pra não empilhar
+            requisição em cima de requisição. */}
         <div className="v3-seg">
           {JANELAS.map(j => (
-            <button key={j} aria-pressed={dias === j} onClick={() => setDias(j)}>{j} dias</button>
+            <button key={j} aria-pressed={dias === j} disabled={estado.carregando}
+              onClick={() => setDias(j)}>{j} dias</button>
           ))}
         </div>
+        {estado.carregando && <span className="v3-picker atualizando">atualizando…</span>}
       </Head>
+
+      <div className={estado.carregando ? 'v3-recarregando' : undefined}
+        aria-busy={estado.carregando || undefined}>
 
       {!d.disponivel.eventos && (
         <div className="v3-callout">
@@ -384,6 +395,8 @@ export default function Resultados() {
           ))}
         </>
       )}
+
+      </div>
 
       {/* ── 7 · A transparência do Google, compacta ── */}
       <div className="v3-nota">
