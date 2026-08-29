@@ -40,7 +40,14 @@ function authHeader() {
 // manda relogar) de "deu ruim" (500, mostra e deixa tentar de novo). Sem o
 // status, todo erro vira a mesma mensagem inútil.
 export class ApiError extends Error {
-  constructor(message, status) { super(message); this.status = status }
+  // Carrega o CORPO da resposta, não só a mensagem: quando a publicação recusa,
+  // o servidor manda junto a lista do que corrigir. Perder isso obrigaria a
+  // tela a adivinhar o motivo — ou a ter regra própria, que é o que a gente
+  // não quer.
+  constructor(message, status, corpo) {
+    super(message); this.status = status; this.corpo = corpo || null
+    this.validacao = corpo?.validacao || null
+  }
 }
 
 export async function get(path, { auth = false } = {}) {
@@ -48,7 +55,7 @@ export async function get(path, { auth = false } = {}) {
   let body = null
   try { body = await r.json() } catch {}
   if (!r.ok || body?.error) {
-    throw new ApiError(body?.error || `Falha ao carregar (${r.status})`, r.status)
+    throw new ApiError(body?.error || `Falha ao carregar (${r.status})`, r.status, body)
   }
   return body || {}
 }
@@ -70,7 +77,7 @@ export async function post(path, data, { auth = true } = {}) {
   let body = null
   try { body = await r.json() } catch {}
   if (!r.ok || body?.error) {
-    throw new ApiError(body?.error || `Falha ao salvar (${r.status})`, r.status)
+    throw new ApiError(body?.error || `Falha ao salvar (${r.status})`, r.status, body)
   }
   return body || {}
 }
@@ -87,5 +94,20 @@ export const api = {
   // A grade é a fonte única de posição desde 03/08. Sem `terms`, o backend
   // resolve sozinho: primeiro a busca que o dono salvou (`category_override`),
   // depois a categoria oficial do Google. Mesma chamada do painel atual.
-  posicao: (placeId) => tryGet(`/api/diagnostico?grid=1&place_id=${encodeURIComponent(placeId)}`, { auth: true })
+  posicao: (placeId) => tryGet(`/api/diagnostico?grid=1&place_id=${encodeURIComponent(placeId)}`, { auth: true }),
+
+  // ── Experiências (Menu Inteligente) ──
+  // O veredito de validação SEMPRE vem do servidor: `save-draft` e `publish`
+  // devolvem `validacao`. O editor não tem regra própria — se tivesse, um dia
+  // ela discordaria da que decide na hora de publicar.
+  experiencias: {
+    listar:    ()               => get('/api/experiences?action=list', { auth: true }),
+    criar:     (name)           => post('/api/experiences?action=create', { name }),
+    salvar:    (id, draft)      => post('/api/experiences?action=save-draft', { id, draft }),
+    publicar:  (id)             => post('/api/experiences?action=publish', { id }),
+    descartar: (id)             => post('/api/experiences?action=discard', { id }),
+    arquivar:  (id, undo)       => post('/api/experiences?action=archive', { id, undo: !!undo }),
+    renomear:  (id, name)       => post('/api/experiences?action=rename', { id, name }),
+    dispositivo: (payload)      => post('/api/experiences?action=set-device', payload)
+  }
 }
