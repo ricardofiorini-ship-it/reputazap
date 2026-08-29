@@ -549,27 +549,29 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
 function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
   const [ocupado, setOcupado] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  // Resposta IMEDIATA ao toque. Antes o interruptor esperava o servidor
-  // inteiro (que ainda reimprime todos os dispositivos) pra mudar de cor —
-  // parecia travado, e a pessoa clicava de novo. Agora muda na hora e o
-  // servidor confirma depois; se recusar, volta e diz por quê.
+  // Resposta imediata ao toque: o interruptor não pode esperar o servidor
+  // inteiro (que ainda reimprime todos os dispositivos) pra mudar de cor.
   const [otimista, setOtimista] = React.useState({})
   const devices = (dados.devices || []).map(d => ({ ...d, ...(otimista[d.id] || {}) }))
   const achaExp = (id) => (experiencias || []).find(e => e.id === id) || null
   const nomeDaExp = (id) => achaExp(id)?.name || 'outra experiência'
-  // Dispositivo vinculado a um menu EXCLUÍDO conta como livre. O vínculo é
-  // guardado de propósito (pra "Recuperar" devolver tudo funcionando), mas
-  // avisar "está usando MENU 1" sobre um menu que sumiu da lista seria
-  // confundir quem não tem como ver esse menu em lugar nenhum.
+  // Dispositivo vinculado a um menu EXCLUÍDO conta como livre: o vínculo é
+  // guardado de propósito (pra "Recuperar" devolver tudo), mas avisar "está
+  // usando MENU 1" sobre um menu que sumiu da lista confundiria quem não tem
+  // como ver esse menu em lugar nenhum.
   const ocupadoPorOutro = (d) =>
     !!d.experience_id && d.experience_id !== exp.id && !achaExp(d.experience_id)?.archived_at
 
-  async function alternar(d) {
-    const usaEsta = d.experience_id === exp.id
-    const ligar = !(usaEsta && d.experience_enabled)
+  // O menu precisa estar PUBLICADO pra valer no dispositivo. Ligar antes disso
+  // é intenção legítima — só não vira efeito ainda.
+  const publicado = !!exp.published
 
-    // Um dispositivo serve UMA experiência — ele é um ponto físico com um
-    // destino só. Mover é permitido, mas nunca em silêncio.
+  async function alternar(d) {
+    const ligadoAqui = d.experience_id === exp.id && d.experience_enabled
+    const ligar = !ligadoAqui
+
+    // Um dispositivo serve UMA experiência — é um ponto físico com um destino
+    // só. Mover é permitido, nunca em silêncio.
     let mover = false
     if (ligar && ocupadoPorOutro(d)) {
       if (!confirm(`“${d.channel_name || 'Este dispositivo'}” está usando o menu “${nomeDaExp(d.experience_id)}”.\n\nTrocar para “${exp.name}”? O outro menu deixa de valer neste dispositivo.`)) return
@@ -577,21 +579,23 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
     }
 
     setOcupado(d.id); setErro(null)
+    // Guarda só a INTENÇÃO. `served_mode` é consequência e quem decide é o
+    // servidor — supor "vai servir menu" seria mentir quando o menu ainda não
+    // está publicado, que é exatamente o caso em que o botão parecia voltar
+    // sozinho.
     setOtimista(o => ({ ...o, [d.id]: ligar
-      ? { experience_id: exp.id, experience_enabled: true, served_mode: 'menu' }
-      : { experience_enabled: false, served_mode: 'google_direto' } }))
+      ? { experience_id: exp.id, experience_enabled: true }
+      : { experience_enabled: false } }))
     try {
       await api.experiencias.dispositivo({
         plate_id: d.id,
         experience_id: ligar ? exp.id : undefined,
         enabled: ligar,
-        // O servidor recusa trocar de experiência sem gesto explícito. Quando
-        // o menu antigo foi excluído, o gesto já é este clique: não faz sentido
-        // perguntar sobre algo que a pessoa não enxerga.
+        // O servidor recusa trocar de experiência sem gesto explícito. Com o
+        // menu antigo excluído, o gesto já é este clique.
         mover: mover || (ligar && !!d.experience_id && d.experience_id !== exp.id)
       })
       onAtualizar?.(null)
-      // O recarregamento traz o estado real; a suposição sai de cena.
       setOtimista(o => { const c = { ...o }; delete c[d.id]; return c })
     } catch (e) {
       setOtimista(o => { const c = { ...o }; delete c[d.id]; return c })   // desfaz
@@ -599,24 +603,45 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
     } finally { setOcupado(null) }
   }
 
-  const ligados = devices.filter(d => d.experience_id === exp.id && d.experience_enabled).length
+  const ligados = devices.filter(d => d.experience_id === exp.id && d.experience_enabled)
+  const servindo = ligados.filter(d => d.served_mode === 'menu')
+  const esperandoPublicacao = ligados.length - servindo.length
 
   return (
     <section className="v3-panel">
       <header>
         <h2>Ligar em quais dispositivos</h2>
         <div className="psub">
-          {ligados
-            ? `Este menu está valendo em ${ligados} ${ligados === 1 ? 'dispositivo' : 'dispositivos'}.`
-            : 'Enquanto você não ligar em nenhum, este menu não chega a ninguém.'}
+          {!ligados.length
+            ? 'Enquanto você não ligar em nenhum, este menu não chega a ninguém.'
+            : servindo.length
+              ? `Este menu está valendo em ${servindo.length} ${servindo.length === 1 ? 'dispositivo' : 'dispositivos'}.`
+              : `${ligados.length === 1 ? 'Um dispositivo ligado' : `${ligados.length} dispositivos ligados`}, esperando você publicar.`}
         </div>
       </header>
       <div className="body">
         {!devices.length && <p className="v3-dica" style={{ padding: '8px 0' }}>Você ainda não tem dispositivos ativos.</p>}
+
+        {/* O aviso que faltava. Ligar um dispositivo antes de publicar é uma
+            ação legítima que simplesmente não produz efeito ainda — e sem
+            dizer isso, o interruptor parecia "voltar sozinho". */}
+        {!publicado && ligados.length > 0 && (
+          <div className="v3-callout" style={{ marginTop: 0, marginBottom: 10 }}>
+            <div>
+              <div className="t">Falta publicar</div>
+              <div className="s">
+                {ligados.length === 1 ? 'Este dispositivo está ligado' : `${ligados.length} dispositivos estão ligados`} neste
+                menu, mas ele ainda não foi publicado — então continuam levando direto ao Google. Publique
+                lá em cima e eles passam a abrir o menu.
+              </div>
+            </div>
+          </div>
+        )}
+
         {devices.map(d => {
-          const usaEsta = d.experience_id === exp.id
-          const servindoEste = usaEsta && d.served_mode === 'menu'
-          const deOutro = d.experience_id && !usaEsta
+          const ligadoAqui = d.experience_id === exp.id && d.experience_enabled
+          const servindoEste = ligadoAqui && d.served_mode === 'menu'
+          const deOutro = d.experience_id && d.experience_id !== exp.id
           return (
             <div className="v3-onde" key={d.id}>
               <span className="txt">
@@ -628,24 +653,30 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
                     : ` · usando o menu “${nomeDaExp(d.experience_id)}”`)}
                 </span>
               </span>
-              {/* A coluna fala de DESTINO, não do estado do interruptor:
-                  desligado aqui significa que o dispositivo leva ao Google. */}
+              {/* A etiqueta fala do DESTINO; o interruptor, da sua ESCOLHA.
+                  Quando as duas discordam — ligado mas ainda não publicado —
+                  a etiqueta diz por quê, em vez de o botão voltar calado. */}
               {servindoEste
                 ? <Chip tipo="g">servindo este menu</Chip>
-                : d.served_mode === 'menu'
-                  ? <Chip tipo="a">servindo outro menu</Chip>
-                  : <Chip tipo="n">Google Direto</Chip>}
-              <button className={'v3-switch' + (servindoEste ? '' : ' off') + (ocupado === d.id ? ' pendente' : '')}
-                onClick={() => alternar(d)} aria-pressed={servindoEste}
-                aria-label={servindoEste ? 'Desligar neste dispositivo' : 'Ligar neste dispositivo'}><i/></button>
+                : ligadoAqui
+                  ? <Chip tipo="a">falta publicar</Chip>
+                  : d.served_mode === 'menu'
+                    ? <Chip tipo="a">servindo outro menu</Chip>
+                    : <Chip tipo="n">Google Direto</Chip>}
+              {/* O interruptor reflete a INTENÇÃO (experience_enabled), não o
+                  resultado. Antes ele era desenhado a partir do served_mode e,
+                  com o menu não publicado, voltava sozinho depois do clique. */}
+              <button className={'v3-switch' + (ligadoAqui ? '' : ' off') + (ocupado === d.id ? ' pendente' : '')}
+                onClick={() => alternar(d)} aria-pressed={ligadoAqui}
+                aria-label={ligadoAqui ? 'Desligar neste dispositivo' : 'Ligar neste dispositivo'}><i/></button>
             </div>
           )
         })}
         {erro && <p className="v3-dica" style={{ color: 'var(--red)' }}>{erro}</p>}
         <p className="v3-dica" style={{ marginTop: 10 }}>
-          Ligado, o cliente que encostar naquele dispositivo abre este menu. Desligado, ele volta a ir direto
-          ao Google — e seu menu continua guardado aqui, pronto pra religar. Cada dispositivo serve um menu
-          de cada vez.
+          Ligado e publicado, o cliente que encostar naquele dispositivo abre este menu. Desligado, ele volta
+          a ir direto ao Google — e seu menu continua guardado aqui, pronto pra religar. Cada dispositivo
+          serve um menu de cada vez.
         </p>
       </div>
     </section>
