@@ -22,7 +22,7 @@
 // dispositivo.
 // ============================================================
 import React from 'react'
-import { Plus, Archive, Pencil, Trash2, Sparkles, ChevronRight } from 'lucide-react'
+import { Plus, Archive, Pencil, Trash2, Sparkles, ChevronRight, Info } from 'lucide-react'
 import { Head, Panel, Chip, Recursos, Carregando, Erro, dataBr } from '../ui.jsx'
 import { nomeProduto } from '../lib/dados.js'
 import { api } from '../lib/api.js'
@@ -108,7 +108,12 @@ export default function Experiencia({ dados }) {
   const ativas = experiences.filter(e => !e.archived_at)
   const arquivadas = experiences.filter(e => e.archived_at)
   const aberta = abertaId ? experiences.find(e => e.id === abertaId) : null
-  const semExperiencia = devices.filter(d => !d.experience_id)
+  // Conta pelo que o dispositivo SERVE, não por ter vínculo. Dispositivo
+  // preso a um menu excluído tem experience_id preenchido e mesmo assim vai
+  // pro Google — contar por vínculo dizia "nenhum dispositivo" com quatro
+  // deles indo pro Google naquele instante.
+  const noGoogle = devices.filter(d => d.served_mode !== 'menu')
+  const noMenu = devices.filter(d => d.served_mode === 'menu')
 
   // ── Editor ──
   if (aberta) {
@@ -133,30 +138,52 @@ export default function Experiencia({ dados }) {
   // ── Lista ──
   return (
     <>
-      <Head titulo="Experiência do Cliente" sub="O que acontece depois que alguém encosta o celular">
+      <Head titulo="Experiência do Cliente" sub="O que acontece no celular do cliente depois do toque">
         <button className="v3-btn solid" onClick={criar} disabled={criando}>
           <Plus size={13}/> {criando ? 'Criando…' : 'Criar menu'}
         </button>
       </Head>
 
+      {/* "Experiência" e "Google Direto" são nomes NOSSOS. Quem nunca viu não
+          tem por que saber o que significam — então a tela começa pelo que
+          está acontecendo de verdade com os dispositivos dele, e só depois
+          usa os nossos termos. */}
+      <div className="v3-callout info" style={{ marginTop: 0, marginBottom: 14 }}>
+        <Info size={16} color="var(--blue-dk)" style={{ flex: 'none', marginTop: 1 }}/>
+        <div>
+          <div className="t">
+            {devices.length === 0
+              ? 'Você ainda não tem dispositivos ativos'
+              : noMenu.length === 0
+                ? `Hoje ${devices.length === 1 ? 'seu dispositivo leva' : `seus ${devices.length} dispositivos levam`} direto para sua página de avaliação no Google`
+                : `${noMenu.length} ${noMenu.length === 1 ? 'dispositivo abre um menu seu' : 'dispositivos abrem um menu seu'}${noGoogle.length ? ` e ${noGoogle.length} ${noGoogle.length === 1 ? 'vai' : 'vão'} direto ao Google` : ''}`}
+          </div>
+          <div className="s">
+            Cada placa, cartão ou pulseira sua leva o cliente a algum lugar quando ele encosta o celular.
+            É isso que a gente chama de <b>experiência</b> — e você escolhe qual usar em cada dispositivo.
+          </div>
+        </div>
+      </div>
+
       {/* Google Direto: cartão de experiência na tela, ausência de vínculo no
           banco. Ele é o padrão de fábrica e continua gratuito. */}
       <Panel
-        titulo="Google Direto"
-        extra={<Chip tipo="g">Free</Chip>}
-        sub={semExperiencia.length
-          ? `Em uso em ${semExperiencia.length} ${semExperiencia.length === 1 ? 'dispositivo' : 'dispositivos'}`
+        titulo="Ir direto ao Google"
+        extra={<><Chip tipo="g">Free</Chip><Chip tipo="n">Google Direto</Chip></>}
+        sub={noGoogle.length
+          ? `Em uso em ${noGoogle.length} ${noGoogle.length === 1 ? 'dispositivo' : 'dispositivos'}`
           : 'Nenhum dispositivo usando no momento'}>
         <p className="v3-dica" style={{ padding: '6px 0 10px' }}>
-          O cliente encosta o celular e vai direto para a sua página de avaliação no Google. É o padrão de
-          todo dispositivo novo, e continua gratuito.
+          O cliente encosta o celular e cai <b>direto</b> na sua página de avaliação no Google — sem nenhuma
+          tela no meio. É assim que todo dispositivo novo já vem, e é gratuito. Nós chamamos isso de
+          “Google Direto”.
         </p>
-        {semExperiencia.length > 0 && (
+        {noGoogle.length > 0 && (
           <div className="v3-table-wrap">
             <table className="v3-t">
-              <thead><tr><th>Dispositivo</th><th>Tipo</th><th className="num">Toques (total)</th></tr></thead>
+              <thead><tr><th>Dispositivo</th><th>Onde está</th><th className="num">Toques (total)</th></tr></thead>
               <tbody>
-                {semExperiencia.map(d => (
+                {noGoogle.map(d => (
                   <tr key={d.id}>
                     <td className="nm">{d.channel_name || nomeProduto(d.product_type)}</td>
                     <td className="sm">{nomeProduto(d.product_type)}</td>
@@ -170,14 +197,16 @@ export default function Experiencia({ dados }) {
       </Panel>
 
       <Panel
-        titulo="Menu Inteligente"
-        extra={<><Chip>PRO</Chip><Chip tipo="n">Em construção</Chip></>}
-        sub="O toque abre uma página sua em vez de ir direto ao Google">
+        titulo="Abrir uma página sua"
+        extra={<><Chip>PRO</Chip><Chip tipo="n">Menu Inteligente</Chip></>}
+        sub={noMenu.length
+          ? `Em uso em ${noMenu.length} ${noMenu.length === 1 ? 'dispositivo' : 'dispositivos'}`
+          : 'Nenhum dispositivo usando no momento'}>
         <p className="v3-dica" style={{ padding: '6px 0 10px' }}>
-          Em vez de ir direto ao Google, o toque abre uma página sua com os botões que você escolher:
-          avaliar, cardápio, pedido no WhatsApp, Instagram, salvar contato. Você monta, publica, e liga nos
-          dispositivos que quiser — cada dispositivo pode ter um menu diferente, e o que não estiver ligado
-          continua indo direto ao Google.
+          Em vez de ir direto ao Google, o toque abre uma <b>página sua</b>, com o seu nome e os botões que
+          você escolher: avaliar no Google, cardápio, pedido no WhatsApp, Instagram, salvar contato. Você
+          monta, publica e liga nos dispositivos que quiser — cada um pode ter um menu diferente, e o que
+          não estiver ligado continua indo direto ao Google. Nós chamamos isso de “Menu Inteligente”.
         </p>
 
         {!ativas.length && (
