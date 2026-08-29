@@ -101,23 +101,21 @@ export const AREAS = {
   },
 
   resultados: {
-    nome: 'Resultados', icon: TrendingUp, status: 'constr', pro: true,
+    nome: 'Resultados', icon: TrendingUp, status: 'pronto', pro: true, tela: 'resultados',
     sub: 'Para onde as pessoas foram depois de tocar',
     lead: 'A camada de cruzamento, e ela nasce Pro inteira',
     corpo: 'A contagem de toques NÃO foi movida para cá: ela continua gratuita em Dispositivos, com histórico, último toque e períodos. Aqui ela reaparece apenas como denominador — o número de baixo da conta. O que se paga é o cruzamento, nunca o número que o cliente já tinha.',
     recursos: [
-      { n: 'Para onde as pessoas foram', d: 'por botão do menu', p: 'pro', s: 'constr' },
-      { n: 'Desempenho por experiência', p: 'pro', s: 'constr' },
-      { n: 'Toques cruzados com destino e comportamento', p: 'pro', s: 'constr' },
-      { n: 'Comparação entre períodos', p: 'pro', s: 'defin' }
+      { n: 'Para onde as pessoas foram', d: 'por ação e por botão', p: 'pro', s: 'pronto' },
+      { n: 'Desempenho por menu e por dispositivo', p: 'pro', s: 'pronto' },
+      { n: 'Comparação entre períodos', d: '7, 30 ou 90 dias', p: 'pro', s: 'pronto' },
+      { n: 'Aberturas pelo link compartilhado', d: 'sem passar por dispositivo', p: 'pro', s: 'pronto' }
     ],
     decidido: [
       'A área é 100% Pro e por isso leva selo na barra',
       'Nada gratuito foi movido para cá: a contagem segue em Dispositivos',
-      'O log de cliques já está modelado e nasce junto com o Menu Inteligente'
-    ],
-    falta: [
-      '“Taxa de conversão” precisa de definição: toque → clique nós medimos; toque → avaliação publicada o Google não devolve'
+      'Todo toque tem um desfecho só de dois: foi direto ao Google, ou abriu um menu e escolheu',
+      'NÃO existe “taxa de conversão”: toque → clique nós medimos; toque → avaliação publicada o Google não devolve'
     ]
   },
 

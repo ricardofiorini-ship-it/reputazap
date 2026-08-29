@@ -19,6 +19,7 @@ import Inicio from './screens/Inicio.jsx'
 import Experiencia from './screens/Experiencia.jsx'
 import Dispositivos from './screens/Dispositivos.jsx'
 import Reputacao from './screens/Reputacao.jsx'
+import Resultados from './screens/Resultados.jsx'
 import Mapa from './screens/Mapa.jsx'
 
 // Rota não adivinhável, de propósito (29/08/2026). Enquanto o V3 é privado, o
@@ -125,6 +126,7 @@ export default function App() {
       case 'experiencia':  return <Experiencia dados={dados}/>
       case 'dispositivos': return <Dispositivos dados={dados}/>
       case 'reputacao':    return <Reputacao dados={dados}/>
+      case 'resultados':   return <Resultados/>
       default:             return <Mapa area={area}/>
     }
   }
