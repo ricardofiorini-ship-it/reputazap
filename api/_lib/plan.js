@@ -147,10 +147,28 @@ export function podeUsarMenu(resolucao) {
 // publicador (Fase 2) e a varredura diária. Por construção, não existe caminho
 // daqui pra dentro de `experiences` — é assim que o manuscrito fica intocável.
 //
+// OS TRÊS DESLIGAMENTOS — conceitos fixos, não se confundem (29/08/2026):
+//
+//   1. INTERRUPTOR DO DISPOSITIVO (`plates.experience_enabled`)
+//      Afeta SOMENTE aquele dispositivo. Os outros seguem com o Menu, e o link
+//      público /m/<slug> continua funcionando — link não é dispositivo.
+//
+//   2. DESPUBLICAR OU ARQUIVAR A EXPERIÊNCIA (`experiences.published`,
+//      `archived_at`) — afeta a experiência e TODOS os pontos que dependem
+//      dela, link inclusive.
+//
+//   3. PERDER O PRO — afeta a capacidade de SERVIR Menu em tudo, sem tocar em
+//      configuração nenhuma.
+//
+// NENHUM DOS TRÊS APAGA CONTEÚDO. Os três são estados de exibição; os três são
+// reversíveis; e os três gravam um motivo diferente justamente pra o painel
+// explicar a causa certa em vez de uma plausível.
+//
 // @param {object|null} experiencia linha de `experiences` (ou null: sem experiência)
+// @param {object|null} dispositivo linha de `plates` (lê `experience_enabled`)
 // @param {object} resolucao        saída de resolvePlano()
 // @returns {{ served_mode, served_slug, served_reason }}
-export function decidirServido(experiencia, resolucao) {
+export function decidirServido({ experiencia, dispositivo, resolucao }) {
   const GOOGLE = (motivo) => ({
     served_mode: "google_direto",
     served_slug: null,
@@ -169,10 +187,20 @@ export function decidirServido(experiencia, resolucao) {
     return GOOGLE("padrao");
   }
 
-  // Tem Menu publicado, mas o Pro não está ativo (cancelou, pausou, trial
-  // venceu). O manuscrito continua exatamente onde está; só a placa da porta
-  // muda — e o motivo fica gravado pro painel explicar em vez de o cliente
-  // achar que perdeu a configuração.
+  // ── O interruptor, ANTES da checagem de plano ──
+  // A ordem é decisão, não detalhe: quem desligou de propósito e depois assina
+  // o Pro NÃO quer o Menu voltando sozinho no dispositivo. Escolha explícita do
+  // dono vence a automática do sistema.
+  //
+  // Comparação estrita com `true`: ausente, nulo ou indefinido caem em
+  // desligado. Falha fechada — na dúvida sobre a intenção do dono, servimos o
+  // Google, que é o que o dispositivo já fazia.
+  if (dispositivo?.experience_enabled !== true) return GOOGLE("desligado");
+
+  // Tem Menu publicado e ligado, mas o Pro não está ativo (cancelou, pausou,
+  // trial venceu). O manuscrito continua exatamente onde está; só a placa da
+  // porta muda — e o motivo fica gravado pro painel explicar em vez de o
+  // cliente achar que perdeu a configuração.
   if (!resolucao?.proAtivo) return GOOGLE("rebaixado_plano");
 
   return {
@@ -187,6 +215,10 @@ export function decidirServido(experiencia, resolucao) {
 export const MOTIVO_SERVIDO = {
   padrao:               "Este dispositivo leva direto ao Google.",
   publicado:            "Servindo a experiência publicada.",
+  // Texto neutro de propósito: vale tanto pra quem desligou quanto pra quem
+  // ainda não ligou. Dizer "você desligou" pra um dispositivo recém-vinculado
+  // seria atribuir ao dono uma ação que não houve.
+  desligado:            "O Menu está desligado neste dispositivo. Sua configuração continua guardada.",
   rebaixado_plano:      "Sua experiência está guardada. Enquanto o Pro estiver inativo, seus dispositivos levam direto ao Google.",
   experiencia_removida: "A experiência foi arquivada. Este dispositivo voltou a levar direto ao Google."
 };

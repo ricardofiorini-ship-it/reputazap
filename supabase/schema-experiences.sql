@@ -119,6 +119,25 @@ ALTER TABLE plates DROP CONSTRAINT IF EXISTS plates_served_mode_check;
 ALTER TABLE plates ADD CONSTRAINT plates_served_mode_check
   CHECK (served_mode IN ('google_direto', 'menu'));
 
+-- ── O INTERRUPTOR (camada 1 — intenção do lojista) ──────────
+-- Liga/desliga o Menu por DISPOSITIVO. Não é served_mode: served_* é derivado
+-- e a varredura diária o reescreve. O interruptor é ENTRADA do cálculo, nunca
+-- resultado dele — é o que impede um segundo mecanismo paralelo brigando pelo
+-- mesmo campo.
+--
+-- DEFAULT false porque um padrão errado aqui falha ABERTO: bastaria um fluxo
+-- futuro gravar experience_id sem tocar no interruptor pra um menu ir ao ar
+-- sozinho, no aparelho de um cliente que já está no balcão. Com false, o mesmo
+-- descuido resulta em "continua no Google e o painel avisa que está desligado":
+-- barulhento, visível e resolvido num toque. A garantia mora no BANCO e não na
+-- disciplina de quem escreve código depois — promessa de "o serviço sempre
+-- define" só vale enquanto todo caminho futuro lembrar, e esquecer calado é o
+-- modo de falha nº1 deste projeto.
+ALTER TABLE plates ADD COLUMN IF NOT EXISTS experience_enabled BOOLEAN NOT NULL DEFAULT false;
+
+COMMENT ON COLUMN plates.experience_enabled IS
+  'CAMADA 1 (intenção do lojista). Liga/desliga o Menu neste dispositivo. Nenhuma rotina de plano escreve aqui. Desligar não apaga nem altera a experiência.';
+
 -- served_reason é o que faz o rebaixamento ser VISÍVEL em vez de silencioso.
 -- Sem ele, cancelar o PRO viraria o modo de falha nº1 daqui: o menu some, o
 -- dispositivo continua funcionando e ninguém entende o que houve.
@@ -126,9 +145,15 @@ ALTER TABLE plates ADD CONSTRAINT plates_served_mode_check
 --   publicado            → o lojista publicou e o plano permite
 --   rebaixado_plano      → tem Menu publicado, PRO inativo. A config está intacta
 --   experiencia_removida → a experiência foi arquivada pelo lojista
+--   desligado            → o interruptor deste dispositivo está desligado.
+--                          Nome neutro de propósito: cobre tanto "o dono
+--                          desligou" quanto "ainda não foi ligado" (todo
+--                          dispositivo nasce assim). Dizer "desligado pelo
+--                          dono" atribuiria a ele uma ação que pode não ter
+--                          havido — e o painel estaria mentindo sobre a causa.
 ALTER TABLE plates DROP CONSTRAINT IF EXISTS plates_served_reason_check;
 ALTER TABLE plates ADD CONSTRAINT plates_served_reason_check
-  CHECK (served_reason IN ('padrao', 'publicado', 'rebaixado_plano', 'experiencia_removida'));
+  CHECK (served_reason IN ('padrao', 'publicado', 'rebaixado_plano', 'experiencia_removida', 'desligado'));
 
 -- Índice pro reconciliador varrer só o que interessa (quem tem experiência).
 CREATE INDEX IF NOT EXISTS idx_plates_experience ON plates(experience_id) WHERE experience_id IS NOT NULL;
