@@ -9,6 +9,7 @@
 // ============================================================
 import React from 'react'
 import { Head, Kpi, Panel, Chip, Delta, Recursos, Barras, desde, diasDesde, dataBr } from '../ui.jsx'
+import { TrendingUp } from 'lucide-react'
 import { useToques, nomeProduto } from '../lib/dados.js'
 import { api } from '../lib/api.js'
 
@@ -211,6 +212,20 @@ export default function Dispositivos({ dados }) {
           </div>
         )}
       </Panel>
+
+      {/* A fronteira entre as duas telas, dita uma vez: aqui é CONTAGEM,
+          lá é CRUZAMENTO. Sem isso o cliente procura nos dois lugares. */}
+      <div className="v3-callout info">
+        <TrendingUp size={16} color="var(--blue-dk)" style={{ flex: 'none', marginTop: 1 }}/>
+        <div>
+          <div className="t">Quer saber para onde essas pessoas foram depois de tocar?</div>
+          <div className="s">
+            Esta tela conta os toques — quantos, quando, em qual dispositivo, por qual meio. Em{' '}
+            <b>Resultados</b> você vê o que aconteceu depois: quem foi ao Google, quem abriu o menu e qual
+            botão cada um escolheu.
+          </div>
+        </div>
+      </div>
 
       <Recursos itens={RECURSOS}/>
     </>

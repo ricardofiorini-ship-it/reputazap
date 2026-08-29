@@ -18,7 +18,7 @@
 // ============================================================
 import React from 'react'
 import { Info, TrendingUp } from 'lucide-react'
-import { Head, Kpi, Panel, Chip, Delta, Carregando, Erro, Barras, dataBr } from '../ui.jsx'
+import { Head, Kpi, Panel, Chip, Delta, Carregando, Erro, dataBr } from '../ui.jsx'
 import { nomeProduto } from '../lib/dados.js'
 import { get } from '../lib/api.js'
 
@@ -182,19 +182,25 @@ export default function Resultados() {
 
           <div className="v3-cols">
             <Panel titulo="Por dispositivo" extra={<Chip>PRO</Chip>}
-              sub="Toques e aberturas de cada ponto de contato">
+              sub="O que cada ponto de contato produziu — a contagem de toques em si fica em Dispositivos">
               {!d.por_dispositivo.length && <p className="v3-dica" style={{ padding: '8px 0' }}>Nenhum dispositivo com movimento no período.</p>}
               {d.por_dispositivo.length > 0 && (
                 <div className="v3-table-wrap">
                   <table className="v3-t">
-                    <thead><tr><th>Dispositivo</th><th>Serve</th><th className="num">Toques</th><th className="num">Aberturas</th></tr></thead>
+                    <thead><tr>
+                      <th>Dispositivo</th><th>Serve</th>
+                      <th className="num">Toques</th><th className="num">Aberturas</th><th className="num">Escolhas</th>
+                    </tr></thead>
                     <tbody>
                       {d.por_dispositivo.map(p => (
                         <tr key={p.plate_id}>
                           <td><div className="nm">{p.nome}</div><div className="sm">{nomeProduto(p.product_type)}</div></td>
                           <td>{p.servindo === 'menu' ? <Chip>Menu</Chip> : <Chip tipo="g">Google</Chip>}</td>
                           <td className="num">{p.toques}</td>
+                          {/* Traço, não zero: dispositivo em Google Direto não
+                              tem menu pra abrir. Zero diria que ninguém abriu. */}
                           <td className="num">{p.servindo === 'menu' ? p.aberturas : '—'}</td>
+                          <td className="num">{p.servindo === 'menu' ? p.cliques : '—'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -223,13 +229,20 @@ export default function Resultados() {
                 </Panel>
               )}
 
-              <Panel titulo="Por dia" sub={`${dataBr(d.de)} a ${dataBr(d.ate)}`}>
-                <Barras serie={d.por_dia.map(x => ({ day: x.dia, taps: x.toques }))}
-                  rotuloA={dataBr(d.de)} rotuloB={dataBr(d.ate)}/>
-                <div className="v3-dica" style={{ marginTop: 10 }}>
-                  As barras mostram os toques. Aberturas e escolhas aparecem nos números acima.
+              {/* O gráfico de toques por dia NÃO mora aqui. Ele é gratuito e
+                  vive em Dispositivos — repetir a mesma informação em duas
+                  telas faz o cliente não saber onde procurar, e ainda por
+                  cima colocaria dentro do Pro algo que ele já tem de graça. */}
+              <div className="v3-callout info">
+                <Info size={16} color="var(--blue-dk)" style={{ flex: 'none', marginTop: 1 }}/>
+                <div>
+                  <div className="t">Procurando a contagem de toques por dia?</div>
+                  <div className="s">
+                    Ela fica em <b>Dispositivos</b>, com histórico, meio de chegada e último toque — e
+                    continua gratuita. Aqui a gente mostra o que aconteceu <b>depois</b> do toque.
+                  </div>
                 </div>
-              </Panel>
+              </div>
             </div>
           </div>
         </>

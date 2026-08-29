@@ -178,14 +178,19 @@ export default async function handler(req, res) {
 
     const toquesPorPlaca = conta(toques, (t) => t.plate_id);
     const abrePorPlaca = conta(aberturas.filter((a) => a.plate_id), (a) => a.plate_id);
+    const clicaPorPlaca = conta(cliques.filter((c) => c.plate_id), (c) => c.plate_id);
     const porDispositivo = (plates || [])
       .map((p) => ({
         plate_id: p.id,
         nome: nomeDoDispositivo.get(p.id),
         product_type: p.product_type,
         servindo: p.served_mode === "menu" ? "menu" : "google",
+        // `toques` viaja como CONTEXTO — o detalhe dele (por dia, por meio,
+        // histórico) mora em Dispositivos e é gratuito. Aqui ele só serve de
+        // base pra comparação com aberturas e escolhas.
         toques: toquesPorPlaca[p.id] || 0,
-        aberturas: abrePorPlaca[p.id] || 0
+        aberturas: abrePorPlaca[p.id] || 0,
+        cliques: clicaPorPlaca[p.id] || 0
       }))
       .filter((d) => d.toques > 0 || d.aberturas > 0)
       .sort((a, b) => b.toques - a.toques);
