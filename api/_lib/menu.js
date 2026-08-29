@@ -284,10 +284,33 @@ export function montarPublicado(draft) {
  */
 export function estaPendente(draft, published) {
   try {
-    return JSON.stringify(montarPublicado(draft)) !== JSON.stringify(published || null);
+    if (!published) return true;
+    return canon(montarPublicado(draft)) !== canon(published);
   } catch {
     return true;   // na dúvida, oferece publicar: erra pro lado de não travar
   }
+}
+
+/**
+ * JSON em ordem canônica: chaves de objeto sempre ordenadas, recursivamente.
+ *
+ * NÃO é preciosismo — é o que faz a comparação acima funcionar. O Postgres
+ * guarda JSONB com as chaves REORDENADAS: o que volta do banco vem em ordem
+ * alfabética, e o que a gente monta na hora vem na ordem em que o código
+ * escreveu. `JSON.stringify` dos dois dá textos diferentes para objetos
+ * idênticos — e a tela dizia "alterações não publicadas" para sempre, fazendo
+ * o botão Publicar parecer quebrado mesmo funcionando.
+ *
+ * Ordem de ARRAY é preservada de propósito: a ordem dos botões é escolha do
+ * lojista e mudar ela É uma alteração a publicar.
+ */
+function canon(v) {
+  if (v === null || typeof v !== "object") return JSON.stringify(v) ?? "null";
+  if (Array.isArray(v)) return "[" + v.map(canon).join(",") + "]";
+  return "{" + Object.keys(v).sort()
+    .filter((k) => v[k] !== undefined)
+    .map((k) => JSON.stringify(k) + ":" + canon(v[k]))
+    .join(",") + "}";
 }
 
 export function tamanhoOk(json) {

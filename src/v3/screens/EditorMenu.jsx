@@ -185,7 +185,11 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   // dizendo "alterações não publicadas" logo depois de publicar, fazendo o
   // botão parecer que não funcionou. `sujo` cobre o intervalo entre digitar e
   // o servidor responder.
-  const naoPublicado = sujo || (exp.pendente !== false)
+  // `publicou` manda enquanto a tela recarrega: publicar responde na hora, mas
+  // a lista só volta do servidor um instante depois. Sem isto, a barra ficava
+  // vermelha nesse intervalo e a pessoa via "não publicado" logo após publicar
+  // — o mesmo susto de antes, por outro caminho.
+  const naoPublicado = sujo || (publicou ? false : exp.pendente !== false)
 
   // ── Salvamento automático, com atraso ──
   // O veredito volta do servidor: é ele que decide, aqui só exibe.
