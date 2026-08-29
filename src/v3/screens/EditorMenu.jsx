@@ -623,7 +623,7 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
           {!ligados.length
             ? 'Enquanto você não ligar em nenhum, este menu não chega a ninguém.'
             : servindo.length
-              ? `Este menu está valendo em ${servindo.length} ${servindo.length === 1 ? 'dispositivo' : 'dispositivos'}.`
+              ? `Este menu está ativo em ${servindo.length} ${servindo.length === 1 ? 'dispositivo' : 'dispositivos'}.`
               : `${ligados.length === 1 ? 'Um dispositivo ligado' : `${ligados.length} dispositivos ligados`}, esperando você publicar.`}
         </div>
       </header>
