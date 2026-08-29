@@ -243,6 +243,14 @@ table.v3-t tr:last-child td { border-bottom: 0; }
     background: transparent; border: 0; color: var(--n-white);
     padding: 6px; margin: -6px; cursor: pointer; display: grid; place-items: center;
   }
+  .v3-topbar .marca {
+    background: transparent; border: 0; padding: 4px; margin: -4px;
+    cursor: pointer; display: grid; place-items: center; flex: none;
+    border-radius: 8px;
+  }
+  /* Já estou no Início: o símbolo deixa de ser atalho e vira só marca. */
+  .v3-topbar .marca[aria-current="true"] { opacity: .75; cursor: default; }
+
   .v3-topbar .titulo {
     flex: 1; min-width: 0;
     font-size: 14px; font-weight: 600;

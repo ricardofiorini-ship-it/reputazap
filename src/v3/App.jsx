@@ -138,6 +138,18 @@ export default function App() {
           aria-label="Abrir menu" aria-expanded={gaveta}>
           <Menu size={22}/>
         </button>
+        {/* O símbolo é o caminho de volta pro Início. No computador esse
+            atalho é o item da barra lateral; no celular, com a gaveta
+            fechada, sem ele não há como voltar sem abrir o menu inteiro.
+            Só o símbolo: o logotipo escrito ocuparia ~90px e espremeria o
+            nome da área até virar reticências. */}
+        <button className="marca" onClick={() => ir('inicio')}
+          aria-label="Ir para o Início" aria-current={id === 'inicio'}>
+          <span className="v3-mark"/>
+        </button>
+        {/* O nome da área fica: a barra é fixa e o título da tela rola pra
+            fora, então descendo a página isto é a única coisa que ainda
+            responde "onde eu estou". */}
         <div className="titulo">{area.nome}</div>
       </div>
 
