@@ -1,8 +1,15 @@
 // ============================================================
 // StarTouch — Redirect UNIVERSAL de placa (/r/:code → /api/r/:code)
-// Coração do FLUXO ÚNICO: decide o destino SÓ pelo status da placa.
-// NÃO liga pro source (site/ML/parceiro) — tratamento idêntico.
+// Coração do FLUXO ÚNICO: decide o destino pelo status da placa e pelo que
+// ela serve. NÃO liga pro source (site/ML/parceiro) — tratamento idêntico.
 // Endpoint público (qualquer um que toca a placa cai aqui).
+//
+// 29/08/2026 — ESTA FUNÇÃO DEIXOU DE SABER UMA RESPOSTA SÓ.
+// Antes: placa ativa → Google, sempre. Agora ela obedece `served_mode`, que
+// o painel gravou quando o lojista publicou um menu e ligou o interruptor.
+// A decisão já vem pronta na linha da placa: nada de consultar assinatura ou
+// experiência aqui — o toque custa as mesmas leituras de antes.
+// Qualquer coisa fora do esperado leva ao Google, como sempre foi.
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { sendInBackground } from "../_lib/email-sender.js";
@@ -116,13 +123,35 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { data: plate, error } = await queryWithRetry(() =>
+    // Duas colunas a mais do que antes: o destino que o dispositivo serve.
+    // A leitura tem DOIS DEGRAUS de propósito. Se um dia estas colunas não
+    // existirem (banco novo, restauração, migração não aplicada), pedir por
+    // elas derrubaria TODAS as placas — e a queda seria "código inválido" na
+    // cara do cliente, no balcão. Sem elas, o dispositivo serve o Google, que
+    // é exatamente o que ele fazia antes desta mudança.
+    let semServido = false;
+    let { data: plate, error } = await queryWithRetry(() =>
       supabase
         .from("plates")
-        .select("id, code, status, business_id, total_taps, channel_name")
+        .select("id, code, status, business_id, total_taps, channel_name, served_mode, served_slug")
         .eq("code", code)
         .maybeSingle()
     );
+    if (error) {
+      const tentativa = await queryWithRetry(() =>
+        supabase
+          .from("plates")
+          .select("id, code, status, business_id, total_taps, channel_name")
+          .eq("code", code)
+          .maybeSingle()
+      );
+      if (!tentativa.error) {
+        semServido = true;
+        plate = tentativa.data;
+        error = null;
+        console.warn("[r/code] colunas de destino indisponíveis — servindo Google Direto");
+      }
+    }
 
     // Modo consulta: resolve status (+ se está pronta pra avaliação) e retorna JSON.
     if (checkOnly) {
@@ -257,6 +286,24 @@ export default async function handler(req, res) {
       } catch (e) {
         console.error("[r/code] erro no email de primeira avaliação:", e);
       }
+    }
+
+    // ── O DESVIO (Fase 2) ──────────────────────────────────
+    // Até aqui esta função sabia UMA resposta: vai pro Google. Agora ela
+    // pergunta ao dispositivo o que fazer — e a resposta já está gravada na
+    // linha que acabamos de ler, resolvida na hora em que o lojista publicou
+    // ou ligou o interruptor. Nenhuma consulta de assinatura, nenhum JOIN:
+    // o toque continua custando as mesmas leituras de antes.
+    //
+    // A CONDIÇÃO É POSITIVA, e isso é a proteção: o menu só acontece quando
+    // tudo está explicitamente certo (modo 'menu' E slug preenchido). Valor
+    // estranho, coluna ausente, campo vazio, qualquer surpresa — cai no
+    // Google, que é o comportamento de sempre. Errar pro lado do que já
+    // funcionava é a única forma segura de mexer no caminho do balcão.
+    if (!semServido && plate.served_mode === "menu" && plate.served_slug) {
+      return res.redirect(302, withUtm(
+        `/m/${encodeURIComponent(plate.served_slug)}?d=${encodeURIComponent(plate.code)}`, utm
+      ));
     }
 
     return res.redirect(302, withUtm(`/avaliar?place_id=${encodeURIComponent(placeId)}&plate=${encodeURIComponent(plate.code)}`, utm));
