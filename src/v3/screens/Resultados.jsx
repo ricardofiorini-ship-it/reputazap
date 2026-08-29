@@ -358,7 +358,7 @@ export default function Resultados() {
 
             {/* ── 3 · O BLOCO PRINCIPAL DO PRO ── */}
             <div>
-              <Panel titulo="O que seus clientes escolheram" extra={<Chip>PRO</Chip>}
+              <Panel titulo="Onde seus clientes clicaram" extra={<Chip>PRO</Chip>}
                 sub={baseAberturas != null
                   ? `Com base nas ${baseAberturas} ${baseAberturas === 1 ? 'abertura' : 'aberturas'}${menuAtivo && !umMenuSo ? ` de “${menuAtivo.name}”` : ' de menu do período'}`
                   : `Somando ${menus.length} menus — escolha um para ver o percentual`}>
