@@ -380,7 +380,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           <div className="s">
             <b>1.</b> Monte as ações e veja a prévia à direita — o rascunho salva sozinho, e o botão
             <b> Salvar rascunho</b> lá em cima confirma. <b>2.</b> Clique em <b>Publicar</b> — só então o
-            que você montou passa a valer. <b>3.</b> Ligue o menu nos dispositivos, lá embaixo.
+            que você montou entra no ar. <b>3.</b> Ligue o menu nos dispositivos, lá embaixo.
             Enquanto você não fizer os três, seus dispositivos continuam levando direto ao Google.
           </div>
         </div>
@@ -582,7 +582,7 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
     // só. Mover é permitido, nunca em silêncio.
     let mover = false
     if (ligar && ocupadoPorOutro(d)) {
-      if (!confirm(`“${d.channel_name || 'Este dispositivo'}” está usando o menu “${nomeDaExp(d.experience_id)}”.\n\nTrocar para “${exp.name}”? O outro menu deixa de valer neste dispositivo.`)) return
+      if (!confirm(`“${d.channel_name || 'Este dispositivo'}” está usando o menu “${nomeDaExp(d.experience_id)}”.\n\nTrocar para “${exp.name}”? O outro menu deixa de estar ativo neste dispositivo.`)) return
       mover = true
     }
 
