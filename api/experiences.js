@@ -1,7 +1,12 @@
 // ============================================================
 // StarTouch — API das experiências (dispatcher por ?action=)
 // ============================================================
-// Actions (todas exigem token; tudo escopado ao negócio do usuário):
+// FECHADO NO ADMINISTRADOR (29/08/2026): o Menu Inteligente ainda não está à
+// venda, então nenhum cliente deveria conseguir criar um — nem pela tela, que
+// é privada, nem pela API. Ver `podeUsar` abaixo: é o único lugar a mudar
+// quando o Pro abrir.
+//
+// Actions (todas exigem token de administrador; tudo escopado ao negócio):
 //   GET  ?action=list                 → experiências + dispositivos do negócio
 //   POST ?action=create               → cria experiência (nome) e devolve o id
 //   POST ?action=save-draft           → grava o rascunho (id, draft)
@@ -34,6 +39,23 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_NOME = 60;
 const MAX_EXPERIENCIAS = 20;   // teto de sanidade; não é limite de produto
+
+// ── QUEM PODE USAR O MENU INTELIGENTE ───────────────────────
+// Hoje: só o administrador. O painel V3 é privado, mas o portão de lá é da
+// TELA — estes endpoints só pediam um token válido. Enquanto o /r/CODE não
+// lia o snapshot, isso não tinha consequência; a partir do momento em que ele
+// lê, um menu criado por fora passaria a ser SERVIDO de verdade, no balcão de
+// um cliente. Trava aqui transforma "só o Ricardo, na prática" em "só o
+// Ricardo, por construção".
+//
+// QUANDO O PRO ENTRAR À VENDA, é esta função que muda: sai a lista de
+// e-mails, entra `resolvePlano(biz, email).proAtivo`. Um lugar só, de
+// propósito — espalhar a regra por oito actions é como se esquece uma.
+const ADMIN_EMAILS = new Set(["ricardo.fiorini@gmail.com"]);
+
+function podeUsar(user) {
+  return ADMIN_EMAILS.has((user?.email || "").toLowerCase().trim());
+}
 
 async function autenticar(req) {
   const token = req.headers.authorization?.replace("Bearer ", "");
@@ -330,6 +352,13 @@ export default async function handler(req, res) {
   try {
     const auth = await autenticar(req);
     if (auth.erro) return res.status(auth.status).json({ error: auth.erro });
+
+    // 404 e não 403: 403 confirmaria que estes endereços existem e fazem algo.
+    // Mesma escolha do feedback.js e dos diagnósticos do billing.
+    if (!podeUsar(auth.user)) {
+      console.warn(`[experiences] acesso negado a "${action}" para ${auth.user?.email || "?"}`);
+      return res.status(404).json({ error: "Not found" });
+    }
 
     const biz = await negocioDo(auth.user);
     if (!biz) return res.status(404).json({ error: "Nenhum negócio cadastrado nesta conta." });
