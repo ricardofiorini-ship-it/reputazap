@@ -37,6 +37,31 @@ const diaBr = (iso) => new Date(new Date(iso).getTime() - BR_OFFSET_MS).toISOStr
 const inicioDoDia = (dia) => new Date(new Date(`${dia}T00:00:00.000Z`).getTime() + BR_OFFSET_MS).toISOString();
 const somaDias = (dia, n) => new Date(new Date(`${dia}T00:00:00.000Z`).getTime() + n * DIA_MS).toISOString().slice(0, 10);
 
+const DIA_RE = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_INTERVALO = 366;   // teto pra não varrer o banco inteiro
+
+// Período: ou um atalho (7/30/90) ou datas livres. Escrito para tolerar
+// engano em vez de recusar: datas invertidas são destrocadas, futuro é
+// cortado em hoje e intervalo grande demais preserva a ponta MAIS RECENTE,
+// que é a que interessa. Recusar com "data inválida" seria devolver o
+// problema pra quem só digitou fora de ordem.
+function resolvePeriodo(query, hoje) {
+  const from = String(query.from || "");
+  const to = String(query.to || "");
+  if (DIA_RE.test(from) && DIA_RE.test(to)) {
+    let a = from <= to ? from : to;
+    let b = from <= to ? to : from;
+    if (b > hoje) b = hoje;
+    if (a > b) a = b;
+    let dias = Math.round((new Date(`${b}T00:00:00Z`) - new Date(`${a}T00:00:00Z`)) / DIA_MS) + 1;
+    if (dias > MAX_INTERVALO) { a = somaDias(b, -(MAX_INTERVALO - 1)); dias = MAX_INTERVALO; }
+    return { de: a, ate: b, dias, custom: true };
+  }
+  const pedido = parseInt(query.days, 10);
+  const dias = JANELAS.includes(pedido) ? pedido : 30;
+  return { de: somaDias(hoje, -(dias - 1)), ate: hoje, dias, custom: false };
+}
+
 async function autenticar(req) {
   const token = req.headers.authorization?.replace("Bearer ", "");
   if (!token) return { erro: "Token obrigatório", status: 401 };
@@ -66,11 +91,8 @@ export default async function handler(req, res) {
     if (bizErr) return res.status(500).json({ error: bizErr.message });
     if (!biz) return res.status(404).json({ error: "Nenhum negócio cadastrado nesta conta." });
 
-    const pedido = parseInt(req.query.days, 10);
-    const dias = JANELAS.includes(pedido) ? pedido : 30;
     const hoje = diaBr(new Date().toISOString());
-    const de = somaDias(hoje, -(dias - 1));
-    const ate = hoje;
+    const { de, ate, dias, custom } = resolvePeriodo(req.query, hoje);
     const deIso = inicioDoDia(de);
     const ateIso = inicioDoDia(somaDias(ate, 1));      // exclusivo: pega o dia final inteiro
     const antDe = somaDias(de, -dias);
@@ -220,7 +242,7 @@ export default async function handler(req, res) {
 
     return res.json({
       ok: true,
-      dias, de, ate,
+      dias, de, ate, custom,
       disponivel: { toques: toquesOk, eventos: eventosOk },
       toques: {
         total: toques.length,

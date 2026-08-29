@@ -18,7 +18,7 @@
 // toque → avaliação publicada o Google não devolve.
 // ============================================================
 import React from 'react'
-import { Info, TrendingUp, Link2, Lightbulb } from 'lucide-react'
+import { Info, TrendingUp, Link2, Lightbulb, CalendarDays } from 'lucide-react'
 import { Head, Kpi, Panel, Chip, Delta, Carregando, Erro, dataBr } from '../ui.jsx'
 import { nomeProduto } from '../lib/dados.js'
 import { get } from '../lib/api.js'
@@ -115,19 +115,24 @@ export default function Resultados() {
   // Declarado AQUI, com os outros: hook depois de um `return` antecipado
   // quebra a ordem que o React espera e derruba a tela no segundo render.
   const [menuSel, setMenuSel] = React.useState('todos')
+  // Periodo livre. `null` = usando um dos atalhos (7/30/90).
+  const [livre, setLivre] = React.useState(null)          // { de, ate } aplicado
+  const [abrindo, setAbrindo] = React.useState(false)     // painel de escolha aberto
+  const [rascunho, setRascunho] = React.useState({ de: '', ate: '' })
   const [estado, setEstado] = React.useState({ carregando: true, erro: null, d: null })
 
-  const carregar = React.useCallback(async (j) => {
+  const carregar = React.useCallback(async (q) => {
     setEstado(s => ({ ...s, carregando: true }))
     try {
-      const d = await get(`/api/results?days=${j}`, { auth: true })
+      const d = await get(`/api/results?${q}`, { auth: true })
       setEstado({ carregando: false, erro: null, d })
     } catch (e) {
       setEstado({ carregando: false, erro: e.message || 'Não foi possível carregar.', d: null })
     }
   }, [])
 
-  React.useEffect(() => { carregar(dias) }, [dias, carregar])
+  const consulta = livre ? `from=${livre.de}&to=${livre.ate}` : `days=${dias}`
+  React.useEffect(() => { carregar(consulta) }, [consulta, carregar])
 
   if (estado.carregando && !estado.d) return <Carregando o="seus resultados"/>
   if (estado.erro) return <Erro mensagem={estado.erro} onTentar={() => carregar(dias)}/>
@@ -179,12 +184,47 @@ export default function Resultados() {
             requisição em cima de requisição. */}
         <div className="v3-seg">
           {JANELAS.map(j => (
-            <button key={j} aria-pressed={dias === j} disabled={estado.carregando}
-              onClick={() => setDias(j)}>{j} dias</button>
+            <button key={j} aria-pressed={!livre && dias === j} disabled={estado.carregando}
+              onClick={() => { setLivre(null); setAbrindo(false); setDias(j) }}>{j} dias</button>
           ))}
         </div>
+        <button className={'v3-btn' + (livre ? ' solid' : '')} disabled={estado.carregando}
+          onClick={() => {
+            setAbrindo(a => !a)
+            // Abre ja preenchido com o periodo que esta na tela: quase sempre
+            // a pessoa quer ajustar uma ponta, nao digitar as duas do zero.
+            if (!abrindo && estado.d) setRascunho({ de: estado.d.de, ate: estado.d.ate })
+          }}>
+          <CalendarDays size={13}/> {livre ? `${dataBr(livre.de)} a ${dataBr(livre.ate)}` : 'Personalizar'}
+        </button>
         {estado.carregando && <span className="v3-picker atualizando">atualizando…</span>}
       </Head>
+
+      {abrindo && (
+        <div className="v3-periodo">
+          <label><span>De</span>
+            <input type="date" value={rascunho.de} max={rascunho.ate || undefined}
+              onChange={e => setRascunho(r => ({ ...r, de: e.target.value }))}/>
+          </label>
+          <label><span>Até</span>
+            <input type="date" value={rascunho.ate} min={rascunho.de || undefined}
+              onChange={e => setRascunho(r => ({ ...r, ate: e.target.value }))}/>
+          </label>
+          <button className="v3-btn solid" disabled={!rascunho.de || !rascunho.ate}
+            onClick={() => { setLivre({ de: rascunho.de, ate: rascunho.ate }); setAbrindo(false) }}>
+            Aplicar
+          </button>
+          {livre && (
+            <button className="v3-btn ghost" onClick={() => { setLivre(null); setAbrindo(false) }}>
+              Voltar aos atalhos
+            </button>
+          )}
+          {/* Datas invertidas, futuro e intervalo grande demais sao ajustados
+              no servidor em vez de recusados: quem digitou fora de ordem ja
+              disse o que queria. */}
+          <span className="dica">Máximo de 366 dias. Datas fora de ordem são ajustadas.</span>
+        </div>
+      )}
 
       <div className={estado.carregando ? 'v3-recarregando' : undefined}
         aria-busy={estado.carregando || undefined}>
