@@ -20,7 +20,23 @@ import Dispositivos from './screens/Dispositivos.jsx'
 import Reputacao from './screens/Reputacao.jsx'
 import Mapa from './screens/Mapa.jsx'
 
-const BASE = '/painel'
+// Rota não adivinhável, de propósito (29/08/2026). Enquanto o V3 é privado, o
+// portão de admin é JAVASCRIPT — decide quem VÊ a tela, não quem alcança dado
+// (todo endpoint continua autenticado e escopado ao próprio usuário). O que
+// vaza sem esta troca não é dado de cliente: é o BUNDLE, e dentro dele o mapa
+// do produto com "Em definição" e "Não definido" — roadmap interno que a gente
+// já decidiu que não deve aparecer publicamente.
+//
+// `/painel` deixou de existir: sem rewrite, a Vercel devolve 404. Não há
+// redirect do antigo pro novo — redirecionar entregaria o endereço novo a quem
+// chutasse o velho, que é exatamente o que isto evita.
+//
+// Isto é obscuridade, não segurança: quem tiver o link, entra na tela (e vê os
+// próprios dados). O portão de verdade — servidor recusando servir a página —
+// entra mais perto da Fase 2, quando o V3 passa a ter comportamento de produto
+// e não só telas. Ao trocar esta constante, trocar junto os dois rewrites no
+// vercel.json: são o mesmo endereço em dois lugares.
+const BASE = '/painel-f7dsaz3c'
 const PADRAO = 'inicio'
 
 function areaDaUrl() {

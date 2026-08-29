@@ -1,5 +1,5 @@
 // ============================================================
-// StarTouch V3 — porta de entrada (/painel)
+// StarTouch V3 — porta de entrada (rota privada; o endereço vive em App.jsx)
 // ============================================================
 // Login COMPARTILHADO com o painel atual: mesmo `rz_token` no localStorage,
 // mesma tela de login. Quem já está logado no /app entra aqui sem relogar, e

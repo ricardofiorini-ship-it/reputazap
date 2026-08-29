@@ -60,8 +60,8 @@
     { "source": "/app", "destination": "/index-v2.html" },
     { "source": "/app/(.*)", "destination": "/index-v2.html" },
     { "source": "/app-legacy", "destination": "/index.html" },
-    { "source": "/painel", "destination": "/index-v3.html" },
-    { "source": "/painel/(.*)", "destination": "/index-v3.html" }
+    { "source": "/painel-f7dsaz3c", "destination": "/index-v3.html" },
+    { "source": "/painel-f7dsaz3c/(.*)", "destination": "/index-v3.html" }
   ],
   "functions": {
     "api/radar.js": { "maxDuration": 90 }
