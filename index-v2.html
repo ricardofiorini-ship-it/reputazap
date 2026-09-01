@@ -1,7 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
-            <meta charset="UTF-8" />
+    <meta charset="UTF-8" />
+    <!-- Consentimento de cookies + Google Consent Mode v2.
+         O /consent.js e quem carrega o GA4 e o Meta Pixel, nesta ordem:
+         `consent default denied` ANTES de qualquer tag subir. Nao trocar
+         por tag direta -- a ordem e o que faz o consentimento valer.
+         Esta linha JA CAIU uma vez: o de1acf5 tirou as tags inline daqui
+         e esqueceu de por o consent.js no lugar. De 22/08 a 01/09/2026 o
+         /app ficou sem medicao nenhuma, e calado -- os gtag() do AppV2
+         sao `if (window.gtag)`, entao sumiram sem erro. Nao remover. -->
+    <script src="/consent.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StarTouch — Painel</title>
     <meta name="description" content="Sistema completo pra negócios brasileiros gerenciarem reputação no Google, 100% dentro das regras."/>
