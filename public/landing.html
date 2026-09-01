@@ -658,6 +658,10 @@
     max-width: 520px;
     text-wrap: balance;
   }
+  /* Duas frases, uma por linha: a 1a e a promessa, a 2a e o COMO. Em <span>
+     block em vez de <br> pra que cada frase quebre sozinha no celular, sem
+     herdar uma quebra forcada que so faz sentido no desktop. */
+  .hero-sub span { display: block; }
   @media (min-width: 1024px) { .hero-sub { font-size: 18px; } }
 
   /* CTAs */
@@ -3918,7 +3922,10 @@
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg>
       </div>
       <h1>Mais avaliações no Google.</h1>
-      <p class="hero-sub">Seu cliente aproxima o celular e avalia.</p>
+      <p class="hero-sub">
+        <span>Peça a avaliação no momento certo.</span>
+        <span>Aproxime o cartão StarTouch e pronto.</span>
+      </p>
       <div class="hero-ctas">
         <a class="hero-cta-buy" href="/kit">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
