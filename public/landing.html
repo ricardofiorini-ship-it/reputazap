@@ -765,12 +765,13 @@
     display: flex; justify-content: center; align-items: center;
     width: 100%;
   }
-  /* Video demo no hero (5:4, mais quadrado) — fundo escuro = placeholder instantaneo */
+  /* Video demo no hero (16:9 — proporcao NATIVA do arquivo; mudar isso corta o cartao
+     entrando pela direita, que e o momento que o video existe pra mostrar) — fundo escuro = placeholder instantaneo */
   .hero-video {
     position: relative;
     width: 100%;
     max-width: 600px;
-    aspect-ratio: 5 / 4;
+    aspect-ratio: 16 / 9;
     border-radius: 20px;
     overflow: hidden;
     border: 1px solid var(--st-gray-light);
@@ -3947,7 +3948,7 @@
     <div class="hero-image">
       <div class="hero-video">
         <span class="hero-video-badge" aria-hidden="true">Demo</span>
-        <video src="/demo-avaliacao.mp4" autoplay loop muted playsinline preload="auto" aria-label="Demonstracao: cliente aproxima o celular do dispositivo StarTouch e avalia no Google em segundos"></video>
+        <video src="/demo-avaliacao-v2.mp4" autoplay loop muted playsinline preload="auto" aria-label="Demonstracao: cliente aproxima o celular do cartao StarTouch e avalia no Google em segundos"></video>
       </div>
     </div>
   </div>
