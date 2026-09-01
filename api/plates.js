@@ -5,7 +5,7 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { MOTIVO_SERVIDO } from "./_lib/plan.js";
-import { generateBatchCodes } from "./_lib/plates.js";
+import { generateBatchCodes, PRODUCT_TYPES } from "./_lib/plates.js";
 import { sendInBackground } from "./_lib/email-sender.js";
 import { firstDeviceEmail, additionalDeviceEmail, adminDeviceActivatedEmail } from "./_lib/email-templates.js";
 
@@ -17,7 +17,9 @@ const supabase = createClient(
 // MVP: admin gating por email hardcoded (evoluir pra is_admin depois)
 const ADMIN_EMAIL = "ricardo.fiorini@gmail.com";
 
-const VALID_TYPES = ["placa_balcao", "placa_mesa", "pulseira_nfc", "cartao_nfc"];
+// Tipos validos vem do mapa de letras de codigo (_lib/plates.js): produto sem
+// letra nao pode virar lote, entao as duas listas nao tem como divergir.
+const VALID_TYPES = PRODUCT_TYPES;
 
 async function authUser(req) {
   const token = req.headers.authorization?.replace("Bearer ", "");
@@ -78,7 +80,7 @@ async function handleCreateBatch(req, res, user) {
   // 2. gera N códigos únicos
   let codes;
   try {
-    codes = await generateBatchCodes(supabase, qty);
+    codes = await generateBatchCodes(supabase, qty, product_type);
   } catch (e) {
     await rollbackBatch();
     return res.status(500).json({ error: e.message });
