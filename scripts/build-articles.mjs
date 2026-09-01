@@ -16,7 +16,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import {
-  TIPS, publishedTips, publishDateOf, themeLabel, articleUrl,
+  TIPS, publishedTips, publishDateOf, themeLabel, articleUrl, ARTICLES_ARMED,
 } from "../api/_lib/tips-content.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -205,9 +205,15 @@ function replaceRegion(text, startMark, endMark, inner, file) {
 // À PROVA DE FALHA: roda no build do site. Qualquer erro aqui só loga um
 // aviso — NUNCA derruba o build (o site tem que subir de qualquer jeito).
 try {
-  const all = process.env.ARTICLES_ALL === "1";
+  // A chave da fábrica vence o ARTICLES_ALL: quem quer prever o resultado
+  // roda com a fábrica armada num branch, não escreve em public/ com ela
+  // desligada — porque escrever em public/ É publicar, o build sobe junto.
+  const all = process.env.ARTICLES_ALL === "1" && ARTICLES_ARMED;
+  if (process.env.ARTICLES_ALL === "1" && !ARTICLES_ARMED) {
+    console.warn("[build-articles] ARTICLES_ALL=1 IGNORADO — ARTICLES_ARMED=false em tips-content.js");
+  }
   const now = Date.now();
-  const list = all ? TIPS : publishedTips(now);
+  const list = ARTICLES_ARMED ? (all ? TIPS : publishedTips(now)) : [];
   const indexOf = (tip) => TIPS.indexOf(tip);
 
   let wrote = 0;
@@ -236,7 +242,14 @@ try {
     writeFileSync(smPath, sm, "utf8");
   } catch (e) { console.warn("[build-articles] sitemap:", e.message); }
 
-  console.log(`[build-articles] ${wrote} artigo(s) gerado(s)${all ? " (ARTICLES_ALL)" : ""}.`);
+  // Desligado tem que DIZER que está desligado: zero artigos com a fábrica
+  // armada e zero com ela desarmada são a mesma linha de log, e foi
+  // exatamente esse tipo de silêncio que deixou o artigo subir sozinho.
+  console.log(
+    ARTICLES_ARMED
+      ? `[build-articles] ${wrote} artigo(s) gerado(s)${all ? " (ARTICLES_ALL)" : ""}.`
+      : "[build-articles] FÁBRICA DESARMADA (ARTICLES_ARMED=false) — nenhum artigo de dica no site."
+  );
 } catch (e) {
   console.warn("[build-articles] falha geral (build segue normalmente):", e && e.message);
 }

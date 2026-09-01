@@ -19,14 +19,27 @@
 // artigo) · paragraphs (corpo, compartilhado) · cta (botão do e-mail).
 // ============================================================
 
+// ⚠️ CHAVE DA FÁBRICA DE ARTIGOS — false = nenhum artigo de dica no site.
+//
+// POR QUE ISTO EXISTE, e não só uma data futura:
+// O plano "sem armar" de 2026-07-17 desarmou o e-mail tirando o cron
+// weekly-tips do vercel.json, e contava com PROGRAM_START ser "uma data
+// futura" pra segurar o artigo. Data futura não segura nada: ela chega.
+// Em 2026-09-01 o placeholder virou hoje, o build rodou como roda em todo
+// deploy, e o artigo "responder-avaliacoes-google" foi ao ar sozinho —
+// sem ninguém armar, sem e-mail nenhum ter saído, sem aviso.
+// Placeholder de data é bomba-relógio: para de ser futuro sem avisar.
+// Interruptor explícito não expira. Este é o interruptor.
+//
+// ARMAR a fábrica de artigos = trocar este flag pra true E conferir se
+// PROGRAM_START é a TERÇA de estreia que você quer (>= dia do deploy + 1).
+// O e-mail é uma chave separada: readicionar no vercel.json
+// { "path": "/api/cron/weekly-tips", "schedule": "0 12 * * *" }.
+export const ARTICLES_ARMED = false;
+
 // 1ª dica (data de ENVIO aos clientes) — deve ser uma TERÇA. A prévia pro
-// admin sai 1 dia antes (segunda).
-// ⚠️ DEPLOY "SEM ARMAR" (2026-07-17): o cron weekly-tips foi REMOVIDO do
-// vercel.json e este START é um PLACEHOLDER futuro de propósito — nada
-// dispara e nenhum artigo de dica nasce antes de armar. ARMAR = (1) trocar
-// este START pra a TERÇA de estreia (>= dia do deploy + 1) e (2) readicionar
-// no vercel.json: { "path": "/api/cron/weekly-tips", "schedule": "0 12 * * *" }.
-export const PROGRAM_START = "2026-09-01"; // TERÇA — placeholder até armar
+// admin sai 1 dia antes (segunda). Só passa a valer com ARTICLES_ARMED=true.
+export const PROGRAM_START = "2026-09-01"; // TERÇA
 // Dias de envio da dica (getUTCDay), 12:00 UTC = 9h BRT. HOJE: só TERÇA (2).
 // Segunda (weekday 1) fica reservada pro resumo semanal — NUNCA use a segunda
 // aqui. Pra acrescentar dias: [2,4] terça+quinta, [2,4,6] +sábado, etc.
@@ -366,6 +379,7 @@ export function periodKey(now = Date.now()) {
   return "p" + periodNumber(now);
 }
 export function publishedCount(now = Date.now()) {
+  if (!ARTICLES_ARMED) return 0;     // fábrica desarmada: nenhum artigo no ar
   if (now < firstSendMs()) return 0; // antes do 1º envio: nenhum artigo no ar
   return Math.min(periodNumber(now) + 1, TIPS.length);
 }
