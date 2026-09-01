@@ -4076,6 +4076,178 @@
   </div>
 </section>
 
+<!-- CARTAO NFC EM DESTAQUE — a oferta sobe pra logo abaixo da prova social.
+     O mesmo produto continua na vitrine #produtos la embaixo (mesmo preco, mesmo
+     link /kit?add=cartao-nfc): este bloco e o atalho, nao a unica porta.
+     Classes cardoffer-* isoladas de proposito, pra nao herdar o tema escuro da
+     secao #produtos nem quebrar quando ela mudar. -->
+<style>
+  .cardoffer-section { background: var(--st-bg-primary); padding: 64px 24px; }
+  @media (min-width: 1024px) { .cardoffer-section { padding: 88px 32px; } }
+  .cardoffer-inner { max-width: 1100px; margin: 0 auto; }
+  .cardoffer-box {
+    background: var(--st-bg-secondary);
+    border: 1px solid var(--st-gray-light);
+    border-radius: 24px;
+    box-shadow: var(--st-shadow-lg);
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 900px) {
+    .cardoffer-box { grid-template-columns: 1fr 1fr; align-items: center; }
+  }
+  /* Media */
+  .cardoffer-media { padding: 24px 24px 0; }
+  @media (min-width: 900px) { .cardoffer-media { padding: 32px; } }
+  /* Moldura quadrada + contain: as fotos do cartao sao 1:1 (equipe) e 4:5
+     (produto). Com cover a foto do produto perderia topo e base — nunca
+     cortar foto de produto. O quadrado deixa a 1:1 encaixada e so
+     encosta a 4:5 nas laterais. */
+  .cardoffer-main {
+    background: var(--st-bg-primary);
+    border-radius: 16px;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cardoffer-main img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .cardoffer-thumbs {
+    display: flex; gap: 10px; margin-top: 12px;
+    overflow-x: auto; padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .cardoffer-thumbs::-webkit-scrollbar { display: none; }
+  .cardoffer-thumb {
+    flex: 0 0 auto; width: 64px; height: 64px; padding: 0;
+    border: 2px solid var(--st-gray-light); border-radius: 10px;
+    background: var(--st-bg-primary); overflow: hidden; cursor: pointer;
+    transition: border-color .15s ease;
+  }
+  .cardoffer-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cardoffer-thumb.is-active { border-color: var(--st-blue-primary); }
+  .cardoffer-thumb:focus-visible { outline: 2px solid var(--st-blue-primary); outline-offset: 2px; }
+  /* Corpo */
+  .cardoffer-body { padding: 24px; }
+  @media (min-width: 900px) { .cardoffer-body { padding: 32px 40px 32px 8px; } }
+  .cardoffer-tag {
+    display: inline-block;
+    font-family: var(--st-font-sans);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--st-blue-primary); background: var(--st-blue-soft);
+    padding: 6px 12px; border-radius: 999px; margin-bottom: 14px;
+  }
+  .cardoffer-h2 {
+    font-family: var(--st-font-sans);
+    font-size: clamp(26px, 4vw, 36px);
+    font-weight: 800; line-height: 1.15; letter-spacing: -0.02em;
+    color: var(--st-black-strong); margin: 0 0 12px; text-wrap: balance;
+  }
+  .cardoffer-h2 .accent { color: var(--st-blue-primary); }
+  .cardoffer-desc {
+    font-family: var(--st-font-sans); font-size: 16px; line-height: 1.6;
+    color: var(--st-gray-text); margin: 0 0 20px; text-wrap: balance;
+  }
+  .cardoffer-specs { list-style: none; margin: 0 0 24px; padding: 0; display: grid; gap: 10px; }
+  .cardoffer-specs li {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-family: var(--st-font-sans); font-size: 15px; line-height: 1.5;
+    color: var(--st-black-strong);
+  }
+  .cardoffer-specs svg {
+    width: 17px; height: 17px; flex-shrink: 0; margin-top: 3px;
+    color: var(--st-green-accent);
+  }
+  .cardoffer-buy {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+    border-top: 1px solid var(--st-gray-light); padding-top: 20px;
+  }
+  .cardoffer-price { display: flex; flex-direction: column; line-height: 1.1; }
+  .cardoffer-price-from {
+    font-family: var(--st-font-sans); font-size: 12px; font-weight: 500;
+    color: var(--st-gray-text); text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+  .cardoffer-price-value {
+    font-family: var(--st-font-sans); font-size: 30px; font-weight: 800;
+    color: var(--st-black-strong); letter-spacing: -0.02em;
+  }
+  .cardoffer-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--st-green-accent); color: #fff;
+    font-family: var(--st-font-sans); font-size: 16px; font-weight: 700;
+    padding: 14px 26px; border-radius: 999px;
+    transition: filter .15s ease, transform .15s ease;
+  }
+  .cardoffer-cta:hover { filter: brightness(1.06); transform: translateY(-1px); }
+  .cardoffer-cta svg { width: 18px; height: 18px; }
+  .cardoffer-all {
+    display: block; margin-top: 16px;
+    font-family: var(--st-font-sans); font-size: 14px; font-weight: 600;
+    color: var(--st-blue-primary);
+  }
+  .cardoffer-all:hover { text-decoration: underline; }
+</style>
+<section class="cardoffer-section" aria-label="Cartão de Avaliação NFC">
+  <div class="cardoffer-inner">
+    <div class="cardoffer-box" data-cardoffer>
+      <div class="cardoffer-media">
+        <div class="cardoffer-main">
+          <img id="cardoffer-main-img" src="/cartao-1.png" alt="Cartão de Avaliação NFC StarTouch — produto" width="1122" height="1402"/>
+        </div>
+        <div class="cardoffer-thumbs">
+          <button class="cardoffer-thumb is-active" type="button" data-full="/cartao-1.png" aria-label="Ver foto — produto"><img src="/cartao-1.png" alt="Cartão de Avaliação NFC — produto" loading="lazy"/></button>
+          <button class="cardoffer-thumb" type="button" data-full="/cartao-2.png" aria-label="Ver foto — tamanho e especificações"><img src="/cartao-2.png" alt="Cartão NFC — tamanho 8,5 x 5,4 cm" loading="lazy"/></button>
+          <button class="cardoffer-thumb" type="button" data-full="/cartao-3.png" aria-label="Ver foto — equipe de loja"><img src="/cartao-3.png" alt="Equipe de loja com um cartão NFC cada" loading="lazy"/></button>
+          <button class="cardoffer-thumb" type="button" data-full="/cartao-6.png" aria-label="Ver foto — equipe de restaurante"><img src="/cartao-6.png" alt="Equipe de restaurante com cartão NFC nas mesas" loading="lazy"/></button>
+        </div>
+      </div>
+      <div class="cardoffer-body">
+        <span class="cardoffer-tag">Cartão NFC</span>
+        <h2 class="cardoffer-h2">Comece pelo <span class="accent">cartão</span>.</h2>
+        <p class="cardoffer-desc">Do tamanho de um cartão de crédito. Um por atendente — e cada atendimento vira uma chance de avaliação no Google, na hora em que o cliente ainda está satisfeito.</p>
+        <ul class="cardoffer-specs">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>8,5 × 5,4 cm</strong> — cabe na carteira e no bolso do avental</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>NFC + QR Code</strong> — funciona em qualquer celular</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Sem app</strong> — o cliente não instala nem se cadastra em nada</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Avaliação em menos de 30 segundos</strong></span></li>
+        </ul>
+        <div class="cardoffer-buy">
+          <div class="cardoffer-price">
+            <span class="cardoffer-price-from">unidade</span>
+            <span class="cardoffer-price-value">R$ 29,90</span>
+          </div>
+          <a class="cardoffer-cta" href="/kit?add=cartao-nfc">
+            Comprar cartão
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+        <a class="cardoffer-all" href="#produtos">Ver todos os modelos →</a>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+  // Troca a foto principal do cartao ao clicar na miniatura.
+  // Script proprio (nao o da vitrine #produtos) pra que mexer numa secao
+  // nao apague a galeria da outra.
+  (function () {
+    var box = document.querySelector('[data-cardoffer]');
+    if (!box) return;
+    var main = box.querySelector('.cardoffer-main img');
+    box.querySelectorAll('.cardoffer-thumb').forEach(function (thumb) {
+      thumb.addEventListener('click', function () {
+        var img = thumb.querySelector('img');
+        main.src = thumb.getAttribute('data-full') || (img && img.src) || main.src;
+        if (img) main.alt = img.alt;
+        box.querySelectorAll('.cardoffer-thumb').forEach(function (t) { t.classList.remove('is-active'); });
+        thumb.classList.add('is-active');
+      });
+    });
+  })();
+</script>
+
 <!-- DEMO EM VIDEO — "Avaliacoes no Google em um Toque" (looping) -->
 <style>
   .demo-video-section { background: var(--st-bg-primary); padding: 72px 24px 48px; }
