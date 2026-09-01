@@ -76,23 +76,17 @@ function articleHtml(tip, i) {
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- Meta Pixel Code -->
-<script>
-!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '767972996338904');
-fbq('track', 'PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=767972996338904&ev=PageView&noscript=1"/></noscript>
-<!-- End Meta Pixel Code -->
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-HCLV0Z640L"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-HCLV0Z640L');
-</script>
 <meta charset="UTF-8"/>
+<!-- Consentimento de cookies + Google Consent Mode v2.
+     O /consent.js e quem carrega o GA4 e o Meta Pixel, nesta ordem:
+     "consent default denied" ANTES de qualquer tag subir. Nao trocar
+     por tag direta -- a ordem e o que faz o consentimento valer.
+     Este MOLDE ficou com Pixel e GA4 inline ate 01/09/2026. A rodada de
+     LGPD de 22/08 consertou os artigos ja publicados em public/artigos,
+     mas nao o gerador que os escreve. Nenhum artigo novo saiu no
+     intervalo, entao nada foi ao ar rastreando sem aceite -- mas o
+     proximo teria. O check-tracking.mjs agora barra o build se voltar. -->
+<script src="/consent.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>${esc(tip.seoTitle)} | StarTouch</title>
 <meta name="description" content="${escAttr(tip.metaDescription)}"/>
