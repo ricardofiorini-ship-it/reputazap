@@ -40,6 +40,58 @@
   // decisão no cookie; ela passa a valer na próxima página que tem tag.
   var SO_PREFS = !!(document.currentScript && document.currentScript.hasAttribute("data-prefs-only"));
 
+  // ── A CATRACA: contagem agregada, FORA do consentimento ─────
+  // Isto NÃO é uma tag e NÃO passa pelo aceite. É deliberado, e a razão
+  // precisa estar escrita aqui pra ninguém "consertar" isso depois:
+  //
+  // O GA4 só conta quem aceita cookies. Medido em 02/09/2026: 1.100
+  // carregamentos reais no servidor contra 195 registrados pelo GA4 em 7 dias.
+  // O site inteiro virou invisível pra si mesmo, e a queda apareceu como se
+  // fosse menos gente entrando. A catraca conta a PORTA — dia, página e
+  // origem, somados num balde. Sem IP, sem user agent, sem cookie, sem id de
+  // navegador, sem hora exata. Nada que individualize, logo não é dado
+  // pessoal (LGPD Art. 5º, I) e não há o que consentir.
+  // Declarado na Política §6.5. Detalhe em supabase/schema-visitas.sql.
+  //
+  // Mora AQUI, e não num arquivo próprio, de propósito: o check-tracking.mjs
+  // já garante que o consent.js está em toda página pública e em nenhuma
+  // página proibida. Pendurar a catraca nele faz ela herdar essa garantia —
+  // em vez de virar mais um arquivo que alguém esquece de incluir. Foi
+  // exatamente esse esquecimento que deixou o /app dez dias sem medição.
+  //
+  // Não roda na /avaliar (o `return` lá em cima já barrou) nem nas páginas
+  // legais: quem abre uma política de privacidade não é contado por abri-la.
+  function contarVisita() {
+    try {
+      var q = new URLSearchParams(location.search);
+      var ref = "";
+      try { ref = document.referrer ? new URL(document.referrer).hostname : ""; } catch (e) {}
+      var externo = ref && ref !== location.hostname;
+      var corpo = JSON.stringify({
+        path: location.pathname,
+        // Sem UTM, a origem é o site que mandou. O navegador interno do
+        // Instagram costuma não mandar referrer nenhum — esse caso cai em
+        // "(direto)" no servidor, e é uma limitação conhecida, não um bug.
+        source: q.get("utm_source") || (externo ? ref : ""),
+        medium: q.get("utm_medium") || (externo ? "referencia" : ""),
+        campaign: q.get("utm_campaign") || ""
+      });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon("/api/visitas", new Blob([corpo], { type: "application/json" }));
+      } else {
+        fetch("/api/visitas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: corpo,
+          keepalive: true
+        });
+      }
+    } catch (e) {
+      /* a catraca nunca pode quebrar a página */
+    }
+  }
+  if (!SO_PREFS) contarVisita();
+
   // ── Estado salvo ────────────────────────────────────────────
   function ler() {
     var m = document.cookie.match(new RegExp("(?:^|; )" + COOKIE + "=([^;]*)"));

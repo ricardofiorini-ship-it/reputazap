@@ -143,6 +143,23 @@ for (const molde of ["build-articles.mjs", "build-legal.mjs"]) {
   }
 }
 
+// ── A catraca precisa provar que esta ligada ─────────────────
+// A contagem agregada de visitas (/api/visitas) mora dentro do consent.js
+// justamente pra herdar a garantia de presenca conferida acima. Se alguem
+// remover a chamada, o consent.js continua passando em tudo e o painel
+// /admin/visitas simplesmente mostra zero -- indistinguivel de "ninguem
+// entrou no site". E o modo de falha nº1 do projeto, aplicado a regua que
+// existe justamente porque o GA4 ja falha calado.
+const CONSENT_JS = join(PUBLIC, "consent.js");
+if (!existsSync(CONSENT_JS)) {
+  erros.push("public/consent.js nao existe -- nenhuma pagina mede nada");
+} else if (!/["']\/api\/visitas["']/.test(readFileSync(CONSENT_JS, "utf8"))) {
+  erros.push(
+    "public/consent.js: FALTA a chamada da catraca (/api/visitas) -- " +
+    "sem ela a contagem de visitas some e o painel mostra zero como se fosse queda de trafego"
+  );
+}
+
 // ── Controles: sonda cega nao reporta sucesso ────────────────
 if (controlePositivo !== true) {
   erros.push(
@@ -177,5 +194,6 @@ if (erros.length) {
 console.log(
   `[check-tracking] OK — ${comTag} paginas medindo, ${prefs} legais (so preferencias), ` +
   `${semTag} sem tag por decisao, ${isentas} isentas. ` +
+  `Catraca (/api/visitas) presente no consent.js. ` +
   `Controles: landing.html tem, avaliar.html nao tem.`
 );

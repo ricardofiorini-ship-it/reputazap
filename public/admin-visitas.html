@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex, nofollow"/>
+<title>Visitas (a catraca) — Admin StarTouch</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<!-- Tela de admin: nao e site publico, nao carrega consent.js nem tag nenhuma.
+     O check-tracking.mjs isenta arquivos admin-*.html por isso. -->
+<style>
+  :root{
+    --brand:#1A73E8; --brand-dk:#174EA6; --brand-050:#E8F0FE;
+    --ink:#111827; --ink-2:#4B5563; --ink-3:#80868B;
+    --bg:#F8F9FA; --surf:#FFFFFF; --border:#E5E7EB;
+    --ok:#1E8E3E; --bad:#A50E0E; --bad-bg:#FCE8E6; --warn-bg:#FEF7E0; --warn:#B06000;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;}
+  .topbar{display:none;align-items:center;justify-content:space-between;background:var(--surf);border-bottom:1px solid var(--border);padding:14px 20px;}
+  .topbar .brand{font-weight:800;letter-spacing:-0.02em;}
+  .topbar .right{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--ink-3);}
+  .topbar button{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;color:var(--ink-2);cursor:pointer;}
+  .wrap{max-width:820px;margin:0 auto;padding:24px 20px 60px;}
+
+  /* Login */
+  #login-view{max-width:360px;margin:80px auto;padding:0 20px;}
+  #login-view h1{font-size:20px;font-weight:800;margin-bottom:6px;}
+  #login-view p{font-size:13.5px;color:var(--ink-2);margin-bottom:20px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:5px;}
+  .field input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 13px;font:inherit;font-size:15px;outline:none;}
+  .field input:focus{border-color:var(--brand);}
+  .btn{width:100%;background:var(--brand);color:#fff;border:none;border-radius:10px;padding:13px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;}
+  .btn:hover{background:var(--brand-dk);}
+  .err{background:var(--bad-bg);color:var(--bad);border-radius:8px;padding:10px 12px;font-size:13px;margin-top:12px;display:none;}
+  .err.show{display:block;}
+
+  h1.page{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;}
+  .sub{font-size:13.5px;color:var(--ink-2);margin-bottom:18px;}
+  .controls{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .controls button{background:var(--surf);border:1px solid var(--border);border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;}
+  .controls button.active{background:var(--brand);border-color:var(--brand);color:#fff;}
+
+  .headline{background:var(--surf);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:18px;}
+  .headline .big{font-size:34px;font-weight:800;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;color:var(--brand);}
+  .headline .cap{font-size:13.5px;color:var(--ink-2);margin-top:2px;}
+
+  .card{background:var(--surf);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:14px;}
+  .card h2{font-size:14px;font-weight:800;margin-bottom:2px;}
+  .card .hint{font-size:12px;color:var(--ink-3);margin-bottom:12px;}
+
+  .row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+  .row .nm{flex:0 0 42%;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .row .track{flex:1;height:9px;background:var(--brand-050);border-radius:999px;overflow:hidden;}
+  .row .fill{height:100%;background:var(--brand);border-radius:999px;}
+  .row .vl{flex:0 0 86px;text-align:right;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .row .vl small{font-weight:500;color:var(--ink-3);margin-left:4px;}
+
+  /* Grafico por dia: barras simples, sem biblioteca */
+  .bars{display:flex;align-items:flex-end;gap:3px;height:110px;margin-top:6px;}
+  .bars div{flex:1;background:var(--brand);border-radius:3px 3px 0 0;min-height:2px;}
+  .bars-x{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:6px;}
+
+  .aviso{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.6;margin-bottom:16px;}
+  .state{text-align:center;padding:50px 20px;color:var(--ink-3);font-size:14px;}
+  .legend{font-size:11.5px;color:var(--ink-3);line-height:1.6;margin-top:20px;}
+  .legend b{color:var(--ink-2);}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar">
+  <span class="brand">StarTouch · Visitas</span>
+  <div class="right"><span id="user-email"></span><button id="btn-logout">Sair</button></div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-view">
+  <h1>Visitas do site</h1>
+  <p>Acesso restrito ao admin. Entre com sua conta StarTouch.</p>
+  <div class="field"><label for="li-email">Email</label><input id="li-email" type="email" autocomplete="username"/></div>
+  <div class="field"><label for="li-password">Senha</label><input id="li-password" type="password" autocomplete="current-password"/></div>
+  <button class="btn" id="btn-login">Entrar</button>
+  <div class="err" id="login-err"></div>
+</div>
+
+<!-- PAINEL -->
+<main class="wrap" id="dashboard" style="display:none;">
+  <h1 class="page">Visitas do site</h1>
+  <p class="sub">Quantas páginas foram abertas de verdade — com ou sem aceite de cookies.</p>
+
+  <div class="controls" id="controls">
+    <button data-days="7">7 dias</button>
+    <button data-days="30" class="active">30 dias</button>
+    <button data-days="90">90 dias</button>
+  </div>
+
+  <div id="content"><div class="state">Carregando…</div></div>
+
+  <p class="legend">
+    Este número <b>não é comparável com o do Google Analytics</b>, e a diferença é esperada.
+    O GA4 só registra quem aceita cookies; esta contagem registra todo mundo.
+    Em 02/09/2026 a diferença medida foi de 5 a 10 vezes.<br/>
+    Conta <b>páginas abertas</b>, não pessoas: quem navega por três páginas conta três vezes.
+    Não dá pra saber quantas pessoas diferentes, e é de propósito — não guardamos IP,
+    cookie nem identificador de navegador. A <b>/avaliar</b> e as páginas legais não entram na conta.
+    Robô quase não aparece aqui, porque a contagem exige o navegador executar a página.
+  </p>
+</main>
+
+<script>
+const TOKEN_KEY = "rz_admin_token";
+const USER_KEY = "rz_admin_user";
+let curDays = 30;
+
+const $ = (id) => document.getElementById(id);
+const getToken = () => localStorage.getItem(TOKEN_KEY);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const num = (n) => (n || 0).toLocaleString("pt-BR");
+
+function showLogin(){ $("login-view").style.display=""; $("dashboard").style.display="none"; $("topbar").style.display="none"; }
+function showDash(email){ $("login-view").style.display="none"; $("dashboard").style.display="block"; $("topbar").style.display="flex"; $("user-email").textContent=email||""; }
+
+$("btn-login").addEventListener("click", async () => {
+  const email = $("li-email").value.trim();
+  const password = $("li-password").value;
+  const err = $("login-err"); err.classList.remove("show");
+  if(!email || !password){ err.textContent="Preencha email e senha."; err.classList.add("show"); return; }
+  try {
+    const r = await fetch("/api/login", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ email, password }) });
+    const data = await r.json();
+    if(!r.ok){ err.textContent=data.error||"Falha no login"; err.classList.add("show"); return; }
+    localStorage.setItem(TOKEN_KEY, data.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(data.user||{}));
+    init();
+  } catch { err.textContent="Erro de conexão."; err.classList.add("show"); }
+});
+$("li-password").addEventListener("keydown", e => { if(e.key==="Enter") $("btn-login").click(); });
+$("btn-logout").addEventListener("click", () => { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); showLogin(); });
+
+$("controls").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-days]"); if(!b) return;
+  curDays = parseInt(b.dataset.days, 10);
+  document.querySelectorAll("#controls button").forEach(x => x.classList.toggle("active", x === b));
+  load();
+});
+
+async function load(){
+  $("content").innerHTML = '<div class="state">Carregando…</div>';
+  try {
+    const r = await fetch(`/api/admin?action=visitas&days=${curDays}`, { headers:{ Authorization:"Bearer "+getToken() } });
+    if(r.status===401 || r.status===403){ showLogin(); return; }
+    const data = await r.json();
+    if(!r.ok) throw new Error(data.error||"Erro");
+    render(data);
+  } catch(e){
+    $("content").innerHTML = `<div class="state">Não foi possível carregar.<br/><br/>${esc(e.message)}</div>`;
+  }
+}
+
+function barras(lista, unidade){
+  const max = lista.reduce((m, x) => Math.max(m, x.hits), 0) || 1;
+  return lista.map(x => `<div class="row">
+    <span class="nm" title="${esc(x.nome)}">${esc(x.nome)}</span>
+    <span class="track"><span class="fill" style="width:${Math.max(2, Math.round(x.hits/max*100))}%"></span></span>
+    <span class="vl">${num(x.hits)}<small>${x.pct}%</small></span>
+  </div>`).join("") || `<div class="state" style="padding:18px;">Sem ${unidade} neste período.</div>`;
+}
+
+function render(d){
+  if(!d.total){
+    $("content").innerHTML = `<div class="aviso">
+      <b>Zero visitas contadas neste período.</b> Se o site está no ar, isto é um defeito, não silêncio:
+      confira se <code>supabase/schema-visitas.sql</code> foi rodado e se o <code>/consent.js</code> ainda chama <code>/api/visitas</code>.
+    </div>`;
+    return;
+  }
+
+  const dias = d.por_dia || [];
+  const maxDia = dias.reduce((m, x) => Math.max(m, x.hits), 0) || 1;
+  const primeiro = dias.length ? dias[0].nome.slice(8) + "/" + dias[0].nome.slice(5,7) : "";
+  const ultimo = dias.length ? dias[dias.length-1].nome.slice(8) + "/" + dias[dias.length-1].nome.slice(5,7) : "";
+
+  $("content").innerHTML = `
+    <div class="headline">
+      <div class="big">${num(d.total)}</div>
+      <div class="cap">páginas abertas em ${d.days} dias — média de <b>${num(d.media_dia)}</b> por dia</div>
+    </div>
+
+    <div class="card">
+      <h2>Por dia</h2>
+      <p class="hint">Cada barra é um dia. Serve pra ver tendência, não valor exato.</p>
+      <div class="bars">${dias.map(x => `<div style="height:${Math.max(2, Math.round(x.hits/maxDia*100))}%" title="${esc(x.nome)}: ${num(x.hits)}"></div>`).join("")}</div>
+      <div class="bars-x"><span>${primeiro}</span><span>${ultimo}</span></div>
+    </div>
+
+    <div class="card">
+      <h2>De onde vieram</h2>
+      <p class="hint">origem / meio. "(direto)" inclui quem digitou o endereço <b>e</b> quem veio de app que não informa a procedência — o navegador interno do Instagram é o caso mais comum.</p>
+      ${barras(d.por_canal || [], "origem")}
+    </div>
+
+    <div class="card">
+      <h2>Páginas mais abertas</h2>
+      ${barras(d.por_pagina || [], "página")}
+    </div>
+
+    <div class="card">
+      <h2>Campanhas</h2>
+      <p class="hint">Só aparece o que chegou com <code>utm_campaign</code> na URL. Link sem UTM cai em "(direto)" acima e não dá pra separar.</p>
+      ${barras(d.por_campanha || [], "campanha marcada")}
+    </div>
+  `;
+}
+
+function init(){
+  let user = {};
+  try { user = JSON.parse(localStorage.getItem(USER_KEY) || "{}"); } catch {}
+  showDash(user.email);
+  load();
+}
+
+if(getToken()) init(); else showLogin();
+</script>
+</body>
+</html>

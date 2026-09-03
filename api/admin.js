@@ -76,9 +76,10 @@ export default async function handler(req, res) {
     if (action === "delete-user")  return await handleDeleteUser(req, res, admin);
     if (action === "prospects")    return await handleProspects(req, res);
     if (action === "funnel")       return await handleFunnel(req, res);
+    if (action === "visitas")      return await handleVisitas(req, res);
     if (action === "grid-suggest") return await handleGridSuggest(req, res);
     if (action === "grid")         return await handleGrid(req, res);
-    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects, funnel, grid-suggest ou grid" });
+    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects, funnel, visitas, grid-suggest ou grid" });
   } catch (err) {
     console.error("[admin] erro:", err);
     return res.status(500).json({ error: err.message });
@@ -126,6 +127,70 @@ async function handleFunnel(req, res) {
   });
 
   return res.json({ days, total_events: (data || []).length, funnel });
+}
+
+// ── VISITAS: a catraca (contagem que não depende de consentimento) ──
+// Lê os contadores diários de `page_hits`. Este número responde "quanta gente
+// entrou"; o GA4 responde "quanta gente entrou E aceitou cookies" — e as duas
+// respostas divergiram por um fator de 5 a 10 na medição de 02/09/2026.
+// Ver supabase/schema-visitas.sql.
+async function handleVisitas(req, res) {
+  const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 365);
+  // A tabela é por dia (date), não por instante — o corte é em data.
+  const desde = new Date(Date.now() - (days - 1) * 24 * 60 * 60 * 1000 - 3 * 60 * 60 * 1000)
+    .toISOString().slice(0, 10);
+
+  const { data, error } = await supabase
+    .from("page_hits")
+    .select("dia, path, source, medium, campaign, hits")
+    .gte("dia", desde)
+    .limit(50000);
+
+  if (error) {
+    // Tabela ausente é o caso mais provável de erro aqui, e responder um 500
+    // genérico faria parecer bug de código. Diz o que fazer.
+    const faltando = /relation|does not exist|schema cache/i.test(error.message || "");
+    return res.status(500).json({
+      error: faltando
+        ? "A tabela page_hits não existe. Rode supabase/schema-visitas.sql uma vez no SQL Editor."
+        : error.message,
+    });
+  }
+
+  const linhas = data || [];
+  const total = linhas.reduce((s, r) => s + (r.hits || 0), 0);
+
+  // Somadores simples. Volume esperado: dezenas de linhas por dia.
+  const soma = (chave) => {
+    const m = new Map();
+    for (const r of linhas) m.set(r[chave], (m.get(r[chave]) || 0) + (r.hits || 0));
+    return [...m.entries()]
+      .map(([k, v]) => ({ nome: k, hits: v, pct: total ? Math.round((v / total) * 100) : 0 }))
+      .sort((a, b) => b.hits - a.hits);
+  };
+
+  // Origem legível: "ig / paid_social". É o par que diz de onde veio.
+  const canais = new Map();
+  for (const r of linhas) {
+    const k = `${r.source} / ${r.medium}`;
+    canais.set(k, (canais.get(k) || 0) + (r.hits || 0));
+  }
+
+  const porDia = soma("dia").sort((a, b) => a.nome.localeCompare(b.nome));
+
+  return res.json({
+    days,
+    total,
+    media_dia: porDia.length ? Math.round(total / porDia.length) : 0,
+    dias_com_dado: porDia.length,
+    por_dia: porDia,
+    por_pagina: soma("path").slice(0, 20),
+    por_canal: [...canais.entries()]
+      .map(([nome, hits]) => ({ nome, hits, pct: total ? Math.round((hits / total) * 100) : 0 }))
+      .sort((a, b) => b.hits - a.hits)
+      .slice(0, 20),
+    por_campanha: soma("campaign").filter((c) => c.nome !== "(nenhuma)").slice(0, 20),
+  });
 }
 
 // ── GRID: ranking por grade (comparação admin, Passo 1/3) ────

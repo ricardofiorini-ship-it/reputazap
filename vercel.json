@@ -42,6 +42,7 @@
     { "source": "/admin/clientes", "destination": "/admin-clientes.html" },
     { "source": "/admin/prospects", "destination": "/admin-prospects.html" },
     { "source": "/admin/funil", "destination": "/admin-funil.html" },
+    { "source": "/admin/visitas", "destination": "/admin-visitas.html" },
     { "source": "/admin/ranking-grade", "destination": "/admin-ranking-grade.html" },
     { "source": "/ativar-codigo", "destination": "/ativar-codigo.html" },
     { "source": "/plano-pro", "destination": "/plano-pro.html" },

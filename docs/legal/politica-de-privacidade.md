@@ -1,6 +1,6 @@
 # Política de Privacidade — StarTouch
 
-**Versão 1.0 — vigente a partir de 22 de agosto de 2026**
+**Versão 1.1 — vigente a partir de 2 de setembro de 2026**
 
 ---
 
@@ -153,6 +153,16 @@ Nossa infraestrutura de hospedagem também mantém registros de acesso à aplica
 Atribuímos ao navegador do visitante um identificador aleatório, armazenado localmente no próprio dispositivo, para medir a jornada dentro do site de forma agregada. Ele não é vinculado ao seu nome, e-mail ou conta.
 *Base legal:* legítimo interesse (Art. 7º, IX).
 
+### 6.5 Contagem agregada de visitas
+
+Mantemos um contador do número de páginas abertas por dia, separado por endereço da página e pela origem da visita (por exemplo, "veio de uma campanha no Instagram"). Esse contador funciona independentemente da sua decisão sobre cookies, e por isso explicamos exatamente o que ele é:
+
+**Não guardamos uma linha por pessoa.** Cada registro é apenas um número — "no dia 2 de setembro, a página inicial foi aberta 37 vezes por quem veio do Instagram". Não armazenamos endereço IP, tipo de aparelho ou navegador, cookie, identificador de navegação nem o horário exato do acesso. Não é possível, nem para nós, separar uma visita das outras dentro desse número, nem saber se duas visitas vieram da mesma pessoa.
+
+Por não conter informação relacionada a pessoa identificada ou identificável, essa contagem não constitui dado pessoal nos termos do Art. 5º, I da LGPD — motivo pelo qual ela não depende de consentimento e não é afetada pela sua escolha no aviso de cookies. Ela existe porque precisamos saber quanta gente visita o site, e as ferramentas de análise que dependem de consentimento não conseguem responder isso.
+
+Essa contagem **não é feita** na página de avaliação (`/avaliar`), pelos motivos explicados na seção 4, **nem nesta página** ou em qualquer outro documento legal: quem abre uma política de privacidade não é contado por abri-la.
+
 ---
 
 ## 7. Com quem compartilhamos dados
@@ -203,6 +213,7 @@ Nenhum sistema é imune a incidentes. Caso ocorra incidente de segurança com ri
 | Registro de e-mails enviados | 12 meses |
 | Leads que não se tornaram clientes | 24 meses a partir do cadastro |
 | Registro de toques nos dispositivos | Indefinidamente — não contém dado pessoal |
+| Contagem agregada de visitas ao site (seção 6.5) | Indefinidamente — é um contador, não contém dado pessoal |
 | Cache de avaliações do Google | Até 30 dias, limite estabelecido pelos termos da API do Google. Na prática, o conteúdo é renovado a cada poucas horas e o registro é eliminado por rotina automática de expurgo |
 | Registros de proteção contra abuso (IP) | 30 dias |
 | Identificador de navegação | 12 meses |
@@ -249,6 +260,13 @@ A StarTouch é um serviço destinado a empresas e seus responsáveis. Não direc
 Podemos atualizar esta Política para refletir mudanças no serviço ou na legislação. A versão vigente estará sempre disponível nesta página, com a data de vigência no topo.
 
 Alterações que reduzam direitos ou ampliem finalidades de tratamento serão comunicadas por e-mail aos clientes ativos com antecedência mínima de 15 dias.
+
+**Histórico de versões**
+
+| Versão | Vigência | O que mudou |
+|---|---|---|
+| 1.0 | 22/08/2026 | Versão inicial |
+| 1.1 | 02/09/2026 | Inclusão da seção 6.5 (contagem agregada de visitas) e da linha correspondente na seção 9. Alteração meramente declaratória: não reduz direitos nem amplia finalidades de tratamento de dados pessoais, razão pela qual entra em vigor imediatamente |
 
 ---
 

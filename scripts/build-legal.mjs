@@ -129,6 +129,11 @@ function pagina(doc, md) {
   const rascunho = md.includes("RASCUNHO — NÃO VIGENTE");
   const vigencia = (md.match(/vigente a partir de (.+)\*\*/) || [])[1] || "";
   const datado = vigencia && !vigencia.includes("[");
+  // A versao vem do .md, nao chumbada aqui. Estava "1.0" fixa em dois lugares
+  // (o rotulo impresso e a regex que tira a linha do corpo); na primeira
+  // atualizacao da Politica a regex deixaria de casar e o documento sairia
+  // com a versao repetida no corpo e a errada no topo -- sem erro nenhum.
+  const versao = (md.match(/^\*\*Vers(?:ã|a)o\s+([\d.]+)\s*—/m) || [])[1] || "1.0";
   const h1 = (md.match(/^#\s+(.*)$/m) || [])[1] || doc.title;
 
   return `<!DOCTYPE html>
@@ -171,10 +176,10 @@ function pagina(doc, md) {
   <p class="art-breadcrumb"><a href="/">Início</a> · Documentos legais</p>
 
   <h1 class="art-h1">${esc(h1)}</h1>
-  ${datado ? `<p class="art-meta">Versão 1.0 — vigente a partir de ${esc(vigencia)}</p>` : ""}
+  ${datado ? `<p class="art-meta">Versão ${esc(versao)} — vigente a partir de ${esc(vigencia)}</p>` : ""}
 
   <div class="art-prose">
-      ${mdToHtml(md.replace(/^#\s+.*$/m, "").replace(/^\*\*Versão 1\.0.*$/m, ""))}
+      ${mdToHtml(md.replace(/^#\s+.*$/m, "").replace(/^\*\*Vers(?:ã|a)o\s+[\d.]+.*$/m, ""))}
   </div>
 </main>
 
