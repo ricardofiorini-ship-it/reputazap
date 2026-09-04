@@ -20,6 +20,8 @@ import Experiencia from './screens/Experiencia.jsx'
 import Dispositivos from './screens/Dispositivos.jsx'
 import Reputacao from './screens/Reputacao.jsx'
 import Resultados from './screens/Resultados.jsx'
+import Clientes from './screens/Clientes.jsx'
+import Unidades from './screens/Unidades.jsx'
 import Mapa from './screens/Mapa.jsx'
 
 // Rota não adivinhável, de propósito (29/08/2026). Enquanto o V3 é privado, o
@@ -40,6 +42,37 @@ import Mapa from './screens/Mapa.jsx'
 // vercel.json: são o mesmo endereço em dois lugares.
 const BASE = '/painel-f7dsaz3c'
 const PADRAO = 'inicio'
+
+// Preview estritamente local para revisar a interface sem depender das
+// Serverless Functions da Vercel. `import.meta.env.DEV` garante que estes
+// dados nunca possam ser ativados no bundle de produção.
+const PREVIEW = import.meta.env.DEV && new URLSearchParams(window.location.search).has('preview')
+const agora = Date.now()
+const PREVIEW_DADOS = {
+  carregando: false, erro: null, semNegocio: false, sessaoExpirou: false,
+  biz: { name: 'Café da Praça', plan: 'free', place_id: 'preview' },
+  info: { rating: 4.8, total: 127 },
+  avaliacoes: {
+    rating: 4.8, total: 127,
+    reviews: [
+      { id: Math.floor((agora - 86400000) / 1000) },
+      { id: Math.floor((agora - 3 * 86400000) / 1000) },
+      { id: Math.floor((agora - 9 * 86400000) / 1000) }
+    ]
+  },
+  posicao: { avg: 4.2, coverage: 4, measured: 5, term: 'cafeteria', measuredAt: new Date(agora - 86400000).toISOString() },
+  dispositivos: [
+    { id: 'preview-1', code: 'STAR-C4K9T2', status: 'active', product_type: 'cartao_nfc', channel_name: 'Cartão do caixa', total_taps: 128, activated_at: new Date(agora - 30 * 86400000).toISOString(), last_tapped_at: new Date(agora - 2 * 3600000).toISOString() },
+    { id: 'preview-2', code: 'STAR-B7M3P8', status: 'active', product_type: 'placa_balcao', channel_name: 'Placa da entrada', total_taps: 46, activated_at: new Date(agora - 30 * 86400000).toISOString(), last_tapped_at: new Date(agora - 9 * 86400000).toISOString() }
+  ],
+  previewToques: { available: true, total: 43, prev_total: 51, by_plate: { 'preview-1': 35, 'preview-2': 8 } },
+  previewToquesPorPeriodo: {
+    7: { available: true, total: 43, prev_total: 51, by_plate: { 'preview-1': 35, 'preview-2': 8 } },
+    30: { available: true, total: 86, prev_total: 74, by_plate: { 'preview-1': 65, 'preview-2': 21 } },
+    90: { available: true, total: 144, prev_total: null, by_plate: { 'preview-1': 109, 'preview-2': 35 } }
+  },
+  recarregar: () => {}
+}
 
 function areaDaUrl() {
   const p = window.location.pathname.replace(BASE, '').replace(/^\/+|\/+$/g, '')
@@ -63,7 +96,8 @@ export default function App() {
   // No celular a barra lateral é uma gaveta. Começa fechada; no computador
   // este estado é ignorado (a coluna está sempre visível pelo CSS).
   const [gaveta, setGaveta] = React.useState(false)
-  const dados = useDados()
+  const dadosReais = useDados()
+  const dados = PREVIEW ? PREVIEW_DADOS : dadosReais
   const user = currentUser()
 
   // Botão voltar/avançar do navegador.
@@ -126,7 +160,9 @@ export default function App() {
       case 'experiencia':  return <Experiencia dados={dados}/>
       case 'dispositivos': return <Dispositivos dados={dados}/>
       case 'reputacao':    return <Reputacao dados={dados}/>
-      case 'resultados':   return <Resultados/>
+      case 'resultados':   return <Resultados preview={PREVIEW}/>
+      case 'clientes':     return <Clientes/>
+      case 'unidades':     return <Unidades/>
       default:             return <Mapa area={area}/>
     }
   }

@@ -26,17 +26,10 @@
 // Google não intercepta ninguém — só não oferece aquele caminho ali.
 // ============================================================
 import React from 'react'
-import { Plus, Archive, Pencil, Trash2, ChevronRight, Info, ExternalLink, Lightbulb } from 'lucide-react'
-import { Head, Panel, Chip, Recursos, Carregando, Erro, dataBr, desde } from '../ui.jsx'
+import { Plus, Archive, Pencil, Trash2, ChevronRight, CheckCircle2, ExternalLink, Lightbulb, GitBranch, Smartphone, Link2 } from 'lucide-react'
+import { Head, Panel, Chip, Carregando, Erro, dataBr, desde } from '../ui.jsx'
 import { api } from '../lib/api.js'
 import EditorMenu from './EditorMenu.jsx'
-
-const RECURSOS = [
-  { n: 'Google Direto', d: 'o toque leva direto à sua página de avaliação', p: 'free', s: 'pronto' },
-  { n: 'Menu Inteligente', d: 'o toque abre uma página sua, com os seus botões', p: 'pro', s: 'constr' },
-  { n: 'Experiência diferente por dispositivo', p: 'pro', s: 'constr' },
-  { n: 'Link próprio da experiência', d: 'compartilhar fora do NFC', p: 'pro', s: 'constr' }
-]
 
 const ROTULO_ACAO = {
   google: 'Avaliar', whatsapp: 'WhatsApp', instagram: 'Instagram', food_menu: 'Cardápio',
@@ -51,14 +44,18 @@ const ROTULO_ACAO = {
 // porque a marca ali é a do Google mesmo.
 function FoneGoogle({ nome }) {
   return (
-    <div className="v3-mini">
+    <div className="v3-mini google-phone" aria-label="Prévia da página de avaliação no Google">
+      <div className="phone-bar"><span>9:41</span><i/><span>● ◒</span></div>
       <div className="tela google">
-        <div className="gcab"><span className="g">G</span> Google</div>
+        <div className="gcab"><span className="g">G</span><span>Avaliações</span><b>×</b></div>
+        <div className="gavatar">{(nome || 'S').trim().charAt(0).toUpperCase()}</div>
         <div className="gnome">{nome || 'Seu negócio'}</div>
-        <div className="gestrelas">★★★★★</div>
-        <div className="gcaixa">Compartilhe sua experiência…</div>
-        <div className="gbotao">Publicar</div>
+        <div className="gpergunta">Como foi sua experiência?</div>
+        <div className="gestrelas" aria-label="Escolher de uma a cinco estrelas">☆ ☆ ☆ ☆ ☆</div>
+        <div className="gcaixa">Conte um pouco sobre sua visita</div>
+        <div className="gacoes"><span>Cancelar</span><strong>Publicar</strong></div>
       </div>
+      <div className="phone-home"/>
     </div>
   )
 }
@@ -67,21 +64,27 @@ function FoneGoogle({ nome }) {
 // se ver na tela do que ver o exemplo de outro negócio.
 function FoneMenu({ titulo, subtitulo, acoes }) {
   const lista = acoes?.length ? acoes : [
-    { id: 1, type: 'google', label: 'Avaliar no Google' },
-    { id: 2, type: 'whatsapp', label: 'Falar no WhatsApp' },
-    { id: 3, type: 'food_menu', label: 'Ver cardápio' },
-    { id: 4, type: 'instagram', label: 'Instagram' },
-    { id: 5, type: 'contact', label: 'Salvar contato' }
+    { id: 1, type: 'whatsapp', label: 'Falar no WhatsApp' },
+    { id: 2, type: 'website', label: 'Ver produtos/serviços' },
+    { id: 3, type: 'custom_url', label: 'Pedir orçamento' },
+    { id: 4, type: 'instagram', label: 'Seguir no Instagram' },
+    { id: 5, type: 'google', label: 'Avaliar no Google' }
   ]
   return (
-    <div className="v3-mini">
+    <div className="v3-mini menu-phone" aria-label="Prévia do Menu Inteligente">
+      <div className="phone-bar"><span>9:41</span><i/><span>● ◒</span></div>
       <div className="tela">
+        <div className="mavatar">{(titulo || 'S').trim().charAt(0).toUpperCase()}</div>
         <div className="mtopo">{titulo || 'Seu negócio'}</div>
         <div className="msub">{subtitulo || 'Como podemos ajudar?'}</div>
         {lista.slice(0, 5).map((a, i) => (
-          <div className="mbt" key={a.id || i}>{a.label || ROTULO_ACAO[a.type] || 'Ação'}</div>
+          <div className="mbt" key={a.id || i}><span className={`mac ${a.type || 'link'}`}>{i + 1}</span>
+            <b>{a.label || ROTULO_ACAO[a.type] || 'Ação'}</b><span className="seta">›</span></div>
         ))}
+        <div className="mcustom"><Plus size={9}/> Adicione qualquer link</div>
+        <div className="mrodape">Criado com <strong>STARTOUCH</strong></div>
       </div>
+      <div className="phone-home"/>
     </div>
   )
 }
@@ -153,7 +156,14 @@ export default function Experiencia({ dados }) {
   if (estado.carregando) return <Carregando o="suas experiências"/>
   if (estado.erro) return <Erro mensagem={estado.erro} onTentar={carregar}/>
 
-  const { experiences = [], devices = [], tipos, limites, negocio } = estado.dados || {}
+  const { experiences = [], devices: devicesDaApi = [], tipos, limites, negocio } = estado.dados || {}
+  // A prévia local não chama o backend de produção. Nela, reaproveita os
+  // mesmos dispositivos fictícios da Home para que as telas não se
+  // contradigam durante a revisão visual.
+  const devices = dados.previewToques
+    ? dados.dispositivos.map(d => ({ ...d, served_mode: 'google', experience_id: null, experience_enabled: false }))
+    : devicesDaApi
+  const negocioExibido = negocio || dados.biz
   const ativas = experiences.filter(e => !e.archived_at)
   const arquivadas = experiences.filter(e => e.archived_at)
   const aberta = abertaId ? experiences.find(e => e.id === abertaId) : null
@@ -186,63 +196,59 @@ export default function Experiencia({ dados }) {
   return (
     <>
       <Head titulo="Experiência do Cliente"
-        sub="Escolha o que acontece quando alguém encosta o celular na sua placa ou cartão"/>
+        sub="Escolha o que seu cliente encontra depois de interagir com um dispositivo"/>
 
       {/* Começa pelo FATO, não pelo conceito: o que os aparelhos dele estão
           fazendo agora. Só depois a tela usa os nossos nomes. */}
-      <div className="v3-callout info" style={{ marginTop: 0, marginBottom: 16 }}>
-        <Info size={16} color="var(--blue-dk)" style={{ flex: 'none', marginTop: 1 }}/>
+      <div className="v3-exp-status">
+        <CheckCircle2 size={17}/>
         <div>
           <div className="t">
             {devices.length === 0
               ? 'Você ainda não tem dispositivos ativos'
               : noMenu.length === 0
-                ? `Hoje ${devices.length === 1 ? 'seu dispositivo leva' : `seus ${devices.length} dispositivos levam`} direto para sua página de avaliação no Google`
+                ? `${devices.length === 1 ? 'Seu dispositivo está configurado' : `Seus ${devices.length} dispositivos estão configurados`} para Avaliação no Google`
                 : `${noMenu.length} ${noMenu.length === 1 ? 'dispositivo abre um menu seu' : 'dispositivos abrem um menu seu'}${noGoogle.length ? ` e ${noGoogle.length} ${noGoogle.length === 1 ? 'vai' : 'vão'} direto ao Google` : ''}`}
           </div>
-          <div className="s">
-            Cada placa, cartão ou pulseira sua leva o cliente a algum lugar quando ele encosta o celular.
-            Você escolhe qual dos dois caminhos abaixo usar em cada dispositivo.
-          </div>
+          <div className="s">Esta é a experiência entregue atualmente após cada interação.</div>
         </div>
       </div>
 
       {/* ── A escolha, lado a lado e com o mesmo peso ── */}
       <div className="v3-escolha">
-        <section className="v3-opcao">
+        <section className="v3-opcao atual">
           <header>
-            <h2>Ir direto para o Google <Chip tipo="g">Grátis</Chip></h2>
-            <p>O cliente toca e cai direto na página de avaliação do seu negócio no Google, sem nenhuma
-              tela no meio.</p>
+            <h2>Avaliação no Google {noGoogle.length > 0 && <Chip tipo="g">Em uso</Chip>}</h2>
+            <p>Após a interação, o cliente é direcionado à página de avaliação do seu negócio.</p>
           </header>
-          <FoneGoogle nome={negocio?.name}/>
+          <FoneGoogle nome={negocioExibido?.name}/>
           <footer>
             {noGoogle.length > 0
               ? <div className="uso ativo">Em uso em {noGoogle.length} {noGoogle.length === 1 ? 'dispositivo' : 'dispositivos'}</div>
               : <div className="uso">Nenhum dispositivo usando no momento</div>}
-            <div className="nota">É assim que todo dispositivo novo já vem. Nós chamamos de “Google Direto”.</div>
+            <div className="nota">Configuração gratuita e padrão dos novos dispositivos.</div>
           </footer>
         </section>
 
         <section className="v3-opcao destaque">
           <header>
-            <h2>Abrir um Menu Inteligente <Chip>PRO</Chip></h2>
-            <p>O cliente toca e escolhe o que quer fazer. Mais caminhos para ele se conectar com você.</p>
+            <h2>Menu Inteligente <Chip>PRO</Chip></h2>
+            <p>Crie uma experiência personalizada com os caminhos mais importantes do seu negócio.</p>
           </header>
           <div className="corpo">
             <FoneMenu
-              titulo={conteudoExemplo?.brand?.titulo || negocio?.name}
+              titulo={conteudoExemplo?.brand?.titulo || negocioExibido?.name}
               subtitulo={conteudoExemplo?.brand?.subtitulo}
               acoes={conteudoExemplo?.buttons?.filter(b => b.enabled !== false)}/>
             <ul className="v3-beneficios">
-              <li><b>Mais de um caminho</b><span>Avaliar, cardápio, WhatsApp, Instagram, salvar contato — você escolhe quais.</span></li>
-              <li><b>Um menu por dispositivo</b><span>A placa da mesa e o cartão do vendedor podem fazer coisas diferentes.</span></li>
-              <li><b>Vive fora do NFC</b><span>O mesmo menu vira link para a bio, o WhatsApp ou um QR Code.</span></li>
+              <li><span className="ico"><GitBranch size={16}/></span><div><b>Mais caminhos para o cliente</b><span>Reúna atendimento, produtos, orçamento, Instagram e avaliação em um só lugar.</span></div></li>
+              <li><span className="ico"><Smartphone size={16}/></span><div><b>A experiência certa em cada ponto</b><span>Use um menu na mesa e outro no cartão da equipe, de acordo com cada momento.</span></div></li>
+              <li><span className="ico"><Link2 size={16}/></span><div><b>Qualquer link que fizer sentido</b><span>Adicione delivery, reservas, promoções, pagamentos ou o endereço que você quiser.</span></div></li>
             </ul>
           </div>
           <footer>
-            <button className="v3-btn solid grande" onClick={criar} disabled={criando}>
-              <Plus size={15}/> {criando ? 'Criando…' : ativas.length ? 'Criar outro menu' : 'Criar meu primeiro menu'}
+            <button className="v3-btn solid grande" onClick={dados.previewToques ? undefined : criar} disabled={criando}>
+              <Plus size={15}/> {criando ? 'Criando…' : dados.previewToques ? 'Conhecer o Menu PRO' : ativas.length ? 'Criar outro menu' : 'Criar meu primeiro menu'}
             </button>
             {noMenu.length > 0 && (
               <div className="uso ativo">Em uso em {noMenu.length} {noMenu.length === 1 ? 'dispositivo' : 'dispositivos'}</div>
@@ -343,8 +349,6 @@ export default function Experiencia({ dados }) {
           )}
         </section>
       )}
-
-      <Recursos itens={RECURSOS}/>
     </>
   )
 }

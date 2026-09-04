@@ -62,7 +62,7 @@ export const AREAS = {
   },
 
   clientes: {
-    nome: 'Clientes', icon: UserPlus, status: 'defin', pro: true,
+    nome: 'Clientes', icon: UserPlus, status: 'defin', pro: true, tela: 'clientes',
     sub: 'Transformar toques anônimos em relacionamento',
     lead: 'Hoje os toques nos seus dispositivos são anônimos',
     corpo: 'Eles contam quantas pessoas encostaram o celular, mas não deixam nenhum caminho de volta até elas. Esta área vai abrir esse caminho — sempre por vontade do cliente, nunca por captura escondida.',
@@ -85,8 +85,8 @@ export const AREAS = {
   },
 
   equipe: {
-    nome: 'Equipe e Unidades', icon: Users, status: 'nao',
-    sub: 'Pessoas e locais do negócio',
+    nome: 'Unidades', icon: Users, status: 'defin', tela: 'unidades',
+    sub: 'Todos os locais do seu negócio em um só painel',
     lead: 'A área existe no mapa, mas ainda não sabemos o que ela faz',
     corpo: 'O cartão de um vendedor já é um dispositivo com nome e contagem próprios — a leitura por pessoa sai inteira em Dispositivos. Antes de construir, precisamos saber o que esta área faria que aquela não faz.',
     decidido: [

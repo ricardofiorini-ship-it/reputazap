@@ -25,6 +25,30 @@ import { get } from '../lib/api.js'
 
 const JANELAS = [7, 30, 90]
 
+// Exclusivo da prévia local: permite revisar a interface sem autenticação e
+// sem sugerir que estes números pertencem a um cliente real.
+const PREVIEW_RESULTADOS = {
+  de: '2026-08-06', ate: '2026-09-04',
+  disponivel: { eventos: true },
+  toques: { total: 86, anterior: 74, direto_ao_google: 31 },
+  menu: {
+    aberturas_de_dispositivo: 55, aberturas_de_link: 12, aberturas: 67, cliques: 91,
+    por_acao: { whatsapp: 29, food_menu: 24, google: 18, instagram: 12, custom_url: 8 },
+    por_experiencia: [{ experience_id: 'menu-demo', name: 'Menu principal', aberturas: 67, cliques: 91 }],
+    por_acao_por_menu: { 'menu-demo': { whatsapp: 29, food_menu: 24, google: 18, instagram: 12, custom_url: 8 } }
+  },
+  por_dispositivo: [
+    { plate_id: 'preview-1', nome: 'Cartão do caixa', product_type: 'cartao_nfc', servindo: 'menu', toques: 55, aberturas: 55 },
+    { plate_id: 'preview-2', nome: 'Placa da entrada', product_type: 'placa_balcao', servindo: 'google', toques: 31, aberturas: 0 }
+  ],
+  por_dia: Array.from({ length: 15 }, (_, i) => ({
+    dia: new Date(Date.UTC(2026, 7, 21 + i)).toISOString().slice(0, 10),
+    toques: [3,5,4,8,6,2,7,4,9,5,6,8,3,7,9][i],
+    aberturas: [2,3,3,5,4,1,5,3,6,3,4,5,2,4,5][i],
+    cliques: [3,5,4,8,6,2,7,5,9,4,6,8,3,8,10][i]
+  }))
+}
+
 const ACAO = {
   google:     { nome: 'Avaliar no Google', cor: '#F5A623', bg: '#FEF6E7', gl: '★' },
   whatsapp:   { nome: 'WhatsApp',          cor: '#1E8E3E', bg: '#E6F4EA', gl: '✆' },
@@ -101,14 +125,14 @@ function recomendacoes(d) {
   if (semMenu.length && media >= 1) {
     const top = semMenu.sort((a, b) => b.toques - a.toques)[0]
     fora.push({
-      titulo: `${top.nome} recebeu ${top.toques} toques indo direto ao Google`,
+      titulo: `${top.nome} recebeu ${top.toques} toques enquanto estava configurado para o Google`,
       texto: `Nos seus dispositivos com menu, cada abertura gerou ${media.toFixed(1).replace('.', ',')} ações. Talvez valha experimentar um menu nele também.`
     })
   }
   return fora.slice(0, 2)
 }
 
-export default function Resultados() {
+export default function Resultados({ preview = false }) {
   const [dias, setDias] = React.useState(30)
   const [serie, setSerie] = React.useState('toques')
   const [aba, setAba] = React.useState('dispositivos')
@@ -119,7 +143,9 @@ export default function Resultados() {
   const [livre, setLivre] = React.useState(null)          // { de, ate } aplicado
   const [abrindo, setAbrindo] = React.useState(false)     // painel de escolha aberto
   const [rascunho, setRascunho] = React.useState({ de: '', ate: '' })
-  const [estado, setEstado] = React.useState({ carregando: true, erro: null, d: null })
+  const [estado, setEstado] = React.useState(preview
+    ? { carregando: false, erro: null, d: PREVIEW_RESULTADOS }
+    : { carregando: true, erro: null, d: null })
 
   const carregar = React.useCallback(async (q) => {
     setEstado(s => ({ ...s, carregando: true }))
@@ -132,7 +158,7 @@ export default function Resultados() {
   }, [])
 
   const consulta = livre ? `from=${livre.de}&to=${livre.ate}` : `days=${dias}`
-  React.useEffect(() => { carregar(consulta) }, [consulta, carregar])
+  React.useEffect(() => { if (!preview) carregar(consulta) }, [consulta, carregar, preview])
 
   if (estado.carregando && !estado.d) return <Carregando o="seus resultados"/>
   if (estado.erro) return <Erro mensagem={estado.erro} onTentar={() => carregar(dias)}/>
@@ -175,7 +201,7 @@ export default function Resultados() {
 
   return (
     <>
-      <Head titulo="Resultados" sub="Entenda o que seus clientes fizeram depois de encostar o celular">
+      <Head titulo="Resultados" sub="Veja quais experiências despertaram mais interesse nos seus clientes">
         {/* Trocar o período recarrega tudo, e esta tela lê duas tabelas: pode
             levar alguns segundos. Sem sinal nenhum, os números antigos ficam
             na tela e parece que o clique não fez nada. Os antigos CONTINUAM
@@ -253,7 +279,7 @@ export default function Resultados() {
       ) : (
         <>
           {/* ── 1 · TOPO: três números, e o terceiro carrega a média ── */}
-          <div className="v3-kpis tres">
+          <div className="v3-kpis tres v3-results-kpis">
             <Kpi rotulo="Toques" valor={toques.toLocaleString('pt-BR')}
               sub={<>pessoas encostaram o celular nos seus dispositivos<br/><Delta atual={toques} anterior={d.toques.anterior}/></>}/>
             <Kpi rotulo="Abriram o Menu" valor={aberturasDisp.toLocaleString('pt-BR')}
@@ -267,10 +293,10 @@ export default function Resultados() {
                 : 'nenhuma abertura de menu ainda'}/>
           </div>
 
-          <div className="v3-cols">
-            <div>
+          <div className="v3-cols v3-results-layout">
+            <div className="v3-results-context">
               {/* ── 2 · A DIVISÃO, numa barra só ── */}
-              <Panel titulo="O que aconteceu depois do toque"
+              <Panel titulo="Como os dispositivos estavam configurados"
                 sub={`De ${dataBr(d.de)} a ${dataBr(d.ate)} · ${toques} ${toques === 1 ? 'toque' : 'toques'} nos seus dispositivos`}>
                 {/* Barra ÚNICA dividida, e não duas independentes: duas barras
                     deixam o leitor somando de cabeça; uma barra dividida É a
@@ -282,8 +308,8 @@ export default function Resultados() {
                 <div className="v3-legs">
                   <div className="leg">
                     <div className="top"><span className="n">{direto}</span><span className="p g">{pctDireto}%</span></div>
-                    <div className="t">Foram direto ao Google</div>
-                    <div className="sm">dispositivos em Google Direto</div>
+                    <div className="t">Toques em dispositivos configurados para avaliação</div>
+                    <div className="sm">o destino configurado era o Google</div>
                   </div>
                   <div className="leg">
                     <div className="top"><span className="n">{aberturasDisp}</span><span className="p m">{pctMenu}%</span></div>
@@ -321,7 +347,7 @@ export default function Resultados() {
                               {d.por_dispositivo.map(p => (
                                 <tr key={p.plate_id}>
                                   <td><div className="nm">{p.nome}</div><div className="sm">{nomeProduto(p.product_type)}</div></td>
-                                  <td>{p.servindo === 'menu' ? <Chip>Menu</Chip> : <Chip tipo="g">Google Direto</Chip>}</td>
+                                  <td>{p.servindo === 'menu' ? <Chip>Menu</Chip> : <Chip tipo="g">Avaliação Google</Chip>}</td>
                                   <td className="num">{p.toques}</td>
                                   {/* Traço, não zero: dispositivo em Google Direto
                                       não tem menu pra abrir. */}
@@ -357,8 +383,8 @@ export default function Resultados() {
             </div>
 
             {/* ── 3 · O BLOCO PRINCIPAL DO PRO ── */}
-            <div>
-              <Panel titulo="Onde seus clientes clicaram" extra={<Chip>PRO</Chip>}
+            <div className="v3-results-actions">
+              <Panel titulo="Ações mais escolhidas no Menu" extra={<Chip>PRO</Chip>}
                 sub={baseAberturas != null
                   ? `Com base nas ${baseAberturas} ${baseAberturas === 1 ? 'abertura' : 'aberturas'}${menuAtivo && !umMenuSo ? ` de “${menuAtivo.name}”` : ' de menu do período'}`
                   : `Somando ${menus.length} menus — escolha um para ver o percentual`}>
@@ -442,8 +468,9 @@ export default function Resultados() {
       <div className="v3-nota">
         <Info size={14} style={{ flex: 'none', marginTop: 2 }}/>
         <div>
-          A StarTouch mede o clique em “Avaliar no Google”, mas o Google não informa se a avaliação foi
-          efetivamente publicada. Por isso não mostramos uma taxa de conversão artificial.
+          A StarTouch registra toques, aberturas do menu e escolhas feitas nele. Quando um dispositivo está
+          configurado para avaliação, sabemos o destino oferecido, mas o Google não informa se a página foi
+          acessada nem se uma avaliação foi publicada.
         </div>
       </div>
     </>

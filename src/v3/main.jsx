@@ -27,6 +27,11 @@ function destinoDeLogin() {
 }
 
 function Porta() {
+  // Modo de revisão visual local. O teste de DEV é eliminado no build de
+  // produção, portanto `?preview` não contorna o portão publicado.
+  const preview = import.meta.env.DEV && new URLSearchParams(window.location.search).has('preview')
+  if (preview) return <App/>
+
   const user = currentUser()
 
   // Sem sessão → manda pro login do painel atual, que sabe voltar pra cá.

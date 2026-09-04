@@ -8,23 +8,24 @@
 // previsto aqui é o link para dispositivo comprado fora, que ainda não existe.
 // ============================================================
 import React from 'react'
-import { Head, Kpi, Panel, Chip, Delta, Recursos, Barras, desde, diasDesde, dataBr } from '../ui.jsx'
-import { TrendingUp } from 'lucide-react'
+import { Head, Kpi, Panel, Chip, Delta, Barras, desde, diasDesde, dataBr } from '../ui.jsx'
+import { Tablet } from 'lucide-react'
 import { useToques, nomeProduto } from '../lib/dados.js'
 import { api } from '../lib/api.js'
 
 const JANELAS = [7, 30, 90]
 
-const RECURSOS = [
-  { n: 'Ativar dispositivo', d: 'o mesmo fluxo para placa, cartão ou pulseira', p: 'free', s: 'pronto' },
-  { n: 'Apelido do dispositivo', p: 'free', s: 'pronto' },
-  { n: 'Histórico de toques', d: '7, 30 ou 90 dias, e zerar a contagem', p: 'free', s: 'pronto' },
-  { n: 'Link para dispositivo próprio', d: 'gravar a StarTouch num NFC comprado fora', p: 'pro', s: 'defin' }
-]
+function fotoProduto(tipo) {
+  if (tipo === 'cartao_nfc') return '/hardware/cartao-startouch.webp'
+  if (['placa_balcao', 'placa_mesa', 'placa_parede'].includes(tipo)) return '/hardware/placa-startouch.webp'
+  return null
+}
 
 export default function Dispositivos({ dados }) {
   const [dias, setDias] = React.useState(30)
-  const { toques, carregando } = useToques(dias)
+  const historico = useToques(dias)
+  const toques = dados.previewToquesPorPeriodo?.[dias] || historico.toques
+  const carregando = dados.previewToquesPorPeriodo ? false : historico.carregando
   const [renomeando, setRenomeando] = React.useState(null)
   const [rascunho, setRascunho] = React.useState('')
   const [salvando, setSalvando] = React.useState(false)
@@ -57,7 +58,7 @@ export default function Dispositivos({ dados }) {
 
   return (
     <>
-      <Head titulo="Dispositivos" sub="Seus pontos de contato com o cliente">
+      <Head titulo="Meus dispositivos" sub="Gerencie suas placas, cartões e outros pontos de contato">
         <a className="v3-btn solid" href="/app?tab=painel#dispositivos">Ativar dispositivo</a>
         <a className="v3-btn" href="/kit">Comprar mais</a>
       </Head>
@@ -146,7 +147,13 @@ export default function Dispositivos({ dados }) {
                   return (
                     <tr key={d.id}>
                       <td>
-                        {renomeando === d.id ? (
+                        <div className="v3-device-ident">
+                          <div className="foto">
+                            {fotoProduto(d.product_type)
+                              ? <img src={fotoProduto(d.product_type)} alt=""/>
+                              : <Tablet size={20}/>} 
+                          </div>
+                          <div className="dados">{renomeando === d.id ? (
                           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                             <input
                               autoFocus value={rascunho} maxLength={40}
@@ -170,10 +177,11 @@ export default function Dispositivos({ dados }) {
                             <div className="nm">{nomeDe(d) || nomeProduto(d.product_type)}</div>
                             <div className="sm">{nomeProduto(d.product_type)}</div>
                           </>
-                        )}
-                        {renomeando === d.id && erroNome && (
-                          <div className="sm" style={{ color: 'var(--red)' }}>{erroNome}</div>
-                        )}
+                          )}
+                          {renomeando === d.id && erroNome && (
+                            <div className="sm" style={{ color: 'var(--red)' }}>{erroNome}</div>
+                          )}</div>
+                        </div>
                       </td>
                       <td className="sm">{d.code}</td>
                       <td>
@@ -213,21 +221,6 @@ export default function Dispositivos({ dados }) {
         )}
       </Panel>
 
-      {/* A fronteira entre as duas telas, dita uma vez: aqui é CONTAGEM,
-          lá é CRUZAMENTO. Sem isso o cliente procura nos dois lugares. */}
-      <div className="v3-callout info">
-        <TrendingUp size={16} color="var(--blue-dk)" style={{ flex: 'none', marginTop: 1 }}/>
-        <div>
-          <div className="t">Quer saber para onde essas pessoas foram depois de tocar?</div>
-          <div className="s">
-            Esta tela conta os toques — quantos, quando, em qual dispositivo, por qual meio. Em{' '}
-            <b>Resultados</b> você vê o que aconteceu depois: quem foi ao Google, quem abriu o menu e qual
-            botão cada um escolheu.
-          </div>
-        </div>
-      </div>
-
-      <Recursos itens={RECURSOS}/>
     </>
   )
 }

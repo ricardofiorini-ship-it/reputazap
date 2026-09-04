@@ -11,30 +11,24 @@
 // não temos — e nunca como número estimado.
 // ============================================================
 import React from 'react'
-import { ExternalLink, Link2 } from 'lucide-react'
-import { Head, Kpi, Panel, Chip, Recursos, Estrelas, dataBr } from '../ui.jsx'
-
-const RECURSOS = [
-  { n: 'Nota e total de avaliações', p: 'free', s: 'pronto' },
-  { n: 'Avaliações recentes', d: 'as que o Google devolve publicamente', p: 'free', s: 'pronto' },
-  { n: 'Posição na região', d: 'medida por grade ao redor do seu endereço', p: 'free', s: 'pronto' },
-  { n: 'Responder no Google de dentro do painel', d: 'exige conectar o Perfil da Empresa', p: 'pro', s: 'nao' },
-  { n: 'Sugestão de resposta com IA', p: 'pro', s: 'nao' },
-  { n: 'Assuntos recorrentes nas avaliações', p: 'pro', s: 'nao' }
-]
+import { ExternalLink } from 'lucide-react'
+import { Head, Kpi, Panel, Chip, Estrelas, dataBr } from '../ui.jsx'
 
 function Avaliacao({ r }) {
   return (
-    <div style={{ padding: '12px 0', borderBottom: '1px solid var(--line2)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-        <span style={{ fontWeight: 600, fontSize: 12.8 }}>{r.author}</span>
+    <article className="v3-review-card">
+      <div className="avatar">{(r.author || '?').trim().charAt(0).toUpperCase()}</div>
+      <div className="conteudo">
+        <div className="cabecalho">
+          <span className="autor">{r.author}</span>
+          <span className="data">{r.date}</span>
+        </div>
         <Estrelas nota={r.rating} tamanho={12}/>
-        <span className="sm">{r.date}</span>
+        {r.text
+          ? <p>{r.text}</p>
+          : <p className="sem-texto">Avaliação sem texto — só a nota.</p>}
       </div>
-      {r.text
-        ? <div style={{ fontSize: 12.5, color: 'var(--mid)', lineHeight: 1.5 }}>{r.text}</div>
-        : <div className="sm" style={{ fontStyle: 'italic' }}>Avaliação sem texto — só a nota.</div>}
-    </div>
+    </article>
   )
 }
 
@@ -62,7 +56,7 @@ export default function Reputacao({ dados }) {
         )}
       </Head>
 
-      <div className="v3-kpis">
+      <div className="v3-kpis v3-rep-kpis">
         <Kpi
           rotulo="Nota no Google"
           valor={nota != null ? nota.toFixed(1).replace('.', ',') : null}
@@ -84,7 +78,7 @@ export default function Reputacao({ dados }) {
       </div>
 
       {posicao && (
-        <Panel
+        <div className="v3-rep-position"><Panel
           titulo="Sua posição na região"
           extra={<Chip tipo="g">Free</Chip>}
           sub={`Busca medida: “${posicao.term}”${posicao.measuredAt ? ` · medido em ${dataBr(posicao.measuredAt)}` : ''}`}
@@ -124,7 +118,7 @@ export default function Reputacao({ dados }) {
               </table>
             </div>
           )}
-        </Panel>
+        </Panel></div>
       )}
 
       {!posicao && (
@@ -139,7 +133,7 @@ export default function Reputacao({ dados }) {
         </div>
       )}
 
-      <div className="v3-cols">
+      <div className="v3-cols v3-rep-reviews">
         <Panel
           titulo="Avaliações recentes"
           extra={<Chip tipo="g">Free</Chip>}
@@ -172,21 +166,9 @@ export default function Reputacao({ dados }) {
             </Panel>
           )}
 
-          <div className="v3-callout info">
-            <Link2 size={16} color="var(--blue-dk)" style={{ flex: 'none', marginTop: 1 }}/>
-            <div>
-              <div className="t">Conecte seu Perfil da Empresa no Google</div>
-              <div className="s">
-                É o que destrava ler todas as avaliações (não só as 5 públicas), responder sem sair
-                daqui e resumir os assuntos que mais aparecem. Ainda não está disponível — quando
-                estiver, o convite aparece aqui.
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
-      <Recursos itens={RECURSOS}/>
     </>
   )
 }
