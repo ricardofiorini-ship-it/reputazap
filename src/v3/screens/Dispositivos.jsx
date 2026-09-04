@@ -21,6 +21,33 @@ function fotoProduto(tipo) {
   return null
 }
 
+// O que o lojista ainda NÃO tem, sugerido no fim da tela. Mesma ideia da
+// prévia do Menu Inteligente: ele vê o que é dele e, ao lado, o que caberia.
+//
+// ⚠️ A PULSEIRA NFC FICA DE FORA DE PROPÓSITO: está `soldOut: true` no
+// KIT_CATALOG (api/billing.js). Sugerir um produto esgotado é pior do que não
+// sugerir nada — manda o cliente a uma página onde ele não consegue comprar,
+// que é o oposto do efeito pretendido. Se voltar a ter estoque, entra aqui.
+//
+// ⚠️ SEM PREÇO, também de propósito. O preço mora no KIT_CATALOG e muda lá; se
+// fosse copiado para cá, um reajuste deixaria o painel anunciando um valor que
+// o checkout não pratica. O link leva ao /kit, onde o número é o verdadeiro.
+//
+// `id` é a chave do KIT_CATALOG e alimenta /kit?add=<id>, que já pré-seleciona
+// o item no carrinho.
+const SUGESTOES_HARDWARE = [
+  {
+    id: 'cartao-nfc', nome: 'Cartão NFC', foto: '/hardware/cartao-startouch.webp',
+    tem: (tipos) => tipos.has('cartao_nfc'),
+    porque: 'Um para cada pessoa do atendimento. Você acompanha, aqui nesta tela, quantas interações cada um trouxe.'
+  },
+  {
+    id: 'placa-balcao', nome: 'Placa de balcão', foto: '/hardware/placa-startouch.webp',
+    tem: (tipos) => ['placa_balcao', 'placa_mesa', 'placa_parede'].some(t => tipos.has(t)),
+    porque: 'Fica no balcão e trabalha sozinha: quem está pagando encosta o celular sem ninguém precisar pedir.'
+  }
+]
+
 export default function Dispositivos({ dados }) {
   const [dias, setDias] = React.useState(30)
   const historico = useToques(dias)
@@ -38,6 +65,12 @@ export default function Dispositivos({ dados }) {
   const parados = ativos.filter(d => d.last_tapped_at && diasDesde(d.last_tapped_at) >= 7).length
   const totalHistorico = ativos.reduce((s, d) => s + (d.total_taps || 0), 0)
   const nomeDe = (d) => nomesLocais[d.id] ?? d.channel_name
+
+  // Considera TODOS os dispositivos, não só os ativos: quem comprou um cartão
+  // e ainda não ativou já tem cartão — sugerir a compra de outro seria não
+  // estar prestando atenção nele.
+  const tiposQueTem = new Set(lista.map(d => d.product_type))
+  const sugestoesHardware = SUGESTOES_HARDWARE.filter(s => !s.tem(tiposQueTem))
 
   async function salvarNome(d) {
     const novo = rascunho.trim()
@@ -220,6 +253,32 @@ export default function Dispositivos({ dados }) {
           </div>
         )}
       </Panel>
+
+      {/* Só aparece se sobrar alguma sugestão. Quem já tem cartão e placa não
+          precisa ver um bloco de venda no fim de toda visita — o botão
+          "Comprar mais" lá em cima já dá conta. */}
+      {sugestoesHardware.length > 0 && (
+        <section className="v3-disp-sugestoes">
+          <header>
+            <h2>O que mais dá pra ter</h2>
+            <p>Cada ponto de contato a mais é uma chance a mais de o cliente avaliar antes de ir embora.</p>
+          </header>
+          <div className="grade">
+            {sugestoesHardware.map(s => (
+              <a className="cartao" key={s.id} href={`/kit?add=${s.id}`}>
+                <div className="foto">
+                  {s.foto ? <img src={s.foto} alt="" loading="lazy"/> : <Tablet size={20}/>}
+                </div>
+                <div className="txt">
+                  <strong>{s.nome}</strong>
+                  <span>{s.porque}</span>
+                </div>
+                <span className="cta">Ver na loja →</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
     </>
   )
