@@ -4,7 +4,7 @@
 // Ausência de medição nunca é convertida em zero.
 // ============================================================
 import React from 'react'
-import { AlertTriangle, Check, Sparkles } from 'lucide-react'
+import { AlertTriangle, Check, Sparkles, TrendingUp } from 'lucide-react'
 import { Head, Kpi, Delta, Estrelas, desde, diasDesde } from '../ui.jsx'
 import { useToques, nomeProduto } from '../lib/dados.js'
 import { currentUser } from '../lib/api.js'
@@ -66,6 +66,36 @@ function montarAvisos({ dispositivos, toques }) {
       destino: 'resultados'
     })
   }
+
+  // Destaque de desempenho: o dispositivo que rende acima da média. É a única
+  // boa notícia da lista, e por isso vai POR ÚLTIMO — a tela mostra um aviso
+  // só, e problema tem que ganhar a vaga de elogio. Só aparece quando não há
+  // nada pedindo atenção.
+  //
+  // As duas travas abaixo não são detalhe: com 2+ dispositivos medidos e pelo
+  // menos 20 toques no total. Com 3 toques, "2,4× a média" é ruído estatístico
+  // com cara de descoberta — e a tela perde a credibilidade justamente onde
+  // ela deveria ganhar.
+  if (toques?.available && toques.total >= 20) {
+    const porPlaca = toques.by_plate || {}
+    const medidos = ativos.filter(d => porPlaca[d.id] != null && porPlaca[d.id] > 0)
+    if (medidos.length >= 2) {
+      const ord = [...medidos].sort((a, b) => porPlaca[b.id] - porPlaca[a.id])
+      const topo = ord[0]
+      const resto = ord.slice(1)
+      const mediaResto = resto.reduce((s, d) => s + porPlaca[d.id], 0) / resto.length
+      const vezes = mediaResto > 0 ? porPlaca[topo.id] / mediaResto : 0
+      if (vezes >= 1.5) {
+        avisos.push({
+          tom: 'bom',
+          titulo: `${topo.channel_name || nomeProduto(topo.product_type)} gera ${vezes.toFixed(1).replace('.', ',')}× mais toques que a média`,
+          sub: `${porPlaca[topo.id]} interações no período, contra uma média de ${Math.round(mediaResto)} dos outros.`,
+          destino: 'dispositivos'
+        })
+      }
+    }
+  }
+
   return avisos
 }
 
@@ -107,10 +137,20 @@ export default function Inicio({ dados, ir }) {
       </Head>
 
       <section className="v3-home-section v3-home-recommendation-section" aria-labelledby="home-recomenda">
-        <div className={`v3-home-recommendation ${recomendacao ? 'atencao' : 'ok'}`}>
-          <div className="icone">{recomendacao ? <AlertTriangle size={17}/> : <Check size={17}/>}</div>
+        {/* O tom decide a cor e o ícone. Sem isto, o destaque de desempenho —
+            que é elogio — sairia com triângulo amarelo de alerta, e o cliente
+            leria "seu melhor dispositivo" como problema. Reusa as classes
+            `atencao` e `ok` que já existem. */}
+        <div className={`v3-home-recommendation ${recomendacao && recomendacao.tom !== 'bom' ? 'atencao' : 'ok'}`}>
+          <div className="icone">
+            {!recomendacao ? <Check size={17}/>
+              : recomendacao.tom === 'bom' ? <TrendingUp size={17}/>
+                : <AlertTriangle size={17}/>}
+          </div>
           <div className="texto">
-            <span className="eyebrow" id="home-recomenda">STARTOUCH RECOMENDA</span>
+            <span className="eyebrow" id="home-recomenda">
+              {recomendacao?.tom === 'bom' ? 'STARTOUCH DESTACA' : 'STARTOUCH RECOMENDA'}
+            </span>
             <strong>{recomendacao ? recomendacao.titulo : 'Tudo certo por aqui'}</strong>
             <span>{recomendacao ? recomendacao.sub
               : ativos.length === 0 ? 'Assim que você ativar um dispositivo, os avisos sobre ele aparecem aqui.'
