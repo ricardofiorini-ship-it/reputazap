@@ -260,7 +260,7 @@ export default function Dispositivos({ dados }) {
       {sugestoesHardware.length > 0 && (
         <section className="v3-sugestoes">
           <header>
-            <h2>O que mais dá pra ter</h2>
+            <h2>Adquira também</h2>
             <p>Cada ponto de contato a mais é uma chance a mais de o cliente avaliar antes de ir embora.</p>
           </header>
           <div className="grade">
