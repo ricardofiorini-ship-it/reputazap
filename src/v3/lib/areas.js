@@ -20,7 +20,7 @@
 // Antes de qualquer abertura ao público, esses marcadores são revisados.
 // ============================================================
 import {
-  Home, Sparkles, Tablet, Star, UserPlus, Users,
+  Home, Sparkles, Tablet, Star, UserPlus, Building2,
   TrendingUp, Zap, PlayCircle, Compass, Settings, HelpCircle
 } from 'lucide-react'
 
@@ -35,7 +35,7 @@ export const STATUS_CHIP = { pronto: 'chip g', constr: 'chip', defin: 'chip a', 
 export const GRUPOS = [
   { titulo: null,          ids: ['inicio'] },
   { titulo: 'Experiência', ids: ['experiencia', 'dispositivos'] },
-  { titulo: 'Negócio',     ids: ['reputacao', 'clientes', 'equipe', 'resultados'] },
+  { titulo: 'Negócio',     ids: ['reputacao', 'clientes', 'unidades', 'resultados'] },
   { titulo: 'Crescer',     ids: ['ferramentas', 'aprender', 'tendencias'] },
   { titulo: 'Geral',       ids: ['config', 'ajuda'] }
 ]
@@ -84,19 +84,23 @@ export const AREAS = {
     ]
   },
 
-  equipe: {
-    nome: 'Unidades', icon: Users, status: 'defin', tela: 'unidades',
+  unidades: {
+    nome: 'Unidades', icon: Building2, status: 'defin', tela: 'unidades',
     sub: 'Todos os locais do seu negócio em um só painel',
-    lead: 'A área existe no mapa, mas ainda não sabemos o que ela faz',
-    corpo: 'O cartão de um vendedor já é um dispositivo com nome e contagem próprios — a leitura por pessoa sai inteira em Dispositivos. Antes de construir, precisamos saber o que esta área faria que aquela não faz.',
+    lead: 'Um negócio com mais de um endereço, numa conta só',
+    corpo: 'Cada unidade com seu próprio perfil do Google e seus próprios dispositivos, e um seletor no topo do painel para alternar entre uma unidade e a rede inteira. A pergunta antiga — "isto é equipe ou é local?" — foi respondida: é local.',
     decidido: [
-      'Cartões individuais já existem e já são medidos por pessoa',
-      'As tabelas novas nasceram penduradas no negócio, não no usuário: multi-unidade depois não exige reescrita'
+      'Unidades é multi-loja. A área de Equipe saiu do mapa (04/09/2026)',
+      'Equipe saiu porque não sobrava o que ela fizesse: o cartão de um vendedor já é um dispositivo com nome e contagem próprios, e a leitura por pessoa já sai inteira em Dispositivos',
+      'As tabelas novas nasceram penduradas no negócio, e não no usuário — multi-unidade não exige reescrevê-las',
+      'Ranking de funcionário segue descartado como narrativa: toque não é avaliação, e placar com prêmio é burlado'
     ],
     falta: [
-      'É login para funcionários, comparação entre unidades, ou só uma leitura?',
-      'Hoje é um negócio por conta no banco — multi-unidade de verdade exige mudar isso',
-      'Ranking de funcionário foi descartado como narrativa: o que entra no lugar?'
+      'O BANCO IMPEDE, e é por aqui que começa: `businesses` tem UNIQUE user_id, ou seja, hoje é um negócio por conta. Multi-loja começa derrubando essa restrição — e revisando tudo que assume "o negócio do usuário" no singular (mybiz, savebiz, bizinfo)',
+      'O que a rede consolidada soma e o que ela NÃO soma. Toques somam; nota do Google não, porque média de médias não é média — precisa ser ponderada por número de avaliações, ou não se mostra',
+      'O que acontece com quem tem UMA unidade só, que é a esmagadora maioria: o seletor não pode virar imposto de interface pra quem não precisa dele',
+      'Se Reputação, Resultados e Dispositivos ganham recorte por unidade',
+      'Se a cobrança é por conta ou por unidade — daí sai o selo PRO desta área, que hoje ela não tem'
     ]
   },
 
@@ -120,8 +124,8 @@ export const AREAS = {
   },
 
   ferramentas: {
-    nome: 'Ferramentas', icon: Zap, status: 'defin',
-    sub: 'Recursos de relacionamento que crescem com o tempo',
+    nome: 'Campanhas', icon: Zap, status: 'defin', tela: 'campanhas',
+    sub: 'Campanhas e promoções para divulgar seu negócio',
     lead: 'A primeira ferramenta seria Promoções',
     corpo: 'Uma oferta com título, descrição, imagem, validade e cupom, distribuída pelo menu, por QR Code ou por link — e, opcionalmente, exigindo cadastro, o que a conecta com Clientes.',
     recursos: [

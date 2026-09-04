@@ -798,3 +798,41 @@ table.v3-t tr:last-child td { border-bottom: 0; }
   .v3-unidades-selector-preview { align-items: stretch; flex-direction: column; }
   .selector-mock { min-width: 0; }
 }
+
+/* Campanhas — conceito visual da primeira ferramenta de crescimento. */
+.v3-camp-hero { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(260px,.8fr); gap: 34px; align-items: center;
+  margin-bottom: 23px; padding: 30px 34px; overflow: hidden; border: 1px solid #F0D8B0; border-radius: var(--radius);
+  background: linear-gradient(135deg,#FFF9EF 0%,#FFF5E4 55%,#F4F8FF 100%); }
+.v3-camp-copy .eyebrow { display: inline-flex; align-items: center; gap: 6px; color: #A85B00; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+.v3-camp-copy h2 { max-width: 540px; margin: 10px 0 8px; font-size: clamp(23px,3vw,34px); line-height: 1.12; letter-spacing: -.035em; }
+.v3-camp-copy p { max-width: 520px; margin: 0; color: var(--mid); font-size: 13px; line-height: 1.6; }
+.v3-camp-copy .status { display: inline-flex; margin-top: 18px; padding: 6px 10px; border: 1px solid #F0D8B0; border-radius: 999px; background: rgba(255,255,255,.7); color: #8A5300; font-size: 10.5px; font-weight: 650; }
+.v3-camp-preview { justify-self: center; width: min(290px,100%); overflow: hidden; border: 1px solid #E5D5BC; border-radius: 16px; background: #fff; box-shadow: 0 16px 34px rgba(102,70,23,.14); transform: rotate(1deg); }
+.v3-camp-preview .imagem { height: 105px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; background: linear-gradient(135deg,#F8AA2D,#EF7D22); color: white; }
+.v3-camp-preview .imagem span { font-size: 9px; font-weight: 800; letter-spacing: .12em; }
+.v3-camp-preview .conteudo { padding: 15px; }
+.v3-camp-preview small { color: var(--dim); font-size: 9px; }
+.v3-camp-preview h3 { margin: 4px 0; font-size: 15px; }
+.v3-camp-preview p { margin: 0; color: var(--mid); font-size: 10.5px; line-height: 1.45; }
+.v3-camp-preview .validade { display: flex; align-items: center; gap: 5px; margin-top: 11px; color: #8A5300; font-size: 9.5px; }
+.v3-camp-preview button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 11px; padding: 9px; border: 0; border-radius: 8px; background: var(--blue); color: #fff; font: inherit; font-size: 10.5px; font-weight: 700; }
+.v3-camp-section { margin-bottom: 18px; }
+.v3-camp-section header h2 { margin: 0; font-size: 15px; }
+.v3-camp-section header p { margin: 3px 0 12px; color: var(--dim); font-size: 11.5px; }
+.v3-camp-channels { display: grid; grid-template-columns: repeat(3,1fr); gap: 11px; }
+.v3-camp-channels article { display: flex; gap: 11px; padding: 15px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surf); }
+.v3-camp-channels .icone { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 9px; background: var(--blue-soft); color: var(--blue); }
+.v3-camp-channels h3 { margin: 1px 0 4px; font-size: 12.5px; }
+.v3-camp-channels p { margin: 0; color: var(--mid); font-size: 10.8px; line-height: 1.45; }
+.v3-camp-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 13px; align-items: center; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surf); }
+.v3-camp-flow > div { display: grid; grid-template-columns: 28px 1fr; column-gap: 9px; align-items: center; }
+.v3-camp-flow span { grid-row: 1 / 3; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--blue-soft); color: var(--blue); font-size: 11px; font-weight: 800; }
+.v3-camp-flow strong { font-size: 11.5px; }
+.v3-camp-flow small { margin-top: 2px; color: var(--dim); font-size: 9.5px; }
+.v3-camp-flow > i { color: #AEB8C6; font-style: normal; }
+@media (max-width: 760px) {
+  .v3-camp-hero { grid-template-columns: 1fr; padding: 24px 20px; }
+  .v3-camp-channels { grid-template-columns: 1fr; }
+  .v3-camp-flow { grid-template-columns: 1fr; }
+  .v3-camp-flow > i { transform: rotate(90deg); justify-self: center; }
+}
