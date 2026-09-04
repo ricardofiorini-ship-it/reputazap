@@ -54,8 +54,13 @@
   .row .nm{flex:0 0 42%;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .row .track{flex:1;height:9px;background:var(--brand-050);border-radius:999px;overflow:hidden;}
   .row .fill{height:100%;background:var(--brand);border-radius:999px;}
-  .row .vl{flex:0 0 86px;text-align:right;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
-  .row .vl small{font-weight:500;color:var(--ink-3);margin-left:4px;}
+  .row .vl{flex:0 0 108px;text-align:right;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
+  /* O percentual VAI ENTRE PARENTESES, e nao colado no numero. Sem isso,
+     "2" seguido de "29%" le como "229%" -- e leu mesmo, na primeira vez que
+     este painel foi olhado por gente. O espaco de 4px separava na tela e
+     sumia ao copiar o texto. Numero que pode ser lido errado e pior que
+     numero ausente: o ausente ninguem usa numa decisao. */
+  .row .vl small{font-weight:500;color:var(--ink-3);margin-left:5px;}
 
   /* Grafico por dia: barras simples, sem biblioteca */
   .bars{display:flex;align-items:flex-end;gap:3px;height:110px;margin-top:6px;}
@@ -163,7 +168,7 @@ function barras(lista, unidade){
   return lista.map(x => `<div class="row">
     <span class="nm" title="${esc(x.nome)}">${esc(x.nome)}</span>
     <span class="track"><span class="fill" style="width:${Math.max(2, Math.round(x.hits/max*100))}%"></span></span>
-    <span class="vl">${num(x.hits)}<small>${x.pct}%</small></span>
+    <span class="vl">${num(x.hits)}<small>(${x.pct}%)</small></span>
   </div>`).join("") || `<div class="state" style="padding:18px;">Sem ${unidade} neste período.</div>`;
 }
 
@@ -184,7 +189,16 @@ function render(d){
   $("content").innerHTML = `
     <div class="headline">
       <div class="big">${num(d.total)}</div>
-      <div class="cap">páginas abertas em ${d.days} dias — média de <b>${num(d.media_dia)}</b> por dia</div>
+      <div class="cap">páginas abertas nos últimos ${d.days} dias${
+        // A média é sobre os dias QUE TÊM registro, não sobre a janela toda.
+        // Enquanto a catraca for mais nova que o período escolhido, dizer
+        // "média por dia" sem essa ressalva produz frases que se contradizem
+        // na cara do leitor -- "7 páginas em 30 dias, média de 7 por dia".
+        d.dias_com_dado
+          ? ` — média de <b>${num(d.media_dia)}</b> por dia nos <b>${d.dias_com_dado}</b> dia${d.dias_com_dado > 1 ? "s" : ""} com registro`
+          : ""
+      }</div>
+      ${d.dias_com_dado === 1 ? '<div class="cap" style="margin-top:8px;color:var(--ink-3);">Primeiro dia de contagem — ainda não dá pra ver tendência.</div>' : ""}
     </div>
 
     <div class="card">
