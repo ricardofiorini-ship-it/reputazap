@@ -138,33 +138,38 @@ export const AREAS = {
   campanhas: {
     nome: 'Campanhas', icon: Zap, status: 'defin', tela: 'campanhas',
     sub: 'Campanhas e promoções para divulgar seu negócio',
-    lead: 'A primeira ferramenta seria Promoções',
-    corpo: 'Uma oferta com título, descrição, imagem, validade e cupom, distribuída pelo menu, por QR Code ou por link — e, opcionalmente, exigindo cadastro, o que a conecta com Clientes.',
+    lead: 'É Promoções, com nome novo',
+    corpo: 'Uma oferta com título, descrição, imagem, validade e cupom, distribuída pelo menu, por QR Code ou por link — e, opcionalmente, exigindo cadastro, o que a conecta com Clientes. O escopo não mudou junto com o nome: o que se chamava "Ferramentas, começando por Promoções" agora se chama Campanhas, e é a mesma coisa.',
     recursos: [
       { n: 'Promoções', d: 'título, validade, cupom, distribuição', p: 'pro', s: 'defin' },
-      { n: 'Campanhas, cupons e fidelização', p: 'pro', s: 'nao' }
+      { n: 'Cupons e fidelização', d: 'depois da promoção estar de pé', p: 'pro', s: 'nao' }
     ],
     decidido: [
+      'Campanhas é o nome novo de Promoções — mesmo escopo (Ricardo, 04/09/2026)',
       'Os campos da promoção estão descritos no briefing',
       'A distribuição reusa o mesmo endereço público do menu'
     ],
     falta: [
       'Se a promoção exige cadastro, ela depende de Clientes existir primeiro',
       'Quantas promoções ativas ao mesmo tempo',
-      'Se alguma ferramenta futura for gratuita, a área deixa de ser candidata a selo'
+      'Se alguma campanha futura for gratuita, a área deixa de ser candidata a selo'
     ]
   },
 
   guias: {
     nome: 'Dicas e guias', icon: PlayCircle, status: 'defin', tela: 'guias',
     sub: 'Orientações práticas para aproveitar melhor a StarTouch',
-    lead: 'A matéria-prima já existe — o comportamento é que não',
-    corpo: 'O projeto já tem uma fábrica de artigos publicando conteúdo no site. Falta a parte que dá sentido à área: ligar o conteúdo ao diagnóstico, do tipo “você teve 438 interações e 17 avaliações — veja como pedir avaliação naturalmente”.',
-    decidido: ['A fábrica de artigos existe e publica hoje', 'Os dados de diagnóstico existem'],
+    lead: 'O formato está decidido: texto e vídeo',
+    corpo: 'O projeto já tem uma fábrica de artigos publicando conteúdo no site — essa é a matéria-prima do texto. O vídeo entra ao lado, não no lugar. O que ainda falta é a parte que dá sentido à área: ligar o conteúdo ao diagnóstico, do tipo “você teve 438 interações e 17 avaliações — veja como pedir avaliação naturalmente”.',
+    decidido: [
+      'Texto E vídeo, os dois (Ricardo, 04/09/2026)',
+      'A fábrica de artigos existe e publica hoje',
+      'Os dados de diagnóstico existem'
+    ],
     falta: [
       'Que gatilho dispara qual conteúdo',
-      'Vídeo, texto ou os dois',
-      'Se é biblioteca navegável ou só recomendação pontual'
+      'Se é biblioteca navegável ou só recomendação pontual',
+      'De onde vem o vídeo: produção própria, ou curadoria do que já existe'
     ]
   },
 
