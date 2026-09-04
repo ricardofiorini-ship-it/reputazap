@@ -3,7 +3,7 @@ import { CalendarDays, ExternalLink, Gift, Link2, Plus, QrCode, Smartphone, Spar
 import { Head } from '../ui.jsx'
 
 const CANAIS = [
-  { icon: Smartphone, nome: 'Menu PRO', texto: 'Destaque a oferta no menu dos seus dispositivos.' },
+  { icon: Smartphone, nome: 'Menu Inteligente', texto: 'Destaque a oferta no menu dos seus dispositivos.' },
   { icon: Link2, nome: 'Link próprio', texto: 'Compartilhe no WhatsApp, Instagram ou onde preferir.' },
   { icon: QrCode, nome: 'QR Code', texto: 'Use em mesas, balcões, vitrines e materiais impressos.' }
 ]
@@ -53,7 +53,7 @@ export default function Campanhas() {
       <section className="v3-camp-flow">
         <div><span>1</span><strong>Crie a oferta</strong><small>Título, imagem, descrição e validade</small></div>
         <i>→</i>
-        <div><span>2</span><strong>Escolha onde publicar</strong><small>Menu PRO, link ou QR Code</small></div>
+        <div><span>2</span><strong>Escolha onde publicar</strong><small>Menu Inteligente, link ou QR Code</small></div>
         <i>→</i>
         <div><span>3</span><strong>Acompanhe o interesse</strong><small>Visualizações e ações registradas</small></div>
       </section>

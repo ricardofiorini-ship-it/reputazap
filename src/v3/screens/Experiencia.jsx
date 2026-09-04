@@ -248,7 +248,7 @@ export default function Experiencia({ dados }) {
           </div>
           <footer>
             <button className="v3-btn solid grande" onClick={dados.previewToques ? undefined : criar} disabled={criando}>
-              <Plus size={15}/> {criando ? 'Criando…' : dados.previewToques ? 'Conhecer o Menu PRO' : ativas.length ? 'Criar outro menu' : 'Criar meu primeiro menu'}
+              <Plus size={15}/> {criando ? 'Criando…' : dados.previewToques ? 'Conhecer o Menu Inteligente' : ativas.length ? 'Criar outro menu' : 'Criar meu primeiro menu'}
             </button>
             {noMenu.length > 0 && (
               <div className="uso ativo">Em uso em {noMenu.length} {noMenu.length === 1 ? 'dispositivo' : 'dispositivos'}</div>

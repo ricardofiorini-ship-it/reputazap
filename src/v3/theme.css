@@ -567,6 +567,44 @@ table.v3-t tr:last-child td { border-bottom: 0; }
   .v3-results-kpis .v3-kpi .d { display: none; }
 }
 
+/* Dicas e guias — biblioteca prática, não um feed genérico. */
+.v3-guias-featured { display: grid; grid-template-columns: 46px minmax(0,1fr) auto; gap: 15px; align-items: center;
+  margin-bottom: 18px; padding: 20px; border: 1px solid #C9DDFB; border-radius: var(--radius); background: linear-gradient(120deg,#F3F8FF,#F2FAF8); }
+.v3-guias-featured > .icone { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 12px; background: #fff; color: var(--blue); box-shadow: 0 5px 14px rgba(25,92,160,.08); }
+.v3-guias-featured .texto > span { color: var(--blue); font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+.v3-guias-featured h2 { margin: 5px 0 3px; font-size: 15px; }
+.v3-guias-featured p { margin: 0; color: var(--mid); font-size: 11.5px; line-height: 1.5; }
+.v3-guias-start { margin-bottom: 20px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surf); }
+.v3-guias-start header { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+.v3-guias-start h2,.v3-guias-library h2 { margin: 0; font-size: 14px; }
+.v3-guias-start header p,.v3-guias-library header p { margin: 2px 0 0; color: var(--dim); font-size: 10.8px; }
+.v3-guias-start header > span { color: var(--blue); font-size: 10.5px; font-weight: 650; }
+.v3-guias-start .progresso { height: 6px; margin: 14px 0; overflow: hidden; border-radius: 999px; background: var(--line2); }
+.v3-guias-start .progresso i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,var(--blue),#24B99D); }
+.v3-guias-start .passos { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+.v3-guias-start .passos > div { min-height: 54px; display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid var(--line2); border-radius: 9px; color: var(--mid); font-size: 10.5px; }
+.v3-guias-start .passos .feito { color: var(--green); background: var(--green-soft); border-color: #D0E8D7; }
+.v3-guias-start .passos .feito span { color: var(--ink); }
+.v3-guias-start .numero { width: 20px; height: 20px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--line2); color: var(--dim); font-size: 9px; font-weight: 700; }
+.v3-guias-library > header { margin-bottom: 11px; }
+.v3-guias-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 11px; }
+.v3-guias-grid article { min-height: 136px; display: flex; flex-direction: column; padding: 15px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surf); cursor: pointer; transition: transform .15s,border-color .15s; }
+.v3-guias-grid article:hover { transform: translateY(-2px); border-color: #BFD4F3; }
+.v3-guias-grid .topo { display: flex; align-items: center; gap: 8px; }
+.v3-guias-grid .icone { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: var(--blue-soft); color: var(--blue); }
+.v3-guias-grid .topo small { color: var(--dim); font-size: 9.5px; }
+.v3-guias-grid h3 { margin: 12px 0; font-size: 12.5px; line-height: 1.4; }
+.v3-guias-grid .rodape { margin-top: auto; display: flex; justify-content: space-between; align-items: center; color: var(--dim); }
+.v3-guias-grid .rodape span { display: flex; align-items: center; gap: 4px; font-size: 9.5px; }
+@media (max-width: 760px) {
+  .v3-guias-featured { grid-template-columns: 42px minmax(0,1fr); }
+  .v3-guias-featured .v3-btn { grid-column: 2; justify-self: start; }
+  .v3-guias-start .passos { grid-template-columns: 1fr 1fr; }
+  .v3-guias-grid { grid-template-columns: 1fr; }
+  .v3-guias-grid article { min-height: 120px; }
+}
+@media (max-width: 480px) { .v3-guias-start .passos { grid-template-columns: 1fr; } }
+
 /* Barra ÚNICA dividida. Duas barras independentes deixam o leitor somando de
    cabeça; uma barra dividida É a divisão. */
 .v3-split { display: flex; height: 14px; border-radius: 999px; overflow: hidden; margin: 4px 0 16px; background: var(--line2); }

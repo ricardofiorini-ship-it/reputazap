@@ -18,6 +18,18 @@
 //   nao     → área prevista, sem definição suficiente (não recebe selo:
 //             não se adivinha monetização de produto que não foi desenhado)
 // Antes de qualquer abertura ao público, esses marcadores são revisados.
+//
+// ⚠️ AO RENOMEAR UMA ÁREA OU DAR TELA A ELA, `lead`, `corpo`, `decidido` e
+// `falta` VÊM JUNTO. Aconteceu três vezes em 04/09/2026 — Unidades, Campanhas
+// e Dicas e guias ganharam nome novo, status novo e tela, e o texto por baixo
+// continuou descrevendo o conceito antigo. Em Unidades a tela prometia
+// "todos os seus locais em um só painel" enquanto a definição ainda dizia
+// "não sabemos o que ela faz" e falava de cartão de vendedor.
+//
+// Não é preciosismo: quando isso acontece, a decisão de produto passa a
+// existir SÓ no visual. Ninguém sabe o que foi decidido, por quê, nem o que
+// ficou faltando — e o mapa, que existe justamente para responder isso,
+// passa a mentir com cara de documentação.
 // ============================================================
 import {
   Home, Sparkles, Tablet, Star, UserPlus, Building2,
@@ -36,7 +48,7 @@ export const GRUPOS = [
   { titulo: null,          ids: ['inicio'] },
   { titulo: 'Experiência', ids: ['experiencia', 'dispositivos'] },
   { titulo: 'Negócio',     ids: ['reputacao', 'clientes', 'unidades', 'resultados'] },
-  { titulo: 'Crescer',     ids: ['ferramentas', 'aprender', 'tendencias'] },
+  { titulo: 'Crescer',     ids: ['campanhas', 'guias', 'tendencias'] },
   { titulo: 'Geral',       ids: ['config', 'ajuda'] }
 ]
 
@@ -123,7 +135,7 @@ export const AREAS = {
     ]
   },
 
-  ferramentas: {
+  campanhas: {
     nome: 'Campanhas', icon: Zap, status: 'defin', tela: 'campanhas',
     sub: 'Campanhas e promoções para divulgar seu negócio',
     lead: 'A primeira ferramenta seria Promoções',
@@ -143,9 +155,9 @@ export const AREAS = {
     ]
   },
 
-  aprender: {
-    nome: 'Aprender & Melhorar', icon: PlayCircle, status: 'nao',
-    sub: 'Conteúdo ligado ao que a plataforma percebe',
+  guias: {
+    nome: 'Dicas e guias', icon: PlayCircle, status: 'defin', tela: 'guias',
+    sub: 'Orientações práticas para aproveitar melhor a StarTouch',
     lead: 'A matéria-prima já existe — o comportamento é que não',
     corpo: 'O projeto já tem uma fábrica de artigos publicando conteúdo no site. Falta a parte que dá sentido à área: ligar o conteúdo ao diagnóstico, do tipo “você teve 438 interações e 17 avaliações — veja como pedir avaliação naturalmente”.',
     decidido: ['A fábrica de artigos existe e publica hoje', 'Os dados de diagnóstico existem'],

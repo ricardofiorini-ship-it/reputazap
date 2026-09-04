@@ -10,7 +10,12 @@ const UNIDADES = [
 export default function Unidades() {
   return (
     <>
+      {/* O chip não é enfeite: esta tela é maquete, e os botões abaixo não
+          fazem nada. Sem o aviso, quem abre lê "Gerencie todos os seus locais"
+          e clica esperando que funcione. Campanhas e Clientes já avisavam;
+          aqui e em Guias faltava. */}
       <Head titulo="Minhas unidades" sub="Gerencie todos os seus locais em um único painel">
+        <div className="v3-picker">Em desenvolvimento</div>
         <button className="v3-btn primary"><Plus size={14}/> Adicionar unidade</button>
       </Head>
 

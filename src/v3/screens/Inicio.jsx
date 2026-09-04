@@ -199,7 +199,7 @@ export default function Inicio({ dados, ir }) {
                 <p>Ofereça avaliação, cardápio, WhatsApp, promoções e outras ações em uma experiência personalizada.</p>
               </div>
               <button type="button" className="v3-btn solid" onClick={() => ir('experiencia')}>
-                {biz?.plan === 'pro' ? 'Configurar menu →' : 'Conhecer o Menu PRO →'}
+                {biz?.plan === 'pro' ? 'Configurar menu →' : 'Conhecer o Menu Inteligente →'}
               </button>
             </div>
           </div>
