@@ -520,30 +520,39 @@ table.v3-t tr:last-child td { border-bottom: 0; }
 .v3-mini .mbt .mac { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 7px; color: #1476E8; background: #E8F2FF; font-size: 8px; font-weight: 700; }
 .v3-mini .mbt:nth-of-type(even) .mac { color: #108A70; background: #E4F8F1; }
 .v3-mini .mbt .seta { color: #9AA8B7; font-size: 15px; }
-/* ── Sugestao de hardware no fim de Dispositivos ──────────────
+/* ── Bloco de sugestao (Dispositivos e Reputacao) ──────────────
    Mesma ideia da previa do menu: mostrar o que o lojista ainda nao tem, do
    lado do que ele ja tem. Visual deliberadamente mais discreto que a tabela
    acima -- e oferta, nao dado. Se ganhar o mesmo peso do conteudo, a tela
    deixa de ser painel e vira anuncio. */
-.v3-disp-sugestoes { margin-top: 18px; }
-.v3-disp-sugestoes > header { margin-bottom: 10px; }
-.v3-disp-sugestoes > header h2 { font-size: 15px; font-weight: 700; margin: 0 0 2px; }
-.v3-disp-sugestoes > header p { font-size: 12.5px; color: var(--mid); margin: 0; }
-.v3-disp-sugestoes .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
-.v3-disp-sugestoes .cartao { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit;
+.v3-sugestoes { margin-top: 18px; }
+.v3-sugestoes > header { margin-bottom: 10px; }
+.v3-sugestoes > header h2 { font-size: 15px; font-weight: 700; margin: 0 0 2px; }
+.v3-sugestoes > header p { font-size: 12.5px; color: var(--mid); margin: 0; }
+.v3-sugestoes .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+.v3-sugestoes .cartao { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit;
   background: var(--surf); border: 1px dashed var(--line); border-radius: var(--radius); padding: 12px 14px;
   transition: border-color .15s ease, background .15s ease; }
-.v3-disp-sugestoes .cartao:hover { border-color: var(--blue); border-style: solid; background: var(--blue-soft); }
-.v3-disp-sugestoes .foto { width: 46px; height: 46px; flex: none; border-radius: 10px; background: #F1F5FA;
+.v3-sugestoes .cartao:hover { border-color: var(--blue); border-style: solid; background: var(--blue-soft); }
+.v3-sugestoes .foto { width: 46px; height: 46px; flex: none; border-radius: 10px; background: #F1F5FA;
   display: grid; place-items: center; overflow: hidden; color: #8AA0B8; }
-.v3-disp-sugestoes .foto img { width: 100%; height: 100%; object-fit: cover; }
-.v3-disp-sugestoes .txt { min-width: 0; flex: 1; }
-.v3-disp-sugestoes .txt strong { display: block; font-size: 13.5px; font-weight: 700; margin-bottom: 2px; }
-.v3-disp-sugestoes .txt span { display: block; font-size: 12px; color: var(--mid); line-height: 1.45; }
-.v3-disp-sugestoes .cta { flex: none; align-self: flex-start; font-size: 12px; font-weight: 650; color: var(--blue); white-space: nowrap; }
+.v3-sugestoes .foto img { width: 100%; height: 100%; object-fit: cover; }
+.v3-sugestoes .txt { min-width: 0; flex: 1; }
+.v3-sugestoes .txt strong { display: block; font-size: 13.5px; font-weight: 700; margin-bottom: 2px; }
+.v3-sugestoes .txt span { display: block; font-size: 12px; color: var(--mid); line-height: 1.45; }
+.v3-sugestoes .cta { flex: none; align-self: flex-start; font-size: 12px; font-weight: 650; color: var(--blue); white-space: nowrap; }
+/* Variante sem link: usada na Reputacao, onde os cartoes descrevem o que
+   passa a existir com o Perfil da Empresa conectado. Nao tem hover nem
+   cursor de link porque NAO leva a lugar nenhum -- a conexao ainda nao
+   existe no backend, e fingir que clica seria pior do que nao mostrar. */
+.v3-sugestoes .cartao.inerte { cursor: default; }
+.v3-sugestoes .cartao.inerte:hover { border-color: var(--line); border-style: dashed; background: var(--surf); }
+.v3-sugestoes .cartao.inerte .foto { color: var(--blue); background: var(--blue-soft); }
+.v3-sugestoes-nota { font-size: 12px; color: var(--dim); margin: 10px 0 0; line-height: 1.5; }
+
 @media (max-width: 560px) {
-  .v3-disp-sugestoes .cartao { flex-wrap: wrap; }
-  .v3-disp-sugestoes .cta { align-self: auto; margin-left: 58px; }
+  .v3-sugestoes .cartao { flex-wrap: wrap; }
+  .v3-sugestoes .cta { align-self: auto; margin-left: 58px; }
 }
 
 /* Sugestao na previa do menu: e proposta, nao item ativo. Tracejada, apagada

@@ -258,7 +258,7 @@ export default function Dispositivos({ dados }) {
           precisa ver um bloco de venda no fim de toda visita — o botão
           "Comprar mais" lá em cima já dá conta. */}
       {sugestoesHardware.length > 0 && (
-        <section className="v3-disp-sugestoes">
+        <section className="v3-sugestoes">
           <header>
             <h2>O que mais dá pra ter</h2>
             <p>Cada ponto de contato a mais é uma chance a mais de o cliente avaliar antes de ir embora.</p>

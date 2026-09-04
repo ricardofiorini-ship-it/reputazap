@@ -11,7 +11,32 @@
 // não temos — e nunca como número estimado.
 // ============================================================
 import React from 'react'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, MessageSquare, ListChecks, Tags } from 'lucide-react'
+
+// O CONVITE que o cabeçalho desta tela promete desde que ela nasceu, e que
+// nunca tinha sido construído. Não é venda de plano: é o que passa a ser
+// possível quando o lojista conectar o Perfil da Empresa do Google.
+//
+// ⚠️ NÃO TEM BOTÃO, E É DE PROPÓSITO. A conexão com o Perfil da Empresa NÃO
+// existe no backend — não há OAuth, endpoint nem escopo pedido em lugar
+// nenhum do projeto (conferido em 04/09/2026). Um botão aqui seria um botão
+// morto no meio da única tela cheia de dado verdadeiro, que é o pior lugar
+// possível pra perder a confiança do cliente. Quando a conexão existir, o
+// botão entra aqui e o aviso "em desenvolvimento" sai.
+const DEPENDE_DA_CONEXAO = [
+  {
+    icon: ListChecks, nome: 'Todas as avaliações, não só cinco',
+    porque: 'A API pública do Google devolve as cinco mais recentes. Conectado, dá pra ler o histórico inteiro.'
+  },
+  {
+    icon: MessageSquare, nome: 'Responder sem sair daqui',
+    porque: 'Hoje o painel te leva ao Google pra responder. Conectado, a resposta sai de dentro do painel.'
+  },
+  {
+    icon: Tags, nome: 'O que mais aparece nas avaliações',
+    porque: 'Os assuntos que se repetem — atendimento, espera, preço — em vez de você ler uma por uma.'
+  }
+]
 import { Head, Kpi, Panel, Chip, Estrelas, dataBr } from '../ui.jsx'
 
 function Avaliacao({ r }) {
@@ -168,6 +193,31 @@ export default function Reputacao({ dados }) {
 
         </div>
       </div>
+
+      <section className="v3-sugestoes">
+        <header>
+          <h2>O que muda quando você conectar seu Perfil da Empresa</h2>
+          <p>
+            Tudo acima vem da parte pública do Google, que entrega as cinco avaliações mais recentes.
+            Com o perfil conectado, a leitura passa a ser a completa.
+          </p>
+        </header>
+        <div className="grade">
+          {DEPENDE_DA_CONEXAO.map(({ icon: Icon, nome, porque }) => (
+            <div className="cartao inerte" key={nome}>
+              <div className="foto"><Icon size={20}/></div>
+              <div className="txt">
+                <strong>{nome}</strong>
+                <span>{porque}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="v3-sugestoes-nota">
+          A conexão ainda está em desenvolvimento — por isso não há botão aqui.
+          Enquanto isso, o link do topo leva direto ao seu perfil no Google.
+        </p>
+      </section>
 
     </>
   )
