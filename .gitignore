@@ -3,3 +3,6 @@ tokens.json
 node_modules
 dist
 .claude
+
+# Frames do revisor de video do Codex — artefato de ferramenta, nao do projeto
+.codex-video-review/

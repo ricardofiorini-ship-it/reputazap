@@ -99,12 +99,10 @@ a { color: var(--blue); text-decoration: none; }
 
 /* Marcador de estágio. Ponto cheio = tem substância; anel vazado = não definido.
    Vive SÓ no desenvolvimento privado — sai numa revisão antes de abrir ao público. */
-.v3-mk { width: 7px; height: 7px; border-radius: 50%; flex: none; }
-.v3-mk.pronto { background: #34A853; }
-.v3-mk.constr { background: #5B9CFF; }
-.v3-mk.defin  { background: #E0A94A; }
-.v3-mk.nao    { background: transparent; border: 1.5px solid #4A5D78; }
-.v3-nav[aria-current="true"] .v3-mk.nao { border-color: rgba(255,255,255,.6); }
+/* Uma marca so, e so em quem ainda nao esta pronto. Eram quatro cores com
+   legenda de quatro linhas; a unica pergunta que o menu precisa responder e
+   "isto ja funciona?". Ausencia de marca = sim. */
+.v3-mk { width: 7px; height: 7px; border-radius: 50%; flex: none; background: #E0A94A; }
 
 .v3-sidefoot { margin-top: auto; padding-top: 14px; }
 .v3-legend { background: #0A1120; border: 1px solid var(--n-line); border-radius: 8px; padding: 11px 12px; margin-bottom: 10px; }

@@ -81,13 +81,19 @@ function areaDaUrl() {
   return AREAS[p] ? p : PADRAO
 }
 
+// A barra lateral tinha quatro bolinhas coloridas e uma legenda de quatro
+// linhas para decifrá-las. Custava atenção em todo item do menu para informar
+// o que, na prática, interessa saber de um só: "isto aqui ainda está sendo
+// feito". Ficou uma marca só, nos que ainda não estão prontos — quem não tem
+// marca está pronto, e isso não precisa de legenda.
+//
+// Os quatro estados continuam existindo em areas.js e continuam aparecendo,
+// com nome e tudo, DENTRO da tela de cada área que ainda não foi construída.
+// O que saiu foi a decodificação por cor no menu, não a informação.
 function Legenda() {
   return (
     <div className="v3-legend">
-      <div className="ttl">Mapa de construção</div>
-      {['pronto', 'constr', 'defin', 'nao'].map(s => (
-        <div className="row" key={s}><span className={`v3-mk ${s}`}/> {STATUS_TXT[s]}</div>
-      ))}
+      <div className="row"><span className="v3-mk"/> Em desenvolvimento</div>
       <div className="note">Visível só no desenvolvimento privado. Sai quando o painel abrir para clientes.</div>
     </div>
   )
@@ -218,7 +224,7 @@ export default function App() {
                   <Ico size={15} strokeWidth={1.8}/>
                   <span className="lbl">{a.nome}</span>
                   {a.pro && <span className="pro">PRO</span>}
-                  <span className={`v3-mk ${a.status}`} title={STATUS_TXT[a.status]}/>
+                  {a.status !== 'pronto' && <span className="v3-mk" title={`Em desenvolvimento — ${STATUS_TXT[a.status]}`}/>}
                 </button>
               )
             })}
