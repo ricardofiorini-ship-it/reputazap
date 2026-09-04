@@ -1311,7 +1311,7 @@ export default function StarTouch({ user, onLogout }) {
                     <div style={{fontSize:11.5,color:"#475569",fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{directLink || "—"}</div>
                   </div>
                   <a href={directLink ? `${directLink}&preview=1` : "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
-                    style={{textDecoration:"none",background:"#eff6ff",color:"#00C49A",border:"1px solid #bfdbfe",borderRadius:9,padding:"7px 12px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none",flexShrink:0}}>
+                    style={{textDecoration:"none",background:"#eff6ff",color:"#1A73E8",border:"1px solid #bfdbfe",borderRadius:9,padding:"7px 12px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none",flexShrink:0}}>
                     <Smartphone size={12}/> Testar experiência
                   </a>
                 </div>
@@ -2178,7 +2178,7 @@ export default function StarTouch({ user, onLogout }) {
                     <div style={{fontSize:12,color:"#475569",fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{directLink || "—"}</div>
                   </div>
                   <a href={directLink ? `${directLink}&preview=1` : "#"} target="_blank" rel="noopener" onClick={e=>{if(!directLink)e.preventDefault();}}
-                    style={{textDecoration:"none",color:"#00C49A",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none",border:"1px solid #bfdbfe",background:"#eff6ff",flexShrink:0}}>
+                    style={{textDecoration:"none",color:"#1A73E8",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6,opacity:directLink?1:0.5,pointerEvents:directLink?"auto":"none",border:"1px solid #bfdbfe",background:"#eff6ff",flexShrink:0}}>
                     <Smartphone size={13}/> Testar experiência
                   </a>
                 </div>
