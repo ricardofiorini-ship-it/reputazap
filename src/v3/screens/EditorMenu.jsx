@@ -362,7 +362,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
 
   return (
     <>
-      <div className="v3-head">
+      <div className="v3-head v3-editor-head">
         <div>
           <button className="v3-btn ghost" onClick={onVoltar} style={{ marginBottom: 8 }}>
             <ArrowLeft size={13}/> Experiências
@@ -389,19 +389,12 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
 
       {erroGeral && !erros.length && <div className="v3-callout"><div><div className="t">{erroGeral}</div></div></div>}
 
-      {/* Quem nunca viu isto não tem por que adivinhar as duas etapas. Uma
-          frase no topo poupa a descoberta por tentativa. */}
-      <div className="v3-callout info">
-        <Info size={16} color="var(--blue-dk)" style={{ flex: 'none', marginTop: 1 }}/>
-        <div>
-          <div className="t">Como funciona</div>
-          <div className="s">
-            <b>1.</b> Monte as ações e veja a prévia à direita — o rascunho salva sozinho, e o botão
-            <b> Salvar rascunho</b> lá em cima confirma. <b>2.</b> Clique em <b>Publicar</b> — só então o
-            que você montou entra no ar. <b>3.</b> Ligue o menu nos dispositivos, lá embaixo.
-            Enquanto você não fizer os três, seus dispositivos continuam levando direto ao Google.
-          </div>
-        </div>
+      <div className="v3-editor-steps" aria-label="Etapas para colocar o menu no ar">
+        <div className="ativo"><span>1</span><div><b>Personalize</b><small>Conteúdo e ações</small></div></div>
+        <i>→</i>
+        <div><span>2</span><div><b>Publique</b><small>Confirme a versão</small></div></div>
+        <i>→</i>
+        <div><span>3</span><div><b>Escolha onde usar</b><small>Vincule dispositivos</small></div></div>
       </div>
 
       {/* Barra de estado: recusa com a lista, ou convite a publicar. */}
@@ -421,13 +414,13 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
       ) : naoPublicado ? (
         <div className="v3-barra rascunho">
           <span>
-            <b>Você tem alterações não publicadas.</b>{' '}
+            <b>Pronto para revisar.</b>{' '}
             {publicado ? 'Seus clientes continuam vendo a versão publicada.' : 'Este menu ainda não está no ar.'}
           </span>
           <span style={{ display: 'flex', gap: 8 }}>
             {publicado && <button className="v3-btn ghost" onClick={descartar}>Descartar</button>}
             <button className="v3-btn solid" onClick={publicar} disabled={publicando}>
-              {publicando ? 'Publicando…' : 'Publicar'}
+              {publicando ? 'Publicando…' : 'Publicar menu'}
             </button>
           </span>
         </div>

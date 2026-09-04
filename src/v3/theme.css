@@ -328,8 +328,30 @@ table.v3-t tr:last-child td { border-bottom: 0; }
 /* ============================================================
    EDITOR DO MENU INTELIGENTE
    ============================================================ */
-.v3-edcols { display: grid; grid-template-columns: 1fr 290px; gap: 14px; align-items: start; }
+.v3-edcols { display: grid; grid-template-columns: minmax(0,1fr) 290px; gap: 14px; align-items: start; min-width: 0; }
+.v3-edcols > * { min-width: 0; }
 @media (max-width: 1000px) { .v3-edcols { grid-template-columns: 1fr; } }
+.v3-editor-head { margin-bottom: 14px; padding-bottom: 15px; border-bottom: 1px solid var(--line2); }
+.v3-editor-head h1 { letter-spacing: -.025em; }
+.v3-editor-head .sub { display: inline-flex; margin-top: 4px; padding: 4px 8px; border-radius: 999px; background: var(--line2); color: var(--mid); font-size: 10.5px; }
+.v3-editor-steps { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: center; gap: 13px; margin-bottom: 12px; padding: 13px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surf); }
+.v3-editor-steps > div { display: flex; align-items: center; gap: 9px; color: var(--dim); }
+.v3-editor-steps > div > span { width: 27px; height: 27px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--line2); font-size: 10px; font-weight: 800; }
+.v3-editor-steps > div.ativo { color: var(--blue); }
+.v3-editor-steps > div.ativo > span { background: var(--blue); color: #fff; box-shadow: 0 0 0 4px var(--blue-soft); }
+.v3-editor-steps > div > div { display: flex; flex-direction: column; }
+.v3-editor-steps b { color: var(--ink); font-size: 11.5px; }
+.v3-editor-steps small { margin-top: 1px; font-size: 9.5px; }
+.v3-editor-steps > i { color: #B3BDCA; font-style: normal; }
+.v3-edcols > div:first-child > .v3-panel { margin-bottom: 12px; }
+.v3-edcols > aside, .v3-edcols > div:last-child { min-width: 0; }
+@media (max-width: 600px) {
+  .v3-editor-steps { gap: 6px; padding: 11px 9px; }
+  .v3-editor-steps > div { gap: 6px; }
+  .v3-editor-steps > div > span { width: 23px; height: 23px; }
+  .v3-editor-steps small, .v3-editor-steps > i { display: none; }
+  .v3-editor-steps b { font-size: 9.5px; line-height: 1.2; }
+}
 
 /* Barra de estado: rascunho, bloqueio ou publicado. Cor semântica, nunca enfeite. */
 .v3-barra {
@@ -367,7 +389,7 @@ table.v3-t tr:last-child td { border-bottom: 0; }
 .v3-editbox { border: 1px solid var(--blue); border-radius: 9px; padding: 12px 14px; margin: -3px 0 10px; background: var(--surf); }
 .v3-campo { display: block; margin-bottom: 10px; }
 .v3-campo .lb { display: block; font-size: 11.5px; color: var(--dim); margin-bottom: 4px; }
-.v3-campo input { width: 100%; font: inherit; font-size: 12.5px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--surf); color: var(--ink); }
+.v3-campo input { box-sizing: border-box; width: 100%; max-width: 100%; font: inherit; font-size: 12.5px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--surf); color: var(--ink); }
 .v3-campo.erro input { border-color: var(--red); }
 .v3-campo .msg { font-size: 11.5px; color: var(--red); margin-top: 4px; display: block; }
 .v3-dica { font-size: 11.5px; color: var(--dim); line-height: 1.5; margin: 0; }

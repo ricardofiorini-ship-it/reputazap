@@ -156,7 +156,37 @@ export default function Experiencia({ dados }) {
   if (estado.carregando) return <Carregando o="suas experiências"/>
   if (estado.erro) return <Erro mensagem={estado.erro} onTentar={carregar}/>
 
-  const { experiences = [], devices: devicesDaApi = [], tipos, limites, negocio } = estado.dados || {}
+  const { experiences: experiencesDaApi = [], devices: devicesDaApi = [], tipos, limites, negocio } = estado.dados || {}
+  const experienciaPreview = {
+    id: 'preview-menu', name: 'Menu principal', pendente: true,
+    draft: {
+      brand: { titulo: 'Café da Praça', subtitulo: 'Como podemos ajudar?' },
+      buttons: [
+        { id: 'pw', type: 'whatsapp', label: 'Falar no WhatsApp', enabled: true, value: { telefone: '(11) 99999-9999', mensagem: 'Olá!' } },
+        { id: 'ps', type: 'website', label: 'Ver produtos/serviços', enabled: true, value: { url: 'https://exemplo.com.br' } },
+        { id: 'po', type: 'custom_url', label: 'Pedir orçamento', enabled: true, value: { url: 'https://exemplo.com.br/orcamento' } },
+        { id: 'pi', type: 'instagram', label: 'Seguir no Instagram', enabled: true, value: { url: '@cafedapraca' } },
+        { id: 'pg', type: 'google', label: 'Avaliar no Google', enabled: true, value: {} }
+      ]
+    }
+  }
+  const experiences = dados.previewToques ? [experienciaPreview] : experiencesDaApi
+  // Catálogo de reserva, só para o modo prévia conseguir abrir o editor sem
+  // backend. Para o cliente real, `tipos` e `limites` sempre vêm da API
+  // (api/experiences.js devolve TIPOS e LIMITES em TODA resposta), então estas
+  // duas linhas nunca entram em ação — e o EditorMenu ainda se defende sozinho
+  // (`tipos || {}`, `limites?.botoes || 12`, com o mesmo 12 daqui).
+  //
+  // ⚠️ É uma CÓPIA de `TIPOS`, que mora em api/_lib/menu.js. Conferido em
+  // 04/09/2026: os 9 tipos batem. Tipo novo lá não aparece aqui, e a prévia
+  // passa a mostrar um menu desatualizado sem avisar ninguém — quem estiver
+  // desenhando em cima dela desenha para um produto que já mudou.
+  const tiposExibidos = tipos || {
+    whatsapp: { label: 'WhatsApp' }, website: { label: 'Site ou produtos' }, custom_url: { label: 'Link personalizado' },
+    instagram: { label: 'Instagram' }, google: { label: 'Avaliar no Google' }, food_menu: { label: 'Cardápio' },
+    phone: { label: 'Telefone' }, location: { label: 'Como chegar' }, contact: { label: 'Salvar contato' }
+  }
+  const limitesExibidos = limites || { botoes: 12 }
   // A prévia local não chama o backend de produção. Nela, reaproveita os
   // mesmos dispositivos fictícios da Home para que as telas não se
   // contradigam durante a revisão visual.
@@ -176,7 +206,7 @@ export default function Experiencia({ dados }) {
   if (aberta) {
     return (
       <EditorMenu
-        exp={aberta} tipos={tipos} limites={limites} experiencias={experiences}
+        exp={aberta} tipos={tiposExibidos} limites={limitesExibidos} experiencias={experiences}
         foto={dados.info?.photoUrl || null}
         dados={{
           info: dados.info, devices,
@@ -247,7 +277,7 @@ export default function Experiencia({ dados }) {
             </ul>
           </div>
           <footer>
-            <button className="v3-btn solid grande" onClick={dados.previewToques ? undefined : criar} disabled={criando}>
+            <button className="v3-btn solid grande" onClick={dados.previewToques ? () => abrir('preview-menu') : criar} disabled={criando}>
               <Plus size={15}/> {criando ? 'Criando…' : dados.previewToques ? 'Conhecer o Menu Inteligente' : ativas.length ? 'Criar outro menu' : 'Criar meu primeiro menu'}
             </button>
             {noMenu.length > 0 && (
