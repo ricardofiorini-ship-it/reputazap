@@ -178,9 +178,48 @@ async function handleVisitas(req, res) {
 
   const porDia = soma("dia").sort((a, b) => a.nome.localeCompare(b.nome));
 
+  // ── Taxa de aceite do banner de cookies ───────────────────
+  // Tabela separada e opcional: se o SQL não tiver sido rodado, o painel de
+  // visitas continua funcionando e o bloco de consentimento vem null. Um erro
+  // aqui não pode derrubar a régua de volume, que é a principal.
+  let consentimento = null;
+  const c = await supabase
+    .from("consent_hits")
+    .select("dia, evento, hits")
+    .gte("dia", desde)
+    .limit(50000);
+
+  if (c.error) {
+    const faltando = /relation|does not exist|schema cache/i.test(c.error.message || "");
+    consentimento = {
+      erro: faltando
+        ? "Rode supabase/schema-consentimento.sql uma vez pra começar a medir a taxa de aceite."
+        : c.error.message,
+    };
+  } else {
+    const e = {};
+    for (const r of c.data || []) e[r.evento] = (e[r.evento] || 0) + (r.hits || 0);
+    const carregamentos =
+      (e.sem_decisao || 0) + (e.com_analise || 0) + (e.sem_analise || 0);
+    const decidiram = (e.decidiu_aceitar || 0) + (e.decidiu_recusar || 0);
+    consentimento = {
+      carregamentos,
+      // A pergunta que originou tudo: quanto do site o GA4 consegue enxergar.
+      medidos_pelo_ga4: e.com_analise || 0,
+      pct_visivel_ga4: carregamentos ? Math.round(((e.com_analise || 0) / carregamentos) * 100) : 0,
+      banner_exibido: e.sem_decisao || 0,
+      decidiu_aceitar: e.decidiu_aceitar || 0,
+      decidiu_recusar: e.decidiu_recusar || 0,
+      // Quem viu o banner e não clicou em nada. Fica negado e o banner volta.
+      ignorou: Math.max(0, (e.sem_decisao || 0) - decidiram),
+      pct_aceite: decidiram ? Math.round(((e.decidiu_aceitar || 0) / decidiram) * 100) : null,
+    };
+  }
+
   return res.json({
     days,
     total,
+    consentimento,
     media_dia: porDia.length ? Math.round(total / porDia.length) : 0,
     dias_com_dado: porDia.length,
     por_dia: porDia,

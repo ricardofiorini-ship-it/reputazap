@@ -61,21 +61,9 @@
   //
   // Não roda na /avaliar (o `return` lá em cima já barrou) nem nas páginas
   // legais: quem abre uma política de privacidade não é contado por abri-la.
-  function contarVisita() {
+  function enviarCatraca(dados) {
     try {
-      var q = new URLSearchParams(location.search);
-      var ref = "";
-      try { ref = document.referrer ? new URL(document.referrer).hostname : ""; } catch (e) {}
-      var externo = ref && ref !== location.hostname;
-      var corpo = JSON.stringify({
-        path: location.pathname,
-        // Sem UTM, a origem é o site que mandou. O navegador interno do
-        // Instagram costuma não mandar referrer nenhum — esse caso cai em
-        // "(direto)" no servidor, e é uma limitação conhecida, não um bug.
-        source: q.get("utm_source") || (externo ? ref : ""),
-        medium: q.get("utm_medium") || (externo ? "referencia" : ""),
-        campaign: q.get("utm_campaign") || ""
-      });
+      var corpo = JSON.stringify(dados);
       if (navigator.sendBeacon) {
         navigator.sendBeacon("/api/visitas", new Blob([corpo], { type: "application/json" }));
       } else {
@@ -90,6 +78,34 @@
       /* a catraca nunca pode quebrar a página */
     }
   }
+
+  function contarVisita() {
+    try {
+      var q = new URLSearchParams(location.search);
+      var ref = "";
+      try { ref = document.referrer ? new URL(document.referrer).hostname : ""; } catch (e) {}
+      var externo = ref && ref !== location.hostname;
+      enviarCatraca({
+        path: location.pathname,
+        // Sem UTM, a origem é o site que mandou. O navegador interno do
+        // Instagram costuma não mandar referrer nenhum — esse caso cai em
+        // "(direto)" no servidor, e é uma limitação conhecida, não um bug.
+        source: q.get("utm_source") || (externo ? ref : ""),
+        medium: q.get("utm_medium") || (externo ? "referencia" : ""),
+        campaign: q.get("utm_campaign") || ""
+      });
+    } catch (e) { /* idem */ }
+  }
+
+  // Contador da DECISÃO sobre cookies. Mesma natureza da catraca: conta
+  // quantas vezes cada botão foi apertado, sem saber por quem. Serve pra
+  // responder a única pergunta acionável que sobrou sobre o GA4 — "quanto do
+  // site ele consegue enxergar, e vale mexer no banner pra melhorar isso?".
+  // Ver supabase/schema-consentimento.sql.
+  function contarConsentimento(evento) {
+    enviarCatraca({ tipo: "consentimento", evento: evento });
+  }
+
   if (!SO_PREFS) contarVisita();
 
   // ── Estado salvo ────────────────────────────────────────────
@@ -173,6 +189,15 @@
   var salvo = ler();
   if (salvo) aplicar(salvo);
 
+  // Um evento por carregamento, dizendo se o GA4 PODE medir esta página agora.
+  // É o denominador honesto: "de cada 100 páginas abertas, o GA4 enxergou X".
+  // Esse percentual tem que bater, grosso modo, com a razão entre as páginas
+  // vistas no GA4 e as contadas pela catraca — duas medições independentes do
+  // mesmo número. Se um dia divergirem muito, uma das duas está mentindo.
+  if (!SO_PREFS) {
+    contarConsentimento(salvo ? (salvo.analise ? "com_analise" : "sem_analise") : "sem_decisao");
+  }
+
   // ── Interface ───────────────────────────────────────────────
   var CSS =
     '.stc-backdrop{position:fixed;inset:0;background:rgba(32,33,36,.45);z-index:2147483646;}' +
@@ -218,6 +243,11 @@
   function decidir(analise, publicidade) {
     var estado = { analise: analise, publicidade: publicidade, em: new Date().toISOString() };
     salvar(estado); aplicar(estado);
+    // Só nas páginas com banner. Nas páginas legais o `decidir` também roda
+    // (pelo link de preferências no rodapé), e contar aquilo aqui misturaria
+    // "mudou de ideia depois" com "converteu o banner" — duas coisas
+    // diferentes, e a segunda é a que se quer medir.
+    if (!SO_PREFS) contarConsentimento(analise ? "decidiu_aceitar" : "decidiu_recusar");
     remover("stc-banner"); remover("stc-modal"); remover("stc-backdrop");
   }
 

@@ -76,6 +76,19 @@ function origemOk(req) {
   return (o ? ORIGENS.has(o) : false) || (r ? ORIGENS.has(r) : false);
 }
 
+// Eventos aceitos pelo contador de consentimento. Allowlist fechada: o que
+// não estiver aqui é descartado. Sem isso, uma chamada forjada criaria linha
+// nova na tabela a cada valor inventado.
+//   No carregamento (exatamente um por página aberta):
+//     sem_decisao  — o banner apareceu; o GA4 está negado agora
+//     com_analise  — ja havia aceite salvo; o GA4 PODE medir este carregamento
+//     sem_analise  — ja havia recusa salva
+//   No clique:
+//     decidiu_aceitar / decidiu_recusar
+const EVENTOS = new Set([
+  "sem_decisao", "com_analise", "sem_analise", "decidiu_aceitar", "decidiu_recusar",
+]);
+
 // Cada campo é normalizado com teto de tamanho e alfabeto fechado. Sem isso,
 // um valor forjado de 10 KB viraria uma linha nova na tabela por chamada — a
 // cardinalidade é o que pode estragar esta tabela, não o volume.
@@ -115,6 +128,13 @@ export default async function handler(req, res) {
   // seguinte e o gráfico fica torto justamente no horário de pico.
   const dia = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
+  // Dois contadores, um endpoint. O nome em português já passa pelas listas
+  // de bloqueio de anúncio; abrir um segundo caminho só daria mais superfície
+  // pra alguma delas casar — e aí um dos dois nasceria com viés invisível,
+  // que é exatamente o defeito do GA4 que motivou tudo isto.
+  const consentimento = body.tipo === "consentimento";
+  if (consentimento && !EVENTOS.has(body.evento)) return res.status(204).end();
+
   try {
     // ⚠️ O supabase-js NÃO lança exceção quando o banco recusa: ele DEVOLVE
     // { error }. Um try/catch sozinho aqui não pegaria nada — a chamada
@@ -123,13 +143,15 @@ export default async function handler(req, res) {
     // deste projeto (ver Princípios no CLAUDE.md), e ele morde justamente a
     // régua criada porque o GA4 já falha calado. Por isso o { error } é
     // conferido, e não ignorado.
-    const { error } = await supabase.rpc("registrar_visita", {
-      p_dia:      dia,
-      p_path:     limparPath(body.path),
-      p_source:   limpar(body.source,   60, "(direto)"),
-      p_medium:   limpar(body.medium,   60, "(nenhum)"),
-      p_campaign: limpar(body.campaign, 80, "(nenhuma)"),
-    });
+    const { error } = consentimento
+      ? await supabase.rpc("registrar_consentimento", { p_dia: dia, p_evento: body.evento })
+      : await supabase.rpc("registrar_visita", {
+          p_dia:      dia,
+          p_path:     limparPath(body.path),
+          p_source:   limpar(body.source,   60, "(direto)"),
+          p_medium:   limpar(body.medium,   60, "(nenhum)"),
+          p_campaign: limpar(body.campaign, 80, "(nenhuma)"),
+        });
     if (error && !handler._avisou) {
       // Uma vez por instância: sem o freio, uma tabela ausente viraria uma
       // linha de log por visita.

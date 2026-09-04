@@ -172,6 +172,43 @@ function barras(lista, unidade){
   </div>`).join("") || `<div class="state" style="padding:18px;">Sem ${unidade} neste período.</div>`;
 }
 
+// Card da taxa de aceite. Responde a pergunta que decide se vale reescrever
+// o banner — e, de brinde, valida a propria catraca: o "% que o GA4 enxerga"
+// tem que bater com a razao entre as paginas vistas no GA4 e as contadas aqui.
+function cardConsentimento(c){
+  if(!c) return "";
+  if(c.erro) return `<div class="card"><h2>Aceite de cookies</h2>
+    <p class="hint" style="margin:0;">${esc(c.erro)}</p></div>`;
+  if(!c.carregamentos) return `<div class="card"><h2>Aceite de cookies</h2>
+    <p class="hint" style="margin:0;">Ainda sem carregamento medido neste período.</p></div>`;
+
+  const decidiram = c.decidiu_aceitar + c.decidiu_recusar;
+  const veredito = c.pct_aceite == null
+    ? "Ninguém clicou no banner ainda — sem base pra dizer se vale reescrevê-lo."
+    : (c.pct_aceite >= 60
+        ? "O aceite já é alto. Reescrever o banner renderia pouco — o GA4 é magro porque o site é pequeno demais pra a modelagem do Google ligar, não por causa do texto."
+        : "O aceite é baixo. Aqui o texto do banner, o momento em que ele aparece e o layout viram alavanca de verdade — dentro da lei, sem esconder o \"Recusar\".");
+
+  return `<div class="card">
+    <h2>Aceite de cookies</h2>
+    <p class="hint">Quanto do site o GA4 consegue enxergar, e se o banner é o gargalo.</p>
+    <div class="headline" style="margin:0 0 14px;">
+      <div class="big">${c.pct_visivel_ga4}%</div>
+      <div class="cap">dos carregamentos o GA4 pôde medir — <b>${num(c.medidos_pelo_ga4)}</b> de <b>${num(c.carregamentos)}</b></div>
+    </div>
+    ${barras([
+      { nome: "Aceitou análise", hits: c.decidiu_aceitar, pct: decidiram ? Math.round(c.decidiu_aceitar/decidiram*100) : 0 },
+      { nome: "Recusou", hits: c.decidiu_recusar, pct: decidiram ? Math.round(c.decidiu_recusar/decidiram*100) : 0 },
+      { nome: "Viu e ignorou", hits: c.ignorou, pct: c.banner_exibido ? Math.round(c.ignorou/c.banner_exibido*100) : 0 }
+    ], "decisão")}
+    <p class="hint" style="margin:12px 0 0;"><b>${veredito}</b></p>
+    <p class="hint" style="margin:6px 0 0;">
+      "Viu e ignorou" fica negado e o banner volta na visita seguinte — é o comportamento correto sob a LGPD, não um erro.
+      Os percentuais de aceite e recusa são sobre quem <b>clicou</b>; o de ignorou é sobre quem <b>viu o banner</b>.
+    </p>
+  </div>`;
+}
+
 function render(d){
   if(!d.total){
     $("content").innerHTML = `<div class="aviso">
@@ -207,6 +244,8 @@ function render(d){
       <div class="bars">${dias.map(x => `<div style="height:${Math.max(2, Math.round(x.hits/maxDia*100))}%" title="${esc(x.nome)}: ${num(x.hits)}"></div>`).join("")}</div>
       <div class="bars-x"><span>${primeiro}</span><span>${ultimo}</span></div>
     </div>
+
+    ${cardConsentimento(d.consentimento)}
 
     <div class="card">
       <h2>De onde vieram</h2>

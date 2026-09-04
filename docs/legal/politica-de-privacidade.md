@@ -1,6 +1,6 @@
 # Política de Privacidade — StarTouch
 
-**Versão 1.1 — vigente a partir de 2 de setembro de 2026**
+**Versão 1.2 — vigente a partir de 4 de setembro de 2026**
 
 ---
 
@@ -159,6 +159,8 @@ Mantemos um contador do número de páginas abertas por dia, separado por endere
 
 **Não guardamos uma linha por pessoa.** Cada registro é apenas um número — "no dia 2 de setembro, a página inicial foi aberta 37 vezes por quem veio do Instagram". Não armazenamos endereço IP, tipo de aparelho ou navegador, cookie, identificador de navegação nem o horário exato do acesso. Não é possível, nem para nós, separar uma visita das outras dentro desse número, nem saber se duas visitas vieram da mesma pessoa.
 
+Pelo mesmo método e com a mesma natureza, contamos **quantas vezes cada opção do aviso de cookies foi escolhida** — quantos aceites, quantas recusas e quantas vezes o aviso foi exibido sem que ninguém clicasse. Também aqui o registro é só um número por dia; não sabemos, e não temos como saber, qual foi a decisão de uma pessoa específica. Essa contagem existe para sabermos que proporção do site as ferramentas de análise conseguem medir e se o aviso precisa ser melhorado.
+
 Por não conter informação relacionada a pessoa identificada ou identificável, essa contagem não constitui dado pessoal nos termos do Art. 5º, I da LGPD — motivo pelo qual ela não depende de consentimento e não é afetada pela sua escolha no aviso de cookies. Ela existe porque precisamos saber quanta gente visita o site, e as ferramentas de análise que dependem de consentimento não conseguem responder isso.
 
 Essa contagem **não é feita** na página de avaliação (`/avaliar`), pelos motivos explicados na seção 4, **nem nesta página** ou em qualquer outro documento legal: quem abre uma política de privacidade não é contado por abri-la.
@@ -213,7 +215,7 @@ Nenhum sistema é imune a incidentes. Caso ocorra incidente de segurança com ri
 | Registro de e-mails enviados | 12 meses |
 | Leads que não se tornaram clientes | 24 meses a partir do cadastro |
 | Registro de toques nos dispositivos | Indefinidamente — não contém dado pessoal |
-| Contagem agregada de visitas ao site (seção 6.5) | Indefinidamente — é um contador, não contém dado pessoal |
+| Contagem agregada de visitas e de escolhas no aviso de cookies (seção 6.5) | Indefinidamente — são contadores, não contêm dado pessoal |
 | Cache de avaliações do Google | Até 30 dias, limite estabelecido pelos termos da API do Google. Na prática, o conteúdo é renovado a cada poucas horas e o registro é eliminado por rotina automática de expurgo |
 | Registros de proteção contra abuso (IP) | 30 dias |
 | Identificador de navegação | 12 meses |
@@ -267,6 +269,7 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 |---|---|---|
 | 1.0 | 22/08/2026 | Versão inicial |
 | 1.1 | 02/09/2026 | Inclusão da seção 6.5 (contagem agregada de visitas) e da linha correspondente na seção 9. Alteração meramente declaratória: não reduz direitos nem amplia finalidades de tratamento de dados pessoais, razão pela qual entra em vigor imediatamente |
+| 1.2 | 04/09/2026 | A seção 6.5 passa a declarar também a contagem agregada das escolhas feitas no aviso de cookies. Mesma natureza e mesma ressalva da versão anterior: são contadores, sem dado pessoal |
 
 ---
 
