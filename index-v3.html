@@ -2,12 +2,36 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <!-- Consentimento de cookies + Google Consent Mode v2.
-         O /consent.js e quem carrega o GA4 e o Meta Pixel, nesta ordem:
-         `consent default denied` ANTES de qualquer tag subir. Nao trocar
-         por tag direta -- a ordem e o que faz o consentimento valer.
-         O V3 nasceu sem esta linha (29/08) porque foi copiado dos shells
-         que ja estavam sem ela. Ver o comentario do index-v2. -->
+    <!-- ⚠️ NAO REMOVA NEM MOVA A LINHA ABAIXO EM MUDANCA DE LAYOUT. ⚠️
+         Se voce esta reescrevendo este <head>, leia estes 4 pontos antes:
+
+         1. O /consent.js e quem carrega o GA4 e o Meta Pixel, nesta ordem:
+            `consent default denied` ANTES de qualquer tag subir. Trocar por
+            tag direta (script do Google ou da Meta colado aqui no <head>)
+            burla o Consent Mode: a primeira medicao sai com cookie sem
+            consentimento -- problema legal, nao de codigo.
+            (Nao escreva o dominio dessas tags nem em comentario: a sonda do
+            item 4 casa texto cru e nao sabe o que e comentario. E de
+            proposito -- tag comentada hoje e tag descomentada amanha.)
+
+         2. Ele tambem carrega a CONTAGEM DE VISITAS do site (a "catraca",
+            POST /api/visitas). Some com esta linha e o /admin/visitas passa
+            a mostrar zero -- que parece queda de trafego, nao defeito.
+            Isso e novo (02-04/09/2026) e nao existia quando os outros
+            shells foram comentados.
+
+         3. Tem que aparecer EXATAMENTE UMA VEZ. Duas contam cada visita em
+            dobro, no GA4 e na catraca.
+
+         4. `npm run build` BARRA o deploy se qualquer um dos tres acima
+            quebrar (scripts/check-tracking.mjs). Se o build falhar com
+            [check-tracking], a mensagem diz o que fazer -- nao contorne a
+            checagem, conserte a pagina.
+
+         Historico: o V3 nasceu SEM esta linha (29/08), copiado de shells que
+         ja estavam sem ela, e /app + /app-legacy ficaram 10 dias sem medicao
+         nenhuma -- calados, porque os gtag() sao todos `if (window.gtag)`.
+         Foi essa mordida que criou a guarda do item 4. -->
     <script src="/consent.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StarTouch — Painel V3</title>
