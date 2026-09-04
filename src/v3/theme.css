@@ -520,6 +520,17 @@ table.v3-t tr:last-child td { border-bottom: 0; }
 .v3-mini .mbt .mac { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 7px; color: #1476E8; background: #E8F2FF; font-size: 8px; font-weight: 700; }
 .v3-mini .mbt:nth-of-type(even) .mac { color: #108A70; background: #E4F8F1; }
 .v3-mini .mbt .seta { color: #9AA8B7; font-size: 15px; }
+/* Sugestao na previa do menu: e proposta, nao item ativo. Tracejada, apagada
+   e sem a cor alternada dos reais -- o contraste com os botoes de cima e o
+   que faz o lojista entender, em um olhar, o que ja e dele e o que falta.
+   Nao "limpar" isto deixando igual aos reais: a previa passaria a mostrar
+   como no ar coisas que ele nunca criou. */
+.v3-mini .mbt.sugestao { background: transparent; border-style: dashed; border-color: #C9D8EA; opacity: .62; }
+.v3-mini .mbt.sugestao b { font-weight: 500; color: #5A6B7D; }
+.v3-mini .mbt.sugestao .mac,
+.v3-mini .mbt.sugestao:nth-of-type(even) .mac { background: #EDF3FA; color: #8AA0B8; }
+.v3-mini .mlegenda { font-size: 7.5px; color: #8593A3; text-align: center; margin: 2px 0 0; line-height: 1.3; }
+
 .v3-mini .mcustom { height: 22px; display: flex; align-items: center; justify-content: center; gap: 3px; border: 1px dashed #A9C8ED; border-radius: 7px; color: #1476E8; font-size: 8px; font-weight: 650; margin-top: 8px; }
 .v3-mini .mrodape { text-align: center; color: #9AA8B7; font-size: 7px; margin-top: 7px; letter-spacing: .02em; }
 .v3-mini .mrodape strong { color: #66809C; font-size: 7px; }

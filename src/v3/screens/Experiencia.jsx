@@ -60,16 +60,41 @@ function FoneGoogle({ nome }) {
   )
 }
 
-// O que o menu mostra. Usa o menu real do lojista quando já existe: melhor ele
-// se ver na tela do que ver o exemplo de outro negócio.
+// Sugestões que completam a prévia. Ordem = poder de convencimento, não
+// alfabeto: WhatsApp e cardápio são os que fazem o lojista entender na hora
+// para que serve o menu. Os `type` saem de TIPOS (api/_lib/menu.js) — nenhum
+// é inventado, todos podem mesmo ser criados no editor.
+const SUGESTOES = [
+  { type: 'whatsapp',   label: 'Falar no WhatsApp' },
+  { type: 'food_menu',  label: 'Ver o cardápio' },
+  { type: 'website',    label: 'Ver produtos e serviços' },
+  { type: 'instagram',  label: 'Seguir no Instagram' },
+  { type: 'custom_url', label: 'Pedir um orçamento' },
+  { type: 'location',   label: 'Como chegar' },
+  { type: 'phone',      label: 'Ligar agora' },
+  { type: 'contact',    label: 'Salvar contato' },
+  { type: 'google',     label: 'Avaliar no Google' }
+]
+
+// O que o menu mostra. Usa o menu real do lojista quando já existe — melhor
+// ele se ver na tela do que ver o exemplo de outro negócio — e COMPLETA o que
+// falta com sugestões apagadas.
+//
+// O motivo é comercial: quem tem um menu de dois botões via uma prévia com
+// dois botões, e a tela que deveria vender o Menu Inteligente vendia pouco.
+// Mostrando os dele em cima e o que caberia embaixo, ele entende o tamanho do
+// que está deixando na mesa — sem a gente esconder o que é dele.
+//
+// A honestidade é o que separa isto de propaganda enganosa, e ela está em
+// três lugares: as sugestões vão apagadas e tracejadas, levam "+" no lugar do
+// número, e há uma legenda dizendo que são sugestões. Ninguém pode achar que
+// já estão no ar. Se um dia isso for "limpado" no visual, some a legenda e a
+// prévia passa a mentir.
 function FoneMenu({ titulo, subtitulo, acoes }) {
-  const lista = acoes?.length ? acoes : [
-    { id: 1, type: 'whatsapp', label: 'Falar no WhatsApp' },
-    { id: 2, type: 'website', label: 'Ver produtos/serviços' },
-    { id: 3, type: 'custom_url', label: 'Pedir orçamento' },
-    { id: 4, type: 'instagram', label: 'Seguir no Instagram' },
-    { id: 5, type: 'google', label: 'Avaliar no Google' }
-  ]
+  const reais = (acoes || []).slice(0, 5)
+  const usados = new Set(reais.map(a => a.type))
+  const sugestoes = SUGESTOES.filter(s => !usados.has(s.type)).slice(0, 5 - reais.length)
+
   return (
     <div className="v3-mini menu-phone" aria-label="Prévia do Menu Inteligente">
       <div className="phone-bar"><span>9:41</span><i/><span>● ◒</span></div>
@@ -77,10 +102,25 @@ function FoneMenu({ titulo, subtitulo, acoes }) {
         <div className="mavatar">{(titulo || 'S').trim().charAt(0).toUpperCase()}</div>
         <div className="mtopo">{titulo || 'Seu negócio'}</div>
         <div className="msub">{subtitulo || 'Como podemos ajudar?'}</div>
-        {lista.slice(0, 5).map((a, i) => (
+
+        {reais.map((a, i) => (
           <div className="mbt" key={a.id || i}><span className={`mac ${a.type || 'link'}`}>{i + 1}</span>
             <b>{a.label || ROTULO_ACAO[a.type] || 'Ação'}</b><span className="seta">›</span></div>
         ))}
+
+        {sugestoes.map(s => (
+          <div className="mbt sugestao" key={`s-${s.type}`}>
+            <span className="mac"><Plus size={9}/></span>
+            <b>{s.label}</b><span className="seta">›</span>
+          </div>
+        ))}
+
+        {sugestoes.length > 0 && (
+          <div className="mlegenda">
+            {reais.length ? 'Sugestões: dá pra adicionar estes também' : 'Exemplos do que você pode colocar aqui'}
+          </div>
+        )}
+
         <div className="mcustom"><Plus size={9}/> Adicione qualquer link</div>
         <div className="mrodape">Criado com <strong>STARTOUCH</strong></div>
       </div>
