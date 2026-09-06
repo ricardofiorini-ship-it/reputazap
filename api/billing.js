@@ -1509,14 +1509,41 @@ export default async function handler(req, res) {
         placeId = sb?.results?.[0]?.place_id;
         if (!placeId) return res.status(404).json({ ok: false, error: `Nenhum negócio encontrado pra "${q}". Tente um nome mais específico ou passe ?place_id=.` });
       }
-      // Em paralelo: reviews (nota/total/reviews), bizinfo (perfil p/ Score) e
-      // diagnostico (posição p/ Score). bizinfo/diagnostico podem falhar sem
-      // derrubar o email (Score só perde precisão).
-      const [rv, bi, diag] = await Promise.all([
+      // MESMO CAMINHO DO CRON, e isso e o ponto deste endpoint — corrigido em
+      // 06/09/2026. Antes daqui saiam DOIS defeitos que se escondiam um no
+      // outro:
+      //
+      //   1. chamava `/api/diagnostico`, a ARENA VELHA, que dispara medicao
+      //      PAGA ao Google — e o resultado ia pra `total:`/`pos:`, parametros
+      //      que deixaram de existir em `emailScore` quando a formula foi
+      //      unificada em 02/ago. Ou seja: gastava no Google e jogava fora.
+      //   2. sem posicao chegando, o Score do teste caia no "meio termo" e
+      //      produzia um numero que o envio real de domingo nunca produziria.
+      //
+      // Um teste que nao percorre o caminho do real e pior que nenhum teste:
+      // ele passa confianca. Agora le o MESMO cache da grade que o
+      // weekly-digest le, com a mesma regra de validade — e, como o cron,
+      // NUNCA dispara medicao nova: sem cache fresco, o email simplesmente nao
+      // fala de posicao, em vez de inventar (ou de comprar) um numero.
+      const [rv, bi, gridRow] = await Promise.all([
         fetch(`${origin}/api/reviews?place_id=${encodeURIComponent(placeId)}`).then((r) => r.json()).catch(() => ({})),
         fetch(`${origin}/api/bizinfo?place_id=${encodeURIComponent(placeId)}`).then((r) => r.json()).catch(() => ({})),
-        fetch(`${origin}/api/diagnostico?place_id=${encodeURIComponent(placeId)}`).then((r) => r.json()).catch(() => ({})),
+        supabase.from("ranking_grid_cache")
+          .select("result, created_at")
+          .eq("place_id", placeId)
+          .order("created_at", { ascending: false })
+          .limit(1).maybeSingle()
+          .then((r) => {
+            if (r.error || !r.data) return null;
+            if (Date.now() - new Date(r.data.created_at).getTime() > 7 * 24 * 3600 * 1000) return null;
+            return r.data.result || null;
+          })
+          .catch(() => null),
       ]);
+      const gridAvg = (gridRow && gridRow.coverage > 0 && gridRow.score != null) ? gridRow.score : null;
+      const gridSemCobertura = !!(gridRow && gridRow.measured > 0 && gridRow.coverage === 0);
+      const gridCobertura = gridRow?.coverage ?? null;
+      const gridMedidos = gridRow?.measured ?? null;
       if (!rv || (!rv.name && !rv.rating)) {
         return res.status(404).json({ ok: false, error: "Não consegui dados desse place_id no Google. Confira o place_id." });
       }
@@ -1529,8 +1556,7 @@ export default async function handler(req, res) {
       const score = emailScore({
         rating: rv.rating ?? bi.rating,
         reviews: totalReviews,
-        total: diag.total,
-        pos: diag.rank,
+        gridAvg, gridSemCobertura, gridCobertura, gridMedidos,
         photo: bi.photoUrl,
         phone: bi.phone,
         category: bi.category,
@@ -1556,6 +1582,14 @@ export default async function handler(req, res) {
         ok: r.ok,
         http_status: r.status,
         sent_to: to,
+        // `grid` DECLARA de onde veio a posicao. Sem isto, cache vazio faria o
+        // Score sair mais baixo (o fator posicao cai no meio termo) e o teste
+        // nao teria como distinguir "a posicao entrou na conta" de "nao havia
+        // medicao" — que e a diferenca entre conferir o e-mail e ser enganado
+        // por ele.
+        grid: gridRow
+          ? { fonte: "cache", coverage: gridCobertura, measured: gridMedidos, score: gridRow.score ?? null }
+          : { fonte: "sem cache fresco", aviso: "o Score deste teste nao inclui posicao — o envio real inclui, se houver medicao dos ultimos 7 dias" },
         preview_data: { biz: rv.name, rating: rv.rating, total: totalReviews, new_this_week: newThisWeek, reviews_returned: reviews.length, score: score.score, score_missing: score.missing, milestone: nextMilestone(totalReviews), article: latestArticle()?.title },
         resend_response: body,
         hint: r.ok ? "Email enviado. Confira a caixa (e o spam)." : "Resend recusou — veja resend_response."
