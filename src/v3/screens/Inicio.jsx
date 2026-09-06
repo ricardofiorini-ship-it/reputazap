@@ -1,5 +1,15 @@
 // ============================================================
-// StarTouch V3 — Início ("Meu negócio hoje")
+// StarTouch V3 — Início ("Sua presença online")
+//
+// O título era "Meu negócio hoje / Acompanhe o desempenho dos últimos 7 dias".
+// Saiu em 06/09/2026 por três motivos: "hoje" não era verdade (nem os KPIs de
+// 7 dias, nem a presença do topo, que é estado acumulado); "desempenho dos
+// últimos 7 dias" virou falso quando o topo de presença entrou; e as duas
+// frases pressupunham cliente operando — para quem ainda espera o cartão
+// chegar não há desempenho nenhum a acompanhar.
+//
+// "Sua presença online" é a MESMA promessa do botão da landing ("Ver minha
+// presença grátis"). Quem clica lá chega aqui e lê a mesma coisa.
 // Ordem aprovada: recomenda → KPIs → caminho → reputação → dispositivos.
 // Ausência de medição nunca é convertida em zero.
 // ============================================================
@@ -131,8 +141,8 @@ export default function Inicio({ dados, ir }) {
 
   return (
     <div className="v3-home">
-      <Head oi={primeiroNome ? `Olá, ${primeiroNome}` : 'Olá'} titulo="Meu negócio hoje"
-        sub="Acompanhe o desempenho dos últimos 7 dias">
+      <Head oi={primeiroNome ? `Olá, ${primeiroNome}` : 'Olá'} titulo="Sua presença online"
+        sub="Como seu negócio aparece para quem procura na sua região">
         <div className="v3-picker" title={biz?.name}>{biz?.name}</div>
         <div className="v3-picker">Últimos 7 dias</div>
       </Head>
