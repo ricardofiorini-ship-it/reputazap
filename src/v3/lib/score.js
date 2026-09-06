@@ -106,7 +106,12 @@ export function maiorLacuna(calc, { avaliacoes, info, posicao } = {}) {
     },
     {
       chave: 'volume', falta: PESOS.volume - calc.volPts,
-      frase: `o número de avaliações: você tem ${reviews.toLocaleString('pt-BR')}, e a pontuação máxima considera 100`
+      // "a pontuacao maxima considera 100" descrevia o calculo certo (o fator
+      // satura em VOLUME_CHEIO = 100) mas sugeria que passar de 100 nao serve
+      // pra nada — e serve: avaliacao nao tem teto na vida real, e mais
+      // avaliacoes melhoram a POSICAO, que e outro fator deste mesmo Score.
+      // O teto e do nosso criterio, nao do negocio do cliente.
+      frase: `o número de avaliações: você tem ${reviews.toLocaleString('pt-BR')}, e neste cálculo a pontuação fica cheia a partir de 100`
     },
     {
       chave: 'posicao', falta: PESOS.posicao - calc.posPts,

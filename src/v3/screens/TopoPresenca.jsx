@@ -71,35 +71,46 @@ function destaqueDaColocacao(coloc) {
   const abaixo = Math.max(0, coloc.aparece - (coloc.top3 || 0))
   const ausente = Math.max(0, coloc.medidos - coloc.aparece)
   const demais = []
-  if (abaixo) demais.push(`em ${abaixo} você aparece abaixo do terceiro`)
-  if (ausente) demais.push(`em ${ausente} você não aparece`)
+  if (abaixo) demais.push(`em ${abaixo} ele aparece abaixo do terceiro`)
+  if (ausente) demais.push(`em ${ausente} não aparece`)
 
+  // A busca medida entra DENTRO da frase, não como um aposto no fim. Ela é
+  // metade do sentido: "entre os 3 primeiros" não quer dizer nada sem dizer
+  // 3 primeiros em quê.
+  const busca = coloc.termo
+    ? <> para a busca “<strong>{coloc.termo}</strong>”</>
+    : <> para a sua categoria</>
+  const onde = <>pontos analisados ao redor do seu endereço{busca}</>
+
+  if (coloc.foraDeTudo) {
+    return {
+      titulo: 'Fora da lista',
+      sub: <>Seu negócio <strong>não apareceu</strong> em nenhum dos {coloc.medidos} {onde}.</>
+    }
+  }
   // Sem a lista de pontos não se sabe o top 3 — e o destaque não pode afirmar
   // nada sobre ele. Cai na cobertura, que é o que de fato se sabe.
   if (coloc.top3 == null) {
     return {
       titulo: <>{coloc.aparece} <small>de {coloc.medidos} lugares</small></>,
-      sub: <>Você aparece em {coloc.aparece} dos {coloc.medidos} pontos medidos ao redor do seu endereço.</>
+      sub: <>Seu negócio aparece em {coloc.aparece} dos {coloc.medidos} {onde}.</>
     }
   }
   if (coloc.top3 === coloc.medidos) {
     return {
       titulo: 'No topo em toda a região',
-      sub: <>Você está entre os <strong>3 primeiros</strong> nos {coloc.medidos} pontos medidos
-        ao redor do seu endereço. É o melhor resultado possível nesta medição.</>
+      sub: <>Seu negócio está <strong>entre os 3 primeiros</strong> nos {coloc.medidos} {onde}.</>
     }
   }
   if (coloc.top3 > 0) {
     return {
       titulo: <>Top 3 em {coloc.top3} <small>de {coloc.medidos} lugares</small></>,
-      sub: <>Nos demais, {demais.join(' e ')} — e é nos três primeiros que as pessoas olham.</>
+      sub: <>Seu negócio está <strong>entre os 3 primeiros</strong> em {coloc.top3} dos {coloc.medidos} {onde}. Nos demais, {demais.join(' e ')}.</>
     }
   }
   return {
     titulo: 'Fora do top 3',
-    sub: <>Você aparece em {coloc.aparece} dos {coloc.medidos} pontos medidos, mas
-      em <strong>nenhum deles</strong> está entre os 3 primeiros — e é nos três primeiros
-      que as pessoas olham.</>
+    sub: <>Seu negócio aparece em {coloc.aparece} dos {coloc.medidos} {onde}, mas <strong>em nenhum deles entre os 3 primeiros</strong>.</>
   }
 }
 
@@ -128,7 +139,7 @@ export default function TopoPresenca({ dados, ir }) {
   const pontos = (posicao?.points || []).filter(p => p.ok)
   // Uma vez só: chamar de novo na hora de desenhar refaria a conta e abriria
   // espaço pra título e detalhe descreverem estados diferentes.
-  const destaque = coloc && !coloc.foraDeTudo ? destaqueDaColocacao(coloc) : null
+  const destaque = coloc ? destaqueDaColocacao(coloc) : null
 
   // O veredito sai da MESMA faixa que pinta o anel — se cada um tivesse sua
   // régua, um dia a cor diria uma coisa e a frase diria outra.
@@ -186,41 +197,30 @@ export default function TopoPresenca({ dados, ir }) {
           <div className="na">
             Ainda não medimos sua posição. Assim que a medição rodar, ela aparece aqui.
           </div>
-        ) : coloc.foraDeTudo ? (
-          <>
-            <div className="grande">Fora da lista</div>
-            <div className="sub">
-              Testamos <strong>{coloc.medidos} pontos</strong> ao redor do seu endereço e você não
-              apareceu em nenhum deles para quem busca{coloc.termo ? <> “<strong>{coloc.termo}</strong>”</> : ' pela sua categoria'}.
-            </div>
-            <div className="pontos">
-              {Array.from({ length: coloc.medidos }).map((_, i) => <i key={i}/>)}
-            </div>
-          </>
         ) : (
           <>
             <div className={'grande' + (typeof destaque.titulo === 'string' ? ' frase' : '')}>{destaque.titulo}</div>
-            <div className="sub">
-              {destaque.sub}
-              {coloc.termo && <> Medido para quem busca “<strong>{coloc.termo}</strong>”.</>}
-            </div>
-            {/* Uma barra por ponto medido ao redor do endereço. Verde = está
+            <div className="sub">{destaque.sub}</div>
+            {/* Uma barra por ponto analisado ao redor do endereço. Verde = está
                 entre os 3 primeiros ali; azul = aparece, mas abaixo do terceiro;
                 vazia = não apareceu naquele ponto. `rank` nulo é ausência, e
                 ausência não pode ser pintada como presença. */}
             <div className="pontos">
-              {pontos.map((p, i) => (
-                <i key={i} className={p.rank == null ? '' : (p.rank <= 3 ? 'top' : 'ok')}/>
-              ))}
+              {(pontos.length ? pontos : Array.from({ length: coloc.medidos }, () => ({ rank: null })))
+                .map((p, i) => (
+                  <i key={i} className={p.rank == null ? '' : (p.rank <= 3 ? 'top' : 'ok')}/>
+                ))}
             </div>
           </>
         )}
 
         <p className="nota">
-          O Google não mostra a mesma lista para todo mundo: ela muda conforme o lugar de onde a
-          pessoa procura. Por isso medimos em vários pontos ao redor do seu endereço, e não em um só.
-          {coloc?.medidoEm && <> Medido em {dataBr(coloc.medidoEm)}.</>}
+          Como os resultados do Google variam conforme a localização de quem pesquisa, medimos
+          vários pontos da região para representar melhor sua presença local.
         </p>
+        {coloc?.medidoEm && (
+          <p className="nota" style={{ marginTop: 4 }}>Medição realizada em {dataBr(coloc.medidoEm)}.</p>
+        )}
 
         {ir && (
           <button type="button" className="v3-btn" style={{ marginTop: 10 }} onClick={() => ir('reputacao')}>
