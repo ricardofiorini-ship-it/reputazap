@@ -2161,7 +2161,13 @@ function LojaScreen({ data, isMobile, plan }) {
 // ─────────────────────────────────────────────────────────────
 // CONFIGURAÇÕES — Conta + Negócio + Plano
 // ─────────────────────────────────────────────────────────────
-function ConfigField({ label, value, type = 'text', readOnly, hint, action }) {
+// Campo de LEITURA. O `action` (um botão ao lado do campo) saiu em 06/09/2026:
+// os dois únicos usos eram "Alterar senha" e "Alterar" método de pagamento, e
+// ambos renderizavam um botão sem onClick — clicar não fazia nada. A troca de
+// senha virou formulário de verdade no CampoEditavel abaixo; o método de
+// pagamento vive no Mercado Pago. Sem uso, o prop saiu junto: botão que não
+// pode ser ligado não deve ficar disponível pra ser usado por engano.
+function ConfigField({ label, value, type = 'text', readOnly, hint }) {
   const isEmpty = value == null || value === ''
   return (
     <div style={{ marginBottom: 14 }}>
@@ -2180,12 +2186,6 @@ function ConfigField({ label, value, type = 'text', readOnly, hint, action }) {
             fontStyle: isEmpty ? 'italic' : 'normal',
             boxSizing:'border-box'
           }}/>
-        {action && (
-          <button style={{
-            background:'#fff', color: T.blue, border:'1px solid '+T.border, borderRadius: 8,
-            padding:'9px 14px', fontSize: 12.5, fontWeight: 600, cursor:'pointer', whiteSpace:'nowrap'
-          }}>{action}</button>
-        )}
       </div>
       {hint && <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 4 }}>{hint}</div>}
     </div>
@@ -2575,6 +2575,29 @@ hora local:                ${new Date().toISOString()}`}
 // quando forem lidos da API do MP — não antes.
 function BillingSection({ billing, plan }) {
   const ehPro = plan === 'pro'
+
+  // Cancelamento em dois passos. Um clique só numa ação irreversível é pedir
+  // pra alguém cancelar sem querer — e recontratar depende de passar pelo
+  // checkout de novo.
+  const [confirmando, setConfirmando] = React.useState(false)
+  const [cancelando, setCancelando]   = React.useState(false)
+  const [aviso, setAviso]             = React.useState('')
+
+  async function cancelar() {
+    setCancelando(true); setAviso('')
+    try {
+      await apiCall('/api/billing?action=portal', { method: 'POST' })
+      setAviso('ok:Assinatura cancelada. Atualizando a tela…')
+      // Recarrega: o plano acabou de virar free no banco e a tela inteira
+      // (menu, selos, limites) é desenhada a partir dele.
+      setTimeout(() => window.location.reload(), 1600)
+    } catch (e) {
+      setAviso('err:' + (e.message || 'Não foi possível cancelar. Fale com a gente.'))
+      setCancelando(false)
+      setConfirmando(false)
+    }
+  }
+
   return (
     <ConfigSectionCard anchor="plano" icon="card" title="Plano e cobrança" sub="Seu plano atual e como mexer na assinatura.">
       {/* Card do plano atual */}
@@ -2608,24 +2631,69 @@ function BillingSection({ billing, plan }) {
       </div>
 
       {ehPro && (
-        <div style={{
-          padding: 14, background: T.blueSoft, borderRadius: 10, border:'1px solid #BFDBFE'
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: T.blueDk, marginBottom: 4 }}>
-            Cobrança e cancelamento
+        <>
+          <div style={{
+            padding: 14, background: T.blueSoft, borderRadius: 10, border:'1px solid #BFDBFE'
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.blueDk, marginBottom: 4 }}>
+              Cobrança
+            </div>
+            <div style={{ fontSize: 12.5, color: T.blueDk, lineHeight: 1.55, marginBottom: 10 }}>
+              Sua assinatura é cobrada pelo <strong>Mercado Pago</strong> — a data da próxima
+              cobrança, a forma de pagamento e os comprovantes ficam lá, na sua conta.
+              Para trocar a forma de pagamento, fale com a gente.
+            </div>
+            <a href="/ajuda" style={{
+              display:'inline-block', background: T.blue, color:'#fff',
+              borderRadius: 8, padding:'9px 16px', fontSize: 13, fontWeight: 700,
+              textDecoration:'none'
+            }}>Falar com a gente</a>
           </div>
-          <div style={{ fontSize: 12.5, color: T.blueDk, lineHeight: 1.55, marginBottom: 10 }}>
-            Sua assinatura é cobrada pelo <strong>Mercado Pago</strong> — a data da próxima
-            cobrança, a forma de pagamento e os comprovantes ficam lá, na sua conta.
-            Para trocar a forma de pagamento ou cancelar, fale com a gente: a gente
-            resolve no mesmo dia e você continua com acesso Pro até o fim do período pago.
+
+          <div style={{ marginTop: 18, paddingTop: 18, borderTop:'1px solid '+T.border }}>
+            {!confirmando ? (
+              <>
+                <button onClick={() => { setConfirmando(true); setAviso('') }} style={{
+                  background:'#fff', color: T.red, border:'1px solid #FECACA', borderRadius: 8,
+                  padding:'9px 16px', fontSize: 12.5, fontWeight: 600, cursor:'pointer'
+                }}>Cancelar assinatura</button>
+                {/* O texto que estava aqui prometia acesso "até o fim do
+                    período pago". O backend cancela NA HORA (handlePortalMP):
+                    o plano vira free no mesmo instante. Prometer o que o
+                    código não faz é pior que não prometer nada. */}
+                <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 6 }}>
+                  O cancelamento vale na hora — os recursos Pro saem do ar assim que você confirma.
+                </div>
+              </>
+            ) : (
+              <div style={{
+                padding: 14, background:'#FEF2F2', border:'1px solid #FECACA', borderRadius: 10
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: T.red, marginBottom: 6 }}>
+                  Cancelar sua assinatura Pro?
+                </div>
+                <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.55, marginBottom: 12 }}>
+                  A cobrança para e <strong>o acesso Pro termina imediatamente</strong>, não no fim
+                  do período já pago. Seus dados e dispositivos continuam como estão — o que sai
+                  são os recursos Pro. Para voltar, é só assinar de novo.
+                </div>
+                <div style={{ display:'flex', gap: 8, flexWrap:'wrap' }}>
+                  <button onClick={cancelar} disabled={cancelando} style={{
+                    background: cancelando ? T.textDim : T.red, color:'#fff', border:'none',
+                    borderRadius: 8, padding:'9px 16px', fontSize: 13, fontWeight: 700,
+                    cursor: cancelando ? 'wait' : 'pointer'
+                  }}>{cancelando ? 'Cancelando…' : 'Sim, cancelar agora'}</button>
+                  <button onClick={() => setConfirmando(false)} disabled={cancelando} style={{
+                    background:'#fff', color: T.textMid, border:'1px solid '+T.border,
+                    borderRadius: 8, padding:'9px 16px', fontSize: 13, fontWeight: 600,
+                    cursor:'pointer'
+                  }}>Voltar</button>
+                </div>
+              </div>
+            )}
+            <AvisoConta texto={aviso}/>
           </div>
-          <a href="/ajuda" style={{
-            display:'inline-block', background: T.blue, color:'#fff',
-            borderRadius: 8, padding:'9px 16px', fontSize: 13, fontWeight: 700,
-            textDecoration:'none'
-          }}>Falar com a gente</a>
-        </div>
+        </>
       )}
     </ConfigSectionCard>
   )
