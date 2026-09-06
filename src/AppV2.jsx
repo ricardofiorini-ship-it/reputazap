@@ -276,18 +276,12 @@ const MOCK = {
     placeId:'ChIJN1t_tDeuEmsRUsoyG83frY4',
     gmapsUrl:'https://maps.google.com/?cid=12345'
   },
+  // Preço, data de cobrança, cartão e faturas saíram daqui em 06/09/2026 junto
+  // com a tela que os exibia. Dado fictício sem ninguém lendo é convite pra
+  // voltar ao ar por engano — e cobrança inventada é o pior lugar pra isso.
   billing: {
     plan:'Plano Pro',
-    monthlyPrice: 19.90,
-    nextChargeAt:'5 de junho · 2026',
-    paymentMethod:'Cartão Visa •••• 4242',
-    status:'active',
-    sinceDate:'5 de maio · 2026',
-    invoices: [
-      { date:'5 mai 2026',  amount: 19.90, status:'paid' },
-      { date:'5 abr 2026',  amount: 19.90, status:'paid' },
-      { date:'5 mar 2026',  amount: 19.90, status:'paid' }
-    ]
+    status:'active'
   }
 }
 
@@ -583,10 +577,14 @@ function buildData(real, user, demoMode) {
     activeCategory: (biz.category_override || '').trim() || bizInfo?.category || null,
     googleCategory: bizInfo?.category || null,
     categoryOverride: (biz.category_override || '').trim() || null,
+    // Sem espalhar MOCK.billing aqui: o spread trazia junto preço, data de
+    // cobrança, "Cartão Visa •••• 4242" e três faturas fictícias, e bastava a
+    // tela ler qualquer um desses campos pra publicar ficção de cobrança. Só o
+    // que vem do banco. `status` vira null quando não há assinatura — antes
+    // caía no 'active' do mock, e conta sem assinatura nenhuma aparecia ativa.
     billing: {
-      ...MOCK.billing,
       plan: biz.plan === 'pro' ? 'Plano Pro' : 'Plano Free',
-      status: biz.stripe_subscription_status || MOCK.billing.status
+      status: biz.stripe_subscription_status || null
     },
     // Preferências de alertas vindas do banco (Fase 2a). Shape compatível com AlertChannelsCard.
     alertChannels: alertPreferences ? {
@@ -2208,19 +2206,189 @@ function ConfigSectionCard({ icon, title, sub, children, anchor }) {
   )
 }
 
+// Campo CONTROLADO. O ConfigField acima é vitrine por natureza (defaultValue,
+// sem estado, sem onChange) — serve pra mostrar o que vem do Google e não pode
+// ser editado. Quem edita de verdade usa este.
+function CampoEditavel({ label, value, onChange, type = 'text', hint, placeholder, disabled }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ fontSize: 12, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder || ''}
+        disabled={disabled}
+        style={{
+          width:'100%', padding:'9px 12px', fontSize: 13.5,
+          border:'1px solid '+T.border, borderRadius: 8, outline:'none',
+          background: disabled ? T.bg : '#fff', color: T.text, boxSizing:'border-box'
+        }}/>
+      {hint && <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 4 }}>{hint}</div>}
+    </div>
+  )
+}
+
+// Aviso de resultado. Prefixo 'ok:' ou 'err:' — mesmo padrão que a seção do
+// negócio já usava.
+function AvisoConta({ texto }) {
+  if (!texto) return null
+  const erro = texto.startsWith('err:')
+  return (
+    <div style={{
+      marginTop: 10, padding:'8px 12px',
+      background: erro ? '#FEF2F2' : T.greenSoft,
+      border:'1px solid ' + (erro ? '#FECACA' : '#A7F3D0'),
+      borderRadius: 8, fontSize: 12.5, color: erro ? T.red : '#065F46',
+      fontWeight: 600, display:'flex', alignItems:'center', gap: 6
+    }}>
+      {erro ? <AlertTriangle size={14} strokeWidth={2.4}/> : <Check size={14} strokeWidth={2.4}/>}
+      {texto.replace(/^(ok|err):/, '')}
+    </div>
+  )
+}
+
+// ── Minha conta ─────────────────────────────────────────────
+// Até 06/09/2026 esta seção era vitrine: os campos não tinham estado, o botão
+// "Salvar alterações" não tinha onClick e o telefone exibido vinha do MOCK
+// ((11) 99999-9999) — o cliente via um número que não era dele e clicava num
+// botão que não fazia nada. Agora fala com `/api/conta`.
 function AccountSection({ user }) {
+  const [nome, setNome]   = React.useState('')
+  const [fone, setFone]   = React.useState('')
+  const [email, setEmail] = React.useState(user?.email || '')
+  const [carregando, setCarregando] = React.useState(true)
+  const [salvando, setSalvando]     = React.useState(false)
+  const [aviso, setAviso]           = React.useState('')
+
+  // A troca de senha começa fechada: é ação rara, e três campos abertos o
+  // tempo todo fazem a tela parecer formulário de cadastro.
+  const [abrirSenha, setAbrirSenha] = React.useState(false)
+  const [atual, setAtual]       = React.useState('')
+  const [nova, setNova]         = React.useState('')
+  const [confirma, setConfirma] = React.useState('')
+  const [trocando, setTrocando] = React.useState(false)
+  const [avisoSenha, setAvisoSenha] = React.useState('')
+
+  // Os dados da pessoa vêm do SERVIDOR, não do localStorage: o que está
+  // guardado no navegador é do instante do login e envelhece — se o cliente
+  // trocar o nome aqui e abrir noutro aparelho, lá ainda estaria o antigo.
+  React.useEffect(() => {
+    let vivo = true
+    apiCall('/api/conta')
+      .then(r => {
+        if (!vivo) return
+        setNome(r.user?.name || '')
+        setFone(r.user?.phone || '')
+        setEmail(r.user?.email || user?.email || '')
+      })
+      .catch(() => { if (vivo) setNome(user?.name || '') })
+      .finally(() => { if (vivo) setCarregando(false) })
+    return () => { vivo = false }
+  }, [])
+
+  async function salvar() {
+    setSalvando(true); setAviso('')
+    try {
+      await apiCall('/api/conta?action=perfil', {
+        method: 'POST',
+        body: JSON.stringify({ name: nome, phone: fone })
+      })
+      // O cabeçalho do painel lê o nome do localStorage gravado no login. Sem
+      // esta linha o cliente salva, vê "salvo", e o nome no canto continua o
+      // antigo até o próximo login — parece que não salvou.
+      try {
+        const raw = localStorage.getItem('rz_user')
+        if (raw) {
+          const u = JSON.parse(raw); u.name = nome
+          localStorage.setItem('rz_user', JSON.stringify(u))
+        }
+      } catch {}
+      setAviso('ok:Dados salvos.')
+    } catch (e) {
+      setAviso('err:' + (e.message || 'Não foi possível salvar'))
+    }
+    setSalvando(false)
+  }
+
+  async function trocarSenha() {
+    setAvisoSenha('')
+    if (nova !== confirma) {
+      setAvisoSenha('err:A confirmação não bate com a nova senha')
+      return
+    }
+    setTrocando(true)
+    try {
+      await apiCall('/api/conta?action=senha', {
+        method: 'POST',
+        body: JSON.stringify({ senha_atual: atual, senha_nova: nova })
+      })
+      setAtual(''); setNova(''); setConfirma('')
+      setAbrirSenha(false)
+      setAviso('ok:Senha alterada.')
+    } catch (e) {
+      setAvisoSenha('err:' + (e.message || 'Não foi possível trocar a senha'))
+    }
+    setTrocando(false)
+  }
+
+  const botao = {
+    background: T.blue, color:'#fff', border:'none', borderRadius: 8,
+    padding:'10px 18px', fontSize: 13.5, fontWeight: 700, cursor:'pointer'
+  }
+  const botaoClaro = {
+    background:'#fff', color: T.blue, border:'1px solid '+T.border, borderRadius: 8,
+    padding:'9px 14px', fontSize: 12.5, fontWeight: 600, cursor:'pointer', whiteSpace:'nowrap'
+  }
+
   return (
     <ConfigSectionCard anchor="conta" icon="user" title="Minha conta" sub="Seus dados pessoais e acesso.">
-      <ConfigField label="Nome completo"  value={user.name}/>
-      <ConfigField label="Email"          value={user.email} type="email" hint="É também seu login."/>
-      <ConfigField label="Telefone"       value={user.phone} type="tel"/>
-      <ConfigField label="Senha"          value="••••••••" type="password" readOnly action="Alterar senha"/>
-      <div style={{ display:'flex', gap: 8, marginTop: 14 }}>
-        <button style={{
-          background: T.blue, color:'#fff', border:'none', borderRadius: 8,
-          padding:'10px 18px', fontSize: 13.5, fontWeight: 700, cursor:'pointer'
-        }}>Salvar alterações</button>
+      <CampoEditavel label="Nome completo" value={nome} onChange={setNome}
+        placeholder={carregando ? 'Carregando…' : 'Seu nome'} disabled={carregando}/>
+      <ConfigField label="Email" value={email} type="email" readOnly
+        hint="É também seu login. Para trocar o e-mail, fale com a gente na Central de ajuda."/>
+      <CampoEditavel label="Telefone" value={fone} onChange={setFone} type="tel"
+        placeholder={carregando ? 'Carregando…' : '(11) 99999-9999'} disabled={carregando}
+        hint="Usado só pra falar com você. Não aparece pros seus clientes."/>
+
+      <div style={{ display:'flex', gap: 8, marginTop: 14, flexWrap:'wrap' }}>
+        <button onClick={salvar} disabled={salvando || carregando}
+          style={{ ...botao, background: (salvando || carregando) ? T.textDim : T.blue,
+                   cursor: salvando ? 'wait' : 'pointer' }}>
+          {salvando ? 'Salvando…' : 'Salvar alterações'}
+        </button>
+        <button onClick={() => { setAbrirSenha(v => !v); setAvisoSenha('') }} style={botaoClaro}>
+          {abrirSenha ? 'Cancelar' : 'Alterar senha'}
+        </button>
       </div>
+      <AvisoConta texto={aviso}/>
+
+      {abrirSenha && (
+        <div style={{
+          marginTop: 16, padding: 14, background: T.bg,
+          border:'1px solid '+T.border, borderRadius: 10
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 10 }}>
+            Trocar senha
+          </div>
+          <CampoEditavel label="Senha atual" value={atual} onChange={setAtual} type="password"/>
+          <CampoEditavel label="Nova senha" value={nova} onChange={setNova} type="password"
+            hint="Ao menos 6 caracteres."/>
+          <CampoEditavel label="Repita a nova senha" value={confirma} onChange={setConfirma} type="password"/>
+          <button onClick={trocarSenha} disabled={trocando || !atual || !nova || !confirma}
+            style={{ ...botao,
+              background: (trocando || !atual || !nova || !confirma) ? T.textDim : T.blue,
+              cursor: trocando ? 'wait' : 'pointer' }}>
+            {trocando ? 'Trocando…' : 'Confirmar troca'}
+          </button>
+          <AvisoConta texto={avisoSenha}/>
+          <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.5 }}>
+            Pedimos a senha atual de propósito: sem isso, qualquer pessoa com seu
+            celular destravado na mão trocaria sua senha e você perderia a conta.
+            Esqueceu a atual? Saia e use "Esqueci minha senha" na tela de entrada.
+          </div>
+        </div>
+      )}
     </ConfigSectionCard>
   )
 }
@@ -2395,15 +2563,26 @@ hora local:                ${new Date().toISOString()}`}
   )
 }
 
+// ── Plano e cobrança ────────────────────────────────────────
+// O que saiu daqui em 06/09/2026, e por quê: esta seção mostrava "Cartão Visa
+// •••• 4242", "próxima cobrança 5 de junho · 2026" e um histórico de três
+// parcelas de R$ 19,90 — tudo vindo do MOCK, nenhum centavo de verdade. Ficção
+// de cobrança é o pior lugar do painel pra ter dado inventado: o cliente que
+// abrisse esta tela veria uma fatura que nunca existiu.
+//
+// Ficou só o que é verdade: o plano do banco e, quando houver, o status real
+// da assinatura no Mercado Pago. Data, forma de pagamento e histórico voltam
+// quando forem lidos da API do MP — não antes.
 function BillingSection({ billing, plan }) {
+  const ehPro = plan === 'pro'
   return (
-    <ConfigSectionCard anchor="plano" icon="card" title="Plano e cobrança" sub="Seu plano atual, próxima cobrança e histórico de pagamentos.">
+    <ConfigSectionCard anchor="plano" icon="card" title="Plano e cobrança" sub="Seu plano atual e como mexer na assinatura.">
       {/* Card do plano atual */}
       <div style={{
-        background: plan === 'pro' ? 'linear-gradient(135deg,#1A73E8,#0F4DAE)' : T.bg,
-        color: plan === 'pro' ? '#fff' : T.text,
-        borderRadius: 12, padding: 18, marginBottom: 18,
-        border: plan === 'pro' ? 'none' : '1px solid '+T.border
+        background: ehPro ? 'linear-gradient(135deg,#1A73E8,#0F4DAE)' : T.bg,
+        color: ehPro ? '#fff' : T.text,
+        borderRadius: 12, padding: 18, marginBottom: ehPro ? 18 : 0,
+        border: ehPro ? 'none' : '1px solid '+T.border
       }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 12, flexWrap:'wrap' }}>
           <div>
@@ -2411,15 +2590,15 @@ function BillingSection({ billing, plan }) {
               SEU PLANO ATUAL
             </div>
             <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 800, letterSpacing:'-0.02em' }}>
-              {plan === 'pro' ? billing.plan : 'Plano Free'}
+              {ehPro ? 'Plano Pro' : 'Plano Free'}
             </div>
-            {plan === 'pro' && (
+            {ehPro && billing?.status && (
               <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>
-                R$ {billing.monthlyPrice.toFixed(2).replace('.', ',')} / mês · ativo desde {billing.sinceDate}
+                Assinatura {billing.status}
               </div>
             )}
           </div>
-          {plan === 'free' && (
+          {!ehPro && (
             <span style={{
               background: T.greenSoft, color:'#137333', borderRadius: 9,
               padding:'10px 18px', fontSize: 13.5, fontWeight: 700
@@ -2428,40 +2607,57 @@ function BillingSection({ billing, plan }) {
         </div>
       </div>
 
-      {plan === 'pro' && (
-        <>
-          <ConfigField label="Próxima cobrança" value={billing.nextChargeAt} readOnly/>
-          <ConfigField label="Método de pagamento" value={billing.paymentMethod} readOnly action="Alterar"/>
-
-          {/* Histórico */}
-          <div style={{ marginTop: 18 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: T.textMid, marginBottom: 8 }}>Histórico de pagamentos</div>
-            <div style={{ border:'1px solid '+T.border, borderRadius: 8, overflow:'hidden' }}>
-              {billing.invoices.map((inv, i) => (
-                <div key={i} style={{
-                  display:'flex', justifyContent:'space-between', alignItems:'center',
-                  padding:'10px 14px', borderBottom: i < billing.invoices.length - 1 ? '1px solid '+T.border : 'none',
-                  fontSize: 13
-                }}>
-                  <span style={{ color: T.textMid }}>{inv.date}</span>
-                  <span style={{ fontWeight: 600, color: T.text }}>R$ {inv.amount.toFixed(2).replace('.', ',')}</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: T.green, background: T.greenSoft, padding:'2px 7px', borderRadius: 5 }}>PAGO</span>
-                </div>
-              ))}
-            </div>
+      {ehPro && (
+        <div style={{
+          padding: 14, background: T.blueSoft, borderRadius: 10, border:'1px solid #BFDBFE'
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.blueDk, marginBottom: 4 }}>
+            Cobrança e cancelamento
           </div>
-
-          <div style={{ marginTop: 18, paddingTop: 18, borderTop:'1px solid '+T.border }}>
-            <button style={{
-              background:'#fff', color: T.red, border:'1px solid #FECACA', borderRadius: 8,
-              padding:'9px 16px', fontSize: 12.5, fontWeight: 600, cursor:'pointer'
-            }}>Cancelar assinatura</button>
-            <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 6 }}>
-              Você continua com acesso Pro até o fim do período pago.
-            </div>
+          <div style={{ fontSize: 12.5, color: T.blueDk, lineHeight: 1.55, marginBottom: 10 }}>
+            Sua assinatura é cobrada pelo <strong>Mercado Pago</strong> — a data da próxima
+            cobrança, a forma de pagamento e os comprovantes ficam lá, na sua conta.
+            Para trocar a forma de pagamento ou cancelar, fale com a gente: a gente
+            resolve no mesmo dia e você continua com acesso Pro até o fim do período pago.
           </div>
-        </>
+          <a href="/ajuda" style={{
+            display:'inline-block', background: T.blue, color:'#fff',
+            borderRadius: 8, padding:'9px 16px', fontSize: 13, fontWeight: 700,
+            textDecoration:'none'
+          }}>Falar com a gente</a>
+        </div>
       )}
+    </ConfigSectionCard>
+  )
+}
+
+// ── Privacidade e seus dados (LGPD) ─────────────────────────
+// O canal do titular (Art. 18) existe e funciona em /privacidade/solicitacao
+// desde 22/08/2026 — e até 06/09 NÃO tinha um único link apontando pra ele em
+// todo o site. A Política de Privacidade publicada promete esse canal ao
+// cliente: promessa com efeito jurídico e sem porta de entrada. Esta é a porta.
+function PrivacySection() {
+  const link = {
+    display:'inline-flex', alignItems:'center', gap: 6,
+    background:'#fff', color: T.blue, border:'1px solid '+T.border, borderRadius: 8,
+    padding:'9px 16px', fontSize: 13, fontWeight: 600, textDecoration:'none'
+  }
+  return (
+    <ConfigSectionCard anchor="privacidade" icon="shield" title="Privacidade e seus dados"
+      sub="O que a gente guarda sobre você, e como pedir cópia ou exclusão.">
+      <div style={{ fontSize: 13, color: T.textMid, lineHeight: 1.6, marginBottom: 14 }}>
+        Pela LGPD você pode pedir a confirmação do que tratamos, uma cópia dos seus
+        dados, correção, portabilidade ou a eliminação da sua conta. O pedido gera um
+        protocolo e tem <strong>prazo de resposta de 15 dias</strong>.
+      </div>
+      <div style={{ display:'flex', gap: 8, flexWrap:'wrap' }}>
+        <a href="/privacidade/solicitacao" style={{ ...link, background: T.blue, color:'#fff', border:'none' }}>
+          Fazer uma solicitação
+        </a>
+        <a href="/privacidade" target="_blank" rel="noreferrer" style={link}>
+          Ler a Política de Privacidade ↗
+        </a>
+      </div>
     </ConfigSectionCard>
   )
 }
@@ -2497,7 +2693,9 @@ function ConfigScreen({ data, isMobile, plan, isReal, isAdmin }) {
         }}>
           <span style={{ lineHeight: 1, flexShrink: 0, display:'inline-flex', color: T.accent }}><Construction size={18}/></span>
           <div style={{ fontSize: 12.5, color: T.blueDk, lineHeight: 1.45 }}>
-            <b>Modo leitura.</b> Seus dados reais aparecem abaixo — a edição completa (alterar nome, endereço, método de pagamento) chega na próxima atualização.
+            <b>O que dá pra editar aqui.</b> Seu nome, telefone, senha e a palavra-chave
+            usada no ranking. Nome, endereço e telefone <i>do negócio</i> vêm do Google Meu
+            Negócio e mudam por lá — aqui eles aparecem só pra conferência.
           </div>
         </div>
       )}
@@ -2506,6 +2704,7 @@ function ConfigScreen({ data, isMobile, plan, isReal, isAdmin }) {
         <AccountSection user={data.user}/>
         <BusinessSection biz={data.businessInfo} googleCategory={data.googleCategory} categoryOverride={data.categoryOverride} showDebug={isAdmin}/>
         <BillingSection billing={data.billing} plan={plan}/>
+        <PrivacySection/>
       </div>
     </main>
   )
