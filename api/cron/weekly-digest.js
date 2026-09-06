@@ -143,8 +143,25 @@ export default async function handler(req, res) {
           })
           .catch(() => null),
       ]);
-      const gridAvg = (gridRow && gridRow.coverage > 0 && gridRow.avg != null) ? gridRow.avg : null;
+      // `score` E NAO `avg` — corrigido em 06/09/2026. A grade devolve os dois
+      // (ver _lib/competitors.js:1336): `avg` e a media crua dos pontos em que
+      // o negocio APARECE, e `score` conta cada ausencia como 21a posicao.
+      //
+      // Com `avg`, este e-mail era CEGO AO DESAPARECIMENTO. Medido: com nota e
+      // avaliacoes fixas, um negocio que aparece em 5 de 5 pontos e outro que
+      // aparece em 1 de 5 recebiam o MESMO score (78), porque a media de quem
+      // some de quatro lugares e calculada so no lugar que sobrou. O painel,
+      // que usa `score`, dava 78 e 63 nos mesmos casos.
+      //
+      // Ou seja: o resumo semanal — a peca que chega sozinha ao cliente toda
+      // semana — dizia "esta tudo bem" justamente para quem estava sumindo do
+      // Google. Nao era so divergir do painel; era elogiar o problema.
+      const gridAvg = (gridRow && gridRow.coverage > 0 && gridRow.score != null) ? gridRow.score : null;
       const gridSemCobertura = !!(gridRow && gridRow.measured > 0 && gridRow.coverage === 0);
+      // Cobertura parcial: sem isto, quem some de ALGUNS pontos ve o numero
+      // cair sem uma linha explicando por que.
+      const gridCobertura = gridRow?.coverage ?? null;
+      const gridMedidos = gridRow?.measured ?? null;
       if (!rv || (!rv.name && !rv.rating)) {
         stats.errors.push({ business_id: biz.id, error: "sem dados do Google" });
         continue;
@@ -204,7 +221,7 @@ export default async function handler(req, res) {
       }
       const score = emailScore({
         rating: rv.rating ?? bi.rating, reviews: totalReviews,
-        gridAvg, gridSemCobertura,
+        gridAvg, gridSemCobertura, gridCobertura, gridMedidos,
         photo: bi.photoUrl, phone: bi.phone, category: bi.category,
       });
       const unsub = unsubUrl(biz.user_id);

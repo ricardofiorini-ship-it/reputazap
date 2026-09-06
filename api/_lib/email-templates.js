@@ -829,17 +829,35 @@ export function weekVerdict(newThisWeek) {
 //   · perfil — cada lado lia a categoria de um lugar.
 // Agora a matemática é uma só. `gridAvg`/`gridSemCobertura` vêm do cache da
 // grade (ver weekly-digest.js), que é exatamente o que o painel mostra.
-export function emailScore({ rating, reviews, gridAvg, gridSemCobertura, photo, phone, category }) {
+export function emailScore({
+  rating, reviews, gridAvg, gridSemCobertura, gridCobertura, gridMedidos, photo, phone, category,
+}) {
   const c = calcularScore({
     rating, reviews,
     gridAvg: gridAvg ?? null,
     gridSemCobertura: !!gridSemCobertura,
     photo, phone, category,
   });
+
+  // ORDEM POR GRAVIDADE, e não por ordem de escrita: só o PRIMEIRO item vai
+  // pro e-mail ("Pra subir: …"). Sumir das buscas da região é o mais grave e o
+  // mais acionável — e, desde 06/09/2026, é também o que mais derruba o Score,
+  // porque a ausência passou a contar. Deixar "colete mais avaliações" na
+  // frente disso mandaria o cliente trabalhar no lugar errado.
   const missing = [];
+  if (c.posFonte === "fora") {
+    missing.push("você não está aparecendo nas buscas da sua região");
+  } else if (gridCobertura != null && gridMedidos > 0 && gridCobertura < gridMedidos) {
+    // Ausência PARCIAL. Sem esta linha, quem some de alguns pontos vê o número
+    // cair e não encontra no e-mail nenhuma explicação do porquê.
+    const fora = gridMedidos - gridCobertura;
+    missing.push(
+      `apareça em mais lugares da sua região (você não aparece em ${fora} ` +
+      `${fora === 1 ? "dos pontos medidos" : `dos ${gridMedidos} pontos medidos`} ao redor do seu endereço)`
+    );
+  }
   if (c.faltando.length) missing.push(`complete o perfil no Google (${c.faltando.join(", ")})`);
   if ((Number(reviews) || 0) < 100) missing.push("colete mais avaliações");
-  if (c.posFonte === "fora") missing.push("você não está aparecendo nas buscas da sua região");
   return { score: c.score, missing };
 }
 
@@ -890,6 +908,19 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
       </td></tr>
     </table>`;
 
+  // AVISO DE TRANSIÇÃO — INTERRUPTOR HUMANO, SEM DATA.
+  //
+  // Ligado em 06/09/2026 junto com a correção da entrada do Score (o resumo
+  // passou a usar `score` em vez de `avg`, ver weekly-digest.js). Quem some de
+  // pontos da região vai ver o número CAIR — de 78 para 63 no caso extremo —, e
+  // uma queda sem explicação num e-mail semanal parece defeito, não correção.
+  //
+  // DESLIGAR (trocar para false) depois que todo cliente tiver recebido dois
+  // resumos com o número novo, ou seja ~2 semanas. Não há data automática de
+  // propósito: data futura não desarma nada, ela chega — quem desliga isto é
+  // uma pessoa.
+  const AVISO_AJUSTE_SCORE = true;
+
   // Bloco Score StarTouch (0–100) + o que falta pros 100
   const scoreBlock = score && typeof score.score === "number"
     ? `
@@ -900,6 +931,14 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
           ${score.missing && score.missing.length
             ? `<div style="font-size:13px;color:#5F6368;line-height:1.5;margin-top:6px;">Pra subir: ${escapeHtml(score.missing[0])}. <a href="https://startouch.com.br/app?login=1" style="color:#1A73E8;text-decoration:none;font-weight:600;">Ver o que falta →</a></div>`
             : `<div style="font-size:13px;color:#137333;font-weight:600;margin-top:6px;">Presença completa! 🎉</div>`}
+          ${AVISO_AJUSTE_SCORE
+            ? `<div style="font-size:12px;color:#8A6D3B;line-height:1.5;margin-top:10px;padding-top:9px;border-top:1px solid #FCE8A6;">
+                 <strong>O cálculo mudou.</strong> O Score agora considera também os lugares da sua região
+                 onde seu negócio <strong>não aparece</strong> nas buscas — antes, esses lugares simplesmente
+                 saíam da conta. Se o seu número mudou de uma semana para a outra, foi por isso, e agora ele é
+                 exatamente o mesmo que você vê no painel.
+               </div>`
+            : ""}
         </td></tr>
       </table>`
     : "";
