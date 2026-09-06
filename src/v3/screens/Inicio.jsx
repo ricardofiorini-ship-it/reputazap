@@ -143,8 +143,18 @@ export default function Inicio({ dados, ir }) {
     <div className="v3-home">
       <Head oi={primeiroNome ? `Olá, ${primeiroNome}` : 'Olá'} titulo="Sua presença online"
         sub="Como seu negócio aparece para quem procura na sua região">
+        {/* "Ultimos 7 dias" saiu daqui em 06/09/2026. Dois motivos: (1) a tela
+            passou a ABRIR com Score e colocacao, que nao sao de 7 dias — o
+            Score e o estado de agora e a colocacao tem data propria de
+            medicao —, entao o rotulo anunciava um periodo que nao descrevia o
+            que vinha abaixo dele; (2) `.v3-picker` tem cara de filtro
+            clicavel e e uma div estatica, entao prometia uma troca de periodo
+            que nao existe. O periodo passou a viver so no titulo da secao que
+            de fato e de 7 dias.
+
+            O nome do negocio fica: e contexto, nao promessa de interacao — e
+            e o lugar natural do seletor de unidade quando multi-loja existir. */}
         <div className="v3-picker" title={biz?.name}>{biz?.name}</div>
-        <div className="v3-picker">Últimos 7 dias</div>
       </Head>
 
       {/* O topo que vale para as tres fases — visitante, conta nova sem
