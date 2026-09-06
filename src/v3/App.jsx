@@ -24,6 +24,7 @@ import Clientes from './screens/Clientes.jsx'
 import Unidades from './screens/Unidades.jsx'
 import Campanhas from './screens/Campanhas.jsx'
 import Guias from './screens/Guias.jsx'
+import Configuracoes from './screens/Configuracoes.jsx'
 import Mapa from './screens/Mapa.jsx'
 
 // Rota não adivinhável, de propósito (29/08/2026). Enquanto o V3 é privado, o
@@ -173,6 +174,7 @@ export default function App() {
       case 'unidades':     return <Unidades/>
       case 'campanhas':    return <Campanhas/>
       case 'guias':        return <Guias/>
+      case 'config':       return <Configuracoes dados={dados}/>
       default:             return <Mapa area={area}/>
     }
   }

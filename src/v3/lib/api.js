@@ -96,6 +96,18 @@ export const api = {
   // depois a categoria oficial do Google. Mesma chamada do painel atual.
   posicao: (placeId) => tryGet(`/api/diagnostico?grid=1&place_id=${encodeURIComponent(placeId)}`, { auth: true }),
 
+  // ── Conta do usuário ──
+  // Os dados da PESSOA (nome, telefone, senha). Endpoint nascido em 06/09/2026
+  // porque não existia: no painel atual esses campos eram vitrine, com botão
+  // sem ação. A senha atual é exigida na troca de propósito — o token protege
+  // contra estranho na internet, a senha atual protege contra quem está na
+  // frente do celular destravado do lojista.
+  conta: {
+    ler:    ()        => get('/api/conta', { auth: true }),
+    salvar: (dados)   => post('/api/conta?action=perfil', dados),
+    senha:  (dados)   => post('/api/conta?action=senha', dados)
+  },
+
   // ── Experiências (Menu Inteligente) ──
   // O veredito de validação SEMPRE vem do servidor: `save-draft` e `publish`
   // devolvem `validacao`. O editor não tem regra própria — se tivesse, um dia

@@ -190,15 +190,25 @@ export const AREAS = {
   },
 
   config: {
-    nome: 'Configurações', icon: Settings, status: 'pronto',
-    sub: 'Conta, negócio e plano',
-    lead: 'Já existe no painel atual',
-    corpo: 'Dados da conta, dados do negócio (inclusive a categoria de comparação editável) e a gestão do plano. Na Fase 1 a tela ainda vive no painel atual — o link abre lá.',
-    externo: { url: '/app?tab=config', label: 'Abrir no painel atual' },
+    nome: 'Configurações', icon: Settings, status: 'pronto', tela: 'config',
+    sub: 'Sua conta, seu negócio e seu plano',
+    lead: 'Nativa no V3 desde 06/09/2026 — não abre mais o painel atual',
+    corpo: 'Conta (nome, telefone, senha), a busca usada pra medir a posição na região, os dados que vêm do Google em leitura, o plano e o canal da LGPD. Primeira das três pendências que prendiam o V3 ao painel atual a cair. Pôde ser nativa porque o backend nasceu antes: `api/conta.js` lê e grava os dados da pessoa — coisa que não existia em endpoint nenhum do projeto, e por isso esses campos eram vitrine no painel atual, com botão sem ação.',
     recursos: [
-      { n: 'Conta e senha', p: 'free', s: 'pronto' },
-      { n: 'Negócio, endereço e categoria de comparação', p: 'free', s: 'pronto' },
-      { n: 'Plano e assinatura', p: 'free', s: 'pronto' }
+      { n: 'Conta e senha', d: 'nome, telefone e troca de senha sem sair do painel', p: 'free', s: 'pronto' },
+      { n: 'Busca usada na medição de posição', d: 'o termo que decide contra quem você é comparado', p: 'free', s: 'pronto' },
+      { n: 'Dados do negócio', d: 'leitura — quem manda neles é o Google Meu Negócio', p: 'free', s: 'pronto' },
+      { n: 'Plano e cancelamento', p: 'free', s: 'pronto' },
+      { n: 'Privacidade e seus dados', d: 'canal do titular, Art. 18 da LGPD', p: 'free', s: 'pronto' }
+    ],
+    decidido: [
+      'O que é da PESSOA se edita aqui; o que é do NEGÓCIO vem do Google e é leitura — campo editável que não altera nada é a mentira mais fácil de cometer num painel',
+      'Sem preço, data de cobrança ou histórico: esses números vivem no Mercado Pago e o painel não os lê. O painel atual exibia todos eles, vindos de dado fictício, até 06/09/2026',
+      'A senha atual é exigida na troca — o token protege contra estranho na internet, a senha atual protege contra quem está na frente do celular destravado do lojista'
+    ],
+    falta: [
+      'Trocar o e-mail de login: hoje remete à central de ajuda. Mexer nisso exige confirmar o endereço novo ANTES de trocar, senão um erro de digitação tranca a conta pra fora',
+      'O cancelamento é IMEDIATO — o Mercado Pago não tem “cancelar no fim do período” de forma simples. Se a decisão for manter o acesso até o fim do período já pago, a mudança é no backend, não nesta tela'
     ]
   },
 
