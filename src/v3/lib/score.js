@@ -106,12 +106,18 @@ export function maiorLacuna(calc, { avaliacoes, info, posicao } = {}) {
     },
     {
       chave: 'volume', falta: PESOS.volume - calc.volPts,
-      // "a pontuacao maxima considera 100" descrevia o calculo certo (o fator
-      // satura em VOLUME_CHEIO = 100) mas sugeria que passar de 100 nao serve
-      // pra nada — e serve: avaliacao nao tem teto na vida real, e mais
-      // avaliacoes melhoram a POSICAO, que e outro fator deste mesmo Score.
-      // O teto e do nosso criterio, nao do negocio do cliente.
-      frase: `o número de avaliações: você tem ${reviews.toLocaleString('pt-BR')}, e neste cálculo a pontuação fica cheia a partir de 100`
+      // O NUMERO 100 SAIU DA FRASE (06/09/2026, segunda rodada). A conta
+      // satura mesmo em VOLUME_CHEIO = 100, e as duas tentativas anteriores
+      // ("a pontuacao maxima considera 100", depois "fica cheia a partir de
+      // 100") descreviam isso corretamente — e as duas continuavam soando como
+      // TETO pra quem le. Avaliacao nao tem teto na vida real, e dizer um
+      // numero ao lado da palavra "maxima"/"cheia" convida o lojista a parar
+      // de pedir avaliacao ao chegar la. O saldo e ruim: a precisao ganha
+      // pouco e o conselho erra muito.
+      //
+      // O detalhe da saturacao continua verificavel na barra "Avaliacoes"
+      // logo abaixo, que mostra os pontos ganhos sobre o maximo.
+      frase: `o número de avaliações: você tem ${reviews.toLocaleString('pt-BR')}, e é onde você tem mais espaço para crescer — cada avaliação nova conta`
     },
     {
       chave: 'posicao', falta: PESOS.posicao - calc.posPts,
