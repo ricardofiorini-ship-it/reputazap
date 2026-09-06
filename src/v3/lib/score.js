@@ -102,24 +102,24 @@ export function maiorLacuna(calc, { avaliacoes, info, posicao } = {}) {
   const lacunas = [
     {
       chave: 'nota', falta: PESOS.nota - calc.notaPts,
-      frase: 'sua nota no Google — é o fator de maior peso, e cada décimo conta'
+      frase: 'sua nota no Google: é o fator de maior peso na conta, e cada décimo conta'
     },
     {
       chave: 'volume', falta: PESOS.volume - calc.volPts,
-      frase: `o número de avaliações — você tem ${reviews.toLocaleString('pt-BR')}, e a pontuação cheia é em 100`
+      frase: `o número de avaliações: você tem ${reviews.toLocaleString('pt-BR')}, e a pontuação máxima considera 100`
     },
     {
       chave: 'posicao', falta: PESOS.posicao - calc.posPts,
       frase: calc.posFonte === 'fora'
-        ? 'sua posição na região — hoje você não aparece nas buscas ao redor do seu endereço'
+        ? 'sua posição na região: você não aparece nas buscas ao redor do seu endereço'
         : calc.posFonte === 'sem-medicao'
-          ? 'sua posição na região — ainda não medimos, então este fator está no meio termo'
-          : 'sua posição na região — subir nas buscas ao redor do seu endereço'
+          ? 'sua posição na região: ainda não medimos, então este fator fica no meio termo'
+          : 'sua posição na região: aparecer mais acima nas buscas ao redor do seu endereço'
     },
     {
       chave: 'perfil', falta: PESOS.perfil - calc.perfilPts,
       frase: calc.faltando.length
-        ? `seu perfil no Google — falta ${calc.faltando.join(' e ')}, e isso se resolve em dois minutos`
+        ? `seu perfil no Google: falta ${calc.faltando.join(' e ')}, e isso se resolve em dois minutos`
         : 'seu perfil no Google'
     }
   ].sort((a, b) => b.falta - a.falta)

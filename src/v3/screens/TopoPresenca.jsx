@@ -106,7 +106,24 @@ function destaqueDaColocacao(coloc) {
 export default function TopoPresenca({ dados, ir }) {
   const { avaliacoes, info, posicao } = dados
   const calc = scoreDoNegocio({ avaliacoes, info, posicao })
-  const faixa = faixaDoScore(calc.score)
+
+  // MEDIDO E FORA DE TUDO NAO PODE LER "presenca forte". Um negocio com nota
+  // alta e muitas avaliacoes chega a 77 sem aparecer em NENHUM ponto da regiao
+  // — o score vem de reputacao, e reputacao otima invisivel e exatamente o caso
+  // que a StarTouch conserta. Sem esta trava, o cartao da esquerda dizia "sua
+  // presenca esta forte" enquanto o da direita dizia "Fora da lista", na mesma
+  // tela e sobre o mesmo negocio.
+  //
+  // A trava mora AQUI, na leitura, e nao na conta: `score-core.js` e
+  // compartilhado com o painel e com o e-mail semanal, e mexer nele mudaria o
+  // numero de todo mundo. O numero continua o mesmo; o que muda e o recado.
+  const invisivel = calc.posFonte === 'fora'
+  const faixaBruta = faixaDoScore(calc.score)
+  // Rebaixa o verde, mas so o verde: quem ja esta em laranja ou vermelho nao
+  // precisa de trava, e a frase muda conforme a reputacao seja boa ou nao —
+  // "sua reputacao e boa, mas voce nao aparece" seria falso pra quem tem nota
+  // baixa e poucas avaliacoes.
+  const faixa = invisivel && faixaBruta === 'bom' ? 'medio' : faixaBruta
   const coloc = leituraDaColocacao(posicao)
   const pontos = (posicao?.points || []).filter(p => p.ok)
   // Uma vez só: chamar de novo na hora de desenhar refaria a conta e abriria
@@ -129,15 +146,17 @@ export default function TopoPresenca({ dados, ir }) {
           <Anel score={calc.score} faixa={faixa}/>
           <div className="txt">
             <div className="rotulo">Score StarTouch</div>
-            <h2>{VEREDITO[faixa]}</h2>
+            <h2>{!invisivel ? VEREDITO[faixa]
+              : faixaBruta === 'bom' ? 'Sua reputação é boa, mas você não aparece'
+                : 'Você não está aparecendo na sua região'}</h2>
             {/* Antes, aqui morava a explicação da mecânica ("a conta pesa
                 quatro coisas…"). Ela repetia em prosa o que as quatro barras
                 logo abaixo já mostram, e deixava sem resposta a única pergunta
                 que o lojista tem diante do número: e o que eu faço com isso? */}
             <p>
-              De 0 a 100, o quanto seu negócio é <strong>encontrado e escolhido</strong> por
-              quem procura no Google.
-              {lacuna && <> O que mais te segura hoje é {lacuna.frase}.</>}
+              Seu Score mostra o quanto seu negócio está <strong>aparecendo e se destacando</strong> no
+              Google.{' '}
+              {lacuna && <>Hoje, o principal fator que limita seu resultado é {lacuna.frase}.</>}
             </p>
           </div>
         </div>
