@@ -30,7 +30,7 @@
 // o que o cliente vê na tela. Se um dia os dois forem alinhados, é o e-mail que
 // se move, e esta nota sai junto.
 // ============================================================
-import { calcularScore } from '../../../api/_lib/score-core.js'
+import { calcularScore, PESOS } from '../../../api/_lib/score-core.js'
 
 /**
  * Monta o Score a partir do pacote de dados do V3 (`useDados`).
@@ -59,11 +59,73 @@ export function scoreDoNegocio({ avaliacoes, info, posicao }) {
   })
 }
 
-/** Faixa de cor do anel. Mesma régua do painel atual — reusada, não copiada. */
+/**
+ * Faixa de cor do anel.
+ *
+ * RECALIBRADA EM 06/09/2026. A régua herdada do painel atual era 80/55, e ela
+ * pintava errado — medido, não achado:
+ *
+ *   4,7 · 40 avaliações · TOP 3 em toda a região · perfil completo → 79 (laranja)
+ *   4,5 · 60 avaliações · 5º lugar               · perfil completo → 81 (verde)
+ *
+ * Ou seja: quem estava no topo saía com cor de alerta e quem estava em quinto
+ * saía com cor de "está tudo bem", só por causa de 20 avaliações a mais. A
+ * causa é o peso do volume, que só satura em 100 avaliações — um negócio local
+ * típico tem entre 20 e 60 e perde 12 a 24 pontos aí de saída, sem ter nada de
+ * errado. Com o corte em 80, o verde ficava reservado a quem é grande, não a
+ * quem vai bem.
+ *
+ * 70/45 põe o verde onde um lojista honestamente diria "estou bem", que é a
+ * única régua que importa: a cor é lida como julgamento, e julgamento
+ * descalibrado destrói a confiança no número inteiro.
+ *
+ * ⚠️ O painel atual (`AppV2.jsx`, modal do Score) continua em 80/55. Os dois
+ * mostram o MESMO número com cores diferentes até alguém alinhar — o que é
+ * bem menos grave que números diferentes, mas está registrado aqui.
+ */
 export function faixaDoScore(score) {
-  if (score >= 80) return 'bom'
-  if (score >= 55) return 'medio'
+  if (score >= 70) return 'bom'
+  if (score >= 45) return 'medio'
   return 'baixo'
+}
+
+/**
+ * O fator que mais está segurando o Score, com a frase do que fazer.
+ *
+ * Existe porque a explicação da mecânica ("a conta pesa quatro coisas…") não
+ * ajudava ninguém: ela repetia em prosa o que as quatro barras já mostram, e
+ * deixava sem resposta a única pergunta que o lojista tem diante do número —
+ * "e o que eu faço com isso?".
+ */
+export function maiorLacuna(calc, { avaliacoes, info, posicao } = {}) {
+  const reviews = avaliacoes?.total ?? info?.total ?? 0
+  const lacunas = [
+    {
+      chave: 'nota', falta: PESOS.nota - calc.notaPts,
+      frase: 'sua nota no Google — é o fator de maior peso, e cada décimo conta'
+    },
+    {
+      chave: 'volume', falta: PESOS.volume - calc.volPts,
+      frase: `o número de avaliações — você tem ${reviews.toLocaleString('pt-BR')}, e a pontuação cheia é em 100`
+    },
+    {
+      chave: 'posicao', falta: PESOS.posicao - calc.posPts,
+      frase: calc.posFonte === 'fora'
+        ? 'sua posição na região — hoje você não aparece nas buscas ao redor do seu endereço'
+        : calc.posFonte === 'sem-medicao'
+          ? 'sua posição na região — ainda não medimos, então este fator está no meio termo'
+          : 'sua posição na região — subir nas buscas ao redor do seu endereço'
+    },
+    {
+      chave: 'perfil', falta: PESOS.perfil - calc.perfilPts,
+      frase: calc.faltando.length
+        ? `seu perfil no Google — falta ${calc.faltando.join(' e ')}, e isso se resolve em dois minutos`
+        : 'seu perfil no Google'
+    }
+  ].sort((a, b) => b.falta - a.falta)
+
+  const maior = lacunas[0]
+  return maior.falta >= 1 ? maior : null
 }
 
 /**

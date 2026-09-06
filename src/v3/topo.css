@@ -78,6 +78,9 @@
   margin: 2px 0 3px;
 }
 .v3-topo .coloc .grande small { font-size: 15px; font-weight: 600; color: var(--mid); }
+/* Quando o destaque e uma FRASE ("No topo em toda a regiao") e nao um numero,
+   30px estoura a coluna em telas estreitas. */
+.v3-topo .coloc .grande.frase { font-size: 21px; line-height: 1.2; }
 .v3-topo .coloc .sub { font-size: 12.2px; color: var(--mid); line-height: 1.5; }
 .v3-topo .coloc .sub strong { color: var(--ink); }
 

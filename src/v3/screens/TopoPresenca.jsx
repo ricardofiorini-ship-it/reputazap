@@ -21,7 +21,7 @@
 // a pessoa veio ver) ficava enterrada dentro de Reputação.
 // ============================================================
 import React from 'react'
-import { scoreDoNegocio, faixaDoScore, leituraDaColocacao } from '../lib/score.js'
+import { scoreDoNegocio, faixaDoScore, leituraDaColocacao, maiorLacuna } from '../lib/score.js'
 import { PESOS } from '../../../api/_lib/score-core.js'
 import { dataBr } from '../ui.jsx'
 import '../topo.css'
@@ -57,20 +57,70 @@ function Fator({ nome, ganho, maximo }) {
   )
 }
 
+/**
+ * O QUE VAI EM DESTAQUE na colocação.
+ *
+ * Era "5 de 5 pontos" — que é uma conta, não um recado. Pior: quando o lojista
+ * está no topo em toda a região, esse número esconde justamente a boa notícia,
+ * e quando ele aparece em todo lugar mas nunca no topo, o "5 de 5" parece
+ * elogio quando o caso é o oposto. Aparecer é o piso; estar entre os três
+ * primeiros é o que a tela inteira diz que importa — então é isso que ocupa a
+ * linha grande, e a cobertura vira o detalhe embaixo.
+ */
+function destaqueDaColocacao(coloc) {
+  const abaixo = Math.max(0, coloc.aparece - (coloc.top3 || 0))
+  const ausente = Math.max(0, coloc.medidos - coloc.aparece)
+  const demais = []
+  if (abaixo) demais.push(`em ${abaixo} você aparece abaixo do terceiro`)
+  if (ausente) demais.push(`em ${ausente} você não aparece`)
+
+  // Sem a lista de pontos não se sabe o top 3 — e o destaque não pode afirmar
+  // nada sobre ele. Cai na cobertura, que é o que de fato se sabe.
+  if (coloc.top3 == null) {
+    return {
+      titulo: <>{coloc.aparece} <small>de {coloc.medidos} lugares</small></>,
+      sub: <>Você aparece em {coloc.aparece} dos {coloc.medidos} pontos medidos ao redor do seu endereço.</>
+    }
+  }
+  if (coloc.top3 === coloc.medidos) {
+    return {
+      titulo: 'No topo em toda a região',
+      sub: <>Você está entre os <strong>3 primeiros</strong> nos {coloc.medidos} pontos medidos
+        ao redor do seu endereço. É o melhor resultado possível nesta medição.</>
+    }
+  }
+  if (coloc.top3 > 0) {
+    return {
+      titulo: <>Top 3 em {coloc.top3} <small>de {coloc.medidos} lugares</small></>,
+      sub: <>Nos demais, {demais.join(' e ')} — e é nos três primeiros que as pessoas olham.</>
+    }
+  }
+  return {
+    titulo: 'Fora do top 3',
+    sub: <>Você aparece em {coloc.aparece} dos {coloc.medidos} pontos medidos, mas
+      em <strong>nenhum deles</strong> está entre os 3 primeiros — e é nos três primeiros
+      que as pessoas olham.</>
+  }
+}
+
 export default function TopoPresenca({ dados, ir }) {
   const { avaliacoes, info, posicao } = dados
   const calc = scoreDoNegocio({ avaliacoes, info, posicao })
   const faixa = faixaDoScore(calc.score)
   const coloc = leituraDaColocacao(posicao)
   const pontos = (posicao?.points || []).filter(p => p.ok)
+  // Uma vez só: chamar de novo na hora de desenhar refaria a conta e abriria
+  // espaço pra título e detalhe descreverem estados diferentes.
+  const destaque = coloc && !coloc.foraDeTudo ? destaqueDaColocacao(coloc) : null
 
-  // A frase que traduz o número. Sem isto o Score vira um número solto, e
-  // número solto não diz a ninguém o que fazer com ele.
-  const leitura = calc.score >= 80
-    ? 'Sua presença está forte. O trabalho agora é manter.'
-    : calc.score >= 55
-      ? 'Sua presença está razoável, e há espaço claro para subir.'
-      : 'Sua presença está fraca — é aqui que está a maior oportunidade.'
+  // O veredito sai da MESMA faixa que pinta o anel — se cada um tivesse sua
+  // régua, um dia a cor diria uma coisa e a frase diria outra.
+  const VEREDITO = {
+    bom:   'Sua presença está forte',
+    medio: 'Sua presença está razoável',
+    baixo: 'Sua presença está fraca'
+  }
+  const lacuna = maiorLacuna(calc, dados)
 
   return (
     <div className="v3-topo">
@@ -79,11 +129,15 @@ export default function TopoPresenca({ dados, ir }) {
           <Anel score={calc.score} faixa={faixa}/>
           <div className="txt">
             <div className="rotulo">Score StarTouch</div>
-            <h2>{leitura}</h2>
+            <h2>{VEREDITO[faixa]}</h2>
+            {/* Antes, aqui morava a explicação da mecânica ("a conta pesa
+                quatro coisas…"). Ela repetia em prosa o que as quatro barras
+                logo abaixo já mostram, e deixava sem resposta a única pergunta
+                que o lojista tem diante do número: e o que eu faço com isso? */}
             <p>
-              A conta pesa quatro coisas que o Google mostra sobre você:
-              sua nota, quantas avaliações você tem, em que posição você
-              aparece na região e se o seu perfil está completo.
+              De 0 a 100, o quanto seu negócio é <strong>encontrado e escolhido</strong> por
+              quem procura no Google.
+              {lacuna && <> O que mais te segura hoje é {lacuna.frase}.</>}
             </p>
           </div>
         </div>
@@ -97,7 +151,7 @@ export default function TopoPresenca({ dados, ir }) {
             outros três dependem de atendimento, tempo e concorrência. Por isso
             é o que ganha frase própria — e ela diz quantos pontos estão parados,
             não só o que falta. */}
-        {!!calc.faltando.length && (
+        {!!calc.faltando.length && lacuna?.chave !== 'perfil' && (
           <p className="nota" style={{ marginTop: 9, fontSize: 11.5, color: 'var(--dim)' }}>
             No seu perfil do Google falta {calc.faltando.join(' e ')} —
             são {Math.round(PESOS.perfil - calc.perfilPts)} pontos parados esperando
@@ -126,15 +180,10 @@ export default function TopoPresenca({ dados, ir }) {
           </>
         ) : (
           <>
-            <div className="grande">
-              {coloc.aparece} <small>de {coloc.medidos} pontos</small>
-            </div>
+            <div className={'grande' + (typeof destaque.titulo === 'string' ? ' frase' : '')}>{destaque.titulo}</div>
             <div className="sub">
-              {coloc.top3 == null
-                ? <>É em quantos lugares ao redor do seu endereço você aparece para quem busca{coloc.termo ? <> “<strong>{coloc.termo}</strong>”</> : ' pela sua categoria'}.</>
-                : coloc.top3 > 0
-                  ? <>Em <strong>{coloc.top3}</strong> deles você está entre os <strong>3 primeiros</strong> — que é onde as pessoas realmente olham.</>
-                  : <>Você aparece, mas <strong>em nenhum deles está entre os 3 primeiros</strong> — e é nos três primeiros que as pessoas olham.</>}
+              {destaque.sub}
+              {coloc.termo && <> Medido para quem busca “<strong>{coloc.termo}</strong>”.</>}
             </div>
             {/* Uma barra por ponto medido ao redor do endereço. Verde = está
                 entre os 3 primeiros ali; azul = aparece, mas abaixo do terceiro;
