@@ -1,0 +1,94 @@
+/* ============================================================
+   StarTouch V3 — Topo de presença (Início)
+   ============================================================
+   Arquivo separado do theme.css DE PROPÓSITO. O theme.css é compartilhado por
+   todas as telas e é editado em paralelo por mais de uma mão; dois writes no
+   mesmo arquivo e o último vence, calado. Estilo de peça nova nasce ao lado.
+
+   Só usa variáveis que já existem no tema — nenhuma cor solta aqui.
+   ============================================================ */
+
+.v3-topo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 720px) {
+  .v3-topo { grid-template-columns: 1fr; }
+}
+
+.v3-topo > .cartao {
+  background: var(--surf);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+  min-width: 0;
+}
+
+.v3-topo .rotulo {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 2px;
+}
+
+/* ── Score ────────────────────────────────────────────────── */
+.v3-topo .score {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.v3-topo .anel { flex: none; position: relative; width: 108px; height: 108px; }
+.v3-topo .anel svg { transform: rotate(-90deg); display: block; }
+.v3-topo .anel .n {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0;
+}
+.v3-topo .anel .n b { font-size: 27px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.v3-topo .anel .n span { font-size: 10px; color: var(--dim); margin-top: 2px; }
+
+/* A cor mora no anel e o traço do SVG a herda por `currentColor` — assim o
+   número e o arco nunca discordam. */
+.v3-topo .anel.bom   { color: var(--green); }
+.v3-topo .anel.medio { color: var(--amber); }
+.v3-topo .anel.baixo { color: var(--red); }
+.v3-topo .anel .n b  { color: currentColor; }
+
+.v3-topo .score .txt { min-width: 0; }
+.v3-topo .score .txt h2 { font-size: 15px; font-weight: 700; margin: 0 0 4px; }
+.v3-topo .score .txt p { font-size: 12.2px; color: var(--mid); line-height: 1.5; margin: 0; }
+
+.v3-topo .fatores { margin-top: 11px; display: flex; flex-direction: column; gap: 5px; }
+.v3-topo .fator { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--mid); }
+.v3-topo .fator .barra { flex: 1; height: 5px; border-radius: 999px; background: var(--bg); overflow: hidden; min-width: 40px; }
+.v3-topo .fator .barra i { display: block; height: 100%; border-radius: 999px; background: var(--blue); }
+.v3-topo .fator .nm { flex: none; width: 82px; }
+.v3-topo .fator .pt { flex: none; font-variant-numeric: tabular-nums; color: var(--dim); }
+
+/* ── Colocação ────────────────────────────────────────────── */
+.v3-topo .coloc .grande {
+  font-size: 30px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05;
+  margin: 2px 0 3px;
+}
+.v3-topo .coloc .grande small { font-size: 15px; font-weight: 600; color: var(--mid); }
+.v3-topo .coloc .sub { font-size: 12.2px; color: var(--mid); line-height: 1.5; }
+.v3-topo .coloc .sub strong { color: var(--ink); }
+
+.v3-topo .pontos { display: flex; gap: 5px; margin: 12px 0 10px; }
+.v3-topo .pontos i {
+  flex: 1; height: 6px; border-radius: 999px; background: var(--bg);
+  border: 1px solid var(--line);
+}
+.v3-topo .pontos i.top { background: var(--green); border-color: var(--green); }
+.v3-topo .pontos i.ok  { background: var(--blue); border-color: var(--blue); }
+
+.v3-topo .coloc .nota { font-size: 11.5px; color: var(--dim); line-height: 1.5; margin: 0; }
+
+.v3-topo .na { font-size: 13px; color: var(--dim); padding: 6px 0; }

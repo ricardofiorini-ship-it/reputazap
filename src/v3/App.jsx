@@ -63,7 +63,21 @@ const PREVIEW_DADOS = {
       { id: Math.floor((agora - 9 * 86400000) / 1000) }
     ]
   },
-  posicao: { avg: 4.2, coverage: 4, measured: 5, term: 'cafeteria', measuredAt: new Date(agora - 86400000).toISOString() },
+  // `avg`, `score` e `points` no mesmo formato que a grade devolve de verdade —
+  // sem os três, o preview mostra um estado que não existe em produção e a
+  // revisão visual aprova uma tela que ninguém vai ver. Aqui: 5 pontos medidos,
+  // aparece em 4 (rank nulo no quinto), 2 deles no top 3.
+  posicao: {
+    avg: 5, score: 8.2, coverage: 4, measured: 5, term: 'cafeteria',
+    measuredAt: new Date(agora - 86400000).toISOString(),
+    points: [
+      { dir: 'centro', ok: true, rank: 2,    total: 20 },
+      { dir: 'norte',  ok: true, rank: 3,    total: 20 },
+      { dir: 'sul',    ok: true, rank: 6,    total: 20 },
+      { dir: 'leste',  ok: true, rank: 9,    total: 20 },
+      { dir: 'oeste',  ok: true, rank: null, total: 20 }
+    ]
+  },
   dispositivos: [
     { id: 'preview-1', code: 'STAR-C4K9T2', status: 'active', product_type: 'cartao_nfc', channel_name: 'Cartão do caixa', total_taps: 128, activated_at: new Date(agora - 30 * 86400000).toISOString(), last_tapped_at: new Date(agora - 2 * 3600000).toISOString() },
     { id: 'preview-2', code: 'STAR-B7M3P8', status: 'active', product_type: 'placa_balcao', channel_name: 'Placa da entrada', total_taps: 46, activated_at: new Date(agora - 30 * 86400000).toISOString(), last_tapped_at: new Date(agora - 9 * 86400000).toISOString() }

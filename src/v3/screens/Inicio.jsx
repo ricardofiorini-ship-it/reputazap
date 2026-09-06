@@ -8,6 +8,7 @@ import { AlertTriangle, Check, Sparkles, TrendingUp } from 'lucide-react'
 import { Head, Kpi, Delta, Estrelas, desde, diasDesde } from '../ui.jsx'
 import { useToques, nomeProduto } from '../lib/dados.js'
 import { currentUser } from '../lib/api.js'
+import TopoPresenca from './TopoPresenca.jsx'
 
 const SETE_DIAS_EM_SEGUNDOS = 7 * 24 * 60 * 60
 
@@ -135,6 +136,12 @@ export default function Inicio({ dados, ir }) {
         <div className="v3-picker" title={biz?.name}>{biz?.name}</div>
         <div className="v3-picker">Últimos 7 dias</div>
       </Head>
+
+      {/* O topo que vale para as tres fases — visitante, conta nova sem
+          dispositivo, e cliente operando. Ele responde "como esta minha
+          presenca?"; o que vem abaixo responde "e agora?", e e so isso que
+          muda de uma fase pra outra. */}
+      <TopoPresenca dados={dados} ir={ir}/>
 
       <section className="v3-home-section v3-home-recommendation-section" aria-labelledby="home-recomenda">
         {/* O tom decide a cor e o ícone. Sem isto, o destaque de desempenho —
