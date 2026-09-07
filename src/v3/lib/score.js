@@ -99,39 +99,42 @@ export function faixaDoScore(score) {
  */
 export function maiorLacuna(calc, { avaliacoes, info, posicao } = {}) {
   const reviews = avaliacoes?.total ?? info?.total ?? 0
+  // As frases começam com a PREPOSIÇÃO porque entram numa moldura pronta:
+  // "Hoje, seu maior espaço para crescer está ___." Trocar a moldura sem
+  // trocar estas frases produz concordância quebrada — elas viajam juntas.
   const lacunas = [
     {
       chave: 'nota', falta: PESOS.nota - calc.notaPts,
-      frase: 'sua nota no Google: é o fator de maior peso na conta, e cada décimo conta'
+      frase: 'na sua nota: é o fator de maior peso, e cada décimo conta'
     },
     {
+      // O NÚMERO 100 NÃO ENTRA AQUI (decidido em 06/09/2026, na terceira
+      // tentativa desta frase). A conta satura mesmo em VOLUME_CHEIO = 100, e
+      // dizer isso descrevia certo e aconselhava errado: qualquer número ao
+      // lado de "máximo" ou "cheia" convida o lojista a parar de pedir
+      // avaliação ao chegar lá. Avaliação não tem teto na vida real, e mais
+      // avaliações ainda empurram a POSIÇÃO, que é outro fator deste Score.
       chave: 'volume', falta: PESOS.volume - calc.volPts,
-      // O NUMERO 100 SAIU DA FRASE (06/09/2026, segunda rodada). A conta
-      // satura mesmo em VOLUME_CHEIO = 100, e as duas tentativas anteriores
-      // ("a pontuacao maxima considera 100", depois "fica cheia a partir de
-      // 100") descreviam isso corretamente — e as duas continuavam soando como
-      // TETO pra quem le. Avaliacao nao tem teto na vida real, e dizer um
-      // numero ao lado da palavra "maxima"/"cheia" convida o lojista a parar
-      // de pedir avaliacao ao chegar la. O saldo e ruim: a precisao ganha
-      // pouco e o conselho erra muito.
-      //
-      // O detalhe da saturacao continua verificavel na barra "Avaliacoes"
-      // logo abaixo, que mostra os pontos ganhos sobre o maximo.
-      frase: `o número de avaliações: você tem ${reviews.toLocaleString('pt-BR')}, e é onde você tem mais espaço para crescer — cada avaliação nova conta`
+      frase: `nas avaliações: você tem ${reviews.toLocaleString('pt-BR')}, e cada nova avaliação conta`
     },
     {
-      chave: 'posicao', falta: PESOS.posicao - calc.posPts,
+      // POSIÇÃO NÃO MEDIDA FICA DE FORA DA DISPUTA. Sem medição o fator vale
+      // meio termo por convenção da conta, e esse meio termo aparecia como
+      // "espaço para crescer" — apontando como maior oportunidade justamente o
+      // que ninguém verificou. A frase saía honesta e o conselho, sem sentido:
+      // "cresça na posição: ainda não medimos". Zerar a disputa aqui empurra o
+      // recado para o próximo fator, que é medido de verdade.
+      chave: 'posicao',
+      falta: calc.posFonte === 'sem-medicao' ? -1 : PESOS.posicao - calc.posPts,
       frase: calc.posFonte === 'fora'
-        ? 'sua posição na região: você não aparece nas buscas ao redor do seu endereço'
-        : calc.posFonte === 'sem-medicao'
-          ? 'sua posição na região: ainda não medimos, então este fator fica no meio termo'
-          : 'sua posição na região: aparecer mais acima nas buscas ao redor do seu endereço'
+        ? 'na sua posição: você não aparece nas buscas ao redor do seu endereço'
+        : 'na sua posição: aparecer mais acima nas buscas ao redor do seu endereço'
     },
     {
       chave: 'perfil', falta: PESOS.perfil - calc.perfilPts,
       frase: calc.faltando.length
-        ? `seu perfil no Google: falta ${calc.faltando.join(' e ')}, e isso se resolve em dois minutos`
-        : 'seu perfil no Google'
+        ? `no seu perfil do Google: falta ${calc.faltando.join(' e ')}, e isso se resolve em dois minutos`
+        : 'no seu perfil do Google'
     }
   ].sort((a, b) => b.falta - a.falta)
 

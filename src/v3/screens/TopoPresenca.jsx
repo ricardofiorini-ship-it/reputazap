@@ -165,9 +165,8 @@ export default function TopoPresenca({ dados, ir }) {
                 logo abaixo já mostram, e deixava sem resposta a única pergunta
                 que o lojista tem diante do número: e o que eu faço com isso? */}
             <p>
-              Seu Score mostra o quanto seu negócio está <strong>aparecendo e se destacando</strong> no
-              Google.{' '}
-              {lacuna && <>Hoje, o principal fator que limita seu resultado é {lacuna.frase}.</>}
+              Seu Score mostra a <strong>força da sua empresa</strong> no Google.{' '}
+              {lacuna && <>Hoje, seu maior espaço para crescer está {lacuna.frase}.</>}
             </p>
           </div>
         </div>
