@@ -13,6 +13,7 @@
 // separação entre "mexer à vontade" e "ir ao ar" que o briefing pediu.
 // ============================================================
 import React from 'react'
+import './editor-menu.css'
 import {
   ArrowLeft, ChevronUp, ChevronDown, GripVertical, Trash2, Plus,
   AlertTriangle, Check, ExternalLink, Info
@@ -67,7 +68,7 @@ function novoBotaoLocal(type, tipos) {
 }
 
 // ── Prévia ──────────────────────────────────────────────────
-function Previa({ draft, foto }) {
+function Previa({ draft, foto, onSelecionar, selecionado }) {
   const ligados = (draft.buttons || []).filter(b => b.enabled)
   return (
     <div className="v3-fone">
@@ -81,10 +82,10 @@ function Previa({ draft, foto }) {
         {draft.brand?.subtitulo && <div className="sb">{draft.brand.subtitulo}</div>}
         {ligados.length === 0 && <div className="vazio">Nenhum botão ligado ainda.</div>}
         {ligados.map(b => (
-          <div className="bt" key={b.id}>
+          <button type="button" className="bt" key={b.id} aria-label={`Editar ${b.label} na prévia`} aria-pressed={selecionado === b.id} onClick={() => onSelecionar(b.id)}>
             <IconeTipo tipo={b.type} tamanho={20}/>
             <span>{b.label}</span>
-          </div>
+          </button>
         ))}
         <img src="/startouch-logo-dark.png" alt="StarTouch" width="82" height="27" style={{ display: 'block', objectFit: 'contain', margin: '18px auto 0' }}/>
       </div>
@@ -114,16 +115,16 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
   const vis = visual(b.type)
   const campos = CAMPOS[b.type] || []
   const resumo = (() => {
-    if (b.type === 'google') return 'seu perfil no Google · endereço resolvido na hora'
-    if (b.type === 'location') return 'endereço do seu Google · resolvido na hora'
+    if (b.type === 'google') return 'Avaliação no perfil do seu negócio'
+    if (b.type === 'location') return 'Localização do seu negócio no Google'
     if (b.type === 'contact') return [b.value?.nome, b.value?.cargo].filter(Boolean).join(' · ') || 'sem dados ainda'
-    if (b.type === 'whatsapp' || b.type === 'phone') return b.value?.telefone || 'sem telefone ainda'
+    if (b.type === 'whatsapp' || b.type === 'manager' || b.type === 'phone') return b.value?.telefone || 'sem telefone ainda'
     return b.value?.url || 'sem endereço ainda'
   })()
 
   return (
     <>
-      <div className={'v3-item' + (aberto ? ' aberto' : '') + (erro ? ' ruim' : '') + (b.enabled ? '' : ' off') + (arrastando ? ' arrastando' : '')}>
+      <div id={`editor-botao-${b.id}`} className={'v3-item' + (aberto ? ' aberto' : '') + (erro ? ' ruim' : '') + (b.enabled ? '' : ' off') + (arrastando ? ' arrastando' : '')}>
         <button className="pega" onPointerDown={onPegar} aria-label="Arrastar para reordenar" title="Arrastar para reordenar">
           <GripVertical size={14}/>
         </button>
@@ -203,6 +204,9 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   const [publicou, setPublicou] = React.useState(null)   // confirmação do que acabou de acontecer
   const [arrasto, setArrasto] = React.useState(null)
   const [nome, setNome] = React.useState(exp.name)
+  const [fotoFalhou, setFotoFalhou] = React.useState(false)
+  React.useEffect(() => setFotoFalhou(false), [foto])
+  const fotoDisponivel = foto && !fotoFalhou ? foto : null
   const listaRef = React.useRef(null)
 
   // O nome interno vive em `experiences.name`, fora do JSON: ele não é
@@ -309,19 +313,24 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   // ── Arrastar (pointer events: mouse e dedo no mesmo código) ──
   // A API de arrastar do HTML é notoriamente ruim em celular. Altura de linha
   // fixa no CSS torna a conta exata, sem medir item por item.
-  const ALTURA = 58
+  // Mede as linhas: no celular os controles podem ocupar mais de uma linha.
   function pegar(id, ev) {
     if (ev.button != null && ev.button !== 0) return
     ev.preventDefault()
     const de = draft.buttons.findIndex(b => b.id === id)
-    setArrasto({ id, de, para: de, y0: ev.clientY })
+    const centros = Array.from(listaRef.current?.querySelectorAll('.v3-item') || []).map(el => {
+      const r = el.getBoundingClientRect()
+      return r.top + r.height / 2
+    })
+    setArrasto({ id, de, para: de, y0: ev.clientY, centros })
     ev.currentTarget.setPointerCapture?.(ev.pointerId)
   }
   React.useEffect(() => {
     if (!arrasto) return
     const mover = (ev) => {
-      const delta = Math.round((ev.clientY - arrasto.y0) / ALTURA)
-      const para = Math.max(0, Math.min(draft.buttons.length - 1, arrasto.de + delta))
+      const alvo = arrasto.centros[arrasto.de] + ev.clientY - arrasto.y0
+      const para = arrasto.centros.reduce((melhor, centro, i) =>
+        Math.abs(centro - alvo) < Math.abs(arrasto.centros[melhor] - alvo) ? i : melhor, arrasto.de)
       if (para !== arrasto.para) setArrasto(a => ({ ...a, para }))
     }
     const soltar = () => {
@@ -400,13 +409,15 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   const vinculados = (dados.dispositivosDaExp || []).length
 
   return (
-    <>
+    <div className="menu-editor">
       <div className="v3-head v3-editor-head">
         <div>
           <button className="v3-btn ghost" onClick={onVoltar} style={{ marginBottom: 8 }}>
             <ArrowLeft size={13}/> Experiências
           </button>
-          <h1>{nome || exp.name}</h1>
+          <div className="me-eyebrow">MENU INTELIGENTE</div>
+          <h1>Dê forma ao seu menu.</h1>
+          <p className="me-intro">Personalize o que o cliente encontra. Acompanhe cada mudança na prévia.</p>
           <div className="sub">
             {publicado
               ? `Publicado${exp.published_at ? ' em ' + new Date(exp.published_at).toLocaleDateString('pt-BR') : ''}`
@@ -415,6 +426,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           </div>
         </div>
         <div className="v3-pickers">
+          <a className="v3-btn me-preview-link" href="#menu-previa">Ver prévia</a>
           {/* O rascunho salva sozinho, mas salvamento invisivel nao passa
               confianca: a pessoa procura o botao, nao acha, e fica na duvida
               se perdeu o trabalho. O botao É o indicador -- diz o estado e
@@ -486,11 +498,8 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
 
       <div className="v3-edcols">
         <div>
-          <section className="v3-panel">
-            <header>
-              <h2>Nome do menu</h2>
-              <div className="psub">Só você vê. Serve pra diferenciar seus menus aqui no painel.</div>
-            </header>
+          <details className="v3-panel me-organizacao">
+            <summary>Identificação interna <strong>{nome || exp.name}</strong><span>Alterar</span></summary>
             <div className="body">
               <label className="v3-campo" style={{ marginBottom: 0 }}>
                 <input value={nome} maxLength={60}
@@ -503,7 +512,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                 </span>
               </label>
             </div>
-          </section>
+          </details>
 
           <section className="v3-panel">
             <header>
@@ -512,16 +521,17 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                   vez de descreve-la por fora. O subtitulo saiu junto — o titulo
                   ja diz onde e, e a previa do celular ao lado mostra o efeito
                   melhor que qualquer frase. */}
-              <h2>Topo do Menu</h2>
+              <h2><span className="me-numero">1</span> A identidade do seu negócio</h2>
+              <div className="psub">O título e a mensagem que recebem seu cliente.</div>
             </header>
             <div className="body">
               <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 <div style={{ flex: 'none', textAlign: 'center', width: 70 }}>
-                  {foto
-                    ? <img src={foto} alt="" style={{ width: 52, height: 52, borderRadius: 14, objectFit: 'cover' }}/>
-                    : <div style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--line2)' }}/>}
+                  {fotoDisponivel
+                    ? <img src={fotoDisponivel} onError={() => setFotoFalhou(true)} alt="" style={{ width: 52, height: 52, borderRadius: 14, objectFit: 'cover' }}/>
+                    : <div className="me-photo-fallback">{(draft.brand?.titulo || 'S').trim().charAt(0).toUpperCase()}</div>}
                   <div style={{ fontSize: 10.5, color: 'var(--dim)', marginTop: 5, lineHeight: 1.3 }}>
-                    {foto ? 'foto do seu Google' : 'sem foto no Google'}
+                    {fotoDisponivel ? 'Foto do Google' : 'Menu sem foto'}
                   </div>
                 </div>
                 <div style={{ flex: 1, minWidth: 200 }}>
@@ -543,7 +553,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           <section className="v3-panel">
             <header>
               <div>
-                <h2>Botões do Menu</h2>
+                <h2><span className="me-numero">2</span> Os caminhos do seu menu</h2>
                 {/* "Ações" virou "Botões do Menu" (Ricardo, 07/09/2026), e a
                     troca foi na TELA INTEIRA: título, contador, estado vazio,
                     rótulos de acessibilidade, "Remover botão", o passo
@@ -562,7 +572,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                     "Arraste pela alça" também saiu: ninguém chama aquilo de alça
                     fora de quem desenha interface. */}
                 <div className="psub">
-                  O que o cliente vê ao tocar no dispositivo, na ordem em que aparece.
+                  Escolha o que o cliente pode fazer.
                   Arraste para reordenar.
                   {' · '}{draft.buttons.length} {draft.buttons.length === 1 ? 'botão' : 'botões'}
                   {ligados > (limites?.recomendado || 6)
@@ -596,7 +606,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
 
               <div style={{ marginTop: 12 }}>
                 {!addOpen ? (
-                  <button className="v3-btn" onClick={() => setAddOpen(true)} disabled={cheio}>
+                  <button className="v3-btn me-add-button" onClick={() => setAddOpen(true)} disabled={cheio}>
                     <Plus size={13}/> {cheio ? `Limite de ${limites?.botoes || 12} botões` : 'Adicionar botão'}
                   </button>
                 ) : (
@@ -622,18 +632,24 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           <OndeEstaNoAr exp={exp} dados={dados} experiencias={experiencias} onAtualizar={onAtualizar}/>
         </div>
 
-        <div className="v3-previa">
-          <div className="cab"><span className="t">Prévia</span><span className="e">{naoPublicado ? 'rascunho' : 'no ar'}</span></div>
-          <Previa draft={draft} foto={foto}/>
+        <aside className="v3-previa" id="menu-previa" aria-label="Prévia do seu menu">
+          <div className="cab"><span className="t">Seu menu, na prática</span><Chip tipo={naoPublicado ? 'n' : 'g'}>{naoPublicado ? 'Rascunho' : 'Publicado'}</Chip></div>
+          <p className="me-preview-tip">Clique em um botão abaixo para editar.</p>
+          <Previa draft={draft} foto={fotoDisponivel} selecionado={aberto} onSelecionar={id => {
+            setAberto(id)
+            setRecem(null)
+            requestAnimationFrame(() => document.getElementById(`editor-botao-${id}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }))
+          }}/>
+          <div className="me-preview-resumo"><strong>{ligados} {ligados === 1 ? 'botão visível' : 'botões visíveis'}</strong><span>As alterações só chegam ao cliente depois de publicar.</span></div>
           {exp.published && (
             <a className="v3-btn" style={{ width: '100%', justifyContent: 'center', marginTop: 10 }}
               href={`/m/${exp.slug}`} target="_blank" rel="noopener noreferrer">
               Ver como o cliente vê <ExternalLink size={12}/>
             </a>
           )}
-        </div>
+        </aside>
       </div>
-    </>
+    </div>
   )
 }
 
@@ -704,7 +720,7 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
   return (
     <section className="v3-panel">
       <header>
-        <h2>Ligar em quais dispositivos</h2>
+        <h2><span className="me-numero">3</span> Onde usar este menu</h2>
         <div className="psub">
           {!ligados.length
             ? 'Enquanto você não ligar em nenhum, este menu não chega a ninguém.'

@@ -1,0 +1,38 @@
+.menu-editor .me-eyebrow { color: var(--blue-dk); font-size: 10px; font-weight: 700; letter-spacing: .1em; margin: 8px 0; }
+.menu-editor .v3-editor-head h1 { font-size: clamp(26px, 3vw, 36px); letter-spacing: -.04em; font-weight: 650; }
+.menu-editor .me-intro { color: var(--mid); font-size: 13px; line-height: 1.6; margin: 9px 0; }
+.menu-editor .v3-editor-head { align-items: center; gap: 20px; }
+.menu-editor .v3-editor-steps { margin-bottom: 18px; background: var(--surf); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; }
+.menu-editor .v3-barra { border-radius: var(--radius); padding: 15px 18px; gap: 14px; }
+.menu-editor .v3-edcols { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; align-items: start; }
+.menu-editor .v3-panel { border-color: var(--line); box-shadow: none; overflow: visible; }
+.menu-editor .v3-panel > header { padding: 19px 20px 15px; }
+.menu-editor .v3-panel > .body { padding: 18px 20px; }
+.menu-editor .v3-panel h2 { display: flex; align-items: center; gap: 9px; font-size: 16px; }
+.menu-editor .me-numero { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; background: var(--blue-soft); color: var(--blue-dk); font-size: 11px; flex: none; }
+.menu-editor .me-organizacao { background: transparent; }
+.menu-editor .me-organizacao summary { cursor: pointer; padding: 14px 17px; font-size: 11px; color: var(--mid); }
+.menu-editor .me-organizacao summary strong { color: var(--ink); margin-left: 8px; font-weight: 600; }
+.menu-editor .me-organizacao summary > span { float: right; color: var(--blue-dk); }
+.menu-editor .v3-campo .lb { font-size: 12px; color: var(--mid); margin-bottom: 6px; }
+.menu-editor .v3-campo input { padding: 11px 12px; font-size: 13px; border-radius: 8px; }
+.menu-editor input:focus-visible, .menu-editor button:focus-visible, .menu-editor summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.menu-editor .v3-editbox { padding: 18px; background: var(--blue-soft); }
+.menu-editor .me-add-button { width: 100%; justify-content: center; padding: 13px; border: 1px dashed var(--blue); color: var(--blue-dk); background: var(--blue-soft); }
+.menu-editor .v3-addgrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.menu-editor .v3-add { border-style: solid; background: var(--surf); min-height: 48px; }
+.menu-editor .v3-previa { width: 280px; max-width: 100%; padding: 15px; box-sizing: border-box; border-radius: var(--radius); background: var(--blue-soft); top: 18px; }
+.menu-editor .v3-previa .cab .t { text-transform: none; font-size: 12px; font-weight: 650; letter-spacing: 0; color: var(--ink); }
+.menu-editor .me-preview-tip { margin: 0 0 16px; color: var(--mid); font-size: 11px; line-height: 1.5; }
+.menu-editor .v3-fone { min-width: 214px; border-color: var(--ink); box-shadow: var(--shadow); }
+.menu-editor .v3-fone .bt { width: 100%; cursor: pointer; text-align: left; font: inherit; font-size: 12px; }
+.menu-editor .v3-fone .bt[aria-pressed="true"] { border-color: var(--blue); background: var(--blue-soft); }
+.menu-editor .v3-fone .bt span { overflow-wrap: anywhere; min-width: 0; }
+.menu-editor .me-preview-resumo { display: grid; gap: 6px; margin-top: 17px; font-size: 11px; color: var(--ink); }
+.menu-editor .me-preview-resumo span { color: var(--mid); font-size: 10px; line-height: 1.6; }
+.menu-editor .me-preview-link { display: none; }
+.menu-editor [id] { scroll-margin-top: 85px; }
+@media(max-width:1100px) { .menu-editor .v3-edcols { grid-template-columns: minmax(0,1fr); } .menu-editor .v3-previa { position: static; justify-self: center; } .menu-editor .me-preview-link { display: inline-flex; } }
+@media(max-width:600px) { .menu-editor .v3-panel > header, .menu-editor .v3-panel > .body { padding: 14px 12px; } .menu-editor .v3-barra { flex-wrap: wrap; } .menu-editor .v3-item { flex-wrap: wrap; } .menu-editor .v3-item .acs { width: 100%; justify-content: flex-end; } .menu-editor .v3-editor-steps { padding: 12px; gap: 8px; } .menu-editor .v3-editor-steps small { display: none; } }
+
+.menu-editor .me-photo-fallback { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--blue-soft); color: var(--blue-dk); font-size: 22px; font-weight: 650; }
