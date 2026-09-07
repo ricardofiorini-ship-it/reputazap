@@ -1,100 +1,26 @@
-// ============================================================
-// StarTouch V3 — Experiência do Cliente
-// ============================================================
-// Esta tela precisa VENDER, não só informar. E vender aqui é uma coisa só:
-// fazer a pessoa ENXERGAR a diferença entre os dois caminhos em um segundo.
-// Por isso os dois aparecem lado a lado, com o mesmo peso, cada um mostrando
-// o celular do cliente dela.
-//
-// UMA COISA QUE NÃO ILUSTRAMOS: uma tela de avaliação com a nossa marca. O
-// Google Direto cai na página do PRÓPRIO GOOGLE — desenhar uma tela nossa ali
-// seria vender o que não entregamos, e o cliente descobriria no primeiro
-// toque.
-//
-// Área MISTA: Google Direto é Free e continua sendo (o cliente já comprou
-// isso), o Menu Inteligente é o Pro. As duas são experiências IRMÃS, não
-// etapas de uma escada — "Avaliar no Google" NÃO é obrigatório no menu, e a
-// ordem é livre. Quem quer só avaliação usa o Google Direto, que é gratuito.
-//
-// GOOGLE DIRETO NÃO É LINHA NO BANCO. É o estado-base do dispositivo (sem
-// experiência vinculada). Aparece como cartão porque é assim que o lojista
-// pensa; criar uma linha por negócio só pra igualar banco e tela seria
-// maquinário sem retorno.
-//
-// E não confundir com a peneira desmontada em 2026-05: peneira era
-// INTERCEPTAR quem ia avaliar e desviar o insatisfeito. Um menu sem botão do
-// Google não intercepta ninguém — só não oferece aquele caminho ali.
-// ============================================================
 import React from 'react'
-import { Plus, Archive, Pencil, Trash2, ChevronRight, CheckCircle2, ExternalLink, Lightbulb, GitBranch, Smartphone, Link2, Zap, MousePointerClick, BadgeCheck } from 'lucide-react'
+import { Plus, Archive, Pencil, Trash2, ChevronRight, CheckCircle2, ExternalLink, GitBranch, Smartphone } from 'lucide-react'
 import { Head, Panel, Chip, Carregando, Erro, dataBr, desde } from '../ui.jsx'
 import { api } from '../lib/api.js'
 import EditorMenu from './EditorMenu.jsx'
 import { TIPOS } from '../../../api/_lib/menu.js'
 
-const ROTULO_ACAO = {
-  google: 'Avaliar', whatsapp: 'WhatsApp', instagram: 'Instagram', food_menu: 'Cardápio',
-  phone: 'Telefone', location: 'Como chegar', website: 'Site', contact: 'Salvar contato',
-  custom_url: 'Link'
+// Desenhos e rótulos seguem os contratos compartilhados do menu público.
+import { ICONES, CHEIOS } from '../../../api/_lib/menu-icones.js'
+import './experiencia.css'
+
+function IconeMenu({ tipo }) {
+  const cheio = CHEIOS.has(tipo)
+  return <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"
+    fill={cheio ? 'currentColor' : 'none'} stroke={cheio ? 'none' : 'currentColor'}
+    strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"
+    dangerouslySetInnerHTML={{ __html: ICONES[tipo] || ICONES.custom_url }}/>
 }
 
-// ── Os dois celulares ───────────────────────────────────────
-// Desenhados em CSS, sem imagem: mesma informação, nenhum pedido de rede.
-
-// O que o Google mostra. Aproximação honesta da página DELE — sem marca nossa,
-// porque a marca ali é a do Google mesmo.
-function FoneGoogle({ nome }) {
-  return (
-    <div className="v3-mini google-phone" aria-label="Prévia da página de avaliação no Google">
-      <div className="phone-bar"><span>9:41</span><i/><span>● ◒</span></div>
-      <div className="tela google">
-        <div className="gcab"><span className="g">G</span><span>Avaliações</span><b>×</b></div>
-        <div className="gavatar">{(nome || 'S').trim().charAt(0).toUpperCase()}</div>
-        <div className="gnome">{nome || 'Seu negócio'}</div>
-        <div className="gpergunta">Como foi sua experiência?</div>
-        <div className="gestrelas" aria-label="Escolher de uma a cinco estrelas">☆ ☆ ☆ ☆ ☆</div>
-        <div className="gcaixa">Conte um pouco sobre sua visita</div>
-        <div className="gacoes"><span>Cancelar</span><strong>Publicar</strong></div>
-      </div>
-      <div className="phone-home"/>
-    </div>
-  )
-}
-
-// Sugestões que completam a prévia. Ordem = poder de convencimento, não
-// alfabeto: WhatsApp e cardápio são os que fazem o lojista entender na hora
-// para que serve o menu. Os `type` saem de TIPOS (api/_lib/menu.js) — nenhum
-// é inventado, todos podem mesmo ser criados no editor.
-const SUGESTOES = [
-  { type: 'whatsapp',   label: 'Falar no WhatsApp' },
-  { type: 'food_menu',  label: 'Ver o cardápio' },
-  { type: 'website',    label: 'Ver produtos e serviços' },
-  { type: 'instagram',  label: 'Seguir no Instagram' },
-  { type: 'custom_url', label: 'Pedir um orçamento' },
-  { type: 'location',   label: 'Como chegar' },
-  { type: 'phone',      label: 'Ligar agora' },
-  { type: 'contact',    label: 'Salvar contato' },
-  { type: 'google',     label: 'Avaliar no Google' }
-]
-
-// O que o menu mostra. Usa o menu real do lojista quando já existe — melhor
-// ele se ver na tela do que ver o exemplo de outro negócio — e COMPLETA o que
-// falta com sugestões apagadas.
-//
-// O motivo é comercial: quem tem um menu de dois botões via uma prévia com
-// dois botões, e a tela que deveria vender o Menu Inteligente vendia pouco.
-// Mostrando os dele em cima e o que caberia embaixo, ele entende o tamanho do
-// que está deixando na mesa — sem a gente esconder o que é dele.
-//
-// A honestidade é o que separa isto de propaganda enganosa, e ela está em
-// três lugares: as sugestões vão apagadas e tracejadas, levam "+" no lugar do
-// número, e há uma legenda dizendo que são sugestões. Ninguém pode achar que
-// já estão no ar. Se um dia isso for "limpado" no visual, some a legenda e a
-// prévia passa a mentir.
 function FoneMenu({ titulo, subtitulo, acoes }) {
   const reais = (acoes || []).slice(0, 5)
   const usados = new Set(reais.map(a => a.type))
-  const sugestoes = SUGESTOES.filter(s => !usados.has(s.type)).slice(0, 5 - reais.length)
+  const sugestoes = Object.entries(TIPOS).map(([type, info]) => ({ type, label: info.label })).filter(s => !usados.has(s.type)).slice(0, 5 - reais.length)
 
   return (
     <div className="v3-mini menu-phone" aria-label="Prévia do Menu Inteligente">
@@ -105,13 +31,13 @@ function FoneMenu({ titulo, subtitulo, acoes }) {
         <div className="msub">{subtitulo || 'Como podemos ajudar?'}</div>
 
         {reais.map((a, i) => (
-          <div className="mbt" key={a.id || i}><span className={`mac ${a.type || 'link'}`}>{i + 1}</span>
-            <b>{a.label || ROTULO_ACAO[a.type] || 'Ação'}</b><span className="seta">›</span></div>
+          <div className="mbt" key={a.id || i}><span className={`mac ${a.type || 'link'}`}><IconeMenu tipo={a.type}/></span>
+            <b>{a.label || TIPOS[a.type]?.label || 'Ação'}</b><span className="seta">›</span></div>
         ))}
 
         {sugestoes.map(s => (
           <div className="mbt sugestao" key={`s-${s.type}`}>
-            <span className="mac"><Plus size={9}/></span>
+            <span className="mac"><IconeMenu tipo={s.type}/></span>
             <b>{s.label}</b><span className="seta">›</span>
           </div>
         ))}
@@ -201,7 +127,7 @@ export default function Experiencia({ dados }) {
   const experienciaPreview = {
     id: 'preview-menu', name: 'Menu principal', pendente: true,
     draft: {
-      brand: { titulo: 'Café da Praça', subtitulo: 'Como podemos ajudar?' },
+      brand: { titulo: dados.biz?.name || 'Seu negócio', subtitulo: 'Como podemos ajudar?' },
       buttons: [
         { id: 'pw', type: 'whatsapp', label: 'Falar no WhatsApp', enabled: true, value: { telefone: '(11) 99999-9999', mensagem: 'Olá!' } },
         { id: 'ps', type: 'website', label: 'Ver produtos/serviços', enabled: true, value: { url: 'https://exemplo.com.br' } },
@@ -262,87 +188,51 @@ export default function Experiencia({ dados }) {
 
   return (
     <>
-      {/* "depois de interagir com um dispositivo" saiu (Ricardo, 07/09/2026):
-          "interagir" e "dispositivo" são palavras nossas, não do lojista. O
-          texto novo diz o gesto (tocar) e nomeia as coisas pelo que elas são na
-          mão dele — placa, cartão. */}
-      <Head titulo="Experiência do Cliente"
-        sub="Escolha o que seu cliente encontra ao tocar em uma placa, cartão ou outro dispositivo STARTOUCH."/>
-
-      {/* Começa pelo FATO, não pelo conceito: o que os aparelhos dele estão
-          fazendo agora. Só depois a tela usa os nossos nomes. */}
-      <div className="v3-exp-status">
-        <CheckCircle2 size={17}/>
-        <div>
-          <div className="t">
-            {devices.length === 0
-              ? 'Você ainda não tem dispositivos ativos'
-              : noMenu.length === 0
-                ? `${devices.length === 1 ? 'Seu dispositivo está configurado' : `Seus ${devices.length} dispositivos estão configurados`} para Avaliação no Google`
-                : `${noMenu.length} ${noMenu.length === 1 ? 'dispositivo abre um menu seu' : 'dispositivos abrem um menu seu'}${noGoogle.length ? ` e ${noGoogle.length} ${noGoogle.length === 1 ? 'vai' : 'vão'} direto ao Google` : ''}`}
+      <Head titulo="Experiência do Cliente" sub="Decida o que acontece depois de cada toque."/>
+      <div className="exp-evolucao">
+        <section className="exp-atual" aria-label="Experiência atual">
+          <CheckCircle2 size={19}/>
+          <div><strong>{devices.length === 0 ? 'Seu primeiro ponto de contato começa aqui' : noMenu.length === 0
+            ? `Hoje, ${devices.length === 1 ? 'seu dispositivo leva' : `seus ${devices.length} dispositivos levam`} à avaliação no Google`
+            : `Hoje, ${noMenu.length} ${noMenu.length === 1 ? 'dispositivo abre' : 'dispositivos abrem'} seu Menu Inteligente`}</strong>
+            <p>{devices.length === 0 ? 'Você já pode montar seu menu. Ao ativar um dispositivo, escolha a experiência dele.' : noMenu.length > 0
+              ? `${noGoogle.length ? `Outros ${noGoogle.length} seguem direto ao Google. ` : ''}Você decide o destino de cada ponto de contato.`
+              : 'Avaliação no Google é a experiência padrão e continua gratuita.'}</p>
           </div>
-          <div className="s">Esta é a experiência entregue atualmente após cada interação.</div>
-        </div>
-      </div>
-
-      {/* ── A escolha, lado a lado e com o mesmo peso ── */}
-      <div className="v3-escolha">
-        <section className="v3-opcao atual">
-          <header>
-            <h2>Avaliação no Google {noGoogle.length > 0 && <Chip tipo="g">Em uso</Chip>}</h2>
-            <p>Após a interação, o cliente é direcionado à página de avaliação do seu negócio.</p>
-          </header>
-          {/* O cartão do gratuito ganhou CORPO em 07/09/2026. Antes tinha só o
-              celular e uma linha, enquanto o vizinho tinha celular + três
-              benefícios + botão — e como os dois têm a mesma altura, sobrava um
-              vazio de uns cem pixels aqui. Vazio ao lado de cartão cheio não é
-              neutro: lê-se como "este aqui não tem nada".
-
-              O que entra é o que o Google Direto ENTREGA DE BOM. A régua da casa
-              vale aqui inteira: nenhuma reorganização pode fazer o gratuito
-              parecer pior para vender o pago. Quem escolhe entre iguais escolhe
-              melhor — e o Menu continua vencendo pelo conteúdo, não por ser
-              maior. */}
-          <div className="corpo">
-            <FoneGoogle nome={negocioExibido?.name}/>
-            <ul className="v3-beneficios simples">
-              <li><span className="ico"><Zap size={16}/></span><div><b>Pronto desde o primeiro toque</b><span>Não precisa configurar nada: todo dispositivo novo já sai assim.</span></div></li>
-              <li><span className="ico"><MousePointerClick size={16}/></span><div><b>O caminho mais curto até a avaliação</b><span>Um toque e o cliente já está na página de avaliação, sem escolher nada antes.</span></div></li>
-              <li><span className="ico"><BadgeCheck size={16}/></span><div><b>Gratuito, sem prazo</b><span>Faz parte do plano gratuito e continua disponível mesmo se você usar o menu em outros dispositivos.</span></div></li>
-            </ul>
-          </div>
-          <footer>
-            {noGoogle.length > 0
-              ? <div className="uso ativo">Em uso em {noGoogle.length} {noGoogle.length === 1 ? 'dispositivo' : 'dispositivos'}</div>
-              : <div className="uso">Nenhum dispositivo usando no momento</div>}
-            <div className="nota">Configuração gratuita e padrão dos novos dispositivos.</div>
-          </footer>
         </section>
 
-        <section className="v3-opcao destaque">
-          <header>
-            <h2>Menu Inteligente <Chip>PRO</Chip></h2>
-            <p>Crie uma experiência personalizada com os caminhos mais importantes do seu negócio.</p>
-          </header>
-          <div className="corpo">
-            <FoneMenu
-              titulo={conteudoExemplo?.brand?.titulo || negocioExibido?.name}
+        <section className="exp-pro" aria-labelledby="exp-pro-titulo">
+          <div className="exp-pro-copy">
+            <div className="exp-eyebrow">MAIS POSSIBILIDADES EM CADA TOQUE <Chip>PRO</Chip></div>
+            <h2 id="exp-pro-titulo">Menu Inteligente</h2>
+            <p className="exp-promessa">O mesmo toque.<br/><strong>Vários caminhos para o seu negócio.</strong></p>
+            <p className="exp-descricao">Transforme sua placa ou cartão STARTOUCH em um ponto de contato que ajuda o cliente a dar o próximo passo.</p>
+            <div className="exp-caminhos" aria-label="Possibilidades do menu">
+              {Object.entries(TIPOS).map(([type, info]) => <span key={type}><IconeMenu tipo={type}/>{info.label}</span>)}
+            </div>
+            <p className="exp-descricao">Mostre produtos e serviços, receba pedidos de orçamento ou adicione qualquer link que faça sentido para você.</p>
+            <button className="v3-btn solid grande" onClick={dados.previewToques ? () => abrir('preview-menu') : criar} disabled={criando}>
+              <Plus size={16}/>{criando ? 'Criando…' : 'Criar meu Menu Inteligente'}<ChevronRight size={16}/>
+            </button>
+            <p className="exp-nota">Monte e visualize no editor antes de publicar.</p>
+          </div>
+          <figure className="exp-demonstracao">
+            <span className="exp-toque"><Smartphone size={15}/> Seu cliente toca na STARTOUCH</span>
+            <span className="exp-conector" aria-hidden="true">↓</span>
+            <FoneMenu titulo={conteudoExemplo?.brand?.titulo || negocioExibido?.name}
               subtitulo={conteudoExemplo?.brand?.subtitulo}
               acoes={conteudoExemplo?.buttons?.filter(b => b.enabled !== false)}/>
-            <ul className="v3-beneficios">
-              <li><span className="ico"><GitBranch size={16}/></span><div><b>Mais caminhos para o cliente</b><span>Reúna atendimento, produtos, orçamento, Instagram e avaliação em um só lugar.</span></div></li>
-              <li><span className="ico"><Smartphone size={16}/></span><div><b>A experiência certa em cada ponto</b><span>Use um menu na mesa e outro no cartão da equipe, de acordo com cada momento.</span></div></li>
-              <li><span className="ico"><Link2 size={16}/></span><div><b>Qualquer link que fizer sentido</b><span>Adicione delivery, reservas, promoções, pagamentos ou o endereço que você quiser.</span></div></li>
-            </ul>
+            <figcaption>{exemplo ? 'Prévia do seu menu' : 'Imagine seu negócio aqui'}<span>Você escolhe os botões e a ordem.</span></figcaption>
+          </figure>
+        </section>
+
+        <section className="exp-pontos" aria-labelledby="exp-pontos-titulo">
+          <div className="exp-pontos-titulo"><GitBranch size={21}/><div><h2 id="exp-pontos-titulo">Cada ponto de contato pode ter uma experiência diferente</h2><p>Personalize o próximo passo de acordo com o momento do cliente.</p></div></div>
+          <div className="exp-exemplos">
+            <article><span>NA MESA</span><h3>Facilite o pedido</h3><p>Cardápio, WhatsApp e avaliação no Google no mesmo menu.</p></article>
+            <article><span>NO CARTÃO DA EQUIPE</span><h3>Continue a conversa</h3><p>Produtos, serviços e orçamento ao alcance de um toque.</p></article>
+            <article><span>NO BALCÃO</span><h3>Crie o próximo contato</h3><p>Instagram e links úteis, ou mantenha a avaliação direta no Google.</p></article>
           </div>
-          <footer>
-            <button className="v3-btn solid grande" onClick={dados.previewToques ? () => abrir('preview-menu') : criar} disabled={criando}>
-              <Plus size={15}/> {criando ? 'Criando…' : dados.previewToques ? 'Conhecer o Menu Inteligente' : ativas.length ? 'Criar outro menu' : 'Criar meu primeiro menu'}
-            </button>
-            {noMenu.length > 0 && (
-              <div className="uso ativo">Em uso em {noMenu.length} {noMenu.length === 1 ? 'dispositivo' : 'dispositivos'}</div>
-            )}
-          </footer>
         </section>
       </div>
 
@@ -368,7 +258,7 @@ export default function Experiencia({ dados }) {
                   </div>
                   <div className="tags">
                     {acoes.slice(0, 5).map((b, i) => (
-                      <span className="tag" key={b.id || i}>{ROTULO_ACAO[b.type] || 'Ação'}</span>
+                      <span className="tag" key={b.id || i}>{TIPOS[b.type]?.label || 'Ação'}</span>
                     ))}
                     {acoes.length > 5 && <span className="tag">+{acoes.length - 5}</span>}
                   </div>
@@ -395,22 +285,6 @@ export default function Experiencia({ dados }) {
             )
           })}
         </Panel>
-      )}
-
-      {/* Ensina o conceito de vários menus com um EXEMPLO, não em abstrato. Só
-          aparece depois do primeiro menu — antes disso seria adiantar uma
-          etapa que a pessoa nem começou. */}
-      {ativas.length > 0 && (
-        <div className="v3-callout info">
-          <Lightbulb size={16} color="var(--blue-dk)" style={{ flex: 'none', marginTop: 1 }}/>
-          <div>
-            <div className="t">Você pode ter um menu diferente para cada situação</div>
-            <div className="s">
-              Por exemplo: um menu com cardápio nas placas de mesa, e outro com “salvar contato” e WhatsApp
-              no cartão dos seus vendedores.
-            </div>
-          </div>
-        </div>
       )}
 
       {arquivadas.length > 0 && (
