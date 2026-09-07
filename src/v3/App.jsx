@@ -117,7 +117,10 @@ const PERFIS = {
   media: {
     biz: { name: 'Pizzaria Bella', plan: 'free', place_id: 'preview' },
     rating: 4.4, total: 45,
-    info: { rating: 4.4, total: 45, photoUrl: 'x', phone: '(11) 3456-7890', category: 'pizzaria' },
+    // categoria GENERICA de proposito: pizzaria classificada como "food" e o
+    // caso real que o alerta de categoria existe pra pegar (a SAIF esta como
+    // "store"). O perfil `fraca` fica com categoria especifica, pro contraste.
+    info: { rating: 4.4, total: 45, photoUrl: 'x', phone: '(11) 3456-7890', category: 'food' },
     // Aparece em 3 dos 5, e so em 1 deles esta no top 3.
     posicao: { avg: 5.7, score: 12.4, coverage: 3, measured: 5, term: 'pizzaria',
       measuredAt: new Date(agora - 86400000).toISOString(),

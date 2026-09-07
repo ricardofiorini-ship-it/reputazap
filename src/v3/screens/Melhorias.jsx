@@ -19,7 +19,7 @@
 // adiantou.
 // ============================================================
 import React from 'react'
-import { Star, MessageSquare, UserCheck, MapPin, Smartphone, TrendingUp, ExternalLink } from 'lucide-react'
+import { Star, MessageSquare, UserCheck, MapPin, Smartphone, TrendingUp, Camera, Tag, ClipboardCheck, ExternalLink } from 'lucide-react'
 import { scoreDoNegocio, faixaDaNota } from '../lib/score.js'
 import { PESOS } from '../../../api/_lib/score-core.js'
 import '../comecar.css'
@@ -78,6 +78,27 @@ export default function Melhorias({ dados, temDispositivo }) {
   } : null
   const notaUrgente = notaAcao && (faixa.chave === 'critico' || faixa.chave === 'alerta')
 
+  // ── CATEGORIA GENÉRICA ───────────────────────────────────
+  // A categoria decide PARA QUAIS BUSCAS o negócio aparece, e o Google entrega
+  // muita gente classificada num guarda-chuva. Caso real que originou isto: a
+  // SAIF, loja de produtos de limpeza, está como "store" — competindo com todo
+  // tipo de comércio e específica em nada.
+  //
+  // Não confundir com a BUSCA MEDIDA das Configurações: aquela é o termo pelo
+  // qual NÓS medimos a posição; esta é o que o GOOGLE acha que o negócio é. Uma
+  // muda no perfil do Google, a outra no painel.
+  const CATEGORIAS_GENERICAS = {
+    store: 'loja',
+    food: 'alimentação',
+    health: 'saúde',
+    finance: 'finanças',
+    general_contractor: 'serviços gerais',
+    point_of_interest: 'ponto de interesse',
+    establishment: 'estabelecimento'
+  }
+  const categoriaCrua = (info?.category || '').trim().toLowerCase()
+  const categoriaGenerica = CATEGORIAS_GENERICAS[categoriaCrua] || null
+
   const acoes = []
   // Nota em nivel critico ou de alerta vem ANTES da posicao: de nada adianta
   // aparecer em primeiro se quem chega ve 3,6 e vai embora.
@@ -100,6 +121,20 @@ export default function Melhorias({ dados, temDispositivo }) {
     })
   }
 
+  if (categoriaGenerica) {
+    acoes.push({
+      icon: Tag,
+      titulo: 'Confira a categoria da sua empresa no Google',
+      paragrafos: [
+        `Hoje sua empresa está classificada como “${categoriaGenerica}”, que é uma categoria genérica. ` +
+        'A categoria decide para quais buscas você aparece — e uma categoria ampla te coloca para disputar ' +
+        'com todo tipo de negócio, sem ser a escolha óbvia de ninguém.',
+        'Escolha a categoria mais específica que descreva o que você faz. É a mudança de maior efeito e menor esforço no perfil.'
+      ],
+      cta: { label: 'Ajustar categoria no Google', url: 'https://business.google.com/' }
+    })
+  }
+
   if (notaAcao && !notaUrgente) acoes.push(notaAcao)
 
   if (faltaNoPerfil.length) {
@@ -110,9 +145,37 @@ export default function Melhorias({ dados, temDispositivo }) {
       // telefone" com dois. O que falta é calculado, então o plural também.
       paragrafos: [
         `Ainda ${faltaNoPerfil.length > 1 ? 'faltam' : 'falta'} ${faltaNoPerfil.join(' e ')}. ` +
-        'É uma melhoria simples, depende apenas de você e leva poucos minutos.'
+        'É uma melhoria simples, depende apenas de você e leva poucos minutos.',
+        // Site, horário e endereço NÃO entram no Score porque não conseguimos
+        // ler todos — e prometer pontos por algo que não medimos seria inventar.
+        // Entram como conferência, e a frase diz isso com todas as letras.
+        'Aproveite e confira o resto: site, horário de funcionamento e como chegar. Isso não entra no cálculo do Score, mas é o que o cliente lê antes de decidir.'
       ],
       cta: { label: 'Completar perfil da empresa', url: 'https://business.google.com/' }
+    })
+  }
+
+  acoes.push({
+    icon: Camera,
+    titulo: 'Publique fotos com frequência',
+    paragrafos: [
+      // NÃO prometemos posição por foto: o Google não confirma esse peso e a
+      // regra da casa é não vender o que não se controla. O que dá para
+      // afirmar é o efeito na ESCOLHA, que é real e verificável.
+      'A maioria das pessoas olha as fotos antes de ler qualquer avaliação. Perfil com foto antiga passa a impressão de negócio parado.',
+      'Uma foto por semana já é um bom ritmo — o produto do dia, a fachada, a equipe, o salão cheio.'
+    ],
+    cta: { label: 'Adicionar fotos no Google', url: 'https://business.google.com/' }
+  })
+
+  if (!faltaNoPerfil.length) {
+    acoes.push({
+      icon: ClipboardCheck,
+      titulo: 'Confira as informações do seu perfil',
+      paragrafos: [
+        'Seu perfil tem o essencial. Vale conferir de tempos em tempos se telefone, site, horário de funcionamento e endereço continuam certos — mudança de horário esquecida no Google rende cliente na porta fechada.'
+      ],
+      cta: { label: 'Revisar meu perfil', url: 'https://business.google.com/' }
     })
   }
 
