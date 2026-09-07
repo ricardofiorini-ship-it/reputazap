@@ -87,6 +87,9 @@
 .v3-agora article .txt { min-width: 0; }
 .v3-agora article .txt strong { display: block; font-size: 13px; font-weight: 650; margin-bottom: 2px; }
 .v3-agora article .txt p { font-size: 12.2px; color: var(--mid); line-height: 1.5; margin: 0; }
+/* Segundo paragrafo em diante ganha respiro — sem isto os dois viram um bloco
+   so e o texto perde a pausa que o autor escreveu. */
+.v3-agora article .txt p + p { margin-top: 6px; }
 .v3-agora article .txt a {
   display: inline-block; margin-top: 6px;
   font-size: 12px; font-weight: 600; color: var(--blue); text-decoration: none;

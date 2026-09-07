@@ -49,23 +49,37 @@ export default function PrimeirosPassos({ dados }) {
   if (faltaNoPerfil.length) {
     acoes.push({
       icon: Star,
-      titulo: `Complete seu perfil no Google — vale ${pontosDoPerfil} pontos`,
-      texto: `Falta ${faltaNoPerfil.join(' e ')}. É a única parte do seu Score que depende só de você, e leva dois minutos.`,
-      cta: { label: 'Abrir meu perfil no Google', url: 'https://business.google.com/' }
+      titulo: `Complete o perfil da sua empresa no Google — +${pontosDoPerfil} pontos`,
+      // Concordância: "Ainda falta foto" com um item, "Ainda faltam foto e
+      // telefone" com dois. Texto que erra o plural na cara do cliente parece
+      // gerado por máquina — e, aqui, foi.
+      paragrafos: [
+        `Ainda ${faltaNoPerfil.length > 1 ? 'faltam' : 'falta'} ${faltaNoPerfil.join(' e ')}. ` +
+        'É uma melhoria simples, depende apenas de você e leva poucos minutos.'
+      ],
+      cta: { label: 'Completar perfil da empresa', url: 'https://business.google.com/' }
     })
   }
   if (linkAvaliacoes) {
     acoes.push({
       icon: MessageSquare,
-      titulo: 'Responda quem já avaliou',
-      texto: 'Negócios que respondem passam mais confiança, e o Google valoriza perfis ativos. Comece pelas mais recentes.',
-      cta: { label: 'Ver minhas avaliações', url: linkAvaliacoes }
+      titulo: 'Responda às avaliações da sua empresa',
+      paragrafos: [
+        'Responder demonstra atenção aos clientes e mantém o perfil da empresa ativo. ' +
+        'Comece pelas avaliações mais recentes.'
+      ],
+      cta: { label: 'Ver avaliações da empresa', url: linkAvaliacoes }
     })
   }
   acoes.push({
     icon: UserCheck,
-    titulo: 'Peça avaliação a quem já é seu cliente',
-    texto: 'Enquanto o dispositivo não chega, o pedido feito na hora do atendimento é o que mais funciona — e cada avaliação nova sobe seu Score.'
+    titulo: 'Peça novas avaliações aos seus clientes',
+    paragrafos: [
+      'Você não precisa esperar o dispositivo chegar. Clientes que já conhecem sua empresa ' +
+      'podem avaliar sua experiência agora.',
+      'Cada nova avaliação contribui para fortalecer a presença da empresa no Google e ' +
+      'melhorar seu Score.'
+    ]
   })
 
   return (
@@ -104,8 +118,11 @@ export default function PrimeirosPassos({ dados }) {
 
       <section className="v3-agora">
         <header>
-          <h2>O que dá pra fazer agora</h2>
-          <p>Sem depender de nenhum dispositivo — e tudo aqui mexe no seu Score lá em cima.</p>
+          <h2>O que você pode melhorar agora</h2>
+          <p>
+            Algumas ações já podem melhorar a presença da sua empresa no Google e aumentar
+            seu Score — mesmo antes de receber qualquer dispositivo.
+          </p>
         </header>
         <div className="lista">
           {acoes.map((a, i) => {
@@ -115,7 +132,7 @@ export default function PrimeirosPassos({ dados }) {
                 <div className="ico"><Ico size={17} strokeWidth={1.8}/></div>
                 <div className="txt">
                   <strong>{a.titulo}</strong>
-                  <p>{a.texto}</p>
+                  {a.paragrafos.map((t, j) => <p key={j}>{t}</p>)}
                   {a.cta && (
                     <a href={a.cta.url} target="_blank" rel="noopener noreferrer">
                       {a.cta.label} <ExternalLink size={11} style={{ verticalAlign: -1 }}/>
