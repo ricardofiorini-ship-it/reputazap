@@ -66,7 +66,7 @@ function Previa({ draft, foto }) {
           : <div style={{ height: 6 }}/>}
         <div className="nome">{draft.brand?.titulo || 'Seu negócio'}</div>
         {draft.brand?.subtitulo && <div className="sb">{draft.brand.subtitulo}</div>}
-        {ligados.length === 0 && <div className="vazio">Nenhuma ação ligada ainda.</div>}
+        {ligados.length === 0 && <div className="vazio">Nenhum botão ligado ainda.</div>}
         {ligados.map(b => (
           <div className="bt" key={b.id}>
             <span style={{ color: visual(b.type).cor }}>{visual(b.type).gl}</span>
@@ -110,7 +110,7 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
           <button className="mini" onClick={() => onMover(1)} disabled={ultimo} aria-label="Mover para baixo"><ChevronDown size={14}/></button>
           <button className="v3-btn ghost" onClick={onAbrir}>{aberto ? 'Fechar' : 'Editar'}</button>
           <button className={'v3-switch' + (b.enabled ? '' : ' off')} onClick={() => onMudar({ enabled: !b.enabled })}
-            aria-label={b.enabled ? 'Desligar ação' : 'Ligar ação'} aria-pressed={b.enabled}><i/></button>
+            aria-label={b.enabled ? 'Desligar botão' : 'Ligar botão'} aria-pressed={b.enabled}><i/></button>
         </span>
       </div>
 
@@ -129,7 +129,7 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
             </label>
           ))}
           {!campos.length && (
-            <p className="v3-dica">Esta ação não precisa de configuração: o endereço é montado na hora a partir do seu cadastro no Google.</p>
+            <p className="v3-dica">Este botão não precisa de configuração: o endereço é montado na hora a partir do seu cadastro no Google.</p>
           )}
           {b.type === 'contact' && (
             <p className="v3-dica">
@@ -138,7 +138,7 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
             </p>
           )}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, gap: 10 }}>
-            <button className="v3-btn ghost" onClick={onRemover}><Trash2 size={13}/> Remover ação</button>
+            <button className="v3-btn ghost" onClick={onRemover}><Trash2 size={13}/> Remover botão</button>
             <button className="v3-btn solid" onClick={onAbrir} disabled={!!erro}>
               {erro ? (novo ? 'Corrija para inserir' : 'Corrija para concluir') : (novo ? 'Inserir' : 'Concluir')}
             </button>
@@ -157,7 +157,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   const [sujo, setSujo] = React.useState(false)
   const [aberto, setAberto] = React.useState(null)
   const [addOpen, setAddOpen] = React.useState(false)
-  // Qual ação acabou de ser adicionada — só ela mostra "Inserir".
+  // Qual botão acabou de ser adicionado — só ele mostra "Inserir".
   const [recem, setRecem] = React.useState(null)
   const [publicando, setPublicando] = React.useState(false)
   const [erroGeral, setErroGeral] = React.useState(null)
@@ -390,7 +390,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
       {erroGeral && !erros.length && <div className="v3-callout"><div><div className="t">{erroGeral}</div></div></div>}
 
       <div className="v3-editor-steps" aria-label="Etapas para colocar o menu no ar">
-        <div className="ativo"><span>1</span><div><b>Personalize</b><small>Conteúdo e ações</small></div></div>
+        <div className="ativo"><span>1</span><div><b>Personalize</b><small>Conteúdo e botões</small></div></div>
         <i>→</i>
         <div><span>2</span><div><b>Publique</b><small>Confirme a versão</small></div></div>
         <i>→</i>
@@ -407,7 +407,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                 <li key={i}>{e.label ? <b>{e.label}: </b> : null}{e.msg}</li>
               ))}
             </ul>
-            <div className="saidas">Duas saídas: corrigir, ou desligar a ação e publicar sem ela.</div>
+            <div className="saidas">Duas saídas: corrigir, ou desligar o botão e publicar sem ele.</div>
           </div>
           <button className="v3-btn" disabled>Publicar</button>
         </div>
@@ -468,8 +468,12 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
 
           <section className="v3-panel">
             <header>
-              <h2>O que o cliente vê no topo</h2>
-              <div className="psub">A primeira coisa que aparece quando ele encosta o celular</div>
+              {/* Par simetrico do "Botoes do Menu" logo abaixo: as duas secoes
+                  passam a nomear a PARTE do menu que a pessoa esta editando, em
+                  vez de descreve-la por fora. O subtitulo saiu junto — o titulo
+                  ja diz onde e, e a previa do celular ao lado mostra o efeito
+                  melhor que qualquer frase. */}
+              <h2>Topo do Menu</h2>
             </header>
             <div className="body">
               <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -500,8 +504,15 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           <section className="v3-panel">
             <header>
               <div>
-                <h2>Ações</h2>
-                {/* O CONTADOR ANCORA NA RECOMENDAÇÃO, NÃO NO TETO. Antes dizia
+                <h2>Botões do Menu</h2>
+                {/* "Ações" virou "Botões do Menu" (Ricardo, 07/09/2026), e a
+                    troca foi na TELA INTEIRA: título, contador, estado vazio,
+                    rótulos de acessibilidade, "Remover botão", o passo
+                    "Conteúdo e botões" e a mensagem de erro. Trocar só o título
+                    deixaria a tela falando duas línguas sobre a mesma coisa, e
+                    quem lê não tem como saber que é a mesma.
+
+                    O CONTADOR ANCORA NA RECOMENDAÇÃO, NÃO NO TETO. Antes dizia
                     "1 de 12" — e 12 é só o limite técnico: a régua do produto é
                     até 6, acima disso o editor avisa e publica assim mesmo. Um
                     contador que mostra 12 convida o lojista a preencher doze, e
@@ -514,7 +525,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                 <div className="psub">
                   O que o cliente vê ao tocar no dispositivo, na ordem em que aparece.
                   Arraste para reordenar.
-                  {' · '}{draft.buttons.length} {draft.buttons.length === 1 ? 'ação' : 'ações'}
+                  {' · '}{draft.buttons.length} {draft.buttons.length === 1 ? 'botão' : 'botões'}
                   {ligados > (limites?.recomendado || 6)
                     ? ' · acima de ' + (limites?.recomendado || 6) + ' a escolha fica mais difícil pro cliente'
                     : draft.buttons.length >= (limites?.botoes || 12) - 2
@@ -541,17 +552,17 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                   onRemover={() => removerBotao(b.id)}/>
               ))}
               {!draft.buttons.length && (
-                <p className="v3-dica" style={{ padding: '10px 0' }}>Nenhuma ação ainda. Adicione a primeira abaixo.</p>
+                <p className="v3-dica" style={{ padding: '10px 0' }}>Nenhum botão ainda. Adicione o primeiro abaixo.</p>
               )}
 
               <div style={{ marginTop: 12 }}>
                 {!addOpen ? (
                   <button className="v3-btn" onClick={() => setAddOpen(true)} disabled={cheio}>
-                    <Plus size={13}/> {cheio ? `Limite de ${limites?.botoes || 12} ações` : 'Adicionar ação'}
+                    <Plus size={13}/> {cheio ? `Limite de ${limites?.botoes || 12} botões` : 'Adicionar botão'}
                   </button>
                 ) : (
                   <>
-                    <div style={{ fontSize: 11.5, color: 'var(--dim)', marginBottom: 7 }}>Escolha o tipo de ação</div>
+                    <div style={{ fontSize: 11.5, color: 'var(--dim)', marginBottom: 7 }}>Escolha o tipo de botão</div>
                     <div className="v3-addgrid">
                       {disponiveis.map(([k, v]) => (
                         <button className="v3-add" key={k} onClick={() => adicionar(k)}>
@@ -560,7 +571,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                       ))}
                     </div>
                     {!disponiveis.length && (
-                      <p className="v3-dica">Você já usou todos os tipos de ação. Para outro destino, use “Link personalizado”.</p>
+                      <p className="v3-dica">Você já usou todos os tipos de botão. Para outro destino, use “Link personalizado”.</p>
                     )}
                     <button className="v3-btn ghost" style={{ marginTop: 8 }} onClick={() => setAddOpen(false)}>Cancelar</button>
                   </>
