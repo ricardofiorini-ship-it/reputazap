@@ -9,7 +9,6 @@
 .menu-editor .v3-panel > header { padding: 19px 20px 15px; }
 .menu-editor .v3-panel > .body { padding: 18px 20px; }
 .menu-editor .v3-panel h2 { display: flex; align-items: center; gap: 9px; font-size: 16px; }
-.menu-editor .me-numero { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; background: var(--blue-soft); color: var(--blue-dk); font-size: 11px; flex: none; }
 .menu-editor .me-organizacao { background: transparent; }
 .menu-editor .me-organizacao summary { cursor: pointer; padding: 14px 17px; font-size: 11px; color: var(--mid); }
 .menu-editor .me-organizacao summary strong { color: var(--ink); margin-left: 8px; font-weight: 600; }

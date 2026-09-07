@@ -531,7 +531,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                   vez de descreve-la por fora. O subtitulo saiu junto — o titulo
                   ja diz onde e, e a previa do celular ao lado mostra o efeito
                   melhor que qualquer frase. */}
-              <h2><span className="me-numero">1</span> A identidade do seu negócio</h2>
+              <h2>A identidade do seu negócio</h2>
               <div className="psub">O título e a mensagem que recebem seu cliente.</div>
             </header>
             <div className="body">
@@ -563,7 +563,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           <section className="v3-panel">
             <header>
               <div>
-                <h2><span className="me-numero">2</span> Os caminhos do seu menu</h2>
+                <h2>Os caminhos do seu menu</h2>
                 {/* "Ações" virou "Botões do Menu" (Ricardo, 07/09/2026), e a
                     troca foi na TELA INTEIRA: título, contador, estado vazio,
                     rótulos de acessibilidade, "Remover botão", o passo
@@ -730,7 +730,7 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
   return (
     <section className="v3-panel">
       <header>
-        <h2><span className="me-numero">3</span> Onde usar este menu</h2>
+        <h2>Em quais dispositivos este menu deve aparecer?</h2>
         <div className="psub">
           {!ligados.length
             ? 'Enquanto você não ligar em nenhum, este menu não chega a ninguém.'
