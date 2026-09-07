@@ -501,10 +501,25 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
             <header>
               <div>
                 <h2>Ações</h2>
+                {/* O CONTADOR ANCORA NA RECOMENDAÇÃO, NÃO NO TETO. Antes dizia
+                    "1 de 12" — e 12 é só o limite técnico: a régua do produto é
+                    até 6, acima disso o editor avisa e publica assim mesmo. Um
+                    contador que mostra 12 convida o lojista a preencher doze, e
+                    a tela passa a empurrar exatamente o que ela desaconselha. O
+                    teto só aparece quando ele chega perto, que é quando vira
+                    informação útil em vez de convite.
+
+                    "Arraste pela alça" também saiu: ninguém chama aquilo de alça
+                    fora de quem desenha interface. */}
                 <div className="psub">
-                  Os botões que o cliente vê, nesta ordem. Arraste pela alça, ou use as setas.
-                  {' · '}{draft.buttons.length} de {limites?.botoes || 12}
-                  {ligados > (limites?.recomendado || 6) && ' · muitas opções dificultam a escolha do cliente'}
+                  O que o cliente vê ao tocar no dispositivo, na ordem em que aparece.
+                  Arraste para reordenar.
+                  {' · '}{draft.buttons.length} {draft.buttons.length === 1 ? 'ação' : 'ações'}
+                  {ligados > (limites?.recomendado || 6)
+                    ? ' · acima de ' + (limites?.recomendado || 6) + ' a escolha fica mais difícil pro cliente'
+                    : draft.buttons.length >= (limites?.botoes || 12) - 2
+                      ? ' · máximo de ' + (limites?.botoes || 12)
+                      : ''}
                 </div>
               </div>
             </header>
