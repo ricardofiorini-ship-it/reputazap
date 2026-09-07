@@ -74,7 +74,7 @@ export const AREAS = {
 
   experiencia: {
     nome: 'Experiência do Cliente', icon: Sparkles, status: 'pronto', tela: 'experiencia',
-    sub: 'O que acontece depois que alguém encosta o celular'
+    sub: 'O que seu cliente encontra ao tocar em uma placa, cartão ou outro dispositivo STARTOUCH'
   },
 
   dispositivos: {

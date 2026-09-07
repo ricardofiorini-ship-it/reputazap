@@ -262,8 +262,12 @@ export default function Experiencia({ dados }) {
 
   return (
     <>
+      {/* "depois de interagir com um dispositivo" saiu (Ricardo, 07/09/2026):
+          "interagir" e "dispositivo" são palavras nossas, não do lojista. O
+          texto novo diz o gesto (tocar) e nomeia as coisas pelo que elas são na
+          mão dele — placa, cartão. */}
       <Head titulo="Experiência do Cliente"
-        sub="Escolha o que seu cliente encontra depois de interagir com um dispositivo"/>
+        sub="Escolha o que seu cliente encontra ao tocar em uma placa, cartão ou outro dispositivo STARTOUCH."/>
 
       {/* Começa pelo FATO, não pelo conceito: o que os aparelhos dele estão
           fazendo agora. Só depois a tela usa os nossos nomes. */}
