@@ -247,13 +247,27 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
 //
 // Sair é fácil de propósito. Caixa sem saída clara é armadilha, e o cliente
 // que se sente preso não volta.
-function CaixaAssinatura({ ligados, onFechar }) {
+// A volta do Stripe cai numa URL FIXA (`?upgrade=success`), configurada no
+// painel dele — ela não pode variar por cliente, então não tem como carregar
+// qual menu estava aberto. Sem isso a tela volta sem saber o que publicar e
+// não publica nada: falha calada, no minuto seguinte ao pagamento.
+//
+// Então o menu aberto é guardado ANTES de sair, e lido na volta. `localStorage`
+// e não `sessionStorage` porque alguns navegadores e apps abrem o pagamento em
+// outra aba, e ali o sessionStorage não existiria. Carrega hora junto pra não
+// ressuscitar uma intenção de ontem.
+export const CHAVE_MENU_PAGANDO = 'st_menu_pagando'
+
+function CaixaAssinatura({ expId, ligados, onFechar }) {
   const [indo, setIndo] = React.useState(false)
   const [erro, setErro] = React.useState(null)
 
   async function assinar() {
     setIndo(true); setErro(null)
     try {
+      try {
+        localStorage.setItem(CHAVE_MENU_PAGANDO, JSON.stringify({ id: expId, em: Date.now() }))
+      } catch {}
       const r = await api.assinatura.checkout('menu')
       if (!r?.url) throw new Error('Não recebemos o endereço do pagamento.')
       window.location.href = r.url
@@ -564,7 +578,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
 
   return (
     <div className="menu-editor">
-      {paywall && <CaixaAssinatura ligados={ligados} onFechar={() => setPaywall(false)}/>}
+      {paywall && <CaixaAssinatura expId={exp.id} ligados={ligados} onFechar={() => setPaywall(false)}/>}
       <div className="v3-head v3-editor-head">
         <div>
           <button className="v3-btn ghost" onClick={onVoltar} style={{ marginBottom: 8 }}>

@@ -2,7 +2,7 @@ import React from 'react'
 import { Plus, Archive, Pencil, Trash2, ChevronRight, ExternalLink } from 'lucide-react'
 import { Head, Panel, Chip, Carregando, Erro, dataBr, desde } from '../ui.jsx'
 import { api } from '../lib/api.js'
-import EditorMenu from './EditorMenu.jsx'
+import EditorMenu, { CHAVE_MENU_PAGANDO } from './EditorMenu.jsx'
 import { TIPOS } from '../../../api/_lib/menu.js'
 
 // Desenhos e rótulos seguem os contratos compartilhados do menu público.
@@ -148,6 +148,17 @@ export default function Experiencia({ dados }) {
 
   React.useEffect(() => { carregar() }, [carregar])
 
+  // A experiência aberta vira `?exp=` na URL: dá pra atualizar a página e
+  // continuar onde estava, e o botão voltar do navegador funciona.
+  const abrir = React.useCallback((id) => {
+    const url = new URL(window.location.href)
+    if (id) url.searchParams.set('exp', id); else url.searchParams.delete('exp')
+    window.history.pushState({}, '', url)
+    setAbertaId(id)
+    window.scrollTo(0, 0)
+  }, [])
+
+
   // ── A VOLTA DO PAGAMENTO ──
   // Quem libera o Pro é o aviso que o Stripe manda pro nosso servidor, e ele
   // chega SEGUNDOS depois de o cliente voltar. Sem esperar, a pessoa paga,
@@ -201,8 +212,25 @@ export default function Experiencia({ dados }) {
     // a publicação for recusada (algum botão inválido), diz isso em vez de
     // fingir que subiu: sucesso silencioso e fracasso silencioso são o mesmo
     // problema visto de dois lados.
+    // Qual menu publicar: o que estiver aberto agora ou — no caso normal, em
+    // que a pessoa volta do Stripe numa URL sem `?exp=` — o que ela guardou
+    // ao sair. A marca é consumida de qualquer jeito, mesmo se não servir:
+    // intenção de pagamento é de uma vez só, e deixá-la ali publicaria um menu
+    // sozinho na próxima visita.
+    const menuGuardado = () => {
+      try {
+        const cru = localStorage.getItem(CHAVE_MENU_PAGANDO)
+        localStorage.removeItem(CHAVE_MENU_PAGANDO)
+        if (!cru) return null
+        const { id, em } = JSON.parse(cru)
+        if (!id || !em) return null
+        if (Date.now() - em > 2 * 60 * 60 * 1000) return null  // intenção velha, ignora
+        return id
+      } catch { return null }
+    }
+
     const publicarAgora = async (r) => {
-      const id = abertaIdRef.current
+      const id = abertaIdRef.current || menuGuardado()
       if (!id) return
       const exp = (r?.experiences || []).find(e => e.id === id)
       if (!exp || exp.archived_at) return
@@ -211,6 +239,9 @@ export default function Experiencia({ dados }) {
         const pub = await api.experiencias.publicar(id)
         if (!vivo) return
         setPublicadoAposPagar({ ok: true, em: pub.dispositivos_com_este_menu || 0 })
+        // Reabre o menu recém-publicado: a pessoa saiu de dentro dele e deve
+        // voltar pra dentro dele, vendo o resultado — não pra lista.
+        if (!abertaIdRef.current) abrir(id)
         await carregar()
       } catch (e) {
         if (!vivo) return
@@ -220,17 +251,7 @@ export default function Experiencia({ dados }) {
 
     tentar()
     return () => { vivo = false }
-  }, [confirmando, carregar])
-
-  // A experiência aberta vira `?exp=` na URL: dá pra atualizar a página e
-  // continuar onde estava, e o botão voltar do navegador funciona.
-  const abrir = React.useCallback((id) => {
-    const url = new URL(window.location.href)
-    if (id) url.searchParams.set('exp', id); else url.searchParams.delete('exp')
-    window.history.pushState({}, '', url)
-    setAbertaId(id)
-    window.scrollTo(0, 0)
-  }, [])
+  }, [confirmando, carregar, abrir])
 
   React.useEffect(() => {
     const onPop = () => {
