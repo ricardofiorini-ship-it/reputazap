@@ -33,10 +33,10 @@
 | Campo | Valor |
 |---|---|
 | Nome oficial | StarTouch |
-| Razão social | GT6 Brasil Comércio Varejista de Produtos Diversos Ltda |
-| CNPJ | 31.556.596/0001-34 |
+| Razão social | ZAYOR BRASIL LTDA |
+| CNPJ | 68.972.361/0001-33 |
 | Fundação | 2025 |
-| Sede | Rua Cristovan de Vita, 260 — Galpão 17 e 18, Sala F — Jardim Elias — Vargem Grande Paulista/SP — CEP 06734-452 |
+| Sede | Rua João Cordeiro, 111 — Box A007 — Moinho Velho — São Paulo/SP — CEP 02960-000 |
 | País de operação | Brasil |
 | Idioma do produto | Português (pt-BR) |
 | Site institucional | https://startouch.com.br |

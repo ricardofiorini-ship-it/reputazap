@@ -1,6 +1,6 @@
 # Política de Privacidade — StarTouch
 
-**Versão 1.2 — vigente a partir de 4 de setembro de 2026**
+**Versão 1.3 — vigente a partir de 7 de setembro de 2026**
 
 ---
 
@@ -8,15 +8,23 @@
 
 A StarTouch é uma marca operada por:
 
-**GT6 Brasil Comércio Varejista de Produtos Diversos Ltda**
-CNPJ 31.556.596/0001-34
-Rua Cristovan de Vita, 260 — Galpão 17 e 18, Sala F
-Jardim Elias — Vargem Grande Paulista/SP — CEP 06734-452
+**ZAYOR BRASIL LTDA**
+CNPJ 68.972.361/0001-33
+Rua João Cordeiro, 111 — Box A007
+Moinho Velho — São Paulo/SP — CEP 02960-000
 
-Para os fins da Lei Geral de Proteção de Dados (Lei nº 13.709/2018), a GT6 Brasil é a **controladora** dos dados pessoais tratados no site startouch.com.br e no painel StarTouch.
+Para os fins da Lei Geral de Proteção de Dados (Lei nº 13.709/2018), a ZAYOR BRASIL é a **controladora** dos dados pessoais tratados no site startouch.com.br e no painel StarTouch.
 
 **Encarregado pelo Tratamento de Dados Pessoais (DPO):** Ricardo Fiorini
 **Contato para assuntos de privacidade:** privacidade@startouch.com.br
+
+### 1.1 Mudança de controladora (7 de setembro de 2026)
+
+Até 6 de setembro de 2026, a controladora era a **GT6 Brasil Comércio Varejista de Produtos Diversos Ltda** (CNPJ 31.556.596/0001-34). A partir de 7 de setembro de 2026, a **ZAYOR BRASIL LTDA** sucede a GT6 e assume integralmente essa condição, **inclusive quanto aos dados coletados antes desta data**.
+
+O que muda é a pessoa jurídica responsável. **O tratamento não muda:** as finalidades, as bases legais, os prazos de guarda, as ferramentas e operadores contratados, os seus direitos e o canal para exercê-los seguem exatamente os mesmos descritos nesta Política. Esta mudança, por si, não gerou nenhuma nova coleta, nenhum novo compartilhamento e nenhuma ampliação de finalidade.
+
+Se você exerceu algum direito junto à GT6 antes desta data, o pedido e o prazo de resposta seguem válidos perante a ZAYOR BRASIL.
 
 ---
 
@@ -270,6 +278,7 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 | 1.0 | 22/08/2026 | Versão inicial |
 | 1.1 | 02/09/2026 | Inclusão da seção 6.5 (contagem agregada de visitas) e da linha correspondente na seção 9. Alteração meramente declaratória: não reduz direitos nem amplia finalidades de tratamento de dados pessoais, razão pela qual entra em vigor imediatamente |
 | 1.2 | 04/09/2026 | A seção 6.5 passa a declarar também a contagem agregada das escolhas feitas no aviso de cookies. Mesma natureza e mesma ressalva da versão anterior: são contadores, sem dado pessoal |
+| 1.3 | 07/09/2026 | Mudança de controladora: a ZAYOR BRASIL LTDA (CNPJ 68.972.361/0001-33) sucede a GT6 Brasil Comércio Varejista de Produtos Diversos Ltda, inclusive quanto aos dados já coletados (seção 1.1); atualização do endereço para o da nova sede. **Não é alteração meramente declaratória** como as duas anteriores — muda quem responde pelo tratamento —, mas não reduz direitos, não amplia finalidades e não altera nenhuma operação de tratamento |
 
 ---
 
@@ -277,10 +286,10 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 
 **Encarregado pelo Tratamento de Dados Pessoais:** Ricardo Fiorini
 **E-mail:** privacidade@startouch.com.br
-**Endereço:** Rua Cristovan de Vita, 260 — Galpão 17 e 18, Sala F — Jardim Elias — Vargem Grande Paulista/SP — CEP 06734-452
+**Endereço:** Rua João Cordeiro, 111 — Box A007 — Moinho Velho — São Paulo/SP — CEP 02960-000
 
 Para assuntos comerciais e de suporte, o canal continua sendo contato@startouch.com.br.
 
 ---
 
-*GT6 Brasil Comércio Varejista de Produtos Diversos Ltda — CNPJ 31.556.596/0001-34*
+*ZAYOR BRASIL LTDA — CNPJ 68.972.361/0001-33*

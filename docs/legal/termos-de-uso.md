@@ -1,18 +1,24 @@
 # Termos de Uso — StarTouch
 
-**Versão 1.0 — vigente a partir de 22 de agosto de 2026**
+**Versão 1.1 — vigente a partir de 7 de setembro de 2026**
 
 ---
 
 ## 1. Quem oferece o serviço
 
-**GT6 Brasil Comércio Varejista de Produtos Diversos Ltda**
-CNPJ 31.556.596/0001-34
-Rua Cristovan de Vita, 260 — Galpão 17 e 18, Sala F
-Jardim Elias — Vargem Grande Paulista/SP — CEP 06734-452
+**ZAYOR BRASIL LTDA**
+CNPJ 68.972.361/0001-33
+Rua João Cordeiro, 111 — Box A007
+Moinho Velho — São Paulo/SP — CEP 02960-000
 contato@startouch.com.br · (11) 97694-4026
 
 "StarTouch", "nós" e "nosso" designam a empresa acima. "Você" designa a pessoa física ou jurídica que adquire os produtos ou utiliza a plataforma.
+
+### 1.1 Mudança de titularidade (7 de setembro de 2026)
+
+Até 6 de setembro de 2026, a StarTouch era operada pela **GT6 Brasil Comércio Varejista de Produtos Diversos Ltda** (CNPJ 31.556.596/0001-34). A partir de 7 de setembro de 2026, a **ZAYOR BRASIL LTDA** sucede a GT6 na operação da marca e **assume todas as obrigações assumidas perante você** — garantia dos dispositivos já vendidos, pedidos em andamento, assinaturas em vigor e suporte.
+
+Nada muda para quem já é cliente: os mesmos produtos, os mesmos preços, os mesmos canais de atendimento e a mesma conta. Muda a pessoa jurídica que responde por eles.
 
 ---
 
@@ -138,7 +144,7 @@ Caso venhamos a disponibilizar, no futuro, funcionalidade que envolva coleta de 
 
 ## 10. Propriedade intelectual
 
-A marca StarTouch, o site, o painel, seus textos, imagens, layout, código-fonte e o desenho industrial dos dispositivos são de titularidade da GT6 Brasil e protegidos pela legislação aplicável.
+A marca StarTouch, o site, o painel, seus textos, imagens, layout, código-fonte e o desenho industrial dos dispositivos são de titularidade da ZAYOR BRASIL e protegidos pela legislação aplicável.
 
 A compra do dispositivo transfere a propriedade do bem físico. Não transfere direito sobre a marca, o software ou o desenho do produto.
 
@@ -178,11 +184,11 @@ A eventual invalidade de uma cláusula não afeta as demais. A tolerância quant
 
 Estes Termos são regidos pela lei brasileira.
 
-Fica eleito o foro da comarca de Vargem Grande Paulista/SP para dirimir controvérsias, ressalvado ao consumidor pessoa física o direito de demandar no foro de seu domicílio, na forma do Art. 101, I, do Código de Defesa do Consumidor.
+Fica eleito o foro da comarca de São Paulo/SP para dirimir controvérsias, ressalvado ao consumidor pessoa física o direito de demandar no foro de seu domicílio, na forma do Art. 101, I, do Código de Defesa do Consumidor.
 
 ---
 
 **Dúvidas:** contato@startouch.com.br · (11) 97694-4026
 **Assuntos de privacidade:** privacidade@startouch.com.br
 
-*GT6 Brasil Comércio Varejista de Produtos Diversos Ltda — CNPJ 31.556.596/0001-34*
+*ZAYOR BRASIL LTDA — CNPJ 68.972.361/0001-33*
