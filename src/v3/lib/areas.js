@@ -44,6 +44,20 @@ export const STATUS_TXT = {
 }
 export const STATUS_CHIP = { pronto: 'chip g', constr: 'chip', defin: 'chip a', nao: 'chip n' }
 
+// MENU ENXUTO (decidido pelo Ricardo em 07/09/2026, para a troca do painel).
+// Cliente vê só o que está pronto: área com `publica: false` sai da barra —
+// hoje Clientes, Unidades, Campanhas, Dicas e guias e Tendências.
+//
+// A VISIBILIDADE É CAMPO PRÓPRIO, e não derivada do `status`, de propósito. Se
+// "em construção some do menu" virasse regra automática, o menu do cliente
+// mudaria sozinho no dia em que alguém mexesse num status por outro motivo —
+// e uma área sumiria da vista de todo mundo sem ninguém ter decidido isso.
+// Aqui some porque está escrito que some.
+//
+// As telas continuam existindo e acessíveis pela URL direta (`/<base>/clientes`),
+// que é como a gente segue construindo sem mostrar obra pro cliente.
+//
+// Quem ganha o campo de volta: `publica: false` sai quando a área ficar pronta.
 export const GRUPOS = [
   { titulo: null,          ids: ['inicio'] },
   { titulo: 'Experiência', ids: ['experiencia', 'dispositivos'] },
@@ -54,12 +68,12 @@ export const GRUPOS = [
 
 export const AREAS = {
   inicio: {
-    nome: 'Início', icon: Home, status: 'constr', tela: 'inicio',
+    nome: 'Início', icon: Home, status: 'pronto', tela: 'inicio',
     sub: 'Veja como seu negócio aparece para quem procura na sua região'
   },
 
   experiencia: {
-    nome: 'Experiência do Cliente', icon: Sparkles, status: 'constr', tela: 'experiencia',
+    nome: 'Experiência do Cliente', icon: Sparkles, status: 'pronto', tela: 'experiencia',
     sub: 'O que acontece depois que alguém encosta o celular'
   },
 
@@ -74,6 +88,7 @@ export const AREAS = {
   },
 
   clientes: {
+    publica: false,
     nome: 'Clientes', icon: UserPlus, status: 'defin', pro: true, tela: 'clientes',
     sub: 'Transformar toques anônimos em relacionamento',
     lead: 'Hoje os toques nos seus dispositivos são anônimos',
@@ -97,6 +112,7 @@ export const AREAS = {
   },
 
   unidades: {
+    publica: false,
     nome: 'Unidades', icon: Building2, status: 'defin', tela: 'unidades',
     sub: 'Todos os locais do seu negócio em um só painel',
     lead: 'Um negócio com mais de um endereço, numa conta só',
@@ -136,6 +152,7 @@ export const AREAS = {
   },
 
   campanhas: {
+    publica: false,
     nome: 'Campanhas', icon: Zap, status: 'defin', tela: 'campanhas',
     sub: 'Campanhas e promoções para divulgar seu negócio',
     lead: 'É Promoções, com nome novo',
@@ -157,6 +174,7 @@ export const AREAS = {
   },
 
   guias: {
+    publica: false,
     nome: 'Dicas e guias', icon: PlayCircle, status: 'defin', tela: 'guias',
     sub: 'Orientações práticas para aproveitar melhor a StarTouch',
     lead: 'O formato está decidido: texto e vídeo',
@@ -174,6 +192,7 @@ export const AREAS = {
   },
 
   tendencias: {
+    publica: false,
     nome: 'Tendências', icon: Compass, status: 'nao',
     sub: 'O que está mudando no seu segmento',
     lead: 'O nome saiu do caminho; o escopo ainda não',
@@ -226,3 +245,11 @@ export const AREAS = {
 }
 
 export const IDS = Object.keys(AREAS)
+
+/** As áreas que vão pra barra lateral, na ordem dos grupos. Grupo que ficou
+ *  sem nenhuma área visível não aparece — senão sobraria um título solto. */
+export function gruposVisiveis() {
+  return GRUPOS
+    .map(g => ({ ...g, ids: g.ids.filter(id => AREAS[id] && AREAS[id].publica !== false) }))
+    .filter(g => g.ids.length > 0)
+}

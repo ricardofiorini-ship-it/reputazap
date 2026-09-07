@@ -11,7 +11,7 @@
 // ============================================================
 import React from 'react'
 import { Menu, X } from 'lucide-react'
-import { GRUPOS, AREAS, STATUS_TXT } from './lib/areas.js'
+import { gruposVisiveis, AREAS, STATUS_TXT } from './lib/areas.js'
 import { currentUser, logout } from './lib/api.js'
 import { useDados } from './lib/dados.js'
 import { Carregando, Erro } from './ui.jsx'
@@ -178,6 +178,11 @@ function Legenda() {
   )
 }
 
+// Sobrou alguma área em obra no menu VISÍVEL? Se não, a legenda não tem o que
+// explicar — e legenda sem referente é ruído que o cliente tenta decifrar.
+const temMarcaNoMenu = gruposVisiveis()
+  .some(g => g.ids.some(id => AREAS[id].status !== 'pronto'))
+
 export default function App() {
   const [id, setId] = React.useState(areaDaUrl)
   // No celular a barra lateral é uma gaveta. Começa fechada; no computador
@@ -297,7 +302,7 @@ export default function App() {
           <div className="v3-brandname">STARTOUCH</div>
         </div>
 
-        {GRUPOS.map((g, gi) => (
+        {gruposVisiveis().map((g, gi) => (
           <React.Fragment key={gi}>
             {g.titulo && <div className="v3-grp">{g.titulo}</div>}
             {g.ids.map(aid => {
@@ -317,7 +322,7 @@ export default function App() {
         ))}
 
         <div className="v3-sidefoot">
-          <Legenda/>
+          {temMarcaNoMenu && <Legenda/>}
           <div className="v3-plate">
             <div className="pl">STARTOUCH {dados.biz?.plan === 'pro' ? 'PRO' : 'FREE'}</div>
             <div className="sub">{dados.biz?.name || user?.email || '—'}</div>
