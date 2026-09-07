@@ -126,7 +126,7 @@ export default function Melhorias({ dados, temDispositivo }) {
             que não depende de hardware — cada uma verdadeira para quem a lê. */}
         <p>
           {temDispositivo
-            ? 'Além do que seus dispositivos já fazem, estas ações aumentam seu Score.'
+            ? 'Veja as ações que podem aumentar seu Score neste momento.'
             : 'Mesmo sem um dispositivo, você já pode aumentar seu Score.'}
         </p>
       </header>
