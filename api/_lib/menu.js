@@ -47,6 +47,15 @@ export const LIMITES = {
 export const TIPOS = {
   google:     { label: "Avaliar no Google", ref: true },
   whatsapp:   { label: "WhatsApp",          campos: ["telefone", "mensagem"] },
+  // Linha direta com o dono/gerente. Tecnicamente é um WhatsApp, e de propósito:
+  // o canal que o lojista já atende é o que ele responde.
+  //
+  // ⚠️ ISTO NÃO É A PENEIRA, desmontada em 05/2026 (commit 95b41d2). Lá o
+  // cliente insatisfeito era INTERCEPTADO a caminho do Google e desviado pro
+  // privado — ninguém escolhia nada. Aqui é um botão no menu, ao lado do
+  // "Avaliar no Google", e quem decide qual tocar é o cliente. A diferença não
+  // é de grau: uma esconde avaliação, a outra oferece um caminho a mais.
+  manager:    { label: "Canal direto com a Gerência", campos: ["telefone", "mensagem"] },
   instagram:  { label: "Instagram",         campos: ["url"] },
   food_menu:  { label: "Cardápio",          campos: ["url"] },
   phone:      { label: "Telefone",          campos: ["telefone"] },
@@ -129,6 +138,7 @@ export function normalizarBotao(bruto) {
     case "location":
       break;                                    // referência: não guarda nada
     case "whatsapp":
+    case "manager":
       b.value = {
         telefone: soDigitos(v.telefone).slice(0, 15),
         mensagem: limpo(v.mensagem, LIMITES.mensagem)
@@ -179,6 +189,11 @@ export function validarBotao(b) {
     case "phone":
       if (soDigitos(v.telefone).length < 10) {
         return { ok: false, campo: "telefone", msg: "Informe o telefone com DDD (ex: 11 99999-9999)." };
+      }
+      return { ok: true };
+    case "manager":
+      if (soDigitos(v.telefone).length < 10) {
+        return { ok: false, campo: "telefone", msg: "Informe o WhatsApp da gerência, com DDD (ex: 11 99999-9999)." };
       }
       return { ok: true };
     case "instagram":

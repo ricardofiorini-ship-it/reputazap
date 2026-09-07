@@ -25,6 +25,7 @@ import { nomeProduto } from '../lib/dados.js'
 const VISUAL = {
   google:     { cor: '#F5A623', bg: '#FEF6E7', gl: '★' },
   whatsapp:   { cor: '#1E8E3E', bg: '#E6F4EA', gl: '✆' },
+  manager:    { cor: '#146C6C', bg: '#E3F1EF', gl: '❝' },
   instagram:  { cor: '#7B4BC4', bg: '#F2ECFB', gl: '◎' },
   food_menu:  { cor: '#B06000', bg: '#FEF3E0', gl: '▤' },
   phone:      { cor: '#1557B0', bg: '#E8F0FE', gl: '☎' },
@@ -38,6 +39,8 @@ const visual = (t) => VISUAL[t] || VISUAL.custom_url
 // Campos por tipo. Rótulos escritos pro lojista, não pro banco.
 const CAMPOS = {
   whatsapp:   [['telefone', 'WhatsApp com DDD', 'tel'], ['mensagem', 'Mensagem que já vai escrita', 'text']],
+  manager:    [['telefone', 'WhatsApp da gerência, com DDD', 'tel'],
+               ['mensagem', 'Mensagem que já vai escrita', 'text']],
   phone:      [['telefone', 'Telefone com DDD', 'tel']],
   instagram:  [['url', 'Seu Instagram (@usuário ou endereço)', 'text']],
   food_menu:  [['url', 'Endereço do cardápio', 'url']],

@@ -57,6 +57,7 @@ export function destino(b, biz, slug) {
       return biz.place_id
         ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(biz.name || "")}&query_place_id=${encodeURIComponent(biz.place_id)}`
         : null;
+    case "manager":
     case "whatsapp": {
       const n = paraWhats(v.telefone);
       if (!n) return null;
@@ -81,6 +82,7 @@ export function destino(b, biz, slug) {
 const ICONES = {
   google:     '<path d="m12 3 2.5 5.6 6.1.5-4.6 4 1.4 6L12 16l-5.4 3.1 1.4-6-4.6-4 6.1-.5z"/>',
   whatsapp:   '<path d="M20 11.5a8 8 0 0 1-11.7 7.1L4 20l1.5-4.2A8 8 0 1 1 20 11.5z"/>',
+  manager:    '<path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H9.5L5 20v-4z"/><circle cx="12" cy="10" r="2.2"/>',
   instagram:  '<rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.5"/><circle cx="17" cy="7" r="1"/>',
   food_menu:  '<path d="M5 3h14v18H5z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
   phone:      '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
@@ -91,7 +93,8 @@ const ICONES = {
 };
 const CORES = {
   google: "#F5A623", whatsapp: "#1E8E3E", instagram: "#7B4BC4", food_menu: "#B06000",
-  phone: "#1557B0", location: "#4A5666", website: "#1557B0", contact: "#B3261E", custom_url: "#4A5666"
+  phone: "#1557B0", location: "#4A5666", website: "#1557B0", contact: "#B3261E", custom_url: "#4A5666",
+  manager: "#146C6C"
 };
 const icone = (t) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="${CORES[t] || "#4A5666"}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONES[t] || ICONES.custom_url}</svg>`;
