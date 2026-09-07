@@ -30,6 +30,7 @@ import { Plus, Archive, Pencil, Trash2, ChevronRight, CheckCircle2, ExternalLink
 import { Head, Panel, Chip, Carregando, Erro, dataBr, desde } from '../ui.jsx'
 import { api } from '../lib/api.js'
 import EditorMenu from './EditorMenu.jsx'
+import { TIPOS } from '../../../api/_lib/menu.js'
 
 const ROTULO_ACAO = {
   google: 'Avaliar', whatsapp: 'WhatsApp', instagram: 'Instagram', food_menu: 'Cardápio',
@@ -211,21 +212,17 @@ export default function Experiencia({ dados }) {
     }
   }
   const experiences = dados.previewToques ? [experienciaPreview] : experiencesDaApi
-  // Catálogo de reserva, só para o modo prévia conseguir abrir o editor sem
-  // backend. Para o cliente real, `tipos` e `limites` sempre vêm da API
-  // (api/experiences.js devolve TIPOS e LIMITES em TODA resposta), então estas
-  // duas linhas nunca entram em ação — e o EditorMenu ainda se defende sozinho
-  // (`tipos || {}`, `limites?.botoes || 12`, com o mesmo 12 daqui).
+  // Catálogo de reserva do modo prévia. IMPORTADO do contrato, não copiado:
+  // até 07/09/2026 havia uma cópia manual dos tipos aqui, e ela já tinha ficado
+  // para trás — nasceram "Canal direto com a Gerência" e "Agendar" e a prévia
+  // seguiu mostrando nove, sem avisar ninguém. O próprio comentário anterior
+  // previa esse desfecho, o que não impediu que acontecesse: aviso não é
+  // proteção. `_lib/menu.js` é módulo puro, então o front carrega o mesmo
+  // arquivo que o servidor valida.
   //
-  // ⚠️ É uma CÓPIA de `TIPOS`, que mora em api/_lib/menu.js. Conferido em
-  // 04/09/2026: os 9 tipos batem. Tipo novo lá não aparece aqui, e a prévia
-  // passa a mostrar um menu desatualizado sem avisar ninguém — quem estiver
-  // desenhando em cima dela desenha para um produto que já mudou.
-  const tiposExibidos = tipos || {
-    whatsapp: { label: 'WhatsApp' }, website: { label: 'Site ou produtos' }, custom_url: { label: 'Link personalizado' },
-    instagram: { label: 'Instagram' }, google: { label: 'Avaliar no Google' }, food_menu: { label: 'Cardápio' },
-    phone: { label: 'Telefone' }, location: { label: 'Como chegar' }, contact: { label: 'Salvar contato' }
-  }
+  // Para o cliente real isto nunca entra em ação — `api/experiences.js` devolve
+  // TIPOS e LIMITES em TODA resposta.
+  const tiposExibidos = tipos || TIPOS
   const limitesExibidos = limites || { botoes: 12 }
   // A prévia local não chama o backend de produção. Nela, reaproveita os
   // mesmos dispositivos fictícios da Home para que as telas não se
