@@ -14,6 +14,7 @@
 // ============================================================
 import React from 'react'
 import './editor-menu.css'
+import PhoneFrame from '../PhoneFrame.jsx'
 import {
   ArrowLeft, ChevronUp, ChevronDown, GripVertical, Trash2, Plus,
   AlertTriangle, Check, ExternalLink, Info
@@ -71,7 +72,7 @@ function novoBotaoLocal(type, tipos) {
 function Previa({ draft, foto, onSelecionar, selecionado }) {
   const ligados = (draft.buttons || []).filter(b => b.enabled)
   return (
-    <div className="v3-fone">
+    <PhoneFrame className="v3-fone">
       <div className="tela">
         {/* Sem foto o topo não vira quadrado cinza: fica só texto, com mais
             respiro. Ausência tem que parecer escolha, não falha. */}
@@ -89,7 +90,7 @@ function Previa({ draft, foto, onSelecionar, selecionado }) {
         ))}
         <img src="/startouch-logo-dark.png" alt="StarTouch" width="82" height="27" style={{ display: 'block', objectFit: 'contain', margin: '18px auto 0' }}/>
       </div>
-    </div>
+    </PhoneFrame>
   )
 }
 

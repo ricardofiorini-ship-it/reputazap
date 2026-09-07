@@ -1,0 +1,21 @@
+.st-phone, .menu-editor .v3-fone.st-phone, .exp-fone.st-phone {
+  position: relative; box-sizing: border-box; min-width: 214px; width: 260px; max-width: 100%; aspect-ratio: 0.49;
+  padding: 7px; border: 2px solid var(--mid); border-radius: 39px; overflow: visible;
+  background: linear-gradient(110deg,var(--ink),var(--mid) 46%,var(--ink) 49%,var(--ink));
+  box-shadow: inset 0 0 0 2px var(--ink), 0 22px 35px -15px color-mix(in srgb,var(--ink) 45%,transparent), 0 5px 9px color-mix(in srgb,var(--ink) 15%,transparent);
+}
+.st-phone .st-phone-glass { height: 100%; display: flex; flex-direction: column; background: var(--surf); border-radius: 30px; overflow: hidden; box-shadow: 0 0 0 2px var(--ink); }
+.st-phone .st-phone-status { position: relative; display: flex; justify-content: space-between; align-items: center; flex: 0 0 38px; padding: 0 15px; color: var(--ink); font-size: 10px; font-weight: 700; background: var(--surf); }
+.st-phone .st-phone-status > span:last-child { display: flex; align-items: center; gap: 3px; }
+.st-phone .st-phone-camera { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 65px; height: 20px; border-radius: 20px; background: var(--ink); box-shadow: inset 0 1px 2px var(--mid); }
+.st-phone .st-phone-camera::after { content: ''; position: absolute; width: 7px; height: 7px; top: 6px; right: 8px; border-radius: 50%; background: radial-gradient(circle at 35% 30%,var(--blue-dk),var(--ink) 65%); border: 1px solid color-mix(in srgb,var(--mid) 55%,var(--ink)); }
+.st-phone .st-phone-content { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.st-phone .st-phone-bottom { flex: 0 0 22px; display: grid; place-items: center; background: var(--surf); }
+.st-phone .st-phone-bottom i { width: 76px; height: 4px; background: var(--ink); border-radius: 8px; }
+.st-phone .st-phone-keys { position: absolute; inset: 0; pointer-events: none; }
+.st-phone .st-phone-keys i { position: absolute; width: 3px; background: linear-gradient(90deg,var(--mid),var(--ink)); border-radius: 2px; left: -4px; top: 86px; height: 23px; }
+.st-phone .st-phone-keys i:nth-child(2) { top: 126px; height: 46px; }
+.st-phone .st-phone-keys i:nth-child(3) { left: auto; right: -4px; top: 134px; height: 60px; }
+.menu-editor .v3-fone.st-phone { width: 100%; }
+.menu-editor .st-phone .tela { min-height: 100%; box-sizing: border-box; padding-top: 12px; background: var(--surf); }
+.exp-fone.st-phone .exp-fone-tela { min-height: 100%; box-sizing: border-box; padding-top: 12px; }

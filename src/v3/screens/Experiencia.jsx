@@ -8,6 +8,7 @@ import { TIPOS } from '../../../api/_lib/menu.js'
 // Desenhos e rótulos seguem os contratos compartilhados do menu público.
 import { ICONES, CHEIOS } from '../../../api/_lib/menu-icones.js'
 import './experiencia.css'
+import PhoneFrame from '../PhoneFrame.jsx'
 
 function IconeMenu({ tipo }) {
   const cheio = CHEIOS.has(tipo)
@@ -58,8 +59,7 @@ function Demonstracao({ nome }) {
         <div className="exp-google-padrao"><IconeMenu tipo="google"/><span>Avaliar no Google vem primeiro.<br/>Depois, os caminhos do seu negócio.</span></div>
       </div>
       <div className="exp-fone-area">
-        <div className="exp-fone" aria-label="Demonstração do Menu Inteligente">
-          <div className="exp-fone-topo" aria-hidden="true"><span>9:41</span><i/><span>●</span></div>
+        <PhoneFrame className="exp-fone" aria-label="Demonstração do Menu Inteligente">
           <div className="exp-fone-tela">
             <div className="exp-avatar">{(nome || 'S').trim().charAt(0).toUpperCase()}</div>
             <strong>{nome || 'Seu negócio'}</strong><p>{exemplo.subtitulo}</p>
@@ -69,8 +69,7 @@ function Demonstracao({ nome }) {
             <div className="exp-fone-feedback" role="status">{acao ? (acao === 'google' ? 'O cliente segue para avaliar seu negócio no Google.' : exemplo.detalhes[acao]) : 'Toque em um botão para explorar o exemplo.'}</div>
             <img src="/startouch-logo-dark.png" alt="StarTouch" width="82" height="27" style={{ display: 'block', objectFit: 'contain', margin: '18px auto 0' }}/>
           </div>
-          <div className="exp-fone-base"/>
-        </div>
+        </PhoneFrame>
         <span className="exp-demo-nota">Demonstração · você escolhe os botões</span>
       </div>
     </div>
