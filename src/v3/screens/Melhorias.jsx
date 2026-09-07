@@ -120,9 +120,14 @@ export default function Melhorias({ dados, temDispositivo }) {
     <section className="v3-agora">
       <header>
         <h2>O que você pode melhorar agora</h2>
+        {/* Duas frases irmãs, e a escolha não é estilo: "mesmo sem um
+            dispositivo" seria falso para quem tem dois, e este bloco passou a
+            aparecer nas duas fases. As duas dizem a mesma coisa — há ganho aqui
+            que não depende de hardware — cada uma verdadeira para quem a lê. */}
         <p>
-          Algumas ações já podem melhorar a presença da sua empresa no Google e aumentar
-          seu Score{temDispositivo ? '.' : ' — mesmo antes de receber qualquer dispositivo.'}
+          {temDispositivo
+            ? 'Além do que seus dispositivos já fazem, estas ações aumentam seu Score.'
+            : 'Mesmo sem um dispositivo, você já pode aumentar seu Score.'}
         </p>
       </header>
       <div className="lista">
