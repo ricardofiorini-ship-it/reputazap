@@ -26,7 +26,7 @@
 // Google não intercepta ninguém — só não oferece aquele caminho ali.
 // ============================================================
 import React from 'react'
-import { Plus, Archive, Pencil, Trash2, ChevronRight, CheckCircle2, ExternalLink, Lightbulb, GitBranch, Smartphone, Link2 } from 'lucide-react'
+import { Plus, Archive, Pencil, Trash2, ChevronRight, CheckCircle2, ExternalLink, Lightbulb, GitBranch, Smartphone, Link2, Zap, MousePointerClick, BadgeCheck } from 'lucide-react'
 import { Head, Panel, Chip, Carregando, Erro, dataBr, desde } from '../ui.jsx'
 import { api } from '../lib/api.js'
 import EditorMenu from './EditorMenu.jsx'
@@ -292,7 +292,25 @@ export default function Experiencia({ dados }) {
             <h2>Avaliação no Google {noGoogle.length > 0 && <Chip tipo="g">Em uso</Chip>}</h2>
             <p>Após a interação, o cliente é direcionado à página de avaliação do seu negócio.</p>
           </header>
-          <FoneGoogle nome={negocioExibido?.name}/>
+          {/* O cartão do gratuito ganhou CORPO em 07/09/2026. Antes tinha só o
+              celular e uma linha, enquanto o vizinho tinha celular + três
+              benefícios + botão — e como os dois têm a mesma altura, sobrava um
+              vazio de uns cem pixels aqui. Vazio ao lado de cartão cheio não é
+              neutro: lê-se como "este aqui não tem nada".
+
+              O que entra é o que o Google Direto ENTREGA DE BOM. A régua da casa
+              vale aqui inteira: nenhuma reorganização pode fazer o gratuito
+              parecer pior para vender o pago. Quem escolhe entre iguais escolhe
+              melhor — e o Menu continua vencendo pelo conteúdo, não por ser
+              maior. */}
+          <div className="corpo">
+            <FoneGoogle nome={negocioExibido?.name}/>
+            <ul className="v3-beneficios simples">
+              <li><span className="ico"><Zap size={16}/></span><div><b>Pronto desde o primeiro toque</b><span>Não precisa configurar nada: todo dispositivo novo já sai assim.</span></div></li>
+              <li><span className="ico"><MousePointerClick size={16}/></span><div><b>O caminho mais curto até a avaliação</b><span>Um toque e o cliente já está na página de avaliação, sem escolher nada antes.</span></div></li>
+              <li><span className="ico"><BadgeCheck size={16}/></span><div><b>Gratuito, sem prazo</b><span>Faz parte do plano gratuito e continua disponível mesmo se você usar o menu em outros dispositivos.</span></div></li>
+            </ul>
+          </div>
           <footer>
             {noGoogle.length > 0
               ? <div className="uso ativo">Em uso em {noGoogle.length} {noGoogle.length === 1 ? 'dispositivo' : 'dispositivos'}</div>

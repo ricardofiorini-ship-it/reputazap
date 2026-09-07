@@ -469,7 +469,11 @@ table.v3-t tr:last-child td { border-bottom: 0; }
    ============================================================
    Mesmo peso visual porque é uma escolha, não uma escada. Quem lê tem que
    ENXERGAR a diferença antes de ler a explicação. */
-.v3-escolha { display: grid; grid-template-columns: 1fr 1.35fr; gap: 14px; margin-bottom: 16px; align-items: stretch; }
+/* IRMÃS, NÃO ESCADA. Era 1fr 1.35fr, e o cartão maior dizia visualmente que o
+   Pro é a escolha certa e o gratuito é o degrau de baixo — o oposto do que o
+   produto decidiu em 29/08: Google Direto e Menu Inteligente são experiências
+   irmãs. Iguais, quem vende é o conteúdo do cartão. */
+.v3-escolha { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; align-items: start; }
 @media (max-width: 900px) { .v3-escolha { grid-template-columns: 1fr; } }
 
 .v3-exp-status { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; padding: 11px 13px; border: 1px solid #CBE7D4; border-radius: 9px; background: var(--green-soft); color: var(--green); }
@@ -480,20 +484,31 @@ table.v3-t tr:last-child td { border-bottom: 0; }
 .v3-opcao { background: var(--surf); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 20px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .v3-opcao.destaque { border-color: #BBD4F7; background: linear-gradient(180deg, #F5F9FF, var(--surf) 220px); }
-.v3-opcao.atual .v3-mini { width: 184px; }
+/* Os dois celulares no mesmo tamanho: 184 contra 206 fazia o do gratuito
+   parecer uma miniatura do outro. 200 e o piso — abaixo disso os rotulos do
+   menu truncam ("Ver produtos/servic..."), e a previa existe pra mostrar o menu
+   como ele fica, nao um resumo dele. */
+.v3-opcao .v3-mini { width: 214px; }
 .v3-opcao > header h2 { font-size: 18px; font-weight: 700; margin: 0 0 6px; letter-spacing: -.02em;
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .v3-opcao > header p { font-size: 13.5px; color: var(--mid); margin: 0; line-height: 1.5; }
-.v3-opcao > .corpo { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; min-width: 0; }
-.v3-opcao > footer { margin-top: auto; display: flex; flex-direction: column; gap: 7px; }
+/* Com os cartões iguais, benefício ao lado do celular espremeria os dois. Eles
+   passam pra baixo, em coluna, e o cartão respira na vertical — que é onde
+   sobrava espaço. */
+.v3-opcao > .corpo { display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: 0; }
+/* Sem `margin-top: auto`: com altura natural nao ha rodape a empurrar, e o
+   empurrao era justamente o que abria o vazio no cartao mais curto. */
+.v3-opcao > footer { margin-top: 14px; display: flex; flex-direction: column; gap: 7px; }
 .v3-opcao .uso { font-size: 12.5px; color: var(--dim); }
 .v3-opcao .uso.ativo { color: var(--green); font-weight: 600; }
 .v3-opcao .nota { font-size: 11.5px; color: var(--dim); line-height: 1.45; }
 .v3-btn.grande { padding: 11px 16px; font-size: 14px; width: 100%; justify-content: center; }
 
 /* Benefícios — argumentos comerciais escaneáveis, sem virar uma faixa de propaganda. */
-.v3-beneficios { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; flex: 1; min-width: 190px; }
+.v3-beneficios { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; width: 100%; min-width: 0; }
 .v3-beneficios li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px; border: 1px solid #DCE9FA; border-radius: 10px; background: rgba(255,255,255,.72); }
+.v3-beneficios.simples li { border-color: var(--line); background: var(--bg); }
+.v3-beneficios.simples li > .ico { color: var(--mid); background: var(--line2); }
 .v3-beneficios li > .ico { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; color: var(--blue); background: var(--blue-soft); }
 .v3-beneficios li > div { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .v3-beneficios b { font-size: 12.7px; font-weight: 700; line-height: 1.3; }
