@@ -33,7 +33,7 @@ import {
   normalizarExperiencia, validarParaPublicar, montarPublicado, estaPendente,
   rascunhoInicial, tamanhoOk, LIMITES, TIPOS
 } from "./_lib/menu.js";
-import { resolvePlano } from "./_lib/plan.js";
+import { resolvePlano, podeUsarMenu } from "./_lib/plan.js";
 import { reimprimir } from "./_lib/imprimir.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
@@ -55,7 +55,17 @@ const MAX_EXPERIENCIAS = 20;   // teto de sanidade; não é limite de produto
 // propósito — espalhar a regra por oito actions é como se esquece uma.
 const ADMIN_EMAILS = new Set(["ricardo.fiorini@gmail.com"]);
 
+// ── O INTERRUPTOR DE LANÇAMENTO ──
+// `true` = só o administrador entra (beta fechado, estado atual).
+// `false` = qualquer cliente logado MONTA o menu; publicar exige Pro.
+//
+// Trocar esta linha é o ato que coloca o Menu Inteligente à venda. Está
+// sozinha aqui, e não espalhada por oito actions, porque regra de acesso
+// espalhada é regra da qual um dia se esquece um pedaço.
+const BETA_SO_ADMIN = true;
+
 function podeUsar(user) {
+  if (!BETA_SO_ADMIN) return true;
   return ADMIN_EMAILS.has((user?.email || "").toLowerCase().trim());
 }
 
@@ -188,9 +198,28 @@ async function salvarRascunho(req, res, biz) {
   });
 }
 
+// PUBLICAR É A ÚNICA AÇÃO PAGA. Criar, editar, salvar rascunho e ver a prévia
+// seguem livres de propósito: é montando o menu que a pessoa entende o que
+// está comprando, e é com ele montado que ela decide pagar. Trancar antes
+// disso seria cobrar por uma coisa que ninguém viu funcionar.
+//
+// A trava mora AQUI, no servidor, e não na caixa que a tela abre. Modal é
+// aviso; quem impede é isto. Sem esta função, bastaria chamar a API direto.
 async function publicar(req, res, biz, user) {
   const exp = await experienciaDo(biz, req.body?.id);
   if (!exp) return res.status(404).json({ error: "Experiência não encontrada." });
+
+  const resolucao = resolvePlano(biz, user?.email || null);
+  if (!podeUsarMenu(resolucao)) {
+    // 402 (Payment Required) e não 403: a tela precisa distinguir "falta pagar"
+    // — que abre a caixa da assinatura — de "não pode" ou "deu erro".
+    // O rascunho JÁ ESTÁ salvo neste ponto; a recusa não perde trabalho nenhum.
+    return res.status(402).json({
+      error: "Publicar o Menu Inteligente exige o plano Pro.",
+      precisaPro: true,
+      plano: resolucao
+    });
+  }
 
   const veredito = validarParaPublicar(exp.draft);
   if (!veredito.podePublicar) {

@@ -17,7 +17,7 @@ import './editor-menu.css'
 import PhoneFrame from '../PhoneFrame.jsx'
 import {
   ArrowLeft, ChevronUp, ChevronDown, GripVertical, Trash2, Plus, Lock,
-  AlertTriangle, Check, ExternalLink, Info
+  AlertTriangle, Check, ExternalLink, Info, Sparkles, X
 } from 'lucide-react'
 import { api } from '../lib/api.js'
 import { Chip } from '../ui.jsx'
@@ -240,7 +240,78 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
 }
 
 // ============================================================
-export default function EditorMenu({ exp, dados, tipos, limites, foto, experiencias, onVoltar, onAtualizar }) {
+// ── A CAIXA DA ASSINATURA ──
+// Abre por cima do editor em vez de levar pra outra página: a pessoa está no
+// meio do trabalho dela, e tirá-la daqui faria parecer que o menu ficou pra
+// trás. A primeira linha é justamente essa: seu menu está salvo.
+//
+// Sair é fácil de propósito. Caixa sem saída clara é armadilha, e o cliente
+// que se sente preso não volta.
+function CaixaAssinatura({ ligados, onFechar }) {
+  const [indo, setIndo] = React.useState(false)
+  const [erro, setErro] = React.useState(null)
+
+  async function assinar() {
+    setIndo(true); setErro(null)
+    try {
+      const r = await api.assinatura.checkout('menu')
+      if (!r?.url) throw new Error('Não recebemos o endereço do pagamento.')
+      window.location.href = r.url
+    } catch (e) {
+      setErro(e.message || 'Não foi possível abrir o pagamento.')
+      setIndo(false)
+    }
+  }
+
+  // Esc fecha. Teclado é a saída de quem não usa mouse — e a que a gente
+  // esquece de dar.
+  React.useEffect(() => {
+    const fechar = (e) => { if (e.key === 'Escape') onFechar() }
+    window.addEventListener('keydown', fechar)
+    return () => window.removeEventListener('keydown', fechar)
+  }, [onFechar])
+
+  return (
+    <div className="me-paywall-fundo" onClick={onFechar} role="presentation">
+      <div className="me-paywall" onClick={e => e.stopPropagation()}
+           role="dialog" aria-modal="true" aria-labelledby="paywall-titulo">
+        <button className="me-paywall-x" onClick={onFechar} aria-label="Fechar"><X size={16}/></button>
+
+        <div className="me-paywall-selo"><Sparkles size={13}/> MENU INTELIGENTE</div>
+        <h2 id="paywall-titulo">Seu menu está salvo.</h2>
+        <p className="me-paywall-sub">
+          Para ele chegar aos seus dispositivos, é preciso ter o StarTouch Pro.
+        </p>
+
+        <ul className="me-paywall-lista">
+          <li><Check size={14}/> {ligados === 1 ? 'Seu botão' : `Seus ${ligados} botões`} no lugar da avaliação avulsa</li>
+          <li><Check size={14}/> Troque o menu quando quiser, sem trocar o dispositivo</li>
+          <li><Check size={14}/> Relatórios de uso por dispositivo</li>
+          <li><Check size={14}/> A avaliação no Google continua no topo, sempre</li>
+        </ul>
+
+        <div className="me-paywall-preco">
+          <strong>7 dias grátis</strong>
+          <span>depois R$ 19,90 por mês · sem fidelidade, cancele quando quiser</span>
+        </div>
+
+        {erro && <div className="me-paywall-erro"><AlertTriangle size={13}/> {erro}</div>}
+
+        <button className="v3-btn solid me-paywall-cta" onClick={assinar} disabled={indo}>
+          {indo ? 'Abrindo…' : 'Começar os 7 dias grátis'}
+        </button>
+        <button className="v3-btn ghost me-paywall-voltar" onClick={onFechar} disabled={indo}>
+          Continuar editando
+        </button>
+        <p className="me-paywall-fim">
+          Enquanto isso, seus dispositivos seguem levando direto à avaliação no Google.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+export default function EditorMenu({ exp, dados, tipos, limites, foto, experiencias, plano, onVoltar, onAtualizar }) {
   const [draft, setDraft] = React.useState(() => exp.draft || { brand: {}, buttons: [] })
   const [validacao, setValidacao] = React.useState(null)
   const [salvando, setSalvando] = React.useState(false)
@@ -249,6 +320,14 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   const [addOpen, setAddOpen] = React.useState(false)
   // Qual botão acabou de ser adicionado — só ele mostra "Inserir".
   const [recem, setRecem] = React.useState(null)
+  // A caixa da assinatura. Abre no "Publicar" de quem ainda não tem Pro.
+  const [paywall, setPaywall] = React.useState(false)
+
+  // MODO PRÉVIA: a experiência é fictícia e não existe no banco. Sem esta
+  // guarda, cada tecla digitada aqui vira um POST que responde 404 e pinta
+  // "Falha ao salvar" numa tela que está só sendo revisada — ruído que faz
+  // duvidar de um editor que está inteiro.
+  const ehPrevia = exp.id === 'preview-menu'
   const [publicando, setPublicando] = React.useState(false)
   const [erroGeral, setErroGeral] = React.useState(null)
   const [publicou, setPublicou] = React.useState(null)   // confirmação do que acabou de acontecer
@@ -290,6 +369,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   const gravar = React.useCallback((d) => {
     clearTimeout(timer.current)
     setSujo(true)
+    if (exp.id === 'preview-menu') { setSujo(false); return }
     timer.current = setTimeout(async () => {
       setSalvando(true); setErroGeral(null)
       try {
@@ -419,8 +499,24 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   async function publicar() {
     setPublicando(true); setErroGeral(null)
     try {
+      // Salva ANTES de qualquer coisa, inclusive antes de abrir a caixa da
+      // assinatura. Quem vai pro checkout sai desta tela; voltar e não achar o
+      // que montou seria a pior hora possível pra perder trabalho.
+      //
+      // A ordem importa nos dois sentidos: se o salvamento falhar, a pessoa vê
+      // "falha ao salvar" e NÃO é mandada pro pagamento. Ninguém deve pagar por
+      // um menu que não foi guardado.
       clearTimeout(timer.current)
-      await api.experiencias.salvar(exp.id, draft)
+      if (!ehPrevia) {
+        await api.experiencias.salvar(exp.id, draft)
+        setSujo(false)
+      }
+
+      // O servidor recusa de qualquer jeito (402). Perguntar aqui antes só
+      // evita a viagem de ida e volta — a trava não é esta linha, é a de lá.
+      if (plano && !plano.proAtivo) { setPaywall(true); return }
+      if (ehPrevia) { setPublicou({ em: 0, quando: Date.now() }); return }
+
       const r = await api.experiencias.publicar(exp.id)
       setValidacao(r.validacao || null)
       setSujo(false)
@@ -429,6 +525,9 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
       setPublicou({ em: r.dispositivos_com_este_menu || 0, quando: Date.now() })
       onAtualizar?.(r.experience)
     } catch (e) {
+      // 402 = falta assinar. Vem do servidor, e é ele quem manda: se a tela
+      // achasse que tem Pro e o servidor discordasse, quem vale é o servidor.
+      if (e.status === 402 || e.corpo?.precisaPro) { setPaywall(true); return }
       // O servidor devolve a lista do que corrigir junto com a recusa — o
       // ApiError carrega o corpo justamente pra isso.
       setValidacao(e.validacao || null)
@@ -465,6 +564,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
 
   return (
     <div className="menu-editor">
+      {paywall && <CaixaAssinatura ligados={ligados} onFechar={() => setPaywall(false)}/>}
       <div className="v3-head v3-editor-head">
         <div>
           <button className="v3-btn ghost" onClick={onVoltar} style={{ marginBottom: 8 }}>

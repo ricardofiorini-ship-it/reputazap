@@ -316,6 +316,11 @@ function getMP() {
 }
 
 // Plano Pro mensal — usa link estatico se MP_PRO_PAYMENT_LINK setada, senao chama API (PreApproval).
+// ⚠️ DORMENTE desde 07/09/2026 — a assinatura Pro foi para o Stripe.
+// Não está ligado ao dispatcher. Fica preservado pelo mesmo motivo que o
+// código do Stripe ficou de maio a setembro: trocar de provedor de volta é
+// mexer em duas linhas, e reescrever do zero é que é caro. NÃO editar achando
+// que está em produção — o que roda hoje é o handleCheckoutStripe.
 async function handleCheckoutMP(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
@@ -819,6 +824,10 @@ async function handleOnboarding(req, res) {
 //
 // Quem aplica a virada na data é a varredura (api/cron/plan-sweep.js).
 // Quem decide o acesso enquanto isso é o resolvePlano (_lib/plan.js, item 2a).
+// ⚠️ DORMENTE desde 07/09/2026 — quem cancela hoje é o handleCancelStripe.
+// O cuidado de ler a data ANTES de cancelar (abaixo) era necessário porque o
+// Mercado Pago não tem "cancelar no fim do período"; no Stripe isso é nativo.
+// Se um dia voltar pro MP, esta função volta inteira.
 async function handlePortalMP(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
@@ -1150,34 +1159,92 @@ function getStripe() {
   return _stripe;
 }
 
+// ============================================================
+// ASSINATURA PRO — STRIPE (a partir de 07/09/2026)
+// ============================================================
+// Por que saiu do Mercado Pago: assinatura recorrente é o que o Stripe faz de
+// fábrica. O portal do cliente (trocar cartão, ver faturas, cancelar no fim do
+// período) vem pronto, e a recuperação de cobrança falhada — que numa
+// mensalidade de R$ 19,90 é a maior fonte de perda de assinante — não tem como
+// ser construída à mão. O hardware CONTINUA no Mercado Pago: lá o PIX converte
+// e é compra única.
+//
+// TESTE GRÁTIS: 7 dias. Este número precisa ser IGUAL ao configurado no link
+// de pagamento do Stripe. Dois trials com prazos diferentes é o cliente vendo
+// uma data no checkout e outra no painel. (Não confundir com `TRIAL_DIAS` do
+// _lib/plan.js, que é o trial PRÓPRIO, sem cartão — esse não está em uso.)
+const TRIAL_DIAS_PRO = 7;
+
+// Destinos permitidos na volta do checkout. Lista fechada de propósito: aceitar
+// URL vinda do cliente aqui seria um redirecionamento aberto assinado pela
+// nossa marca — o Stripe mandaria o usuário pra onde o atacante quisesse.
+const RETORNOS_PRO = {
+  app:  "/app?upgrade=success",
+  menu: "/painel-f7dsaz3c/experiencia?upgrade=success"
+};
+
 async function handleCheckoutStripe(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
-  if (!process.env.STRIPE_PRICE_ID) return res.status(500).json({ error: "STRIPE_PRICE_ID não configurada" });
+
   try {
-    const stripe = getStripe();
     const { data: biz } = await supabase
-      .from("businesses").select("stripe_customer_id, name, plan").eq("user_id", auth.user.id).maybeSingle();
-    if (biz?.plan === "pro") return res.status(400).json({ error: "Plano Pro já está ativo" });
+      .from("businesses")
+      .select("stripe_customer_id, name, plan, stripe_cancel_at_period_end")
+      .eq("user_id", auth.user.id).maybeSingle();
+
+    // Quem cancelou e ainda está no prazo pago segue com `plan = 'pro'`, mas
+    // está SEM assinatura — e tem todo o direito de voltar atrás. Barrar aqui
+    // trancaria a porta justamente pra quem quer pagar de novo.
+    if (biz?.plan === "pro" && biz?.stripe_cancel_at_period_end !== true) {
+      return res.status(400).json({ error: "Plano Pro já está ativo" });
+    }
+
+    // ── Caminho 1 (preferencial): link de pagamento criado no painel do Stripe ──
+    // `client_reference_id` é o que amarra o pagamento à conta. SEM ELE o
+    // dinheiro entra e o webhook desiste em silêncio (`if (!userId) break`) —
+    // o cliente paga e não recebe nada. É o elo que não pode faltar.
+    if (process.env.STRIPE_PRO_PAYMENT_LINK) {
+      const base = process.env.STRIPE_PRO_PAYMENT_LINK;
+      const sep = base.includes("?") ? "&" : "?";
+      const url = `${base}${sep}client_reference_id=${encodeURIComponent(auth.user.id)}` +
+                  `&prefilled_email=${encodeURIComponent(auth.user.email || "")}`;
+      return res.json({ url });
+    }
+
+    // ── Caminho 2 (fallback): cria a sessão pela API ──
+    // Dá mais controle (destino da volta, idioma, cupom), mas exige o preço
+    // cadastrado como STRIPE_PRICE_ID.
+    if (!process.env.STRIPE_PRICE_ID) {
+      return res.status(500).json({ error: "Configure STRIPE_PRO_PAYMENT_LINK ou STRIPE_PRICE_ID" });
+    }
+
+    const stripe = getStripe();
     const origin = req.headers.origin || `https://${req.headers.host}`;
+    const destino = RETORNOS_PRO[req.body?.retorno] || RETORNOS_PRO.app;
+
     const sessionPayload = {
       mode: "subscription",
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
-      subscription_data: { trial_period_days: 14, metadata: { user_id: auth.user.id, biz_name: biz?.name || "" } },
+      subscription_data: {
+        trial_period_days: TRIAL_DIAS_PRO,
+        metadata: { user_id: auth.user.id, biz_name: biz?.name || "" }
+      },
       client_reference_id: auth.user.id,
       metadata: { user_id: auth.user.id },
       allow_promotion_codes: true,
-      success_url: `${origin}/app?upgrade=success&session={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/app?upgrade=cancel`,
+      success_url: `${origin}${destino}`,
+      cancel_url: `${origin}${destino.split("?")[0]}?upgrade=cancel`,
       locale: "pt-BR"
     };
     if (biz?.stripe_customer_id) sessionPayload.customer = biz.stripe_customer_id;
     else sessionPayload.customer_email = auth.user.email;
+
     const session = await stripe.checkout.sessions.create(sessionPayload);
     return res.json({ url: session.url });
   } catch (err) {
     console.error("[stripe/checkout] erro:", err);
-    return res.status(500).json({ error: err.message || "Erro" });
+    return res.status(500).json({ error: err.message || "Erro ao abrir o checkout" });
   }
 }
 
@@ -1227,15 +1294,86 @@ async function handleCheckoutKitStripe(req, res) {
   }
 }
 
+// ── CANCELAR a assinatura (Stripe) ──
+// Responde no MESMO formato do antigo handlePortalMP ({ok, cancelled,
+// ativoAte}) de propósito: a tela de cancelamento feita hoje continua valendo
+// sem alterar uma linha. Quem muda de provedor é o backend, não o cliente.
+//
+// Aqui o "até o fim do período pago" é NATIVO: `cancel_at_period_end` é uma
+// bandeira do próprio Stripe, e é ele que segue servindo até a data e depois
+// encerra sozinho. Some a necessidade de guardar a data na mão antes de
+// cancelar, que era o cuidado que o Mercado Pago exigia.
+async function handleCancelStripe(req, res) {
+  const auth = await authUser(req);
+  if (auth.error) return res.status(auth.status).json({ error: auth.error });
+
+  try {
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("stripe_subscription_id, stripe_current_period_end, stripe_cancel_at_period_end")
+      .eq("user_id", auth.user.id).maybeSingle();
+
+    if (!biz?.stripe_subscription_id) {
+      return res.status(400).json({ error: "Sem assinatura ativa pra cancelar" });
+    }
+
+    // Botão apertado duas vezes não pode virar erro pra quem já fez certo.
+    if (biz.stripe_cancel_at_period_end === true) {
+      return res.json({
+        ok: true, cancelled: true, jaEstava: true,
+        ativoAte: biz.stripe_current_period_end || null,
+        message: "Sua assinatura já está cancelada."
+      });
+    }
+
+    const stripe = getStripe();
+    const sub = await stripe.subscriptions.update(biz.stripe_subscription_id, {
+      cancel_at_period_end: true
+    });
+
+    const ativoAte = sub.current_period_end
+      ? new Date(sub.current_period_end * 1000).toISOString()
+      : (biz.stripe_current_period_end || null);
+
+    // O webhook `customer.subscription.updated` também vai gravar isto em
+    // seguida. Gravar aqui é a rede: se o aviso se perder, a tela do cliente
+    // já mostra a verdade, e não um "cancelado" que o banco desconhece.
+    const { error } = await supabase.from("businesses").update({
+      stripe_cancel_at_period_end: true,
+      stripe_subscription_status: sub.status,
+      stripe_current_period_end: ativoAte
+    }).eq("user_id", auth.user.id);
+    if (error) {
+      console.error(`[stripe/cancel] assinatura CANCELADA no Stripe, mas o banco NÃO foi atualizado (user=${auth.user.id}): ${error.message}`);
+    }
+
+    return res.json({
+      ok: true, cancelled: true, ativoAte,
+      message: "Assinatura cancelada. Você continua com o Pro até o fim do período já pago."
+    });
+  } catch (err) {
+    console.error("[stripe/cancel] erro:", err);
+    return res.status(500).json({ error: err?.message || "Erro ao cancelar assinatura" });
+  }
+}
+
+// ── PORTAL do cliente (Stripe) ──
+// Trocar cartão, ver e baixar faturas. É o que evita a perda involuntária de
+// assinante: cartão vencido é a maior causa de cancelamento não desejado numa
+// mensalidade barata, e aqui o próprio cliente resolve.
 async function handlePortalStripe(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
   try {
     const stripe = getStripe();
-    const { data: biz } = await supabase.from("businesses").select("stripe_customer_id").eq("user_id", auth.user.id).maybeSingle();
+    const { data: biz } = await supabase.from("businesses")
+      .select("stripe_customer_id").eq("user_id", auth.user.id).maybeSingle();
     if (!biz?.stripe_customer_id) return res.status(400).json({ error: "Sem assinatura ativa" });
     const origin = req.headers.origin || `https://${req.headers.host}`;
-    const session = await stripe.billingPortal.sessions.create({ customer: biz.stripe_customer_id, return_url: `${origin}/app` });
+    const session = await stripe.billingPortal.sessions.create({
+      customer: biz.stripe_customer_id,
+      return_url: `${origin}/painel-f7dsaz3c/config`
+    });
     return res.json({ url: session.url });
   } catch (err) {
     console.error("[stripe/portal] erro:", err);
@@ -1311,8 +1449,18 @@ export default async function handler(req, res) {
 
   const action = req.query.action || req.query.a;
 
+  // ── UM ENDEREÇO, DOIS PROVEDORES (07/09/2026) ──
+  // Assinatura Pro no Stripe (ZAYOR), hardware no Mercado Pago (GT6). Os dois
+  // avisam no MESMO endereço, porque trocar a URL do webhook do MP mexeria
+  // numa integração que já está viva vendendo — risco sem ganho.
+  //
+  // O separador é o cabeçalho `stripe-signature`: só o Stripe manda, e ele é
+  // assinado, então não dá pra forjar pra desviar de provedor. Na dúvida cai
+  // no Mercado Pago, que é o comportamento que já existia.
+  //
   // Webhook aceita GET (MP legado) ou POST. Outras actions: só POST.
   if (action === "webhook") {
+    if (req.headers["stripe-signature"]) return await handleWebhookStripe(req, res);
     return await handleWebhookMP(req, res);
   }
 
@@ -1780,14 +1928,19 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    if (action === "checkout") return await handleCheckoutMP(req, res);
+    // ── ASSINATURA: Stripe. HARDWARE: Mercado Pago. ──
+    // A troca de provedor da assinatura mora nestas duas linhas. O resto do
+    // dispatcher (kit, kit-guest, ia, plano) continua no MP de propósito: é
+    // lá que o PIX converte, e é compra única, que o MP resolve bem.
+    if (action === "checkout") return await handleCheckoutStripe(req, res);
+    if (action === "portal")   return await handleCancelStripe(req, res);
+    if (action === "billing-portal") return await handlePortalStripe(req, res);
     if (action === "checkout-kit") return await handleCheckoutKitMP(req, res);
     if (action === "checkout-kit-guest") return await handleCheckoutKitGuestMP(req, res);
     if (action === "checkout-ia") return await handleCheckoutServicoMP(req, res);
     if (action === "checkout-plano") return await handleCheckoutPlanoMP(req, res);
     if (action === "onboarding") return await handleOnboarding(req, res);
-    if (action === "portal") return await handlePortalMP(req, res);
-    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|checkout-kit-guest|checkout-ia|checkout-plano|onboarding|portal|webhook|debug" });
+    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|checkout-kit-guest|checkout-ia|checkout-plano|onboarding|portal|billing-portal|webhook|debug" });
   } catch (err) {
     console.error("[billing] erro nao tratado:", err);
     if (!res.headersSent) return res.status(500).json({ error: err?.message || "Erro interno" });

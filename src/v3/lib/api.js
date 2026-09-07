@@ -124,5 +124,15 @@ export const api = {
     arquivar:  (id, undo)       => post('/api/experiences?action=archive', { id, undo: !!undo }),
     renomear:  (id, name)       => post('/api/experiences?action=rename', { id, name }),
     dispositivo: (payload)      => post('/api/experiences?action=set-device', payload)
+  },
+
+  // ── Assinatura ──
+  // `retorno` diz de onde a pessoa saiu, pra ela voltar ali depois de pagar.
+  // O servidor só aceita destinos de uma lista fechada — mandar URL daqui
+  // seria redirecionamento aberto com a nossa marca no meio.
+  assinatura: {
+    checkout: (retorno) => post('/api/billing?action=checkout', { retorno }),
+    cancelar: ()        => post('/api/billing?action=portal', {}),
+    portal:   ()        => post('/api/billing?action=billing-portal', {})
   }
 }

@@ -104,3 +104,11 @@
 /* A cena perdeu a coluna de texto: o celular fica sozinho e centrado. */
 .exp-hero .exp-cena { min-height: 0; padding: 0; justify-content: center; background: transparent; }
 .exp-hero .exp-descoberta { border: 0; background: transparent; }
+
+/* Faixa da volta do checkout: fica no topo enquanto o aviso do Stripe não
+   chega. Some sozinha quando o plano vira Pro. */
+.v3-aviso-pagamento {
+  background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF;
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;
+  font-size: 13px; line-height: 1.5;
+}

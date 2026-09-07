@@ -139,12 +139,50 @@ export default function Experiencia({ dados }) {
     try {
       const r = await api.experiencias.listar()
       setEstado({ carregando: false, erro: null, dados: r })
+      return r
     } catch (e) {
       setEstado({ carregando: false, erro: e.message || 'Não foi possível carregar.', dados: null })
+      return null
     }
   }, [])
 
   React.useEffect(() => { carregar() }, [carregar])
+
+  // ── A VOLTA DO PAGAMENTO ──
+  // Quem libera o Pro é o aviso que o Stripe manda pro nosso servidor, e ele
+  // chega SEGUNDOS depois de o cliente voltar. Sem esperar, a pessoa paga,
+  // cai aqui e lê "Free" — a conclusão dela é que o pagamento falhou.
+  //
+  // Então: pergunta de novo, algumas vezes, dizendo que está confirmando. Se
+  // o aviso não chegar nesse tempo, o texto muda para algo honesto em vez de
+  // ficar girando pra sempre — e o dinheiro está seguro de qualquer jeito,
+  // porque quem manda no plano é o webhook, não esta tela.
+  const [confirmando, setConfirmando] = React.useState(
+    () => { try { return new URLSearchParams(window.location.search).get('upgrade') === 'success' } catch { return false } }
+  )
+  const [demorou, setDemorou] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!confirmando) return
+    let vivo = true
+    let tentativas = 0
+    const limpar = () => {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('upgrade')
+      window.history.replaceState({}, '', url)
+    }
+    const tentar = async () => {
+      if (!vivo) return
+      tentativas++
+      const r = await carregar()
+      if (!vivo) return
+      if (r?.plano?.proAtivo) { setConfirmando(false); limpar(); return }
+      if (tentativas >= 8) { setDemorou(true); return }
+      setTimeout(tentar, 2500)
+    }
+    tentar()
+    return () => { vivo = false }
+  }, [confirmando, carregar])
 
   // A experiência aberta vira `?exp=` na URL: dá pra atualizar a página e
   // continuar onde estava, e o botão voltar do navegador funciona.
@@ -235,10 +273,30 @@ export default function Experiencia({ dados }) {
   // Conta pelo que o dispositivo SERVE, não por ter vínculo: dispositivo preso
   // a um menu excluído tem vínculo preenchido e mesmo assim vai pro Google.
 
+  const faixaPagamento = confirmando && (
+    <div className="v3-aviso-pagamento">
+      {demorou ? (
+        <>
+          <b>Recebemos seu pagamento.</b> A liberação está demorando mais que o normal.
+          Atualize a página em um minuto — se continuar assim, fale com a gente que resolvemos na hora.
+        </>
+      ) : (
+        <><b>Confirmando seu pagamento…</b> Isso leva alguns segundos. Não feche a página.</>
+      )}
+    </div>
+  )
+
   if (aberta) {
     return (
+      <>
+      {faixaPagamento}
       <EditorMenu
         exp={aberta} tipos={tiposExibidos} limites={limitesExibidos} experiencias={experiences}
+        // Na prévia o plano vem do `?preview&plano=`, senão a caixa da
+        // assinatura só daria pra revisar com conta real e cartão na mão.
+        plano={estado.dados?.plano || (dados.previewToques
+          ? { plano: dados.biz?.plan || 'free', proAtivo: dados.biz?.plan === 'pro' }
+          : null)}
         foto={dados.info?.photoUrl || null}
         dados={{
           info: dados.info, devices,
@@ -247,11 +305,13 @@ export default function Experiencia({ dados }) {
         onVoltar={() => abrir(null)}
         onAtualizar={(_exp, opts) => { if (!opts?.silencioso) carregar() }}
       />
+      </>
     )
   }
 
   return (
     <>
+      {faixaPagamento}
       {/* TOPO COMPACTO (Ricardo, 07/09/2026). "Experiência do Cliente" virou
           título pequeno da página: o espaço nobre é da experiência, não do
           nome da área — o menu lateral já diz onde a pessoa está. O aviso dos
