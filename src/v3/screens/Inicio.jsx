@@ -1,5 +1,5 @@
 // ============================================================
-// StarTouch V3 — Início ("Sua presença online")
+// StarTouch V3 — Início ("Sua empresa no Google")
 //
 // O título era "Meu negócio hoje / Acompanhe o desempenho dos últimos 7 dias".
 // Saiu em 06/09/2026 por três motivos: "hoje" não era verdade (nem os KPIs de
@@ -150,8 +150,8 @@ export default function Inicio({ dados, ir }) {
 
   return (
     <div className="v3-home">
-      <Head oi={primeiroNome ? `Olá, ${primeiroNome}` : 'Olá'} titulo="Sua presença online"
-        sub="Como seu negócio aparece para quem procura na sua região">
+      <Head oi={primeiroNome ? `Olá, ${primeiroNome}` : 'Olá'} titulo="Sua empresa no Google"
+        sub="Veja como seu negócio aparece para quem procura na sua região.">
         {/* "Ultimos 7 dias" saiu daqui em 06/09/2026. Dois motivos: (1) a tela
             passou a ABRIR com Score e colocacao, que nao sao de 7 dias — o
             Score e o estado de agora e a colocacao tem data propria de

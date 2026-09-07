@@ -55,7 +55,7 @@ export const GRUPOS = [
 export const AREAS = {
   inicio: {
     nome: 'Início', icon: Home, status: 'constr', tela: 'inicio',
-    sub: 'Como seu negócio aparece para quem procura na sua região'
+    sub: 'Veja como seu negócio aparece para quem procura na sua região'
   },
 
   experiencia: {
