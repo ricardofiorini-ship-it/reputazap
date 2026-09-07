@@ -92,6 +92,23 @@ function Previa({ draft, foto }) {
 
 // ── Um item da lista ────────────────────────────────────────
 function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemover, primeiro, ultimo, arrastando, onPegar }) {
+  // Tirar do menu em DOIS CLIQUES. Até 07/09/2026 o único caminho pra remover
+  // era abrir o botão em "Editar" — o que escondia a ação mais óbvia da lista
+  // atrás de outra. Na linha ela precisa existir, e precisa de trava: a lixeira
+  // fica ao lado do interruptor e do "mover", e clique errado num item já
+  // configurado apagaria o trabalho.
+  //
+  // Confirmação INLINE, e não janela do navegador: um `confirm()` por remoção
+  // vira ruído em quem monta um menu de seis botões.
+  const [confirmando, setConfirmando] = React.useState(false)
+  React.useEffect(() => {
+    if (!confirmando) return
+    // Some sozinha: lixeira armada esquecida na tela é uma remoção esperando
+    // o próximo clique distraído.
+    const t = setTimeout(() => setConfirmando(false), 4000)
+    return () => clearTimeout(t)
+  }, [confirmando])
+
   const vis = visual(b.type)
   const campos = CAMPOS[b.type] || []
   const resumo = (() => {
@@ -123,6 +140,14 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
           <button className="v3-btn ghost" onClick={onAbrir}>{aberto ? 'Fechar' : 'Editar'}</button>
           <button className={'v3-switch' + (b.enabled ? '' : ' off')} onClick={() => onMudar({ enabled: !b.enabled })}
             aria-label={b.enabled ? 'Desligar botão' : 'Ligar botão'} aria-pressed={b.enabled}><i/></button>
+          {confirmando ? (
+            <button className="v3-btn" style={{ color: 'var(--red)', borderColor: 'var(--red)' }}
+              onClick={() => { setConfirmando(false); onRemover() }}
+              aria-label="Confirmar remoção deste botão">Remover?</button>
+          ) : (
+            <button className="mini" onClick={() => setConfirmando(true)}
+              aria-label="Tirar este botão do menu" title="Tirar do menu"><Trash2 size={14}/></button>
+          )}
         </span>
       </div>
 
