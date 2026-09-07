@@ -1,5 +1,5 @@
 import React from 'react'
-import { Plus, Archive, Pencil, Trash2, ChevronRight, CheckCircle2, ExternalLink, GitBranch, Smartphone, UtensilsCrossed, Scissors, Stethoscope, ShoppingBag, Briefcase } from 'lucide-react'
+import { Plus, Archive, Pencil, Trash2, ChevronRight, CheckCircle2, ExternalLink } from 'lucide-react'
 import { Head, Panel, Chip, Carregando, Erro, dataBr, desde } from '../ui.jsx'
 import { api } from '../lib/api.js'
 import EditorMenu from './EditorMenu.jsx'
@@ -19,75 +19,47 @@ function IconeMenu({ tipo }) {
 }
 
 // Exemplos de conteúdo, não catálogo de tipos. Rótulos e ícones vêm do contrato.
-// Um ícone por segmento. Todos usavam o mesmo (Smartphone), o que fazia as
-// cinco abas parecerem cinco vezes a mesma coisa — e o seletor virava texto com
-// enfeite em vez de escolha visual.
-const ICONE_CENA = {
-  restaurante: UtensilsCrossed,
-  beleza: Scissors,
-  saude: Stethoscope,
-  loja: ShoppingBag,
-  servicos: Briefcase
+// O EXEMPLO DA DEMONSTRAÇÃO — um só, e de propósito.
+//
+// Havia cinco cenas com um seletor de segmento embaixo do celular. O Ricardo
+// matou o seletor em 07/09/2026 pelo motivo certo: controle que fica FORA do
+// campo de visão do que ele controla é controle que ninguém vê agir. A pessoa
+// clicava em "Clínicas" e a mudança acontecia acima, fora dos olhos dela.
+//
+// Sem o seletor, cinco cenas viram quatro cenas mortas. Ficou uma, genérica e
+// legível para qualquer negócio — os rótulos aqui são de VITRINE, não os
+// padrões do contrato: "Produtos e serviços" e "Agendar horário" dizem mais a
+// quem está conhecendo do que "Site" e "Agendar".
+const EXEMPLO = {
+  subtitulo: 'Como podemos ajudar?',
+  acoes: [
+    { tipo: 'google',    label: 'Avaliar no Google',    detalhe: 'O cliente segue direto para avaliar seu negócio no Google.' },
+    { tipo: 'whatsapp',  label: 'WhatsApp',             detalhe: 'Abre a conversa já com o seu número e a mensagem que você escreveu.' },
+    { tipo: 'website',   label: 'Produtos e serviços',  detalhe: 'Leva ao seu site, catálogo ou loja — o endereço que você escolher.' },
+    { tipo: 'booking',   label: 'Agendar horário',      detalhe: 'Abre sua agenda: Calendly, Doctoralia ou o sistema que você já usa.' },
+    { tipo: 'instagram', label: 'Instagram',            detalhe: 'Leva ao seu perfil, para o cliente continuar acompanhando.' }
+  ]
 }
 
-const CENAS = {
-  restaurante: { nome: 'Restaurantes', titulo: 'Da boa experiência ao próximo pedido.',
-    descricao: 'Receba uma avaliação, apresente seu cardápio e facilite a conversa com o restaurante.',
-    subtitulo: 'Bom ter você por aqui.', tipos: ['food_menu', 'whatsapp', 'instagram'],
-    detalhes: { food_menu: 'Seu cardápio abre pelo link que você escolher.', whatsapp: 'O cliente conversa com o restaurante pelo WhatsApp.', instagram: 'Mostre os pratos e as novidades do restaurante.' } },
-  beleza: { nome: 'Salões e barbearias', titulo: 'Uma visita que vira um novo encontro.',
-    descricao: 'Depois da avaliação, o cliente pode agendar a próxima visita, conhecer seus serviços ou falar com você.',
-    subtitulo: 'Seu próximo cuidado começa aqui.', tipos: ['booking', 'whatsapp', 'instagram'],
-    detalhes: { booking: 'Abra o link da sua agenda para o cliente escolher um horário.', whatsapp: 'Converse sobre serviços e horários no WhatsApp.', instagram: 'Apresente seu trabalho e inspire a próxima visita.' } },
-  saude: { nome: 'Clínicas', titulo: 'Mais facilidade antes e depois da visita.',
-    descricao: 'Reúna avaliação, agendamento, orientações de localização e contato com a recepção.',
-    subtitulo: 'Como podemos ajudar hoje?', tipos: ['booking', 'whatsapp', 'location'],
-    detalhes: { booking: 'O cliente acessa seu sistema de agendamento pelo link configurado.', whatsapp: 'Abra uma conversa com a recepção.', location: 'Mostre como chegar ao endereço da clínica.' } },
-  loja: { nome: 'Lojas', titulo: 'A descoberta continua depois da compra.',
-    descricao: 'Convide o cliente a avaliar, explorar seus produtos e acompanhar as novidades da loja.',
-    subtitulo: 'Encontre sua próxima escolha.', tipos: ['website', 'whatsapp', 'instagram'],
-    detalhes: { website: 'Leve o cliente ao seu catálogo de produtos ou loja online.', whatsapp: 'Facilite dúvidas sobre produtos pelo WhatsApp.', instagram: 'Mostre lançamentos e novidades no Instagram.' } },
-  servicos: { nome: 'Serviços', titulo: 'Do trabalho bem feito à próxima oportunidade.',
-    descricao: 'Receba avaliações, apresente seu portfólio e facilite pedidos de orçamento e novos contatos.',
-    subtitulo: 'Vamos conversar sobre seu projeto?', tipos: ['website', 'custom_url', 'whatsapp', 'contact'],
-    detalhes: { website: 'Apresente seus serviços e trabalhos no seu site.', custom_url: 'Abra seu link para pedidos de orçamento.', whatsapp: 'Converse sobre o que o cliente precisa.', contact: 'Permita que o cliente salve seus dados de contato.' } }
-}
-
-// O SELETOR DE SEGMENTO virou faixa própria, abaixo do herói (Ricardo,
-// 07/09/2026). Dentro da coluna do celular ele quebrava em duas linhas e
-// espremia o texto de apoio; embaixo, centrado e com título, ele deixa de ser
-// controle escondido e vira convite: "um menu para cada jeito de atender".
-export function SeletorSegmento({ cena, onTrocar }) {
-  return (
-    <section className="exp-segmentos" aria-label="Escolha um tipo de negócio">
-      <h3>Um menu para cada jeito de atender.</h3>
-      <div className="exp-seletor" role="group">
-        {Object.entries(CENAS).map(([id, item]) => {
-          const Ico = ICONE_CENA[id] || Smartphone
-          return (
-            <button key={id} type="button" aria-pressed={cena === id} onClick={() => onTrocar(id)}>
-              <Ico size={17}/>{item.nome}
-            </button>
-          )
-        })}
-      </div>
-    </section>
-  )
-}
-
-function Demonstracao({ nome, cena, acao, setAcao }) {
-  const exemplo = CENAS[cena]
-  return <section className="exp-descoberta" aria-label="Explore as experiências">
+function Demonstracao({ nome, acao, setAcao }) {
+  const escolhida = EXEMPLO.acoes.find(a => a.tipo === acao)
+  return <section className="exp-descoberta" aria-label="Demonstração do Menu Inteligente">
     <div className="exp-cena">
       <div className="exp-fone-area">
         <PhoneFrame className="exp-fone" aria-label="Demonstração do Menu Inteligente">
           <div className="exp-fone-tela">
             <div className="exp-avatar">{(nome || 'S').trim().charAt(0).toUpperCase()}</div>
-            <strong>{nome || 'Seu negócio'}</strong><p>{exemplo.subtitulo}</p>
-            <div className="exp-fone-acoes">{['google', ...exemplo.tipos].filter(tipo => TIPOS[tipo]).map(tipo => <button key={tipo}
-              type="button" aria-pressed={acao === tipo} onClick={() => setAcao(tipo)}>
-              <IconeMenu tipo={tipo}/><span>{TIPOS[tipo].label}</span><ChevronRight size={13}/></button>)}</div>
-            <div className="exp-fone-feedback" role="status">{acao ? (acao === 'google' ? 'O cliente segue para avaliar seu negócio no Google.' : exemplo.detalhes[acao]) : 'Toque em um botão para explorar o exemplo.'}</div>
+            <strong>{nome || 'Seu negócio'}</strong><p>{EXEMPLO.subtitulo}</p>
+            <div className="exp-fone-acoes">
+              {EXEMPLO.acoes.filter(a => TIPOS[a.tipo]).map(a => (
+                <button key={a.tipo} type="button" aria-pressed={acao === a.tipo} onClick={() => setAcao(a.tipo)}>
+                  <IconeMenu tipo={a.tipo}/><span>{a.label}</span><ChevronRight size={13}/>
+                </button>
+              ))}
+            </div>
+            <div className="exp-fone-feedback" role="status">
+              {escolhida ? escolhida.detalhe : 'Toque em um botão para ver o que acontece.'}
+            </div>
             <img src="/startouch-logo-dark.png" alt="StarTouch" width="82" height="27" style={{ display: 'block', objectFit: 'contain', margin: '18px auto 0' }}/>
           </div>
         </PhoneFrame>
@@ -97,18 +69,6 @@ function Demonstracao({ nome, cena, acao, setAcao }) {
   </section>
 }
 
-// O texto do segmento escolhido. Ficava ao lado do celular e era espremido pela
-// coluna estreita ("Da boa / experiência ao / próximo / pedido"); agora
-// acompanha o seletor, que é quem o comanda.
-function TextoSegmento({ cena }) {
-  const exemplo = CENAS[cena]
-  return (
-    <div className="exp-negocio-apoio" aria-live="polite">
-      <h3>{exemplo.titulo}</h3>
-      <p>{exemplo.descricao}</p>
-    </div>
-  )
-}
 
 export default function Experiencia({ dados }) {
   const [estado, setEstado] = React.useState({ carregando: true, erro: null, dados: null })
@@ -116,10 +76,6 @@ export default function Experiencia({ dados }) {
     try { return new URLSearchParams(window.location.search).get('exp') } catch { return null }
   })
   const [criando, setCriando] = React.useState(false)
-  // O segmento escolhido comanda tres pedacos em lugares diferentes da tela
-  // (celular, seletor e texto), entao o estado mora aqui, no unico ponto que
-  // enxerga os tres.
-  const [cena, setCena] = React.useState('restaurante')
   const [acao, setAcao] = React.useState(null)
   const [verExcluidos, setVerExcluidos] = React.useState(false)
 
@@ -263,11 +219,8 @@ export default function Experiencia({ dados }) {
             <span>Monte e visualize antes de publicar.</span>
           </div>
         </header>
-        <Demonstracao nome={negocioExibido?.name} cena={cena} acao={acao} setAcao={setAcao}/>
+        <Demonstracao nome={negocioExibido?.name} acao={acao} setAcao={setAcao}/>
       </div>
-
-      <SeletorSegmento cena={cena} onTrocar={(id) => { setCena(id); setAcao(null) }}/>
-      <TextoSegmento cena={cena}/>
 
       {/* A faixa que fecha o bloco de descoberta: a promessa que sustenta tudo
           o que vem antes. Ela precisa estar perto da oferta, senao o lojista le
