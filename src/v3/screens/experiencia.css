@@ -106,18 +106,6 @@
    de seção — no topo ele era a primeira coisa da tela. */
 .exp-atual { margin: 26px 0 14px; }
 
-/* ── Promessa do gratuito (07/09/2026) ────────────────────────
-   A faixa de segmentos foi removida: o seletor ficava ABAIXO do celular, fora
-   do campo de visao do que ele controlava — a pessoa clicava e a mudanca
-   acontecia acima, sem ela ver. Controle que ninguem ve agir nao e interacao,
-   e enfeite. */
-.exp-gratuito {
-  display: flex; align-items: center; justify-content: center; gap: 9px;
-  margin: 22px 0 6px; padding: 12px 16px;
-  background: var(--green-soft); color: var(--green);
-  border-radius: 10px; font-size: 13.2px; font-weight: 600;
-}
-
 /* A cena perdeu a coluna de texto: o celular fica sozinho e centrado. */
 .exp-hero .exp-cena { min-height: 0; padding: 0; justify-content: center; background: transparent; }
 .exp-hero .exp-descoberta { border: 0; background: transparent; }

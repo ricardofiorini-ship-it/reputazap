@@ -224,13 +224,6 @@ export default function Experiencia({ dados }) {
         <Demonstracao nome={negocioExibido?.name} acao={acao} setAcao={setAcao}/>
       </div>
 
-      {/* A faixa que fecha o bloco de descoberta: a promessa que sustenta tudo
-          o que vem antes. Ela precisa estar perto da oferta, senao o lojista le
-          a tela inteira achando que vai perder o que ja tem. */}
-      <div className="exp-gratuito">
-        <CheckCircle2 size={17}/> A avaliação no Google continua gratuita.
-      </div>
-
       {/* O estado atual dos dispositivos: desceu do topo pra cá, onde ele
           conversa com a lista de menus e com a decisão de ligar cada um. */}
       <section className="exp-atual" aria-label="Experiência atual">
