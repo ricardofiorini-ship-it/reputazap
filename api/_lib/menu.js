@@ -55,7 +55,11 @@ export const TIPOS = {
   // privado — ninguém escolhia nada. Aqui é um botão no menu, ao lado do
   // "Avaliar no Google", e quem decide qual tocar é o cliente. A diferença não
   // é de grau: uma esconde avaliação, a outra oferece um caminho a mais.
-  manager:    { label: "Canal direto com a Gerência", campos: ["telefone", "mensagem"] },
+  // `canal` decide se os outros campos são o telefone ou o e-mail. É o único
+  // tipo com forma variável, e por isso a lista abaixo traz TODOS os campos
+  // possíveis — quem monta o formulário (o editor) é que esconde os que não
+  // valem pro canal escolhido.
+  manager:    { label: "Canal direto com a Gerência", campos: ["canal", "telefone", "email", "mensagem"] },
   instagram:  { label: "Instagram",         campos: ["url"] },
   food_menu:  { label: "Cardápio",          campos: ["url"] },
   phone:      { label: "Telefone",          campos: ["telefone"] },
@@ -142,12 +146,24 @@ export function normalizarBotao(bruto) {
     case "location":
       break;                                    // referência: não guarda nada
     case "whatsapp":
-    case "manager":
       b.value = {
         telefone: soDigitos(v.telefone).slice(0, 15),
         mensagem: limpo(v.mensagem, LIMITES.mensagem)
       };
       break;
+    case "manager": {
+      // WhatsApp é o padrão: quem não escolher nada cai no canal que o lojista
+      // já atende. E os DOIS campos são preservados, mesmo o do canal inativo —
+      // trocar de canal e voltar não pode apagar o que já estava preenchido.
+      const canal = v.canal === "email" ? "email" : "whatsapp";
+      b.value = {
+        canal,
+        telefone: soDigitos(v.telefone).slice(0, 15),
+        email: limpo(v.email, 120),
+        mensagem: limpo(v.mensagem, LIMITES.mensagem)
+      };
+      break;
+    }
     case "phone":
       b.value = { telefone: soDigitos(v.telefone).slice(0, 15) };
       break;
@@ -197,6 +213,14 @@ export function validarBotao(b) {
       }
       return { ok: true };
     case "manager":
+      // Só o canal escolhido é cobrado. O outro campo pode estar vazio ou
+      // meio preenchido sem impedir a publicação.
+      if (v.canal === "email") {
+        if (!EMAIL_RE.test(v.email || "")) {
+          return { ok: false, campo: "email", msg: "Informe o e-mail da gerência (ex: gerencia@seunegocio.com.br)." };
+        }
+        return { ok: true };
+      }
       if (soDigitos(v.telefone).length < 10) {
         return { ok: false, campo: "telefone", msg: "Informe o WhatsApp da gerência, com DDD (ex: 11 99999-9999)." };
       }

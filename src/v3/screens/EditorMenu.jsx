@@ -50,8 +50,8 @@ function IconeTipo({ tipo, tamanho = 22 }) {
 // Campos por tipo. Rótulos escritos pro lojista, não pro banco.
 const CAMPOS = {
   whatsapp:   [['telefone', 'WhatsApp com DDD', 'tel'], ['mensagem', 'Mensagem que já vai escrita', 'text']],
-  manager:    [['telefone', 'WhatsApp da gerência, com DDD', 'tel'],
-               ['mensagem', 'Mensagem que já vai escrita', 'text']],
+  // `manager` nao entra aqui: os campos dele dependem do canal escolhido pelo
+  // dono do negocio, e quem monta essa lista e `camposDaGerencia()`.
   phone:      [['telefone', 'Telefone com DDD', 'tel']],
   instagram:  [['url', 'Seu Instagram (@usuário ou endereço)', 'text']],
   food_menu:  [['url', 'Endereço do cardápio', 'url']],
@@ -60,6 +60,18 @@ const CAMPOS = {
   custom_url: [['url', 'Endereço de destino', 'url']],
   contact:    [['nome', 'Nome', 'text'], ['cargo', 'Cargo (opcional)', 'text'],
                ['telefone', 'Telefone com DDD', 'tel'], ['email', 'E-mail (opcional)', 'email']]
+}
+
+// O botão da gerência tem DOIS destinos possíveis e o dono escolhe qual: o
+// cliente dele vai falar por WhatsApp ou por e-mail. Os campos seguem a
+// escolha — não faz sentido pedir telefone a quem vai atender por e-mail.
+//
+// O campo `mensagem` serve aos dois: vira o texto já escrito no WhatsApp ou o
+// corpo do e-mail. Um campo, dois usos.
+function camposDaGerencia(b) {
+  return (b.value?.canal === 'email')
+    ? [['email', 'E-mail da gerência', 'email'], ['mensagem', 'Mensagem que já vai escrita', 'text']]
+    : [['telefone', 'WhatsApp da gerência, com DDD', 'tel'], ['mensagem', 'Mensagem que já vai escrita', 'text']]
 }
 
 function novoBotaoLocal(type, tipos) {
@@ -114,7 +126,7 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
   }, [confirmando])
 
   const vis = visual(b.type)
-  const campos = CAMPOS[b.type] || []
+  const campos = b.type === 'manager' ? camposDaGerencia(b) : (CAMPOS[b.type] || [])
   const resumo = (() => {
     if (b.type === 'google') return 'Avaliação no perfil do seu negócio'
     if (b.type === 'location') return 'Localização do seu negócio no Google'
@@ -161,6 +173,27 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
             <span className="lb">Texto do botão</span>
             <input value={b.label} maxLength={40} onChange={e => onMudar({ label: e.target.value })}/>
           </label>
+          {b.type === 'manager' && (
+            <div className="v3-campo">
+              <span className="lb">Como a gerência recebe o contato</span>
+              <div className="me-canal" role="group" aria-label="Canal de contato da gerência">
+                {[['whatsapp', 'WhatsApp'], ['email', 'E-mail']].map(([id, rotulo]) => (
+                  <button key={id} type="button"
+                    aria-pressed={(b.value?.canal || 'whatsapp') === id}
+                    onClick={() => onMudar({ value: { ...(b.value || {}), canal: id } })}>
+                    {rotulo}
+                  </button>
+                ))}
+              </div>
+              {/* O outro campo continua guardado: trocar de canal e voltar não
+                  apaga o que já estava preenchido. */}
+              <span className="v3-dica" style={{ marginTop: 6, display: 'block' }}>
+                {(b.value?.canal || 'whatsapp') === 'email'
+                  ? 'O botão abre o aplicativo de e-mail do cliente, já endereçado para você.'
+                  : 'O botão abre a conversa no WhatsApp, já com o seu número.'}
+              </span>
+            </div>
+          )}
           {campos.map(([campo, rotulo, tipo]) => (
             <label className={'v3-campo' + (erro?.campo === campo ? ' erro' : '')} key={campo}>
               <span className="lb">{rotulo}</span>

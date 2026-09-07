@@ -35,3 +35,16 @@
 @media(max-width:600px) { .menu-editor .v3-panel > header, .menu-editor .v3-panel > .body { padding: 14px 12px; } .menu-editor .v3-barra { flex-wrap: wrap; } .menu-editor .v3-item { flex-wrap: wrap; } .menu-editor .v3-item .acs { width: 100%; justify-content: flex-end; } .menu-editor .v3-editor-steps { padding: 12px; gap: 8px; } .menu-editor .v3-editor-steps small { display: none; } }
 
 .menu-editor .me-photo-fallback { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--blue-soft); color: var(--blue-dk); font-size: 22px; font-weight: 650; }
+
+/* Escolha do canal do botao da gerencia: dois destinos possiveis, o dono decide
+   qual. Par de botoes em vez de <select> porque sao duas opcoes e as duas
+   cabem na tela — escolha visivel decide mais rapido que lista fechada. */
+.menu-editor .me-canal { display: inline-flex; gap: 6px; }
+.menu-editor .me-canal button {
+  font: inherit; font-size: 12.5px; padding: 8px 16px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surf); color: var(--mid);
+}
+.menu-editor .me-canal button[aria-pressed="true"] {
+  border-color: var(--blue); background: var(--blue-soft); color: var(--blue-dk); font-weight: 650;
+}

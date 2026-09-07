@@ -58,7 +58,20 @@ export function destino(b, biz, slug) {
       return biz.place_id
         ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(biz.name || "")}&query_place_id=${encodeURIComponent(biz.place_id)}`
         : null;
-    case "manager":
+    case "manager": {
+      // O canal que o lojista escolheu. `mailto:` num redirect 302 abre o app
+      // de e-mail do cliente, do mesmo jeito que `wa.me` abre o WhatsApp.
+      if (v.canal === "email") {
+        const email = String(v.email || "").trim();
+        if (!email) return null;
+        const corpo = v.mensagem ? `?body=${encodeURIComponent(v.mensagem)}` : "";
+        return `mailto:${email}${corpo}`;
+      }
+      const n = paraWhats(v.telefone);
+      if (!n) return null;
+      const t = v.mensagem ? `?text=${encodeURIComponent(v.mensagem)}` : "";
+      return `https://wa.me/${n}${t}`;
+    }
     case "whatsapp": {
       const n = paraWhats(v.telefone);
       if (!n) return null;
