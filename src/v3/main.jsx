@@ -17,27 +17,34 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import { currentUser, token } from './lib/api.js'
+import Login from '../Login.jsx'
 import './theme.css'
 
 const ADMINS = ['ricardo.fiorini@gmail.com']
 
-function destinoDeLogin() {
-  const aqui = window.location.pathname + window.location.search
-  return '/app?login=1&next=' + encodeURIComponent(aqui)
-}
-
+// LOGIN NATIVO desde 07/09/2026. Antes o V3 mandava quem nao tinha sessao pro
+// `/app?login=1&next=...` — ou seja, dependia do painel antigo pra abrir, e nao
+// dava pra aposentar a tela que era a porta da outra.
+//
+// A troca foi barata porque o `Login.jsx` sempre foi autossuficiente: componente
+// isolado, sem nada do AppV2, com estilos inline (as classes `login-*` que ele
+// usa nao existem em CSS nenhum) e ja gravando `rz_token`/`rz_user` sozinho. E
+// o MESMO componente dos dois paineis, entao a tela de entrada nao tem como
+// divergir entre eles.
 function Porta() {
   // Modo de revisão visual local. O teste de DEV é eliminado no build de
   // produção, portanto `?preview` não contorna o portão publicado.
   const preview = import.meta.env.DEV && new URLSearchParams(window.location.search).has('preview')
   if (preview) return <App/>
 
-  const user = currentUser()
+  // `useState` e não leitura direta: depois de entrar, o componente precisa
+  // re-renderizar com a sessão nova sem recarregar a página.
+  const [user, setUser] = React.useState(() => (token() ? currentUser() : null))
 
-  // Sem sessão → manda pro login do painel atual, que sabe voltar pra cá.
+  // Sem sessão → o login acontece AQUI, na própria rota. Nada de mandar pro
+  // painel antigo e voltar: quem entra pelo endereço do V3 fica no V3.
   if (!token() || !user) {
-    window.location.replace(destinoDeLogin())
-    return null
+    return <Login onLogin={(u) => setUser(u)}/>
   }
 
   // Logado mas fora da lista → painel atual, sem drama e sem tela de erro.

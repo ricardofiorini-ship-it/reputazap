@@ -28,7 +28,10 @@ export function logout() {
     localStorage.removeItem('rz_token')
     localStorage.removeItem('rz_user')
   } catch {}
-  window.location.href = '/app'
+  // Recarrega em vez de ir pro `/app`: desde que o V3 tem login proprio
+  // (07/09/2026), sair aqui e voltar pra tela de entrada DAQUI. Mandar pro
+  // painel antigo faria o cliente sair de um painel e chegar no outro.
+  window.location.reload()
 }
 
 function authHeader() {

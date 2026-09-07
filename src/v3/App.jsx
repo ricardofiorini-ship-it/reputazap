@@ -226,7 +226,12 @@ export default function App() {
     if (dados.sessaoExpirou) {
       return (
         <Erro mensagem="Sua sessão expirou. Entre de novo para continuar."
-          onTentar={() => { window.location.href = '/app?login=1&next=' + encodeURIComponent(`${BASE}/${id}`) }}/>
+          onTentar={() => {
+            // Sessao vencida: limpa e recarrega — a porta do V3 mostra o proprio
+            // login. Antes isto ia pro `/app?login=1`, de quando o V3 nao tinha um.
+            try { localStorage.removeItem('rz_token'); localStorage.removeItem('rz_user') } catch {}
+            window.location.reload()
+          }}/>
       )
     }
     if (dados.erro) return <Erro mensagem={dados.erro} onTentar={dados.recarregar}/>
