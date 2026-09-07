@@ -161,6 +161,13 @@ export default function Experiencia({ dados }) {
     () => { try { return new URLSearchParams(window.location.search).get('upgrade') === 'success' } catch { return false } }
   )
   const [demorou, setDemorou] = React.useState(false)
+  // Resultado da publicação automática pós-pagamento: {ok, em} ou {erro}.
+  const [publicadoAposPagar, setPublicadoAposPagar] = React.useState(null)
+
+  // Ref e não estado na dependência do efeito: se `abertaId` entrasse na lista,
+  // qualquer mudança reiniciaria a espera do pagamento do zero.
+  const abertaIdRef = React.useRef(abertaId)
+  React.useEffect(() => { abertaIdRef.current = abertaId }, [abertaId])
 
   React.useEffect(() => {
     if (!confirmando) return
@@ -176,10 +183,41 @@ export default function Experiencia({ dados }) {
       tentativas++
       const r = await carregar()
       if (!vivo) return
-      if (r?.plano?.proAtivo) { setConfirmando(false); limpar(); return }
+      if (r?.plano?.proAtivo) {
+        setConfirmando(false)
+        limpar()
+        await publicarAgora(r)
+        return
+      }
       if (tentativas >= 8) { setDemorou(true); return }
       setTimeout(tentar, 2500)
     }
+    // ── PUBLICAR SOZINHO NA VOLTA DO PAGAMENTO (Ricardo, 07/09/2026) ──
+    // A pessoa clicou em "Publicar", foi barrada pelo plano, pagou e voltou.
+    // A intenção não tem ambiguidade nenhuma: fazer procurar o botão de novo
+    // dá a impressão de que o pagamento não valeu.
+    //
+    // Publica SÓ o menu que estava aberto quando ela saiu — nunca outro. E se
+    // a publicação for recusada (algum botão inválido), diz isso em vez de
+    // fingir que subiu: sucesso silencioso e fracasso silencioso são o mesmo
+    // problema visto de dois lados.
+    const publicarAgora = async (r) => {
+      const id = abertaIdRef.current
+      if (!id) return
+      const exp = (r?.experiences || []).find(e => e.id === id)
+      if (!exp || exp.archived_at) return
+      if (exp.pendente === false) return   // já estava no ar; nada a fazer
+      try {
+        const pub = await api.experiencias.publicar(id)
+        if (!vivo) return
+        setPublicadoAposPagar({ ok: true, em: pub.dispositivos_com_este_menu || 0 })
+        await carregar()
+      } catch (e) {
+        if (!vivo) return
+        setPublicadoAposPagar({ ok: false, erro: e.message || 'Não foi possível publicar.' })
+      }
+    }
+
     tentar()
     return () => { vivo = false }
   }, [confirmando, carregar])
@@ -273,9 +311,21 @@ export default function Experiencia({ dados }) {
   // Conta pelo que o dispositivo SERVE, não por ter vínculo: dispositivo preso
   // a um menu excluído tem vínculo preenchido e mesmo assim vai pro Google.
 
-  const faixaPagamento = confirmando && (
-    <div className="v3-aviso-pagamento">
-      {demorou ? (
+  const faixaPagamento = (confirmando || publicadoAposPagar) && (
+    <div className={'v3-aviso-pagamento' + (publicadoAposPagar?.ok ? ' ok' : '') + (publicadoAposPagar?.ok === false ? ' erro' : '')}>
+      {publicadoAposPagar?.ok ? (
+        <>
+          <b>Pronto. Seu menu está no ar.</b>{' '}
+          {publicadoAposPagar.em > 0
+            ? `Já vale em ${publicadoAposPagar.em} ${publicadoAposPagar.em === 1 ? 'dispositivo' : 'dispositivos'}.`
+            : 'Agora escolha em quais dispositivos ele deve aparecer.'}
+        </>
+      ) : publicadoAposPagar?.ok === false ? (
+        <>
+          <b>Assinatura confirmada</b>, mas o menu não subiu: {publicadoAposPagar.erro}{' '}
+          Corrija e clique em Publicar — sua assinatura já está ativa.
+        </>
+      ) : demorou ? (
         <>
           <b>Recebemos seu pagamento.</b> A liberação está demorando mais que o normal.
           Atualize a página em um minuto — se continuar assim, fale com a gente que resolvemos na hora.
