@@ -1,5 +1,5 @@
 import React from 'react'
-import { Plus, Archive, Pencil, Trash2, ChevronRight, CheckCircle2, ExternalLink, GitBranch, Smartphone } from 'lucide-react'
+import { Plus, Archive, Pencil, Trash2, ChevronRight, CheckCircle2, ExternalLink, GitBranch, Smartphone, UtensilsCrossed, Scissors, Stethoscope, ShoppingBag, Briefcase } from 'lucide-react'
 import { Head, Panel, Chip, Carregando, Erro, dataBr, desde } from '../ui.jsx'
 import { api } from '../lib/api.js'
 import EditorMenu from './EditorMenu.jsx'
@@ -19,6 +19,17 @@ function IconeMenu({ tipo }) {
 }
 
 // Exemplos de conteúdo, não catálogo de tipos. Rótulos e ícones vêm do contrato.
+// Um ícone por segmento. Todos usavam o mesmo (Smartphone), o que fazia as
+// cinco abas parecerem cinco vezes a mesma coisa — e o seletor virava texto com
+// enfeite em vez de escolha visual.
+const ICONE_CENA = {
+  restaurante: UtensilsCrossed,
+  beleza: Scissors,
+  saude: Stethoscope,
+  loja: ShoppingBag,
+  servicos: Briefcase
+}
+
 const CENAS = {
   restaurante: { nome: 'Restaurantes', titulo: 'Da boa experiência ao próximo pedido.',
     descricao: 'Receba uma avaliação, apresente seu cardápio e facilite a conversa com o restaurante.',
@@ -42,22 +53,32 @@ const CENAS = {
     detalhes: { website: 'Apresente seus serviços e trabalhos no seu site.', custom_url: 'Abra seu link para pedidos de orçamento.', whatsapp: 'Converse sobre o que o cliente precisa.', contact: 'Permita que o cliente salve seus dados de contato.' } }
 }
 
-function Demonstracao({ nome }) {
-  const [cena, setCena] = React.useState('restaurante')
-  const [acao, setAcao] = React.useState(null)
+// O SELETOR DE SEGMENTO virou faixa própria, abaixo do herói (Ricardo,
+// 07/09/2026). Dentro da coluna do celular ele quebrava em duas linhas e
+// espremia o texto de apoio; embaixo, centrado e com título, ele deixa de ser
+// controle escondido e vira convite: "um menu para cada jeito de atender".
+export function SeletorSegmento({ cena, onTrocar }) {
+  return (
+    <section className="exp-segmentos" aria-label="Escolha um tipo de negócio">
+      <h3>Um menu para cada jeito de atender.</h3>
+      <div className="exp-seletor" role="group">
+        {Object.entries(CENAS).map(([id, item]) => {
+          const Ico = ICONE_CENA[id] || Smartphone
+          return (
+            <button key={id} type="button" aria-pressed={cena === id} onClick={() => onTrocar(id)}>
+              <Ico size={17}/>{item.nome}
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+function Demonstracao({ nome, cena, acao, setAcao }) {
   const exemplo = CENAS[cena]
   return <section className="exp-descoberta" aria-label="Explore as experiências">
-    <div className="exp-seletor" role="group" aria-label="Escolha um tipo de negócio">
-      {Object.entries(CENAS).map(([id, item]) => <button key={id} type="button" aria-pressed={cena === id}
-        onClick={() => { setCena(id); setAcao(null) }}><Smartphone size={16}/>{item.nome}</button>)}
-      <span>Um toque. Possibilidades diferentes.</span>
-    </div>
     <div className="exp-cena">
-      <div className="exp-negocio-apoio" aria-live="polite">
-        <span className="exp-apoio-kicker">EXPLORE AS POSSIBILIDADES</span>
-        <h3>{exemplo.titulo}</h3><p>{exemplo.descricao}</p>
-        <div className="exp-google-padrao"><IconeMenu tipo="google"/><span>Avaliar no Google vem primeiro.<br/>Depois, os caminhos do seu negócio.</span></div>
-      </div>
       <div className="exp-fone-area">
         <PhoneFrame className="exp-fone" aria-label="Demonstração do Menu Inteligente">
           <div className="exp-fone-tela">
@@ -76,12 +97,30 @@ function Demonstracao({ nome }) {
   </section>
 }
 
+// O texto do segmento escolhido. Ficava ao lado do celular e era espremido pela
+// coluna estreita ("Da boa / experiência ao / próximo / pedido"); agora
+// acompanha o seletor, que é quem o comanda.
+function TextoSegmento({ cena }) {
+  const exemplo = CENAS[cena]
+  return (
+    <div className="exp-negocio-apoio" aria-live="polite">
+      <h3>{exemplo.titulo}</h3>
+      <p>{exemplo.descricao}</p>
+    </div>
+  )
+}
+
 export default function Experiencia({ dados }) {
   const [estado, setEstado] = React.useState({ carregando: true, erro: null, dados: null })
   const [abertaId, setAbertaId] = React.useState(() => {
     try { return new URLSearchParams(window.location.search).get('exp') } catch { return null }
   })
   const [criando, setCriando] = React.useState(false)
+  // O segmento escolhido comanda tres pedacos em lugares diferentes da tela
+  // (celular, seletor e texto), entao o estado mora aqui, no unico ponto que
+  // enxerga os tres.
+  const [cena, setCena] = React.useState('restaurante')
+  const [acao, setAcao] = React.useState(null)
   const [verExcluidos, setVerExcluidos] = React.useState(false)
 
   const carregar = React.useCallback(async () => {
@@ -203,33 +242,52 @@ export default function Experiencia({ dados }) {
 
   return (
     <>
-      <Head titulo="Experiência do Cliente" sub="Um novo jeito de receber quem chega até seu negócio."/>
-      <div className="exp-evolucao">
-        <section className="exp-atual" aria-label="Experiência atual">
-          <CheckCircle2 size={19}/>
-          <div><strong>{devices.length === 0 ? 'Seu primeiro ponto de contato começa aqui' : noMenu.length === 0
-            ? `Hoje, ${devices.length === 1 ? 'seu dispositivo leva' : `seus ${devices.length} dispositivos levam`} à avaliação no Google`
-            : `Hoje, ${noMenu.length} ${noMenu.length === 1 ? 'dispositivo abre' : 'dispositivos abrem'} seu Menu Inteligente`}</strong>
-            <p>{devices.length === 0 ? 'Você já pode montar seu menu. Ao ativar um dispositivo, escolha a experiência dele.' : noMenu.length > 0
-              ? `${noGoogle.length ? `Outros ${noGoogle.length} seguem direto ao Google. ` : ''}Você decide o destino de cada ponto de contato.`
-              : 'Avaliação no Google é a experiência padrão e continua gratuita.'}</p>
-          </div>
-        </section>
+      {/* TOPO COMPACTO (Ricardo, 07/09/2026). "Experiência do Cliente" virou
+          título pequeno da página: o espaço nobre é da experiência, não do
+          nome da área — o menu lateral já diz onde a pessoa está. O aviso dos
+          dispositivos desceu para perto de "Seus menus", que é onde ele vira
+          ação; aqui em cima ele empurrava o celular para fora da primeira
+          dobra. */}
+      <div className="exp-titulo-pagina">Experiência do Cliente</div>
 
+      <div className="exp-hero">
         <header className="exp-intro">
           <div className="exp-eyebrow">MENU INTELIGENTE <Chip>PRO</Chip></div>
-          <h2>Decida o que acontece<br/>depois de cada toque.</h2>
-          <p>Sua STARTOUCH já conecta o cliente ao seu negócio.<br/>Com o Menu Inteligente, essa conexão ganha novos caminhos.</p>
+          <h2>Seu cliente chegou.<br/>Qual o próximo passo?</h2>
+          <p>Avaliar no Google, falar no WhatsApp, conhecer seus produtos ou agendar.
+            Você escolhe os caminhos; seu cliente escolhe como continuar.</p>
+          <div className="exp-hero-acao">
+            <button className="v3-btn solid" onClick={dados.previewToques ? () => abrir('preview-menu') : criar} disabled={criando}>
+              <Plus size={16}/>{criando ? 'Criando…' : 'Criar meu Menu Inteligente'}<ChevronRight size={16}/>
+            </button>
+            <span>Monte e visualize antes de publicar.</span>
+          </div>
         </header>
-        <Demonstracao nome={negocioExibido?.name}/>
-        <section className="exp-convite">
-          <div><GitBranch size={24}/><h2>Cada ponto de contato.<br/>Uma experiência do seu jeito.</h2>
-            <p>Crie experiências para diferentes momentos do seu negócio. Escolha os botões, organize os links e decida onde usar cada menu.</p></div>
-          <div className="exp-convite-acao"><button className="v3-btn solid" onClick={dados.previewToques ? () => abrir('preview-menu') : criar} disabled={criando}>
-            <Plus size={16}/>{criando ? 'Criando…' : 'Criar meu Menu Inteligente'}<ChevronRight size={16}/></button>
-            <p>Monte e visualize no editor antes de publicar.</p></div>
-        </section>
+        <Demonstracao nome={negocioExibido?.name} cena={cena} acao={acao} setAcao={setAcao}/>
       </div>
+
+      <SeletorSegmento cena={cena} onTrocar={(id) => { setCena(id); setAcao(null) }}/>
+      <TextoSegmento cena={cena}/>
+
+      {/* A faixa que fecha o bloco de descoberta: a promessa que sustenta tudo
+          o que vem antes. Ela precisa estar perto da oferta, senao o lojista le
+          a tela inteira achando que vai perder o que ja tem. */}
+      <div className="exp-gratuito">
+        <CheckCircle2 size={17}/> A avaliação no Google continua gratuita.
+      </div>
+
+      {/* O estado atual dos dispositivos: desceu do topo pra cá, onde ele
+          conversa com a lista de menus e com a decisão de ligar cada um. */}
+      <section className="exp-atual" aria-label="Experiência atual">
+        <CheckCircle2 size={19}/>
+        <div><strong>{devices.length === 0 ? 'Seu primeiro ponto de contato começa aqui' : noMenu.length === 0
+          ? `Hoje, ${devices.length === 1 ? 'seu dispositivo leva' : `seus ${devices.length} dispositivos levam`} à avaliação no Google`
+          : `Hoje, ${noMenu.length} ${noMenu.length === 1 ? 'dispositivo abre' : 'dispositivos abrem'} seu Menu Inteligente`}</strong>
+          <p>{devices.length === 0 ? 'Você já pode montar seu menu. Ao ativar um dispositivo, escolha a experiência dele.' : noMenu.length > 0
+            ? `${noGoogle.length ? `Outros ${noGoogle.length} seguem direto ao Google. ` : ''}Você decide o destino de cada ponto de contato.`
+            : 'Você decide o destino de cada ponto de contato — um por um, quando quiser.'}</p>
+        </div>
+      </section>
 
       {/* ── Seus menus ── */}
       {ativas.length > 0 && (
