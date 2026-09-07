@@ -8,8 +8,6 @@ import { TIPOS } from '../../../api/_lib/menu.js'
 // Desenhos e rótulos seguem os contratos compartilhados do menu público.
 import { ICONES, CHEIOS } from '../../../api/_lib/menu-icones.js'
 import './experiencia.css'
-import restauranteImg from '../assets/experiencia-placa.png'
-import cartaoImg from '../assets/experiencia-cartao.png'
 
 function IconeMenu({ tipo }) {
   const cheio = CHEIOS.has(tipo)
@@ -21,33 +19,43 @@ function IconeMenu({ tipo }) {
 
 // Exemplos de conteúdo, não catálogo de tipos. Rótulos e ícones vêm do contrato.
 const CENAS = {
-  mesa: { nome: 'Na mesa do restaurante', titulo: 'O próximo pedido começa aqui.',
-    descricao: 'Da escolha do prato à conversa no WhatsApp. Reúna os caminhos que fazem sentido durante a visita.',
-    subtitulo: 'Bom ter você à mesa.', tipos: ['food_menu', 'whatsapp', 'google'],
-    detalhes: { food_menu: 'Seu cardápio abre pelo link que você escolher.', whatsapp: 'O cliente continua a conversa no WhatsApp do restaurante.', google: 'O cliente segue para avaliar seu negócio no Google.' } },
-  equipe: { nome: 'No cartão da equipe', titulo: 'Uma apresentação que continua.',
-    descricao: 'Depois do primeiro contato, facilite o acesso aos seus produtos, a um orçamento ou à próxima conversa.',
-    subtitulo: 'Vamos continuar a conversa?', tipos: ['website', 'custom_url', 'whatsapp', 'instagram'],
-    detalhes: { website: 'Leve o cliente ao seu site de produtos e serviços.', custom_url: 'Use seu link para receber pedidos de orçamento.', whatsapp: 'Abra uma conversa com sua equipe no WhatsApp.', instagram: 'Convide o cliente a conhecer seu negócio no Instagram.' } }
+  restaurante: { nome: 'Restaurantes', titulo: 'Da boa experiência ao próximo pedido.',
+    descricao: 'Receba uma avaliação, apresente seu cardápio e facilite a conversa com o restaurante.',
+    subtitulo: 'Bom ter você por aqui.', tipos: ['food_menu', 'whatsapp', 'instagram'],
+    detalhes: { food_menu: 'Seu cardápio abre pelo link que você escolher.', whatsapp: 'O cliente conversa com o restaurante pelo WhatsApp.', instagram: 'Mostre os pratos e as novidades do restaurante.' } },
+  beleza: { nome: 'Salões e barbearias', titulo: 'Uma visita que vira um novo encontro.',
+    descricao: 'Depois da avaliação, o cliente pode agendar a próxima visita, conhecer seus serviços ou falar com você.',
+    subtitulo: 'Seu próximo cuidado começa aqui.', tipos: ['booking', 'whatsapp', 'instagram'],
+    detalhes: { booking: 'Abra o link da sua agenda para o cliente escolher um horário.', whatsapp: 'Converse sobre serviços e horários no WhatsApp.', instagram: 'Apresente seu trabalho e inspire a próxima visita.' } },
+  saude: { nome: 'Clínicas', titulo: 'Mais facilidade antes e depois da visita.',
+    descricao: 'Reúna avaliação, agendamento, orientações de localização e contato com a recepção.',
+    subtitulo: 'Como podemos ajudar hoje?', tipos: ['booking', 'whatsapp', 'location'],
+    detalhes: { booking: 'O cliente acessa seu sistema de agendamento pelo link configurado.', whatsapp: 'Abra uma conversa com a recepção.', location: 'Mostre como chegar ao endereço da clínica.' } },
+  loja: { nome: 'Lojas', titulo: 'A descoberta continua depois da compra.',
+    descricao: 'Convide o cliente a avaliar, explorar seus produtos e acompanhar as novidades da loja.',
+    subtitulo: 'Encontre sua próxima escolha.', tipos: ['website', 'whatsapp', 'instagram'],
+    detalhes: { website: 'Leve o cliente ao seu catálogo de produtos ou loja online.', whatsapp: 'Facilite dúvidas sobre produtos pelo WhatsApp.', instagram: 'Mostre lançamentos e novidades no Instagram.' } },
+  servicos: { nome: 'Serviços', titulo: 'Do trabalho bem feito à próxima oportunidade.',
+    descricao: 'Receba avaliações, apresente seu portfólio e facilite pedidos de orçamento e novos contatos.',
+    subtitulo: 'Vamos conversar sobre seu projeto?', tipos: ['website', 'custom_url', 'whatsapp', 'contact'],
+    detalhes: { website: 'Apresente seus serviços e trabalhos no seu site.', custom_url: 'Abra seu link para pedidos de orçamento.', whatsapp: 'Converse sobre o que o cliente precisa.', contact: 'Permita que o cliente salve seus dados de contato.' } }
 }
 
 function Demonstracao({ nome }) {
-  const [cena, setCena] = React.useState('mesa')
+  const [cena, setCena] = React.useState('restaurante')
   const [acao, setAcao] = React.useState(null)
   const exemplo = CENAS[cena]
   return <section className="exp-descoberta" aria-label="Explore as experiências">
-    <div className="exp-seletor" role="group" aria-label="Escolha um ponto de contato">
+    <div className="exp-seletor" role="group" aria-label="Escolha um tipo de negócio">
       {Object.entries(CENAS).map(([id, item]) => <button key={id} type="button" aria-pressed={cena === id}
         onClick={() => { setCena(id); setAcao(null) }}><Smartphone size={16}/>{item.nome}</button>)}
       <span>Um toque. Possibilidades diferentes.</span>
     </div>
-    <div className={'exp-cena ' + (cena === 'mesa' ? 'exp-cena-mesa' : 'exp-cena-equipe')}>
-      <div className="exp-dispositivo-apoio"><span className="exp-apoio-kicker">COMEÇA NA SUA STARTOUCH</span>
-      <img className="exp-cena-imagem" src={cena === 'mesa' ? restauranteImg : cartaoImg}
-        alt={cena === 'mesa' ? 'Foto original da placa STARTOUCH para avaliação no Google' : 'Cartão STARTOUCH original com instruções de toque e avaliação'}
-        width={cena === 'mesa' ? 225 : 1122} height={cena === 'mesa' ? 225 : 1402}/>
-      <div className="exp-cena-legenda">Dispositivo atual · avaliação Google</div>
-        <p>O toque conecta.<br/><strong>Você escolhe a experiência digital.</strong></p>
+    <div className="exp-cena">
+      <div className="exp-negocio-apoio" aria-live="polite">
+        <span className="exp-apoio-kicker">EXPLORE AS POSSIBILIDADES</span>
+        <h3>{exemplo.titulo}</h3><p>{exemplo.descricao}</p>
+        <div className="exp-google-padrao"><IconeMenu tipo="google"/><span>Avaliar no Google vem primeiro.<br/>Depois, os caminhos do seu negócio.</span></div>
       </div>
       <div className="exp-fone-area">
         <div className="exp-fone" aria-label="Demonstração do Menu Inteligente">
@@ -55,10 +63,10 @@ function Demonstracao({ nome }) {
           <div className="exp-fone-tela">
             <div className="exp-avatar">{(nome || 'S').trim().charAt(0).toUpperCase()}</div>
             <strong>{nome || 'Seu negócio'}</strong><p>{exemplo.subtitulo}</p>
-            <div className="exp-fone-acoes">{exemplo.tipos.filter(tipo => TIPOS[tipo]).map(tipo => <button key={tipo}
+            <div className="exp-fone-acoes">{['google', ...exemplo.tipos].filter(tipo => TIPOS[tipo]).map(tipo => <button key={tipo}
               type="button" aria-pressed={acao === tipo} onClick={() => setAcao(tipo)}>
               <IconeMenu tipo={tipo}/><span>{TIPOS[tipo].label}</span><ChevronRight size={13}/></button>)}</div>
-            <div className="exp-fone-feedback" role="status">{acao ? exemplo.detalhes[acao] : 'Toque em um botão para explorar o exemplo.'}</div>
+            <div className="exp-fone-feedback" role="status">{acao ? (acao === 'google' ? 'O cliente segue para avaliar seu negócio no Google.' : exemplo.detalhes[acao]) : 'Toque em um botão para explorar o exemplo.'}</div>
             <img src="/startouch-logo-dark.png" alt="StarTouch" width="82" height="27" style={{ display: 'block', objectFit: 'contain', margin: '18px auto 0' }}/>
           </div>
           <div className="exp-fone-base"/>
@@ -66,8 +74,6 @@ function Demonstracao({ nome }) {
         <span className="exp-demo-nota">Demonstração · você escolhe os botões</span>
       </div>
     </div>
-    <div className="exp-cena-texto" aria-live="polite"><span>{cena === 'mesa' ? '01 / À MESA' : '02 / COM SUA EQUIPE'}</span>
-      <h3>{exemplo.titulo}</h3><p>{exemplo.descricao}</p></div>
   </section>
 }
 
@@ -144,11 +150,11 @@ export default function Experiencia({ dados }) {
     draft: {
       brand: { titulo: dados.biz?.name || 'Seu negócio', subtitulo: 'Como podemos ajudar?' },
       buttons: [
+        { id: 'pg', type: 'google', label: 'Avaliar no Google', enabled: true, value: {} },
         { id: 'pw', type: 'whatsapp', label: 'Falar no WhatsApp', enabled: true, value: { telefone: '(11) 99999-9999', mensagem: 'Olá!' } },
         { id: 'ps', type: 'website', label: 'Ver produtos/serviços', enabled: true, value: { url: 'https://exemplo.com.br' } },
         { id: 'po', type: 'custom_url', label: 'Pedir orçamento', enabled: true, value: { url: 'https://exemplo.com.br/orcamento' } },
         { id: 'pi', type: 'instagram', label: 'Seguir no Instagram', enabled: true, value: { url: '@cafedapraca' } },
-        { id: 'pg', type: 'google', label: 'Avaliar no Google', enabled: true, value: {} }
       ]
     }
   }
@@ -214,12 +220,12 @@ export default function Experiencia({ dados }) {
         <header className="exp-intro">
           <div className="exp-eyebrow">MENU INTELIGENTE <Chip>PRO</Chip></div>
           <h2>Decida o que acontece<br/>depois de cada toque.</h2>
-          <p>Sua placa ou cartão já conecta o cliente ao seu negócio.<br/>Com o Menu Inteligente, essa conexão ganha novos caminhos.</p>
+          <p>Sua STARTOUCH já conecta o cliente ao seu negócio.<br/>Com o Menu Inteligente, essa conexão ganha novos caminhos.</p>
         </header>
         <Demonstracao nome={negocioExibido?.name}/>
         <section className="exp-convite">
           <div><GitBranch size={24}/><h2>Cada ponto de contato.<br/>Uma experiência do seu jeito.</h2>
-            <p>Um menu na mesa, outro no cartão da equipe. Escolha os botões, organize os links e decida onde usar cada experiência.</p></div>
+            <p>Crie experiências para diferentes momentos do seu negócio. Escolha os botões, organize os links e decida onde usar cada menu.</p></div>
           <div className="exp-convite-acao"><button className="v3-btn solid" onClick={dados.previewToques ? () => abrir('preview-menu') : criar} disabled={criando}>
             <Plus size={16}/>{criando ? 'Criando…' : 'Criar meu Menu Inteligente'}<ChevronRight size={16}/></button>
             <p>Monte e visualize no editor antes de publicar.</p></div>

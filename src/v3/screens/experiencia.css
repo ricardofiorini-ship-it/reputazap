@@ -63,3 +63,11 @@
 .exp-fone-acoes button > span { font-size: 11px; }
 @media (max-width: 900px) and (min-width: 601px) { .exp-cena { padding: 26px 18px; gap: 14px; } .exp-cena .exp-cena-imagem { width: 140px; height: 140px; } .exp-fone { width: 234px; } }
 @media (max-width: 600px) { .exp-cena { grid-template-columns: minmax(0,1fr); padding: 26px 14px; gap: 28px; } .exp-fone-area { grid-row: 1; } .exp-dispositivo-apoio { border-top: 1px solid var(--line); padding-top: 20px; } .exp-cena .exp-cena-imagem { width: 120px; height: 120px; } .exp-dispositivo-apoio p { font-size: 12px; margin-top: 10px; } .exp-apoio-kicker { margin-bottom: 10px; } }
+
+.exp-negocio-apoio { min-width: 0; }
+.exp-negocio-apoio h3 { font-size: clamp(23px,2.3vw,30px); font-weight: 600; letter-spacing: -.03em; line-height: 1.2; margin: 14px 0; color: var(--ink); }
+.exp-negocio-apoio > p { font-size: 13px; line-height: 1.7; color: var(--mid); margin: 0; }
+.exp-google-padrao { display: flex; gap: 9px; align-items: flex-start; padding-top: 22px; margin-top: 22px; border-top: 1px solid var(--line); font-size: 11px; line-height: 1.6; color: var(--mid); }
+.exp-google-padrao svg { flex: none; margin-top: 2px; color: var(--blue-dk); }
+.exp-seletor > span { display: none; }
+@media (max-width:600px) { .exp-seletor button { flex: 0 1 auto; } .exp-negocio-apoio { padding: 6px; } .exp-google-padrao { margin-top: 15px; padding-top: 15px; } }
