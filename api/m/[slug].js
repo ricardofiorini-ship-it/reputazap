@@ -24,6 +24,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { comCachePlaces, TTL } from "../_lib/places-cache.js";
 import { fetchWithTimeout } from "../_lib/fetch-timeout.js";
+import { svgIcone } from "../_lib/menu-icones.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
@@ -76,28 +77,11 @@ export function destino(b, biz, slug) {
   }
 }
 
-// Ícone em SVG inline. Sem biblioteca e sem fonte de ícone: são nove desenhos
-// e qualquer arquivo externo é um pedido de rede a mais numa página que abre
-// no 3G de alguém.
-const ICONES = {
-  google:     '<path d="m12 3 2.5 5.6 6.1.5-4.6 4 1.4 6L12 16l-5.4 3.1 1.4-6-4.6-4 6.1-.5z"/>',
-  whatsapp:   '<path d="M20 11.5a8 8 0 0 1-11.7 7.1L4 20l1.5-4.2A8 8 0 1 1 20 11.5z"/>',
-  manager:    '<path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H9.5L5 20v-4z"/><circle cx="12" cy="10" r="2.2"/>',
-  instagram:  '<rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.5"/><circle cx="17" cy="7" r="1"/>',
-  food_menu:  '<path d="M5 3h14v18H5z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
-  phone:      '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
-  location:   '<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
-  website:    '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/>',
-  contact:    '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3-6 7-6s7 2.4 7 6"/>',
-  custom_url: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 1 0-5.7-5.7L11.5 6.8"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 1 0 11 18.7l1.4-1.4"/>'
-};
-const CORES = {
-  google: "#F5A623", whatsapp: "#1E8E3E", instagram: "#7B4BC4", food_menu: "#B06000",
-  phone: "#1557B0", location: "#4A5666", website: "#1557B0", contact: "#B3261E", custom_url: "#4A5666",
-  manager: "#146C6C"
-};
-const icone = (t) =>
-  `<svg viewBox="0 0 24 24" fill="none" stroke="${CORES[t] || "#4A5666"}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONES[t] || ICONES.custom_url}</svg>`;
+// Os ícones e as cores vivem em `_lib/menu-icones.js`, compartilhados com o
+// EDITOR. Antes moravam aqui e o editor desenhava com caracteres de texto
+// (★ ✆ ◎) — dois desenhos pra mesma coisa, e a divergência aparecia bem na
+// prévia do celular, que existe justamente pra mostrar o que o cliente verá.
+const icone = (t) => svgIcone(t);
 
 // ── Registro de evento ──────────────────────────────────────
 // Nunca pode derrubar a página: se a tabela não existir ou o banco tropeçar,

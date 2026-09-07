@@ -20,21 +20,30 @@ import {
 import { api } from '../lib/api.js'
 import { Chip } from '../ui.jsx'
 import { nomeProduto } from '../lib/dados.js'
+import { ICONES, CORES, FUNDOS, CHEIOS } from '../../../api/_lib/menu-icones.js'
 
-// Só aparência: o que cada tipo faz e como valida mora no servidor.
-const VISUAL = {
-  google:     { cor: '#F5A623', bg: '#FEF6E7', gl: '★' },
-  whatsapp:   { cor: '#1E8E3E', bg: '#E6F4EA', gl: '✆' },
-  manager:    { cor: '#146C6C', bg: '#E3F1EF', gl: '❝' },
-  instagram:  { cor: '#7B4BC4', bg: '#F2ECFB', gl: '◎' },
-  food_menu:  { cor: '#B06000', bg: '#FEF3E0', gl: '▤' },
-  phone:      { cor: '#1557B0', bg: '#E8F0FE', gl: '☎' },
-  location:   { cor: '#4A5666', bg: '#EDF1F6', gl: '⌖' },
-  website:    { cor: '#1557B0', bg: '#E8F0FE', gl: '⬡' },
-  contact:    { cor: '#B3261E', bg: '#FCE8E6', gl: '⊕' },
-  custom_url: { cor: '#4A5666', bg: '#EDF1F6', gl: '↗' }
+// Ícone, cor e fundo vêm de `api/_lib/menu-icones.js` — O MESMO módulo que o
+// menu público usa. Aqui antes havia uma tabela própria que desenhava com
+// CARACTERES DE TEXTO (★ ✆ ◎ ▤): o lojista montava o menu vendo um símbolo e o
+// cliente dele via outro desenho. E o pior lugar onde isso aparecia era a
+// prévia do celular logo ao lado, que existe justamente pra mostrar o que vai
+// ao ar. Agora é um desenho só, por construção.
+const visual = (t) => ({ cor: CORES[t] || CORES.custom_url, bg: FUNDOS[t] || FUNDOS.custom_url })
+
+// O SVG do módulo é uma string de conteúdo de <svg>. `dangerouslySetInnerHTML`
+// aqui é seguro e é o único caminho: o conteúdo é CONSTANTE nossa, escrita no
+// código, nunca dado de usuário.
+function IconeTipo({ tipo, tamanho = 22 }) {
+  const cor = CORES[tipo] || CORES.custom_url
+  const cheio = CHEIOS.has(tipo)
+  return (
+    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24"
+      fill={cheio ? cor : 'none'} stroke={cheio ? 'none' : cor}
+      strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"
+      style={{ display: 'block', flex: 'none' }}
+      dangerouslySetInnerHTML={{ __html: ICONES[tipo] || ICONES.custom_url }}/>
+  )
 }
-const visual = (t) => VISUAL[t] || VISUAL.custom_url
 
 // Campos por tipo. Rótulos escritos pro lojista, não pro banco.
 const CAMPOS = {
@@ -72,7 +81,7 @@ function Previa({ draft, foto }) {
         {ligados.length === 0 && <div className="vazio">Nenhum botão ligado ainda.</div>}
         {ligados.map(b => (
           <div className="bt" key={b.id}>
-            <span style={{ color: visual(b.type).cor }}>{visual(b.type).gl}</span>
+            <IconeTipo tipo={b.type} tamanho={20}/>
             <span>{b.label}</span>
           </div>
         ))}
@@ -99,7 +108,7 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
         <button className="pega" onPointerDown={onPegar} aria-label="Arrastar para reordenar" title="Arrastar para reordenar">
           <GripVertical size={14}/>
         </button>
-        <span className="ico" style={{ background: vis.bg, color: vis.cor }}>{vis.gl}</span>
+        <span className="ico" style={{ background: vis.bg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><IconeTipo tipo={b.type} tamanho={18}/></span>
         <span className="txt">
           <span className="t">{b.label}</span>
           <span className="d">{erro ? erro.msg : resumo}</span>
@@ -569,7 +578,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                     <div className="v3-addgrid">
                       {disponiveis.map(([k, v]) => (
                         <button className="v3-add" key={k} onClick={() => adicionar(k)}>
-                          <span style={{ color: visual(k).cor }}>{visual(k).gl}</span> {v.label}
+                          <IconeTipo tipo={k} tamanho={17}/> {v.label}
                         </button>
                       ))}
                     </div>
