@@ -61,6 +61,10 @@ export const TIPOS = {
   phone:      { label: "Telefone",          campos: ["telefone"] },
   location:   { label: "Como chegar",       ref: true },
   website:    { label: "Site",              campos: ["url"] },
+  // Agendamento: Calendly, Doctoralia, sistema proprio — qualquer endereco.
+  // Nao tentamos integrar com nenhum deles: integração exigiria conta, chave e
+  // manutenção por fornecedor, e o link resolve hoje o que o lojista precisa.
+  booking:    { label: "Agendar",           campos: ["url"] },
   contact:    { label: "Salvar contato",    campos: ["nome", "cargo", "telefone", "email"], tela: true },
   custom_url: { label: "Link personalizado", campos: ["url"] }
 };
@@ -152,6 +156,7 @@ export function normalizarBotao(bruto) {
       break;
     case "food_menu":
     case "website":
+    case "booking":
     case "custom_url":
       b.value = { url: normalizarUrl(v.url) || "" };
       break;
@@ -204,6 +209,11 @@ export function validarBotao(b) {
     case "custom_url":
       if (!v.url) {
         return { ok: false, campo: "url", msg: "Informe um endereço completo, começando com https://" };
+      }
+      return { ok: true };
+    case "booking":
+      if (!v.url) {
+        return { ok: false, campo: "url", msg: "Informe o endereço da sua agenda (Calendly, Doctoralia, sistema próprio…)." };
       }
       return { ok: true };
     case "contact":

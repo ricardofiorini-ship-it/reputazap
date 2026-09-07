@@ -54,6 +54,7 @@ const CAMPOS = {
   instagram:  [['url', 'Seu Instagram (@usuário ou endereço)', 'text']],
   food_menu:  [['url', 'Endereço do cardápio', 'url']],
   website:    [['url', 'Endereço do site', 'url']],
+  booking:    [['url', 'Endereço da sua agenda (Calendly, Doctoralia, sistema próprio…)', 'url']],
   custom_url: [['url', 'Endereço de destino', 'url']],
   contact:    [['nome', 'Nome', 'text'], ['cargo', 'Cargo (opcional)', 'text'],
                ['telefone', 'Telefone com DDD', 'tel'], ['email', 'E-mail (opcional)', 'email']]

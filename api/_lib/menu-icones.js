@@ -25,14 +25,14 @@
 export const CORES = {
   google: "#F5A623", whatsapp: "#1E8E3E", instagram: "#7B4BC4", food_menu: "#B06000",
   phone: "#1557B0", location: "#4A5666", website: "#1557B0", contact: "#B3261E",
-  manager: "#146C6C", custom_url: "#4A5666"
+  manager: "#146C6C", booking: "#4A3AA8", custom_url: "#4A5666"
 };
 
 // Fundo suave, usado pelas listas do editor.
 export const FUNDOS = {
   google: "#FEF6E7", whatsapp: "#E6F4EA", instagram: "#F2ECFB", food_menu: "#FEF3E0",
   phone: "#E8F0FE", location: "#EDF1F6", website: "#E8F0FE", contact: "#FCE8E6",
-  manager: "#E3F1EF", custom_url: "#EDF1F6"
+  manager: "#E3F1EF", booking: "#ECEAF9", custom_url: "#EDF1F6"
 };
 
 // Desenhos PREENCHIDOS: a forma oficial de uma marca só é reconhecível inteira
@@ -59,6 +59,8 @@ export const ICONES = {
   website:'<circle cx="12" cy="12" r="9"/><path d="M3.2 9.6h17.6M3.2 14.4h17.6"/><path d="M12 3a13.5 13.5 0 0 1 0 18a13.5 13.5 0 0 1 0-18z"/>',
   phone:'<path d="M5.2 3.8h3.6l1.9 4.6-2.3 1.4a10.6 10.6 0 0 0 4.8 4.8l1.4-2.3 4.6 1.9v3.6a1.4 1.4 0 0 1-1.5 1.4A15.6 15.6 0 0 1 3.8 5.3a1.4 1.4 0 0 1 1.4-1.5z"/>',
   contact:'<rect x="2.8" y="4.5" width="18.4" height="15" rx="2.6"/><circle cx="9" cy="10.6" r="2.3"/><path d="M5.4 16.2a3.9 3.9 0 0 1 7.2 0"/><path d="M15.4 9.8h3.4M15.4 13.4h3.4"/>',
+  // calendário com o dia marcado: "agendado", não "ver calendário"
+  booking:'<rect x="3.2" y="4.6" width="17.6" height="16.2" rx="2.8"/><path d="M8 2.6v4M16 2.6v4M3.2 9.9h17.6"/><path d="M9.1 14.6l2.1 2.1 4-4"/>',
   custom_url:'<path d="M10.2 13.8a4.2 4.2 0 0 0 5.9 0l2.9-2.9a4.2 4.2 0 1 0-5.9-5.9l-1.4 1.4"/><path d="M13.8 10.2a4.2 4.2 0 0 0-5.9 0l-2.9 2.9a4.2 4.2 0 1 0 5.9 5.9l1.4-1.4"/>'
 };
 
