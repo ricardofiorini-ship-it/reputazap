@@ -31,6 +31,8 @@ const ALERT_TO = process.env.ADMIN_NOTIFICATIONS_EMAIL || "ricardo.fiorini@gmail
 const EMAIL_FROM = process.env.RESEND_FROM || "StarTouch <onboarding@resend.dev>";
 const BASE = (process.env.PUBLIC_BASE_URL || "https://startouch.com.br").replace(/\/$/, "");
 const PROBE_TIMEOUT_MS = 10000; // sem resposta em 10s = considera fora
+const PROBE_TRIES = 3;          // 3 tentativas antes de concluir que caiu
+const PROBE_RETRY_MS = 2000;    // respiro entre elas: dá tempo da função acordar
 
 // Endpoints críticos (dinheiro/confiança) que importam helpers diferentes —
 // se um import compartilhado quebrar, ao menos um destes acusa. GET simples:
@@ -57,8 +59,8 @@ function checkAuth(req) {
   return false;
 }
 
-// Cutuca um endpoint. Saudável = respondeu com status < 500.
-async function probe(p) {
+// Uma batida só no endpoint. Saudável = respondeu com status < 500.
+async function batida(p) {
   const t0 = Date.now();
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), PROBE_TIMEOUT_MS);
@@ -66,13 +68,53 @@ async function probe(p) {
     const headers = (p.auth && CRON_SECRET) ? { Authorization: `Bearer ${CRON_SECRET}` } : undefined;
     const r = await fetch(p.url, { method: "GET", signal: ctrl.signal, redirect: "manual", headers });
     clearTimeout(timer);
-    const status = r.status;
-    return { ...p, status, ok: status < 500, took_ms: Date.now() - t0 };
+    return { status: r.status, ok: r.status < 500, took_ms: Date.now() - t0 };
   } catch (e) {
     clearTimeout(timer);
     const semResposta = e.name === "AbortError" ? `sem resposta em ${PROBE_TIMEOUT_MS}ms` : (e.message || String(e));
-    return { ...p, status: 0, ok: false, err: semResposta, took_ms: Date.now() - t0 };
+    return { status: 0, ok: false, err: semResposta, took_ms: Date.now() - t0 };
   }
+}
+
+// Cutuca um endpoint COM RETENTATIVA.
+//
+// POR QUE (07/09/2026, depois de um alarme falso no pagamento): esta sonda
+// batia UMA vez e concluía. Em 07/09, às 11:30, ela disparou "billing sem
+// resposta em 10000ms" — e o billing estava vivo, respondendo em 0,24s. O
+// alerta caiu exatamente ENTRE DOIS DEPLOYS, numa sequência de sete
+// publicações em meia hora: todo deploy invalida a instância e a próxima
+// chamada acorda a função do zero. O `billing` é a mais pesada do projeto
+// (Stripe + Mercado Pago + Supabase + templates de e-mail), ou seja, a que
+// demora mais para levantar — e é justamente a que dispara o alerta mais
+// assustador, o de pagamento.
+//
+// É O MESMO DEFEITO que o db-health teve em 27/08 e que virou regra no
+// CLAUDE.md: toda sonda que dispara ação retenta antes de concluir. A regra
+// foi aplicada ao monitor do BANCO e não tinha chegado ao das FUNÇÕES.
+//
+// A retentativa não afrouxa a vigilância: função realmente fora falha as 3.
+// E recuperar na 2ª ou 3ª não vira silêncio — vai pro log e pro campo
+// `retried` da resposta, porque soluço repetido é o aviso prévio da queda real.
+async function probe(p) {
+  const tentativas = [];
+  for (let i = 0; i < PROBE_TRIES; i++) {
+    const r = await batida(p);
+    tentativas.push({ try: i + 1, ...r });
+    if (r.ok) {
+      const retried = i > 0;
+      if (retried) {
+        console.warn(
+          `[cron/api-health] "${p.nome}" respondeu na tentativa ${i + 1} de ${PROBE_TRIES} ` +
+          `(a 1ª falhou: ${tentativas[0].err || "status " + tentativas[0].status}). ` +
+          `Não é queda, mas é soluço — se repetir, olhar antes que vire queda.`
+        );
+      }
+      return { ...p, ...r, retried, tentativas };
+    }
+    if (i < PROBE_TRIES - 1) await new Promise((ok) => setTimeout(ok, PROBE_RETRY_MS));
+  }
+  const ultima = tentativas[tentativas.length - 1];
+  return { ...p, ...ultima, retried: true, tentativas };
 }
 
 // Envia alerta DIRETO via Resend (independente do backend monitorado).
@@ -131,13 +173,17 @@ export default async function handler(req, res) {
   const linhas = down.map((r) => `
     <tr>
       <td style="padding:8px 10px;border-bottom:1px solid #f1c9c5;"><b>${r.nome}</b><br><span style="color:#5F6368;font-size:12px;">${r.papel}</span></td>
-      <td style="padding:8px 10px;border-bottom:1px solid #f1c9c5;text-align:right;white-space:nowrap;color:#C5221F;font-weight:700;">${r.status === 0 ? (r.err || "sem resposta") : "HTTP " + r.status}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #f1c9c5;text-align:right;white-space:nowrap;color:#C5221F;font-weight:700;">
+        ${r.status === 0 ? (r.err || "sem resposta") : "HTTP " + r.status}
+        <br><span style="color:#5F6368;font-size:11px;font-weight:400;">falhou nas ${PROBE_TRIES} tentativas</span>
+      </td>
     </tr>`).join("");
 
   const alerted = await sendAlert(
     `🚨 [StarTouch] ${down.length} função(ões) fora do ar`,
     `<div style="font-family:Arial,sans-serif;font-size:14px;color:#202124;line-height:1.6;">
        <h2 style="color:#C5221F;margin:0 0 12px;">🚨 Endpoint(s) do backend não estão respondendo</h2>
+       <p style="margin:0 0 12px;color:#5F6368;font-size:13px;">Cada função abaixo foi cutucada <b>${PROBE_TRIES} vezes</b>, com pausa entre elas, e falhou em todas. Não é função acordando fria depois de um deploy — isso a retentativa já absorve.</p>
        <p>O monitor cutucou as funções críticas e ${down.length === 1 ? "uma" : down.length} respondeu(ram) erro de servidor (ou nada). Isso costuma significar que o <b>último deploy quebrou</b> — uma função não está nem ligando.</p>
        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#FCE8E6;border-radius:8px;margin:12px 0;border-collapse:collapse;">
          ${linhas}
