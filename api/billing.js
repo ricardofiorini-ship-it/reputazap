@@ -1294,6 +1294,31 @@ async function handleCheckoutKitStripe(req, res) {
   }
 }
 
+// A DATA DE RENOVAÇÃO, ONDE QUER QUE ELA ESTEJA.
+//
+// O Stripe mudou de lugar `current_period_end`: nas versões antigas da API ele
+// vive na assinatura; nas novas, mudou para os ITENS da assinatura. O endpoint
+// de webhook tem versão própria, escolhida no painel — ou seja, a forma do
+// aviso pode mudar sem ninguém tocar neste código.
+//
+// Se isso acontecesse com a leitura fixa em `sub.current_period_end`, o campo
+// viria `undefined`, a data seria gravada como null e o "Pro até tal dia"
+// simplesmente sumiria — sem erro, sem log, sem ninguém notar. O resolvePlano
+// trata cancelamento sem data FECHANDO o acesso: o cliente perderia dias que
+// pagou por causa de um campo que mudou de lugar.
+//
+// Então lê dos dois lugares e avisa alto se não achar em nenhum.
+function fimDoPeriodo(sub) {
+  const bruto = sub?.current_period_end
+    ?? sub?.items?.data?.[0]?.current_period_end
+    ?? null;
+  if (!bruto) {
+    console.warn(`[stripe] assinatura ${sub?.id || "?"} veio SEM current_period_end (nem no objeto, nem nos itens). Versão da API do webhook pode ter mudado.`);
+    return null;
+  }
+  return new Date(bruto * 1000).toISOString();
+}
+
 // ── CANCELAR a assinatura (Stripe) ──
 // Responde no MESMO formato do antigo handlePortalMP ({ok, cancelled,
 // ativoAte}) de propósito: a tela de cancelamento feita hoje continua valendo
@@ -1331,9 +1356,7 @@ async function handleCancelStripe(req, res) {
       cancel_at_period_end: true
     });
 
-    const ativoAte = sub.current_period_end
-      ? new Date(sub.current_period_end * 1000).toISOString()
-      : (biz.stripe_current_period_end || null);
+    const ativoAte = fimDoPeriodo(sub) || biz.stripe_current_period_end || null;
 
     // O webhook `customer.subscription.updated` também vai gravar isto em
     // seguida. Gravar aqui é a rede: se o aviso se perder, a tela do cliente
@@ -1405,7 +1428,7 @@ async function handleWebhookStripe(req, res) {
         if (session.subscription) {
           try {
             const sub = await stripe.subscriptions.retrieve(session.subscription);
-            periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
+            periodEnd = fimDoPeriodo(sub);
             cancelAtEnd = !!sub.cancel_at_period_end; status = sub.status;
           } catch (e) { console.error(e); }
         }
@@ -1419,7 +1442,7 @@ async function handleWebhookStripe(req, res) {
       case "customer.subscription.updated": {
         const sub = event.data.object;
         const shouldBePro = ["active", "trialing", "past_due"].includes(sub.status);
-        const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
+        const periodEnd = fimDoPeriodo(sub);
         await supabase.from("businesses").update({
           plan: shouldBePro ? "pro" : "free", stripe_subscription_id: shouldBePro ? sub.id : null,
           stripe_current_period_end: shouldBePro ? periodEnd : null, stripe_cancel_at_period_end: shouldBePro ? !!sub.cancel_at_period_end : false,
