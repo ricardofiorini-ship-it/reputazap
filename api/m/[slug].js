@@ -214,7 +214,7 @@ h1{font-size:22px;font-weight:700;text-align:center;margin:0;letter-spacing:-.02
   <h1>${esc(titulo)}</h1>
   ${marca.subtitulo ? `<div class="sb">${esc(marca.subtitulo)}</div>` : '<div style="height:14px"></div>'}
   ${linhas || '<div class="vazio">Este menu ainda não tem ações disponíveis.</div>'}
-  <div class="rod"><a href="https://startouch.com.br" rel="noopener">StarTouch</a></div>
+  <div class="rod"><a href="https://startouch.com.br" rel="noopener"><img src="/startouch-logo-dark.png" alt="StarTouch" width="94" height="31" style="display:inline-block;object-fit:contain"/></a></div>
 </div>
 </body>
 </html>`;

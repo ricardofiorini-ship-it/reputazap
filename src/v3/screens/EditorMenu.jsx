@@ -86,6 +86,7 @@ function Previa({ draft, foto }) {
             <span>{b.label}</span>
           </div>
         ))}
+        <img src="/startouch-logo-dark.png" alt="StarTouch" width="82" height="27" style={{ display: 'block', objectFit: 'contain', margin: '18px auto 0' }}/>
       </div>
     </div>
   )

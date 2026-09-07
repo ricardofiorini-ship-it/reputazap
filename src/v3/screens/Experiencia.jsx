@@ -8,6 +8,8 @@ import { TIPOS } from '../../../api/_lib/menu.js'
 // Desenhos e rótulos seguem os contratos compartilhados do menu público.
 import { ICONES, CHEIOS } from '../../../api/_lib/menu-icones.js'
 import './experiencia.css'
+import restauranteImg from '../assets/experiencia-placa.png'
+import cartaoImg from '../assets/experiencia-cartao.png'
 
 function IconeMenu({ tipo }) {
   const cheio = CHEIOS.has(tipo)
@@ -17,43 +19,56 @@ function IconeMenu({ tipo }) {
     dangerouslySetInnerHTML={{ __html: ICONES[tipo] || ICONES.custom_url }}/>
 }
 
-function FoneMenu({ titulo, subtitulo, acoes }) {
-  const reais = (acoes || []).slice(0, 5)
-  const usados = new Set(reais.map(a => a.type))
-  const sugestoes = Object.entries(TIPOS).map(([type, info]) => ({ type, label: info.label })).filter(s => !usados.has(s.type)).slice(0, 5 - reais.length)
+// Exemplos de conteúdo, não catálogo de tipos. Rótulos e ícones vêm do contrato.
+const CENAS = {
+  mesa: { nome: 'Na mesa do restaurante', titulo: 'O próximo pedido começa aqui.',
+    descricao: 'Da escolha do prato à conversa no WhatsApp. Reúna os caminhos que fazem sentido durante a visita.',
+    subtitulo: 'Bom ter você à mesa.', tipos: ['food_menu', 'whatsapp', 'google'],
+    detalhes: { food_menu: 'Seu cardápio abre pelo link que você escolher.', whatsapp: 'O cliente continua a conversa no WhatsApp do restaurante.', google: 'O cliente segue para avaliar seu negócio no Google.' } },
+  equipe: { nome: 'No cartão da equipe', titulo: 'Uma apresentação que continua.',
+    descricao: 'Depois do primeiro contato, facilite o acesso aos seus produtos, a um orçamento ou à próxima conversa.',
+    subtitulo: 'Vamos continuar a conversa?', tipos: ['website', 'custom_url', 'whatsapp', 'instagram'],
+    detalhes: { website: 'Leve o cliente ao seu site de produtos e serviços.', custom_url: 'Use seu link para receber pedidos de orçamento.', whatsapp: 'Abra uma conversa com sua equipe no WhatsApp.', instagram: 'Convide o cliente a conhecer seu negócio no Instagram.' } }
+}
 
-  return (
-    <div className="v3-mini menu-phone" aria-label="Prévia do Menu Inteligente">
-      <div className="phone-bar"><span>9:41</span><i/><span>● ◒</span></div>
-      <div className="tela">
-        <div className="mavatar">{(titulo || 'S').trim().charAt(0).toUpperCase()}</div>
-        <div className="mtopo">{titulo || 'Seu negócio'}</div>
-        <div className="msub">{subtitulo || 'Como podemos ajudar?'}</div>
-
-        {reais.map((a, i) => (
-          <div className="mbt" key={a.id || i}><span className={`mac ${a.type || 'link'}`}><IconeMenu tipo={a.type}/></span>
-            <b>{a.label || TIPOS[a.type]?.label || 'Ação'}</b><span className="seta">›</span></div>
-        ))}
-
-        {sugestoes.map(s => (
-          <div className="mbt sugestao" key={`s-${s.type}`}>
-            <span className="mac"><IconeMenu tipo={s.type}/></span>
-            <b>{s.label}</b><span className="seta">›</span>
-          </div>
-        ))}
-
-        {sugestoes.length > 0 && (
-          <div className="mlegenda">
-            {reais.length ? 'Sugestões: dá pra adicionar estes também' : 'Exemplos do que você pode colocar aqui'}
-          </div>
-        )}
-
-        <div className="mcustom"><Plus size={9}/> Adicione qualquer link</div>
-        <div className="mrodape">Criado com <strong>STARTOUCH</strong></div>
-      </div>
-      <div className="phone-home"/>
+function Demonstracao({ nome }) {
+  const [cena, setCena] = React.useState('mesa')
+  const [acao, setAcao] = React.useState(null)
+  const exemplo = CENAS[cena]
+  return <section className="exp-descoberta" aria-label="Explore as experiências">
+    <div className="exp-seletor" role="group" aria-label="Escolha um ponto de contato">
+      {Object.entries(CENAS).map(([id, item]) => <button key={id} type="button" aria-pressed={cena === id}
+        onClick={() => { setCena(id); setAcao(null) }}><Smartphone size={16}/>{item.nome}</button>)}
+      <span>Um toque. Possibilidades diferentes.</span>
     </div>
-  )
+    <div className={'exp-cena ' + (cena === 'mesa' ? 'exp-cena-mesa' : 'exp-cena-equipe')}>
+      <div className="exp-dispositivo-apoio"><span className="exp-apoio-kicker">COMEÇA NA SUA STARTOUCH</span>
+      <img className="exp-cena-imagem" src={cena === 'mesa' ? restauranteImg : cartaoImg}
+        alt={cena === 'mesa' ? 'Foto original da placa STARTOUCH para avaliação no Google' : 'Cartão STARTOUCH original com instruções de toque e avaliação'}
+        width={cena === 'mesa' ? 225 : 1122} height={cena === 'mesa' ? 225 : 1402}/>
+      <div className="exp-cena-legenda">Dispositivo atual · avaliação Google</div>
+        <p>O toque conecta.<br/><strong>Você escolhe a experiência digital.</strong></p>
+      </div>
+      <div className="exp-fone-area">
+        <div className="exp-fone" aria-label="Demonstração do Menu Inteligente">
+          <div className="exp-fone-topo" aria-hidden="true"><span>9:41</span><i/><span>●</span></div>
+          <div className="exp-fone-tela">
+            <div className="exp-avatar">{(nome || 'S').trim().charAt(0).toUpperCase()}</div>
+            <strong>{nome || 'Seu negócio'}</strong><p>{exemplo.subtitulo}</p>
+            <div className="exp-fone-acoes">{exemplo.tipos.filter(tipo => TIPOS[tipo]).map(tipo => <button key={tipo}
+              type="button" aria-pressed={acao === tipo} onClick={() => setAcao(tipo)}>
+              <IconeMenu tipo={tipo}/><span>{TIPOS[tipo].label}</span><ChevronRight size={13}/></button>)}</div>
+            <div className="exp-fone-feedback" role="status">{acao ? exemplo.detalhes[acao] : 'Toque em um botão para explorar o exemplo.'}</div>
+            <img src="/startouch-logo-dark.png" alt="StarTouch" width="82" height="27" style={{ display: 'block', objectFit: 'contain', margin: '18px auto 0' }}/>
+          </div>
+          <div className="exp-fone-base"/>
+        </div>
+        <span className="exp-demo-nota">Demonstração · você escolhe os botões</span>
+      </div>
+    </div>
+    <div className="exp-cena-texto" aria-live="polite"><span>{cena === 'mesa' ? '01 / À MESA' : '02 / COM SUA EQUIPE'}</span>
+      <h3>{exemplo.titulo}</h3><p>{exemplo.descricao}</p></div>
+  </section>
 }
 
 export default function Experiencia({ dados }) {
@@ -181,14 +196,9 @@ export default function Experiencia({ dados }) {
     )
   }
 
-  // O menu mais recente alimenta a ilustração: melhor o lojista se ver na tela
-  // do que ver um exemplo genérico.
-  const exemplo = ativas.find(e => e.published) || ativas[0] || null
-  const conteudoExemplo = exemplo?.published || exemplo?.draft || null
-
   return (
     <>
-      <Head titulo="Experiência do Cliente" sub="Decida o que acontece depois de cada toque."/>
+      <Head titulo="Experiência do Cliente" sub="Um novo jeito de receber quem chega até seu negócio."/>
       <div className="exp-evolucao">
         <section className="exp-atual" aria-label="Experiência atual">
           <CheckCircle2 size={19}/>
@@ -201,38 +211,18 @@ export default function Experiencia({ dados }) {
           </div>
         </section>
 
-        <section className="exp-pro" aria-labelledby="exp-pro-titulo">
-          <div className="exp-pro-copy">
-            <div className="exp-eyebrow">MAIS POSSIBILIDADES EM CADA TOQUE <Chip>PRO</Chip></div>
-            <h2 id="exp-pro-titulo">Menu Inteligente</h2>
-            <p className="exp-promessa">O mesmo toque.<br/><strong>Vários caminhos para o seu negócio.</strong></p>
-            <p className="exp-descricao">Transforme sua placa ou cartão STARTOUCH em um ponto de contato que ajuda o cliente a dar o próximo passo.</p>
-            <div className="exp-caminhos" aria-label="Possibilidades do menu">
-              {Object.entries(TIPOS).map(([type, info]) => <span key={type}><IconeMenu tipo={type}/>{info.label}</span>)}
-            </div>
-            <p className="exp-descricao">Mostre produtos e serviços, receba pedidos de orçamento ou adicione qualquer link que faça sentido para você.</p>
-            <button className="v3-btn solid grande" onClick={dados.previewToques ? () => abrir('preview-menu') : criar} disabled={criando}>
-              <Plus size={16}/>{criando ? 'Criando…' : 'Criar meu Menu Inteligente'}<ChevronRight size={16}/>
-            </button>
-            <p className="exp-nota">Monte e visualize no editor antes de publicar.</p>
-          </div>
-          <figure className="exp-demonstracao">
-            <span className="exp-toque"><Smartphone size={15}/> Seu cliente toca na STARTOUCH</span>
-            <span className="exp-conector" aria-hidden="true">↓</span>
-            <FoneMenu titulo={conteudoExemplo?.brand?.titulo || negocioExibido?.name}
-              subtitulo={conteudoExemplo?.brand?.subtitulo}
-              acoes={conteudoExemplo?.buttons?.filter(b => b.enabled !== false)}/>
-            <figcaption>{exemplo ? 'Prévia do seu menu' : 'Imagine seu negócio aqui'}<span>Você escolhe os botões e a ordem.</span></figcaption>
-          </figure>
-        </section>
-
-        <section className="exp-pontos" aria-labelledby="exp-pontos-titulo">
-          <div className="exp-pontos-titulo"><GitBranch size={21}/><div><h2 id="exp-pontos-titulo">Cada ponto de contato pode ter uma experiência diferente</h2><p>Personalize o próximo passo de acordo com o momento do cliente.</p></div></div>
-          <div className="exp-exemplos">
-            <article><span>NA MESA</span><h3>Facilite o pedido</h3><p>Cardápio, WhatsApp e avaliação no Google no mesmo menu.</p></article>
-            <article><span>NO CARTÃO DA EQUIPE</span><h3>Continue a conversa</h3><p>Produtos, serviços e orçamento ao alcance de um toque.</p></article>
-            <article><span>NO BALCÃO</span><h3>Crie o próximo contato</h3><p>Instagram e links úteis, ou mantenha a avaliação direta no Google.</p></article>
-          </div>
+        <header className="exp-intro">
+          <div className="exp-eyebrow">MENU INTELIGENTE <Chip>PRO</Chip></div>
+          <h2>Decida o que acontece<br/>depois de cada toque.</h2>
+          <p>Sua placa ou cartão já conecta o cliente ao seu negócio.<br/>Com o Menu Inteligente, essa conexão ganha novos caminhos.</p>
+        </header>
+        <Demonstracao nome={negocioExibido?.name}/>
+        <section className="exp-convite">
+          <div><GitBranch size={24}/><h2>Cada ponto de contato.<br/>Uma experiência do seu jeito.</h2>
+            <p>Um menu na mesa, outro no cartão da equipe. Escolha os botões, organize os links e decida onde usar cada experiência.</p></div>
+          <div className="exp-convite-acao"><button className="v3-btn solid" onClick={dados.previewToques ? () => abrir('preview-menu') : criar} disabled={criando}>
+            <Plus size={16}/>{criando ? 'Criando…' : 'Criar meu Menu Inteligente'}<ChevronRight size={16}/></button>
+            <p>Monte e visualize no editor antes de publicar.</p></div>
         </section>
       </div>
 
