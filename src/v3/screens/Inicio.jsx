@@ -19,6 +19,7 @@ import { Head, Kpi, Delta, Estrelas, desde, diasDesde } from '../ui.jsx'
 import { useToques, nomeProduto } from '../lib/dados.js'
 import { currentUser } from '../lib/api.js'
 import TopoPresenca from './TopoPresenca.jsx'
+import PrimeirosPassos from './PrimeirosPassos.jsx'
 
 const SETE_DIAS_EM_SEGUNDOS = 7 * 24 * 60 * 60
 
@@ -139,6 +140,14 @@ export default function Inicio({ dados, ir }) {
   const primeiroNome = ((currentUser()?.name || '').trim().split(/\s+/)[0]) || null
   const toquesDisponiveis = !!toques?.available
 
+  // A REGRA DA FASE, e ela cabe numa linha: sem nenhum dispositivo ativo, a
+  // pessoa ainda nao comecou — e a tela de quem opera nao serve pra ela. Quatro
+  // dos cinco blocos abaixo falariam de coisas que ela nao tem, incluindo um
+  // "Tudo certo por aqui" que seria falso: nao esta tudo certo, ela nem
+  // comecou. O topo de presenca fica em cima nos dois casos, porque a pergunta
+  // "como estou no Google?" e a mesma.
+  const comecando = ativos.length === 0
+
   return (
     <div className="v3-home">
       <Head oi={primeiroNome ? `Olá, ${primeiroNome}` : 'Olá'} titulo="Sua presença online"
@@ -163,91 +172,118 @@ export default function Inicio({ dados, ir }) {
           muda de uma fase pra outra. */}
       <TopoPresenca dados={dados} ir={ir}/>
 
-      <section className="v3-home-section v3-home-recommendation-section" aria-labelledby="home-recomenda">
-        {/* O tom decide a cor e o ícone. Sem isto, o destaque de desempenho —
-            que é elogio — sairia com triângulo amarelo de alerta, e o cliente
-            leria "seu melhor dispositivo" como problema. Reusa as classes
-            `atencao` e `ok` que já existem. */}
-        <div className={`v3-home-recommendation ${recomendacao && recomendacao.tom !== 'bom' ? 'atencao' : 'ok'}`}>
-          <div className="icone">
-            {!recomendacao ? <Check size={17}/>
-              : recomendacao.tom === 'bom' ? <TrendingUp size={17}/>
-                : <AlertTriangle size={17}/>}
-          </div>
-          <div className="texto">
-            <span className="eyebrow" id="home-recomenda">
-              {recomendacao?.tom === 'bom' ? 'STARTOUCH DESTACA' : 'STARTOUCH RECOMENDA'}
-            </span>
-            <strong>{recomendacao ? recomendacao.titulo : 'Tudo certo por aqui'}</strong>
-            <span>{recomendacao ? recomendacao.sub
-              : ativos.length === 0 ? 'Assim que você ativar um dispositivo, os avisos sobre ele aparecem aqui.'
-                : !toquesDisponiveis ? 'O histórico de interações ainda não está disponível para gerar recomendações.'
-                  : 'Não encontramos nada que precise da sua atenção agora.'}</span>
-          </div>
-          {recomendacao && <button type="button" className="v3-btn" onClick={() => ir(recomendacao.destino)}>
-            {recomendacao.destino === 'resultados' ? 'Ver resultados →' : 'Ver dispositivo →'}
-          </button>}
-        </div>
-      </section>
+      {comecando ? (
+        <>
+          {/* A ACAO vem antes do detalhe: quem ainda nao ativou nada precisa
+              saber o que fazer, e o topo logo acima ja respondeu "como estou".
+              Nota e total ficam embaixo, como conferencia. */}
+          <PrimeirosPassos dados={dados}/>
 
-      <section className="v3-home-section" aria-labelledby="home-periodo">
-        <div className="v3-home-section-title compacto"><h2 id="home-periodo">Nos últimos 7 dias</h2></div>
-        <div className="v3-kpis tres v3-home-kpis">
-          <Kpi rotulo="Interações STARTOUCH"
-            valor={toquesDisponiveis ? toques.total.toLocaleString('pt-BR') : null}
-            indisponivel={carregandoToques ? '…' : 'sem medição'}
-            sub={toquesDisponiveis ? <Delta atual={toques.total} anterior={toques.prev_total}/> : 'histórico indisponível'}/>
-          <Kpi rotulo="Avaliações no Google"
-            valor={novas != null ? `+${novas.toLocaleString('pt-BR')}` : null}
-            indisponivel="sem medição"
-            sub={novas != null ? 'novas no período' : 'o Google não fornece um histórico completo'}/>
-          <Kpi rotulo="Nota no Google"
-            valor={nota != null ? nota.toFixed(1).replace('.', ',') : null}
-            sub={nota != null
-              ? <><Estrelas nota={nota}/> {totalAvaliacoes != null ? `${totalAvaliacoes.toLocaleString('pt-BR')} avaliações no total` : ''}</>
-              : 'não foi possível consultar agora'}/>
-        </div>
-      </section>
-
-      <section className="v3-home-insights">
-        <article className="v3-home-card interacoes">
-          <header><div><h2>Experiência após o toque</h2><p>O que está configurado para seus dispositivos</p></div></header>
-          <div className="v3-home-experience">
-            <div className="v3-home-current">
-              <span className="rotulo">Experiência atual</span>
-              <strong>Avaliação no Google</strong>
-              <p>Ao interagir, o cliente é direcionado à sua página de avaliação.</p>
+          {/* Nota e total continuam aqui: sao verdadeiros e uteis mesmo sem
+              dispositivo. O que saiu foi o rotulo "Nos ultimos 7 dias" e o KPI
+              de interacoes, que nesse estado e sempre "sem medicao". */}
+          <section className="v3-home-section" aria-labelledby="home-reputacao">
+            <div className="v3-home-section-title compacto"><h2 id="home-reputacao">Sua reputação no Google</h2></div>
+            <div className="v3-kpis v3-home-kpis">
+              <Kpi rotulo="Nota no Google"
+                valor={nota != null ? nota.toFixed(1).replace('.', ',') : null}
+                sub={nota != null ? <Estrelas nota={nota}/> : 'não foi possível consultar agora'}/>
+              <Kpi rotulo="Avaliações no total"
+                valor={totalAvaliacoes != null ? totalAvaliacoes.toLocaleString('pt-BR') : null}
+                sub="no seu perfil do Google"/>
             </div>
-            <div className="v3-home-upsell">
-              <div className="icone"><Sparkles size={16}/></div>
-              <div className="texto">
-                <span className="pro">PRO</span>
-                <strong>Menu Inteligente</strong>
-                <p>Ofereça avaliação, cardápio, WhatsApp, promoções e outras ações em uma experiência personalizada.</p>
+          </section>
+        </>
+      ) : (
+        <>
+        <section className="v3-home-section v3-home-recommendation-section" aria-labelledby="home-recomenda">
+          {/* O tom decide a cor e o ícone. Sem isto, o destaque de desempenho —
+              que é elogio — sairia com triângulo amarelo de alerta, e o cliente
+              leria "seu melhor dispositivo" como problema. Reusa as classes
+              `atencao` e `ok` que já existem. */}
+          <div className={`v3-home-recommendation ${recomendacao && recomendacao.tom !== 'bom' ? 'atencao' : 'ok'}`}>
+            <div className="icone">
+              {!recomendacao ? <Check size={17}/>
+                : recomendacao.tom === 'bom' ? <TrendingUp size={17}/>
+                  : <AlertTriangle size={17}/>}
+            </div>
+            <div className="texto">
+              <span className="eyebrow" id="home-recomenda">
+                {recomendacao?.tom === 'bom' ? 'STARTOUCH DESTACA' : 'STARTOUCH RECOMENDA'}
+              </span>
+              <strong>{recomendacao ? recomendacao.titulo : 'Tudo certo por aqui'}</strong>
+              <span>{recomendacao ? recomendacao.sub
+                : ativos.length === 0 ? 'Assim que você ativar um dispositivo, os avisos sobre ele aparecem aqui.'
+                  : !toquesDisponiveis ? 'O histórico de interações ainda não está disponível para gerar recomendações.'
+                    : 'Não encontramos nada que precise da sua atenção agora.'}</span>
+            </div>
+            {recomendacao && <button type="button" className="v3-btn" onClick={() => ir(recomendacao.destino)}>
+              {recomendacao.destino === 'resultados' ? 'Ver resultados →' : 'Ver dispositivo →'}
+            </button>}
+          </div>
+        </section>
+
+        <section className="v3-home-section" aria-labelledby="home-periodo">
+          <div className="v3-home-section-title compacto"><h2 id="home-periodo">Nos últimos 7 dias</h2></div>
+          <div className="v3-kpis tres v3-home-kpis">
+            <Kpi rotulo="Interações STARTOUCH"
+              valor={toquesDisponiveis ? toques.total.toLocaleString('pt-BR') : null}
+              indisponivel={carregandoToques ? '…' : 'sem medição'}
+              sub={toquesDisponiveis ? <Delta atual={toques.total} anterior={toques.prev_total}/> : 'histórico indisponível'}/>
+            <Kpi rotulo="Avaliações no Google"
+              valor={novas != null ? `+${novas.toLocaleString('pt-BR')}` : null}
+              indisponivel="sem medição"
+              sub={novas != null ? 'novas no período' : 'o Google não fornece um histórico completo'}/>
+            <Kpi rotulo="Nota no Google"
+              valor={nota != null ? nota.toFixed(1).replace('.', ',') : null}
+              sub={nota != null
+                ? <><Estrelas nota={nota}/> {totalAvaliacoes != null ? `${totalAvaliacoes.toLocaleString('pt-BR')} avaliações no total` : ''}</>
+                : 'não foi possível consultar agora'}/>
+          </div>
+        </section>
+
+        <section className="v3-home-insights">
+          <article className="v3-home-card interacoes">
+            <header><div><h2>Experiência após o toque</h2><p>O que está configurado para seus dispositivos</p></div></header>
+            <div className="v3-home-experience">
+              <div className="v3-home-current">
+                <span className="rotulo">Experiência atual</span>
+                <strong>Avaliação no Google</strong>
+                <p>Ao interagir, o cliente é direcionado à sua página de avaliação.</p>
               </div>
-              <button type="button" className="v3-btn solid" onClick={() => ir('experiencia')}>
-                {biz?.plan === 'pro' ? 'Configurar menu →' : 'Conhecer o Menu Inteligente →'}
-              </button>
+              <div className="v3-home-upsell">
+                <div className="icone"><Sparkles size={16}/></div>
+                <div className="texto">
+                  <span className="pro">PRO</span>
+                  <strong>Menu Inteligente</strong>
+                  <p>Ofereça avaliação, cardápio, WhatsApp, promoções e outras ações em uma experiência personalizada.</p>
+                </div>
+                <button type="button" className="v3-btn solid" onClick={() => ir('experiencia')}>
+                  {biz?.plan === 'pro' ? 'Configurar menu →' : 'Conhecer o Menu Inteligente →'}
+                </button>
+              </div>
             </div>
-          </div>
-        </article>
+          </article>
 
-      </section>
+        </section>
 
-      <section className="v3-home-devices" aria-labelledby="home-devices">
-        <header><div><h2 id="home-devices">Seus dispositivos</h2>
-          <p><strong>{ativos.length} {ativos.length === 1 ? 'dispositivo ativo' : 'dispositivos ativos'}</strong></p></div>
-          <button type="button" className="v3-home-link" onClick={() => ir('dispositivos')}>Gerenciar dispositivos →</button></header>
-        {destaques.length ? <div className="v3-home-device-list">{destaques.map(d => {
-          const atencao = idsAtencao.has(d.id)
-          const qtd = toques?.by_plate?.[d.id] || 0
-          return <div className="v3-home-device" key={d.id}>
-            <div><strong>{d.channel_name || nomeProduto(d.product_type)}</strong><span>{nomeProduto(d.product_type)}</span></div>
-            <div className={atencao ? 'alerta' : ''}><strong>{toquesDisponiveis ? `${qtd.toLocaleString('pt-BR')} ${qtd === 1 ? 'interação' : 'interações'}` : 'Sem medição'}</strong><span>últimos 7 dias</span></div>
-            <div className={atencao ? 'alerta direita' : 'direita'}><strong>{ultimaInteracao(d)}</strong><span>última interação</span></div>
-          </div>
-        })}</div> : <div className="v3-home-empty dispositivos">Nenhum dispositivo ativo ainda.</div>}
-      </section>
+        <section className="v3-home-devices" aria-labelledby="home-devices">
+          <header><div><h2 id="home-devices">Seus dispositivos</h2>
+            <p><strong>{ativos.length} {ativos.length === 1 ? 'dispositivo ativo' : 'dispositivos ativos'}</strong></p></div>
+            <button type="button" className="v3-home-link" onClick={() => ir('dispositivos')}>Gerenciar dispositivos →</button></header>
+          {destaques.length ? <div className="v3-home-device-list">{destaques.map(d => {
+            const atencao = idsAtencao.has(d.id)
+            const qtd = toques?.by_plate?.[d.id] || 0
+            return <div className="v3-home-device" key={d.id}>
+              <div><strong>{d.channel_name || nomeProduto(d.product_type)}</strong><span>{nomeProduto(d.product_type)}</span></div>
+              <div className={atencao ? 'alerta' : ''}><strong>{toquesDisponiveis ? `${qtd.toLocaleString('pt-BR')} ${qtd === 1 ? 'interação' : 'interações'}` : 'Sem medição'}</strong><span>últimos 7 dias</span></div>
+              <div className={atencao ? 'alerta direita' : 'direita'}><strong>{ultimaInteracao(d)}</strong><span>última interação</span></div>
+            </div>
+          })}</div> : <div className="v3-home-empty dispositivos">Nenhum dispositivo ativo ainda.</div>}
+        </section>
+        </>
+      )}
+
     </div>
   )
 }

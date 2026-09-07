@@ -50,6 +50,10 @@ const PADRAO = 'inicio'
 // Serverless Functions da Vercel. `import.meta.env.DEV` garante que estes
 // dados nunca possam ser ativados no bundle de produção.
 const PREVIEW = import.meta.env.DEV && new URLSearchParams(window.location.search).has('preview')
+// `?preview&vazio` finge uma conta SEM dispositivo, que e a unica forma de
+// rever a tela de primeiros passos: quem ja ativou algum nunca mais a ve, e
+// isso inclui todas as nossas contas. Continua preso a `import.meta.env.DEV`,
+// entao nao existe no bundle de producao.
 const agora = Date.now()
 const PREVIEW_DADOS = {
   carregando: false, erro: null, semNegocio: false, sessaoExpirou: false,
@@ -89,6 +93,11 @@ const PREVIEW_DADOS = {
     90: { available: true, total: 144, prev_total: null, by_plate: { 'preview-1': 109, 'preview-2': 35 } }
   },
   recarregar: () => {}
+}
+if (PREVIEW && new URLSearchParams(window.location.search).has('vazio')) {
+  PREVIEW_DADOS.dispositivos = []
+  PREVIEW_DADOS.previewToques = { available: false }
+  PREVIEW_DADOS.info = { ...PREVIEW_DADOS.info, phone: null, photoUrl: null, category: 'cafeteria' }
 }
 
 function areaDaUrl() {
