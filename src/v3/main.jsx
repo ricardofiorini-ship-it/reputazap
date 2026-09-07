@@ -22,6 +22,18 @@ import './theme.css'
 
 const ADMINS = ['ricardo.fiorini@gmail.com']
 
+// Testadores do beta: entram no V3 sem ser administradores. O administrador é
+// sempre Pro (atalho no resolvePlano), então ele publica direto e nunca vê a
+// caixa da assinatura — sendo dono da casa, a única coisa que não dá pra
+// testar é justamente a cobrança.
+//
+// Esta lista precisa espelhar a BETA_TESTERS do api/experiences.js. São duas
+// porque uma é a porta da TELA e a outra é a da API, e a tela pode ser
+// contornada — quem protege de verdade é a de lá. Ficar só aqui deixaria a
+// API aberta; ficar só lá deixaria o testador batendo neste redirecionamento,
+// que foi exatamente o que aconteceu.
+const TESTADORES = ['ricardo@gt6.com.br']
+
 // LOGIN NATIVO desde 07/09/2026. Antes o V3 mandava quem nao tinha sessao pro
 // `/app?login=1&next=...` — ou seja, dependia do painel antigo pra abrir, e nao
 // dava pra aposentar a tela que era a porta da outra.
@@ -48,7 +60,8 @@ function Porta() {
   }
 
   // Logado mas fora da lista → painel atual, sem drama e sem tela de erro.
-  if (!ADMINS.includes((user.email || '').toLowerCase())) {
+  const email = (user.email || '').toLowerCase()
+  if (!ADMINS.includes(email) && !TESTADORES.includes(email)) {
     window.location.replace('/app')
     return null
   }
