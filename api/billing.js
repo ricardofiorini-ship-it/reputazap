@@ -627,6 +627,8 @@ const IA_PACKAGE = {
   max_installments: 6,
 };
 
+// ⚠️ DORMENTE desde 07/09/2026 — funil do IA Radar aposentado.
+// Nao esta ligado ao dispatcher (responde 410 antes de chegar aqui).
 async function handleCheckoutServicoMP(req, res) {
   try {
     const b = parseJson(await getRawBody(req));
@@ -703,6 +705,8 @@ const PLANOS = {
   gold:     { label: "Plano Gold",     price: 499 },
 };
 
+// ⚠️ DORMENTE desde 07/09/2026 — funil do IA Radar aposentado.
+// Nao esta ligado ao dispatcher (responde 410 antes de chegar aqui).
 async function handleCheckoutPlanoMP(req, res) {
   try {
     const b = parseJson(await getRawBody(req));
@@ -1960,8 +1964,18 @@ export default async function handler(req, res) {
     if (action === "billing-portal") return await handlePortalStripe(req, res);
     if (action === "checkout-kit") return await handleCheckoutKitMP(req, res);
     if (action === "checkout-kit-guest") return await handleCheckoutKitGuestMP(req, res);
-    if (action === "checkout-ia") return await handleCheckoutServicoMP(req, res);
-    if (action === "checkout-plano") return await handleCheckoutPlanoMP(req, res);
+    // ── Funil do IA Radar, APOSENTADO em 07/09/2026 ──
+    // Estes dois vendiam o Pacote Presença em IA (R$ 599) e os planos do
+    // /radar/plano. As páginas que levavam até aqui foram redirecionadas pra
+    // home, mas os endpoints são PÚBLICOS (nascem sem auth, porque o comprador
+    // vinha do funil sem conta) — então continuariam aceitando pagamento de um
+    // produto que não existe mais, e ninguém estaria olhando pra entregar.
+    // Cobrar por algo que ninguém vai entregar é pior que perder a venda.
+    // Os handlers seguem no arquivo, dormentes, se um dia voltar.
+    if (action === "checkout-ia" || action === "checkout-plano") {
+      console.warn(`[billing] tentativa de ${action} — funil do IA Radar aposentado em 07/09/2026`);
+      return res.status(410).json({ error: "Este produto foi descontinuado.", retired: true });
+    }
     if (action === "onboarding") return await handleOnboarding(req, res);
     return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|checkout-kit-guest|checkout-ia|checkout-plano|onboarding|portal|billing-portal|webhook|debug" });
   } catch (err) {

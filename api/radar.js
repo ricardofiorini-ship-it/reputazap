@@ -82,7 +82,36 @@ function getIp(req) {
   return req.socket?.remoteAddress || "unknown";
 }
 
+// ============================================================
+// ⚠️ APOSENTADO EM 07/09/2026 — decisão do Ricardo
+// ============================================================
+// O IA Radar foi descontinuado. Este arquivo NÃO foi apagado: o motor de
+// medição (3 IAs, cache, score) é trabalho caro de refazer e pode voltar.
+// Ele fica dormente, igual o código do Stripe ficou de maio a setembro.
+//
+// POR QUE PRECISOU DE UMA TRAVA, e não bastou tirar os links: as chaves de
+// Gemini, OpenAI e Perplexity continuam configuradas, então cada chamada
+// AINDA GASTARIA — três APIs pagas, até 18 consultas por diagnóstico. E a
+// página estava no sitemap, indexada: qualquer curioso vindo do Google
+// queimava orçamento de um produto que ninguém mais cuida.
+//
+// Produto abandonado que continua gastando é a pior forma de custo, porque
+// ninguém está olhando pra ele quando a conta chega.
+//
+// Pra religar: apagar o bloco abaixo. Nada mais precisa mudar.
+const APOSENTADO = true;
+
 export default async function handler(req, res) {
+  if (APOSENTADO) {
+    // 410 (Gone) e não 404: diz ao Google que a página existiu e acabou, o que
+    // acelera a remoção do índice. 404 seria lido como "sumiu talvez por erro".
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    return res.status(410).json({
+      error: "O IA Radar foi descontinuado.",
+      retired: true
+    });
+  }
+
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
