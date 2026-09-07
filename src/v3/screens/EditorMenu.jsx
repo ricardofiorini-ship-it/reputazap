@@ -442,11 +442,20 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
       {erroGeral && !erros.length && <div className="v3-callout"><div><div className="t">{erroGeral}</div></div></div>}
 
       <div className="v3-editor-steps" aria-label="Etapas para colocar o menu no ar">
-        <div className="ativo"><span>1</span><div><b>Personalize</b><small>Conteúdo e botões</small></div></div>
+        {/* ORDEM CORRIGIDA (Ricardo, 07/09/2026): crie, vincule, publique.
+            Publicar vinha antes de escolher onde usar, o que invertia o que a
+            pessoa faz de verdade — e sugeria que era preciso publicar duas
+            vezes, uma pro menu e outra depois de vincular.
+
+            O modelo suporta esta ordem: vincular grava a INTENÇÃO do dono
+            (`experience_enabled`), e o dispositivo só passa a servir o menu
+            quando ele está publicado (`served_mode`). Quem vincula antes não
+            quebra nada — o dispositivo segue no Google até a publicação. */}
+        <div className="ativo"><span>1</span><div><b>Crie</b><small>Conteúdo e botões</small></div></div>
         <i>→</i>
-        <div><span>2</span><div><b>Publique</b><small>Confirme a versão</small></div></div>
+        <div><span>2</span><div><b>Vincule</b><small>Escolha onde usar</small></div></div>
         <i>→</i>
-        <div><span>3</span><div><b>Escolha onde usar</b><small>Vincule dispositivos</small></div></div>
+        <div><span>3</span><div><b>Publique</b><small>Coloque no ar</small></div></div>
       </div>
 
       {/* Barra de estado: recusa com a lista, ou convite a publicar. */}
