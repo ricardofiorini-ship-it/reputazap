@@ -64,9 +64,20 @@ const ADMIN_EMAILS = new Set(["ricardo.fiorini@gmail.com"]);
 // espalhada é regra da qual um dia se esquece um pedaço.
 const BETA_SO_ADMIN = true;
 
+// Contas que entram no beta SEM ser administrador. Existe por um motivo
+// específico: o administrador é sempre Pro (atalho no resolvePlano), então
+// ele nunca vê a caixa da assinatura nem passa pelo pagamento — a única
+// coisa que não dá pra testar sendo dono da casa é justamente a cobrança.
+//
+// Esta lista é temporária e não é um plano gratuito disfarçado: quem está
+// aqui é cliente comum para todos os efeitos, cai no paywall e paga de
+// verdade. Some quando BETA_SO_ADMIN virar false.
+const BETA_TESTERS = new Set(["ricardo@gt6.com.br"]);
+
 function podeUsar(user) {
   if (!BETA_SO_ADMIN) return true;
-  return ADMIN_EMAILS.has((user?.email || "").toLowerCase().trim());
+  const email = (user?.email || "").toLowerCase().trim();
+  return ADMIN_EMAILS.has(email) || BETA_TESTERS.has(email);
 }
 
 async function autenticar(req) {
