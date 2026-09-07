@@ -19,8 +19,8 @@
 // adiantou.
 // ============================================================
 import React from 'react'
-import { Star, MessageSquare, UserCheck, MapPin, Smartphone, ExternalLink } from 'lucide-react'
-import { scoreDoNegocio } from '../lib/score.js'
+import { Star, MessageSquare, UserCheck, MapPin, Smartphone, TrendingUp, ExternalLink } from 'lucide-react'
+import { scoreDoNegocio, faixaDaNota } from '../lib/score.js'
 import { PESOS } from '../../../api/_lib/score-core.js'
 import '../comecar.css'
 
@@ -36,7 +36,7 @@ export function temMelhorias(dados) {
 }
 
 export default function Melhorias({ dados, temDispositivo }) {
-  const { biz, info, posicao } = dados
+  const { biz, info, posicao, avaliacoes } = dados
   const calc = scoreDoNegocio(dados)
   const faltaNoPerfil = calc.faltando || []
   const pontosDoPerfil = Math.round(PESOS.perfil - calc.perfilPts)
@@ -50,7 +50,38 @@ export default function Melhorias({ dados, temDispositivo }) {
   const foraDeTudo = calc.posFonte === 'fora'
   const foraDoTopo = top3 === 0 && !foraDeTudo
 
+  // ── A NOTA, pela escala do Ricardo (07/09/2026) ──────────
+  // A escala diz ONDE o negócio está; o texto diz POR QUE importa. Sem número
+  // de meta, e a decisão é do Ricardo com um motivo que vale registrar: a conta
+  // de "faltam N avaliações cinco estrelas" só fecha se TODAS as novas forem
+  // cinco estrelas. Na vida real vêm quatro, três — a média sobe menos, o
+  // cliente junta as N que a tela pediu, não chega no alvo e conclui, com
+  // razão, que o painel mentiu. Seria uma régua criada contra nós mesmos, por
+  // uma motivação que dura uma semana.
+  const nota = avaliacoes?.rating ?? info?.rating ?? null
+  const faixa = nota != null ? faixaDaNota(nota) : null
+
+  const TEXTO_FAIXA = {
+    critico:  'Abaixo de 4,0, boa parte das pessoas descarta o negócio antes mesmo de abrir as avaliações. É o ponto mais urgente da sua presença hoje.',
+    alerta:   'Entre 4,0 e 4,1, quem compara você com o vizinho costuma ficar com o vizinho. Vale tratar como prioridade.',
+    atencao:  'A partir de 4,5 a nota deixa de pesar contra você na hora da comparação. É um ponto a ser considerado.',
+    muitobom: 'Você já está bem. De 4,7 para cima, a nota deixa de ser detalhe e vira argumento de venda.'
+  }
+
+  const notaAcao = (faixa && faixa.chave !== 'excelente') ? {
+    icon: TrendingUp,
+    titulo: `Sua nota está em ${nota.toFixed(1).replace('.', ',')} — ${faixa.nome.toLowerCase()}`,
+    paragrafos: [
+      TEXTO_FAIXA[faixa.chave],
+      'Cada avaliação positiva nova puxa a média para cima, e a nota é o fator de maior peso no seu Score.'
+    ]
+  } : null
+  const notaUrgente = notaAcao && (faixa.chave === 'critico' || faixa.chave === 'alerta')
+
   const acoes = []
+  // Nota em nivel critico ou de alerta vem ANTES da posicao: de nada adianta
+  // aparecer em primeiro se quem chega ve 3,6 e vai embora.
+  if (notaUrgente) acoes.push(notaAcao)
 
   // A POSIÇÃO VEM PRIMEIRO quando é ela o problema — é o que o cartão ao lado
   // está gritando, e a tela ficava incoerente mandando cuidar de outra coisa.
@@ -68,6 +99,8 @@ export default function Melhorias({ dados, temDispositivo }) {
       ]
     })
   }
+
+  if (notaAcao && !notaUrgente) acoes.push(notaAcao)
 
   if (faltaNoPerfil.length) {
     acoes.push({
@@ -116,6 +149,11 @@ export default function Melhorias({ dados, temDispositivo }) {
     ]
   })
 
+  // TETO DE QUATRO. Com todas as regras somadas a lista chega a seis itens, e
+  // lista de seis tarefas nao e plano de acao, e paisagem: ninguem faz nenhuma.
+  // As demais reaparecem sozinhas conforme as primeiras forem resolvidas.
+  const visiveis = acoes.slice(0, 4)
+
   return (
     <section className="v3-agora">
       <header>
@@ -131,7 +169,7 @@ export default function Melhorias({ dados, temDispositivo }) {
         </p>
       </header>
       <div className="lista">
-        {acoes.map((a, i) => {
+        {visiveis.map((a, i) => {
           const Ico = a.icon
           return (
             <article key={i}>

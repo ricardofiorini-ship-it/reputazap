@@ -176,3 +176,26 @@ export function leituraDaColocacao(posicao) {
     medidoEm: posicao.measuredAt || null
   }
 }
+
+/**
+ * A ESCALA DA NOTA (definida pelo Ricardo em 07/09/2026).
+ *
+ *   4,7–5,0  Excelente
+ *   4,5–4,6  Muito bom
+ *   4,2–4,4  Atenção
+ *   4,0–4,1  Alerta
+ *   < 4,0    Crítico
+ *
+ * O `alvo` é sempre a PRÓXIMA FAIXA, não um número fixo. Meta distante
+ * desanima e some da cabeça: sair de 3,6 para 4,4 pede 11 avaliações cinco
+ * estrelas; sair de 3,6 para 4,0 — deixar de ser crítico — pede 4. A segunda
+ * meta é feita esta semana; a primeira vira desculpa.
+ */
+export function faixaDaNota(nota) {
+  const n = Number(nota) || 0
+  if (n >= 4.7) return { chave: 'excelente', nome: 'Excelente', alvo: null }
+  if (n >= 4.5) return { chave: 'muitobom',  nome: 'Muito bom', alvo: 4.7 }
+  if (n >= 4.2) return { chave: 'atencao',   nome: 'Atenção',   alvo: 4.5 }
+  if (n >= 4.0) return { chave: 'alerta',    nome: 'Alerta',    alvo: 4.2 }
+  return { chave: 'critico', nome: 'Crítico', alvo: 4.0 }
+}
