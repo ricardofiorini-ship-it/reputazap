@@ -1,5 +1,5 @@
 import React from 'react'
-import { Plus, Archive, Pencil, Trash2, ChevronRight, CheckCircle2, ExternalLink } from 'lucide-react'
+import { Plus, Archive, Pencil, Trash2, ChevronRight, ExternalLink } from 'lucide-react'
 import { Head, Panel, Chip, Carregando, Erro, dataBr, desde } from '../ui.jsx'
 import { api } from '../lib/api.js'
 import EditorMenu from './EditorMenu.jsx'
@@ -178,8 +178,6 @@ export default function Experiencia({ dados }) {
 
   // Conta pelo que o dispositivo SERVE, não por ter vínculo: dispositivo preso
   // a um menu excluído tem vínculo preenchido e mesmo assim vai pro Google.
-  const noGoogle = devices.filter(d => d.served_mode !== 'menu')
-  const noMenu = devices.filter(d => d.served_mode === 'menu')
 
   if (aberta) {
     return (
@@ -223,19 +221,6 @@ export default function Experiencia({ dados }) {
         </header>
         <Demonstracao nome={negocioExibido?.name} acao={acao} setAcao={setAcao}/>
       </div>
-
-      {/* O estado atual dos dispositivos: desceu do topo pra cá, onde ele
-          conversa com a lista de menus e com a decisão de ligar cada um. */}
-      <section className="exp-atual" aria-label="Experiência atual">
-        <CheckCircle2 size={19}/>
-        <div><strong>{devices.length === 0 ? 'Seu primeiro ponto de contato começa aqui' : noMenu.length === 0
-          ? `Hoje, ${devices.length === 1 ? 'seu dispositivo leva' : `seus ${devices.length} dispositivos levam`} à avaliação no Google`
-          : `Hoje, ${noMenu.length} ${noMenu.length === 1 ? 'dispositivo abre' : 'dispositivos abrem'} seu Menu Inteligente`}</strong>
-          <p>{devices.length === 0 ? 'Você já pode montar seu menu. Ao ativar um dispositivo, escolha a experiência dele.' : noMenu.length > 0
-            ? `${noGoogle.length ? `Outros ${noGoogle.length} seguem direto ao Google. ` : ''}Você decide o destino de cada ponto de contato.`
-            : 'Você decide o destino de cada ponto de contato — um por um, quando quiser.'}</p>
-        </div>
-      </section>
 
       {/* ── Seus menus ── */}
       {ativas.length > 0 && (
