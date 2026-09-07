@@ -20,6 +20,7 @@ import { useToques, nomeProduto } from '../lib/dados.js'
 import { currentUser } from '../lib/api.js'
 import TopoPresenca from './TopoPresenca.jsx'
 import PrimeirosPassos from './PrimeirosPassos.jsx'
+import Melhorias, { temMelhorias } from './Melhorias.jsx'
 
 const SETE_DIAS_EM_SEGUNDOS = 7 * 24 * 60 * 60
 
@@ -196,6 +197,11 @@ export default function Inicio({ dados, ir }) {
         </>
       ) : (
         <>
+        {/* Quem ja opera tambem precisa do caminho de melhoria: sem isto, um
+            negocio com Score 33 e "Fora da lista" lia o diagnostico inteiro e
+            nao recebia UMA saida. So aparece quando ha o que melhorar. */}
+        {temMelhorias(dados) && <Melhorias dados={dados} temDispositivo/>}
+
         <section className="v3-home-section v3-home-recommendation-section" aria-labelledby="home-recomenda">
           {/* O tom decide a cor e o ícone. Sem isto, o destaque de desempenho —
               que é elogio — sairia com triângulo amarelo de alerta, e o cliente

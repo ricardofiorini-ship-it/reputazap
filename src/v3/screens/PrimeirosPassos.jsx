@@ -29,59 +29,11 @@
 // possível, não como pendência.
 // ============================================================
 import React from 'react'
-import { Smartphone, ShoppingBag, Star, MessageSquare, UserCheck, ExternalLink } from 'lucide-react'
-import { scoreDoNegocio } from '../lib/score.js'
-import { PESOS } from '../../../api/_lib/score-core.js'
+import { Smartphone, ShoppingBag } from 'lucide-react'
+import Melhorias from './Melhorias.jsx'
 import '../comecar.css'
 
 export default function PrimeirosPassos({ dados }) {
-  const { biz, info } = dados
-  const calc = scoreDoNegocio(dados)
-  const faltaNoPerfil = calc.faltando || []
-  const pontosDoPerfil = Math.round(PESOS.perfil - calc.perfilPts)
-  const linkAvaliacoes = info?.gmapsUrl
-    || (biz?.place_id ? `https://search.google.com/local/reviews?placeid=${biz.place_id}` : null)
-
-  // Só entram ações que funcionam HOJE, sem nenhum dispositivo, e que mexem em
-  // algo que a tela de cima mede. Conselho genérico de marketing não entra:
-  // ele não move o Score e o cliente não tem como verificar se adiantou.
-  const acoes = []
-  if (faltaNoPerfil.length) {
-    acoes.push({
-      icon: Star,
-      titulo: `Complete o perfil da sua empresa no Google — +${pontosDoPerfil} pontos`,
-      // Concordância: "Ainda falta foto" com um item, "Ainda faltam foto e
-      // telefone" com dois. Texto que erra o plural na cara do cliente parece
-      // gerado por máquina — e, aqui, foi.
-      paragrafos: [
-        `Ainda ${faltaNoPerfil.length > 1 ? 'faltam' : 'falta'} ${faltaNoPerfil.join(' e ')}. ` +
-        'É uma melhoria simples, depende apenas de você e leva poucos minutos.'
-      ],
-      cta: { label: 'Completar perfil da empresa', url: 'https://business.google.com/' }
-    })
-  }
-  if (linkAvaliacoes) {
-    acoes.push({
-      icon: MessageSquare,
-      titulo: 'Responda às avaliações da sua empresa',
-      paragrafos: [
-        'Responder demonstra atenção aos clientes e mantém o perfil da empresa ativo. ' +
-        'Comece pelas avaliações mais recentes.'
-      ],
-      cta: { label: 'Ver avaliações da empresa', url: linkAvaliacoes }
-    })
-  }
-  acoes.push({
-    icon: UserCheck,
-    titulo: 'Peça novas avaliações aos seus clientes',
-    paragrafos: [
-      'Você não precisa esperar o dispositivo chegar. Clientes que já conhecem sua empresa ' +
-      'podem avaliar sua experiência agora.',
-      'Cada nova avaliação contribui para fortalecer a presença da empresa no Google e ' +
-      'melhorar seu Score.'
-    ]
-  })
-
   return (
     <>
       <section className="v3-comecar">
@@ -116,34 +68,7 @@ export default function PrimeirosPassos({ dados }) {
         </div>
       </section>
 
-      <section className="v3-agora">
-        <header>
-          <h2>O que você pode melhorar agora</h2>
-          <p>
-            Algumas ações já podem melhorar a presença da sua empresa no Google e aumentar
-            seu Score — mesmo antes de receber qualquer dispositivo.
-          </p>
-        </header>
-        <div className="lista">
-          {acoes.map((a, i) => {
-            const Ico = a.icon
-            return (
-              <article key={i}>
-                <div className="ico"><Ico size={17} strokeWidth={1.8}/></div>
-                <div className="txt">
-                  <strong>{a.titulo}</strong>
-                  {a.paragrafos.map((t, j) => <p key={j}>{t}</p>)}
-                  {a.cta && (
-                    <a href={a.cta.url} target="_blank" rel="noopener noreferrer">
-                      {a.cta.label} <ExternalLink size={11} style={{ verticalAlign: -1 }}/>
-                    </a>
-                  )}
-                </div>
-              </article>
-            )
-          })}
-        </div>
-      </section>
+      <Melhorias dados={dados} temDispositivo={false}/>
     </>
   )
 }

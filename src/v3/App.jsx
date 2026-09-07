@@ -100,6 +100,58 @@ if (PREVIEW && new URLSearchParams(window.location.search).has('vazio')) {
   PREVIEW_DADOS.info = { ...PREVIEW_DADOS.info, phone: null, photoUrl: null, category: 'cafeteria' }
 }
 
+// `?preview&perfil=fraca|media|boa` troca o negocio de exemplo. Existe pra
+// revisar as FRASES: o texto do Score e o da colocacao sao montados a partir
+// do que cada negocio tem, entao um perfil so nao mostra se eles funcionam —
+// mostra se funcionam naquele caso. Continua preso a `import.meta.env.DEV`.
+const PERFIS = {
+  fraca: {
+    biz: { name: 'Mercearia do Zé', plan: 'free', place_id: 'preview' },
+    rating: 3.6, total: 8,
+    info: { rating: 3.6, total: 8, photoUrl: null, phone: null, category: 'mercearia' },
+    // Medida e ausente em TODOS os pontos: sabemos que esta fora, nao e falta de dado.
+    posicao: { avg: null, score: null, coverage: 0, measured: 5, term: 'mercearia',
+      measuredAt: new Date(agora - 2 * 86400000).toISOString(),
+      points: Array.from({ length: 5 }, (_, i) => ({ dir: String(i), ok: true, rank: null, total: 20 })) }
+  },
+  media: {
+    biz: { name: 'Pizzaria Bella', plan: 'free', place_id: 'preview' },
+    rating: 4.4, total: 45,
+    info: { rating: 4.4, total: 45, photoUrl: 'x', phone: '(11) 3456-7890', category: 'pizzaria' },
+    // Aparece em 3 dos 5, e so em 1 deles esta no top 3.
+    posicao: { avg: 5.7, score: 12.4, coverage: 3, measured: 5, term: 'pizzaria',
+      measuredAt: new Date(agora - 86400000).toISOString(),
+      points: [
+        { dir: 'centro', ok: true, rank: 3,    total: 20 },
+        { dir: 'norte',  ok: true, rank: 7,    total: 20 },
+        { dir: 'sul',    ok: true, rank: 9,    total: 20 },
+        { dir: 'leste',  ok: true, rank: null, total: 20 },
+        { dir: 'oeste',  ok: true, rank: null, total: 20 }
+      ] }
+  },
+  boa: {
+    biz: { name: 'Padaria Aurora', plan: 'free', place_id: 'preview' },
+    rating: 4.9, total: 320,
+    info: { rating: 4.9, total: 320, photoUrl: 'x', phone: '(11) 3456-7890', category: 'padaria' },
+    posicao: { avg: 1.6, score: 1.6, coverage: 5, measured: 5, term: 'padaria',
+      measuredAt: new Date(agora - 86400000).toISOString(),
+      points: [
+        { dir: 'centro', ok: true, rank: 1, total: 20 },
+        { dir: 'norte',  ok: true, rank: 1, total: 20 },
+        { dir: 'sul',    ok: true, rank: 2, total: 20 },
+        { dir: 'leste',  ok: true, rank: 2, total: 20 },
+        { dir: 'oeste',  ok: true, rank: 2, total: 20 }
+      ] }
+  }
+}
+const PERFIL = PREVIEW && PERFIS[new URLSearchParams(window.location.search).get('perfil')]
+if (PERFIL) {
+  PREVIEW_DADOS.biz = PERFIL.biz
+  PREVIEW_DADOS.info = PERFIL.info
+  PREVIEW_DADOS.avaliacoes = { rating: PERFIL.rating, total: PERFIL.total, reviews: [] }
+  PREVIEW_DADOS.posicao = PERFIL.posicao
+}
+
 function areaDaUrl() {
   const p = window.location.pathname.replace(BASE, '').replace(/^\/+|\/+$/g, '')
   return AREAS[p] ? p : PADRAO
