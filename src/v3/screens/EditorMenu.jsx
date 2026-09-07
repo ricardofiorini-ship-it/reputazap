@@ -16,7 +16,7 @@ import React from 'react'
 import './editor-menu.css'
 import PhoneFrame from '../PhoneFrame.jsx'
 import {
-  ArrowLeft, ChevronUp, ChevronDown, GripVertical, Trash2, Plus,
+  ArrowLeft, ChevronUp, ChevronDown, GripVertical, Trash2, Plus, Lock,
   AlertTriangle, Check, ExternalLink, Info
 } from 'lucide-react'
 import { api } from '../lib/api.js'
@@ -125,6 +125,10 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
     return () => clearTimeout(t)
   }, [confirmando])
 
+  // O botão do Google não sai do menu nem muda de lugar (Ricardo, 07/09/2026).
+  // A garantia de verdade está na normalização do contrato; aqui a tela só
+  // deixa de oferecer o que não vai acontecer.
+  const fixo = b.type === 'google'
   const vis = visual(b.type)
   const campos = b.type === 'manager' ? camposDaGerencia(b) : (CAMPOS[b.type] || [])
   const resumo = (() => {
@@ -138,9 +142,18 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
   return (
     <>
       <div id={`editor-botao-${b.id}`} className={'v3-item' + (aberto ? ' aberto' : '') + (erro ? ' ruim' : '') + (b.enabled ? '' : ' off') + (arrastando ? ' arrastando' : '')}>
-        <button className="pega" onPointerDown={onPegar} aria-label="Arrastar para reordenar" title="Arrastar para reordenar">
-          <GripVertical size={14}/>
-        </button>
+        {/* O "Avaliar no Google" e FIXO: sem alca, sem setas, sem lixeira e sem
+            interruptor. Meia trava e pior que nenhuma — a pessoa descobre o
+            limite errando, e no caminho acha que quebrou alguma coisa. */}
+        {fixo ? (
+          <span className="pega fixa" title="Este botão fica sempre no topo" aria-hidden="true">
+            <Lock size={13}/>
+          </span>
+        ) : (
+          <button className="pega" onPointerDown={onPegar} aria-label="Arrastar para reordenar" title="Arrastar para reordenar">
+            <GripVertical size={14}/>
+          </button>
+        )}
         <span className="ico" style={{ background: vis.bg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><IconeTipo tipo={b.type} tamanho={18}/></span>
         <span className="txt">
           <span className="t">{b.label}</span>
@@ -148,15 +161,18 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
         </span>
         <span className="acs">
           {erro && <span className="v3-tag err">corrigir</span>}
-          {!b.enabled && <span className="v3-tag off">desligado</span>}
+          {!b.enabled && !fixo && <span className="v3-tag off">desligado</span>}
+          {fixo && <span className="v3-tag">sempre no topo</span>}
           {/* Mover por botão é o caminho de quem usa teclado e o socorro de
               quem não consegue arrastar no celular. */}
-          <button className="mini" onClick={() => onMover(-1)} disabled={primeiro} aria-label="Mover para cima"><ChevronUp size={14}/></button>
-          <button className="mini" onClick={() => onMover(1)} disabled={ultimo} aria-label="Mover para baixo"><ChevronDown size={14}/></button>
+          {!fixo && <button className="mini" onClick={() => onMover(-1)} disabled={primeiro} aria-label="Mover para cima"><ChevronUp size={14}/></button>}
+          {!fixo && <button className="mini" onClick={() => onMover(1)} disabled={ultimo} aria-label="Mover para baixo"><ChevronDown size={14}/></button>}
           <button className="v3-btn ghost" onClick={onAbrir}>{aberto ? 'Fechar' : 'Editar'}</button>
-          <button className={'v3-switch' + (b.enabled ? '' : ' off')} onClick={() => onMudar({ enabled: !b.enabled })}
-            aria-label={b.enabled ? 'Desligar botão' : 'Ligar botão'} aria-pressed={b.enabled}><i/></button>
-          {confirmando ? (
+          {!fixo && (
+            <button className={'v3-switch' + (b.enabled ? '' : ' off')} onClick={() => onMudar({ enabled: !b.enabled })}
+              aria-label={b.enabled ? 'Desligar botão' : 'Ligar botão'} aria-pressed={b.enabled}><i/></button>
+          )}
+          {fixo ? null : confirmando ? (
             <button className="v3-btn" style={{ color: 'var(--red)', borderColor: 'var(--red)' }}
               onClick={() => { setConfirmando(false); onRemover() }}
               aria-label="Confirmar remoção deste botão">Remover?</button>
@@ -368,10 +384,15 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
       if (para !== arrasto.para) setArrasto(a => ({ ...a, para }))
     }
     const soltar = () => {
-      if (arrasto.para !== arrasto.de) {
+      // A posicao 0 e do "Avaliar no Google". Sem esta linha, arrastar outro
+      // botao pro topo funcionaria na tela e a normalizacao do servidor
+      // desfaria depois — a pessoa veria a ordem "voltar sozinha", que e o
+      // pior jeito de descobrir uma regra.
+      const destino = Math.max(1, arrasto.para)
+      if (destino !== arrasto.de) {
         const arr = [...draft.buttons]
         const [item] = arr.splice(arrasto.de, 1)
-        arr.splice(arrasto.para, 0, item)
+        arr.splice(destino, 0, item)
         mudar({ ...draft, buttons: arr })
       }
       setArrasto(null)
@@ -627,11 +648,13 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
               </div>
             </header>
             <div className="body" ref={listaRef}>
+              {/* `primeiro={i <= 1}`: quem esta logo abaixo do Google tambem nao
+                  sobe, senao passaria por cima dele — a posicao 0 e fixa. */}
               {ordem.map((b, i) => (
                 <Item key={b.id} b={b} tipos={tipos} erro={erroDe(b.id)}
                   aberto={aberto === b.id}
                   arrastando={arrasto?.id === b.id}
-                  primeiro={i === 0} ultimo={i === ordem.length - 1}
+                  primeiro={i <= 1} ultimo={i === ordem.length - 1}
                   onPegar={(ev) => pegar(b.id, ev)}
                   novo={recem === b.id}
                   onAbrir={() => {

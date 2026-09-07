@@ -267,8 +267,37 @@ export function normalizarExperiencia(bruto) {
       // publicado não pode ser reescrito por nós.
       logo: marca.logo === "google" ? "google" : null
     },
-    buttons: botoes.map(normalizarBotao).filter(Boolean).slice(0, LIMITES.botoes)
+    buttons: comGoogleNoTopo(botoes.map(normalizarBotao).filter(Boolean)).slice(0, LIMITES.botoes)
   };
+}
+
+/**
+ * O "Avaliar no Google" é FIXO e vem PRIMEIRO. Regra do Ricardo, 07/09/2026:
+ * não existe menu sem ele — a diferença entre o gratuito e o Menu Inteligente
+ * é que o Inteligente tem ele MAIS os outros caminhos.
+ *
+ * POR QUE ISSO VIROU REGRA (e reverte a decisão de 29/08, que deixava o botão
+ * opcional e a ordem livre): a avaliação no Google é o resultado pelo qual a
+ * StarTouch existe. Menu sem esse botão é um dispositivo que deixou de gerar
+ * avaliação — o cliente perde o que comprou sem perceber, e o produto deixa de
+ * fazer o que promete.
+ *
+ * A garantia mora AQUI, na normalização, e não na tela: assim vale para o
+ * editor, para a publicação e para qualquer caminho futuro que grave um menu.
+ * Regra que depende da interface lembrar de aplicá-la é regra que um dia falha.
+ *
+ * O que já foi PUBLICADO não é reescrito — essa regra continua de pé. O botão
+ * entra quando o lojista mexer no menu de novo, e a próxima publicação leva.
+ */
+function comGoogleNoTopo(botoes) {
+  const google = botoes.find((b) => b.type === "google");
+  const resto = botoes.filter((b) => b.type !== "google");
+  // Sempre habilitado: desligar tem o mesmo efeito de remover, e o ponto é que
+  // não dá para tirar.
+  const fixo = google
+    ? { ...google, enabled: true }
+    : { id: novoId(), type: "google", label: TIPOS.google.label, enabled: true };
+  return [fixo, ...resto];
 }
 
 /**

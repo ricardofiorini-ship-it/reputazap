@@ -48,3 +48,9 @@
 .menu-editor .me-canal button[aria-pressed="true"] {
   border-color: var(--blue); background: var(--blue-soft); color: var(--blue-dk); font-weight: 650;
 }
+
+/* O lugar da alca, no botao fixo: mesma largura, sem convite a arrastar. */
+.menu-editor .pega.fixa {
+  display: inline-grid; place-items: center;
+  color: var(--dim); cursor: default;
+}
