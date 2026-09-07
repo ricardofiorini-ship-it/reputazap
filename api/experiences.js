@@ -19,7 +19,8 @@
 // A FRONTEIRA DAS DUAS CAMADAS VIVE AQUI:
 //   `experiences.draft/published` só é escrito por AÇÃO DO LOJISTA (as actions
 //   acima). Nenhuma rotina de cobrança, cron ou downgrade chega neste arquivo.
-//   `plates.served_*` é sempre recalculado por `reimprimir()` — derivado,
+//   `plates.served_*` é sempre recalculado por `reimprimir()` (mora em
+//   _lib/imprimir.js, compartilhado com a varredura) — derivado,
 //   descartável, reconstruível.
 //
 // INERTE ATÉ A FASE 2 TERMINAR: nada disso muda o que o consumidor encontra.
@@ -32,7 +33,8 @@ import {
   normalizarExperiencia, validarParaPublicar, montarPublicado, estaPendente,
   rascunhoInicial, tamanhoOk, LIMITES, TIPOS
 } from "./_lib/menu.js";
-import { resolvePlano, decidirServido } from "./_lib/plan.js";
+import { resolvePlano } from "./_lib/plan.js";
+import { reimprimir } from "./_lib/imprimir.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
@@ -101,49 +103,6 @@ function gerarSlug(nome) {
   let sufixo = "";
   for (let i = 0; i < 6; i++) sufixo += a[Math.floor(Math.random() * a.length)];
   return `${base}-${sufixo}`;
-}
-
-// ============================================================
-// A IMPRESSÃO (camada 1 → camada 2)
-// ============================================================
-// Recalcula `served_*` dos dispositivos do negócio. Único escritor desses
-// campos em todo o produto. É idempotente por construção: rodar duas vezes
-// seguidas dá o mesmo resultado, e apagar tudo e rodar de novo reconstrói
-// igual — é o que prova que a camada 2 não guarda nada de autoral.
-async function reimprimir(biz, user) {
-  const resolucao = resolvePlano(biz, user?.email || null);
-
-  const [{ data: plates, error: e1 }, { data: exps, error: e2 }] = await Promise.all([
-    supabase.from("plates")
-      .select("id, experience_id, experience_enabled, served_mode, served_slug, served_reason")
-      .eq("business_id", biz.id),
-    supabase.from("experiences").select("id, slug, published, published_mode, archived_at").eq("business_id", biz.id)
-  ]);
-  if (e1) throw new Error(e1.message);
-  if (e2) throw new Error(e2.message);
-
-  const porId = new Map((exps || []).map((e) => [e.id, e]));
-  let mudados = 0;
-
-  for (const p of plates || []) {
-    const alvo = decidirServido({
-      experiencia: p.experience_id ? porId.get(p.experience_id) || null : null,
-      dispositivo: p,
-      resolucao
-    });
-    // Só escreve o que mudou: evita encher o banco de escrita à toa e mantém
-    // `served_at` significando "quando o destino mudou", não "quando rodou".
-    if (p.served_mode === alvo.served_mode &&
-        p.served_slug === alvo.served_slug &&
-        p.served_reason === alvo.served_reason) continue;
-
-    const { error } = await supabase.from("plates")
-      .update({ ...alvo, served_at: new Date().toISOString() })
-      .eq("id", p.id);
-    if (error) console.error("[experiences] falha ao reimprimir dispositivo", p.id, error.message);
-    else mudados++;
-  }
-  return mudados;
 }
 
 // ============================================================
@@ -249,7 +208,7 @@ async function publicar(req, res, biz, user) {
   }).eq("id", exp.id).select().single();
   if (error) return res.status(500).json({ error: error.message });
 
-  const mudados = await reimprimir(biz, user);
+  const mudados = await reimprimir(supabase, biz, user?.email || null);
   return res.json({
     ok: true,
     experience: { ...data, pendente: estaPendente(data.draft, data.published) },
@@ -290,7 +249,7 @@ async function arquivar(req, res, biz, user) {
 
   // Arquivar NÃO apaga: os dispositivos apenas voltam ao Google Direto, com
   // motivo `experiencia_removida`, e desarquivar traz tudo de volta.
-  const mudados = await reimprimir(biz, user);
+  const mudados = await reimprimir(supabase, biz, user?.email || null);
   return res.json({ ok: true, experience: data, dispositivos_atualizados: mudados });
 }
 
@@ -352,7 +311,7 @@ async function definirDispositivo(req, res, biz, user) {
   const { error } = await supabase.from("plates").update(patch).eq("id", plate.id);
   if (error) return res.status(500).json({ error: error.message });
 
-  const mudados = await reimprimir(biz, user);
+  const mudados = await reimprimir(supabase, biz, user?.email || null);
   const { data: atualizado } = await supabase.from("plates")
     .select("id, code, channel_name, product_type, experience_id, experience_enabled, served_mode, served_reason")
     .eq("id", plate.id).maybeSingle();

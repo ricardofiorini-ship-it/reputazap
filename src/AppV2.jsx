@@ -584,7 +584,12 @@ function buildData(real, user, demoMode) {
     // caía no 'active' do mock, e conta sem assinatura nenhuma aparecia ativa.
     billing: {
       plan: biz.plan === 'pro' ? 'Plano Pro' : 'Plano Free',
-      status: biz.stripe_subscription_status || null
+      status: biz.stripe_subscription_status || null,
+      // Cancelamento agendado (07/09/2026): o par abaixo e o que distingue
+      // "assinante em dia" de "cancelou e esta usando o que ja pagou". Sem
+      // ele a tela chamaria os dois de Pro e ofereceria cancelar de novo pra
+      // quem ja cancelou.
+      cancelaEm: biz.stripe_cancel_at_period_end === true ? (biz.stripe_current_period_end || null) : null
     },
     // Preferências de alertas vindas do banco (Fase 2a). Shape compatível com AlertChannelsCard.
     alertChannels: alertPreferences ? {
@@ -2576,6 +2581,13 @@ hora local:                ${new Date().toISOString()}`}
 function BillingSection({ billing, plan }) {
   const ehPro = plan === 'pro'
 
+  // CANCELAMENTO AGENDADO (07/09/2026). `cancelaEm` so vem preenchido quando a
+  // assinatura foi cancelada E o periodo pago ainda esta correndo. Enquanto
+  // isso o cliente E Pro de verdade: pagou por esses dias.
+  const cancelaEm = billing?.cancelaEm || null
+  const agendado  = ehPro && !!cancelaEm && new Date(cancelaEm).getTime() > Date.now()
+  const dataFim   = agendado ? new Date(cancelaEm).toLocaleDateString('pt-BR') : null
+
   // Cancelamento em dois passos. Um clique só numa ação irreversível é pedir
   // pra alguém cancelar sem querer — e recontratar depende de passar pelo
   // checkout de novo.
@@ -2586,11 +2598,13 @@ function BillingSection({ billing, plan }) {
   async function cancelar() {
     setCancelando(true); setAviso('')
     try {
-      await apiCall('/api/billing?action=portal', { method: 'POST' })
-      setAviso('ok:Assinatura cancelada. Atualizando a tela…')
-      // Recarrega: o plano acabou de virar free no banco e a tela inteira
-      // (menu, selos, limites) é desenhada a partir dele.
-      setTimeout(() => window.location.reload(), 1600)
+      const r = await apiCall('/api/billing?action=portal', { method: 'POST' })
+      setAviso('ok:' + (r?.ativoAte
+        ? 'Assinatura cancelada. Você continua com o Pro até ' + new Date(r.ativoAte).toLocaleDateString('pt-BR') + '.'
+        : 'Assinatura cancelada. Atualizando a tela…'))
+      // Recarrega porque a tela inteira (menu, selos, limites) é desenhada a
+      // partir do plano — que agora pode ter continuado 'pro' com data de fim.
+      setTimeout(() => window.location.reload(), 2400)
     } catch (e) {
       setAviso('err:' + (e.message || 'Não foi possível cancelar. Fale com a gente.'))
       setCancelando(false)
@@ -2615,11 +2629,15 @@ function BillingSection({ billing, plan }) {
             <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 800, letterSpacing:'-0.02em' }}>
               {ehPro ? 'Plano Pro' : 'Plano Free'}
             </div>
-            {ehPro && billing?.status && (
+            {agendado ? (
+              <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2 }}>
+                Cancelada — ativa até {dataFim}
+              </div>
+            ) : ehPro && billing?.status ? (
               <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>
                 Assinatura {billing.status}
               </div>
-            )}
+            ) : null}
           </div>
           {!ehPro && (
             <span style={{
@@ -2651,18 +2669,38 @@ function BillingSection({ billing, plan }) {
           </div>
 
           <div style={{ marginTop: 18, paddingTop: 18, borderTop:'1px solid '+T.border }}>
-            {!confirmando ? (
+            {/* Quem já cancelou não vê "cancelar" de novo: vê até quando tem
+                Pro e como voltar atrás. Oferecer cancelamento a quem já
+                cancelou é a tela contando uma história diferente do banco. */}
+            {agendado ? (
+              <div style={{
+                padding: 14, background:'#FFFBEB', border:'1px solid #FDE68A', borderRadius: 10
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color:'#92400E', marginBottom: 6 }}>
+                  Assinatura cancelada — sem nova cobrança
+                </div>
+                <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.55, marginBottom: 12 }}>
+                  Você não será cobrado de novo. Seu <strong>Pro continua ativo até {dataFim}</strong>,
+                  porque esse período já está pago. Depois dessa data seus dispositivos voltam a
+                  levar direto para a avaliação no Google — e tudo o que você montou fica guardado.
+                </div>
+                <a href="/plano-pro" style={{
+                  display:'inline-block', background: T.blue, color:'#fff', borderRadius: 8,
+                  padding:'9px 16px', fontSize: 13, fontWeight: 700, textDecoration:'none'
+                }}>Reativar assinatura</a>
+              </div>
+            ) : !confirmando ? (
               <>
                 <button onClick={() => { setConfirmando(true); setAviso('') }} style={{
                   background:'#fff', color: T.red, border:'1px solid #FECACA', borderRadius: 8,
                   padding:'9px 16px', fontSize: 12.5, fontWeight: 600, cursor:'pointer'
                 }}>Cancelar assinatura</button>
-                {/* O texto que estava aqui prometia acesso "até o fim do
-                    período pago". O backend cancela NA HORA (handlePortalMP):
-                    o plano vira free no mesmo instante. Prometer o que o
-                    código não faz é pior que não prometer nada. */}
+                {/* Esta frase já disse o contrário duas vezes — e das duas ela
+                    estava certa sobre o código do dia. Se um dia o backend
+                    voltar a cortar na hora, é ESTA linha que tem que mudar
+                    junto. Hoje quem manda é handlePortalMP + resolvePlano 2a. */}
                 <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 6 }}>
-                  O cancelamento vale na hora — os recursos Pro saem do ar assim que você confirma.
+                  Sem fidelidade: a cobrança para na hora e você usa o Pro até o fim do período já pago.
                 </div>
               </>
             ) : (
@@ -2673,16 +2711,17 @@ function BillingSection({ billing, plan }) {
                   Cancelar sua assinatura Pro?
                 </div>
                 <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.55, marginBottom: 12 }}>
-                  A cobrança para e <strong>o acesso Pro termina imediatamente</strong>, não no fim
-                  do período já pago. Seus dados e dispositivos continuam como estão — o que sai
-                  são os recursos Pro. Para voltar, é só assinar de novo.
+                  A próxima cobrança é cancelada e <strong>você continua com o Pro até o fim do
+                  período que já pagou</strong>. Depois disso seus dispositivos voltam a levar direto
+                  para a avaliação no Google. Seus dados, menus e dispositivos continuam guardados —
+                  para voltar, é só assinar de novo.
                 </div>
                 <div style={{ display:'flex', gap: 8, flexWrap:'wrap' }}>
                   <button onClick={cancelar} disabled={cancelando} style={{
                     background: cancelando ? T.textDim : T.red, color:'#fff', border:'none',
                     borderRadius: 8, padding:'9px 16px', fontSize: 13, fontWeight: 700,
                     cursor: cancelando ? 'wait' : 'pointer'
-                  }}>{cancelando ? 'Cancelando…' : 'Sim, cancelar agora'}</button>
+                  }}>{cancelando ? 'Cancelando…' : 'Sim, cancelar'}</button>
                   <button onClick={() => setConfirmando(false)} disabled={cancelando} style={{
                     background:'#fff', color: T.textMid, border:'1px solid '+T.border,
                     borderRadius: 8, padding:'9px 16px', fontSize: 13, fontWeight: 600,

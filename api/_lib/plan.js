@@ -56,6 +56,7 @@ function paraData(v) {
  *   trialTerminaEm: string|null,
  *   trialDiasRestantes: number|null,
  *   assinaturaAte: string|null,
+ *   cancelaEm: string|null,
  *   atencao: string|null
  * }}
  */
@@ -67,6 +68,7 @@ export function resolvePlano(business, userEmail = null, agora = new Date()) {
     trialTerminaEm: null,
     trialDiasRestantes: null,
     assinaturaAte: null,
+    cancelaEm: null,
     atencao: null
   };
 
@@ -86,6 +88,36 @@ export function resolvePlano(business, userEmail = null, agora = new Date()) {
   //    (api/billing.js): 'pro' quando o status é `authorized`, 'free' em
   //    pending/paused/cancelled. Ele é a verdade.
   if (business.plan === "pro") {
+    // ── 2a. Assinatura CANCELADA, período pago ainda correndo ──
+    // "Mensal sem fidelidade, cancele quando quiser" só é verdade se cancelar
+    // parar a próxima cobrança sem tirar o que já foi pago. Quem cancela no
+    // dia 3 tendo pago até o dia 30 usa até o dia 30.
+    //
+    // Aqui a data MANDA — o oposto da regra logo abaixo, e a diferença é de
+    // propósito. Numa assinatura viva, data velha pode ser webhook perdido, e
+    // derrubar o cliente por isso seria errado. Numa assinatura cancelada não
+    // vem mais webhook nenhum nem mais cobrança: a data é tudo o que existe, e
+    // ignorá-la seria dar Pro de graça pra sempre.
+    if (business.stripe_cancel_at_period_end === true) {
+      // Sem data não dá pra honrar prazo nenhum. Fecha e acende a luz: dar Pro
+      // eterno por falta de informação é pior, porque não tem como terminar.
+      // Na prática não acontece — o cancelamento grava a data antes de cancelar.
+      if (!fimAssinatura) return { ...base, atencao: "cancelada_sem_data" };
+
+      if (fimAssinatura.getTime() <= agora.getTime()) {
+        return { ...base, assinaturaAte: fimAssinatura.toISOString() };
+      }
+
+      return {
+        ...base,
+        plano: PLANO.PRO,
+        proAtivo: true,
+        fonte: "assinatura",
+        assinaturaAte: fimAssinatura.toISOString(),
+        cancelaEm: fimAssinatura.toISOString()
+      };
+    }
+
     // A data de próxima cobrança NÃO rebaixa ninguém sozinha, de propósito.
     // Ela é `next_payment_date` do MP: se um webhook não chegar, ela envelhece
     // sem que o cliente tenha feito nada de errado. Derrubar um assinante por

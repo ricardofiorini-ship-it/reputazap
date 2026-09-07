@@ -155,6 +155,24 @@ if (PERFIL) {
   PREVIEW_DADOS.posicao = PERFIL.posicao
 }
 
+// `?preview&plano=pro|cancelado` — os dois estados de assinatura que nenhum
+// perfil acima produz. O `cancelado` existe porque e o unico jeito de VER a
+// tela de quem cancelou e ainda tem prazo: no banco ela e um `plan: 'pro'`
+// com bandeira e data, uma combinacao que so aparece depois de alguem
+// cancelar de verdade. Tela que so da pra revisar em producao acaba indo ao
+// ar sem revisao. Preso a `import.meta.env.DEV`, como o resto daqui.
+const PLANO_PREVIEW = PREVIEW && new URLSearchParams(window.location.search).get('plano')
+if (PLANO_PREVIEW === 'pro' || PLANO_PREVIEW === 'cancelado') {
+  const cancelado = PLANO_PREVIEW === 'cancelado'
+  PREVIEW_DADOS.biz = {
+    ...PREVIEW_DADOS.biz,
+    plan: 'pro',
+    stripe_subscription_status: cancelado ? 'cancelled' : 'authorized',
+    stripe_cancel_at_period_end: cancelado,
+    stripe_current_period_end: new Date(agora + 18 * 86400000).toISOString()
+  }
+}
+
 function areaDaUrl() {
   const p = window.location.pathname.replace(BASE, '').replace(/^\/+|\/+$/g, '')
   return AREAS[p] ? p : PADRAO

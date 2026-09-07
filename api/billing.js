@@ -323,11 +323,15 @@ async function handleCheckoutMP(req, res) {
   try {
     const { data: biz } = await supabase
       .from("businesses")
-      .select("id, name, plan")
+      .select("id, name, plan, stripe_cancel_at_period_end")
       .eq("user_id", auth.user.id)
       .maybeSingle();
 
-    if (biz?.plan === "pro") {
+    // Quem cancelou e ainda está no prazo pago continua com `plan = 'pro'`
+    // (é o que ele comprou) — mas está SEM assinatura, e tem todo o direito
+    // de voltar atrás antes de o prazo virar. Barrar aqui seria trancar a
+    // porta de reativação justamente pra quem quer pagar de novo.
+    if (biz?.plan === "pro" && biz?.stripe_cancel_at_period_end !== true) {
       return res.status(400).json({ error: "Plano Pro já está ativo" });
     }
 
@@ -799,7 +803,22 @@ async function handleOnboarding(req, res) {
   }
 }
 
-// Cancela a assinatura Pro do usuario logado (substitui o portal do Stripe).
+// ============================================================
+// Cancelamento — vale ATÉ O FIM DO PERÍODO PAGO (07/09/2026)
+// ============================================================
+// Antes: cancelar cortava o Pro na hora. Quem pagou dia 1º e cancelou dia 3
+// perdia 27 dias comprados — e "mensal sem fidelidade, cancele quando quiser"
+// vira propaganda enganosa se cancelar custa o mês.
+//
+// Agora: o cancelamento no Mercado Pago é imediato (é ele que impede a
+// PRÓXIMA cobrança, e é o que o cliente quer), mas o acesso segue até a data
+// que ele já pagou. Guardamos essa data ANTES de cancelar, porque depois o MP
+// pode não devolver mais `next_payment_date` — e sem data o resolvePlano
+// fecha, por segurança. Ou seja: perder a data aqui custaria ao cliente
+// exatamente os dias que este código existe pra proteger.
+//
+// Quem aplica a virada na data é a varredura (api/cron/plan-sweep.js).
+// Quem decide o acesso enquanto isso é o resolvePlano (_lib/plan.js, item 2a).
 async function handlePortalMP(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
@@ -807,7 +826,7 @@ async function handlePortalMP(req, res) {
   try {
     const { data: biz } = await supabase
       .from("businesses")
-      .select("stripe_subscription_id, plan")
+      .select("stripe_subscription_id, plan, stripe_current_period_end, stripe_cancel_at_period_end")
       .eq("user_id", auth.user.id)
       .maybeSingle();
 
@@ -815,28 +834,62 @@ async function handlePortalMP(req, res) {
       return res.status(400).json({ error: "Sem assinatura ativa pra cancelar" });
     }
 
+    // Já cancelada e ainda no prazo: não cancela de novo no MP (a 2ª chamada
+    // erraria), só repete o que já vale. Botão apertado duas vezes não pode
+    // virar mensagem de erro pra quem já fez a coisa certa.
+    if (biz.stripe_cancel_at_period_end === true) {
+      return res.json({
+        ok: true, cancelled: true, jaEstava: true,
+        ativoAte: biz.stripe_current_period_end || null,
+        message: "Sua assinatura já está cancelada."
+      });
+    }
+
     const mp = getMP();
     const preapproval = new PreApproval(mp);
 
-    // Cancela imediatamente. (MP nao tem "cancel at period end" nativo simples.)
+    // A data ANTES do cancelamento. O MP é a fonte; o banco é o retrato mais
+    // recente dele e serve de rede se a leitura falhar.
+    let ativoAte = biz.stripe_current_period_end || null;
+    try {
+      const pp = await preapproval.get({ id: biz.stripe_subscription_id });
+      if (pp?.next_payment_date) ativoAte = new Date(pp.next_payment_date).toISOString();
+    } catch (e) {
+      console.warn(`[mp/portal] não consegui ler next_payment_date de ${biz.stripe_subscription_id}: ${e?.message}. Uso a data do banco (${ativoAte || "nenhuma"}).`);
+    }
+
+    const futuro = ativoAte && new Date(ativoAte).getTime() > Date.now();
+
     await preapproval.update({
       id: biz.stripe_subscription_id,
       body: { status: "cancelled" }
     });
 
-    // O webhook deve atualizar o Supabase, mas marcamos pre-emptivamente aqui.
+    // `plan` continua 'pro' de propósito enquanto o prazo corre: é o que o
+    // cliente comprou. Quem sabe que acaba é o par (cancel_at_period_end +
+    // stripe_current_period_end), lido pelo resolvePlano.
+    //
+    // Sem data futura conhecida não há prazo a honrar e cai no comportamento
+    // antigo (corta agora) — explicitamente, não por acidente.
+    const patch = futuro
+      ? {
+          plan: "pro",
+          stripe_subscription_status: "cancelled",
+          stripe_cancel_at_period_end: true,
+          stripe_current_period_end: ativoAte
+        }
+      : {
+          plan: "free",
+          stripe_subscription_status: "cancelled",
+          stripe_cancel_at_period_end: true
+        };
+
     // A resposta segue "cancelado" mesmo se esta gravação falhar — e está certo,
     // porque o cancelamento no Mercado Pago JÁ aconteceu acima e é ele que vale.
     // O que não podia continuar é falhar calado: o cliente lia "cancelado com
     // sucesso", o banco seguia dizendo `pro`, e não havia log pra descobrir.
     const { error: errCancel } = await supabase
-      .from("businesses")
-      .update({
-        plan: "free",
-        stripe_subscription_status: "cancelled",
-        stripe_cancel_at_period_end: true
-      })
-      .eq("user_id", auth.user.id);
+      .from("businesses").update(patch).eq("user_id", auth.user.id);
     if (errCancel) {
       console.error(
         `[mp/portal] assinatura CANCELADA no Mercado Pago, mas o banco NÃO foi atualizado ` +
@@ -844,7 +897,18 @@ async function handlePortalMP(req, res) {
       );
     }
 
-    return res.json({ ok: true, cancelled: true, message: "Assinatura cancelada com sucesso." });
+    if (!futuro) {
+      console.warn(`[mp/portal] cancelamento sem data de fim conhecida (user=${auth.user.id}) — acesso encerrado na hora.`);
+    }
+
+    return res.json({
+      ok: true,
+      cancelled: true,
+      ativoAte: futuro ? ativoAte : null,
+      message: futuro
+        ? "Assinatura cancelada. Você continua com o Pro até o fim do período já pago."
+        : "Assinatura cancelada com sucesso."
+    });
   } catch (err) {
     console.error("[mp/portal] erro:", err);
     return res.status(500).json({ error: err?.message || "Erro ao cancelar assinatura" });
@@ -946,19 +1010,43 @@ async function handleWebhookMP(req, res) {
       const isActive = ["authorized"].includes(pp.status);
       const periodEnd = pp.next_payment_date ? new Date(pp.next_payment_date).toISOString() : null;
 
-      const { error } = await supabase
+      // O QUE JÁ ESTÁ GRAVADO IMPORTA (07/09/2026). Cancelar no painel avisa o
+      // MP, e o MP avisa este webhook de volta — segundos depois. Se aqui a
+      // gente reescrevesse cego, o próprio eco do cancelamento apagaria o prazo
+      // que o cancelamento acabou de agendar, e o cliente perderia os dias
+      // pagos por causa da nossa notificação, não de uma escolha dele.
+      const { data: atual } = await supabase
         .from("businesses")
-        .update({
-          plan: isActive ? "pro" : "free",
-          stripe_subscription_id: isActive ? pp.id : null, // reusa coluna pra ID do MP (simplifica schema)
-          stripe_current_period_end: periodEnd,
-          stripe_cancel_at_period_end: pp.status === "cancelled",
-          stripe_subscription_status: pp.status
-        })
-        .eq("user_id", userId);
+        .select("stripe_current_period_end, stripe_cancel_at_period_end")
+        .eq("user_id", userId).maybeSingle();
+
+      // Na hora de fechar a assinatura, a melhor data que existir: a do MP, ou
+      // a que já estava guardada. Nunca sobrescrever data conhecida por null.
+      const fimConhecido = periodEnd || atual?.stripe_current_period_end || null;
+      const prazoCorrendo =
+        pp.status === "cancelled" && !!fimConhecido && new Date(fimConhecido).getTime() > Date.now();
+
+      const patch = prazoCorrendo
+        ? {
+            // Cancelada, mas o período pago ainda corre: o acesso continua.
+            plan: "pro",
+            stripe_subscription_id: pp.id,
+            stripe_current_period_end: fimConhecido,
+            stripe_cancel_at_period_end: true,
+            stripe_subscription_status: pp.status
+          }
+        : {
+            plan: isActive ? "pro" : "free",
+            stripe_subscription_id: isActive ? pp.id : null, // reusa coluna pra ID do MP (simplifica schema)
+            stripe_current_period_end: isActive ? periodEnd : fimConhecido,
+            stripe_cancel_at_period_end: pp.status === "cancelled",
+            stripe_subscription_status: pp.status
+          };
+
+      const { error } = await supabase.from("businesses").update(patch).eq("user_id", userId);
 
       if (error) console.error("[mp/webhook] erro update pro:", error);
-      else console.log(`[mp/webhook] preapproval ${pp.id} status=${pp.status} → plan=${isActive ? "pro" : "free"} user=${userId}`);
+      else console.log(`[mp/webhook] preapproval ${pp.id} status=${pp.status} → plan=${patch.plan} user=${userId}` + (prazoCorrendo ? ` (cancelada, ativa até ${fimConhecido})` : ""));
 
       return res.json({ ok: true, type: "preapproval", id, status: pp.status });
     }
