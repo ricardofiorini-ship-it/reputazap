@@ -209,9 +209,11 @@ export default function Experiencia({ dados }) {
       <div className="exp-hero">
         <header className="exp-intro">
           <div className="exp-eyebrow">MENU INTELIGENTE <Chip>PRO</Chip></div>
-          <h2>Seu cliente chegou.<br/>Qual o próximo passo?</h2>
-          <p>Avaliar no Google, falar no WhatsApp, conhecer seus produtos ou agendar.
-            Você escolhe os caminhos; seu cliente escolhe como continuar.</p>
+          {/* Sem quebra forçada: a frase tem tamanho variável e um <br/> fixo
+              quebraria feio em telas estreitas. */}
+          <h2>Vá além das avaliações no Google.</h2>
+          <p>Com o Menu Inteligente, o mesmo toque também conecta seu cliente ao WhatsApp,
+            aos seus produtos, agendamentos e muito mais.</p>
           <div className="exp-hero-acao">
             <button className="v3-btn solid" onClick={dados.previewToques ? () => abrir('preview-menu') : criar} disabled={criando}>
               <Plus size={16}/>{criando ? 'Criando…' : 'Criar meu Menu Inteligente'}<ChevronRight size={16}/>
