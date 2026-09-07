@@ -217,6 +217,76 @@ export default function Melhorias({ dados, temDispositivo }) {
   // As demais reaparecem sozinhas conforme as primeiras forem resolvidas.
   const visiveis = acoes.slice(0, 4)
 
+  // ── MODO MANUTENÇÃO ──────────────────────────────────────
+  // Quem já está bem não recebe lição de casa inventada — mas também não pode
+  // ficar sendo a única pessoa a quem a tela não diz nada. Cliente bom merece
+  // atenção, e posição boa não se mantém sozinha: a concorrência continua
+  // recebendo avaliação enquanto ele descansa.
+  //
+  // Só vale para quem JÁ OPERA. Numa conta sem dispositivo o recado é outro, e
+  // ele já está logo acima, no "Comece por aqui".
+  const manter = temDispositivo && !temMelhorias(dados)
+  if (manter) {
+    const noTopo = top3 != null && top3 === (posicao?.measured || 0) && top3 > 0
+    const habitos = [
+      {
+        icon: TrendingUp,
+        titulo: 'Mantenha o ritmo de avaliações',
+        paragrafos: [
+          'A vantagem que você construiu não é permanente: seus vizinhos continuam recebendo avaliação enquanto você descansa. Manter o ritmo é o que impede a diferença de encolher.'
+        ]
+      },
+      linkAvaliacoes ? {
+        icon: MessageSquare,
+        titulo: 'Responda as avaliações novas',
+        paragrafos: [
+          'Você chegou aqui fazendo bem feito. Responder mantém o perfil ativo e mostra a quem ainda não te conhece que tem gente do outro lado.'
+        ],
+        cta: { label: 'Ver avaliações da empresa', url: linkAvaliacoes }
+      } : null,
+      {
+        icon: Camera,
+        titulo: 'Mantenha as fotos atualizadas',
+        paragrafos: [
+          'Foto de dois anos atrás envelhece o negócio na hora em que alguém compara você com o vizinho. Uma nova por semana já basta.'
+        ],
+        cta: { label: 'Adicionar fotos no Google', url: 'https://business.google.com/' }
+      }
+    ].filter(Boolean)
+
+    return (
+      <section className="v3-agora">
+        <header>
+          <h2>{noTopo ? 'Você está no topo da sua região' : 'Sua presença está saudável'}</h2>
+          <p>
+            {noTopo
+              ? 'Nada aqui precisa de conserto. Estes são os hábitos que sustentam a posição que você já tem.'
+              : 'Nada aqui precisa de conserto. Estes são os hábitos que mantêm sua presença firme.'}
+          </p>
+        </header>
+        <div className="lista">
+          {habitos.map((h, i) => {
+            const Ico = h.icon
+            return (
+              <article key={i}>
+                <div className="ico"><Ico size={17} strokeWidth={1.8}/></div>
+                <div className="txt">
+                  <strong>{h.titulo}</strong>
+                  {h.paragrafos.map((t, j) => <p key={j}>{t}</p>)}
+                  {h.cta && (
+                    <a href={h.cta.url} target="_blank" rel="noopener noreferrer">
+                      {h.cta.label} <ExternalLink size={11} style={{ verticalAlign: -1 }}/>
+                    </a>
+                  )}
+                </div>
+              </article>
+            )
+          })}
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="v3-agora">
       <header>
