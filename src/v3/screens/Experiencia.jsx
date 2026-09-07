@@ -77,14 +77,23 @@ function IconeMenu({ tipo }) {
 // legível para qualquer negócio — os rótulos aqui são de VITRINE, não os
 // padrões do contrato: "Produtos e serviços" e "Agendar horário" dizem mais a
 // quem está conhecendo do que "Site" e "Agendar".
+// Os RÓTULOS SAEM DO CONTRATO, não são escritos aqui (Ricardo, 07/09/2026).
+// A demo dizia "Produtos e serviços" e "Agendar horário" — nomes que soam bem
+// e que o editor NÃO oferece. Quem visse a demonstração e fosse montar o menu
+// procuraria botões que não existem. É a mesma regra da prévia do editor,
+// valendo um passo antes: a vitrine não pode prometer o que a loja não tem.
+//
+// Se algum nome do contrato ficar fraco pra vender, o conserto é mudar o
+// `label` em `_lib/menu.js` — aí ele melhora na demo, no editor e no menu que
+// o cliente abre, todos de uma vez.
 const EXEMPLO = {
   subtitulo: 'Como podemos ajudar?',
   acoes: [
-    { tipo: 'google',    label: 'Avaliar no Google',    detalhe: 'O cliente segue direto para avaliar seu negócio no Google.' },
-    { tipo: 'whatsapp',  label: 'WhatsApp',             detalhe: 'Abre a conversa já com o seu número e a mensagem que você escreveu.' },
-    { tipo: 'website',   label: 'Produtos e serviços',  detalhe: 'Leva ao seu site, catálogo ou loja — o endereço que você escolher.' },
-    { tipo: 'booking',   label: 'Agendar horário',      detalhe: 'Abre sua agenda: Calendly, Doctoralia ou o sistema que você já usa.' },
-    { tipo: 'instagram', label: 'Instagram',            detalhe: 'Leva ao seu perfil, para o cliente continuar acompanhando.' }
+    { tipo: 'google',    detalhe: 'O cliente segue direto para avaliar seu negócio no Google.' },
+    { tipo: 'whatsapp',  detalhe: 'Abre a conversa já com o seu número e a mensagem que você escreveu.' },
+    { tipo: 'website',   detalhe: 'Leva ao seu site, catálogo ou loja — o endereço que você escolher.' },
+    { tipo: 'booking',   detalhe: 'Abre sua agenda: Calendly, Doctoralia ou o sistema que você já usa.' },
+    { tipo: 'instagram', detalhe: 'Leva ao seu perfil, para o cliente continuar acompanhando.' }
   ]
 }
 
@@ -100,7 +109,7 @@ function Demonstracao({ nome, acao, setAcao }) {
             <div className="exp-fone-acoes">
               {EXEMPLO.acoes.filter(a => TIPOS[a.tipo]).map(a => (
                 <button key={a.tipo} type="button" aria-pressed={acao === a.tipo} onClick={() => setAcao(a.tipo)}>
-                  <IconeMenu tipo={a.tipo}/><span>{a.label}</span><ChevronRight size={13}/>
+                  <IconeMenu tipo={a.tipo}/><span>{TIPOS[a.tipo].label}</span><ChevronRight size={13}/>
                 </button>
               ))}
             </div>
