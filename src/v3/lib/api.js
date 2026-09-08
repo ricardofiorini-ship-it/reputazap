@@ -117,6 +117,17 @@ export const api = {
   // ela discordaria da que decide na hora de publicar.
   experiencias: {
     listar:    ()               => get('/api/experiences?action=list', { auth: true }),
+    // Dispara agora e devolve a mesma promessa pra quem pedir depois.
+    preBuscar: function () {
+      if (!api._preExperiencias) api._preExperiencias = this.listar()
+      return api._preExperiencias
+    },
+    // Colhe a pré-busca uma vez; da segunda em diante vai ao servidor.
+    colher:    function () {
+      const p = api._preExperiencias
+      api._preExperiencias = null
+      return p || this.listar()
+    },
     criar:     (name)           => post('/api/experiences?action=create', { name }),
     salvar:    (id, draft)      => post('/api/experiences?action=save-draft', { id, draft }),
     publicar:  (id)             => post('/api/experiences?action=publish', { id }),
@@ -125,6 +136,21 @@ export const api = {
     renomear:  (id, name)       => post('/api/experiences?action=rename', { id, name }),
     dispositivo: (payload)      => post('/api/experiences?action=set-device', payload)
   },
+
+  // ── Pré-busca das experiências ──
+  // A tela do Menu esperava DUAS vezes em sequência: primeiro "carregando seu
+  // negócio" (o painel), depois "carregando suas experiências" (a tela). A
+  // segunda só começava quando a primeira acabava, porque a tela só monta
+  // depois que o painel tem dados.
+  //
+  // Mas `list` não depende do negócio — ele descobre o negócio pelo token. Dá
+  // pra disparar no primeiro instante, junto com tudo o mais, e a tela colhe a
+  // resposta quando montar. Duas esperas viram uma.
+  //
+  // Guarda só a PRIMEIRA promessa: recarregar depois de publicar tem que ir ao
+  // servidor de novo, senão a tela mostraria para sempre o estado de quando a
+  // página abriu.
+  _preExperiencias: null,
 
   // ── Assinatura ──
   // `retorno` diz de onde a pessoa saiu, pra ela voltar ali depois de pagar.

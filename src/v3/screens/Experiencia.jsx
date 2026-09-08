@@ -96,7 +96,9 @@ export default function Experiencia({ dados }) {
 
   const carregar = React.useCallback(async () => {
     try {
-      const r = await api.experiencias.listar()
+      // `colher` usa a pré-busca disparada no App na PRIMEIRA vez; nas
+      // seguintes (recarregar após publicar) vai ao servidor de novo.
+      const r = await api.experiencias.colher()
       setEstado({ carregando: false, erro: null, dados: r })
       return r
     } catch (e) {

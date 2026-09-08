@@ -12,7 +12,7 @@
 import React from 'react'
 import { Menu, X, ArrowLeft } from 'lucide-react'
 import { gruposVisiveis, AREAS, STATUS_TXT } from './lib/areas.js'
-import { currentUser, logout } from './lib/api.js'
+import { api, currentUser, logout, token } from './lib/api.js'
 import { modoSolo, CHAVE_SOLO } from './lib/acesso.js'
 import { useDados } from './lib/dados.js'
 import { Carregando, Erro } from './ui.jsx'
@@ -204,6 +204,14 @@ function Legenda() {
 // explicar — e legenda sem referente é ruído que o cliente tenta decifrar.
 const temMarcaNoMenu = gruposVisiveis()
   .some(g => g.ids.some(id => AREAS[id].status !== 'pronto'))
+
+// Dispara a busca das experiências no PRIMEIRO instante, antes do React
+// montar qualquer coisa. Ela não depende do negócio (o servidor descobre pelo
+// token), então esperar era desperdício: o painel carregava, a tela montava, e
+// só então ela pedia os dados dela. Duas esperas em fila viram uma.
+if (typeof window !== 'undefined' && areaDaUrl() === 'experiencia' && token()) {
+  try { api.experiencias.preBuscar() } catch {}
+}
 
 export default function App() {
   const [id, setId] = React.useState(areaDaUrl)
