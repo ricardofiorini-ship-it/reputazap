@@ -3312,7 +3312,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile }) {
     <Section>
       <div style={{
         background: 'linear-gradient(135deg,#0B2E6F 0%,#1A73E8 100%)',
-        borderRadius: 14, padding: isMobile ? '22px 18px' : '26px 30px',
+        borderRadius: 14, padding: isMobile ? '20px 18px' : '22px 30px',
         display: 'flex', alignItems: 'center', gap: isMobile ? 20 : 34,
         flexDirection: isMobile ? 'column' : 'row',
         boxShadow: '0 10px 28px rgba(26,115,232,.22)'
@@ -3364,10 +3364,14 @@ function MenuInteligenteSlot({ plan, bizName, isMobile }) {
             Largura 214 e não 190 porque `.st-phone` tem min-width 214 e
             estouraria o contêiner. */}
         <div aria-hidden="true" style={{
-          flex: '0 0 auto', width: 214,
-          '--ink': '#1F2937', '--mid': '#6B7280', '--surf': '#FFFFFF',
-          '--line': '#E5E7EB', '--blue-dk': '#0B57D0'
+          flex: '0 0 auto', width: 150, height: 306, position: 'relative'
         }}>
+          <div style={{
+            position: 'absolute', top: 0, left: 0, width: 214,
+            transform: 'scale(.7)', transformOrigin: 'top left',
+            '--ink': '#1F2937', '--mid': '#6B7280', '--surf': '#FFFFFF',
+            '--line': '#E5E7EB', '--blue-dk': '#0B57D0'
+          }}>
           <PhoneFrame>
             <div style={{ padding: '14px 12px', textAlign: 'center' }}>
               <div style={{
@@ -3398,6 +3402,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile }) {
               ))}
             </div>
           </PhoneFrame>
+          </div>
         </div>
       </div>
     </Section>
