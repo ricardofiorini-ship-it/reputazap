@@ -12,8 +12,9 @@ import {
   Download, Send, FileText, Radar, Sparkles, Key, Gift, DoorOpen, Map, CreditCard,
   Image as ImageIcon, Store, PartyPopper, Construction, Monitor, Bookmark, RefreshCw,
   Truck, ShieldCheck, Siren, ClipboardList, Inbox, Tag, UtensilsCrossed, Hand, ChevronRight,
-  Smartphone, QrCode, Pencil
+  Smartphone, QrCode, Pencil, MessageCircle, Globe, CalendarCheck
 } from 'lucide-react'
+import PhoneFrame from './v3/PhoneFrame.jsx'
 
 // ─────────────────────────────────────────────────────────────
 // Registro de ícones para dados (campos `icon:` em MOCK/config/notificações).
@@ -3248,40 +3249,156 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
 //
 // É ponte, não morada: quando o painel novo substituir este, o bloco sai
 // junto com o resto da tela.
+//
+// ── O INTERRUPTOR DO LANÇAMENTO ──
+// `true` = versão promocional, com telefone e "chegou". `false` = versão
+// discreta, uma linha e um botão.
+//
+// É uma CHAVE e não uma data, de propósito: "chegou o Menu Inteligente"
+// envelhece, e data futura no código não desarma nada — ela só chega, e
+// ninguém está olhando quando chega. Desligar tem que ser um gesto.
+// Sugestão: desligar quando a novidade parar de ser novidade (~30 dias).
 // ─────────────────────────────────────────────────────────────
-function MenuInteligenteSlot({ plan, isMobile }) {
+const PROMO_MENU = true
+
+// Menu de exemplo pro telefone da promoção. É ilustração, não a configuração
+// de ninguém — por isso é fixo. Só o NOME do negócio vem do cliente: ver o
+// próprio nome na tela é o que faz a pessoa entender que aquilo é sobre ela,
+// e não mais um anúncio genérico.
+const PROMO_BOTOES = [
+  { icon: Star,          label: 'Avaliar no Google', cor: '#F9AB00', fundo: '#FEF7E0' },
+  { icon: MessageCircle, label: 'Falar no WhatsApp', cor: '#25D366', fundo: '#E7F9EE' },
+  { icon: Globe,         label: 'Ver o cardápio',    cor: '#1A73E8', fundo: '#E8F0FE' },
+  { icon: CalendarCheck, label: 'Agendar horário',   cor: '#7C3AED', fundo: '#F3EEFE' }
+]
+
+function MenuInteligenteSlot({ plan, bizName, isMobile }) {
   const ehPro = plan === 'pro'
+
+  if (!PROMO_MENU) {
+    return (
+      <Section>
+        <div style={{
+          background: T.blueSoft, border: '1px solid #BFDBFE', borderRadius: 12,
+          padding: isMobile ? 16 : 18,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          gap: 14, flexWrap: 'wrap'
+        }}>
+          <div style={{ flex: '1 1 300px', minWidth: 0 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.07em', color: T.blueDk, marginBottom: 4 }}>
+              {ehPro ? 'SEU PLANO PRO' : 'STARTOUCH PRO'}
+            </div>
+            <div style={{ fontSize: 16.5, fontWeight: 800, color: T.text, letterSpacing: '-0.01em' }}>
+              Menu Inteligente
+            </div>
+            <div style={{ fontSize: 13, color: T.textMid, lineHeight: 1.55, marginTop: 4 }}>
+              {ehPro
+                ? 'Escolha o que seu cliente encontra ao encostar o celular — avaliação no Google, WhatsApp, cardápio, agendamento e mais.'
+                : 'Hoje seu dispositivo leva direto à avaliação no Google. Com o Pro, o mesmo toque abre um menu com vários caminhos — e a avaliação continua sendo a primeira opção.'}
+            </div>
+          </div>
+          <a href="/painel-f7dsaz3c/experiencia" style={{
+            background: T.blue, color: '#fff', borderRadius: 9, padding: '11px 18px',
+            fontSize: 13.5, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', flex: '0 0 auto'
+          }}>
+            {ehPro ? 'Configurar menu →' : 'Conhecer o Menu Inteligente →'}
+          </a>
+        </div>
+      </Section>
+    )
+  }
+
   return (
     <Section>
       <div style={{
-        background: T.blueSoft, border: '1px solid #BFDBFE', borderRadius: 12,
-        padding: isMobile ? 16 : 18,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        gap: 14, flexWrap: 'wrap'
+        background: 'linear-gradient(135deg,#0B2E6F 0%,#1A73E8 100%)',
+        borderRadius: 14, padding: isMobile ? '22px 18px' : '26px 30px',
+        display: 'flex', alignItems: 'center', gap: isMobile ? 20 : 34,
+        flexDirection: isMobile ? 'column' : 'row',
+        boxShadow: '0 10px 28px rgba(26,115,232,.22)'
       }}>
-        <div style={{ flex: '1 1 300px', minWidth: 0 }}>
+        <div style={{ flex: '1 1 320px', minWidth: 0, color: '#fff' }}>
           <div style={{
-            fontSize: 10.5, fontWeight: 800, letterSpacing: '.07em',
-            color: T.blueDk, marginBottom: 4
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: 'rgba(255,255,255,.16)', borderRadius: 999,
+            padding: '5px 11px', fontSize: 10.5, fontWeight: 800, letterSpacing: '.07em',
+            marginBottom: 10
           }}>
-            {ehPro ? 'SEU PLANO PRO' : 'STARTOUCH PRO'}
+            <Sparkles size={12}/> NOVIDADE
           </div>
-          <div style={{ fontSize: 16.5, fontWeight: 800, color: T.text, letterSpacing: '-0.01em' }}>
-            Menu Inteligente
+          <div style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: isMobile ? 22 : 27, fontWeight: 800, lineHeight: 1.15,
+            letterSpacing: '-0.02em', marginBottom: 8
+          }}>
+            Atendendo a pedidos:<br/>chegou o Menu Inteligente.
           </div>
-          <div style={{ fontSize: 13, color: T.textMid, lineHeight: 1.55, marginTop: 4 }}>
-            {ehPro
-              ? 'Escolha o que seu cliente encontra ao encostar o celular — avaliação no Google, WhatsApp, cardápio, agendamento e mais.'
-              : 'Hoje seu dispositivo leva direto à avaliação no Google. Com o Pro, o mesmo toque abre um menu com vários caminhos — e a avaliação continua sendo a primeira opção.'}
+          <div style={{ fontSize: 14, lineHeight: 1.6, opacity: .92, marginBottom: 16, maxWidth: 460 }}>
+            Hoje seu dispositivo leva direto à avaliação no Google. Agora o
+            <strong> mesmo toque</strong> pode abrir WhatsApp, cardápio, agendamento
+            e o que mais você quiser — com a avaliação sempre em primeiro lugar.
           </div>
+          <a href="/painel-f7dsaz3c/experiencia" style={{
+            display: 'inline-block', background: '#fff', color: T.blueDk,
+            borderRadius: 9, padding: '12px 22px', fontSize: 14, fontWeight: 800,
+            textDecoration: 'none'
+          }}>
+            {ehPro ? 'Configurar meu menu →' : 'Criar meu menu — 7 dias grátis →'}
+          </a>
+          {!ehPro && (
+            <div style={{ fontSize: 11.5, opacity: .8, marginTop: 9 }}>
+              Depois R$ 19,90 por mês. Sem fidelidade, cancele quando quiser.
+            </div>
+          )}
         </div>
-        <a href="/painel-f7dsaz3c/experiencia" style={{
-          background: T.blue, color: '#fff', borderRadius: 9,
-          padding: '11px 18px', fontSize: 13.5, fontWeight: 700,
-          textDecoration: 'none', whiteSpace: 'nowrap', flex: '0 0 auto'
+
+        {/* O telefone é o MESMO componente do painel novo (14 linhas, classes
+            próprias `st-phone-*`, sem chance de colidir com o CSS daqui).
+            Desenhar outro só pra este banner criaria duas aparências pro
+            mesmo produto — e um dia elas discordariam. */}
+        {/* O CSS do telefone vem do painel novo e usa VARIÁVEIS de tema
+            (--ink, --surf, --mid...) que não existem neste painel — sem elas
+            a moldura some e os botões ficam soltos no fundo azul. Em vez de
+            duplicar o CSS, declaro as variáveis aqui: o componente continua
+            único e este bloco fornece o tema de que ele precisa.
+            Largura 214 e não 190 porque `.st-phone` tem min-width 214 e
+            estouraria o contêiner. */}
+        <div aria-hidden="true" style={{
+          flex: '0 0 auto', width: 214,
+          '--ink': '#1F2937', '--mid': '#6B7280', '--surf': '#FFFFFF',
+          '--line': '#E5E7EB', '--blue-dk': '#0B57D0'
         }}>
-          {ehPro ? 'Configurar menu →' : 'Conhecer o Menu Inteligente →'}
-        </a>
+          <PhoneFrame>
+            <div style={{ padding: '14px 12px', textAlign: 'center' }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10, background: T.blueSoft,
+                color: T.blueDk, fontWeight: 800, fontSize: 17,
+                display: 'grid', placeItems: 'center', margin: '0 auto 7px'
+              }}>{(bizName || 'S').trim().charAt(0).toUpperCase()}</div>
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#1F2937', lineHeight: 1.25 }}>
+                {bizName || 'Seu negócio'}
+              </div>
+              <div style={{ fontSize: 10, color: '#6B7280', margin: '2px 0 11px' }}>
+                Como podemos ajudar?
+              </div>
+              {PROMO_BOTOES.map(({ icon: Ico, label, cor, fundo }) => (
+                <div key={label} style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  background: '#fff', border: '1px solid #E8EAED', borderRadius: 9,
+                  padding: '8px 9px', marginBottom: 6
+                }}>
+                  <span style={{
+                    width: 21, height: 21, borderRadius: 6, background: fundo,
+                    display: 'grid', placeItems: 'center', flex: '0 0 auto'
+                  }}>
+                    <Ico size={12} color={cor}/>
+                  </span>
+                  <span style={{ fontSize: 10.5, fontWeight: 600, color: '#1F2937' }}>{label}</span>
+                </div>
+              ))}
+            </div>
+          </PhoneFrame>
+        </div>
       </div>
     </Section>
   )
@@ -6878,7 +6995,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             e não teria como configurar o que comprou.
             Ocupa o espaço que era do widget do Radar, desligado desde 09/07 e
             aposentado em 07/09. */}
-        {!guestMode && <MenuInteligenteSlot plan={plan} isMobile={isMobile} />}
+        {!guestMode && <MenuInteligenteSlot plan={plan} bizName={d?.biz?.name} isMobile={isMobile} />}
 
         {/* Widget Radar IA — desligado desde 09/07 e o produto foi aposentado
             em 07/09/2026. O componente devolve null; fica como referência. */}
