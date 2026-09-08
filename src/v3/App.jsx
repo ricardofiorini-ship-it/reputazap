@@ -210,7 +210,7 @@ export default function App() {
   // No celular a barra lateral é uma gaveta. Começa fechada; no computador
   // este estado é ignorado (a coluna está sempre visível pelo CSS).
   const [gaveta, setGaveta] = React.useState(false)
-  const dadosReais = useDados()
+  const dadosReais = useDados({ area: id })
   const dados = PREVIEW ? PREVIEW_DADOS : dadosReais
   const user = currentUser()
 

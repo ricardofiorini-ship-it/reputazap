@@ -13,12 +13,26 @@
 import React from 'react'
 import { api, ApiError } from './api.js'
 
-export function useDados() {
+export function useDados({ area } = {}) {
   const [estado, setEstado] = React.useState({
     carregando: true, erro: null, semNegocio: false, sessaoExpirou: false,
     biz: null, info: null, avaliacoes: null, dispositivos: [], posicao: null
   })
   const [nonce, setNonce] = React.useState(0)
+
+  // ── CARGA LEVE PARA A TELA DO MENU (08/09/2026) ──
+  // O painel esperava CINCO chamadas antes de desenhar qualquer tela: o
+  // negócio e, em seguida, avaliações + dados do Google + dispositivos +
+  // POSIÇÃO. A posição é a medição da grade, a mais cara das quatro.
+  //
+  // A tela do Menu não usa nenhuma das três últimas — só o nome do negócio, o
+  // plano e a foto. Esperar por elas eram ~4 segundos de tela branca depois do
+  // clique, que foi o que o Ricardo cronometrou.
+  //
+  // Só a tela do Menu é aliviada, de propósito: Início, Reputação e Mapa
+  // precisam desses dados de verdade, e cortá-los ali seria trocar lentidão
+  // por tela vazia.
+  const leve = area === 'experiencia'
 
   React.useEffect(() => {
     let vivo = true
@@ -34,10 +48,10 @@ export function useDados() {
         }
 
         const [av, info, disp, pos] = await Promise.all([
-          api.avaliacoes(biz.place_id),
+          leve ? null : api.avaliacoes(biz.place_id),
           api.dadosDoLocal(biz.place_id),
-          api.dispositivos(),
-          api.posicao(biz.place_id)
+          leve ? null : api.dispositivos(),
+          leve ? null : api.posicao(biz.place_id)
         ])
         if (!vivo) return
 
