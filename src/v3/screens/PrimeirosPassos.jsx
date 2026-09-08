@@ -31,6 +31,7 @@
 import React from 'react'
 import { Smartphone, ShoppingBag } from 'lucide-react'
 import Melhorias from './Melhorias.jsx'
+import { CONVIDADO, urlCadastro } from '../lib/acesso.js'
 import '../comecar.css'
 
 export default function PrimeirosPassos({ dados }) {
@@ -38,13 +39,38 @@ export default function PrimeirosPassos({ dados }) {
     <>
       <section className="v3-comecar">
         <header>
-          <h2>Comece por aqui</h2>
+          <h2>{CONVIDADO ? 'Guarde esta medição' : 'Comece por aqui'}</h2>
           <p>
-            Seu painel já está medindo sua presença no Google — o Score e a colocação acima são
-            reais e atualizam sozinhos. O que falta é o dispositivo: é ele que transforma um
-            cliente satisfeito em avaliação publicada.
+            {CONVIDADO
+              ? 'O que você acabou de ver é real e muda com o tempo. Com uma conta gratuita, ele passa a ser acompanhado sozinho e você recebe um resumo por e-mail toda semana — sem precisar buscar de novo.'
+              : 'Seu painel já está medindo sua presença no Google — o Score e a colocação acima são reais e atualizam sozinhos. O que falta é o dispositivo: é ele que transforma um cliente satisfeito em avaliação publicada.'}
           </p>
         </header>
+
+        {/* O convidado ainda não tem conta, então "ativar dispositivo" e
+            "comprar" são passos que ele não consegue dar — os dois exigem
+            login logo adiante. Pra ele o próximo passo é UM só, e é o que
+            transforma a visita em cliente. */}
+        {CONVIDADO ? (
+          <div className="opcoes">
+            <div className="opcao">
+              <div className="ico"><Smartphone size={20} strokeWidth={1.8}/></div>
+              <div className="txt">
+                <strong>Criar minha conta grátis</strong>
+                <span>Leva um minuto. Seu negócio já vem preenchido — é só confirmar.</span>
+              </div>
+              <a className="v3-btn solid" href={urlCadastro()}>Criar conta grátis →</a>
+            </div>
+            <div className="opcao">
+              <div className="ico"><ShoppingBag size={20} strokeWidth={1.8}/></div>
+              <div className="txt">
+                <strong>Ver os dispositivos</strong>
+                <span>Cartões, placas de balcão e pulseiras — é o que transforma cliente satisfeito em avaliação publicada.</span>
+              </div>
+              <a className="v3-btn" href="/kit">Ver dispositivos →</a>
+            </div>
+          </div>
+        ) : (
         <div className="opcoes">
           {/* Dois caminhos, sem adivinhar qual é o dela: a compra feita no
               Mercado Livre não aparece por aqui, então perguntar é mais honesto
@@ -66,6 +92,7 @@ export default function PrimeirosPassos({ dados }) {
             <a className="v3-btn" href="/kit">Ver dispositivos →</a>
           </div>
         </div>
+        )}
       </section>
 
       <Melhorias dados={dados} temDispositivo={false}/>

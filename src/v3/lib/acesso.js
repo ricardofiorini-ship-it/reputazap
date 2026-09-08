@@ -81,6 +81,12 @@ export function modoSolo(user) {
 // conta (dispositivos, menus, configurações) simplesmente não aparece pra ele.
 export const CONVIDADO = (() => {
   try {
+    // SÓ VALE SEM SESSÃO. Sem esta linha, um cliente LOGADO que abrisse um link
+    // antigo com `?place_id=` seria tratado como visitante e veria o negócio de
+    // OUTRA pessoa no lugar do dele — foi o que aconteceu no primeiro teste em
+    // produção. Quem tem conta vê o negócio da conta, sempre.
+    if (localStorage.getItem('rz_token')) return null
+
     const p = new URLSearchParams(window.location.search)
     const placeId = p.get('place_id') || p.get('place') || null
     if (!placeId) return null
