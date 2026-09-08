@@ -969,3 +969,7 @@ table.v3-t tr:last-child td { border-bottom: 0; }
   background: transparent; border-color: rgba(255,255,255,.28); color: var(--n-white);
 }
 .v3-solo .v3-solobar .v3-btn:hover { background: rgba(255,255,255,.1); }
+/* Sem a coluna da esquerda o conteúdo ficaria colado na borda, com um vazio
+   grande do outro lado — o `max-width` do .v3-main foi feito contando com a
+   largura que a coluna ocupava. Centralizar devolve o equilíbrio. */
+.v3-solo .v3-main { margin-left: auto; margin-right: auto; }
