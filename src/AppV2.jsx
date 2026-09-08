@@ -854,10 +854,22 @@ function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen }) {
   return (
     <nav style={{
       position:'fixed', bottom: 0, left: 0, right: 0,
-      background:'rgba(255,255,255,0.96)', backdropFilter:'blur(20px)',
+      background:'#fff',
       borderTop:'1px solid '+T.border,
       display:'flex', zIndex: 50,
-      paddingBottom:'env(safe-area-inset-bottom, 0)',
+      // ── ALTURA QUE NÃO DEPENDE DO APARELHO (08/09/2026) ──
+      // Era `paddingBottom: env(safe-area-inset-bottom, 0)`, sem piso: em
+      // aparelho que informa zero (iPhone SE) a barra fechava certo, e em
+      // aparelho com indicador de home (iPhone 16) o valor mudava a altura.
+      // `max()` garante um piso: usa a área segura quando ela é maior, nunca
+      // menos que 8px. A barra passa a ter altura previsível em qualquer
+      // aparelho, que é o que se espera de uma navegação.
+      paddingBottom:'max(env(safe-area-inset-bottom, 0px), 8px)',
+      minHeight: 56,
+      // `backdrop-filter` saiu: num elemento fixo ele cria uma camada de
+      // composição própria e, em alguns navegadores móveis, some ou pisca.
+      // Navegação é a última coisa que pode depender de um efeito visual —
+      // fundo sólido não tem como falhar.
       boxShadow:'0 -2px 12px rgba(15,23,42,0.06)'
     }}>
       {MOBILE_PRIMARY_TABS.map(tab => {
