@@ -25,6 +25,7 @@ import { createClient } from "@supabase/supabase-js";
 import { comCachePlaces, TTL } from "../_lib/places-cache.js";
 import { fetchWithTimeout } from "../_lib/fetch-timeout.js";
 import { svgIcone } from "../_lib/menu-icones.js";
+import { resolvePlano, podeUsarMenu } from "../_lib/plan.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
@@ -330,9 +331,48 @@ export default async function handler(req, res) {
     }
     if (!exp || exp.archived_at || !exp.published) return res.status(404).send(naoEncontrado());
 
-    const { data: biz } = await supabase
-      .from("businesses").select("id, name, place_id").eq("id", exp.business_id).maybeSingle();
+    // `select("*")` e não a lista de colunas: a linha inteira vai pro
+    // resolvePlano logo abaixo, e escolher colunas a dedo aqui significaria que
+    // esquecer uma que ele lê muda a decisão. Além disso, pedir coluna que não
+    // existe derruba a consulta INTEIRA — e o erro apareceria como "menu não
+    // encontrado" em TODOS os menus, que é o pior disfarce possível.
+    const { data: biz, error: errBiz } = await supabase
+      .from("businesses").select("*").eq("id", exp.business_id).maybeSingle();
+
+    // Mesma distinção da consulta acima: banco fora não é "menu não existe".
+    // Sem isto, uma falha de leitura derrubaria o menu do cliente dizendo a
+    // ele, e ao consumidor na frente do balcão, que a página não existe.
+    if (errBiz) {
+      console.error("[m/slug] falha ao buscar o negócio:", errBiz.message || errBiz);
+      return res.status(503).send(instavel());
+    }
     if (!biz) return res.status(404).send(naoEncontrado());
+
+    // ── O PLANO VALE AQUI TAMBÉM (08/09/2026) ──
+    // O toque na placa já era barrado: o api/r/[code].js só manda pra cá quando
+    // `plates.served_mode` é 'menu', e a varredura reimprime isso quando o Pro
+    // acaba. Mas o LINK DIRETO não passava por essa porta — quem tivesse o
+    // /m/<slug> continuava abrindo o menu depois de cancelar, pra sempre.
+    // Bastava colocar o link na bio do Instagram pra ter o recurso pago de
+    // graça. O desenho já dizia que perder o Pro "afeta a capacidade de servir
+    // Menu EM TUDO"; faltava o "tudo" incluir o link.
+    //
+    // Manda pro Google em vez de 404: quem abriu não faz ideia do que é plano,
+    // e é o MESMO destino que o dispositivo passa a ter. Coerência entre os
+    // dois caminhos, e o consumidor sempre chega em algum lugar útil.
+    //
+    // `resolvePlano(biz, null)` — sem e-mail, porque aqui não há usuário logado
+    // e o atalho de administrador é conveniência do painel, não regra de
+    // serviço. Consequência conhecida: um menu publicado pela conta de
+    // administrador (que é sempre Pro no painel) NÃO abre por este link se o
+    // negócio dela estiver em Free. É o único caso em que painel e link
+    // discordam, e discordam a favor do lado seguro.
+    if (!podeUsarMenu(resolvePlano(biz, null))) {
+      if (biz.place_id) {
+        return res.redirect(302, `/avaliar?place_id=${encodeURIComponent(biz.place_id)}`);
+      }
+      return res.status(404).send(naoEncontrado());
+    }
 
     // Qual dispositivo trouxe a pessoa até aqui (quando veio de um toque).
     // Sem `d`, veio pelo link compartilhado — que é o §7 do briefing.
