@@ -1,10 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Símbolo da marca em tamanho grande (usado na /avaliar). Mesma arte do
+       favicon.svg, mesmas cores amostradas do logotipo — se um mudar, o outro
+       muda junto, senão a marca aparece de dois jeitos no mesmo site.
+       Aqui cabe o anel do logotipo, que a 16px do favicon não caberia. -->
   <defs>
-    <linearGradient id="stBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00C49A"/>
-      <stop offset="100%" stop-color="#0EA47A"/>
+    <linearGradient id="stFundoG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#015FFC"/>
+      <stop offset="100%" stop-color="#082A71"/>
     </linearGradient>
   </defs>
-  <rect x="0" y="0" width="1024" height="1024" rx="225" ry="225" fill="url(#stBg)"/>
-  <path d="M512 192 L568 456 L832 512 L568 568 L512 832 L456 568 L192 512 L456 456 Z" fill="#F5C518"/>
+  <rect x="0" y="0" width="1024" height="1024" rx="225" ry="225" fill="url(#stFundoG)"/>
+  <circle cx="512" cy="512" r="300" fill="none" stroke="#FFFFFF" stroke-width="26"
+          stroke-linecap="round" stroke-dasharray="1250 635" transform="rotate(-40 512 512)" opacity=".55"/>
+  <circle cx="243" cy="404" r="34" fill="#FFFFFF" opacity=".55"/>
+  <circle cx="781" cy="620" r="34" fill="#FFFFFF" opacity=".55"/>
+  <path d="M512 232 C534 417 607 490 792 512 C607 534 534 607 512 792 C490 607 417 534 232 512 C417 490 490 417 512 232 Z" fill="#FFFFFF"/>
 </svg>
