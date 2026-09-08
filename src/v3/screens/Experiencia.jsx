@@ -292,8 +292,13 @@ export default function Experiencia({ dados }) {
   if (estado.erro) return <Erro mensagem={estado.erro} onTentar={carregar}/>
 
   const { experiences: experiencesDaApi = [], devices: devicesDaApi = [], tipos, limites, negocio } = estado.dados || {}
+  // `slug` + `published` na previa: e o unico jeito de revisar o bloco do link
+  // mágico, que so aparece com o menu no ar (link de rascunho nao abre). O
+  // `pendente: true` fica: e o estado real de um menu publicado com alteracoes
+  // ainda nao publicadas, que e onde a pessoa mais tempo passa.
   const experienciaPreview = {
     id: 'preview-menu', name: 'Menu principal', pendente: true,
+    slug: 'menu-exemplo', published: { mode: 'menu' }, published_at: new Date(Date.now() - 3 * 86400000).toISOString(),
     draft: {
       brand: { titulo: dados.biz?.name || 'Seu negócio', subtitulo: 'Como podemos ajudar?' },
       buttons: [

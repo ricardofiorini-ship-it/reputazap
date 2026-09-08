@@ -17,7 +17,7 @@ import './editor-menu.css'
 import PhoneFrame from '../PhoneFrame.jsx'
 import {
   ArrowLeft, ChevronUp, ChevronDown, GripVertical, Trash2, Plus, Lock,
-  AlertTriangle, Check, ExternalLink, Info, Sparkles, X
+  AlertTriangle, Check, ExternalLink, Info, Sparkles, X, Copy, Link2
 } from 'lucide-react'
 import { api } from '../lib/api.js'
 import { Chip } from '../ui.jsx'
@@ -810,6 +810,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           </section>
 
           <OndeEstaNoAr exp={exp} dados={dados} experiencias={experiencias} onAtualizar={onAtualizar}/>
+          <LinkMagico exp={exp}/>
         </div>
 
         <aside className="v3-previa" id="menu-previa" aria-label="Prévia do seu menu">
@@ -830,6 +831,71 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
         </aside>
       </div>
     </div>
+  )
+}
+
+// ── O link mágico ───────────────────────────────────────────
+// O MESMO menu, por outra porta. Não é um segundo produto: é o dispositivo
+// sem o dispositivo — o cliente abre o menu de qualquer lugar onde caiba um
+// endereço, sem encostar em nada.
+//
+// Ele já existia, escondido atrás de um "ver como o cliente vê" na prévia.
+// Nem o Ricardo achou (08/09/2026), o que responde se um lojista acharia.
+// Recurso que ninguém encontra é recurso que não existe.
+//
+// Só aparece com o menu PUBLICADO, de propósito: o endereço de um rascunho
+// não abre, e entregar um link quebrado pra pessoa colar na bio do Instagram
+// seria pior do que não oferecer nada.
+function LinkMagico({ exp }) {
+  const [copiado, setCopiado] = React.useState(false)
+  if (!exp.published || !exp.slug) return null
+
+  const url = `${window.location.origin}/m/${exp.slug}`
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      // `clipboard` falha em contexto não seguro e em navegador antigo. O
+      // caminho velho (selecionar + execCommand) ainda funciona em todos, e
+      // sem ele o botão ficaria mudo justamente pra quem mais precisa dele.
+      const t = document.createElement('textarea')
+      t.value = url; t.style.position = 'fixed'; t.style.opacity = '0'
+      document.body.appendChild(t); t.select()
+      try { document.execCommand('copy') } catch {}
+      document.body.removeChild(t)
+    }
+    setCopiado(true)
+    setTimeout(() => setCopiado(false), 2200)
+  }
+
+  return (
+    <section className="v3-panel me-link">
+      <div className="me-link-cab">
+        <Link2 size={15}/>
+        <div>
+          <div className="t">Link mágico</div>
+          <p className="s">O mesmo menu, sem precisar de dispositivo. Quem abrir este endereço vê exatamente o que o cliente vê ao encostar o celular.</p>
+        </div>
+      </div>
+
+      <div className="me-link-caixa">
+        <input readOnly value={url} onFocus={e => e.target.select()} aria-label="Endereço do seu menu"/>
+        <button className={'v3-btn solid' + (copiado ? ' ok' : '')} onClick={copiar}>
+          {copiado ? <><Check size={13}/> Copiado</> : <><Copy size={13}/> Copiar</>}
+        </button>
+      </div>
+
+      <p className="me-link-onde">
+        <b>Onde usar:</b> na bio do Instagram · no status do WhatsApp · no campo
+        “site” do seu perfil no Google · num QR Code impresso no cardápio, na
+        embalagem ou no panfleto.
+      </p>
+
+      <a className="v3-btn ghost me-link-ver" href={url} target="_blank" rel="noopener noreferrer">
+        Abrir para conferir <ExternalLink size={12}/>
+      </a>
+    </section>
   )
 }
 
