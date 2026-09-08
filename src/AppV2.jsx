@@ -3319,7 +3319,53 @@ function BalaoMarca({ tipo, texto, lado, topo }) {
   )
 }
 
+// ── ADIANTA O PAINEL NOVO ──
+// Clicar no Menu Inteligente descarta este painel e baixa OUTRO aplicativo
+// inteiro: ~316 KB de código e ~71 KB de estilo, do zero. No celular em 4G
+// isso é a diferença entre "abriu" e "travou" — foi o que o Ricardo sentiu.
+//
+// Aqui a gente busca a página do painel novo enquanto a pessoa lê o banner,
+// lê os endereços dos arquivos de dentro dela e pede pro navegador guardar
+// cada um. Quando ela clica, já está tudo em cache.
+//
+// Os nomes dos arquivos mudam a cada publicação (têm o hash no nome), então
+// não dá pra escrevê-los aqui — é por isso que a lista é lida da página em
+// vez de fixada no código, que envelheceria calada no próximo deploy.
+//
+// `requestIdleCallback`: só roda quando o navegador está ocioso, então não
+// disputa banda com o que a pessoa está de fato olhando. Falha em silêncio
+// de propósito — é só uma otimização, e nada aqui pode quebrar o painel.
+function useAdiantarPainelNovo() {
+  React.useEffect(() => {
+    let cancelado = false
+    const rodar = async () => {
+      try {
+        const r = await fetch('/painel-f7dsaz3c', { credentials: 'omit' })
+        if (!r.ok || cancelado) return
+        const html = await r.text()
+        const arquivos = [...new Set(html.match(/\/assets\/[A-Za-z0-9._-]+\.(js|css)/g) || [])]
+        for (const a of arquivos.slice(0, 12)) {
+          if (cancelado) return
+          const l = document.createElement('link')
+          l.rel = 'prefetch'
+          l.href = a
+          l.as = a.endsWith('.css') ? 'style' : 'script'
+          document.head.appendChild(l)
+        }
+      } catch {}
+    }
+    const id = window.requestIdleCallback
+      ? window.requestIdleCallback(rodar, { timeout: 4000 })
+      : setTimeout(rodar, 2500)
+    return () => {
+      cancelado = true
+      if (window.cancelIdleCallback) window.cancelIdleCallback(id); else clearTimeout(id)
+    }
+  }, [])
+}
+
 function MenuInteligenteSlot({ plan, bizName, isMobile }) {
+  useAdiantarPainelNovo()
   const ehPro = plan === 'pro'
   const nome = (bizName || 'Seu negócio').trim()
 
