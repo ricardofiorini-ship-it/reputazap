@@ -12,9 +12,11 @@ import {
   Download, Send, FileText, Radar, Sparkles, Key, Gift, DoorOpen, Map, CreditCard,
   Image as ImageIcon, Store, PartyPopper, Construction, Monitor, Bookmark, RefreshCw,
   Truck, ShieldCheck, Siren, ClipboardList, Inbox, Tag, UtensilsCrossed, Hand, ChevronRight,
-  Smartphone, QrCode, Pencil, MessageCircle, Globe, CalendarCheck
+  Smartphone, QrCode, Pencil, MessageCircle, Globe, CalendarCheck,
+  ArrowRight, Zap, Heart
 } from 'lucide-react'
 import PhoneFrame from './v3/PhoneFrame.jsx'
+import { IconeMenu } from './marcas.jsx'
 
 // ─────────────────────────────────────────────────────────────
 // Registro de ícones para dados (campos `icon:` em MOCK/config/notificações).
@@ -3251,29 +3253,64 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
 // junto com o resto da tela.
 //
 // ── O INTERRUPTOR DO LANÇAMENTO ──
-// `true` = versão promocional, com telefone e "chegou". `false` = versão
+// `true` = versão de lançamento, com telefone e balões. `false` = versão
 // discreta, uma linha e um botão.
 //
-// É uma CHAVE e não uma data, de propósito: "chegou o Menu Inteligente"
-// envelhece, e data futura no código não desarma nada — ela só chega, e
-// ninguém está olhando quando chega. Desligar tem que ser um gesto.
-// Sugestão: desligar quando a novidade parar de ser novidade (~30 dias).
+// É uma CHAVE e não uma data, de propósito: "chegou" envelhece, e data
+// futura no código não desarma nada — ela só chega, e ninguém está
+// olhando quando chega. Desligar tem que ser um gesto.
 // ─────────────────────────────────────────────────────────────
 const PROMO_MENU = true
 
-// Menu de exemplo pro telefone da promoção. É ilustração, não a configuração
-// de ninguém — por isso é fixo. Só o NOME do negócio vem do cliente: ver o
-// próprio nome na tela é o que faz a pessoa entender que aquilo é sobre ela,
-// e não mais um anúncio genérico.
+// Os botões do telefone da demonstração. Ilustração, não a configuração de
+// ninguém — por isso é fixo. Só o NOME do negócio vem do cliente: ver o
+// próprio nome é o que faz a pessoa entender que aquilo é sobre ela.
 const PROMO_BOTOES = [
-  { icon: Star,          label: 'Avaliar no Google', cor: '#F9AB00', fundo: '#FEF7E0' },
-  { icon: MessageCircle, label: 'Falar no WhatsApp', cor: '#25D366', fundo: '#E7F9EE' },
-  { icon: Globe,         label: 'Ver o cardápio',    cor: '#1A73E8', fundo: '#E8F0FE' },
-  { icon: CalendarCheck, label: 'Agendar horário',   cor: '#7C3AED', fundo: '#F3EEFE' }
+  { tipo: 'google',     label: 'Avalie no Google' },
+  { tipo: 'whatsapp',   label: 'Fale no WhatsApp' },
+  { tipo: 'instagram',  label: 'Instagram' },
+  { tipo: 'website',    label: 'Nosso cardápio' },
+  { tipo: 'booking',    label: 'Agende seu horário' }
 ]
+
+// Os balões que flutuam ao redor do telefone. `lado` diz de que borda eles
+// saem; `topo` é a posição vertical em % do bloco visual.
+const PROMO_BALOES = [
+  { tipo: 'google',    texto: 'Avaliação\nno Google', lado: 'esq', topo: 6 },
+  { tipo: 'whatsapp',  texto: 'WhatsApp',             lado: 'esq', topo: 34 },
+  { tipo: 'instagram', texto: 'Instagram',            lado: 'esq', topo: 61 },
+  { tipo: 'website',   texto: 'Cardápio',             lado: 'esq', topo: 86 },
+  { tipo: 'booking',   texto: 'Agendamento',          lado: 'dir', topo: 20 },
+  { tipo: 'contact',   texto: 'Mais contatos',        lado: 'dir', topo: 50 }
+]
+
+function BalaoMarca({ tipo, texto, lado, topo }) {
+  return (
+    <div style={{
+      position: 'absolute', top: topo + '%',
+      [lado === 'esq' ? 'left' : 'right']: 0,
+      transform: 'translateY(-50%)',
+      display: 'flex', alignItems: 'center', gap: 7,
+      background: 'rgba(255,255,255,.97)', borderRadius: 999,
+      padding: '7px 13px 7px 8px', whiteSpace: 'pre-line',
+      boxShadow: '0 6px 16px rgba(4,26,66,.28)',
+      fontSize: 11.5, fontWeight: 700, color: '#1F2937', lineHeight: 1.2
+    }}>
+      <span style={{
+        width: 24, height: 24, borderRadius: '50%', background: '#fff',
+        display: 'grid', placeItems: 'center', flex: '0 0 auto',
+        boxShadow: 'inset 0 0 0 1px #EEF2F7'
+      }}>
+        <IconeMenu tipo={tipo} tamanho={14}/>
+      </span>
+      {texto}
+    </div>
+  )
+}
 
 function MenuInteligenteSlot({ plan, bizName, isMobile }) {
   const ehPro = plan === 'pro'
+  const nome = (bizName || 'Seu negócio').trim()
 
   if (!PROMO_MENU) {
     return (
@@ -3311,99 +3348,136 @@ function MenuInteligenteSlot({ plan, bizName, isMobile }) {
   return (
     <Section>
       <div style={{
-        background: 'linear-gradient(135deg,#0B2E6F 0%,#1A73E8 100%)',
-        borderRadius: 14, padding: isMobile ? '20px 18px' : '22px 30px',
-        display: 'flex', alignItems: 'center', gap: isMobile ? 20 : 34,
+        position: 'relative', overflow: 'hidden', borderRadius: 16,
+        background: 'linear-gradient(105deg,#071E4A 0%,#0B3EA8 46%,#1A73E8 100%)',
+        padding: isMobile ? '22px 18px' : '26px 34px',
+        display: 'flex', alignItems: 'center', gap: isMobile ? 22 : 30,
         flexDirection: isMobile ? 'column' : 'row',
-        boxShadow: '0 10px 28px rgba(26,115,232,.22)'
+        boxShadow: '0 12px 30px rgba(11,62,168,.26)'
       }}>
-        <div style={{ flex: '1 1 320px', minWidth: 0, color: '#fff' }}>
+        {/* Brilho de fundo. `pointerEvents none` pra não roubar o clique do
+            botão, que é a única coisa que importa neste bloco. */}
+        <div aria-hidden="true" style={{
+          position: 'absolute', right: '-6%', top: '-40%',
+          width: 560, height: 560, borderRadius: '50%', pointerEvents: 'none',
+          background: 'radial-gradient(circle,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 62%)'
+        }}/>
+
+        {/* ── Texto ── */}
+        <div style={{ flex: '1 1 340px', minWidth: 0, color: '#fff', position: 'relative' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: 'rgba(255,255,255,.16)', borderRadius: 999,
-            padding: '5px 11px', fontSize: 10.5, fontWeight: 800, letterSpacing: '.07em',
-            marginBottom: 10
+            background: 'rgba(255,255,255,.15)', borderRadius: 999,
+            padding: '5px 12px', fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em',
+            marginBottom: 12
           }}>
             <Sparkles size={12}/> NOVIDADE
           </div>
+
           <div style={{
             fontFamily: "'Inter', sans-serif",
-            fontSize: isMobile ? 22 : 27, fontWeight: 800, lineHeight: 1.15,
-            letterSpacing: '-0.02em', marginBottom: 8
+            fontSize: isMobile ? 21 : 26, fontWeight: 800, lineHeight: 1.16,
+            letterSpacing: '-0.025em', marginBottom: 10
           }}>
-            Atendendo a pedidos:<br/>chegou o Menu Inteligente.
+            Chegou o Menu Inteligente.<br/>
+            <span style={{ color: '#8EC5FF' }}>Transforme o toque em mais oportunidades.</span>
           </div>
-          <div style={{ fontSize: 14, lineHeight: 1.6, opacity: .92, marginBottom: 16, maxWidth: 460 }}>
-            Hoje seu dispositivo leva direto à avaliação no Google. Agora o
-            <strong> mesmo toque</strong> pode abrir WhatsApp, cardápio, agendamento
-            e o que mais você quiser — com a avaliação sempre em primeiro lugar.
+
+          <div style={{ fontSize: 13.5, lineHeight: 1.6, opacity: .93, marginBottom: 16, maxWidth: 520 }}>
+            Seu dispositivo já leva às avaliações no Google. Agora o mesmo toque
+            também abre <strong>WhatsApp</strong>, <strong>Instagram</strong>,
+            <strong> cardápio</strong>, agendamento e outros links importantes —
+            mantendo a avaliação sempre em primeiro lugar.
           </div>
+
           <a href="/painel-f7dsaz3c/experiencia" style={{
-            display: 'inline-block', background: '#fff', color: T.blueDk,
-            borderRadius: 9, padding: '12px 22px', fontSize: 14, fontWeight: 800,
-            textDecoration: 'none'
+            display: 'inline-flex', alignItems: 'center', gap: 9,
+            background: '#fff', color: '#0B3EA8', borderRadius: 10,
+            padding: '13px 24px', fontSize: 14.5, fontWeight: 800, textDecoration: 'none',
+            boxShadow: '0 6px 16px rgba(4,26,66,.22)'
           }}>
-            {ehPro ? 'Configurar meu menu →' : 'Criar meu menu — 7 dias grátis →'}
+            {ehPro ? 'Configurar meu menu' : 'Criar meu menu — 7 dias grátis'}
+            <ArrowRight size={17}/>
           </a>
+
           {!ehPro && (
-            <div style={{ fontSize: 11.5, opacity: .8, marginTop: 9 }}>
-              Depois R$ 19,90 por mês. Sem fidelidade, cancele quando quiser.
+            <div style={{ fontSize: 11.5, opacity: .78, marginTop: 10 }}>
+              Depois de 7 dias, R$ 19,90 por mês. Sem fidelidade, cancele quando quiser.
             </div>
           )}
-        </div>
 
-        {/* O telefone é o MESMO componente do painel novo (14 linhas, classes
-            próprias `st-phone-*`, sem chance de colidir com o CSS daqui).
-            Desenhar outro só pra este banner criaria duas aparências pro
-            mesmo produto — e um dia elas discordariam. */}
-        {/* O CSS do telefone vem do painel novo e usa VARIÁVEIS de tema
-            (--ink, --surf, --mid...) que não existem neste painel — sem elas
-            a moldura some e os botões ficam soltos no fundo azul. Em vez de
-            duplicar o CSS, declaro as variáveis aqui: o componente continua
-            único e este bloco fornece o tema de que ele precisa.
-            Largura 214 e não 190 porque `.st-phone` tem min-width 214 e
-            estouraria o contêiner. */}
-        <div aria-hidden="true" style={{
-          flex: '0 0 auto', width: 150, height: 306, position: 'relative'
-        }}>
+          {/* Os três ganhos, na mesma linha do original. Em telas estreitas
+              eles quebram sozinhos em vez de espremer. */}
           <div style={{
-            position: 'absolute', top: 0, left: 0, width: 214,
-            transform: 'scale(.7)', transformOrigin: 'top left',
-            '--ink': '#1F2937', '--mid': '#6B7280', '--surf': '#FFFFFF',
-            '--line': '#E5E7EB', '--blue-dk': '#0B57D0'
+            display: 'flex', gap: isMobile ? 16 : 26, flexWrap: 'wrap',
+            marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,.16)'
           }}>
-          <PhoneFrame>
-            <div style={{ padding: '14px 12px', textAlign: 'center' }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10, background: T.blueSoft,
-                color: T.blueDk, fontWeight: 800, fontSize: 17,
-                display: 'grid', placeItems: 'center', margin: '0 auto 7px'
-              }}>{(bizName || 'S').trim().charAt(0).toUpperCase()}</div>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#1F2937', lineHeight: 1.25 }}>
-                {bizName || 'Seu negócio'}
+            {[
+              { Ico: Zap,       a: 'Mais',           b: 'oportunidades' },
+              { Ico: BarChart3, a: 'Mais',           b: 'clientes' },
+              { Ico: Heart,     a: 'Sua avaliação',  b: 'sempre em destaque' }
+            ].map(({ Ico, a, b }) => (
+              <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Ico size={17} style={{ opacity: .9, flex: '0 0 auto' }}/>
+                <span style={{ fontSize: 11.5, lineHeight: 1.3, opacity: .92 }}>
+                  {a}<br/>{b}
+                </span>
               </div>
-              <div style={{ fontSize: 10, color: '#6B7280', margin: '2px 0 11px' }}>
-                Como podemos ajudar?
-              </div>
-              {PROMO_BOTOES.map(({ icon: Ico, label, cor, fundo }) => (
-                <div key={label} style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  background: '#fff', border: '1px solid #E8EAED', borderRadius: 9,
-                  padding: '8px 9px', marginBottom: 6
-                }}>
-                  <span style={{
-                    width: 21, height: 21, borderRadius: 6, background: fundo,
-                    display: 'grid', placeItems: 'center', flex: '0 0 auto'
-                  }}>
-                    <Ico size={12} color={cor}/>
-                  </span>
-                  <span style={{ fontSize: 10.5, fontWeight: 600, color: '#1F2937' }}>{label}</span>
-                </div>
-              ))}
-            </div>
-          </PhoneFrame>
+            ))}
           </div>
         </div>
+
+        {/* ── O telefone e os balões ──
+            Escondidos no celular: ali não há largura pra eles sem espremer o
+            texto, que é o que de fato vende. */}
+        {!isMobile && (
+          <div aria-hidden="true" style={{
+            flex: '0 0 auto', width: 430, height: 330, position: 'relative'
+          }}>
+            {PROMO_BALOES.map(b => <BalaoMarca key={b.texto} {...b}/>)}
+
+            <div style={{
+              position: 'absolute', left: '50%', top: 0,
+              transform: 'translateX(-50%) scale(.755)', transformOrigin: 'top center',
+              width: 214,
+              '--ink': '#1F2937', '--mid': '#6B7280', '--surf': '#FFFFFF',
+              '--line': '#E5E7EB', '--blue-dk': '#0B57D0'
+            }}>
+              <PhoneFrame>
+                <div style={{ padding: '14px 12px', textAlign: 'center' }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: '50%', background: '#F1F5F9',
+                    color: '#0B3EA8', fontWeight: 800, fontSize: 18,
+                    display: 'grid', placeItems: 'center', margin: '0 auto 8px'
+                  }}>{nome.charAt(0).toUpperCase()}</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: '#111827', lineHeight: 1.25 }}>
+                    {nome}
+                  </div>
+                  <div style={{ fontSize: 10, color: '#6B7280', margin: '3px 0 12px' }}>
+                    Conecte-se com a nossa casa
+                  </div>
+                  {PROMO_BOTOES.map(({ tipo, label }) => (
+                    <div key={label} style={{
+                      display: 'flex', alignItems: 'center', gap: 9,
+                      background: '#fff', border: '1px solid #E8EAED', borderRadius: 10,
+                      padding: '9px 10px', marginBottom: 7,
+                      boxShadow: '0 1px 2px rgba(16,24,40,.05)'
+                    }}>
+                      <IconeMenu tipo={tipo} tamanho={15}/>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#1F2937', flex: 1, textAlign: 'left' }}>
+                        {label}
+                      </span>
+                      <ChevronRight size={12} color="#9AA0A6"/>
+                    </div>
+                  ))}
+                  <div style={{ fontSize: 8.5, color: '#9AA0A6', marginTop: 10 }}>
+                    Powered by <strong style={{ color: '#0B3EA8' }}>StarTouch</strong>
+                  </div>
+                </div>
+              </PhoneFrame>
+            </div>
+          </div>
+        )}
       </div>
     </Section>
   )
