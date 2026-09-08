@@ -3238,6 +3238,55 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
 // /radar/plano nem em api/radar.js — que seguem no ar pro funil do convidado.
 // Pra religar: `true`. Nada mais precisa mudar.
 // ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// A porta para o Menu Inteligente.
+//
+// Ele mora no painel novo (/painel-f7dsaz3c). Este bloco existe porque
+// SEM ELE ninguém chega lá: o endereço não é linkado de lugar nenhum, e a
+// página pública de preço já vende a assinatura. Cliente pagando sem
+// conseguir usar seria o pior desfecho possível de um lançamento.
+//
+// É ponte, não morada: quando o painel novo substituir este, o bloco sai
+// junto com o resto da tela.
+// ─────────────────────────────────────────────────────────────
+function MenuInteligenteSlot({ plan, isMobile }) {
+  const ehPro = plan === 'pro'
+  return (
+    <Section>
+      <div style={{
+        background: T.blueSoft, border: '1px solid #BFDBFE', borderRadius: 12,
+        padding: isMobile ? 16 : 18,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        gap: 14, flexWrap: 'wrap'
+      }}>
+        <div style={{ flex: '1 1 300px', minWidth: 0 }}>
+          <div style={{
+            fontSize: 10.5, fontWeight: 800, letterSpacing: '.07em',
+            color: T.blueDk, marginBottom: 4
+          }}>
+            {ehPro ? 'SEU PLANO PRO' : 'STARTOUCH PRO'}
+          </div>
+          <div style={{ fontSize: 16.5, fontWeight: 800, color: T.text, letterSpacing: '-0.01em' }}>
+            Menu Inteligente
+          </div>
+          <div style={{ fontSize: 13, color: T.textMid, lineHeight: 1.55, marginTop: 4 }}>
+            {ehPro
+              ? 'Escolha o que seu cliente encontra ao encostar o celular — avaliação no Google, WhatsApp, cardápio, agendamento e mais.'
+              : 'Hoje seu dispositivo leva direto à avaliação no Google. Com o Pro, o mesmo toque abre um menu com vários caminhos — e a avaliação continua sendo a primeira opção.'}
+          </div>
+        </div>
+        <a href="/painel-f7dsaz3c/experiencia" style={{
+          background: T.blue, color: '#fff', borderRadius: 9,
+          padding: '11px 18px', fontSize: 13.5, fontWeight: 700,
+          textDecoration: 'none', whiteSpace: 'nowrap', flex: '0 0 auto'
+        }}>
+          {ehPro ? 'Configurar menu →' : 'Conhecer o Menu Inteligente →'}
+        </a>
+      </div>
+    </Section>
+  )
+}
+
 const RADAR_WIDGET_ENABLED = false
 function RadarWidgetSlot({ d, isMobile }) {
   const placeId = d?.biz?.placeId || d?.businessInfo?.placeId || null
@@ -6822,8 +6871,17 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           />
         </Section>
 
-        {/* BLOCO 2 — Widget Radar IA. Só pra CONTAS COM CADASTRO: exige negócio
-            real salvo (d.biz.id). Convidado (biz.id null) e demo (sem id) não veem. */}
+        {/* BLOCO 2 — A PORTA PRO MENU INTELIGENTE (08/09/2026).
+            O Menu Inteligente vive só no painel novo, e não havia NENHUM
+            caminho daqui pra lá — o endereço não aparece em lugar nenhum do
+            site. Sem esta porta, um cliente compraria o Pro na página pública
+            e não teria como configurar o que comprou.
+            Ocupa o espaço que era do widget do Radar, desligado desde 09/07 e
+            aposentado em 07/09. */}
+        {!guestMode && <MenuInteligenteSlot plan={plan} isMobile={isMobile} />}
+
+        {/* Widget Radar IA — desligado desde 09/07 e o produto foi aposentado
+            em 07/09/2026. O componente devolve null; fica como referência. */}
         {!guestMode && !demoMode && d?.biz?.id && <RadarWidgetSlot d={d} isMobile={isMobile} />}
 
         {/* O GATILHO PRO (FOMO) saiu junto (03/ago): estava desligado por
