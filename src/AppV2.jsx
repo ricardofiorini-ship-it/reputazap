@@ -850,7 +850,11 @@ function SupportFAB({ isMobile }) {
   )
 }
 
-function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen }) {
+function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen, guest }) {
+  // A largura de cada item sai da lista JÁ FILTRADA: com o Menu fora, sobram
+  // quatro e eles ocupam 25% cada. Calcular sobre a lista cheia deixaria um
+  // buraco de 20% na barra do visitante.
+  const itens = MOBILE_PRIMARY_TABS.filter(t => !(guest && t.link))
   return (
     <nav style={{
       position:'fixed', bottom: 0, left: 0, right: 0,
@@ -872,7 +876,7 @@ function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen }) {
       // fundo sólido não tem como falhar.
       boxShadow:'0 -2px 12px rgba(15,23,42,0.06)'
     }}>
-      {MOBILE_PRIMARY_TABS.map(tab => {
+      {itens.map(tab => {
         const isMore = tab.id === 'more'
         const isActive = isMore ? moreOpen : active === tab.id
         const isLocked = false   // tudo free: sem selo na barra mobile
@@ -887,7 +891,7 @@ function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen }) {
               onChange(tab.id)  // Pro pro Free abre o preview borrado (upsell dentro)
             }}
             style={{
-              flex: 1, minWidth: 0, maxWidth: (100 / MOBILE_PRIMARY_TABS.length) + '%',
+              flex: 1, minWidth: 0, maxWidth: (100 / itens.length) + '%',
               display:'flex', flexDirection:'column',
               alignItems:'center', justifyContent:'center',
               padding:'10px 2px 12px',
@@ -1049,7 +1053,13 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
   )
 }
 
-function TopTabs({ active, onChange, plan, isMobile }) {
+// `guest`: o painel do visitante tem UM trabalho — virar conta. Cada botão a
+// mais disputa com o único que importa. E o Menu Inteligente mora atrás de
+// login, então pra ele a aba seria porta trancada: clica e cai num login sem
+// explicação. (Foi o que aconteceu — o banner já era escondido do visitante e
+// a aba tinha ficado, incoerência apontada pelo Ricardo em 08/09/2026.)
+// Quem quiser conhecer o Menu antes de ter conta acha na /plano-pro, pública.
+function TopTabs({ active, onChange, plan, isMobile, guest }) {
   const scrollerRef = React.useRef(null)
   const activeRef = React.useRef(null)
   const [showFadeRight, setShowFadeRight] = React.useState(false)
@@ -1110,7 +1120,7 @@ function TopTabs({ active, onChange, plan, isMobile }) {
             /* Hide webkit scrollbar */
             div[style*="overflowX: auto"]::-webkit-scrollbar{display:none}
           `}</style>
-        {TABS.map(tab => {
+        {TABS.filter(t => !(guest && t.link)).map(tab => {
           const isActive = active === tab.id
           const isLocked = false   // tudo free: sem selo PRO na navegação
           return (
@@ -7055,7 +7065,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         {...guestPitch}
       />}
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl} />
-      {!isMobile && <TopTabs active={tab} onChange={navigateFromMore} plan={plan} isMobile={false} />}
+      {!isMobile && <TopTabs active={tab} onChange={navigateFromMore} plan={plan} isMobile={false} guest={isGuest} />}
 
       {/* A aba CONCORRENTES foi REMOVIDA em 03/ago. Ela era uma tela inteira
           (mapa, simulador, oportunidades) construída sobre o /api/competitors —
@@ -7261,6 +7271,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <>
           <BottomTabBar
             active={tab}
+            guest={isGuest}
             onChange={navigateFromMore}
             plan={plan}
             onOpenMore={() => setMoreOpen(true)}
