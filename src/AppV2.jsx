@@ -739,6 +739,13 @@ const TABS = [
   // { id: 'alertas',      icon: 'bell', label: 'Alertas',      pro: true },
   { id: 'avaliacoes',   icon: 'star', label: 'Avaliações',   pro: false },
   // { id: 'relatorios',   icon: 'trendup', label: 'Relatórios',   pro: true },
+  // O Menu Inteligente mora no painel novo, então esta aba SAI do site em vez
+  // de trocar de tela — `link` faz o item virar um link de verdade.
+  // Precisa ser aba e não só o banner: banner é de lançamento e tem
+  // interruptor de desligar; depois dele, quem quiser voltar ao menu não
+  // teria por onde. Recurso pago sem lugar fixo na navegação é recurso que o
+  // cliente usa uma vez e não acha mais.
+  { id: 'menu',         icon: 'sparkles', label: 'Menu Inteligente', link: '/painel-f7dsaz3c/experiencia' },
   { id: 'loja',         icon: 'bag', label: 'Loja',         pro: false }
 ]
 
@@ -910,6 +917,7 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
     { label:'Loja',        icon:'cart', tabId:'loja'                   },
     { label:'Configurações', icon:'settings', tabId:'config', hash:'negocio' },
     { label:'Minha conta', icon:'user', tabId:'config', hash:'conta' },
+    { label:'Menu Inteligente', icon:'sparkles', href:'/painel-f7dsaz3c/experiencia', external: true },
     { label:'Central de ajuda', icon:'help', href:'/ajuda', external: true }
   ]
 
@@ -1096,8 +1104,10 @@ function TopTabs({ active, onChange, plan, isMobile }) {
             <a
               key={tab.id}
               ref={isActive ? activeRef : null}
-              href="#"
+              href={tab.link || '#'}
               onClick={(e) => {
+                // Aba com `link` sai do site: deixa o navegador seguir.
+                if (tab.link) return
                 // Aba Pro pro Free agora abre o PREVIEW borrado (com upsell dentro),
                 // em vez de redirecionar pra /plano-pro.
                 e.preventDefault()
