@@ -756,6 +756,7 @@ const TABS = [
 const MOBILE_PRIMARY_TABS = [
   { id: 'painel',       icon: 'home', label: 'Painel'       },
   { id: 'avaliacoes',   icon: 'star', label: 'Avaliações'   },
+  { id: 'menu',         icon: 'sparkles', label: 'Menu', link: '/painel-f7dsaz3c/experiencia' },
   { id: 'loja',         icon: 'bag', label: 'Loja'         },
   { id: 'more',         icon: 'menu',  label: 'Mais'         }
 ]
@@ -866,14 +867,15 @@ function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen }) {
         return (
           <a
             key={tab.id}
-            href="#"
+            href={tab.link || '#'}
             onClick={(e) => {
+              if (tab.link) return          // sai do site: deixa o navegador seguir
               e.preventDefault()
               if (isMore) { onOpenMore(); return }
               onChange(tab.id)  // Pro pro Free abre o preview borrado (upsell dentro)
             }}
             style={{
-              flex: 1, minWidth: 0, maxWidth:'25%',
+              flex: 1, minWidth: 0, maxWidth: (100 / MOBILE_PRIMARY_TABS.length) + '%',
               display:'flex', flexDirection:'column',
               alignItems:'center', justifyContent:'center',
               padding:'10px 2px 12px',
@@ -917,7 +919,6 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
     { label:'Loja',        icon:'cart', tabId:'loja'                   },
     { label:'Configurações', icon:'settings', tabId:'config', hash:'negocio' },
     { label:'Minha conta', icon:'user', tabId:'config', hash:'conta' },
-    { label:'Menu Inteligente', icon:'sparkles', href:'/painel-f7dsaz3c/experiencia', external: true },
     { label:'Central de ajuda', icon:'help', href:'/ajuda', external: true }
   ]
 
