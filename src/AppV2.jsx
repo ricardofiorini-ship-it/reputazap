@@ -745,7 +745,7 @@ const TABS = [
   // interruptor de desligar; depois dele, quem quiser voltar ao menu não
   // teria por onde. Recurso pago sem lugar fixo na navegação é recurso que o
   // cliente usa uma vez e não acha mais.
-  { id: 'menu',         icon: 'sparkles', label: 'Menu Inteligente', link: '/painel-f7dsaz3c/experiencia' },
+  { id: 'menu',         icon: 'sparkles', label: 'Menu Inteligente', link: '/painel-f7dsaz3c/experiencia?solo=1' },
   { id: 'loja',         icon: 'bag', label: 'Loja',         pro: false }
 ]
 
@@ -756,7 +756,7 @@ const TABS = [
 const MOBILE_PRIMARY_TABS = [
   { id: 'painel',       icon: 'home', label: 'Painel'       },
   { id: 'avaliacoes',   icon: 'star', label: 'Avaliações'   },
-  { id: 'menu',         icon: 'sparkles', label: 'Menu', link: '/painel-f7dsaz3c/experiencia' },
+  { id: 'menu',         icon: 'sparkles', label: 'Menu', link: '/painel-f7dsaz3c/experiencia?solo=1' },
   { id: 'loja',         icon: 'bag', label: 'Loja'         },
   { id: 'more',         icon: 'menu',  label: 'Mais'         }
 ]
@@ -3345,7 +3345,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile }) {
                 : 'Hoje seu dispositivo leva direto à avaliação no Google. Com o Pro, o mesmo toque abre um menu com vários caminhos — e a avaliação continua sendo a primeira opção.'}
             </div>
           </div>
-          <a href="/painel-f7dsaz3c/experiencia" style={{
+          <a href="/painel-f7dsaz3c/experiencia?solo=1" style={{
             background: T.blue, color: '#fff', borderRadius: 9, padding: '11px 18px',
             fontSize: 13.5, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', flex: '0 0 auto'
           }}>
@@ -3401,7 +3401,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile }) {
             mantendo a avaliação sempre em primeiro lugar.
           </div>
 
-          <a href="/painel-f7dsaz3c/experiencia" style={{
+          <a href="/painel-f7dsaz3c/experiencia?solo=1" style={{
             display: 'inline-flex', alignItems: 'center', gap: 9,
             background: '#fff', color: '#0B3EA8', borderRadius: 10,
             padding: '13px 24px', fontSize: 14.5, fontWeight: 800, textDecoration: 'none',

@@ -1184,7 +1184,7 @@ const TRIAL_DIAS_PRO = 7;
 // nossa marca — o Stripe mandaria o usuário pra onde o atacante quisesse.
 const RETORNOS_PRO = {
   app:  "/app?upgrade=success",
-  menu: "/painel-f7dsaz3c/experiencia?upgrade=success"
+  menu: "/painel-f7dsaz3c/experiencia?upgrade=success&solo=1"
 };
 
 async function handleCheckoutStripe(req, res) {

@@ -955,3 +955,17 @@ table.v3-t tr:last-child td { border-bottom: 0; }
   .v3-camp-flow { grid-template-columns: 1fr; }
   .v3-camp-flow > i { transform: rotate(90deg); justify-self: center; }
 }
+
+/* ── MODO SOLO (?solo=1) ──────────────────────────────────────
+   Uma tela do painel novo aberta a partir do painel atual, sem a coluna de
+   áreas. O `.v3` normal é um grid de duas colunas; aqui vira uma só. */
+.v3.v3-solo { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.v3-solo .v3-solobar {
+  position: sticky; top: 0; z-index: 30;
+  background: var(--n-bg); padding: 10px 14px;
+  display: flex; align-items: center;
+}
+.v3-solo .v3-solobar .v3-btn {
+  background: transparent; border-color: rgba(255,255,255,.28); color: var(--n-white);
+}
+.v3-solo .v3-solobar .v3-btn:hover { background: rgba(255,255,255,.1); }
