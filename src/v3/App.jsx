@@ -13,7 +13,7 @@ import React from 'react'
 import { Menu, X, ArrowLeft } from 'lucide-react'
 import { gruposVisiveis, AREAS, STATUS_TXT } from './lib/areas.js'
 import { api, currentUser, logout, token } from './lib/api.js'
-import { modoSolo, CHAVE_SOLO } from './lib/acesso.js'
+import { modoSolo, CHAVE_SOLO, CONVIDADO, AREAS_DE_CLIENTE, urlCadastro } from './lib/acesso.js'
 import { useDados } from './lib/dados.js'
 import { Carregando, Erro } from './ui.jsx'
 import Inicio from './screens/Inicio.jsx'
@@ -179,6 +179,9 @@ if (['pro', 'teste', 'cancelado'].includes(PLANO_PREVIEW)) {
 
 function areaDaUrl() {
   const p = window.location.pathname.replace(BASE, '').replace(/^\/+|\/+$/g, '')
+  // Convidado que digitar uma área de cliente na URL cai no Início em vez de
+  // numa tela que ia falhar: sem conta não há dispositivo, menu nem ajuste.
+  if (CONVIDADO && AREAS_DE_CLIENTE.includes(p)) return PADRAO
   return AREAS[p] ? p : PADRAO
 }
 
@@ -355,7 +358,7 @@ export default function App() {
           <div className="v3-brandname">STARTOUCH</div>
         </div>
 
-        {gruposVisiveis().map((g, gi) => (
+        {gruposVisiveis({ convidado: !!CONVIDADO }).map((g, gi) => (
           <React.Fragment key={gi}>
             {g.titulo && <div className="v3-grp">{g.titulo}</div>}
             {g.ids.map(aid => {
@@ -375,12 +378,24 @@ export default function App() {
         ))}
 
         <div className="v3-sidefoot">
-          {temMarcaNoMenu && <Legenda/>}
-          <div className="v3-plate">
-            <div className="pl">STARTOUCH {dados.biz?.plan === 'pro' ? 'PRO' : 'FREE'}</div>
-            <div className="sub">{dados.biz?.name || user?.email || '—'}</div>
-            <button className="out" onClick={logout}>Sair</button>
-          </div>
+          {temMarcaNoMenu && !CONVIDADO && <Legenda/>}
+          {CONVIDADO ? (
+            // O convidado está vendo os dados dele sem ter conta. O rodapé
+            // deixa de ser "quem você é" e passa a ser "guarde isto" — que é a
+            // única coisa que ele ainda precisa decidir aqui.
+            <div className="v3-plate v3-plate-convidado">
+              <div className="pl">VOCÊ ESTÁ VISITANDO</div>
+              <div className="sub">{dados.biz?.name || 'Seu negócio'}</div>
+              <a className="v3-btn solid" href={urlCadastro()}>Criar conta grátis</a>
+              <a className="entrar" href="/app?login=1">Já tenho conta</a>
+            </div>
+          ) : (
+            <div className="v3-plate">
+              <div className="pl">STARTOUCH {dados.biz?.plan === 'pro' ? 'PRO' : 'FREE'}</div>
+              <div className="sub">{dados.biz?.name || user?.email || '—'}</div>
+              <button className="out" onClick={logout}>Sair</button>
+            </div>
+          )}
         </div>
       </nav>
 

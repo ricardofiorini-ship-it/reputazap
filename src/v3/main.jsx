@@ -17,7 +17,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import { currentUser, token } from './lib/api.js'
-import { ehInterno } from './lib/acesso.js'
+import { ehInterno, CONVIDADO } from './lib/acesso.js'
 import Login from '../Login.jsx'
 import './theme.css'
 
@@ -40,8 +40,16 @@ function Porta() {
   // re-renderizar com a sessão nova sem recarregar a página.
   const [user, setUser] = React.useState(() => (token() ? currentUser() : null))
 
-  // Sem sessão → o login acontece AQUI, na própria rota. Nada de mandar pro
-  // painel antigo e voltar: quem entra pelo endereço do V3 fica no V3.
+  // CONVIDADO (08/09/2026): quem chega com `?place_id=` e sem conta vê o
+  // painel assim mesmo. É a porta de entrada do funil — a pessoa busca o
+  // negócio dela na landing e cai aqui pra VER a própria presença no Google
+  // antes de decidir criar conta. Pedir cadastro antes de mostrar qualquer
+  // coisa é pedir fé; mostrar primeiro é o que converte.
+  if (!token() && CONVIDADO) return <App/>
+
+  // Sem sessão e sem contexto → o login acontece AQUI, na própria rota. Nada
+  // de mandar pro painel antigo e voltar: quem entra pelo endereço do V3 fica
+  // no V3.
   if (!token() || !user) {
     return <Login onLogin={(u) => setUser(u)}/>
   }

@@ -61,7 +61,46 @@ const PREVIEW = (() => {
 // O modo final: cliente comum é SEMPRE solo, tenha pedido ou não. Sem isto,
 // bastaria tirar `?solo=1` do endereço pra cair no painel em construção.
 export function modoSolo(user) {
+  // O convidado vê o painel, não uma tela solta: ele veio pra CONHECER a
+  // ferramenta, e "Voltar ao painel" não faz sentido pra quem não tem painel.
+  if (CONVIDADO) return false
   if (SOLO_PEDIDO) return true
   if (PREVIEW) return false
   return !ehInterno(user)
+}
+
+// ============================================================
+// O CONVIDADO — quem chega sem conta, vindo da landing
+// ============================================================
+// Mesmo contrato de URL do painel atual (`?place_id=…&terms=…`), de propósito:
+// os links que já existem no site continuam funcionando quando o V3 assumir,
+// e não há um segundo formato pra manter.
+//
+// Ele NÃO tem conta, então nada aqui pode depender de token: negócio, nota,
+// avaliações e posição saem de endpoints públicos, por `place_id`. O que exige
+// conta (dispositivos, menus, configurações) simplesmente não aparece pra ele.
+export const CONVIDADO = (() => {
+  try {
+    const p = new URLSearchParams(window.location.search)
+    const placeId = p.get('place_id') || p.get('place') || null
+    if (!placeId) return null
+    const termos = (p.get('terms') || p.get('keyword') || '')
+      .split(',').map(t => t.trim()).filter(Boolean).slice(0, 3)
+    return { placeId, termos, keyword: p.get('keyword') || '', cep: p.get('cep') || '' }
+  } catch { return null }
+})()
+
+// Endereço do cadastro, carregando o contexto pra conta já nascer ligada ao
+// negócio que a pessoa acabou de ver — sem isso ela teria que buscar de novo,
+// que é onde o funil perde gente.
+// Áreas que não existem sem conta. Some da navegação em vez de aparecer
+// bloqueada: mostrar cadeado pra quem nem conta tem é anunciar parede antes
+// de mostrar porta.
+export const AREAS_DE_CLIENTE = ['dispositivos', 'experiencia', 'config', 'resultados', 'clientes', 'campanhas', 'unidades']
+
+export function urlCadastro() {
+  const q = new URLSearchParams({ from: 'painel-convidado' })
+  if (CONVIDADO?.placeId) q.set('place_id', CONVIDADO.placeId)
+  if (CONVIDADO?.keyword) q.set('keyword', CONVIDADO.keyword)
+  return '/ativar?' + q.toString()
 }

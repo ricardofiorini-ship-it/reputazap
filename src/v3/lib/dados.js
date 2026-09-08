@@ -12,10 +12,11 @@
 // ============================================================
 import React from 'react'
 import { api, ApiError } from './api.js'
+import { CONVIDADO } from './acesso.js'
 
 export function useDados({ area } = {}) {
   const [estado, setEstado] = React.useState({
-    carregando: true, erro: null, semNegocio: false, sessaoExpirou: false,
+    carregando: true, erro: null, semNegocio: false, sessaoExpirou: false, convidado: false,
     biz: null, info: null, avaliacoes: null, dispositivos: [], posicao: null
   })
   const [nonce, setNonce] = React.useState(0)
@@ -40,6 +41,38 @@ export function useDados({ area } = {}) {
 
     ;(async () => {
       try {
+        // ── CONVIDADO ──
+        // Sem conta, então nada de `mybiz` nem `plates`: o negócio é montado a
+        // partir do que o Google devolve pelo `place_id`, que é público. Ele vê
+        // a mesma presença que um cliente vê — é esse o "aha" que faz a pessoa
+        // criar conta. O que exige conta some, em vez de dar erro.
+        if (CONVIDADO) {
+          const [info, av, pos] = await Promise.all([
+            api.dadosDoLocal(CONVIDADO.placeId),
+            api.avaliacoes(CONVIDADO.placeId),
+            api.posicao(CONVIDADO.placeId)
+          ])
+          if (!vivo) return
+          if (!info?.name) {
+            setEstado(e => ({ ...e, carregando: false, erro: 'Não encontramos esse negócio no Google.' }))
+            return
+          }
+          setEstado({
+            carregando: false, erro: null, semNegocio: false, sessaoExpirou: false,
+            convidado: true,
+            biz: { name: info.name, place_id: CONVIDADO.placeId, plan: 'free' },
+            info,
+            avaliacoes: av || null,
+            dispositivos: [],
+            // Mesma regra do cliente: `measured === 0` é "não sabemos", nunca
+            // "você está fora" — anunciar má notícia a partir de falha de
+            // infraestrutura seria inventar, e pro convidado seria inventar
+            // uma má notícia sobre alguém que nem cliente é.
+            posicao: pos?.grid?.terms?.[0]?.measured > 0 ? pos.grid.terms[0] : null
+          })
+          return
+        }
+
         const { business: biz } = await api.meuNegocio()
         if (!vivo) return
         if (!biz || !biz.place_id) {

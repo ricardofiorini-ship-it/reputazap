@@ -31,6 +31,7 @@
 // ficou faltando — e o mapa, que existe justamente para responder isso,
 // passa a mentir com cara de documentação.
 // ============================================================
+import { AREAS_DE_CLIENTE } from './acesso.js'
 import {
   Home, Sparkles, Tablet, Star, UserPlus, Building2,
   TrendingUp, Zap, PlayCircle, Compass, Settings, HelpCircle
@@ -248,8 +249,11 @@ export const IDS = Object.keys(AREAS)
 
 /** As áreas que vão pra barra lateral, na ordem dos grupos. Grupo que ficou
  *  sem nenhuma área visível não aparece — senão sobraria um título solto. */
-export function gruposVisiveis() {
+export function gruposVisiveis({ convidado = false } = {}) {
   return GRUPOS
-    .map(g => ({ ...g, ids: g.ids.filter(id => AREAS[id] && AREAS[id].publica !== false) }))
+    .map(g => ({ ...g, ids: g.ids.filter(id =>
+      AREAS[id] && AREAS[id].publica !== false &&
+      !(convidado && AREAS_DE_CLIENTE.includes(id))
+    ) }))
     .filter(g => g.ids.length > 0)
 }
