@@ -273,9 +273,39 @@ function Plano({ dados }) {
   const agendado = ehPro && !!cancelaEm && new Date(cancelaEm).getTime() > Date.now()
   const dataFim  = agendado ? new Date(cancelaEm).toLocaleDateString('pt-BR') : null
 
+  // O QUE O CLIENTE PERGUNTA quando abre esta tela: quanto pago, quando cai a
+  // proxima, e onde pego a nota. Antes so tinha o nome do plano — o resto ele
+  // teria que adivinhar ou perguntar pra gente.
+  //
+  // Durante os 7 dias gratis, `stripe_current_period_end` e o FIM DO TESTE, que
+  // e tambem o dia da primeira cobranca. Dizer isso em voz alta e o que evita a
+  // pior surpresa possivel: a cobranca que o cliente jurava que nao vinha.
+  const status = dados.biz?.stripe_subscription_status || null
+  const emTeste = status === 'trialing'
+  const proximaCobranca = dados.biz?.stripe_current_period_end || null
+  const dataCobranca = proximaCobranca
+    ? new Date(proximaCobranca).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+    : null
+
   const [confirmando, setConfirmando] = React.useState(false)
   const [cancelando, setCancelando] = React.useState(false)
+  const [indoPortal, setIndoPortal] = React.useState(false)
   const [aviso, setAviso] = React.useState('')
+
+  // Portal do Stripe: trocar cartao, ver e baixar faturas. Cartao vencido e a
+  // maior causa de assinante perdido sem querer, e aqui o proprio cliente
+  // resolve — sem abrir chamado, sem esperar a gente.
+  async function abrirPortal() {
+    setIndoPortal(true); setAviso('')
+    try {
+      const r = await post('/api/billing?action=billing-portal', {})
+      if (!r?.url) throw new Error('Não recebemos o endereço do portal.')
+      window.location.href = r.url
+    } catch (e) {
+      setAviso('err:' + (e.message || 'Não foi possível abrir a área de pagamento.'))
+      setIndoPortal(false)
+    }
+  }
 
   async function cancelar() {
     setCancelando(true); setAviso('')
@@ -307,21 +337,47 @@ function Plano({ dados }) {
           <div style={{ fontSize: 21, fontWeight: 800, letterSpacing: '-0.02em', marginTop: 2 }}>
             {ehPro ? 'StarTouch Pro' : 'StarTouch Free'}
           </div>
-          {agendado && (
+          {agendado ? (
             <div style={{ fontSize: 12.5, opacity: .9, marginTop: 2 }}>
               Cancelada — ativa até {dataFim}
             </div>
-          )}
+          ) : emTeste ? (
+            <div style={{ fontSize: 12.5, opacity: .9, marginTop: 2 }}>
+              Teste grátis — R$ 19,90/mês a partir de {dataCobranca}
+            </div>
+          ) : ehPro ? (
+            <div style={{ fontSize: 12.5, opacity: .9, marginTop: 2 }}>
+              R$ 19,90/mês{dataCobranca ? ` · próxima cobrança em ${dataCobranca}` : ''}
+            </div>
+          ) : null}
         </div>
         {!ehPro && <Chip tipo="g">Todos os recursos liberados</Chip>}
       </div>
 
+      {/* O aviso do teste sai do card e ganha destaque proprio: e a informacao
+          que mais gera contestacao de cartao quando ninguem avisa. */}
+      {emTeste && !agendado && (
+        <div style={{
+          marginTop: 10, padding: '11px 13px', borderRadius: 9,
+          background: 'var(--amber-soft, #FFFBEB)', border: '1px solid #FDE68A',
+          fontSize: 12.5, color: '#92400E', lineHeight: 1.5
+        }}>
+          Seus <strong>7 dias grátis</strong> terminam em <strong>{dataCobranca}</strong>. Nesse dia
+          entra a primeira cobrança de R$ 19,90. Se cancelar antes, não é cobrado nada.
+        </div>
+      )}
+
       {ehPro && (
         <>
-          <p className="v3-dica" style={{ marginTop: 12 }}>
-            A cobrança é feita pelo Mercado Pago — data da próxima cobrança, forma de pagamento
-            e comprovantes ficam lá, na sua conta. Pra trocar a forma de pagamento, fale com a gente.
-          </p>
+          <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Pagamento e notas</div>
+            <p className="v3-dica" style={{ margin: '0 0 10px' }}>
+              Troque o cartão, veja e baixe suas faturas. A cobrança é processada pela Stripe.
+            </p>
+            <button className="v3-btn" onClick={abrirPortal} disabled={indoPortal}>
+              {indoPortal ? 'Abrindo…' : 'Gerenciar pagamento'}
+            </button>
+          </div>
           <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
             {/* Quem já cancelou não vê "cancelar" de novo: vê até quando tem
                 Pro e como voltar atrás. */}

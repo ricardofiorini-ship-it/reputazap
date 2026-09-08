@@ -155,21 +155,24 @@ if (PERFIL) {
   PREVIEW_DADOS.posicao = PERFIL.posicao
 }
 
-// `?preview&plano=pro|cancelado` — os dois estados de assinatura que nenhum
-// perfil acima produz. O `cancelado` existe porque e o unico jeito de VER a
-// tela de quem cancelou e ainda tem prazo: no banco ela e um `plan: 'pro'`
-// com bandeira e data, uma combinacao que so aparece depois de alguem
-// cancelar de verdade. Tela que so da pra revisar em producao acaba indo ao
-// ar sem revisao. Preso a `import.meta.env.DEV`, como o resto daqui.
+// `?preview&plano=pro|teste|cancelado` — os tres estados de assinatura que
+// nenhum perfil acima produz, e que so aparecem depois de alguem pagar de
+// verdade. Sem isto, a unica forma de revisar essas telas seria assinar,
+// esperar, cancelar — e tela que so da pra ver em producao acaba indo ao ar
+// sem revisao. Os status sao os do Stripe (`active`, `trialing`), que e quem
+// escreve neste campo desde 07/09/2026. Preso a `import.meta.env.DEV`.
 const PLANO_PREVIEW = PREVIEW && new URLSearchParams(window.location.search).get('plano')
-if (PLANO_PREVIEW === 'pro' || PLANO_PREVIEW === 'cancelado') {
-  const cancelado = PLANO_PREVIEW === 'cancelado'
+if (['pro', 'teste', 'cancelado'].includes(PLANO_PREVIEW)) {
+  const dias = PLANO_PREVIEW === 'teste' ? 5 : 18
   PREVIEW_DADOS.biz = {
     ...PREVIEW_DADOS.biz,
     plan: 'pro',
-    stripe_subscription_status: cancelado ? 'cancelled' : 'authorized',
-    stripe_cancel_at_period_end: cancelado,
-    stripe_current_period_end: new Date(agora + 18 * 86400000).toISOString()
+    stripe_subscription_status:
+      PLANO_PREVIEW === 'cancelado' ? 'canceled'
+      : PLANO_PREVIEW === 'teste' ? 'trialing'
+      : 'active',
+    stripe_cancel_at_period_end: PLANO_PREVIEW === 'cancelado',
+    stripe_current_period_end: new Date(agora + dias * 86400000).toISOString()
   }
 }
 

@@ -314,12 +314,15 @@
 
 <script>
   (function () {
+    // PAGINA PUBLICA desde 07/09/2026. Antes ela exigia sessao e mandava quem
+    // nao tinha pro login — ou seja, o visitante que queria saber o PRECO batia
+    // numa tela de senha. Preco escondido atras de login e o tipo de coisa que
+    // faz a pessoa fechar a aba e nao voltar.
+    //
+    // Agora: quem esta logado assina daqui mesmo; quem nao esta le tudo e o
+    // botao vira convite pra criar a conta. A trava de verdade continua no
+    // servidor — `?action=checkout` exige token e nao ha o que burlar aqui.
     const TOKEN = localStorage.getItem("rz_token");
-    if (!TOKEN) {
-      // Sem sessao — manda pro login
-      window.location.href = "/app?next=/plano-pro";
-      return;
-    }
 
     const btn = document.getElementById("subscribeBtn");
     const msg = document.getElementById("msg");
@@ -328,6 +331,20 @@
       msg.textContent = text;
       msg.classList.add("is-error");
       msg.style.display = "block";
+    }
+
+    // Visitante: o botao leva ao cadastro, com `?from=` pra medicao do funil.
+    // Nao adianta abrir checkout pra quem nao tem conta — a assinatura precisa
+    // estar amarrada a um negocio.
+    if (!TOKEN) {
+      btn.innerHTML = 'Criar conta e começar' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+      btn.addEventListener("click", function () {
+        window.location.href = "/ativar?from=plano-pro";
+      });
+      var nota = document.querySelector(".pp-footer-note");
+      if (nota) nota.innerHTML = 'Já tem conta? <a href="/app?login=1&next=/plano-pro">Entrar</a>.';
+      return;
     }
 
     btn.addEventListener("click", async () => {
