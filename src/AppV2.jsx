@@ -3400,11 +3400,15 @@ function MenuInteligenteSlot({ plan, bizName, isMobile }) {
             <ArrowRight size={17}/>
           </a>
 
-          {!ehPro && (
-            <div style={{ fontSize: 11.5, opacity: .78, marginTop: 10 }}>
-              Depois de 7 dias, R$ 19,90 por mês. Sem fidelidade, cancele quando quiser.
-            </div>
-          )}
+          {/* O VALOR NÃO ENTRA AQUI (decisão do Ricardo, 08/09/2026).
+              O banner desperta interesse; quem cobra é a caixa que abre no
+              "Publicar", quando a pessoa já montou o menu e viu o nome do
+              próprio negócio dentro dele. Preço no topo do funil antecipa a
+              objeção pra antes do argumento.
+              Ninguém é pego de surpresa: "7 dias grátis" no botão já diz que
+              é pago, e o número está na /plano-pro, que é pública.
+              De quebra, separa a medição: o banner passa a medir INTERESSE e
+              a caixa, DISPOSIÇÃO A PAGAR — dois sinais em vez de um borrado. */}
 
           {/* Os três ganhos, na mesma linha do original. Em telas estreitas
               eles quebram sozinhos em vez de espremer. */}
