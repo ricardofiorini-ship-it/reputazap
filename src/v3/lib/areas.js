@@ -133,7 +133,7 @@ export const AREAS = {
   },
 
   resultados: {
-    nome: 'Resultados', icon: TrendingUp, status: 'pronto', pro: true, tela: 'resultados',
+    nome: 'Resultados', icon: TrendingUp, status: 'pronto', pro: false, tela: 'resultados',
     sub: 'Para onde as pessoas foram depois de tocar',
     lead: 'A camada de cruzamento, e ela nasce Pro inteira',
     corpo: 'A contagem de toques NÃO foi movida para cá: ela continua gratuita em Dispositivos, com histórico, último toque e períodos. Aqui ela reaparece apenas como denominador — o número de baixo da conta. O que se paga é o cruzamento, nunca o número que o cliente já tinha.',

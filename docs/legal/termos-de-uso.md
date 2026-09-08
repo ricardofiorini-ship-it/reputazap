@@ -1,6 +1,6 @@
 # Termos de Uso — StarTouch
 
-**Versão 1.1 — vigente a partir de 7 de setembro de 2026**
+**Versão 1.2 — vigente a partir de 7 de setembro de 2026**
 
 ---
 
@@ -46,7 +46,7 @@ Comunique-nos imediatamente qualquer uso não autorizado.
 
 ## 4. Compra, entrega e garantia dos dispositivos
 
-**Preços e pagamento.** Os preços vigentes são os exibidos no site no momento da compra. O pagamento é processado pelo Mercado Pago, com as formas ali disponíveis.
+**Preços e pagamento.** Os preços vigentes são os exibidos no site no momento da compra. O pagamento dos dispositivos é processado pelo **Mercado Pago**, com as formas ali disponíveis. A assinatura StarTouch Pro (item 5.3) é processada pela **Stripe**.
 
 **Frete e prazo.** Frete gratuito para todo o Brasil. O prazo estimado de entrega é de 5 a 10 dias úteis após a confirmação do pagamento, contado a partir da postagem, e pode variar conforme a região e fatores alheios ao nosso controle.
 
@@ -69,24 +69,38 @@ Acompanha a aquisição do dispositivo, **sem mensalidade**:
 - edição do destino do dispositivo a qualquer momento, sem troca do produto físico;
 - métricas de uso dos seus dispositivos.
 
-### 5.2 Recursos opcionais contratados à parte
+### 5.2 Por que o painel é gratuito, e o que pode mudar
 
-Dois recursos são contratados separadamente, com condições e preços informados no momento da contratação:
+O dispositivo StarTouch é compra única, e é ela que sustenta a plataforma. Os recursos do item 5.1 não têm mensalidade porque já vieram com o produto que você comprou — não são cortesia temporária nem período promocional.
 
-- **Medição sob demanda** — atualização da sua posição no ranking local quando você quiser, sem aguardar o ciclo semanal já incluído;
-- **IA Radar** — medição da presença do seu negócio nas respostas de sistemas de inteligência artificial.
+Podemos rever no futuro quais recursos ficam no plano gratuito. Se isso acontecer, **avisaremos por e-mail com pelo menos 30 dias de antecedência**, e nunca cobraremos por período já utilizado.
 
-Nenhum recurso opcional é necessário para o funcionamento do dispositivo ou do painel incluído. Se você nunca contratar nenhum, dispositivo e painel continuam operando integralmente.
+**O que estiver incluído no plano pago no momento em que você assina permanece incluído enquanto sua assinatura estiver ativa**, mesmo que as condições oferecidas a novos assinantes mudem depois.
 
-### 5.3 Destino editável
+### 5.3 StarTouch Pro (assinatura opcional)
+
+O **Menu Inteligente** é o recurso da assinatura StarTouch Pro: com ele, o toque no dispositivo abre um menu com vários caminhos — avaliação no Google, WhatsApp, cardápio, agendamento, entre outros — em vez de levar direto à página de avaliação.
+
+Condições vigentes, também exibidas na página do plano no momento da contratação:
+
+- **7 dias gratuitos** no início da assinatura;
+- **R$ 19,90 por mês** depois, **sem fidelidade**;
+- cancelamento a qualquer momento pelo painel, **com acesso mantido até o fim do período já pago**;
+- pagamento processado pela **Stripe**.
+
+A avaliação no Google permanece como primeira opção de todo menu, sempre.
+
+A assinatura **não é necessária** para o funcionamento do dispositivo nem do painel incluído. Sem ela, o dispositivo continua levando à avaliação no Google e o painel segue completo, na forma do item 5.1.
+
+### 5.4 Destino editável
 
 Você pode alterar a qualquer momento o perfil do Google para o qual seus dispositivos apontam. Você é o único responsável pelo destino configurado e por sua adequação — inclusive por eventual redirecionamento indevido.
 
-### 5.4 Disponibilidade
+### 5.5 Disponibilidade
 
 Empregamos esforços para manter a plataforma disponível de forma contínua, mas não garantimos operação ininterrupta ou livre de falhas. Poderá haver indisponibilidade por manutenção, atualização, falha de terceiros ou evento fora do nosso controle.
 
-Como o painel incluído é fornecido sem custo adicional, ele não conta com nível de serviço garantido. Recursos opcionais contratados podem prever condições específicas.
+Como o painel incluído é fornecido sem custo adicional, ele não conta com nível de serviço garantido. A assinatura StarTouch Pro pode prever condições específicas.
 
 ---
 
