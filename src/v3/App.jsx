@@ -13,6 +13,7 @@ import React from 'react'
 import { Menu, X, ArrowLeft } from 'lucide-react'
 import { gruposVisiveis, AREAS, STATUS_TXT } from './lib/areas.js'
 import { currentUser, logout } from './lib/api.js'
+import { modoSolo, CHAVE_SOLO } from './lib/acesso.js'
 import { useDados } from './lib/dados.js'
 import { Carregando, Erro } from './ui.jsx'
 import Inicio from './screens/Inicio.jsx'
@@ -176,25 +177,6 @@ if (['pro', 'teste', 'cancelado'].includes(PLANO_PREVIEW)) {
   }
 }
 
-// `?solo=1` — uma tela só, sem a navegação daqui. Quem chega assim veio do
-// painel atual e não deve ser jogado no painel novo inteiro.
-//
-// FICA GUARDADO NA SESSÃO por um motivo concreto: quem assina sai daqui pro
-// Stripe e volta por um endereço FIXO, configurado no painel dele — que não
-// carrega o `?solo=1`. Sem a lembrança, a pessoa sairia de uma tela simples e
-// voltaria dentro do painel inteiro, logo depois de pagar. A marca é apagada
-// no "Voltar ao painel", que é a saída explícita.
-const CHAVE_SOLO = 'st_v3_solo'
-const SOLO = (() => {
-  try {
-    if (new URLSearchParams(window.location.search).get('solo') === '1') {
-      sessionStorage.setItem(CHAVE_SOLO, '1')
-      return true
-    }
-    return sessionStorage.getItem(CHAVE_SOLO) === '1'
-  } catch { return false }
-})()
-
 function areaDaUrl() {
   const p = window.location.pathname.replace(BASE, '').replace(/^\/+|\/+$/g, '')
   return AREAS[p] ? p : PADRAO
@@ -316,7 +298,7 @@ export default function App() {
   //
   // Morre sozinho quando o V3 substituir o /app: sem dois painéis, não há de
   // onde vir nem pra onde voltar.
-  if (SOLO) {
+  if (modoSolo(currentUser())) {
     return (
       <div className="v3 v3-solo">
         <div className="v3-solobar">

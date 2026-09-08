@@ -62,7 +62,7 @@ const ADMIN_EMAILS = new Set(["ricardo.fiorini@gmail.com"]);
 // Trocar esta linha é o ato que coloca o Menu Inteligente à venda. Está
 // sozinha aqui, e não espalhada por oito actions, porque regra de acesso
 // espalhada é regra da qual um dia se esquece um pedaço.
-const BETA_SO_ADMIN = true;
+const BETA_SO_ADMIN = false;
 
 // Contas que entram no beta SEM ser administrador. Existe por um motivo
 // específico: o administrador é sempre Pro (atalho no resolvePlano), então
