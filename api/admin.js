@@ -161,6 +161,41 @@ async function handleFunnel(req, res) {
 // resto (no ar num aparelho, assinantes) é ESTADO DE AGORA e não tem data no
 // nosso banco; filtrar por período ali daria um número que parece do período e
 // não é. A tela diz qual linha é qual, em vez de misturar as duas naturezas.
+// ── CONTAS DE DENTRO DE CASA ──
+// Pedido do Ricardo (09/09/2026): os testes dele nao podem entrar na conta.
+// E o motivo e mais duro do que "poluir o numero": durante um lancamento com
+// pouquissimos clientes, DOIS negocios de teste viram a maioria da amostra —
+// o painel diria "22% publicaram" e os 22% seriam ele mesmo. Numero que
+// descreve quem olha em vez de quem usa e pior que numero nenhum, porque da
+// confianca.
+//
+// Mora numa constante so. Espalhar essa lista por relatorios seria garantir
+// que um dia um deles conte e o outro nao, e a divergencia apareceria como
+// "os numeros nao batem" sem ninguem achar a causa.
+const EMAILS_INTERNOS = new Set([
+  "ricardo.fiorini@gmail.com",
+  "ricardo@gt6.com.br"
+]);
+
+// Devolve os `user_id` das contas internas. Uma chamada, nao uma por negocio.
+// Falha em silencio de proposito: se a leitura de usuarios cair, e melhor um
+// relatorio COM as contas de teste do que relatorio nenhum — e o aviso sai no
+// log pra nao virar diferenca silenciosa.
+async function idsInternos() {
+  try {
+    const { data, error } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    if (error) throw error;
+    return new Set(
+      (data?.users || [])
+        .filter(u => EMAILS_INTERNOS.has((u.email || "").toLowerCase().trim()))
+        .map(u => u.id)
+    );
+  } catch (e) {
+    console.warn("[admin] nao consegui excluir contas internas do funil:", e?.message || e);
+    return null;
+  }
+}
+
 async function funilDoMenu(since, until) {
   const noPeriodo = (d) => {
     if (!d) return false;
@@ -169,14 +204,24 @@ async function funilDoMenu(since, until) {
     return true;
   };
 
-  const [exps, plates, negocios] = await Promise.all([
+  const [exps, plates, negocios, internos] = await Promise.all([
     supabase.from("experiences").select("id, business_id, published, archived_at, created_at, published_at"),
     supabase.from("plates").select("experience_id, served_mode").eq("served_mode", "menu"),
-    supabase.from("businesses").select("id, plan, stripe_subscription_status, stripe_cancel_at_period_end, stripe_current_period_end")
+    supabase.from("businesses").select("id, user_id, plan, stripe_subscription_status, stripe_cancel_at_period_end, stripe_current_period_end"),
+    idsInternos()
   ]);
   if (exps.error) return { erro: exps.error.message };
 
-  const todasVivas = (exps.data || []).filter(e => !e.archived_at);
+  // Os negócios das contas internas saem primeiro, e tudo o mais é contado
+  // sobre o que sobrou — inclusive as experiências, que são filtradas pelo
+  // `business_id`. Excluir só na contagem final deixaria os menus de teste
+  // dentro de "montaram um menu".
+  const negsInternos = new Set(
+    internos ? (negocios.data || []).filter(b => internos.has(b.user_id)).map(b => b.id) : []
+  );
+  const deFora = (businessId) => !negsInternos.has(businessId);
+
+  const todasVivas = (exps.data || []).filter(e => !e.archived_at && deFora(e.business_id));
   const vivas = todasVivas.filter(e => noPeriodo(e.created_at));
   // Publicado NO PERÍODO — e não "criado no período e publicado alguma vez":
   // quem montou em agosto e publicou em setembro conta em setembro, que é
@@ -184,7 +229,7 @@ async function funilDoMenu(since, until) {
   const publicadas = todasVivas.filter(e => e.published && noPeriodo(e.published_at));
   const comDispositivo = new Set((plates.data || []).map(p => p.experience_id).filter(Boolean));
 
-  const negs = negocios.data || [];
+  const negs = (negocios.data || []).filter(b => deFora(b.id));
   const assinantes = negs.filter(b => b.plan === "pro" && b.stripe_subscription_status);
   const emTeste = assinantes.filter(b => b.stripe_subscription_status === "trialing");
   const cancelando = assinantes.filter(b => b.stripe_cancel_at_period_end === true);
@@ -194,6 +239,9 @@ async function funilDoMenu(since, until) {
   const donosPublicaram = new Set(publicadas.map(e => e.business_id)).size;
 
   return {
+    // Diz em voz alta se a exclusão valeu. Sem isto, uma falha na leitura de
+    // usuários apareceria como um número levemente maior — e ninguém notaria.
+    internos_excluidos: internos ? negsInternos.size : null,
     negocios_total: negs.length,
     criaram_menu: donosComMenu,
     publicaram: donosPublicaram,

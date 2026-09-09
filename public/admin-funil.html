@@ -214,6 +214,17 @@ function render(data){
 // acontecimento. "Menus criados nos últimos 30 dias" esconderia quem criou
 // antes e publicou agora — por isso o rótulo diz "desde sempre", pra ninguém
 // ler o número como se fosse do período escolhido.
+// Diz se as contas internas foram mesmo tiradas. Sem este aviso, uma falha na
+// leitura de usuários apareceria como um número levemente maior e ninguém
+// notaria — a exclusão teria virado promessa, não fato.
+function avisoInternos(m){
+  if(m.internos_excluidos === null || m.internos_excluidos === undefined){
+    return `<b style="color:#B45309">Atenção: não foi possível excluir as contas internas desta contagem</b> — os números abaixo incluem os seus testes.`;
+  }
+  if(m.internos_excluidos === 0) return `Contas internas: nenhuma encontrada para excluir.`;
+  return `${m.internos_excluidos} ${m.internos_excluidos === 1 ? "negócio interno excluído" : "negócios internos excluídos"} desta contagem (contas de teste).`;
+}
+
 function blocoMenu(m){
   if(!m) return "";
   if(m.erro) return `<div class="state">Funil do Menu indisponível (${m.erro}).</div>`;
@@ -240,6 +251,7 @@ function blocoMenu(m){
          <b>Montaram</b> e <b>Publicaram</b> contam o que aconteceu no período escolhido.
          <b>No ar</b> e <b>Assinantes</b> são o estado de <b>agora</b> — não têm data no nosso banco,
          então filtrar por período daria um número que parece do período e não é.
+         <br>${avisoInternos(m)}
        </p>`
     + topo
     + linha("Negócios com conta", m.negocios_total, 0)
