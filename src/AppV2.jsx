@@ -6345,61 +6345,31 @@ function ErrorScreen({ message, onRetry }) {
   )
 }
 
-// Mascara CEP: 12345-678
-function maskCep(v) {
-  const d = String(v || "").replace(/\D/g, "").slice(0, 8)
-  return d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d
-}
-
 // Tela de onboarding OBRIGATÓRIO: busca + confirma + salva.
 // Substitui a antiga NoBusinessScreen que tinha so um botao pra /comece.
 // Bloqueia o /app ate o user cadastrar negocio — sem opcao de pular.
 function NoBusinessScreen({ user }) {
   const [name, setName] = React.useState("")
-  const [cep, setCep] = React.useState("")
   const [activity, setActivity] = React.useState("")
-  const [cepFeedback, setCepFeedback] = React.useState("")
   const [searching, setSearching] = React.useState(false)
   const [results, setResults] = React.useState(null)
   const [error, setError] = React.useState("")
   const [saving, setSaving] = React.useState(false)
 
-  // Lookup ViaCEP em background quando completar 8 digitos
-  React.useEffect(() => {
-    const raw = cep.replace(/\D/g, "")
-    if (raw.length !== 8) {
-      if (cep) setCepFeedback("Faltam dígitos…")
-      else setCepFeedback("")
-      return
-    }
-    let cancelled = false
-    setCepFeedback("Buscando cidade…")
-    fetch(`https://viacep.com.br/ws/${raw}/json/`)
-      .then(r => r.json())
-      .then(j => {
-        if (cancelled) return
-        if (j.erro) { setCepFeedback("CEP não encontrado"); return }
-        setCepFeedback(`${j.localidade} / ${j.uf}${j.bairro ? " · " + j.bairro : ""}`)
-      })
-      .catch(() => { if (!cancelled) setCepFeedback("") })
-    return () => { cancelled = true }
-  }, [cep])
-
   async function handleSearch(e) {
     if (e) e.preventDefault()
     if (!name.trim()) { setError("Informe o nome do seu negócio"); return }
-    if (cep.replace(/\D/g, "").length !== 8) { setError("Digite um CEP válido"); return }
     setError("")
     setSearching(true)
     setResults(null)
     try {
-      // Query = NOME + TIPO (prioridade de match); `name` separado pro score de
-      // nome no backend; CEP separado so pra desempate por proximidade.
+      // Query = NOME + RAMO (prioridade de match); `name` separado pro score de
+      // nome no backend. Sem CEP desde 09/09/2026 — ver a nota no campo do nome.
       const q = [name, activity].filter(Boolean).join(" ")
-      const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(q)}&name=${encodeURIComponent(name)}&cep=${encodeURIComponent(cep)}`)
+      const r = await fetch(`/api/searchbiz?q=${encodeURIComponent(q)}&name=${encodeURIComponent(name)}`)
       const data = await r.json()
       if (!data.results?.length) {
-        setError("Não encontramos seu negócio no Google. Tente outro nome ou cadastre primeiro em google.com/business.")
+        setError("Não encontramos — detalhe um pouco mais. Acrescente a cidade ou o bairro ao nome (ex.: Café Bella Vista Pinheiros), ou escreva o nome exato como aparece no Google. Se o negócio é novo, cadastre grátis em google.com/business e volte aqui.")
         setResults([])
       } else {
         setResults(data.results)
@@ -6442,12 +6412,6 @@ function NoBusinessScreen({ user }) {
     }
   }
 
-  const fmtDistance = (m) => {
-    if (m == null) return ""
-    if (m < 1000) return `${m} m`
-    return `${(m / 1000).toFixed(1)} km`
-  }
-
   return (
     <main style={{ maxWidth: 620, margin:'40px auto 80px', padding:'0 20px' }}>
       <Card style={{ padding: isCompact() ? 24 : 36 }}>
@@ -6463,34 +6427,30 @@ function NoBusinessScreen({ user }) {
 
         <div style={{ display:'flex', flexDirection:'column', gap: 14 }}>
           <div>
-            <label style={{ fontSize: 12.5, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>Nome do negócio</label>
+            {/* Rotulo, exemplo e dica sao os MESMOS da busca do convidado, de
+                proposito: e' a mesma pergunta feita duas vezes no produto, e a
+                unica instrucao que evita o apelido da loja ("o Ze da esquina")
+                e' dizer "no Google" antes de a pessoa digitar.
+
+                O CEP saiu daqui em 09/09/2026, junto com o da outra tela, e aqui
+                doia mais: ele era OBRIGATORIO e esta tela BLOQUEIA o painel de
+                quem ja criou conta. E nunca foi guardado — o `handleSelect` logo
+                abaixo salva place_id, nome, ENDERECO DO GOOGLE, nota e total; o
+                CEP digitado so ancorava a busca e o ViaCEP so mostrava a cidade
+                de volta na tela. Perde-se a ancora (sem ela o Google decide pelo
+                IP do servidor); em troca, o unico portao obrigatorio do produto
+                passou a pedir uma coisa so. */}
+            <label style={{ fontSize: 12.5, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>Nome do negócio no Google</label>
             <input
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="Ex: Café Bella Vista"
+              placeholder="Ex: Café Bella Vista Pinheiros"
               style={inpStyle()}
               disabled={saving}
             />
-            {/* Mesma dica da busca do convidado — ver a nota lá. */}
             <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
-              Escreva <b>exatamente como está no Google</b>. Uma palavra diferente e a busca traz negócios de outra cidade.
+              Tem mais de uma unidade com esse nome? Acrescente a <b>cidade ou o bairro</b>.
             </span>
-          </div>
-          <div>
-            <label style={{ fontSize: 12.5, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>CEP do negócio</label>
-            <input
-              value={cep}
-              onChange={e => setCep(maskCep(e.target.value))}
-              placeholder="00000-000"
-              inputMode="numeric"
-              maxLength={9}
-              autoComplete="postal-code"
-              style={inpStyle()}
-              disabled={saving}
-            />
-            {cepFeedback && (
-              <p style={{ margin:'6px 0 0', fontSize: 11.5, color: T.textMid }}>{cepFeedback}</p>
-            )}
           </div>
           <div>
             <label style={{ fontSize: 12.5, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>Ramo de atuação</label>
@@ -6530,7 +6490,7 @@ function NoBusinessScreen({ user }) {
             <p style={{ fontSize: 12.5, fontWeight: 600, color: T.textMid, marginBottom: 8 }}>
               Toque no seu negócio pra confirmar:
             </p>
-            {results.map((r, i) => (
+            {results.slice(0, 8).map((r, i) => (
               <div
                 key={r.place_id || i}
                 onClick={() => !saving && handleSelect(r)}
@@ -6542,20 +6502,14 @@ function NoBusinessScreen({ user }) {
                 onMouseEnter={e => !saving && (e.currentTarget.style.borderColor = T.blue)}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = T.border)}
               >
-                <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 4 }}>
-                  {r.name}
-                  {i === 0 && r.distance_meters != null && (
-                    <span style={{
-                      fontSize: 10, fontWeight: 700, background:'#E6F4EA', color:'#137333',
-                      padding:'2px 7px', borderRadius: 5, marginLeft: 6, letterSpacing:'.04em'
-                    }}>MAIS PRÓXIMA</span>
-                  )}
-                </div>
-                <div style={{ fontSize: 12, color: T.textMid }}>
-                  {r.rating || "?"} · {r.total || 0} avaliações
-                  {r.distance_meters != null && ` · ${fmtDistance(r.distance_meters)} do CEP`}
-                </div>
-                <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 3 }}>{r.address}</div>
+                {/* Sem CEP nao vem distancia, entao o selo "MAIS PROXIMA" e o
+                    "x km do CEP" sairam: eram enfeites que dependiam da ancora e
+                    virariam texto morto falando de um campo que nao existe mais.
+                    O ENDERECO subiu pra logo abaixo do nome porque agora e' ele
+                    que separa uma unidade da outra. */}
+                <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 4 }}>{r.name}</div>
+                <div style={{ fontSize: 12, color: T.textMid }}>{r.address || "Endereço não informado no Google"}</div>
+                <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 3 }}>{r.rating || "?"} · {r.total || 0} avaliações</div>
               </div>
             ))}
             <div style={{
