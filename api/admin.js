@@ -99,10 +99,16 @@ async function handleFunnel(req, res) {
   const ate = dia(req.query.ate);
 
   const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 365);
+  // FUSO DE BRASÍLIA, e não UTC. A data que a pessoa digita é a data do
+  // relógio dela: "09/09" lido como UTC começaria às 21h do dia 8 em Brasília
+  // e a contagem de um dia carregaria três horas do anterior. Num botão
+  // "Hoje" isso apareceria de cara — e num relatório de mês passaria batido.
+  // O Brasil não tem mais horário de verão desde 2019, então -03:00 é fixo.
+  const BR = "-03:00";
   const since = de
-    ? new Date(de + "T00:00:00.000Z").toISOString()
+    ? new Date(de + "T00:00:00.000" + BR).toISOString()
     : new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-  const until = ate ? new Date(ate + "T23:59:59.999Z").toISOString() : null;
+  const until = ate ? new Date(ate + "T23:59:59.999" + BR).toISOString() : null;
 
   let q = supabase
     .from("funnel_events")
