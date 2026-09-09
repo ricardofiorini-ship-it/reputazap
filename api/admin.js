@@ -90,14 +90,26 @@ export default async function handler(req, res) {
 // Conta pessoas DISTINTAS (anon_id) que atingiram cada passo na janela de dias.
 // signup_complete pode vir sem anon_id (logado no server) → conta por evento.
 async function handleFunnel(req, res) {
-  const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 365);
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  // PERÍODO LIVRE (?de=AAAA-MM-DD&ate=AAAA-MM-DD) ou atalho por dias.
+  // `ate` vai até o FIM do dia escolhido: quem digita "até 09/09" espera o dia
+  // 9 inteiro, não a meia-noite dele — cortar às 00:00 esconderia um dia
+  // inteiro de dados sem avisar ninguém.
+  const dia = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v || "")) ? v : null;
+  const de = dia(req.query.de);
+  const ate = dia(req.query.ate);
 
-  const { data, error } = await supabase
+  const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 365);
+  const since = de
+    ? new Date(de + "T00:00:00.000Z").toISOString()
+    : new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const until = ate ? new Date(ate + "T23:59:59.999Z").toISOString() : null;
+
+  let q = supabase
     .from("funnel_events")
     .select("anon_id, step, created_at")
-    .gte("created_at", since)
-    .limit(100000);
+    .gte("created_at", since);
+  if (until) q = q.lte("created_at", until);
+  const { data, error } = await q.limit(100000);
   if (error) return res.status(500).json({ error: error.message });
 
   // Passos na ordem do funil + rótulo amigável.
@@ -137,12 +149,26 @@ async function handleFunnel(req, res) {
   // A janela de dias NÃO se aplica — o menu é um estado, não um acontecimento;
   // contar "menus criados nos últimos 30 dias" esconderia quem criou antes e
   // publicou agora.
-  const menu = await funilDoMenu();
+  const menu = await funilDoMenu(since, until);
 
-  return res.json({ days, total_events: (data || []).length, funnel, menu });
+  return res.json({
+    days, de, ate, periodo: { de: since, ate: until },
+    total_events: (data || []).length, funnel, menu
+  });
 }
 
-async function funilDoMenu() {
+// `since`/`until` filtram o que É datável — menu criado e menu publicado. O
+// resto (no ar num aparelho, assinantes) é ESTADO DE AGORA e não tem data no
+// nosso banco; filtrar por período ali daria um número que parece do período e
+// não é. A tela diz qual linha é qual, em vez de misturar as duas naturezas.
+async function funilDoMenu(since, until) {
+  const noPeriodo = (d) => {
+    if (!d) return false;
+    if (since && d < since) return false;
+    if (until && d > until) return false;
+    return true;
+  };
+
   const [exps, plates, negocios] = await Promise.all([
     supabase.from("experiences").select("id, business_id, published, archived_at, created_at, published_at"),
     supabase.from("plates").select("experience_id, served_mode").eq("served_mode", "menu"),
@@ -150,8 +176,12 @@ async function funilDoMenu() {
   ]);
   if (exps.error) return { erro: exps.error.message };
 
-  const vivas = (exps.data || []).filter(e => !e.archived_at);
-  const publicadas = vivas.filter(e => e.published);
+  const todasVivas = (exps.data || []).filter(e => !e.archived_at);
+  const vivas = todasVivas.filter(e => noPeriodo(e.created_at));
+  // Publicado NO PERÍODO — e não "criado no período e publicado alguma vez":
+  // quem montou em agosto e publicou em setembro conta em setembro, que é
+  // quando o dinheiro aconteceu.
+  const publicadas = todasVivas.filter(e => e.published && noPeriodo(e.published_at));
   const comDispositivo = new Set((plates.data || []).map(p => p.experience_id).filter(Boolean));
 
   const negs = negocios.data || [];
