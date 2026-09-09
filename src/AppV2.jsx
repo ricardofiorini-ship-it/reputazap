@@ -5439,8 +5439,17 @@ function GuestSearch({ isMobile }) {
           </div>
           <form onSubmit={doSearch}>
             <div style={{ marginBottom:14 }}>
-              <label style={labelStyle}>Nome do negócio</label>
-              <input style={inputStyle} value={q} onChange={e=>setQ(e.target.value)} placeholder="Ex: Padaria do João" autoFocus
+              {/* "no Google" no rótulo, e não só na dica de baixo: é a única
+                  instrução que a pessoa lê ANTES de digitar. Quem escreve o
+                  apelido da loja ("o Zé da esquina") não acha nada, e o rótulo
+                  é onde isso se evita — a dica embaixo já chega tarde. */}
+              <label style={labelStyle}>Nome do negócio no Google</label>
+              {/* O exemplo carrega o BAIRRO de propósito. Sem CEP, escrever a
+                  cidade ou o bairro junto do nome é o que mais acerta — o Text
+                  Search do Google lê "smartfit manaus" como "Smart Fit em
+                  Manaus" e resolve a região sozinho. Ensinar isso no exemplo
+                  custa zero; ensinar depois do erro custa a pessoa. */}
+              <input style={inputStyle} value={q} onChange={e=>setQ(e.target.value)} placeholder="Ex: Padaria do João Pinheiros" autoFocus
                 autoComplete="off" spellCheck={false}/>
               {/* Uma palavra errada no nome joga a busca pra outro estado: o
                   Google prefere quem casa EXATO com o que foi digitado, mesmo a
@@ -5450,10 +5459,13 @@ function GuestSearch({ isMobile }) {
                   a 0 km ficou de fora. A dica continua valendo, mas agora divide
                   espaço com a lista que aparece embaixo — então encolheu, e o
                   aviso por extenso ficou pra quando a busca volta vazia. */}
+              {/* O rótulo já diz "no Google", então a dica não repete isso — ela
+                  usa o espaço pra ensinar o que de fato acerta a busca: a cidade
+                  ou o bairro junto do nome. */}
               <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
                 {loading
                   ? 'Procurando no Google…'
-                  : <>Digite e escolha na lista. Escreva <b>como está no Google</b>.</>}
+                  : <>Tem mais de uma unidade com esse nome? Acrescente a <b>cidade ou o bairro</b>.</>}
               </span>
             </div>
           </form>
@@ -5502,14 +5514,20 @@ function GuestSearch({ isMobile }) {
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#B06000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
                       <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="11.5"/><circle cx="11" cy="14.3" r="0.6" fill="#B06000" stroke="none"/>
                     </svg>
-                    <span style={{ fontSize:16, fontWeight:800, color:'#B06000', letterSpacing:'-0.01em' }}>Não encontramos seu negócio</span>
+                    <span style={{ fontSize:16, fontWeight:800, color:'#B06000', letterSpacing:'-0.01em' }}>Não encontramos — detalhe um pouco mais</span>
                   </div>
+                  {/* A ordem NÃO é aleatória: primeiro o que mais resolve. Sem
+                      CEP, quem ancora a busca é a cidade escrita junto do nome —
+                      o Google lê "smartfit manaus" como "Smart Fit em Manaus".
+                      O nome exato vem depois, e "não existe no Google" por
+                      último: é o caso mais raro e o único que não se resolve
+                      aqui, então abrir com ele seria mandar a maioria embora. */}
                   <p style={{ fontSize:13.5, color:'#7A5200', lineHeight:1.55, margin:'0 0 4px' }}>
-                    Isso costuma acontecer por um detalhe simples. Tente:
+                    Quase sempre é o nome. Tente assim:
                   </p>
                   <ul style={{ fontSize:13.5, color:'#7A5200', lineHeight:1.6, margin:0, paddingLeft:18 }}>
-                    <li>Escreva o <b>nome exato</b> como aparece no Google (ex: <i>Supermercado Mambo</i>, sem apelidos).</li>
-                    <li>Se houver mais de uma unidade, acrescente o <b>bairro ou a cidade</b> ao nome (ex: <i>Supermercado Mambo Pinheiros</i>).</li>
+                    <li>Acrescente a <b>cidade ou o bairro</b> ao nome — é o que mais resolve (ex: <i>Supermercado Mambo Pinheiros</i>).</li>
+                    <li>Escreva o <b>nome exato</b> como aparece no Google, sem apelido nem abreviação.</li>
                     <li>Se o negócio é novo, ele pode ainda <b>não estar no Google Maps</b>. Cadastre grátis em <a href="https://business.google.com" target="_blank" rel="noopener" style={{ color:'#B06000', fontWeight:700 }}>google.com/business</a> e volte aqui.</li>
                   </ul>
                 </div>
