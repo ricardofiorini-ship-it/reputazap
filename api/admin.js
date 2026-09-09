@@ -126,7 +126,57 @@ async function handleFunnel(req, res) {
     return { key: s.key, label: s.label, people, pctOfTop, dropFromPrev };
   });
 
-  return res.json({ days, total_events: (data || []).length, funnel });
+  // ── O SEGUNDO FUNIL: adoção do Menu Inteligente (08/09/2026) ──
+  // O funil acima mede visitante → conta. Este mede conta → cliente pagante,
+  // que é a pergunta do lançamento. Vive na mesma tela porque são o mesmo
+  // percurso visto em dois trechos, e olhar um sem o outro engana: cadastro
+  // subindo com menu parado é crescimento que não vira receita.
+  //
+  // NÃO usa `funnel_events`: aqui o estado está nas próprias tabelas, e ler
+  // delas é mais honesto que confiar num evento que pode não ter sido gravado.
+  // A janela de dias NÃO se aplica — o menu é um estado, não um acontecimento;
+  // contar "menus criados nos últimos 30 dias" esconderia quem criou antes e
+  // publicou agora.
+  const menu = await funilDoMenu();
+
+  return res.json({ days, total_events: (data || []).length, funnel, menu });
+}
+
+async function funilDoMenu() {
+  const [exps, plates, negocios] = await Promise.all([
+    supabase.from("experiences").select("id, business_id, published, archived_at, created_at, published_at"),
+    supabase.from("plates").select("experience_id, served_mode").eq("served_mode", "menu"),
+    supabase.from("businesses").select("id, plan, stripe_subscription_status, stripe_cancel_at_period_end, stripe_current_period_end")
+  ]);
+  if (exps.error) return { erro: exps.error.message };
+
+  const vivas = (exps.data || []).filter(e => !e.archived_at);
+  const publicadas = vivas.filter(e => e.published);
+  const comDispositivo = new Set((plates.data || []).map(p => p.experience_id).filter(Boolean));
+
+  const negs = negocios.data || [];
+  const assinantes = negs.filter(b => b.plan === "pro" && b.stripe_subscription_status);
+  const emTeste = assinantes.filter(b => b.stripe_subscription_status === "trialing");
+  const cancelando = assinantes.filter(b => b.stripe_cancel_at_period_end === true);
+
+  // Negócios distintos, e não menus: um dono com três menus é UM cliente.
+  const donosComMenu = new Set(vivas.map(e => e.business_id)).size;
+  const donosPublicaram = new Set(publicadas.map(e => e.business_id)).size;
+
+  return {
+    negocios_total: negs.length,
+    criaram_menu: donosComMenu,
+    publicaram: donosPublicaram,
+    // Publicado e servindo em pelo menos um aparelho — é aqui que o menu
+    // deixa de ser configuração e passa a existir para o cliente final.
+    no_ar_em_dispositivo: new Set(publicadas.filter(e => comDispositivo.has(e.id)).map(e => e.business_id)).size,
+    assinantes: assinantes.length,
+    em_teste_gratis: emTeste.length,
+    cancelaram_com_prazo_correndo: cancelando.length,
+    // Menus parados no rascunho: montou e não publicou. Se este número crescer,
+    // a objeção está no preço ou no momento da cobrança, não no produto.
+    so_rascunho: donosComMenu - donosPublicaram
+  };
 }
 
 // ── VISITAS: a catraca (contagem que não depende de consentimento) ──

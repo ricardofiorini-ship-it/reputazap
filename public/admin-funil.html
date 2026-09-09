@@ -163,7 +163,50 @@ function render(data){
     </div>`;
   }).join("");
 
-  $("content").innerHTML = headline + steps;
+  $("content").innerHTML = headline + steps + blocoMenu(data.menu);
+}
+
+// ── Funil do Menu Inteligente ──
+// O funil de cima mede visitante → conta. Este mede conta → cliente pagante.
+// Ficam na mesma tela porque olhar um sem o outro engana: cadastro subindo com
+// menu parado é crescimento que não vira receita.
+//
+// A janela de dias do topo NÃO se aplica aqui: o menu é um ESTADO, não um
+// acontecimento. "Menus criados nos últimos 30 dias" esconderia quem criou
+// antes e publicou agora — por isso o rótulo diz "desde sempre", pra ninguém
+// ler o número como se fosse do período escolhido.
+function blocoMenu(m){
+  if(!m) return "";
+  if(m.erro) return `<div class="state">Funil do Menu indisponível (${m.erro}).</div>`;
+
+  const linha = (rotulo, valor, de, nota) => {
+    const pct = de ? Math.round((valor / de) * 100) : 0;
+    return `<div class="step">
+      <div class="row1">
+        <span class="label">${rotulo}</span>
+        <span class="count">${valor}${de ? `<small>${pct}% de ${de}</small>` : ""}</span>
+      </div>
+      <div class="track"><div class="fill" style="width:${Math.max(2, pct)}%"></div></div>
+      ${nota ? `<div class="drop none">${nota}</div>` : ""}
+    </div>`;
+  };
+
+  const nenhum = m.criaram_menu === 0;
+  const topo = nenhum
+    ? `<div class="headline">Ainda <b>ninguém</b> criou um Menu Inteligente. O painel abriu para todos os clientes em 08/09.</div>`
+    : `<div class="headline">De <b>${m.negocios_total}</b> negócios, <b>${m.criaram_menu}</b> montaram um menu e <b>${m.assinantes}</b> assinaram — <b>${m.em_teste_gratis}</b> ainda em teste grátis.</div>`;
+
+  return `<h2 style="font-size:15px;font-weight:800;margin:26px 0 10px;">Menu Inteligente <span style="font-weight:600;color:var(--ink-3);font-size:13px;">· desde sempre, não muda com o período acima</span></h2>`
+    + topo
+    + linha("Negócios com conta", m.negocios_total, 0)
+    + linha("Montaram um menu", m.criaram_menu, m.negocios_total)
+    + linha("Publicaram", m.publicaram, m.criaram_menu, m.so_rascunho > 0 ? `${m.so_rascunho} pararam no rascunho — montaram e não publicaram` : "")
+    + linha("No ar em algum dispositivo", m.no_ar_em_dispositivo, m.publicaram,
+        (m.publicaram - m.no_ar_em_dispositivo) > 0
+          ? `${m.publicaram - m.no_ar_em_dispositivo} publicaram mas não ligaram em nenhum aparelho — o menu existe e ninguém encosta nele`
+          : "")
+    + linha("Assinantes", m.assinantes, m.publicaram,
+        `${m.em_teste_gratis} em teste grátis · ${m.cancelaram_com_prazo_correndo} cancelaram e ainda estão no prazo pago`);
 }
 
 function init(){
