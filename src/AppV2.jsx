@@ -5230,7 +5230,6 @@ function ReviewsScreen({ data, isMobile }) {
 // e leva pro painel guest (/app?place_id=&keyword=). Substitui o /diagnostico.
 function GuestSearch({ isMobile }) {
   const [q, setQ] = React.useState('')
-  const [loc, setLoc] = React.useState('')
   const [term, setTerm] = React.useState('')
   const [results, setResults] = React.useState(null)
   const [loading, setLoading] = React.useState(false)
@@ -5248,12 +5247,23 @@ function GuestSearch({ isMobile }) {
   }, [])
 
   // ── AUTOCOMPLETE ────────────────────────────────────────────
-  // Antes daqui existia um botão "Buscar meu negócio" que só acendia com NOME
-  // + CEP completo. 57% de quem abria esta tela ia embora sem nunca buscar: o
-  // botão ficava cinza e não dizia o que faltava, e o CEP era uma pergunta a
-  // mais cobrada antes de qualquer recompensa. Agora a lista aparece sozinha
-  // enquanto a pessoa digita — o mesmo padrão que o Radar já usava
-  // (public/radar.html), reaproveitado em vez de reinventado.
+  // Esta tela tem UM campo, e é de propósito. Antes eram dois, com um botão
+  // "Buscar meu negócio" que só acendia com NOME + CEP completo: 57% de quem
+  // abria ia embora sem nunca buscar — o botão ficava cinza e não dizia o que
+  // faltava. Agora a lista aparece sozinha enquanto a pessoa digita, o mesmo
+  // padrão que o Radar já usava (public/radar.html).
+  //
+  // O CEP saiu inteiro em 09/09/2026, decisão do Ricardo, e o que ele custava
+  // era desproporcional ao que entregava:
+  //   • DEPOIS da busca ele não valia nada — viajava na URL até o painel e o
+  //     `api/diagnostico` o IGNORA de propósito (a medição ancora no endereço
+  //     do negócio no Google, não no CEP digitado);
+  //   • DENTRO da busca ele era a âncora do Text Search. Sem ele o Google
+  //     decide a relevância pelo IP do nosso servidor, então a lista pode
+  //     trazer negócio de outra região. É o preço combinado: quem escolhe na
+  //     lista vê nome e ENDEREÇO de cada opção e não erra a unidade.
+  // Se um dia a lista vier ruim demais, o conserto NÃO é ressuscitar o campo —
+  // é ancorar sem perguntar nada (cidade deduzida, ou o Places Autocomplete).
   //
   // O que segura o custo (cada busca é Geocoding + Text Search de verdade):
   //   1. só a partir de 3 letras;
@@ -5278,12 +5288,11 @@ function GuestSearch({ isMobile }) {
     if (e) e.preventDefault()
     const name = q.trim()
     if (name.length < MIN_LETRAS) return
-    // Prioridade do match (backend): NOME (1o) + TIPO (2o) na query; CEP (3o)
-    // vai separado, so pra desempatar por proximidade entre nomes iguais (rede).
+    // Prioridade do match (backend): NOME (1o) + TIPO (2o) na query. Sem CEP,
+    // quem ordena é a cobertura do nome — por isso o nome vai também em `name`.
     const type = term.trim()
-    const cepDigits = (loc || '').replace(/\D/g, '')
     const fullQ = [name, type].filter(Boolean).join(' ')
-    const chave = `${fullQ}|${cepDigits}`
+    const chave = fullQ
 
     if (memoRef.current[chave]) {
       setResults(memoRef.current[chave]); setError(''); setLoading(false)
@@ -5293,7 +5302,7 @@ function GuestSearch({ isMobile }) {
     const meu = ++pedidoRef.current
     setLoading(true); setError('')
     try {
-      const params = new URLSearchParams({ q: fullQ, name, cep: cepDigits })
+      const params = new URLSearchParams({ q: fullQ, name })
       const r = await fetch(`/api/searchbiz?${params.toString()}`)
       const d = await r.json()
       // Chegou tarde: outra busca já saiu depois desta. Descarta, senão a lista
@@ -5315,14 +5324,14 @@ function GuestSearch({ isMobile }) {
     }
   }
 
-  // O gatilho: parou de digitar (nome OU CEP) → busca. Some assim que o negócio
-  // é escolhido, pra não ficar buscando por trás do passo dos termos.
+  // O gatilho: parou de digitar → busca. Some assim que o negócio é escolhido,
+  // pra não ficar buscando por trás do passo dos termos.
   React.useEffect(() => {
     if (selectedBiz) return
     if (q.trim().length < MIN_LETRAS) { setResults(null); return }
     const t = setTimeout(doSearch, 450)
     return () => clearTimeout(t)
-  }, [q, loc, selectedBiz])
+  }, [q, selectedBiz])
 
   // Escolheu o negócio → carrega os termos sugeridos (não navega ainda).
   async function pick(biz) {
@@ -5350,10 +5359,11 @@ function GuestSearch({ isMobile }) {
     setAddInput('')
   }
   function goToPanel() {
-    const cepDigits = (loc || '').replace(/\D/g, '')
+    // Sem `&cep=` desde 09/09: o `api/diagnostico` ignora esse parametro de
+    // proposito (a medicao ancora no endereco do negocio no Google), entao ele
+    // so enfeitava a URL. Links antigos que ainda o carregam seguem validos.
     let url = `/app?place_id=${encodeURIComponent(selectedBiz.place_id)}`
     if (selectedTerms.length) url += `&terms=${encodeURIComponent(selectedTerms.join(','))}`
-    if (cepDigits.length === 8) url += `&cep=${cepDigits}`
     window.location.href = url
   }
 
@@ -5363,18 +5373,6 @@ function GuestSearch({ isMobile }) {
     fontFamily:"'Inter', sans-serif", background:'#fff'
   }
   const labelStyle = { display:'block', fontSize:13, fontWeight:600, color:T.textMid, margin:'0 0 6px' }
-  // Mascara de CEP: so digitos, maximo 8, hifen automatico depois do 5o (00000-000).
-  const maskCep = (v) => {
-    const d = (v || '').replace(/\D/g, '').slice(0, 8)
-    return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d
-  }
-  const cepDigits = (loc || '').replace(/\D/g, '')
-  // O CEP virou OPCIONAL em 09/set. Ele continua sendo a âncora da busca — sem
-  // ele o Google decide a relevância pelo IP do nosso servidor e pode trazer
-  // negócio de outra região —, mas exigi-lo ANTES da primeira busca cobrava o
-  // preço todo adiantado e entregava zero. Agora a busca acontece sem ele e o
-  // CEP entra como REFINO: quem não se achou na lista digita o CEP e a lista
-  // se refaz ancorada ali.
 
   return (
     <div style={{ background:T.bg, minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', padding:'32px 18px 80px' }}>
@@ -5458,13 +5456,6 @@ function GuestSearch({ isMobile }) {
                   : <>Digite e escolha na lista. Escreva <b>como está no Google</b>.</>}
               </span>
             </div>
-            <div style={{ marginBottom:14 }}>
-              <label style={labelStyle}>CEP do seu negócio <span style={{ fontWeight:400, color:T.textDim }}>(opcional)</span></label>
-              <input style={inputStyle} value={loc} onChange={e=>setLoc(maskCep(e.target.value))} inputMode="numeric" maxLength={9} placeholder="Ex: 05086-010"/>
-              <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
-                Não achou o seu na lista? O CEP separa <b>a sua unidade</b> de lojas com nome parecido.
-              </span>
-            </div>
           </form>
 
           {error && <p style={{ fontSize:13, color:T.red, marginTop:12 }}>{error}</p>}
@@ -5518,21 +5509,26 @@ function GuestSearch({ isMobile }) {
                   </p>
                   <ul style={{ fontSize:13.5, color:'#7A5200', lineHeight:1.6, margin:0, paddingLeft:18 }}>
                     <li>Escreva o <b>nome exato</b> como aparece no Google (ex: <i>Supermercado Mambo</i>, sem apelidos).</li>
-                    <li>Preencha o <b>CEP</b> aí em cima — com ele a busca passa a olhar só a sua região.</li>
+                    <li>Se houver mais de uma unidade, acrescente o <b>bairro ou a cidade</b> ao nome (ex: <i>Supermercado Mambo Pinheiros</i>).</li>
                     <li>Se o negócio é novo, ele pode ainda <b>não estar no Google Maps</b>. Cadastre grátis em <a href="https://business.google.com" target="_blank" rel="noopener" style={{ color:'#B06000', fontWeight:700 }}>google.com/business</a> e volte aqui.</li>
                   </ul>
                 </div>
               )) : (
                 <>
                   <p style={{ fontSize:13, color:T.blue, fontWeight:600, margin:'0 0 8px' }}>Toque no seu negócio</p>
+                  {/* Oito, no máximo. Sem CEP o backend devolve até 20 (com
+                      âncora ele já corta em 8), e vinte opções não é uma lista
+                      pra escolher, é uma segunda busca. O ENDEREÇO é o que
+                      separa uma unidade da outra agora — por isso ele vem antes
+                      da nota, e não em cinza no rodapé do cartão. */}
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                    {results.map(b => (
+                    {results.slice(0, 8).map(b => (
                       <button key={b.place_id} type="button" onClick={()=>pick(b)} style={{
                         textAlign:'left', background:'#fff', border:`1.5px solid ${T.border}`, borderRadius:11,
                         padding:'12px 14px', cursor:'pointer', display:'flex', flexDirection:'column', gap:3
                       }}>
                         <span style={{ fontSize:14.5, fontWeight:700, color:T.text }}>{b.name}</span>
-                        <span style={{ fontSize:12.5, color:T.textMid }}>{b.address || ''}</span>
+                        <span style={{ fontSize:12.5, color:T.textMid }}>{b.address || 'Endereço não informado no Google'}</span>
                         <span style={{ fontSize:12, color:T.textDim }}>{b.rating || '—'} · {b.total || 0} avaliações</span>
                       </button>
                     ))}
