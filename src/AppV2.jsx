@@ -5247,27 +5247,82 @@ function GuestSearch({ isMobile }) {
     try { if (typeof window !== 'undefined' && window.fbq) window.fbq('trackCustom', 'GuestSearchView') } catch {}
   }, [])
 
+  // ── AUTOCOMPLETE ────────────────────────────────────────────
+  // Antes daqui existia um botão "Buscar meu negócio" que só acendia com NOME
+  // + CEP completo. 57% de quem abria esta tela ia embora sem nunca buscar: o
+  // botão ficava cinza e não dizia o que faltava, e o CEP era uma pergunta a
+  // mais cobrada antes de qualquer recompensa. Agora a lista aparece sozinha
+  // enquanto a pessoa digita — o mesmo padrão que o Radar já usava
+  // (public/radar.html), reaproveitado em vez de reinventado.
+  //
+  // O que segura o custo (cada busca é Geocoding + Text Search de verdade):
+  //   1. só a partir de 3 letras;
+  //   2. dispara na PAUSA, não na tecla (450ms);
+  //   3. memória local — voltar a uma consulta já feita não chama o servidor;
+  //   4. cache de 24h no `api/searchbiz`, que é o freio que vale dinheiro.
+  const MIN_LETRAS = 3
+  // chave → results (vive só nesta tela). É um objeto simples, e NÃO um Map:
+  // este arquivo importa o ícone `Map` do lucide-react lá no topo, então aqui
+  // dentro `new Map()` constrói um componente React e estoura na hora
+  // ("Map is not a constructor") — tela branca, com o build verde.
+  const memoRef = React.useRef(Object.create(null))
+  const pedidoRef = React.useRef(0)         // ignora resposta de busca velha
+  // `guest_search_submit` é UM POR PESSOA, não um por busca. Com o autocomplete
+  // a mesma pessoa dispara 3–5 buscas, e sem esta trava o passo "Buscou um
+  // negócio" do /admin/funil e do GA4 inflaria sozinho — a régua mudaria junto
+  // com a tela e ninguém saberia se o 57% melhorou ou se só a conta mudou.
+  // (O painel conta anon_id distinto e aguentaria; o GA4 conta evento e não.)
+  const contouRef = React.useRef(false)
+
   async function doSearch(e) {
     if (e) e.preventDefault()
-    if (q.trim().length < 2) return
-    setLoading(true); setError(''); setResults(null)
+    const name = q.trim()
+    if (name.length < MIN_LETRAS) return
+    // Prioridade do match (backend): NOME (1o) + TIPO (2o) na query; CEP (3o)
+    // vai separado, so pra desempatar por proximidade entre nomes iguais (rede).
+    const type = term.trim()
+    const cepDigits = (loc || '').replace(/\D/g, '')
+    const fullQ = [name, type].filter(Boolean).join(' ')
+    const chave = `${fullQ}|${cepDigits}`
+
+    if (memoRef.current[chave]) {
+      setResults(memoRef.current[chave]); setError(''); setLoading(false)
+      return
+    }
+
+    const meu = ++pedidoRef.current
+    setLoading(true); setError('')
     try {
-      // Prioridade do match (backend): NOME (1o) + TIPO (2o) na query; CEP (3o)
-      // vai separado, so pra desempatar por proximidade entre nomes iguais (rede).
-      const name = q.trim()
-      const type = term.trim()
-      const cepDigits = (loc || '').replace(/\D/g, '')   // CEP obrigatorio (validado em canSearch)
-      const fullQ = [name, type].filter(Boolean).join(' ')
       const params = new URLSearchParams({ q: fullQ, name, cep: cepDigits })
       const r = await fetch(`/api/searchbiz?${params.toString()}`)
       const d = await r.json()
-      setResults(d.results || [])
+      // Chegou tarde: outra busca já saiu depois desta. Descarta, senão a lista
+      // pisca com o resultado de um nome que a pessoa já apagou.
+      if (meu !== pedidoRef.current) return
+      const lista = d.results || []
+      memoRef.current[chave] = lista
+      setResults(lista)
       // Buscou de verdade (fim do 1º ponto cego do funil).
-      trackFunnel('guest_search_submit', { results: (d.results || []).length })
+      if (!contouRef.current) {
+        contouRef.current = true
+        trackFunnel('guest_search_submit', { results: lista.length })
+      }
     } catch {
+      if (meu !== pedidoRef.current) return
       setError('Erro ao buscar. Tente de novo.')
-    } finally { setLoading(false) }
+    } finally {
+      if (meu === pedidoRef.current) setLoading(false)
+    }
   }
+
+  // O gatilho: parou de digitar (nome OU CEP) → busca. Some assim que o negócio
+  // é escolhido, pra não ficar buscando por trás do passo dos termos.
+  React.useEffect(() => {
+    if (selectedBiz) return
+    if (q.trim().length < MIN_LETRAS) { setResults(null); return }
+    const t = setTimeout(doSearch, 450)
+    return () => clearTimeout(t)
+  }, [q, loc, selectedBiz])
 
   // Escolheu o negócio → carrega os termos sugeridos (não navega ainda).
   async function pick(biz) {
@@ -5314,8 +5369,12 @@ function GuestSearch({ isMobile }) {
     return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d
   }
   const cepDigits = (loc || '').replace(/\D/g, '')
-  // CEP agora e' OBRIGATORIO (8 digitos) — garante o desempate por proximidade.
-  const canSearch = q.trim().length >= 2 && cepDigits.length === 8 && !loading
+  // O CEP virou OPCIONAL em 09/set. Ele continua sendo a âncora da busca — sem
+  // ele o Google decide a relevância pelo IP do nosso servidor e pode trazer
+  // negócio de outra região —, mas exigi-lo ANTES da primeira busca cobrava o
+  // preço todo adiantado e entregava zero. Agora a busca acontece sem ele e o
+  // CEP entra como REFINO: quem não se achou na lista digita o CEP e a lista
+  // se refaz ancorada ali.
 
   return (
     <div style={{ background:T.bg, minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', padding:'32px 18px 80px' }}>
@@ -5383,34 +5442,29 @@ function GuestSearch({ isMobile }) {
           <form onSubmit={doSearch}>
             <div style={{ marginBottom:14 }}>
               <label style={labelStyle}>Nome do negócio</label>
-              <input style={inputStyle} value={q} onChange={e=>setQ(e.target.value)} placeholder="Ex: Padaria do João" autoFocus/>
+              <input style={inputStyle} value={q} onChange={e=>setQ(e.target.value)} placeholder="Ex: Padaria do João" autoFocus
+                autoComplete="off" spellCheck={false}/>
               {/* Uma palavra errada no nome joga a busca pra outro estado: o
                   Google prefere quem casa EXATO com o que foi digitado, mesmo a
                   2.000 km, em vez do acerto parcial que está na esquina. Testado
                   com "Farol da Ilha" (o negócio é "Farol da Villa"): voltaram um
                   apartamento em São Vicente e uma ilha ecológica, e o restaurante
-                  a 0 km ficou de fora. A dica é mais barata que adivinhar o nome
-                  torto — e diz a CONSEQUÊNCIA, senão ninguém obedece. */}
+                  a 0 km ficou de fora. A dica continua valendo, mas agora divide
+                  espaço com a lista que aparece embaixo — então encolheu, e o
+                  aviso por extenso ficou pra quando a busca volta vazia. */}
               <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
-                Escreva <b>exatamente como está no Google</b>. Uma palavra diferente e a busca traz negócios de outra cidade.
+                {loading
+                  ? 'Procurando no Google…'
+                  : <>Digite e escolha na lista. Escreva <b>como está no Google</b>.</>}
               </span>
             </div>
             <div style={{ marginBottom:14 }}>
-              <label style={labelStyle}>CEP do seu negócio</label>
+              <label style={labelStyle}>CEP do seu negócio <span style={{ fontWeight:400, color:T.textDim }}>(opcional)</span></label>
               <input style={inputStyle} value={loc} onChange={e=>setLoc(maskCep(e.target.value))} inputMode="numeric" maxLength={9} placeholder="Ex: 05086-010"/>
               <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
-                Usamos o CEP pra achar exatamente <b>a sua unidade</b> (importante se houver lojas com nome parecido).
+                Não achou o seu na lista? O CEP separa <b>a sua unidade</b> de lojas com nome parecido.
               </span>
             </div>
-            {/* Botão de BUSCA: some quando o negócio já foi escolhido (aí o único
-                CTA azul é o "Ver minha posição" do passo de termos). */}
-            {!selectedBiz && (
-              <button type="submit" disabled={!canSearch} style={{
-                width:'100%', padding:'13px', background: canSearch?T.blue:T.textDim, color:'#fff',
-                border:'none', borderRadius:11, fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif",
-                cursor: canSearch?'pointer':'not-allowed'
-              }}>{loading ? 'Buscando…' : 'Buscar meu negócio'}</button>
-            )}
           </form>
 
           {error && <p style={{ fontSize:13, color:T.red, marginTop:12 }}>{error}</p>}
@@ -5445,9 +5499,13 @@ function GuestSearch({ isMobile }) {
             </div>
           )}
 
+          {/* A lista anterior FICA na tela enquanto a próxima busca roda — sem
+              isso ela pisca a cada pausa na digitação. Só a tarja de "não
+              encontramos" espera a busca terminar: aparecer no meio da digitação
+              seria acusar de errado quem ainda está escrevendo. */}
           {!selectedBiz && results && (
             <div style={{ marginTop:18 }}>
-              {results.length === 0 ? (
+              {results.length === 0 ? (loading ? null : (
                 <div style={{ background:'#FEF7E0', border:'1.5px solid #FDE293', borderRadius:12, padding:'16px 18px' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:9, marginBottom:8 }}>
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#B06000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
@@ -5460,11 +5518,11 @@ function GuestSearch({ isMobile }) {
                   </p>
                   <ul style={{ fontSize:13.5, color:'#7A5200', lineHeight:1.6, margin:0, paddingLeft:18 }}>
                     <li>Escreva o <b>nome exato</b> como aparece no Google (ex: <i>Supermercado Mambo</i>, sem apelidos).</li>
-                    <li>Confira a <b>cidade ou CEP</b> — um CEP errado joga a busca pra longe.</li>
+                    <li>Preencha o <b>CEP</b> aí em cima — com ele a busca passa a olhar só a sua região.</li>
                     <li>Se o negócio é novo, ele pode ainda <b>não estar no Google Maps</b>. Cadastre grátis em <a href="https://business.google.com" target="_blank" rel="noopener" style={{ color:'#B06000', fontWeight:700 }}>google.com/business</a> e volte aqui.</li>
                   </ul>
                 </div>
-              ) : (
+              )) : (
                 <>
                   <p style={{ fontSize:13, color:T.blue, fontWeight:600, margin:'0 0 8px' }}>Toque no seu negócio</p>
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>

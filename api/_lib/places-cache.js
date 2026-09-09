@@ -127,6 +127,12 @@ export function freshAutorizado(req) {
 
 /** TTLs padrão (ms) — um lugar só pra ajustar a política de frescor. */
 export const TTL = {
+  // Busca de negócio por nome+CEP. TTL longo de propósito: o que a chamada
+  // devolve é "quais negócios existem com esse nome perto daqui" — resposta que
+  // não muda de um dia pro outro. E é a única chamada que o AUTOCOMPLETE faz a
+  // cada pausa na digitação, então sem cache uma pessoa custa 4 buscas em vez
+  // de 1. É o cache que torna o autocomplete pagável.
+  SEARCHBIZ: 24 * 60 * 60 * 1000,
   BIZINFO: 6 * 60 * 60 * 1000,   // nota, endereço, telefone, foto: mudam devagar
   REVIEWS: 3 * 60 * 60 * 1000,   // avaliações recentes: janela mais curta
   LENSES:  6 * 60 * 60 * 1000,   // posição/concorrentes: não muda de hora em hora

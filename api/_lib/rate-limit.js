@@ -127,9 +127,14 @@ export const LIMITES = {
   // Marketing/público, cada chamada pode virar 1–5 chamadas ao Places (mas o
   // cache de 6h/7d absorve a maioria das repetições):
   diagnostico: { nome: "diagnostico", porIpHora: 90, globalDia: 1000 },
-  // searchbiz NÃO tem cache (cada busca é Geocoding + Text Search de verdade),
-  // por isso segue mais curto que o diagnostico.
-  searchbiz:   { nome: "searchbiz",   porIpHora: 40, globalDia: 400 },
+  // searchbiz ganhou cache de 24h em 09/set, junto com o AUTOCOMPLETE da tela
+  // do convidado. Os dois andam juntos e por isso o freio subiu: agora uma
+  // pessoa gasta 3–5 chamadas (uma por pausa na digitação) em vez de 1, e o
+  // teto antigo — 40/h — dava só ~10 buscas por pessoa. Pior, o teto GLOBAL de
+  // 400/dia derrubaria a busca do site inteiro depois de ~100 visitantes: a
+  // porta de entrada do funil, fechada, calada, no meio da tarde.
+  // Quem segura o dinheiro agora é o cache (chamada repetida não toca o Google).
+  searchbiz:   { nome: "searchbiz",   porIpHora: 120, globalDia: 1500 },
   // IA custa por token e é o mais caro por chamada — mantém o 5/h de antes,
   // agora valendo de verdade (era por instância).
   radar:       { nome: "radar",       porIpHora: 5,  globalDia: 100 },

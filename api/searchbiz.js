@@ -1,5 +1,6 @@
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
+import { comCachePlaces, chaveDe, TTL } from "./_lib/places-cache.js";
 
 // Haversine — distância em metros entre dois pontos lat/lng
 function haversine(a, b) {
@@ -82,70 +83,89 @@ export default async function handler(req, res) {
   // Nome pra ranquear por relevancia. Se o front nao mandar `name`, usa o `q`.
   const nameQuery = (name || q || "").trim();
 
+  // A busca inteira (Geocoding + Text Search + ordenacao) vira UM payload
+  // guardado por 24h. Sem isto o autocomplete da tela do convidado seria
+  // impagavel: cada pausa na digitacao e' uma chamada, e a mesma pessoa
+  // corrigindo o nome repete a consulta anterior varias vezes.
+  // A chave carrega os TRES parametros que mudam o resultado — q (nome+tipo),
+  // name (o que ranqueia) e cep (a ancora). Trocar `v1` invalida tudo de uma vez.
+  const chaveCache = `searchbiz:v1:${chaveDe(q)}|${chaveDe(nameQuery)}|${cepDigits}`;
+
   try {
-    // 1. CEP → coordenadas PRIMEIRO: e' a ancora da busca (nao so um desempate).
-    //    CEP invalido/irresolvivel → origin null (busca sem ancora, best-effort).
-    let origin = null;
-    if (cepDigits.length === 8) {
-      origin = await geocodeCep(cepDigits, API_KEY);
-    }
-
-    // 2. Text Search ANCORADO no CEP (location+radius). SEM a ancora, o Google
-    //    usa o IP do SERVIDOR (Vercel) pra decidir relevancia e devolve negocios
-    //    de outra regiao — a unidade do bairro do usuario nem entrava na lista.
-    let tsUrl =
-      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&language=pt-BR&region=br&key=${API_KEY}`;
-    if (origin) tsUrl += `&location=${origin.lat},${origin.lng}&radius=25000`;
-    const textRes = await fetchWithTimeout(tsUrl, {}, 8000);
-    const tData = await textRes.json();
-    let raw = tData.results || [];
-
-    // 3. Trava de Brasil + remove lojas fechadas (Google mantem fechadas no indice).
-    raw = raw.filter((p) => inBrazil(p.geometry?.location));
-    raw = raw.filter((p) => !p.business_status || p.business_status === "OPERATIONAL");
-
-    if (!raw.length) {
-      return res.json({ results: [] });
-    }
-
-    // 4. Com CEP valido, descarta o que esta ABSURDAMENTE longe (> 150km). Um
-    //    homonimo em outra cidade/estado nunca e' o negocio do usuario — ele
-    //    digitou o proprio CEP. So corta quando ha ponto do CEP; se TUDO estiver
-    //    longe, mantem a lista pra nao dar "nada encontrado".
-    const MAX_DIST_M = 150000;
-    let scored = raw.map((p) => {
-      const nm = nameMatch(p.name, nameQuery);
-      return { p, _cov: nm.coverage, _extra: nm.extra, _dist: origin ? haversine(origin, p.geometry?.location) : null };
+    const { data } = await comCachePlaces({
+      key: chaveCache,
+      ttlMs: TTL.SEARCHBIZ,
+      produce: () => buscar({ q, nameQuery, cepDigits, API_KEY })
     });
-    if (origin) {
-      const near = scored.filter((s) => s._dist <= MAX_DIST_M);
-      if (near.length) scored = near;
-    }
-
-    // 5. Ordena: (1) COBERTURA do nome buscado — quem casa mais vem antes (evita
-    //    que um vizinho de nome diferente ganhe). (2) Com CEP, o MAIS PERTO vence
-    //    entre nomes que casam igual (proximidade decide de fato). (3) Desempate
-    //    final: nome mais limpo. Sem CEP, cai direto pro nome limpo.
-    scored.sort((a, b) =>
-      (b._cov - a._cov) ||
-      (origin ? ((a._dist ?? Infinity) - (b._dist ?? Infinity)) : 0) ||
-      (a._extra - b._extra)
-    );
-
-    const limit = origin ? 8 : 20;
-    const results = scored.slice(0, limit).map(({ p, _dist }) => ({
-      place_id: p.place_id,
-      name: p.name,
-      address: p.formatted_address || p.vicinity || "",
-      rating: p.rating || 0,
-      total: p.user_ratings_total || 0,
-      ...(typeof _dist === "number" && isFinite(_dist)
-        ? { distance_meters: Math.round(_dist) }
-        : {})
-    }));
-
-    res.json({ results });
+    // `produce` devolve null quando nao achou nada — de proposito, pra nao
+    // gravar vazio (um 429 momentaneo do Google viraria 24h de "nao existe").
+    res.json({ results: data || [] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+}
+
+// A busca de verdade — so roda quando o cache nao tem resposta fresca.
+// Devolve a lista pronta, ou `null` se nao houver nada (o cache nao grava null).
+async function buscar({ q, nameQuery, cepDigits, API_KEY }) {
+  // 1. CEP → coordenadas PRIMEIRO: e' a ancora da busca (nao so um desempate).
+  //    CEP invalido/irresolvivel → origin null (busca sem ancora, best-effort).
+  let origin = null;
+  if (cepDigits.length === 8) {
+    origin = await geocodeCep(cepDigits, API_KEY);
+  }
+
+  // 2. Text Search ANCORADO no CEP (location+radius). SEM a ancora, o Google
+  //    usa o IP do SERVIDOR (Vercel) pra decidir relevancia e devolve negocios
+  //    de outra regiao — a unidade do bairro do usuario nem entrava na lista.
+  let tsUrl =
+    `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&language=pt-BR&region=br&key=${API_KEY}`;
+  if (origin) tsUrl += `&location=${origin.lat},${origin.lng}&radius=25000`;
+  const textRes = await fetchWithTimeout(tsUrl, {}, 8000);
+  const tData = await textRes.json();
+  let raw = tData.results || [];
+
+  // 3. Trava de Brasil + remove lojas fechadas (Google mantem fechadas no indice).
+  raw = raw.filter((p) => inBrazil(p.geometry?.location));
+  raw = raw.filter((p) => !p.business_status || p.business_status === "OPERATIONAL");
+
+  if (!raw.length) return null;   // nada achado: nao grava no cache
+
+  // 4. Com CEP valido, descarta o que esta ABSURDAMENTE longe (> 150km). Um
+  //    homonimo em outra cidade/estado nunca e' o negocio do usuario — ele
+  //    digitou o proprio CEP. So corta quando ha ponto do CEP; se TUDO estiver
+  //    longe, mantem a lista pra nao dar "nada encontrado".
+  const MAX_DIST_M = 150000;
+  let scored = raw.map((p) => {
+    const nm = nameMatch(p.name, nameQuery);
+    return { p, _cov: nm.coverage, _extra: nm.extra, _dist: origin ? haversine(origin, p.geometry?.location) : null };
+  });
+  if (origin) {
+    const near = scored.filter((s) => s._dist <= MAX_DIST_M);
+    if (near.length) scored = near;
+  }
+
+  // 5. Ordena: (1) COBERTURA do nome buscado — quem casa mais vem antes (evita
+  //    que um vizinho de nome diferente ganhe). (2) Com CEP, o MAIS PERTO vence
+  //    entre nomes que casam igual (proximidade decide de fato). (3) Desempate
+  //    final: nome mais limpo. Sem CEP, cai direto pro nome limpo.
+  scored.sort((a, b) =>
+    (b._cov - a._cov) ||
+    (origin ? ((a._dist ?? Infinity) - (b._dist ?? Infinity)) : 0) ||
+    (a._extra - b._extra)
+  );
+
+  const limit = origin ? 8 : 20;
+  const results = scored.slice(0, limit).map(({ p, _dist }) => ({
+    place_id: p.place_id,
+    name: p.name,
+    address: p.formatted_address || p.vicinity || "",
+    rating: p.rating || 0,
+    total: p.user_ratings_total || 0,
+    ...(typeof _dist === "number" && isFinite(_dist)
+      ? { distance_meters: Math.round(_dist) }
+      : {})
+  }));
+
+  return results;
 }
