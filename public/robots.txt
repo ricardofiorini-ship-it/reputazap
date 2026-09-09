@@ -10,6 +10,9 @@ Disallow: /avaliar
 # IA Radar descontinuado em 07/09/2026 — as rotas redirecionam pra home e a
 # API responde 410. O Disallow evita reindexacao enquanto o Google digere.
 Disallow: /radar
+# /ranking: pagina de campanha antiga, aposentada em 08/09/2026. Redireciona
+# pra home; o Disallow evita reindexacao enquanto o Google digere.
+Disallow: /ranking
 
 # Crawlers de IA liberados de propósito (queremos ser lidos e citados)
 User-agent: GPTBot
