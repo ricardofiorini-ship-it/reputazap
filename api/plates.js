@@ -1,13 +1,13 @@
 // ============================================================
 // StarTouch — API de placas (dispatcher por ?action=)
 // Actions admin: create-batch | list-batches | list-stock
-// Actions cliente: activate (ETAPA 7) | my-businesses | my-plates | rename-plate
+// Actions cliente: activate (ETAPA 7) | my-businesses | my-plates | rename-plate | unlink-plate
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { MOTIVO_SERVIDO } from "./_lib/plan.js";
 import { generateBatchCodes, PRODUCT_TYPES } from "./_lib/plates.js";
 import { sendInBackground } from "./_lib/email-sender.js";
-import { firstDeviceEmail, additionalDeviceEmail, adminDeviceActivatedEmail } from "./_lib/email-templates.js";
+import { firstDeviceEmail, additionalDeviceEmail, adminDeviceActivatedEmail, deviceUnlinkedEmail } from "./_lib/email-templates.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -416,6 +416,132 @@ async function handleResetCounter(req, res, user) {
   return res.json({ ok: true, plate: updated });
 }
 
+// ── CLIENTE: desvincular dispositivo (voltar de fábrica) ────
+// O cliente pediu isto e não existia saída nenhuma: uma vez ativado, o código
+// ficava preso àquela conta pra sempre e só saía com alguém mexendo no banco.
+//
+// AQUI É A BORRACHA, NÃO O PARCIAL DO HODÔMETRO (que é o `reset-counter` acima).
+// O dispositivo perde o dono, o apelido, a contagem e o menu — volta ao mesmo
+// estado em que saiu da gráfica. O código fica livre pra qualquer conta ativar.
+//
+// A CONFIRMAÇÃO É O CÓDIGO IMPRESSO, e o motivo não é burocracia: é a única
+// coisa parecida com "estou com o dispositivo na mão" que dá pra pedir numa
+// tela. Também barra o acidente, que é cem vezes mais provável que a má-fé —
+// o painel comum nem mostra o código (só o admin liga `showCode`).
+//
+// O QUE NÃO É APAGADO: as linhas de `plate_taps`. Elas carregam `business_id`
+// próprio, então o histórico do dono antigo continua inteiro no relatório dele
+// e o dono novo começa do zero. Apagar seria destruir o passado de quem não
+// pediu nada.
+//
+// RASTRO OBRIGATÓRIO: `previous_business_id` + `unlinked_at` vão no MESMO
+// UPDATE que zera. Se as colunas não existirem, a rota RECUSA em vez de
+// liberar sem registro — sem elas uma disputa vira palavra contra palavra.
+async function handleUnlinkPlate(req, res, user) {
+  if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
+  const { plate_id, code } = req.body || {};
+  if (!plate_id || !UUID_RE.test(String(plate_id))) {
+    return res.status(400).json({ error: "plate_id inválido" });
+  }
+
+  const { data: plate, error: plateErr } = await supabase
+    .from("plates")
+    .select("id, code, status, business_id, channel_name, product_type, total_taps")
+    .eq("id", plate_id)
+    .maybeSingle();
+  if (plateErr) return res.status(500).json({ error: plateErr.message });
+  if (!plate) return res.status(404).json({ error: "Dispositivo não encontrado" });
+  if (!plate.business_id) return res.status(400).json({ error: "Esse dispositivo não está vinculado a nenhum negócio" });
+
+  // DONO: SERVICE_KEY passa por cima do RLS, então a posse é conferida na mão.
+  const { data: biz, error: bizErr } = await supabase
+    .from("businesses")
+    .select("id, name")
+    .eq("id", plate.business_id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (bizErr) return res.status(500).json({ error: bizErr.message });
+  if (!biz) return res.status(403).json({ error: "Esse dispositivo não é seu" });
+
+  // Comparação tolerante ao jeito de digitar: com ou sem hífen, com ou sem
+  // espaço, maiúscula ou minúscula. Exigir a pontuação exata não protegeria
+  // nada e transformaria a confirmação num quebra-cabeça — quem tem o cartão
+  // na mão é quem estamos tentando deixar passar.
+  const limpa = (s) => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (!code || limpa(code) !== limpa(plate.code)) {
+    return res.status(400).json({ error: "O código digitado não confere com o deste dispositivo. Ele está impresso no verso." });
+  }
+
+  // Estado de fábrica. `source`, `batch_id` e `product_type` ficam: são de
+  // onde o dispositivo VEIO, não de quem ele era.
+  const { error: updErr } = await supabase
+    .from("plates")
+    .update({
+      business_id: null,
+      channel_name: null,
+      status: "in_stock",
+      activated_at: null,
+      total_taps: 0,
+      last_tapped_at: null,
+      counter_reset_at: null,
+      counter_reset_taps: 0,
+      // Camada 1 e camada 2 do Menu Inteligente. Sem isto, um cartão repassado
+      // a outro comerciante continuaria abrindo o cardápio do dono antigo —
+      // o pior defeito possível deste recurso.
+      experience_id: null,
+      experience_enabled: false,
+      served_mode: "google_direto",
+      served_slug: null,
+      served_reason: "padrao",
+      served_at: null,
+      // Rastro (ver supabase/schema-plate-unlink.sql)
+      previous_business_id: plate.business_id,
+      unlinked_at: new Date().toISOString()
+    })
+    .eq("id", plate.id);
+
+  if (updErr) {
+    console.error("[plates] desvincular falhou:", updErr.message || updErr);
+    return res.status(500).json({
+      error: "Não deu pra desvincular agora. Se o problema persistir, o banco ainda não tem as colunas de desvinculação (rodar supabase/schema-plate-unlink.sql)."
+    });
+  }
+
+  // AVISO AO DONO — é a metade de segurança do recurso, não cortesia.
+  // O código impresso não é segredo (viaja na URL de quem encosta o celular),
+  // então não dá pra impedir que um código liberado seja pego por outra
+  // pessoa; dá pra avisar no mesmo minuto. Aguardado antes do res.json porque
+  // a Vercel corta promise órfã.
+  try {
+    const userMeta = user.user_metadata || {};
+    const userName = userMeta.name || userMeta.full_name || (user.email || "").split("@")[0] || "";
+    const tmpl = deviceUnlinkedEmail({
+      userName,
+      bizName: biz.name,
+      code: plate.code,
+      channelName: plate.channel_name,
+      productType: plate.product_type
+    });
+    await Promise.allSettled([
+      sendInBackground({
+        userId: user.id,
+        emailType: "device_unlinked",
+        to: user.email,
+        subject: tmpl.subject,
+        html: tmpl.html,
+        metadata: { plate_id: plate.id, code: plate.code, business_id: plate.business_id, taps_before: plate.total_taps || 0 }
+      })
+    ]);
+  } catch (e) {
+    // O dispositivo JÁ foi desvinculado. E-mail que não sai não pode desfazer
+    // isso nem virar erro na tela — mas tem que aparecer no log, senão o
+    // aviso some calado e a detecção que justifica o recurso morre junto.
+    console.error("[plates] aviso de desvinculação não saiu:", e?.message || e);
+  }
+
+  return res.json({ ok: true, code: plate.code });
+}
+
 // ── CLIENTE: histórico de toques por data ───────────────────
 // `plates.total_taps` é um contador: sabe QUANTOS toques, nunca QUANDO.
 // Esta action lê o log `plate_taps` e responde a pergunta que o cliente faz
@@ -661,8 +787,9 @@ export default async function handler(req, res) {
       case "rename-plate":   return await handleRenamePlate(req, res, auth.user);
       case "taps-history":   return await handleTapsHistory(req, res, auth.user);
       case "reset-counter":  return await handleResetCounter(req, res, auth.user);
+      case "unlink-plate":   return await handleUnlinkPlate(req, res, auth.user);
       default:
-        return res.status(400).json({ error: "Unknown action. Use ?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates|rename-plate|taps-history|reset-counter" });
+        return res.status(400).json({ error: "Unknown action. Use ?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates|rename-plate|taps-history|reset-counter|unlink-plate" });
     }
   } catch (err) {
     console.error("[plates] erro não tratado:", err);

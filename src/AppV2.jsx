@@ -4460,6 +4460,148 @@ const PRODUCT_SHOWCASE = [
   { img: '/gadget-pulseira.png', name: 'Pulseira NFC' },
 ]
 
+// ─────────────────────────────────────────────────────────────
+// UnlinkPlateModal — devolver o dispositivo à configuração de fábrica
+// ─────────────────────────────────────────────────────────────
+// Porta de mão única: depois de desvinculado, o código fica livre e o cliente
+// não desfaz sozinho. Por isso a tela conta ANTES o que vai acontecer, em vez
+// de um "tem certeza?" genérico — inclusive a parte incômoda (o código passa a
+// poder ser ativado por outra pessoa). Esconder isso seria vender segurança
+// que o recurso não tem.
+//
+// A confirmação é o código IMPRESSO no dispositivo: é o mais perto de "estou
+// com ele na mão" que uma tela alcança, e o painel comum nem mostra o código.
+function UnlinkPlateModal({ plate, displayName, onClose, onDone }) {
+  const [typed, setTyped] = React.useState('')
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState('')
+  const [success, setSuccess] = React.useState(false)
+
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape' && !loading) onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose, loading])
+
+  // Mesma tolerância do servidor: hífen, espaço e caixa não importam.
+  const limpa = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+  const confere = limpa(typed) === limpa(plate.code)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!confere) { setError('O código digitado não confere com o deste dispositivo.'); return }
+    setLoading(true); setError('')
+    try {
+      await apiCall('/api/plates?action=unlink-plate', {
+        method: 'POST',
+        body: JSON.stringify({ plate_id: plate.id, code: typed })
+      })
+      // Confirma na tela antes de recarregar: some da lista sem aviso pareceria
+      // que o dispositivo sumiu, não que ele foi liberado com sucesso.
+      setSuccess(true)
+      setTimeout(onDone, 1300)
+    } catch (err) {
+      setError(err.message || 'Não deu pra desvincular agora. Tente de novo.')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget && !loading) onClose() }}
+      style={{
+        position:'fixed', inset: 0, background:'rgba(15,23,42,.55)',
+        display:'grid', placeItems:'center', zIndex: 100, padding: 16,
+        animation:'fadeIn .15s ease-out'
+      }}>
+      <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
+      <Card padded={false} style={{ padding: 24, maxWidth: 460, width:'100%', position:'relative' }}>
+        <button onClick={onClose} disabled={loading} aria-label="Fechar" style={{
+          position:'absolute', top: 12, right: 12, width: 32, height: 32, borderRadius: 8,
+          border:'none', background:'transparent', color: T.textMid, fontSize: 20, cursor:'pointer'
+        }}>×</button>
+
+        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 20, fontWeight: 700, color: T.text, margin:'0 0 6px', letterSpacing:'-0.02em' }}>
+          Desvincular dispositivo
+        </h2>
+        <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 16px', lineHeight: 1.5 }}>
+          <strong>{displayName}</strong> volta à configuração de fábrica e sai da sua conta.
+        </p>
+
+        {success ? (
+          <div style={{
+            padding: 18, background: T.greenSoft, border:'1px solid #A7F3D0', borderRadius: 10,
+            display:'flex', alignItems:'center', gap: 10
+          }}>
+            <span style={{ display:'inline-flex', color: T.success }}><CheckCircle2 size={24}/></span>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color:'#065F46' }}>Dispositivo desvinculado</div>
+              <div style={{ fontSize: 12.5, color:'#047857' }}>Mandamos um e-mail confirmando. Atualizando a tela…</div>
+            </div>
+          </div>
+        ) : (<>
+        <div style={{
+          background: T.bg, border:`1px solid ${T.border}`, borderRadius: 10,
+          padding:'14px 16px', marginBottom: 16
+        }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 8 }}>O que vai acontecer</div>
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: T.textMid, lineHeight: 1.65 }}>
+            <li>Ele some desta lista e a contagem de toques dele volta a zero.</li>
+            <li>Os toques que ele já registrou continuam no seu histórico e no relatório.</li>
+            <li>Se ele estiver servindo um menu, volta a levar direto ao Google.</li>
+            <li><strong style={{ color: T.text }}>O código fica livre:</strong> qualquer pessoa que tenha o código poderá ativá-lo em outra conta — inclusive você, de novo.</li>
+          </ul>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: T.textMid, display:'block', marginBottom: 5 }}>
+            Pra confirmar, digite o código impresso no dispositivo
+          </label>
+          <input
+            autoFocus
+            value={typed}
+            onChange={(e) => { setTyped(e.target.value); setError('') }}
+            placeholder="STAR-XXXXXX"
+            disabled={loading}
+            style={{
+              width:'100%', padding:'11px 14px', fontSize: 15, fontFamily:'monospace',
+              letterSpacing:'.05em', textTransform:'uppercase',
+              border:`1px solid ${confere ? T.success : T.border}`, borderRadius: 9,
+              outline:'none', boxSizing:'border-box', marginBottom: 6
+            }}/>
+          <div style={{ fontSize: 11.5, color: T.textDim, marginBottom: 16 }}>
+            Fica no verso da placa ou do cartão, começa com <code style={{ background: T.bg, padding:'1px 5px', borderRadius: 4 }}>STAR-</code>.
+          </div>
+
+          {error && (
+            <div style={{
+              padding:'10px 12px', background:'#FEF2F2', border:'1px solid #FECACA',
+              borderRadius: 8, color: T.danger, fontSize: 13, marginBottom: 14
+            }}>{error}</div>
+          )}
+
+          <div style={{ display:'flex', gap: 8, flexWrap:'wrap' }}>
+            <button type="submit" disabled={loading || !confere} style={{
+              flex:'1 1 200px', background: (loading || !confere) ? '#FCA5A5' : T.danger, color:'#fff',
+              border:'none', borderRadius: 10, padding:'12px 18px',
+              fontSize: 14, fontWeight: 700, fontFamily:"'Inter', sans-serif",
+              cursor: loading ? 'wait' : (confere ? 'pointer' : 'not-allowed')
+            }}>
+              {loading ? 'Desvinculando…' : 'Desvincular dispositivo'}
+            </button>
+            <button type="button" onClick={onClose} disabled={loading} style={{
+              background:'transparent', color: T.textMid, border:`1px solid ${T.border}`,
+              borderRadius: 10, padding:'12px 18px', fontSize: 13.5, fontWeight: 600,
+              cursor:'pointer', fontFamily:"'Inter', sans-serif"
+            }}>Cancelar</button>
+          </div>
+        </form>
+        </>)}
+      </Card>
+    </div>
+  )
+}
+
 function CapturePoints({ items, plates, businessId, bizName, isAdmin, reviewCount = 0, isMobile }) {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [showCode, setShowCode] = React.useState(false)
@@ -4508,6 +4650,10 @@ function CapturePoints({ items, plates, businessId, bizName, isAdmin, reviewCoun
   // `resets` reflete na hora o que acabamos de salvar, sem recarregar a página.
   const [resets, setResets] = React.useState({})
   const [resetting, setResetting] = React.useState(null)
+  // Desvincular = devolver o dispositivo pra fábrica. Guarda a placa inteira
+  // (não só o id) porque o modal precisa do código pra conferir o que o
+  // cliente digita.
+  const [unlinking, setUnlinking] = React.useState(null)
   const resetOf = (p) => Object.prototype.hasOwnProperty.call(resets, p.id) ? resets[p.id] : (p.counter_reset_at ? { at: p.counter_reset_at, taps: p.counter_reset_taps || 0 } : null)
   // Parcial = o que veio DEPOIS do recomeço. O total nunca é tocado.
   function partialOf(p) {
@@ -4695,6 +4841,12 @@ ${corte}
   // o número grande tem que bater com a soma das linhas abaixo dele. Somar o
   // bruto aqui deixava o topo dizendo 36 com as linhas somando 33.
   const totalAll = platesList.reduce((s, p) => s + partialOf(p), 0)
+  // Toques de dispositivos que o cliente DESVINCULOU. O log guarda o negócio,
+  // não o dispositivo, então esses toques continuam (corretamente) no total do
+  // período — mas não têm mais linha na lista abaixo. Sem esta conta, o número
+  // grande ficaria maior que a soma das linhas e pareceria erro de cálculo.
+  const somaListada = platesList.reduce((s, p) => s + ((h?.by_plate && h.by_plate[p.id]) || 0), 0)
+  const orfaos = (period && h && h.available !== false) ? Math.max(0, (h.total || 0) - somaListada) : 0
   const total = period ? (h?.total || 0) : totalAll
   const isEmpty = platesList.length === 0
   const hasReviews = (reviewCount || 0) > 0  // tom de ACELERADOR (não "falta pré-requisito")
@@ -5026,6 +5178,21 @@ ${corte}
                     {showCode && (
                       <div style={{ fontSize: 10.5, color: T.textDim, marginTop: 2, fontFamily:'monospace' }}>{p.code}</div>
                     )}
+                    {/* Saída do dispositivo. Vermelho e pequeno de propósito:
+                        precisa ser encontrável por quem procura e discreto pra
+                        quem não procura — é ação de mão única. */}
+                    {!isEditing && p.status === 'active' && (
+                      <button type="button" onClick={() => setUnlinking(p)}
+                        title="Devolver este dispositivo à configuração de fábrica"
+                        style={{
+                          marginTop: 6, background:'transparent', color: T.danger,
+                          border:`1px solid #FECACA`, borderRadius: 6,
+                          padding:'3px 8px', fontSize: 10.5, fontWeight: 600,
+                          cursor:'pointer', fontFamily:"'Inter', sans-serif", lineHeight: 1.5
+                        }}>
+                        Desvincular dispositivo
+                      </button>
+                    )}
                   </div>
                   <div style={{ textAlign:'right', flexShrink: 0 }}>
                     <div style={{
@@ -5042,6 +5209,16 @@ ${corte}
               )
             })}
           </div>
+
+          {orfaos > 0 && (
+            <div style={{ display:'flex', gap: 6, alignItems:'flex-start', fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.45 }}>
+              <Info size={13} style={{ flexShrink: 0, marginTop: 1 }}/>
+              <span>
+                {orfaos === 1 ? '1 toque veio de um dispositivo que não está mais' : `${orfaos} toques vieram de dispositivos que não estão mais`} na sua conta.
+                É por isso que o número lá em cima é maior que a soma das linhas — esses toques aconteceram e continuam contando pro seu negócio.
+              </span>
+            </div>
+          )}
 
           <div style={{ display:'flex', gap: 8, marginTop: 14, flexWrap:'wrap' }}>
             <button onClick={() => setModalOpen(true)} style={{
@@ -5074,6 +5251,14 @@ ${corte}
         <ActivatePlateModal
           businessId={businessId}
           onClose={() => setModalOpen(false)}
+        />
+      )}
+      {unlinking && (
+        <UnlinkPlateModal
+          plate={unlinking}
+          displayName={nickOf(unlinking) || PRODUCT_LABELS[unlinking.product_type] || 'Este dispositivo'}
+          onClose={() => setUnlinking(null)}
+          onDone={() => window.location.reload()}
         />
       )}
     </Card>

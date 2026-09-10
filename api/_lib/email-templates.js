@@ -470,6 +470,66 @@ export function additionalDeviceEmail({ userName, bizName, code, channelName, to
 }
 
 // ─────────────────────────────────────────────────────────────
+// 7b. DISPOSITIVO DESVINCULADO (voltou de fábrica)
+// ─────────────────────────────────────────────────────────────
+// Este e-mail NÃO é cortesia: é a metade de segurança do recurso.
+// Como o código impresso não é segredo (aparece na URL de quem encosta o
+// celular no cartão), não dá pra IMPEDIR que um código liberado seja pego por
+// outra pessoa — dá pra AVISAR. Um dispositivo liberado sem o dono saber é
+// problema; liberado com um e-mail na caixa de entrada no mesmo minuto é um
+// chamado que se resolve. Por isso o texto diz na cara que o código ficou
+// livre, e ensina o que fazer se não foi ele quem pediu.
+export function deviceUnlinkedEmail({ userName, bizName, code, channelName, productType }) {
+  const name = escapeHtml(userName?.split(" ")[0] || "tudo bem?");
+  const biz = escapeHtml(bizName || "seu negócio");
+  const codeStr = escapeHtml(code || "STAR-XXXXX");
+  const produto = PRODUCT_LABELS_PT[productType] || "dispositivo";
+  const apelido = channelName ? escapeHtml(channelName) : null;
+  return {
+    subject: `Dispositivo ${codeStr} foi desvinculado de ${biz}`,
+    html: shell({
+      title: "DISPOSITIVO DESVINCULADO",
+      headerColor: "#B91C1C",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
+          ${name}, seu ${escapeHtml(produto.toLowerCase())} voltou pra configuração de fábrica
+        </h1>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 16px;">
+          Ele saiu de <strong>${biz}</strong> e não aparece mais no seu painel.
+        </p>
+
+        <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:18px;margin:14px 0;">
+          <div style="font-size:11px;color:#B91C1C;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">
+            Código liberado
+          </div>
+          <div style="font-family:monospace;font-size:22px;font-weight:800;color:#7F1D1D;letter-spacing:.05em;">
+            ${codeStr}
+          </div>
+          ${apelido ? `<div style="font-size:13px;color:#5F6368;margin-top:4px;">Chamava-se “${apelido}” no seu painel.</div>` : ""}
+        </div>
+
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin:14px 0;">
+          <p style="font-size:14px;color:#202124;font-weight:600;margin:0 0 10px;">O que mudou</p>
+          <ul style="font-size:13.5px;color:#5F6368;line-height:1.7;margin:0;padding-left:20px;">
+            <li>O código está <strong>livre</strong>: qualquer conta pode ativá-lo agora, inclusive a sua de novo.</li>
+            <li>A contagem de toques desse dispositivo <strong>voltou a zero</strong>.</li>
+            <li>Os toques que ele já registrou <strong>continuam</strong> no histórico do seu negócio.</li>
+            <li>Se ele estava servindo um Menu Inteligente, voltou a levar direto ao Google.</li>
+          </ul>
+        </div>
+
+        <p style="font-size:13.5px;color:#5F6368;line-height:1.6;margin:16px 0 0;">
+          <strong>Não foi você?</strong> Responda este e-mail com o código acima. Guardamos o registro
+          de que o dispositivo era seu e conseguimos devolvê-lo.
+        </p>
+
+        ${cta("https://startouch.com.br/app#pontos-de-captacao", "Ver meus dispositivos →")}
+      `
+    })
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
 // 8. ALERTA: AVALIAÇÃO NEGATIVA NOVA (Pro)
 // ─────────────────────────────────────────────────────────────
 export function negativeReviewEmail({ bizName, author, rating, text, placeId }) {

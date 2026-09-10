@@ -12,6 +12,7 @@ import { Head, Kpi, Panel, Chip, Delta, Barras, desde, diasDesde, dataBr } from 
 import { Tablet } from 'lucide-react'
 import { useToques, nomeProduto } from '../lib/dados.js'
 import { api } from '../lib/api.js'
+import './dispositivos.css'
 
 const JANELAS = [7, 30, 90]
 
@@ -48,6 +49,96 @@ const SUGESTOES_HARDWARE = [
   }
 ]
 
+// ── Desvincular dispositivo (voltar de fábrica) ─────────────
+// Porta de mão única: o código volta a ficar livre e o cliente não desfaz
+// sozinho. A caixa conta ANTES o que vai acontecer, inclusive a parte
+// incômoda (outra pessoa com o código poderá ativá-lo) — esconder isso seria
+// prometer uma segurança que o recurso não tem, já que o código é impresso no
+// dispositivo e aparece na URL de quem encosta o celular.
+//
+// A confirmação é o código impresso: o mais perto de "estou com ele na mão"
+// que uma tela alcança, e ainda barra o clique errado, que é o acidente
+// realmente provável aqui.
+function ModalDesvincular({ dispositivo, nome, aoFechar, aoConcluir }) {
+  const [digitado, setDigitado] = React.useState('')
+  const [salvando, setSalvando] = React.useState(false)
+  const [erro, setErro] = React.useState(null)
+  const [pronto, setPronto] = React.useState(false)
+
+  React.useEffect(() => {
+    const tecla = (e) => { if (e.key === 'Escape' && !salvando) aoFechar() }
+    document.addEventListener('keydown', tecla)
+    return () => document.removeEventListener('keydown', tecla)
+  }, [aoFechar, salvando])
+
+  // Mesma tolerância do servidor: hífen, espaço e caixa não importam.
+  const limpa = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+  const confere = limpa(digitado) === limpa(dispositivo.code)
+
+  async function confirmar(e) {
+    e.preventDefault()
+    if (!confere) { setErro('O código digitado não confere com o deste dispositivo.'); return }
+    setSalvando(true); setErro(null)
+    try {
+      await api.desvincular(dispositivo.id, digitado)
+      setPronto(true)
+      setTimeout(aoConcluir, 1300)
+    } catch (err) {
+      setErro(err.message || 'Não foi possível desvincular agora.')
+      setSalvando(false)
+    }
+  }
+
+  return (
+    <div className="dv-fundo" onClick={e => { if (e.target === e.currentTarget && !salvando) aoFechar() }}>
+      <div className="dv-caixa" role="dialog" aria-modal="true" aria-labelledby="dv-titulo">
+        <button className="dv-x" onClick={aoFechar} disabled={salvando} aria-label="Fechar">×</button>
+        <h2 id="dv-titulo">Desvincular dispositivo</h2>
+        <p className="dv-sub"><strong>{nome}</strong> volta à configuração de fábrica e sai da sua conta.</p>
+
+        {pronto ? (
+          <div className="dv-ok">
+            <strong>Dispositivo desvinculado</strong>
+            Mandamos um e-mail confirmando. Atualizando a tela…
+          </div>
+        ) : (
+          <>
+            <div className="dv-avisos">
+              <div className="tit">O que vai acontecer</div>
+              <ul>
+                <li>Ele some desta lista e a contagem de toques dele volta a zero.</li>
+                <li>Os toques que ele já registrou continuam no seu histórico.</li>
+                <li>Se ele estiver servindo um menu, volta a levar direto ao Google.</li>
+                <li><strong>O código fica livre:</strong> qualquer pessoa que tenha o código poderá ativá-lo em outra conta — inclusive você, de novo.</li>
+              </ul>
+            </div>
+
+            <form onSubmit={confirmar}>
+              <label className="dv-label" htmlFor="dv-codigo">
+                Pra confirmar, digite o código impresso no dispositivo
+              </label>
+              <input
+                id="dv-codigo" autoFocus className={'dv-input' + (confere ? ' ok' : '')}
+                value={digitado} disabled={salvando} placeholder="STAR-XXXXXX"
+                onChange={e => { setDigitado(e.target.value); setErro(null) }}/>
+              <p className="dv-dica">Fica no verso da placa ou do cartão, começa com STAR-.</p>
+
+              {erro && <div className="dv-erro">{erro}</div>}
+
+              <div className="dv-acoes">
+                <button type="submit" className="perigo" disabled={salvando || !confere}>
+                  {salvando ? 'Desvinculando…' : 'Desvincular dispositivo'}
+                </button>
+                <button type="button" className="v3-btn" onClick={aoFechar} disabled={salvando}>Cancelar</button>
+              </div>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function Dispositivos({ dados }) {
   const [dias, setDias] = React.useState(30)
   const historico = useToques(dias)
@@ -58,12 +149,21 @@ export default function Dispositivos({ dados }) {
   const [salvando, setSalvando] = React.useState(false)
   const [erroNome, setErroNome] = React.useState(null)
   const [nomesLocais, setNomesLocais] = React.useState({})
+  // Guarda o dispositivo inteiro, não só o id: a caixa precisa do código pra
+  // conferir o que o cliente digita.
+  const [desvinculando, setDesvinculando] = React.useState(null)
 
   const lista = dados.dispositivos
   const ativos = lista.filter(d => d.status === 'active')
   const porPlaca = toques?.by_plate || {}
   const parados = ativos.filter(d => d.last_tapped_at && diasDesde(d.last_tapped_at) >= 7).length
   const totalHistorico = ativos.reduce((s, d) => s + (d.total_taps || 0), 0)
+  // Toques de dispositivos DESVINCULADOS. O log de toques guarda o negócio, não
+  // o dispositivo: quem devolveu um cartão pra fábrica continua com os toques
+  // dele no período (corretamente), mas sem linha na tabela. Sem dizer isso, o
+  // KPI do topo ficaria maior que a soma da coluna e pareceria erro de conta.
+  const somaListada = lista.reduce((s, d) => s + (porPlaca[d.id] || 0), 0)
+  const orfaos = toques?.available ? Math.max(0, (toques.total || 0) - somaListada) : 0
   const nomeDe = (d) => nomesLocais[d.id] ?? d.channel_name
 
   // Considera TODOS os dispositivos, não só os ativos: quem comprou um cartão
@@ -156,7 +256,10 @@ export default function Dispositivos({ dados }) {
       <Panel
         titulo="Todos os dispositivos"
         extra={<Chip tipo="g">Free</Chip>}
-        sub={ativos.length ? `${ativos.length} ${ativos.length === 1 ? 'ativo' : 'ativos'}` : null}>
+        sub={ativos.length ? `${ativos.length} ${ativos.length === 1 ? 'ativo' : 'ativos'}` : null}
+        rodape={orfaos > 0
+          ? `${orfaos === 1 ? '1 toque veio de um dispositivo que não está mais' : `${orfaos} toques vieram de dispositivos que não estão mais`} na sua conta — por isso o total do topo é maior que a soma da coluna. Esses toques aconteceram e continuam contando pro seu negócio.`
+          : null}>
         {lista.length === 0 && (
           <p style={{ fontSize: 12.8, color: 'var(--dim)', padding: '10px 0' }}>
             Você ainda não ativou nenhum dispositivo. Ao receber sua placa ou cartão, encoste o celular nele
@@ -239,10 +342,17 @@ export default function Dispositivos({ dados }) {
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         {renomeando !== d.id && d.status === 'active' && (
-                          <button className="v3-btn ghost"
-                            onClick={() => { setRenomeando(d.id); setRascunho(nomeDe(d) || ''); setErroNome(null) }}>
-                            Renomear
-                          </button>
+                          <div style={{ display: 'inline-flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                            <button className="v3-btn ghost"
+                              onClick={() => { setRenomeando(d.id); setRascunho(nomeDe(d) || ''); setErroNome(null) }}>
+                              Renomear
+                            </button>
+                            <button className="dv-btn-desvincular"
+                              title="Devolver este dispositivo à configuração de fábrica"
+                              onClick={() => setDesvinculando(d)}>
+                              Desvincular dispositivo
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -280,6 +390,13 @@ export default function Dispositivos({ dados }) {
         </section>
       )}
 
+      {desvinculando && (
+        <ModalDesvincular
+          dispositivo={desvinculando}
+          nome={nomeDe(desvinculando) || nomeProduto(desvinculando.product_type)}
+          aoFechar={() => setDesvinculando(null)}
+          aoConcluir={() => window.location.reload()}/>
+      )}
     </>
   )
 }

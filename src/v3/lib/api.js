@@ -94,6 +94,12 @@ export const api = {
   toques:       (dias)      => tryGet(`/api/plates?action=taps-history&days=${dias}`, { auth: true }),
   renomear:     (id, nome)  => post('/api/plates?action=rename-plate', { plate_id: id, channel_name: nome }),
 
+  // Devolve o dispositivo à configuração de fábrica: sem dono, sem apelido,
+  // sem contagem, sem menu — e o código volta a ficar livre pra qualquer conta
+  // ativar. O `codigo` é o impresso no dispositivo e o servidor confere de
+  // novo: a validação da tela é conforto, não a trava.
+  desvincular:  (id, codigo) => post('/api/plates?action=unlink-plate', { plate_id: id, code: codigo }),
+
   // A grade é a fonte única de posição desde 03/08. Sem `terms`, o backend
   // resolve sozinho: primeiro a busca que o dono salvou (`category_override`),
   // depois a categoria oficial do Google. Mesma chamada do painel atual.
