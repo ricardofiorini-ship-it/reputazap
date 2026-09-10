@@ -2983,7 +2983,7 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
                   <div style={{ fontSize: 12, color: T.textMid }}>Você ainda não tem conta</div>
                 </div>
                 <a href={signupUrl || '/ativar?from=web'}
-                  onClick={() => setOpen(false)}
+                  onClick={() => { trackFunnel('guest_signup_click', { from: 'header' }); setOpen(false) }}
                   style={{
                     display:'flex', alignItems:'center', width:'100%',
                     padding:'9px 12px', textDecoration:'none',
@@ -5834,7 +5834,9 @@ function ExitIntentModal({ url, bizName, term, spacingM, posicao, top3, medidos,
         <div style={{ marginBottom: 12, color: T.primary, display:'flex', justifyContent:'center' }}><Hand size={40}/></div>
         <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 23, fontWeight: 800, color: T.text, margin:'0 0 10px', letterSpacing:'-0.02em', lineHeight:1.2 }}>{headline}</h2>
         <p style={{ fontSize: 14.5, color: T.textMid, lineHeight: 1.55, margin:'0 0 22px' }}>{sub}</p>
-        <a href={url} style={{
+        <a href={url}
+          onClick={() => trackFunnel('guest_signup_click', { from: 'exit_intent' })}
+          style={{
           display:'inline-block', background: T.blue, color:'#fff', textDecoration:'none',
           fontWeight:700, padding:'13px 26px', borderRadius: 12, fontSize: 15,
           boxShadow:'0 4px 14px rgba(26,115,232,0.30)'
@@ -6943,7 +6945,13 @@ function ScoreModal({ d, onClose, isGuest, signupUrl }) {
         {isGuest ? (
           /* CTA primário do gate — mesmo destino do fluxo de criar conta */
           <a href={signupUrl || '/ativar?from=web'}
-            onClick={() => { try { window.gtag && window.gtag('event', 'score_breakdown_gate_click') } catch {} }}
+            onClick={() => {
+              // Os dois de propósito: `score_breakdown_gate_click` é antigo e pode
+              // estar em relatório do GA4; `guest_signup_click` é o passo 4 do
+              // funil e é o que o /admin/funil conta.
+              try { window.gtag && window.gtag('event', 'score_breakdown_gate_click') } catch {}
+              trackFunnel('guest_signup_click', { from: 'score' })
+            }}
             style={{
               marginTop: 16, width:'100%', minHeight: 48, background: T.primary, color:'#fff', textDecoration:'none',
               borderRadius: 12, padding:'12px 18px', fontSize: 14, fontWeight: 700, fontFamily:"'Inter', sans-serif",
@@ -7385,7 +7393,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             Logado — Demo: itens MOCK. Real: calculadas do estado competitivo. */}
         <Section>
           <WeeklyAction d={d} demoMode={demoMode} isMobile={isMobile} placeId={d.biz.placeId}
-            onActivate={() => { if (isGuest) { window.location.href = guestSignupUrl; return } setActivatePlateOpen(true) }} />
+            onActivate={() => {
+              // Sexto caminho até o cadastro. Conta como os outros cinco: um
+              // passo do funil que só conta em alguns botões mede o botão, não
+              // a intenção da pessoa.
+              if (isGuest) { trackFunnel('guest_signup_click', { from: 'acao_semana' }); window.location.href = guestSignupUrl; return }
+              setActivatePlateOpen(true)
+            }} />
         </Section>
 
         {/* BLOCO 4 — Concorrentes por perto: lentes 1km/3km + categoria. Spec 3.

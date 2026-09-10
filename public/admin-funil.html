@@ -60,6 +60,7 @@
   .drop.none{color:var(--ink-3);font-weight:500;}
 
   .state{text-align:center;padding:50px 20px;color:var(--ink-3);font-size:14px;}
+  .nota-medicao{font-size:11.5px;line-height:1.5;color:var(--ink-3);background:var(--bg);border-left:2px solid var(--warn,#B06000);border-radius:0 6px 6px 0;padding:7px 10px;margin-top:8px;}
   .legend{font-size:11.5px;color:var(--ink-3);line-height:1.6;margin-top:20px;}
 </style>
 </head>
@@ -219,6 +220,15 @@ function render(data){
       : (s.dropFromPrev > 0
           ? `<div class="drop">↓ ${s.dropFromPrev}% desistiram aqui</div>`
           : `<div class="drop none">sem queda</div>`);
+    // Degrau de MEDIÇÃO, não de comportamento. Até 10/09/2026 só 2 dos 6
+    // botões de "criar conta" registravam o clique (faltavam o modal de saída,
+    // o modal do Score, o menu do avatar e a ação da semana). Este passo era
+    // subcontado, e sem este aviso o salto do conserto seria lido como "o CTA
+    // melhorou". Só apaga esta nota quando todo o período consultado for
+    // posterior à data.
+    const nota = s.key === 'guest_signup_click'
+      ? '<div class="nota-medicao">⚠ Passo subcontado antes de 10/09/2026: só 2 dos 6 botões de criar conta registravam o clique. Um salto a partir dessa data é conserto de medição, não mudança de comportamento.</div>'
+      : '';
     return `<div class="step">
       <div class="row1">
         <span class="label">${s.label}</span>
@@ -226,6 +236,7 @@ function render(data){
       </div>
       <div class="track"><div class="fill" style="width:${Math.max(2, s.pctOfTop)}%"></div></div>
       ${dropTxt}
+      ${nota}
     </div>`;
   }).join("");
 
