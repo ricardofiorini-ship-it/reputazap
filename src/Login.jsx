@@ -24,8 +24,19 @@ function signupHrefWithNext() {
   } catch { return "/ativar?from=web"; }
 }
 
+// E-mail que vem de fora na URL. Existe por causa do beco sem saída do
+// cadastro: quem tenta criar conta com um e-mail que já existe é mandado pra
+// cá, e chegar num campo vazio faria a pessoa digitar de novo o mesmo e-mail
+// que o sistema acabou de dizer que conhece.
+function emailDaUrl() {
+  try {
+    const e = new URLSearchParams(window.location.search).get("email") || "";
+    return e.includes("@") && e.length < 200 ? e : "";
+  } catch { return ""; }
+}
+
 export default function Login({ onLogin }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(emailDaUrl);
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");

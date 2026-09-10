@@ -24,6 +24,10 @@ const STEPS = new Set([
   "guest_search_submit",
   "guest_panel_view",
   "guest_signup_click",
+  // Nasceu em 10/09/2026 pra separar "clicou e nunca chegou" de "chegou e
+  // desistiu" — sem ele, a perda entre o clique e o cadastro é um número só,
+  // com dois remédios diferentes escondidos dentro.
+  "signup_form_view",
   "signup_complete",
 ]);
 

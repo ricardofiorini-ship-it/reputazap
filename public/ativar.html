@@ -405,6 +405,22 @@ function anonIdLocal() {
   try { return localStorage.getItem("rz_anon"); } catch (e) { return null; }
 }
 
+// Chegou na tela de cadastro. Só conta quem já tem `rz_anon` (ou seja, passou
+// pelo painel): quem vem do cartão do Mercado Livre não faz parte deste funil e
+// entraria como gente que o funil nunca viu — o mesmo erro que inflava o passo
+// final até 10/09/2026.
+(function marcaChegadaNoCadastro(){
+  try {
+    var id = localStorage.getItem("rz_anon");
+    if (!id) return;
+    fetch("/api/track", {
+      method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true,
+      body: JSON.stringify({ step: "signup_form_view", anon_id: id, meta: { from: new URLSearchParams(location.search).get("from") || null } })
+    }).catch(function(){});
+    if (typeof gtag === "function") gtag("event", "signup_form_view");
+  } catch (e) {}
+})();
+
 async function handleGoogleCredential(response) {
   const idToken = response?.credential;
   if (!idToken) { alert("Falha no login Google."); return; }
@@ -613,7 +629,23 @@ async function goToStep2(){
       body:JSON.stringify({name,email,phone,password:pass,anon_id:anonId})
     });
     const data=await res.json();
-    if(!res.ok){alert(data.error||"Erro ao criar conta");btn.disabled=false;btn.innerHTML="Continuar →";return;}
+    if(!res.ok){
+      btn.disabled=false; btn.innerHTML="Continuar →";
+      // Quem já tem conta não precisa de um aviso, precisa de uma SAÍDA. Este
+      // é o passo onde a pessoa já decidiu se cadastrar: mandá-la de volta pro
+      // formulário que acabou de recusá-la é onde o caminho morria.
+      if(data.codigo==="email_ja_existe"){
+        const proximo=`/app?login=1&email=${encodeURIComponent(email)}`;
+        if(confirm("Você já tem uma conta com esse e-mail.
+
+Quer entrar com ela agora? Seu negócio continua selecionado.")){
+          window.location.href=proximo;
+        }
+        return;
+      }
+      alert(data.error||"Erro ao criar conta");
+      return;
+    }
 
     // Salva token retornado direto do register
     if(data.token){

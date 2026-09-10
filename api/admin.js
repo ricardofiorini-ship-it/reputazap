@@ -124,6 +124,10 @@ async function handleFunnel(req, res) {
     { key: "guest_search_submit", label: "Buscou um negócio" },
     { key: "guest_panel_view",    label: "Viu o painel" },
     { key: "guest_signup_click",  label: "Clicou em criar conta" },
+    // `desde` = dia em que o passo passou a EXISTIR. A tela avisa quando o
+    // período consultado começa antes disso, senão um passo zerado por não ter
+    // sido medido é lido como gente que sumiu — que é o oposto do que houve.
+    { key: "signup_form_view",    label: "Abriu a tela de cadastro", desde: "2026-09-10" },
     { key: "signup_complete",     label: "Concluiu o cadastro" },
   ];
   const sets = {}; STEPS.forEach(s => { sets[s.key] = new Set(); });
@@ -200,6 +204,7 @@ async function handleFunnel(req, res) {
     const dropFromPrev = prev != null && prev > 0 ? Math.round(((prev - people) / prev) * 100) : null;
     prev = people;
     const extra = s.key === "guest_signup_click" ? { por_origem: porOrigem } : {};
+    if (s.desde) extra.desde = s.desde;
     return { key: s.key, label: s.label, people, pctOfTop, dropFromPrev, ...extra };
   });
 
