@@ -16,9 +16,17 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const { name, email, phone, password, anon_id } = req.body;
-  if (!name || !email || !phone || !password) {
-    return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+  // WhatsApp deixou de ser obrigatório em 10/09/2026. Motivo medido: de 9
+  // pessoas que clicaram em "criar conta" no painel do visitante, 4 chegaram
+  // ao fim — e o formulário pedia 5 campos pra quem só queria ver o nome de um
+  // concorrente. O telefone era o mais caro deles.
+  // O campo continua existindo e sendo gravado quando vier: quem preenche
+  // segue alimentando a prospecção. NULL é ausência, não string vazia — senão
+  // o painel de prospects mostraria contatos com telefone "" como se tivesse.
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: "Nome, e-mail e senha são obrigatórios" });
   }
+  const telefone = (typeof phone === "string" && phone.trim()) ? phone.trim() : null;
 
   try {
     // Cria conta e já retorna a sessão
@@ -26,7 +34,7 @@ export default async function handler(req, res) {
       email,
       password,
       options: {
-        data: { name, phone }
+        data: { name, phone: telefone }
       }
     });
 
@@ -96,7 +104,7 @@ export default async function handler(req, res) {
       const adminTmpl = adminNewClientEmail({
         clientName: name,
         clientEmail: email,
-        clientPhone: phone,
+        clientPhone: telefone,
         source: "register"
       });
       emailPromises.push(sendInBackground({
