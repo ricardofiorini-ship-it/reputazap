@@ -399,6 +399,12 @@ function initGoogleSignIn() {
 }
 window.addEventListener("load", () => setTimeout(initGoogleSignIn, 100));
 
+// Não cria id novo: se a pessoa nunca passou pelo painel, manda null e o
+// evento conta sem origem — igual ao cadastro por e-mail.
+function anonIdLocal() {
+  try { return localStorage.getItem("rz_anon"); } catch (e) { return null; }
+}
+
 async function handleGoogleCredential(response) {
   const idToken = response?.credential;
   if (!idToken) { alert("Falha no login Google."); return; }
@@ -408,7 +414,10 @@ async function handleGoogleCredential(response) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       // allow_signup: /ativar e onboarding — o Google PODE criar a conta aqui.
-      body: JSON.stringify({ action: "google", id_token: idToken, allow_signup: true })
+      // anon_id vai junto pelo mesmo motivo do cadastro por e-mail: sem ele o
+      // `signup_complete` desta pessoa não se liga ao painel que ela viu, e o
+      // funil perde a ponta que explica de onde veio o cliente.
+      body: JSON.stringify({ action: "google", id_token: idToken, allow_signup: true, anon_id: anonIdLocal() })
     });
     const data = await res.json();
     if (!res.ok || !data.ok) {

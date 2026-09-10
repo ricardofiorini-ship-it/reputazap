@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { sendInBackground } from "./_lib/email-sender.js";
 import { welcomeEmail, adminNewClientEmail } from "./_lib/email-templates.js";
+import { logFunnel } from "./track.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -54,7 +55,7 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { email, password, id_token, action, allow_signup } = req.body;
+  const { email, password, id_token, action, allow_signup, anon_id } = req.body;
 
   try {
     let data, error;
@@ -143,6 +144,25 @@ export default async function handler(req, res) {
         }));
       }
 
+      // ── O PASSO FINAL DO FUNIL, PELO CAMINHO DO GOOGLE ───────
+      // Achado em 10/09/2026: `signup_complete` só era gravado no
+      // `api/register.js` (cadastro por e-mail e senha). Quem criava a conta
+      // pelo botão do Google — que está na MESMA tela de cadastro — nunca
+      // entrava na conta, e o funil do /admin/funil mostrava uma taxa de
+      // conversão menor do que a real, sem nada indicando que faltava gente.
+      //
+      // "É conta nova?" sai da idade do usuário: o Supabase acabou de criá-la
+      // dentro DESTA chamada, então `created_at` é de segundos atrás. A janela
+      // de 5 minutos é folga pra relógio dessincronizado, não pra dúvida —
+      // login de quem já tinha conta traz `created_at` de dias ou meses.
+      const criadoEm = data.user?.created_at ? new Date(data.user.created_at).getTime() : 0;
+      const contaNova = criadoEm > 0 && (Date.now() - criadoEm) < 5 * 60 * 1000;
+      if (contaNova) {
+        emailPromises.push(logFunnel({ step: "signup_complete", anon_id, meta: { source: "login_google" } }));
+      }
+
+      // Aguardado antes do res.json — a Vercel corta promise órfã, e um
+      // evento de funil perdido é exatamente o tipo de falha que ninguém vê.
       await Promise.allSettled(emailPromises);
     }
     res.json({
