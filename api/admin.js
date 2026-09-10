@@ -112,7 +112,7 @@ async function handleFunnel(req, res) {
 
   let q = supabase
     .from("funnel_events")
-    .select("anon_id, step, created_at")
+    .select("anon_id, step, meta, created_at")
     .gte("created_at", since);
   if (until) q = q.lte("created_at", until);
   const { data, error } = await q.limit(100000);
@@ -134,6 +134,37 @@ async function handleFunnel(req, res) {
     sets[r.step].add(r.anon_id || `evt-${i++}`);
   }
 
+  // ── DE QUAL BOTÃO VEIO O CLIQUE ─────────────────────────────
+  // Seis caminhos levam ao cadastro e eles respondem perguntas diferentes:
+  // se quase tudo vem do MODAL DE SAÍDA, a pessoa só reage quando está indo
+  // embora; se vem da FAIXA DOS CONCORRENTES, o portão do borrão é que está
+  // fazendo o trabalho. Uma coisa pede mudar o momento do pedido; a outra pede
+  // apertar o portão que já existe. Sem esta quebra as duas são o mesmo número.
+  //
+  // ⚠️ A SOMA PODE PASSAR DO TOTAL DO PASSO, e não é erro: conta PESSOAS por
+  // botão, e quem clicou em dois aparece nos dois. O total do passo conta a
+  // pessoa uma vez só. A tela diz isso — número que não fecha e não se explica
+  // vira desconfiança na medição inteira.
+  const ORIGEM_LABEL = {
+    ranking:     "Faixa dos concorrentes borrados",
+    gate:        "Portão de Alertas / Relatórios / Configurações",
+    exit_intent: "Modal de saída (\"antes de sair…\")",
+    score:       "Modal do Score",
+    header:      "Menu do avatar",
+    acao_semana: "Ação da semana",
+    desconhecido: "Origem não registrada"
+  };
+  const origens = {}; let j = 0;
+  for (const r of (data || [])) {
+    if (r.step !== "guest_signup_click") continue;
+    const from = (r.meta && r.meta.from) || "desconhecido";
+    if (!origens[from]) origens[from] = new Set();
+    origens[from].add(r.anon_id || `evt-o-${j++}`);
+  }
+  const porOrigem = Object.entries(origens)
+    .map(([from, set]) => ({ from, label: ORIGEM_LABEL[from] || from, people: set.size }))
+    .sort((a, b) => b.people - a.people);
+
   const top = sets[STEPS[0].key].size || 0;
   let prev = null;
   const funnel = STEPS.map(s => {
@@ -141,7 +172,8 @@ async function handleFunnel(req, res) {
     const pctOfTop = top ? Math.round((people / top) * 100) : 0;
     const dropFromPrev = prev != null && prev > 0 ? Math.round(((prev - people) / prev) * 100) : null;
     prev = people;
-    return { key: s.key, label: s.label, people, pctOfTop, dropFromPrev };
+    const extra = s.key === "guest_signup_click" ? { por_origem: porOrigem } : {};
+    return { key: s.key, label: s.label, people, pctOfTop, dropFromPrev, ...extra };
   });
 
   // ── O SEGUNDO FUNIL: adoção do Menu Inteligente (08/09/2026) ──

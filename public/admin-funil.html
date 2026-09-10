@@ -61,6 +61,15 @@
 
   .state{text-align:center;padding:50px 20px;color:var(--ink-3);font-size:14px;}
   .nota-medicao{font-size:11.5px;line-height:1.5;color:var(--ink-3);background:var(--bg);border-left:2px solid var(--warn,#B06000);border-radius:0 6px 6px 0;padding:7px 10px;margin-top:8px;}
+  .origens{margin-top:10px;border-top:1px dashed var(--border);padding-top:9px;}
+  .origens .cab{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px;}
+  .origens .lin{display:flex;align-items:center;gap:9px;padding:3px 0;}
+  .origens .nm{font-size:12.5px;color:var(--ink-2);flex:1;min-width:0;}
+  .origens .qt{font-size:12.5px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;}
+  .origens .barra{width:78px;height:5px;border-radius:3px;background:var(--border);overflow:hidden;flex:0 0 auto;}
+  .origens .barra i{display:block;height:100%;background:var(--brand);}
+  .origens .rodape{font-size:11px;color:var(--ink-3);line-height:1.5;margin-top:8px;}
+  .origens .vazio{font-size:12px;color:var(--ink-3);padding:2px 0 4px;}
   .legend{font-size:11.5px;color:var(--ink-3);line-height:1.6;margin-top:20px;}
 </style>
 </head>
@@ -202,6 +211,36 @@ async function load(){
   } catch(e){ $("content").innerHTML = `<div class="state">Não foi possível carregar (${e.message}).</div>`; }
 }
 
+// Quebra do passo "clicou em criar conta" por botão de origem.
+// A soma PODE passar do total do passo: aqui conta pessoas por botão e quem
+// clicou em dois aparece nos dois; o passo conta a pessoa uma vez só. O rodapé
+// diz isso — número que não fecha e não se explica derruba a confiança na
+// medição inteira, mesmo quando está certo.
+function blocoOrigens(lista, totalPasso){
+  const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  if(!lista || !lista.length){
+    return `<div class="origens">
+      <div class="cab">De qual botão veio</div>
+      <div class="vazio">Ainda sem cliques neste período.</div>
+    </div>`;
+  }
+  const maior = Math.max(...lista.map(o => o.people), 1);
+  const soma = lista.reduce((t, o) => t + o.people, 0);
+  const linhas = lista.map(o => `<div class="lin">
+      <span class="nm">${esc(o.label)}</span>
+      <span class="barra"><i style="width:${Math.max(4, Math.round((o.people / maior) * 100))}%"></i></span>
+      <span class="qt">${o.people}</span>
+    </div>`).join('');
+  const rodape = (soma > totalPasso)
+    ? `<div class="rodape">A soma (${soma}) passa do total do passo (${totalPasso}) porque ${soma - totalPasso} ${soma - totalPasso === 1 ? 'pessoa clicou' : 'pessoas clicaram'} em mais de um botão. Não é erro de conta.</div>`
+    : '';
+  return `<div class="origens">
+    <div class="cab">De qual botão veio</div>
+    ${linhas}
+    ${rodape}
+  </div>`;
+}
+
 function render(data){
   const funnel = data.funnel || [];
   const top = funnel.length ? funnel[0].people : 0;
@@ -229,6 +268,10 @@ function render(data){
     const nota = s.key === 'guest_signup_click'
       ? '<div class="nota-medicao">⚠ Passo subcontado antes de 10/09/2026: só 2 dos 6 botões de criar conta registravam o clique. Um salto a partir dessa data é conserto de medição, não mudança de comportamento.</div>'
       : '';
+    // De QUAL botão veio o clique. Só existe neste passo, e é o que separa
+    // "a pessoa só reage quando está indo embora" de "o portão do borrão está
+    // funcionando" — dois diagnósticos com remédios opostos.
+    const origens = (s.key === 'guest_signup_click' && s.por_origem) ? blocoOrigens(s.por_origem, s.people) : '';
     return `<div class="step">
       <div class="row1">
         <span class="label">${s.label}</span>
@@ -237,6 +280,7 @@ function render(data){
       <div class="track"><div class="fill" style="width:${Math.max(2, s.pctOfTop)}%"></div></div>
       ${dropTxt}
       ${nota}
+      ${origens}
     </div>`;
   }).join("");
 
