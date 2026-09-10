@@ -165,6 +165,33 @@ async function handleFunnel(req, res) {
     .map(([from, set]) => ({ from, label: ORIGEM_LABEL[from] || from, people: set.size }))
     .sort((a, b) => b.people - a.people);
 
+  // ── O PASSO FINAL MEDIA OUTRA POPULACAO ─────────────────────
+  // Achado em 10/09/2026, com o funil na tela: 35 cadastros para 9 cliques em
+  // "criar conta". Não fecha, e a causa é que `signup_complete` conta TODO
+  // cadastro do site, venha de onde vier — inclusive o comprador do Mercado
+  // Livre que recebeu o cartão e se cadastra no /ativar-codigo (o canal com
+  // mais volume), que nunca passou pelo painel do convidado.
+  //
+  // Dividir esse total pelo topo do funil e chamar de "% do topo" é somar
+  // laranja com maçã: o numerador tem gente que o denominador nunca viu.
+  //
+  // O elo que separa os dois é o `anon_id`: ele só existe pra quem passou pelo
+  // /app. Quem chegou pelo cartão não tem nenhum, e o `logFunnel` grava null.
+  // Então o passo passa a contar SÓ quem o funil viu de verdade, e o resto vai
+  // pra um número à parte, com nome próprio — em vez de sumir ou inflar.
+  const anonsDoFunil = new Set();
+  for (const r of (data || [])) {
+    if (r.anon_id && typeof r.step === "string" && r.step.startsWith("guest_")) anonsDoFunil.add(r.anon_id);
+  }
+  const cadastroDoFunil = new Set();
+  let cadastroForaDoFunil = 0;
+  for (const r of (data || [])) {
+    if (r.step !== "signup_complete") continue;
+    if (r.anon_id && anonsDoFunil.has(r.anon_id)) cadastroDoFunil.add(r.anon_id);
+    else cadastroForaDoFunil++;
+  }
+  sets["signup_complete"] = cadastroDoFunil;
+
   const top = sets[STEPS[0].key].size || 0;
   let prev = null;
   const funnel = STEPS.map(s => {
@@ -189,9 +216,22 @@ async function handleFunnel(req, res) {
   // publicou agora.
   const menu = await funilDoMenu(since, until);
 
+  // A pergunta que decide o portão do cadastro, calculada aqui e não na tela:
+  // de quem VIU O RESULTADO, quantos criaram conta. É a única razão do funil
+  // que não depende dos passos do meio, que já nasceram furados uma vez.
+  const viuPainel = sets["guest_panel_view"].size;
+  const conversaoDoPainel = viuPainel ? Math.round((cadastroDoFunil.size / viuPainel) * 100) : null;
+
   return res.json({
     days, de, ate, periodo: { de: since, ate: until },
-    total_events: (data || []).length, funnel, menu
+    total_events: (data || []).length, funnel, menu,
+    cadastros: {
+      do_funil: cadastroDoFunil.size,
+      fora_do_funil: cadastroForaDoFunil,
+      total: cadastroDoFunil.size + cadastroForaDoFunil,
+      viu_painel: viuPainel,
+      conversao_do_painel: conversaoDoPainel
+    }
   });
 }
 

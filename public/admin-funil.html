@@ -48,6 +48,7 @@
 
   .headline{background:var(--surf);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:18px;}
   .headline b{color:var(--brand);font-variant-numeric:tabular-nums;}
+  .headline-2{margin-top:9px;padding-top:9px;border-top:1px solid var(--border);font-size:14px;color:var(--ink-2);}
 
   .step{background:var(--surf);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
   .step .row1{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px;}
@@ -251,9 +252,15 @@ function render(data){
     return;
   }
 
-  const headline = `<div class="headline">De <b>${top}</b> que abriram a busca, <b>${last ? last.people : 0}</b> concluíram o cadastro — taxa de <b>${last ? last.pctOfTop : 0}%</b>.</div>`;
+  // A segunda linha é a que decide o portão do cadastro: os passos do meio já
+  // nasceram furados uma vez, e esta razão não depende deles.
+  const c = data.cadastros;
+  const linhaPainel = (c && c.conversao_do_painel != null)
+    ? `<div class="headline-2">De <b>${c.viu_painel}</b> que chegaram a ver o resultado, <b>${c.do_funil}</b> ${c.do_funil === 1 ? 'criou' : 'criaram'} conta — <b>${c.conversao_do_painel}%</b>.</div>`
+    : '';
+  const headline = `<div class="headline">De <b>${top}</b> que abriram a busca, <b>${last ? last.people : 0}</b> concluíram o cadastro — taxa de <b>${last ? last.pctOfTop : 0}%</b>.${linhaPainel}</div>`;
 
-  const steps = funnel.map(s => {
+  const steps = funnel.map(s => {   // `data` no escopo: as notas citam números de fora do passo
     const dropTxt = s.dropFromPrev == null
       ? '<div class="drop none">— topo do funil</div>'
       : (s.dropFromPrev > 0
@@ -265,6 +272,9 @@ function render(data){
     // subcontado, e sem este aviso o salto do conserto seria lido como "o CTA
     // melhorou". Só apaga esta nota quando todo o período consultado for
     // posterior à data.
+    const notaCadastro = (s.key === 'signup_complete' && data.cadastros)
+      ? `<div class="nota-medicao">Conta só quem o funil viu passar. No período houve <b>${data.cadastros.total}</b> ${data.cadastros.total === 1 ? 'cadastro' : 'cadastros'} no site; <b>${data.cadastros.fora_do_funil}</b> ${data.cadastros.fora_do_funil === 1 ? 'chegou' : 'chegaram'} por outro caminho — ativação de cartão, link direto, landing — sem passar pelo painel do visitante. Somar os dois aqui inflaria o funil com gente que ele nunca mediu.</div>`
+      : '';
     const nota = s.key === 'guest_signup_click'
       ? '<div class="nota-medicao">⚠ Passo subcontado antes de 10/09/2026: só 2 dos 6 botões de criar conta registravam o clique. Um salto a partir dessa data é conserto de medição, não mudança de comportamento.</div>'
       : '';
@@ -280,6 +290,7 @@ function render(data){
       <div class="track"><div class="fill" style="width:${Math.max(2, s.pctOfTop)}%"></div></div>
       ${dropTxt}
       ${nota}
+      ${notaCadastro}
       ${origens}
     </div>`;
   }).join("");
