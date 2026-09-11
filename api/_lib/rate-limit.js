@@ -44,6 +44,37 @@ function avisaFalha(msg) {
   );
 }
 
+// ── O nosso próprio servidor não é um estranho ───────────────────────────
+// O cron do resumo semanal pergunta a nota de CADA cliente ao nosso próprio
+// /api/reviews e /api/bizinfo. Com 108 negócios isso é 108 chamadas por
+// endpoint, de uma origem só, em 3 minutos — contra um teto de 120/hora
+// pensado pra barrar estranho. O freio estava a 12 fichas de trancar o
+// carteiro do lado de fora, e o 429 resultante seria lido pelo cron como
+// "o Google não tem dados desse negócio": cliente pulado, em silêncio.
+//
+// FECHA POR PADRÃO: sem CRON_SECRET ninguém entra por aqui — inclusive nós.
+// E uma chamada que SE DIZ interna sem ser reconhecida GRITA no log, porque
+// é exatamente o sintoma de o cron ter voltado a bater no freio.
+const CABECALHO_INTERNO = "x-startouch-internal";
+let _avisouInterno = false;
+
+export function chamadaInterna(req) {
+  const enviado = req?.headers?.[CABECALHO_INTERNO];
+  if (!enviado) return false;
+  const segredo = process.env.CRON_SECRET;
+  if (segredo && enviado === segredo) return true;
+  if (!_avisouInterno) {
+    _avisouInterno = true;
+    console.warn(
+      `[rate-limit] chamada se diz INTERNA e não foi reconhecida ` +
+      `(${segredo ? "segredo não confere" : "CRON_SECRET ausente"}). ` +
+      `Se for o cron, ele volta a disputar o teto por IP e começa a levar 429 ` +
+      `— e cliente pulado no resumo semanal.`
+    );
+  }
+  return false;
+}
+
 export function getIp(req) {
   const fwd = req.headers["x-forwarded-for"];
   if (fwd) return fwd.split(",")[0].trim();
@@ -73,6 +104,9 @@ async function bump(key, windowMs) {
  *   if (await limitou(req, res, { nome: "diagnostico", porIpHora: 30, globalDia: 200 })) return;
  */
 export async function limitou(req, res, { nome, porIpHora, globalDia }) {
+  // Chamada do nosso próprio cron: passa. O freio existe contra estranho.
+  if (chamadaInterna(req)) return false;
+
   const ip = getIp(req);
 
   // 1. Por IP / hora

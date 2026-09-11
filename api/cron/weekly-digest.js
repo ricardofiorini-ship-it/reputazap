@@ -49,12 +49,28 @@ function weekKey() {
   return monday.toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
+// Cabeçalho que identifica a chamada como nossa (ver _lib/rate-limit.js).
+// Sem ele, 108 negócios = 108 chamadas por endpoint contra um teto de 120/hora.
+const CABECALHO_INTERNO = process.env.CRON_SECRET
+  ? { "x-startouch-internal": process.env.CRON_SECRET }
+  : {};
+
+// Devolve o corpo, ou um objeto com `__erro` quando a pergunta NÃO FOI FEITA.
+//
+// Antes isto devolvia `{}` pra qualquer falha, e o chamador traduzia o vazio
+// como "sem dados do Google" — ou seja, um freio nosso, um timeout ou um 500
+// viravam "esse negócio não existe no Google" e o cliente era pulado com um
+// motivo errado no relatório. É a mesma confusão que já custou caro aqui
+// (429 do Google virando "sem concorrente"): quem não conseguiu PERGUNTAR
+// não pode reportar como se tivesse recebido um NÃO.
 async function fetchJson(url) {
   try {
-    const r = await fetch(url);
-    return await r.json();
-  } catch {
-    return {};
+    const r = await fetch(url, { headers: CABECALHO_INTERNO });
+    const corpo = await r.json().catch(() => ({}));
+    if (!r.ok) return { __erro: `HTTP ${r.status}`, __freio: r.status === 429 };
+    return corpo;
+  } catch (e) {
+    return { __erro: e?.message || String(e) };
   }
 }
 
@@ -80,7 +96,8 @@ export default async function handler(req, res) {
   const stats = {
     week, dry, started_at: new Date().toISOString(),
     businesses: 0, sent: 0, alerts_sent: 0, lista_cheia: 0, skipped_disabled: 0, skipped_dedupe: 0,
-    skipped_no_email: 0, errors: [], recipients: [], took_ms: 0
+    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0,
+    errors: [], recipients: [], took_ms: 0
   };
   const t0 = Date.now();
 
@@ -103,6 +120,13 @@ export default async function handler(req, res) {
 
   let list = businesses || [];
   if (Number.isFinite(limit) && limit > 0) list = list.slice(0, limit);
+
+  // Log de PARTIDA. O relatório final só é escrito na última linha do handler:
+  // se a função for cortada no meio (tempo máximo de execução), ele não sai, e
+  // a ausência fica idêntica a um dia normal. Com esta linha, "começou 108 e
+  // nunca concluiu" é visível no log — que é como a truncagem vai aparecer
+  // quando a base crescer o bastante pra encostar nos 5 minutos.
+  console.log(`[cron/weekly-digest] começando: ${list.length} negócios, semana ${week}${dry ? " (dry)" : ""}`);
 
   for (const biz of list) {
     stats.businesses++;
@@ -162,7 +186,25 @@ export default async function handler(req, res) {
       // cair sem uma linha explicando por que.
       const gridCobertura = gridRow?.coverage ?? null;
       const gridMedidos = gridRow?.measured ?? null;
-      if (!rv || (!rv.name && !rv.rating)) {
+      // Duas coisas MUITO diferentes, que antes eram a mesma linha:
+      //   1. não consegui perguntar  → problema NOSSO, o cliente existe
+      //   2. perguntei e não voltou nada → ficha do Google sumiu/place_id errado
+      if (rv?.__erro) {
+        stats.nao_consegui_perguntar++;
+        if (rv.__freio) {
+          stats.barrados_pelo_freio++;
+          if (stats.barrados_pelo_freio === 1) {
+            console.warn(
+              `[weekly-digest] LEVEI 429 DO NOSSO PRÓPRIO SITE. O cabeçalho interno ` +
+              `não está sendo aceito (CRON_SECRET ausente ou diferente do que o ` +
+              `endpoint espera). A partir daqui os clientes começam a ser PULADOS.`
+            );
+          }
+        }
+        stats.errors.push({ business_id: biz.id, error: `não consegui consultar: ${rv.__erro}` });
+        continue;
+      }
+      if (!rv.name && !rv.rating) {
         stats.errors.push({ business_id: biz.id, error: "sem dados do Google" });
         continue;
       }
