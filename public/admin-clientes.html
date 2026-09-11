@@ -87,6 +87,17 @@
   .stat-card.is-positive .value { color: #137333; }
   .stat-card.is-warning  .value { color: #B45309; }
 
+  /* Saúde da base: os mesmos cartões, mas clicáveis — cada número leva à lista
+     de quem está nele. */
+  .saude-titulo { font-size: 15px; font-weight: 700; color: #202124; margin: 0 0 12px; }
+  .saude-titulo span { font-size: 12px; font-weight: 500; color: #5F6368; }
+  .stat-card.saude {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    font-family: inherit; transition: border-color .12s, box-shadow .12s;
+  }
+  .stat-card.saude:hover { border-color: #1A73E8; box-shadow: 0 2px 8px rgba(26,115,232,.12); }
+  .saude-nota { font-size: 11.5px; color: #5F6368; line-height: 1.55; margin: -14px 0 26px; }
+
   /* ── Filtros ── */
   .toolbar {
     background: #fff; border: 1px solid #E5E7EB; border-radius: 12px;
@@ -320,6 +331,16 @@
     <div class="loading">Carregando estatísticas…</div>
   </div>
 
+  <!-- Saúde da base — quem usa, quem sumiu. Sai do que a lista já traz. -->
+  <h2 class="saude-titulo">Saúde da base <span>· clique num número pra ver quem é</span></h2>
+  <div class="stats-grid" id="saude-grid"></div>
+  <p class="saude-nota">
+    Conta o <b>último login</b> de cada conta — não quantas vezes entrou, quanto tempo ficou ou o que olhou.
+    Vale como “última vez que usou” porque o painel não renova a sessão: o cliente loga de novo a cada visita.
+    Os cartões <b>se sobrepõem de propósito</b> e não somam o total: quem nunca voltou e tem cartão ativo aparece
+    nos dois — são duas perguntas sobre a mesma pessoa, não fatias de um bolo.
+  </p>
+
   <!-- Toolbar -->
   <div class="toolbar">
     <input id="q" type="search" placeholder="Buscar por nome, email, negócio…" autocomplete="off"/>
@@ -327,6 +348,14 @@
       <option value="">Todos os planos</option>
       <option value="pro">Pro</option>
       <option value="free">Free</option>
+    </select>
+    <select id="filter-uso">
+      <option value="">Qualquer uso</option>
+      <option value="ativo7">Entraram em 7 dias</option>
+      <option value="ativo30">Entraram em 30 dias</option>
+      <option value="sumido">Sumidos com dispositivo</option>
+      <option value="nunca">Nunca voltaram</option>
+      <option value="nobiz">Sem negócio salvo</option>
     </select>
     <select id="filter-status">
       <option value="">Todos status</option>
@@ -553,6 +582,102 @@ function renderStats(stats) {
 // ────────────────────────────────────────────────────────────
 // RENDER TABLE
 // ────────────────────────────────────────────────────────────
+
+// ── SAÚDE DA BASE ────────────────────────────────────────────
+// Criado em 11/09/2026. A lista cliente a cliente já respondia "quem sumiu?",
+// mas exigia olhar linha por linha. Isto é a mesma verdade em forma de número.
+//
+// NÃO COLETA NADA NOVO: tudo sai do que o /api/admin?action=list-clients já
+// devolve (created_at e last_sign_in_at vêm da autenticação; dispositivos e
+// toques, das tabelas). Por isso não mexe na Política de Privacidade.
+//
+// ⚠️ O QUE ESTE BLOCO NÃO SABE: quanto tempo a pessoa ficou, o que olhou e
+// quantas vezes entrou. Ele conta o ÚLTIMO login, não a frequência — dois
+// clientes com "entrou ontem" podem ser um que entra todo dia e outro que
+// entrou uma vez em três meses. Medir frequência e telas exige evento novo
+// amarrado ao cliente, e aí a Política entra na conta.
+//
+// Por que o último login vale como "última vez que usou": o painel NÃO renova
+// a sessão (não há refresh de token em lugar nenhum do código), então o cliente
+// loga de novo a cada visita. Se um dia entrar refresh, este número passa a
+// mentir — e este comentário é o aviso.
+const DIA_MS = 86400000;
+
+function diasDesde(iso) {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (!t) return null;
+  return Math.floor((Date.now() - t) / DIA_MS);
+}
+
+// Quem entrou UMA vez e nunca mais. O Supabase carimba `last_sign_in_at` já no
+// cadastro, então "nunca voltou" é o login colado na criação da conta.
+// A carência de 7 dias existe pra não acusar de abandono quem se cadastrou
+// ontem e simplesmente ainda não teve motivo de voltar.
+function nuncaVoltou(c) {
+  if (!c.last_sign_in_at || !c.created_at) return false;
+  const idade = diasDesde(c.created_at);
+  if (idade == null || idade < 7) return false;
+  const gap = new Date(c.last_sign_in_at).getTime() - new Date(c.created_at).getTime();
+  return gap < DIA_MS;
+}
+
+// O balde que vira telefonema: tem dispositivo instalado, pagou por ele, e
+// não aparece há mais de um mês.
+function sumido(c) {
+  if (!c.plates || c.plates.active < 1) return false;
+  const d = diasDesde(c.last_sign_in_at);
+  return d == null || d > 30;
+}
+
+function entrouEm(c, dias) {
+  const d = diasDesde(c.last_sign_in_at);
+  return d != null && d <= dias;
+}
+
+function renderSaude(clientes) {
+  const box = document.getElementById("saude-grid");
+  if (!box) return;
+  const total = clientes.length;
+  if (!total) { box.innerHTML = ""; return; }
+
+  const a7  = clientes.filter(c => entrouEm(c, 7)).length;
+  const a30 = clientes.filter(c => entrouEm(c, 30)).length;
+  const nv  = clientes.filter(nuncaVoltou).length;
+  const sm  = clientes.filter(sumido).length;
+  const sb  = clientes.filter(c => !c.business).length;
+
+  const pct = (n) => total ? Math.round((n / total) * 100) : 0;
+
+  // Cada cartão FILTRA a lista abaixo. Número que não leva a lugar nenhum vira
+  // enfeite; aqui ele é a porta pro nome de quem ligar.
+  const card = (chave, classe, rotulo, valor, sub) => `
+    <button class="stat-card saude ${classe}" onclick="filtrarPorUso('${chave}')">
+      <div class="label">${rotulo}</div>
+      <div class="value">${valor}</div>
+      <div class="sub">${sub}</div>
+    </button>`;
+
+  box.innerHTML =
+    card("ativo7",  a7 ? "is-positive" : "",  "Entraram em 7 dias",  a7,  `${pct(a7)}% das ${total} contas`) +
+    card("ativo30", "",                        "Entraram em 30 dias", a30, `${pct(a30)}% das ${total} contas`) +
+    card("sumido",  sm ? "is-warning" : "",   "Sumidos com dispositivo", sm, sm ? "têm cartão ativo e não entram há 30+ dias" : "ninguém abandonado") +
+    card("nunca",   nv ? "is-warning" : "",   "Nunca voltaram",      nv,  "entraram só no dia do cadastro") +
+    card("nobiz",   "",                        "Sem negócio salvo",   sb,  "criaram conta e pararam no onboarding");
+}
+
+// Clicar num cartão filtra a tabela. `uso` é um filtro à parte do de status
+// porque as perguntas se cruzam: "sumido" já implica ter dispositivo.
+function filtrarPorUso(chave) {
+  const sel = document.getElementById("filter-uso");
+  if (!sel) return;
+  // Clicar de novo no mesmo cartão desliga o filtro — senão a única saída
+  // seria caçar o "Todos" no select.
+  sel.value = (sel.value === chave) ? "" : chave;
+  applyFiltersAndRender();
+  document.querySelector(".toolbar")?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 function applyFiltersAndRender() {
   const q = document.getElementById("q").value.trim().toLowerCase();
   const plan = document.getElementById("filter-plan").value;
@@ -577,6 +702,13 @@ function applyFiltersAndRender() {
   if (status === "active")  list = list.filter(c => c.plates.active > 0);
   if (status === "zero")    list = list.filter(c => c.plates.active === 0 && c.business);
   if (status === "nobiz")   list = list.filter(c => !c.business);
+  // Filtro de USO — o que os cartões de Saúde da base acionam.
+  const uso = document.getElementById("filter-uso")?.value || "";
+  if (uso === "ativo7")   list = list.filter(c => entrouEm(c, 7));
+  if (uso === "ativo30")  list = list.filter(c => entrouEm(c, 30));
+  if (uso === "sumido")   list = list.filter(sumido);
+  if (uso === "nunca")    list = list.filter(nuncaVoltou);
+  if (uso === "nobiz")    list = list.filter(c => !c.business);
 
   // Ordenação
   if (sort === "created_asc")          list.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
@@ -872,7 +1004,7 @@ function showToast(msg) {
 // ────────────────────────────────────────────────────────────
 // FILTROS / EVENTOS
 // ────────────────────────────────────────────────────────────
-["q", "filter-plan", "filter-status", "sort"].forEach(id => {
+["q", "filter-plan", "filter-status", "filter-uso", "sort"].forEach(id => {
   document.getElementById(id).addEventListener("input", applyFiltersAndRender);
   document.getElementById(id).addEventListener("change", applyFiltersAndRender);
 });
@@ -892,6 +1024,7 @@ async function init() {
     if (clientsRes.error) throw new Error(clientsRes.error);
     renderStats(statsRes.stats);
     allClients = clientsRes.clients || [];
+    renderSaude(allClients);   // sobre TODAS as contas, não sobre a lista filtrada
     applyFiltersAndRender();
   } catch (e) {
     if (e.message === "AUTH") {
