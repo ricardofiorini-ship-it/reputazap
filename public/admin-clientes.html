@@ -339,6 +339,8 @@
     Vale como “última vez que usou” porque o painel não renova a sessão: o cliente loga de novo a cada visita.
     Os cartões <b>se sobrepõem de propósito</b> e não somam o total: quem nunca voltou e tem cartão ativo aparece
     nos dois — são duas perguntas sobre a mesma pessoa, não fatias de um bolo.
+    <b>A exceção são “usa o cartão” e “cartão parado”:</b> esses dois se excluem e, somados, dão o total de quem
+    tem dispositivo ativo e não entra há 30+ dias.
   </p>
 
   <!-- Toolbar -->
@@ -353,7 +355,9 @@
       <option value="">Qualquer uso</option>
       <option value="ativo7">Entraram em 7 dias</option>
       <option value="ativo30">Entraram em 30 dias</option>
-      <option value="sumido">Sumidos com dispositivo</option>
+      <option value="tocando">Usa o cartão, não o painel</option>
+      <option value="parado">Cartão parado (sumido)</option>
+      <option value="nunca_tocou">Cartão nunca tocou</option>
       <option value="nunca">Nunca voltaram</option>
       <option value="nobiz">Sem negócio salvo</option>
     </select>
@@ -622,12 +626,41 @@ function nuncaVoltou(c) {
   return gap < DIA_MS;
 }
 
-// O balde que vira telefonema: tem dispositivo instalado, pagou por ele, e
-// não aparece há mais de um mês.
+// Tem dispositivo instalado, pagou por ele, e não aparece há mais de um mês.
+// Guarda-chuva: por si só NÃO diz o que fazer — por isso se parte em dois logo
+// abaixo.
 function sumido(c) {
   if (!c.plates || c.plates.active < 1) return false;
   const d = diasDesde(c.last_sign_in_at);
   return d == null || d > 30;
+}
+
+// ── OS DOIS TIPOS DE "SUMIDO", QUE PEDEM COISAS OPOSTAS ──────
+// O dono ausente é o mesmo nos dois; o que muda é o CARTÃO. Olhar só o login
+// misturava um cliente satisfeito com um cliente perdido, e o número virava
+// um alarme que não dizia o que fazer.
+//
+//   • cartão TOCANDO → o produto está funcionando sozinho. Não é resgate: é
+//     o melhor candidato a ouvir sobre o Menu Inteligente, porque já teve
+//     resultado sem nunca ter aberto o painel.
+//   • cartão PARADO → aí sim é abandono. Comprou, instalou e morreu — ou
+//     nunca chegou a instalar.
+//
+// A régua é a MESMA dos 30 dias do login, de propósito: duas réguas
+// diferentes na mesma tela obrigariam a explicar qual é qual toda vez.
+function sumidoTocando(c) {
+  if (!sumido(c)) return false;
+  const t = diasDesde(c.plates.lastTapAt);
+  return t != null && t <= 30;
+}
+function sumidoParado(c) {
+  return sumido(c) && !sumidoTocando(c);
+}
+// Dentro do "parado", o pior caso: o cartão foi ativado e NUNCA tocou. Não é
+// cliente que esfriou, é instalação que não aconteceu — pode estar na gaveta.
+// Ação diferente: não é resgatar uso, é perguntar se chegou e se foi instalado.
+function nuncaTocou(c) {
+  return sumidoParado(c) && !c.plates.lastTapAt;
 }
 
 function entrouEm(c, dias) {
@@ -644,7 +677,9 @@ function renderSaude(clientes) {
   const a7  = clientes.filter(c => entrouEm(c, 7)).length;
   const a30 = clientes.filter(c => entrouEm(c, 30)).length;
   const nv  = clientes.filter(nuncaVoltou).length;
-  const sm  = clientes.filter(sumido).length;
+  const st  = clientes.filter(sumidoTocando).length;
+  const sp  = clientes.filter(sumidoParado).length;
+  const nt  = clientes.filter(nuncaTocou).length;
   const sb  = clientes.filter(c => !c.business).length;
 
   const pct = (n) => total ? Math.round((n / total) * 100) : 0;
@@ -661,7 +696,10 @@ function renderSaude(clientes) {
   box.innerHTML =
     card("ativo7",  a7 ? "is-positive" : "",  "Entraram em 7 dias",  a7,  `${pct(a7)}% das ${total} contas`) +
     card("ativo30", "",                        "Entraram em 30 dias", a30, `${pct(a30)}% das ${total} contas`) +
-    card("sumido",  sm ? "is-warning" : "",   "Sumidos com dispositivo", sm, sm ? "têm cartão ativo e não entram há 30+ dias" : "ninguém abandonado") +
+    card("tocando", "",                        "Usa o cartão, não o painel", st,
+         "cartão tocou nos últimos 30 dias · candidato ao Menu") +
+    card("parado",  sp ? "is-warning" : "",   "Cartão parado", sp,
+         sp ? `sem toque há 30+ dias${nt ? ` · ${nt} nunca tocaram` : ""}` : "nenhum cartão abandonado") +
     card("nunca",   nv ? "is-warning" : "",   "Nunca voltaram",      nv,  "entraram só no dia do cadastro") +
     card("nobiz",   "",                        "Sem negócio salvo",   sb,  "criaram conta e pararam no onboarding");
 }
@@ -706,7 +744,9 @@ function applyFiltersAndRender() {
   const uso = document.getElementById("filter-uso")?.value || "";
   if (uso === "ativo7")   list = list.filter(c => entrouEm(c, 7));
   if (uso === "ativo30")  list = list.filter(c => entrouEm(c, 30));
-  if (uso === "sumido")   list = list.filter(sumido);
+  if (uso === "tocando")     list = list.filter(sumidoTocando);
+  if (uso === "parado")      list = list.filter(sumidoParado);
+  if (uso === "nunca_tocou") list = list.filter(nuncaTocou);
   if (uso === "nunca")    list = list.filter(nuncaVoltou);
   if (uso === "nobiz")    list = list.filter(c => !c.business);
 
