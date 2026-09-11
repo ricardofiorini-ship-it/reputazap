@@ -949,7 +949,23 @@ const REFERRAL_LINK = "https://startouch.com.br/?utm_source=indicacao&utm_medium
 const REFERRAL_MSG = "Oi! Tô usando o StarTouch pra receber mais avaliações no Google — tá ajudando demais. Acho que ia ser útil pro seu negócio também 👉 " + REFERRAL_LINK;
 const REFERRAL_WA = "https://wa.me/?text=" + encodeURIComponent(REFERRAL_MSG);
 
-export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl, taps7d, temDispositivo }) {
+const MESES_PT = [
+  "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+  "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+];
+
+// "12 de junho" dentro do ano corrente, "12 de junho de 2025" fora dele. O ano
+// só aparece quando muda o sentido da frase: "desde 12 de junho" num e-mail de
+// setembro é claro; num e-mail de fevereiro seria ambiguo.
+function dataPorExtenso(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return null;
+  const anoAtual = new Date().getUTCFullYear();
+  const base = `${d.getUTCDate()} de ${MESES_PT[d.getUTCMonth()]}`;
+  return d.getUTCFullYear() === anoAtual ? base : `${base} de ${d.getUTCFullYear()}`;
+}
+
+export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl, taps7d, temDispositivo, marcoZero }) {
   const biz = escapeHtml(bizName || "seu negócio");
   const note = (typeof rating === "number" && rating > 0) ? rating.toFixed(1).replace(".", ",") : "—";
   const tot = Number(total) || 0;
@@ -1048,6 +1064,36 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
       </table>`
     : "";
 
+  // ── MARCO ZERO (11/09/2026) ─────────────────────────────
+  // "Desde que você entrou, seu negócio ganhou +8 avaliações." O número de
+  // partida sempre existiu em `businesses.total_reviews` — gravado pelo savebiz
+  // no dia em que o negócio foi vinculado à conta, e nunca mais tocado por
+  // ninguém. Faltava só a subtração.
+  //
+  // A FRASE MUDA conforme a distância entre criar a conta e ativar o primeiro
+  // dispositivo (ver weekly-digest.js). Quem veio pelo Mercado Livre ativa no
+  // mesmo minuto em que se cadastra, então "desde que você instalou" é verdade.
+  // Quem veio pelo site criou conta em junho e recebeu o cartão em julho — pra
+  // esse, "desde que instalou" creditaria ao cartão avaliações que chegaram
+  // antes dele existir. Aí a frase é "desde que você entrou na StarTouch".
+  //
+  // SUMÉ QUANDO NÃO TENHO CERTEZA. Sem marco, sem data, ou com ganho <= 0 (o
+  // Google remove avaliações, e conta nova ainda não ganhou nada), o bloco não
+  // sai. Quem sabe quantas avaliações tem confere em cinco segundos — número
+  // errado aqui derruba a confiança no e-mail inteiro, e calar não custa nada.
+  const ganho = (marcoZero && Number.isFinite(Number(marcoZero.total)))
+    ? tot - Number(marcoZero.total)
+    : 0;
+  const dataMarco = marcoZero?.data ? dataPorExtenso(marcoZero.data) : null;
+  const marcoLinha = (ganho > 0 && dataMarco)
+    ? `
+      <p style="font-size:13.5px;color:#202124;line-height:1.6;margin:12px 2px 0;">
+        Desde que você ${marcoZero.desde === "instalacao" ? "instalou seu StarTouch" : "entrou na StarTouch"},
+        em <strong>${dataMarco}</strong>, seu negócio recebeu
+        <strong style="color:#137333;">${ganho === 1 ? "1 avaliação nova" : `+${ganho} avaliações novas`}</strong> no Google.
+      </p>`
+    : "";
+
   // ── SEUS DISPOSITIVOS (11/09/2026) ───────────────────────────────────
   // Até aqui o resumo só reportava números do GOOGLE — nota, avaliações,
   // posição. Todos verdadeiros e todos de outra empresa: qualquer ferramenta
@@ -1118,6 +1164,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
           ${row("Total de avaliações", String(tot))}
           ${row("Novas nesta semana", newLine)}
         </table>
+        ${marcoLinha}
 
         ${verdictBlock}
         ${milestoneLine}

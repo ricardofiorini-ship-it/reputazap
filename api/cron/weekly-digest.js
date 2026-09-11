@@ -96,7 +96,7 @@ export default async function handler(req, res) {
   const stats = {
     week, dry, started_at: new Date().toISOString(),
     businesses: 0, sent: 0, alerts_sent: 0, lista_cheia: 0, skipped_disabled: 0, skipped_dedupe: 0,
-    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0,
+    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0,
     errors: [], recipients: [], took_ms: 0
   };
   const t0 = Date.now();
@@ -104,7 +104,10 @@ export default async function handler(req, res) {
   // Businesses com place_id
   const { data: businesses, error: bizErr } = await supabase
     .from("businesses")
-    .select("id, place_id, name, user_id, plan")
+    // `total_reviews` e o MARCO ZERO: quantas avaliacoes o negocio tinha no dia
+    // em que foi vinculado a conta. Gravado pelo savebiz e nunca mais tocado por
+    // ninguem (varrido em api/ e src/ em 11/09/2026) — por isso serve de partida.
+    .select("id, place_id, name, user_id, plan, total_reviews, created_at")
     .not("place_id", "is", null);
   if (bizErr) return res.status(500).json({ error: bizErr.message });
 
@@ -147,7 +150,7 @@ export default async function handler(req, res) {
   const rToques = await todasAsLinhas("toques", () =>
     supabase.from("plate_taps").select("business_id").gte("tapped_at", seteDiasAtras));
   const rPlacas = await todasAsLinhas("dispositivos", () =>
-    supabase.from("plates").select("business_id").eq("status", "active"));
+    supabase.from("plates").select("business_id, activated_at").eq("status", "active"));
 
   const tapsPorBiz = new Map();
   for (const l of rToques.linhas) {
@@ -160,6 +163,14 @@ export default async function handler(req, res) {
   // toque registrado" pra quem teve toques. Número errado num boletim semanal
   // custa mais caro que bloco ausente: o cliente que sabe que teve movimento
   // conclui que a medição não presta, e aí não acredita em mais nada no e-mail.
+  // Primeira ativacao de cada negocio — decide a FRASE do marco zero.
+  const primeiraAtivacao = new Map();
+  for (const l of rPlacas.linhas) {
+    if (!l.business_id || !l.activated_at) continue;
+    const atual = primeiraAtivacao.get(l.business_id);
+    if (!atual || l.activated_at < atual) primeiraAtivacao.set(l.business_id, l.activated_at);
+  }
+
   const dadosDeDispositivoOk = !rToques.falhou && !rPlacas.falhou;
   stats.com_dispositivo = comDispositivo.size;
   stats.toques_na_semana = rToques.linhas.length;
@@ -174,14 +185,55 @@ export default async function handler(req, res) {
   // quando a base crescer o bastante pra encostar nos 5 minutos.
   console.log(`[cron/weekly-digest] começando: ${list.length} negócios, semana ${week}${dry ? " (dry)" : ""}`);
 
+  // ── A SERIE (11/09/2026) ────────────────────────────────────────────
+  // Este cron ja pergunta ao Google a nota e o total de CADA negocio toda
+  // segunda — e jogava fora depois de montar o e-mail. Agora grava. Nenhuma
+  // chamada nova, nenhum gasto novo: e o mesmo aproveitamento que aposentou o
+  // robo diario de avaliacoes em agosto.
+  //
+  // Por que importa: `businesses.total_reviews` da a ponta de LA e o Google da
+  // a ponta de CA — e nao existia nada no meio. A tabela que teria o meio
+  // (`competitor_snapshots`) depende de um cron PAUSADO desde 21/06/2026.
+  // Passado nao volta; o que da pra fazer e parar de perder o presente.
+  const diaDaMedicao = new Date().toISOString().slice(0, 10);
+  let avisouSerie = false;
+
+  async function gravaSerie(businessId, rating, reviews) {
+    if (dry) return;
+    const { error } = await supabase
+      .from("review_history")
+      .upsert(
+        { business_id: businessId, on_date: diaDaMedicao, rating: rating ?? null, reviews },
+        { onConflict: "business_id,on_date", ignoreDuplicates: true }
+      );
+    if (error) {
+      // GRITA UMA VEZ, e nao a cada negocio. Sem a tabela o grafico de evolucao
+      // nasce vazio meses depois, sem ninguem lembrar do dia em que parou de
+      // gravar — que e exatamente como esse tipo de coisa custa caro aqui.
+      if (!avisouSerie) {
+        avisouSerie = true;
+        console.warn(
+          `[weekly-digest] NAO CONSEGUI GRAVAR A SERIE: ${error.message}. ` +
+          `Rode supabase/schema-historico-avaliacoes.sql — sem a tabela, cada ` +
+          `segunda-feira que passa e uma semana de historico perdida pra sempre.`
+        );
+      }
+      return;
+    }
+    stats.serie_gravada++;
+  }
+
   for (const biz of list) {
     stats.businesses++;
     try {
+      // As duas razoes pra NAO mandar e-mail sao resolvidas aqui, mas so
+      // aplicadas la embaixo, DEPOIS de medir e gravar a serie. "Nao quero
+      // e-mail" nao e "nao quero que meu negocio seja medido": o historico
+      // alimenta o painel dele, nao a caixa de entrada. Preco: 2 consultas ao
+      // Google por negocio que optou por sair — hoje sao zero pessoas.
       const prefs = prefsById.get(biz.user_id);
-      if (prefs && prefs.email_enabled === false) { stats.skipped_disabled++; continue; }
-
+      const optOut = !!(prefs && prefs.email_enabled === false);
       const to = forceTo || (prefs?.email_to || "").trim() || emailById.get(biz.user_id);
-      if (!to) { stats.skipped_no_email++; continue; }
 
       // Dados reais (mesmas fontes do painel).
       //
@@ -260,6 +312,12 @@ export default async function handler(req, res) {
       const newThisWeek = reviews.filter((r) => Number(r.id) >= weekAgo).length;
       const totalReviews = rv.total ?? bi.total ?? 0;
 
+      // Grava ANTES de qualquer desistencia de envio — ver comentario acima.
+      await gravaSerie(biz.id, rv.rating ?? bi.rating ?? null, totalReviews);
+
+      if (optOut) { stats.skipped_disabled++; continue; }
+      if (!to) { stats.skipped_no_email++; continue; }
+
       // ── ALERTA DE AVALIAÇÃO NEGATIVA (02/ago) ────────────────────────
       // Antes um cron separado rodava TODO DIA e pedia ao Google as avaliações
       // de cada negócio — exatamente as mesmas que este resumo já busca aqui em
@@ -312,11 +370,26 @@ export default async function handler(req, res) {
         gridAvg, gridSemCobertura, gridCobertura, gridMedidos,
         photo: bi.photoUrl, phone: bi.phone, category: bi.category,
       });
+      // MARCO ZERO. A data mostrada e sempre a do dia em que o numero foi
+      // tirado (`businesses.created_at`), nunca outra — assim a frase e
+      // literalmente verdadeira. O que muda e a PALAVRA: so diz "instalou"
+      // quem ativou o primeiro dispositivo NO MESMO DIA em que o negocio
+      // entrou, que e o caminho do Mercado Livre (a conta nasce na ativacao).
+      // Quem veio pelo site criou conta em junho e recebeu o cartao em julho:
+      // dizer "desde que instalou" creditaria ao cartao avaliacoes que
+      // chegaram antes de ele existir.
+      const ativouEm = primeiraAtivacao.get(biz.id) || null;
+      const mesmoDia = !!ativouEm && String(ativouEm).slice(0, 10) === String(biz.created_at).slice(0, 10);
+      const marcoZero = (biz.total_reviews != null && biz.created_at)
+        ? { total: biz.total_reviews, data: biz.created_at, desde: mesmoDia ? "instalacao" : "conta" }
+        : null;
+
       const unsub = unsubUrl(biz.user_id);
       const tmpl = weeklyDigestEmail({
         bizName: rv.name, rating: rv.rating, total: totalReviews,
         newThisWeek, recentReviews: reviews, tip, score,
         milestone: nextMilestone(totalReviews), article, unsubUrl: unsub,
+        marcoZero,
         taps7d: tapsPorBiz.get(biz.id) || 0,
         temDispositivo: dadosDeDispositivoOk && comDispositivo.has(biz.id),
       });
