@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { MercadoPagoConfig, PreApproval, Preference, Payment } from "mercadopago";
 import crypto from "crypto";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
-import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero } from "./_lib/email-templates.js";
+import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia } from "./_lib/email-templates.js";
 import { resolvePlano } from "./_lib/plan.js";
 
 export const config = { api: { bodyParser: false } };
@@ -1799,7 +1799,7 @@ export default async function handler(req, res) {
           .then((r) => {
             if (r.error || !r.data) return null;
             if (Date.now() - new Date(r.data.created_at).getTime() > 7 * 24 * 3600 * 1000) return null;
-            return r.data.result || null;
+            return r.data.result ? { ...r.data.result, medidoEm: r.data.created_at } : null;
           })
           .catch(() => null),
       ]);
@@ -1865,6 +1865,7 @@ export default async function handler(req, res) {
         milestone: nextMilestone(totalReviews),
         article: latestArticle(),
         marcoZero,
+        meta: metaDeConcorrencia(gridRow, totalReviews),
         taps7d,
         temDispositivo,
       });
@@ -1891,6 +1892,7 @@ export default async function handler(req, res) {
         // teste dissesse por que — de novo a diferenca entre conferir e ser
         // enganado pelo proprio teste.
         marco_zero: marcoZero || "nao ha marco confiavel — o bloco nao sai",
+        meta: metaDeConcorrencia(gridRow, totalReviews) || "sem medicao fresca da regiao — o e-mail cai no marco redondo",
         toques_7d: taps7d,
         tem_dispositivo: temDispositivo,
         preview_data: { biz: rv.name, rating: rv.rating, total: totalReviews, new_this_week: newThisWeek, reviews_returned: reviews.length, score: score.score, score_missing: score.missing, milestone: nextMilestone(totalReviews), article: latestArticle()?.title },

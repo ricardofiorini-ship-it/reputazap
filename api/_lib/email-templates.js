@@ -998,7 +998,62 @@ export function montaMarcoZero(biz, ativouEm) {
   };
 }
 
-export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl, taps7d, temDispositivo, marcoZero }) {
+// Ritmo sugerido por semana. Nao e medido — e uma PROPOSTA de trabalho, e o
+// texto diz isso ("a 3 por semana"). O ritmo real do negocio so existira
+// quando `review_history` tiver algumas semanas; ate la, prometer prazo com
+// base em dado que nao temos seria inventar.
+const PASSO_SEMANAL = 3;
+// Acima disto o prazo humilha em vez de motivar (26 semanas = meio ano).
+const SEMANAS_DEMAIS = 26;
+
+/**
+ * A META DE CONCORRENCIA. Troca "faltam 4 pra chegar a 20" — um numero redondo
+ * que a StarTouch inventou e que nao significa nada pro dono — por "faltam 7
+ * pra alcancar a Padaria Santa Rita", que e o motivo pelo qual ele abriu o app.
+ *
+ * O ALVO E QUEM ESTA LOGO A FRENTE EM AVALIACOES, nao o 1o nem um "top 3"
+ * fixo. Duas razoes: a distancia fica sempre pequena e alcancavel, e o alvo
+ * muda sozinho conforme ele sobe — vira uma escada, nao um muro. Apontar pro
+ * lider daria "faltam 300", que e uma sentenca, nao uma meta.
+ *
+ * O QUE ESTA FUNCAO NUNCA DIZ: que N avaliacoes garantem subir no Google. A
+ * lista vem da grade (quem aparece nas mesmas buscas), e a comparacao e
+ * explicitamente de VOLUME DE AVALIACOES. O Google nao e aritmetica, e
+ * prometer posicao e o jeito mais rapido de o e-mail perder a autoridade.
+ *
+ * Devolve null quando nao da pra afirmar nada — sem medicao fresca da regiao,
+ * o e-mail simplesmente nao fala de meta, em vez de inventar um alvo.
+ */
+export function metaDeConcorrencia(gridRow, meuTotal) {
+  const lista = Array.isArray(gridRow?.ranking) ? gridRow.ranking : [];
+  if (!lista.length) return null;
+  const meu = Number(meuTotal) || 0;
+  const outros = lista.filter((c) => !c.is_me && Number.isFinite(Number(c.reviews)));
+  if (!outros.length) return null;
+
+  const quantos = Number(gridRow.total) || lista.length;
+  const medidoEm = gridRow.medidoEm || null;
+
+  const acima = outros
+    .filter((c) => Number(c.reviews) > meu)
+    .sort((a, b) => Number(a.reviews) - Number(b.reviews));
+
+  if (!acima.length) return { lidera: true, quantos, medidoEm };
+
+  const alvo = acima[0];
+  const faltam = Number(alvo.reviews) - meu;
+  const semanas = Math.max(1, Math.ceil(faltam / PASSO_SEMANAL));
+  return {
+    lidera: false,
+    alvo: alvo.name || "o concorrente a sua frente",
+    alvoReviews: Number(alvo.reviews),
+    meu, faltam, quantos, medidoEm,
+    passo: Math.min(PASSO_SEMANAL, faltam),
+    semanas: semanas > SEMANAS_DEMAIS ? null : semanas,
+  };
+}
+
+export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl, taps7d, temDispositivo, marcoZero, meta }) {
   const biz = escapeHtml(bizName || "seu negócio");
   const note = (typeof rating === "number" && rating > 0) ? rating.toFixed(1).replace(".", ",") : "—";
   const tot = Number(total) || 0;
@@ -1079,8 +1134,45 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
       </table>`
     : "";
 
-  // Linha de próximo marco de avaliações
-  const milestoneLine = milestone && milestone.remaining > 0
+  // ── META DA SEMANA (11/09/2026) ──────────────────────────────────────
+  // Uma META, e no maximo uma. Se esta e a linha do marco redondo saissem
+  // juntas, o e-mail daria dois alvos diferentes na mesma tela — e duas metas
+  // e o mesmo que nenhuma. Quando ha concorrente medido, ele ganha: o numero
+  // redondo foi inventado pela StarTouch, o concorrente e o motivo pelo qual o
+  // dono abriu o app. Sem medicao fresca da regiao, o marco volta como reserva.
+  const dataMedicao = meta?.medidoEm ? dataPorExtenso(meta.medidoEm) : null;
+  const rodapeMeta = (n, quando) =>
+    `<div style="font-size:11.5px;color:#5F6368;line-height:1.5;margin-top:9px;">Comparado com os ${n} negócios que aparecem nas mesmas buscas que você na sua região${quando ? `, medido em ${quando}` : ""}.</div>`;
+
+  const metaBlock = !meta ? "" : (meta.lidera
+    ? `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:12px;margin:14px 0;">
+        <tr><td style="padding:16px 18px;">
+          <div style="font-size:12px;font-weight:700;color:#137333;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px;">Sua meta desta semana</div>
+          <div style="font-size:18px;font-weight:800;color:#0B5A2B;line-height:1.3;">Ninguém na sua região tem mais avaliações que você.</div>
+          <div style="font-size:13.5px;color:#256B43;line-height:1.55;margin-top:6px;">A meta agora é manter o ritmo — quem para de coletar é alcançado.</div>
+          ${rodapeMeta(meta.quantos, dataMedicao)}
+        </td></tr>
+      </table>`
+    : `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#EAF2FE;border:1px solid #CFE0FC;border-radius:12px;margin:14px 0;">
+        <tr><td style="padding:16px 18px;">
+          <div style="font-size:12px;font-weight:700;color:#1A73E8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px;">Sua meta desta semana</div>
+          <div style="font-size:19px;font-weight:800;color:#124A9E;line-height:1.3;">Consiga ${meta.passo === 1 ? "1 avaliação" : `${meta.passo} avaliações`} até domingo.</div>
+          <div style="font-size:13.5px;color:#1B4E8F;line-height:1.6;margin-top:7px;">
+            <strong>${escapeHtml(meta.alvo)}</strong> tem ${meta.alvoReviews} avaliações e você tem ${meta.meu}.
+            ${meta.faltam <= PASSO_SEMANAL
+              ? `Faltam <strong>${meta.faltam === 1 ? "1" : meta.faltam}</strong> — dá pra fechar essa semana.`
+              : meta.semanas
+                ? `Faltam <strong>${meta.faltam}</strong>: a ${PASSO_SEMANAL} por semana, são ${meta.semanas} semanas.`
+                : `Faltam <strong>${meta.faltam}</strong>. Um passo de cada vez.`}
+          </div>
+          ${rodapeMeta(meta.quantos, dataMedicao)}
+        </td></tr>
+      </table>`);
+
+  // Linha de próximo marco de avaliações — RESERVA, só quando não há meta.
+  const milestoneLine = !meta && milestone && milestone.remaining > 0
     ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;margin:12px 0;"><tr><td style="padding:11px 14px;font-size:13.5px;color:#202124;line-height:1.5;">🎯 <strong>Faltam ${milestone.remaining} ${milestone.remaining === 1 ? "avaliação" : "avaliações"}</strong> pra você chegar a ${milestone.target} no Google.</td></tr></table>`
     : "";
 
@@ -1200,6 +1292,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
         ${marcoLinha}
 
         ${verdictBlock}
+        ${metaBlock}
         ${milestoneLine}
         ${scoreBlock}
         ${devicesBlock}

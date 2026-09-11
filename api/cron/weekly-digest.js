@@ -21,7 +21,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { sendTransactionalEmail } from "../_lib/email-sender.js";
 import {
-  weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero,
+  weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia,
   // O alerta de nota baixa agora sai daqui (ver nota no loop) — o cron diário morreu.
   negativeReviewEmail
 } from "../_lib/email-templates.js";
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
   const stats = {
     week, dry, started_at: new Date().toISOString(),
     businesses: 0, sent: 0, alerts_sent: 0, lista_cheia: 0, skipped_disabled: 0, skipped_dedupe: 0,
-    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0, serie_pronta: null, marco_contraditorio: 0, freio_do_resend: 0,
+    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0, serie_pronta: null, meta_enviada: 0, marco_contraditorio: 0, freio_do_resend: 0,
     errors: [], recipients: [], took_ms: 0
   };
   const t0 = Date.now();
@@ -337,7 +337,10 @@ export default async function handler(req, res) {
             if (!r.data) return null;
             // Mais velho que 7 dias é medição vencida — trata como "não sei".
             if (Date.now() - new Date(r.data.created_at).getTime() > 7 * 24 * 3600 * 1000) return null;
-            return r.data.result || null;
+            // `medidoEm` viaja junto: a meta DECLARA quando a regiao foi medida.
+            // Comparacao sem data e a mais facil de desmoralizar — o dono abre o
+            // Google no celular, ve outra coisa, e para de acreditar no e-mail.
+            return r.data.result ? { ...r.data.result, medidoEm: r.data.created_at } : null;
           })
           .catch(() => null),
       ]);
@@ -458,12 +461,16 @@ export default async function handler(req, res) {
       const marcoZero = montaMarcoZero(biz, ativouEm);
       if (!marcoZero && biz.total_reviews === 0) stats.marco_contraditorio++;
 
+      const meta = metaDeConcorrencia(gridRow, totalReviews);
+      if (meta) stats.meta_enviada++;
+
       const unsub = unsubUrl(biz.user_id);
       const tmpl = weeklyDigestEmail({
         bizName: rv.name, rating: rv.rating, total: totalReviews,
         newThisWeek, recentReviews: reviews, tip, score,
         milestone: nextMilestone(totalReviews), article, unsubUrl: unsub,
         marcoZero,
+        meta,
         taps7d: tapsPorBiz.get(biz.id) || 0,
         temDispositivo: dadosDeDispositivoOk && comDispositivo.has(biz.id),
       });
