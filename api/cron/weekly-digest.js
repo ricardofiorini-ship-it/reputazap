@@ -21,7 +21,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { sendTransactionalEmail } from "../_lib/email-sender.js";
 import {
-  weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle,
+  weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero,
   // O alerta de nota baixa agora sai daqui (ver nota no loop) — o cron diário morreu.
   negativeReviewEmail
 } from "../_lib/email-templates.js";
@@ -455,21 +455,8 @@ export default async function handler(req, res) {
       // dizer "desde que instalou" creditaria ao cartao avaliacoes que
       // chegaram antes de ele existir.
       const ativouEm = primeiraAtivacao.get(biz.id) || null;
-      const mesmoDia = !!ativouEm && String(ativouEm).slice(0, 10) === String(biz.created_at).slice(0, 10);
-      //
-      // O ZERO E AMBIGUO, e sao 5 contas hoje (medido em 11/09/2026). Ele pode
-      // significar "o negocio nao tinha avaliacao nenhuma quando entrou" — a
-      // melhor historia que existe, sair de zero — ou "o savebiz gravou zero
-      // por falha", e ai o cliente le "+32 avaliacoes novas" tendo ja 32 antes.
-      //
-      // O proprio banco desempata: NEGOCIO NAO TEM NOTA SEM TER AVALIACAO. Zero
-      // com nota junto e contradicao, logo e falha de gravacao — e some. Zero
-      // sem nota e verdade, e a frase vale.
-      const zeroContradito = biz.total_reviews === 0 && Number(biz.rating) > 0;
-      const marcoZero = (biz.total_reviews != null && biz.created_at && !zeroContradito)
-        ? { total: biz.total_reviews, data: biz.created_at, desde: mesmoDia ? "instalacao" : "conta" }
-        : null;
-      if (zeroContradito) stats.marco_contraditorio++;
+      const marcoZero = montaMarcoZero(biz, ativouEm);
+      if (!marcoZero && biz.total_reviews === 0) stats.marco_contraditorio++;
 
       const unsub = unsubUrl(biz.user_id);
       const tmpl = weeklyDigestEmail({

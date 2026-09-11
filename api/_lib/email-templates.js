@@ -965,6 +965,39 @@ function dataPorExtenso(iso) {
   return d.getUTCFullYear() === anoAtual ? base : `${base} de ${d.getUTCFullYear()}`;
 }
 
+/**
+ * Monta o MARCO ZERO a partir da linha do negocio e da data em que o primeiro
+ * dispositivo foi ativado. Devolve null quando nao da pra afirmar nada.
+ *
+ * VIVE AQUI, E SO AQUI, de proposito. Esta regra e usada pelo envio real
+ * (cron/weekly-digest) e pelo teste (billing?action=test-weekly), e ja
+ * aconteceu de uma formula do e-mail existir em copia e as copias divergirem:
+ * em 02/ago o mesmo negocio saiu com Score 74 no painel e 59 no e-mail. Copia
+ * nao e mantida em sincronia — ela so e descoberta divergindo.
+ *
+ * As duas decisoes que a funcao carrega:
+ *
+ *  · A DATA e sempre a do dia em que o numero foi tirado (`created_at`), nunca
+ *    a da ativacao. Assim a frase e literalmente verdadeira. O que muda e a
+ *    PALAVRA: so diz "instalou" quem ativou NO MESMO DIA em que o negocio
+ *    entrou — o caminho do Mercado Livre, onde a conta nasce na ativacao.
+ *
+ *  · ZERO COM NOTA E CONTRADICAO. Negocio nao tem nota sem ter avaliacao, logo
+ *    zero ao lado de uma nota e falha de gravacao, nao historia de sucesso —
+ *    e o bloco some em vez de anunciar um ganho inventado.
+ */
+export function montaMarcoZero(biz, ativouEm) {
+  if (!biz || biz.total_reviews == null || !biz.created_at) return null;
+  if (biz.total_reviews === 0 && Number(biz.rating) > 0) return null;
+  const mesmoDia = !!ativouEm &&
+    String(ativouEm).slice(0, 10) === String(biz.created_at).slice(0, 10);
+  return {
+    total: biz.total_reviews,
+    data: biz.created_at,
+    desde: mesmoDia ? "instalacao" : "conta",
+  };
+}
+
 export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl, taps7d, temDispositivo, marcoZero }) {
   const biz = escapeHtml(bizName || "seu negócio");
   const note = (typeof rating === "number" && rating > 0) ? rating.toFixed(1).replace(".", ",") : "—";

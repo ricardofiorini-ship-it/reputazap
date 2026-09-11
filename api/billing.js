@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { MercadoPagoConfig, PreApproval, Preference, Payment } from "mercadopago";
 import crypto from "crypto";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
-import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle } from "./_lib/email-templates.js";
+import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero } from "./_lib/email-templates.js";
 import { resolvePlano } from "./_lib/plan.js";
 
 export const config = { api: { bodyParser: false } };
@@ -1824,6 +1824,36 @@ export default async function handler(req, res) {
         phone: bi.phone,
         category: bi.category,
       });
+      // MESMO CAMINHO DO CRON, parte 2 (11/09/2026). O comentario grande la
+      // em cima conta como este endpoint ja mentiu uma vez por nao percorrer o
+      // caminho do envio real. Em 11/09 o resumo ganhou TRES coisas — marco
+      // zero, toques da semana e a oferta do Menu — e este teste continuaria
+      // montando o e-mail sem elas: mostraria uma versao que nao existe mais,
+      // com cara de conferencia.
+      const { data: bizRow } = await supabase
+        .from("businesses")
+        .select("id, total_reviews, rating, created_at")
+        .eq("place_id", placeId)
+        .maybeSingle();
+
+      let taps7d = 0;
+      let temDispositivo = false;
+      let marcoZero = null;
+      if (bizRow) {
+        const desde = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+        const [cToques, rPlacas] = await Promise.all([
+          supabase.from("plate_taps").select("id", { count: "exact", head: true })
+            .eq("business_id", bizRow.id).gte("tapped_at", desde),
+          supabase.from("plates").select("activated_at")
+            .eq("business_id", bizRow.id).eq("status", "active"),
+        ]);
+        taps7d = cToques?.count || 0;
+        const placas = rPlacas?.data || [];
+        temDispositivo = placas.length > 0;
+        const ativouEm = placas.map((p) => p.activated_at).filter(Boolean).sort()[0] || null;
+        marcoZero = montaMarcoZero(bizRow, ativouEm);
+      }
+
       const tmpl = weeklyDigestEmail({
         bizName: rv.name,
         rating: rv.rating,
@@ -1834,6 +1864,9 @@ export default async function handler(req, res) {
         score,
         milestone: nextMilestone(totalReviews),
         article: latestArticle(),
+        marcoZero,
+        taps7d,
+        temDispositivo,
       });
       const r = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -1853,6 +1886,13 @@ export default async function handler(req, res) {
         grid: gridRow
           ? { fonte: "cache", coverage: gridCobertura, measured: gridMedidos, score: gridRow.score ?? null }
           : { fonte: "sem cache fresco", aviso: "o Score deste teste nao inclui posicao — o envio real inclui, se houver medicao dos ultimos 7 dias" },
+        // DECLARA o que entrou no e-mail. Sem isto, um marco ausente ou um
+        // negocio sem dispositivo produziriam um e-mail mais curto sem que o
+        // teste dissesse por que — de novo a diferenca entre conferir e ser
+        // enganado pelo proprio teste.
+        marco_zero: marcoZero || "nao ha marco confiavel — o bloco nao sai",
+        toques_7d: taps7d,
+        tem_dispositivo: temDispositivo,
         preview_data: { biz: rv.name, rating: rv.rating, total: totalReviews, new_this_week: newThisWeek, reviews_returned: reviews.length, score: score.score, score_missing: score.missing, milestone: nextMilestone(totalReviews), article: latestArticle()?.title },
         resend_response: body,
         hint: r.ok ? "Email enviado. Confira a caixa (e o spam)." : "Resend recusou — veja resend_response."
