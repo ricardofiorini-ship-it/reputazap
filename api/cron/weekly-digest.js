@@ -96,7 +96,7 @@ export default async function handler(req, res) {
   const stats = {
     week, dry, started_at: new Date().toISOString(),
     businesses: 0, sent: 0, alerts_sent: 0, lista_cheia: 0, skipped_disabled: 0, skipped_dedupe: 0,
-    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0,
+    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0, marco_contraditorio: 0,
     errors: [], recipients: [], took_ms: 0
   };
   const t0 = Date.now();
@@ -107,7 +107,7 @@ export default async function handler(req, res) {
     // `total_reviews` e o MARCO ZERO: quantas avaliacoes o negocio tinha no dia
     // em que foi vinculado a conta. Gravado pelo savebiz e nunca mais tocado por
     // ninguem (varrido em api/ e src/ em 11/09/2026) — por isso serve de partida.
-    .select("id, place_id, name, user_id, plan, total_reviews, created_at")
+    .select("id, place_id, name, user_id, plan, total_reviews, rating, created_at")
     .not("place_id", "is", null);
   if (bizErr) return res.status(500).json({ error: bizErr.message });
 
@@ -380,9 +380,20 @@ export default async function handler(req, res) {
       // chegaram antes de ele existir.
       const ativouEm = primeiraAtivacao.get(biz.id) || null;
       const mesmoDia = !!ativouEm && String(ativouEm).slice(0, 10) === String(biz.created_at).slice(0, 10);
-      const marcoZero = (biz.total_reviews != null && biz.created_at)
+      //
+      // O ZERO E AMBIGUO, e sao 5 contas hoje (medido em 11/09/2026). Ele pode
+      // significar "o negocio nao tinha avaliacao nenhuma quando entrou" — a
+      // melhor historia que existe, sair de zero — ou "o savebiz gravou zero
+      // por falha", e ai o cliente le "+32 avaliacoes novas" tendo ja 32 antes.
+      //
+      // O proprio banco desempata: NEGOCIO NAO TEM NOTA SEM TER AVALIACAO. Zero
+      // com nota junto e contradicao, logo e falha de gravacao — e some. Zero
+      // sem nota e verdade, e a frase vale.
+      const zeroContradito = biz.total_reviews === 0 && Number(biz.rating) > 0;
+      const marcoZero = (biz.total_reviews != null && biz.created_at && !zeroContradito)
         ? { total: biz.total_reviews, data: biz.created_at, desde: mesmoDia ? "instalacao" : "conta" }
         : null;
+      if (zeroContradito) stats.marco_contraditorio++;
 
       const unsub = unsubUrl(biz.user_id);
       const tmpl = weeklyDigestEmail({
