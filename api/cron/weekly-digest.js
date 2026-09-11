@@ -96,7 +96,7 @@ export default async function handler(req, res) {
   const stats = {
     week, dry, started_at: new Date().toISOString(),
     businesses: 0, sent: 0, alerts_sent: 0, lista_cheia: 0, skipped_disabled: 0, skipped_dedupe: 0,
-    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0, marco_contraditorio: 0, freio_do_resend: 0,
+    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0, serie_pronta: null, marco_contraditorio: 0, freio_do_resend: 0,
     errors: [], recipients: [], took_ms: 0
   };
   const t0 = Date.now();
@@ -198,8 +198,27 @@ export default async function handler(req, res) {
   const diaDaMedicao = new Date().toISOString().slice(0, 10);
   let avisouSerie = false;
 
+  // PROVA QUE A TABELA EXISTE, e prova ANTES de precisar dela. Sem esta sonda,
+  // a unica forma de descobrir que o SQL nao foi rodado seria na segunda de
+  // manha — com uma semana de historico ja perdida. Uma leitura de uma linha
+  // custa nada e responde a pergunta "esta ligado?" logo na abertura, que e o
+  // padrao da casa: protecao que nao prova que esta de pe nao e protecao.
+  //
+  // Vale tambem como preflight: `?dry=1&limit=1` passa por aqui e devolve
+  // `serie_pronta` sem enviar um unico e-mail.
+  {
+    const { error } = await supabase.from("review_history").select("id").limit(1);
+    stats.serie_pronta = !error;
+    if (error) {
+      console.warn(
+        `[weekly-digest] review_history INDISPONIVEL: ${error.message}. ` +
+        `Rode supabase/schema-historico-avaliacoes.sql — a serie nao sera gravada esta semana.`
+      );
+    }
+  }
+
   async function gravaSerie(businessId, rating, reviews) {
-    if (dry) return;
+    if (dry || stats.serie_pronta === false) return;
     const { error } = await supabase
       .from("review_history")
       .upsert(
