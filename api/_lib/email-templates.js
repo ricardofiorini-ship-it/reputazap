@@ -658,6 +658,27 @@ export function pickWeeklyTip(weekIndex) {
   return WEEKLY_TIPS[((i % n) + n) % n];
 }
 
+// Pares conhecidos em que o conselho do Score e a Dica da Semana dizem a mesma
+// coisa. Lista explícita de propósito: adivinhar por palavra solta trocaria a
+// dica à toa, e dica trocada sem motivo é pior que dica repetida.
+const MESMO_ASSUNTO = [
+  { score: "complete o perfil",     dica: "Complete seu perfil no Google" },
+  { score: "colete mais avaliações", dica: "Peça no momento certo" },
+];
+
+function semRepetirOScore(dica, score) {
+  const conselho = (score?.missing?.[0] || "").toLowerCase();
+  if (!conselho) return dica;
+  const bate = (d) => MESMO_ASSUNTO.some((m) => conselho.includes(m.score) && d.t === m.dica);
+  if (!bate(dica)) return dica;
+  const i = WEEKLY_TIPS.indexOf(dica);
+  for (let k = 1; k < WEEKLY_TIPS.length; k++) {
+    const outra = WEEKLY_TIPS[(Math.max(i, 0) + k) % WEEKLY_TIPS.length];
+    if (!bate(outra)) return outra;
+  }
+  return dica;
+}
+
 function starRow(n) {
   const full = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
   return `<span style="color:#FBBC04;letter-spacing:1px;">${"★".repeat(full)}${"☆".repeat(5 - full)}</span>`;
@@ -928,12 +949,18 @@ const REFERRAL_LINK = "https://startouch.com.br/?utm_source=indicacao&utm_medium
 const REFERRAL_MSG = "Oi! Tô usando o StarTouch pra receber mais avaliações no Google — tá ajudando demais. Acho que ia ser útil pro seu negócio também 👉 " + REFERRAL_LINK;
 const REFERRAL_WA = "https://wa.me/?text=" + encodeURIComponent(REFERRAL_MSG);
 
-export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl }) {
+export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl, taps7d, temDispositivo }) {
   const biz = escapeHtml(bizName || "seu negócio");
   const note = (typeof rating === "number" && rating > 0) ? rating.toFixed(1).replace(".", ",") : "—";
   const tot = Number(total) || 0;
   const nw = Number(newThisWeek) || 0;
-  const t = tip || WEEKLY_TIPS[0];
+  // O Score já diz "Pra subir: X" e a Dica da Semana é sorteada por rotação.
+  // Em 07/09/2026 os dois calharam de dizer "complete seu perfil no Google" no
+  // MESMO e-mail, com quatro linhas de distância. Não é erro de lógica, é azar
+  // de sorteio — mas pro leitor é cara de máquina, e um boletim que parece
+  // automático perde a autoridade que o resto do e-mail tenta construir.
+  // Quando bate, anda pra próxima dica da rotação.
+  const t = semRepetirOScore(tip || WEEKLY_TIPS[0], score);
 
   const newLine = nw > 0
     ? `<span style="color:#137333;font-weight:700;">▲ +${nw} ${nw === 1 ? "nova" : "novas"}</span>`
@@ -1021,6 +1048,61 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
       </table>`
     : "";
 
+  // ── SEUS DISPOSITIVOS (11/09/2026) ───────────────────────────────────
+  // Até aqui o resumo só reportava números do GOOGLE — nota, avaliações,
+  // posição. Todos verdadeiros e todos de outra empresa: qualquer ferramenta
+  // mostraria os mesmos. O único número que é PROVA DE QUE O PRODUTO TRABALHOU
+  // — quantas pessoas encostaram o celular no cartão — não aparecia em lugar
+  // nenhum, apesar de estar gravado com data desde agosto.
+  //
+  // Isso pesa mais justamente em quem nunca abre o painel (medido em 11/09:
+  // ~30 clientes com cartão tocando e dono ausente). Pra eles este e-mail é o
+  // ÚNICO contato com a StarTouch, e ele não dava um sinal de que o que
+  // compraram está funcionando.
+  //
+  // Três estados, porque a mesma frase seria errada nos três:
+  //   toques > 0   → prova + oferta do Menu (a venda pega carona na prova)
+  //   toques = 0   → lembrete de colocar à vista, SEM VENDA. Empurrar upgrade
+  //                  pra quem ainda não usou o que comprou é o jeito mais
+  //                  rápido de perder o canal.
+  //   sem aparelho → segue a linha de sempre, de comprar dispositivo.
+  const toques = Number(taps7d) || 0;
+  const pessoas = `${toques} ${toques === 1 ? "pessoa" : "pessoas"}`;
+  const MENU_URL = "https://startouch.com.br/plano-pro?utm_source=email&utm_medium=resumo-semanal&utm_campaign=menu-inteligente";
+
+  const devicesBlock = !temDispositivo ? "" : (toques > 0
+    ? `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F6F2FF;border:1px solid #DDD2FA;border-radius:12px;margin:14px 0;">
+        <tr><td style="padding:16px;">
+          <div style="font-size:12px;font-weight:700;color:#6B46C1;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px;">📲 Seus dispositivos esta semana</div>
+          <div style="font-size:26px;font-weight:800;color:#202124;line-height:1;">${toques}<span style="font-size:15px;color:#5F6368;font-weight:700;"> ${toques === 1 ? "pessoa" : "pessoas"}</span></div>
+          <div style="font-size:13.5px;color:#5F6368;line-height:1.55;margin-top:5px;">encostaram o celular no seu StarTouch e foram direto pra sua página no Google.</div>
+
+          <div style="margin-top:13px;padding-top:13px;border-top:1px solid #DDD2FA;">
+            <div style="font-size:13.5px;color:#202124;line-height:1.6;">Com o <strong>Menu Inteligente</strong>, ${pessoas === "1 pessoa" ? "essa mesma pessoa" : `essas mesmas ${toques}`} também poderiam abrir seu WhatsApp, ver o cardápio ou agendar um horário — com a <strong>avaliação no Google sempre em primeiro lugar</strong>, no mesmo toque.</div>
+            <table role="presentation" cellspacing="0" cellpadding="0" style="margin-top:11px;"><tr><td style="border-radius:10px;background:#6B46C1;">
+              <a href="${MENU_URL}" target="_blank" style="display:inline-block;padding:11px 22px;font-size:14px;font-weight:700;color:#fff;text-decoration:none;border-radius:10px;font-family:Arial,sans-serif;">Testar 7 dias grátis →</a>
+            </td></tr></table>
+            <div style="font-size:12px;color:#8A8F98;line-height:1.5;margin-top:8px;">R$ 19,90/mês depois, sem fidelidade. Se não assinar, seu dispositivo e seu painel continuam funcionando exatamente como hoje.</div>
+          </div>
+        </td></tr>
+      </table>`
+    : `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#FFF8E1;border:1px solid #FCE8A6;border-radius:12px;margin:14px 0;">
+        <tr><td style="padding:14px 16px;">
+          <div style="font-size:12px;font-weight:700;color:#B7791F;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">📲 Seus dispositivos esta semana</div>
+          <div style="font-size:13.5px;color:#202124;line-height:1.6;"><strong>Nenhum toque registrado nos últimos 7 dias.</strong> Vale conferir onde ele está: balcão, mesa ou ao lado da maquininha, virado pro cliente. É à vista que ele trabalha.</div>
+        </td></tr>
+      </table>`);
+
+  // A linha de comprar hardware só faz sentido pra quem AINDA NÃO TEM. Ela
+  // estava indo pra todo mundo — inclusive pros 89 que compraram no Mercado
+  // Livre e já têm o cartão no balcão. O único espaço comercial do e-mail
+  // estava ocupado oferecendo ao cliente o que ele já possui.
+  const linhaHardware = temDispositivo
+    ? ""
+    : `<p style="font-size:13px;color:#5F6368;line-height:1.6;margin:8px 0 0;">Quer mais avaliações? <a href="https://startouch.com.br/kit" style="color:#1A73E8;text-decoration:none;font-weight:600;">Adicione um dispositivo NFC →</a></p>`;
+
   return {
     subject: `📊 Sua semana no Google — ${biz}`,
     html: shell({
@@ -1040,6 +1122,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
         ${verdictBlock}
         ${milestoneLine}
         ${scoreBlock}
+        ${devicesBlock}
         ${reviewsBlock}
         ${articleBlock}
 
@@ -1062,7 +1145,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
         </table>
 
         ${cta("https://startouch.com.br/app?login=1", "Ver no painel →")}
-        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:8px 0 0;">Quer mais avaliações? <a href="https://startouch.com.br/kit" style="color:#1A73E8;text-decoration:none;font-weight:600;">Adicione outro dispositivo NFC →</a></p>
+        ${linhaHardware}
       `
     })
   };

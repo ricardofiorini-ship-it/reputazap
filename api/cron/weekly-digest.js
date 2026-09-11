@@ -118,6 +118,52 @@ export default async function handler(req, res) {
     .in("user_id", userIds);
   const prefsById = new Map((prefsRows || []).map((p) => [p.user_id, p]));
 
+  // ── TOQUES DA SEMANA + quem tem dispositivo ─────────────────────────
+  // Tudo de uma vez, ANTES do laço. Uma consulta por negócio acrescentaria 108
+  // idas ao banco numa função que já roda a ~1,8s por cliente e tem duas
+  // paredes à vista (5 min de execução; 120 chamadas/hora). Aqui o custo é
+  // fixo: não cresce quando a base cresce.
+  const seteDiasAtras = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+
+  // Paginado de propósito: o cliente do Supabase corta em 1.000 linhas e não
+  // avisa. Sem paginar, a partir de 1.000 toques por semana o número do e-mail
+  // começaria a ser MENOR que a verdade, em silêncio, e ninguém suspeitaria de
+  // um número plausível.
+  async function todasAsLinhas(nome, monta) {
+    const linhas = [];
+    for (let pagina = 0; pagina < 50; pagina++) {
+      const de = pagina * 1000;
+      const { data, error } = await monta().range(de, de + 999);
+      if (error) {
+        console.warn(`[weekly-digest] ${nome} indisponível: ${error.message} — o bloco de dispositivos sai do e-mail desta semana.`);
+        return { linhas, falhou: true };
+      }
+      linhas.push(...(data || []));
+      if (!data || data.length < 1000) break;
+    }
+    return { linhas, falhou: false };
+  }
+
+  const rToques = await todasAsLinhas("toques", () =>
+    supabase.from("plate_taps").select("business_id").gte("tapped_at", seteDiasAtras));
+  const rPlacas = await todasAsLinhas("dispositivos", () =>
+    supabase.from("plates").select("business_id").eq("status", "active"));
+
+  const tapsPorBiz = new Map();
+  for (const l of rToques.linhas) {
+    if (!l.business_id) continue;
+    tapsPorBiz.set(l.business_id, (tapsPorBiz.get(l.business_id) || 0) + 1);
+  }
+  const comDispositivo = new Set(rPlacas.linhas.map((l) => l.business_id).filter(Boolean));
+
+  // Se a leitura falhou, o bloco NÃO SAI — em vez de sair dizendo "nenhum
+  // toque registrado" pra quem teve toques. Número errado num boletim semanal
+  // custa mais caro que bloco ausente: o cliente que sabe que teve movimento
+  // conclui que a medição não presta, e aí não acredita em mais nada no e-mail.
+  const dadosDeDispositivoOk = !rToques.falhou && !rPlacas.falhou;
+  stats.com_dispositivo = comDispositivo.size;
+  stats.toques_na_semana = rToques.linhas.length;
+
   let list = businesses || [];
   if (Number.isFinite(limit) && limit > 0) list = list.slice(0, limit);
 
@@ -271,6 +317,8 @@ export default async function handler(req, res) {
         bizName: rv.name, rating: rv.rating, total: totalReviews,
         newThisWeek, recentReviews: reviews, tip, score,
         milestone: nextMilestone(totalReviews), article, unsubUrl: unsub,
+        taps7d: tapsPorBiz.get(biz.id) || 0,
+        temDispositivo: dadosDeDispositivoOk && comDispositivo.has(biz.id),
       });
 
       if (dry) {
