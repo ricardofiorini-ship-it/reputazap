@@ -96,7 +96,7 @@ export default async function handler(req, res) {
   const stats = {
     week, dry, started_at: new Date().toISOString(),
     businesses: 0, sent: 0, alerts_sent: 0, lista_cheia: 0, skipped_disabled: 0, skipped_dedupe: 0,
-    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0, marco_contraditorio: 0,
+    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0, marco_contraditorio: 0, freio_do_resend: 0,
     errors: [], recipients: [], took_ms: 0
   };
   const t0 = Date.now();
@@ -223,7 +223,64 @@ export default async function handler(req, res) {
     stats.serie_gravada++;
   }
 
-  for (const biz of list) {
+  // ── DUAS VELOCIDADES (11/09/2026) ───────────────────────────────────
+  // Medido hoje: 118 negocios x ~1,8s em fila indiana = ~212s de um teto de
+  // 300s. 70% gasto, e a base cresceu 10 SO HOJE. Quando estourar, a funcao e
+  // cortada no meio: os ultimos da fila nao recebem nada e o relatorio final
+  // nem chega a ser escrito — so o log de partida denuncia.
+  //
+  // As duas metades do trabalho tem limites OPOSTOS, e por isso correm em
+  // velocidades diferentes:
+  //
+  //   BUSCAR no Google  → o gargalo e a espera da rede. Cinco ao mesmo tempo
+  //                        cortam o tempo por cinco e nao incomodam ninguem.
+  //   ENVIAR pelo Resend → o gargalo e a COTA DELES (~2 por segundo). Cinco ao
+  //                        mesmo tempo viram 429, e um 429 aqui nao e lentidao:
+  //                        e cliente que nao recebe o e-mail da semana.
+  //
+  // Por isso a busca ganha um pool e o envio ganha um FREIO — uma fila unica,
+  // espacada, com uma retentativa quando o Resend reclamar. Nunca paralelizar
+  // o envio junto com a busca: era esse o erro obvio a evitar aqui.
+  const CONCORRENCIA = 5;
+  const INTERVALO_ENVIO_MS = 220;
+
+  async function comPool(itens, n, fn) {
+    let proximo = 0;
+    const linhas = Array.from({ length: Math.min(n, itens.length) }, async () => {
+      while (proximo < itens.length) await fn(itens[proximo++]);
+    });
+    await Promise.all(linhas);
+  }
+
+  let filaEnvio = Promise.resolve();
+  let ultimoEnvio = 0;
+
+  // Serializa TODO envio num canal so, espacado. Vale tambem pro alerta de
+  // avaliacao negativa, que sai pelo mesmo Resend e entraria na disputa.
+  function enviaComFreio(opts) {
+    const tarefa = filaEnvio.then(async () => {
+      const espera = INTERVALO_ENVIO_MS - (Date.now() - ultimoEnvio);
+      if (espera > 0) await sleep(espera);
+      ultimoEnvio = Date.now();
+      let r = await sendTransactionalEmail(opts);
+      // 429 do Resend vira e-mail perdido em silencio se ninguem reagir. Uma
+      // retentativa mais lenta resolve o caso comum (rajada) sem mascarar um
+      // problema real: se falhar de novo, o erro vai pro relatorio como antes.
+      if (r?.error && /rate|429|too many/i.test(String(r.error))) {
+        stats.freio_do_resend++;
+        await sleep(1200);
+        ultimoEnvio = Date.now();
+        r = await sendTransactionalEmail(opts);
+      }
+      return r;
+    });
+    // A fila nao pode morrer num erro: sem este catch, uma falha isolada
+    // deixaria todos os proximos envios pendurados pra sempre.
+    filaEnvio = tarefa.then(() => {}, () => {});
+    return tarefa;
+  }
+
+  await comPool(list, CONCORRENCIA, async (biz) => {
     stats.businesses++;
     try {
       // As duas razoes pra NAO mandar e-mail sao resolvidas aqui, mas so
@@ -300,11 +357,11 @@ export default async function handler(req, res) {
           }
         }
         stats.errors.push({ business_id: biz.id, error: `não consegui consultar: ${rv.__erro}` });
-        continue;
+        return;
       }
       if (!rv.name && !rv.rating) {
         stats.errors.push({ business_id: biz.id, error: "sem dados do Google" });
-        continue;
+        return;
       }
 
       const reviews = Array.isArray(rv.reviews) ? rv.reviews : [];
@@ -315,8 +372,8 @@ export default async function handler(req, res) {
       // Grava ANTES de qualquer desistencia de envio — ver comentario acima.
       await gravaSerie(biz.id, rv.rating ?? bi.rating ?? null, totalReviews);
 
-      if (optOut) { stats.skipped_disabled++; continue; }
-      if (!to) { stats.skipped_no_email++; continue; }
+      if (optOut) { stats.skipped_disabled++; return; }
+      if (!to) { stats.skipped_no_email++; return; }
 
       // ── ALERTA DE AVALIAÇÃO NEGATIVA (02/ago) ────────────────────────
       // Antes um cron separado rodava TODO DIA e pedia ao Google as avaliações
@@ -354,7 +411,7 @@ export default async function handler(req, res) {
           text: neg.text, placeId: biz.place_id,
         });
         if (dry) { stats.alerts_sent++; continue; }
-        const ra = await sendTransactionalEmail({
+        const ra = await enviaComFreio({
           userId: biz.user_id,
           emailType: "negative_review",
           to,
@@ -408,7 +465,7 @@ export default async function handler(req, res) {
       if (dry) {
         stats.recipients.push({ business: rv.name, to, score: score.score, new_this_week: newThisWeek });
       } else {
-        const r = await sendTransactionalEmail({
+        const r = await enviaComFreio({
           userId: biz.user_id,
           emailType: "weekly_digest",
           to,
@@ -426,11 +483,19 @@ export default async function handler(req, res) {
         else if (r?.error) stats.errors.push({ business_id: biz.id, error: r.error });
       }
 
-      await sleep(250); // respeita rate limit do Google (3 chamadas por negócio)
+      // Sobrou um respiro curto so pra alisar a rajada contra o Google — a
+      // espera longa de antes existia pra segurar UMA fila indiana, e agora
+      // quem segura o ritmo do envio e o freio do Resend.
+      await sleep(60);
     } catch (e) {
       stats.errors.push({ business_id: biz.id, error: e.message || String(e) });
     }
-  }
+  });
+
+  // A fila de envio e independente do pool: o ultimo negocio pode ter terminado
+  // a busca e ainda ter e-mail esperando a vez. Sem esta linha, o relatorio
+  // sairia antes dos ultimos envios e o `sent` contaria menos do que foi.
+  await filaEnvio;
 
   stats.took_ms = Date.now() - t0;
   console.log("[cron/weekly-digest] concluído:", JSON.stringify({ ...stats, recipients: stats.recipients.length }));

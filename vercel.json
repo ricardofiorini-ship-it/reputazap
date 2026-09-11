@@ -66,7 +66,8 @@
     { "source": "/painel-f7dsaz3c/(.*)", "destination": "/index-v3.html" }
   ],
   "functions": {
-    "api/radar.js": { "maxDuration": 90 }
+    "api/radar.js": { "maxDuration": 90 },
+    "api/cron/weekly-digest.js": { "maxDuration": 300 }
   },
   "crons": [
     { "path": "/api/cron/db-health", "schedule": "0 * * * *" },
