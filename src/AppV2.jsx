@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import PhoneFrame from './v3/PhoneFrame.jsx'
 import { IconeMenu } from './marcas.jsx'
+import { tokenValido, apos401, salvarSessao, limparSessao } from './lib/sessao.js'
 
 // ─────────────────────────────────────────────────────────────
 // Registro de ícones para dados (campos `icon:` em MOCK/config/notificações).
@@ -296,13 +297,19 @@ const MOCK = {
 // Cabeçalho de identificação pras rotas PÚBLICAS que respondem diferente pra
 // quem está logado (hoje: a cadência de medição do /api/diagnostico). Sem token
 // devolve {} — a rota continua funcionando pro visitante.
-function authHeader() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('rz_token') : null
+// Assíncrono desde 11/09/2026: renova a sessão junto. Estas rotas são
+// públicas, então um token vencido não daria erro — daria uma resposta de
+// VISITANTE pro cliente logado, calado. Pior que falhar.
+async function authHeader() {
+  const token = typeof window !== 'undefined' ? await tokenValido() : null
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
-async function apiCall(path, opts = {}) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('rz_token') : null
+// Toda chamada autenticada do painel passa por aqui — e por isso é aqui que a
+// sessão se mantém viva. Ver src/lib/sessao.js: até 11/09/2026 o token vencia
+// em 1h e o cliente era deslogado no meio do uso.
+async function apiCall(path, opts = {}, _jaRenovou = false) {
+  const token = typeof window !== 'undefined' ? await tokenValido() : null
   const res = await fetch(path, {
     ...opts,
     headers: {
@@ -312,6 +319,13 @@ async function apiCall(path, opts = {}) {
     }
   })
   if (!res.ok) {
+    // 401 com token na mão pode ser relógio do aparelho adiantado ou sessão
+    // invalidada antes da hora. Tenta renovar UMA vez e repete. Uma só: em
+    // laço, sessão morta viraria martelada no servidor.
+    if (res.status === 401 && token && !_jaRenovou) {
+      const novo = await apos401()
+      if (novo) return apiCall(path, opts, true)
+    }
     let msg = `HTTP ${res.status}`
     try { const j = await res.json(); if (j.error) msg = j.error } catch {}
     const err = new Error(msg)
@@ -5872,13 +5886,12 @@ function TermBar({ term, spacingM, isGuest, placeId, isMobile, trocadoDe }) {
       return
     }
     try {
-      const token = localStorage.getItem('rz_token')
-      const res = await fetch('/api/savebiz', {
+      // Via apiCall pra herdar a renovação de sessão — antes mandava o token
+      // cru do localStorage e falhava se ele tivesse vencido.
+      await apiCall('/api/savebiz', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ category_override: t })
       })
-      if (!res.ok) throw new Error('save failed')
       window.location.reload()
     } catch {
       setSaving(false)
@@ -5976,7 +5989,7 @@ function useLensesData({ placeId, term, cep, mock, enabled = true }) {
     // Manda o token quando existe: é ele que diz ao backend a cadência da
     // medição (grátis = 1x por semana, Pro = quando quiser). Visitante segue
     // anônimo e recebe o mesmo diagnóstico de sempre.
-    fetch(url, { headers: authHeader() })
+    authHeader().then(h => fetch(url, { headers: h }))
       .then(async (r) => {
         const d = await r.json().catch(() => null)
         if (cancelled) return
@@ -6042,7 +6055,7 @@ function useGridData({ placeId, terms }) {
     setLoading(true)
     ;(async () => {
       try {
-        const r = await fetch('/api/diagnostico?grid=1&place_id=' + encodeURIComponent(placeId) + (termsQ ? '&terms=' + encodeURIComponent(termsQ) : '') + (remedir ? '&remedir=1' : ''), { headers: authHeader() })
+        const r = await fetch('/api/diagnostico?grid=1&place_id=' + encodeURIComponent(placeId) + (termsQ ? '&terms=' + encodeURIComponent(termsQ) : '') + (remedir ? '&remedir=1' : ''), { headers: await authHeader() })
         if (!alive) return
         const d = await r.json().catch(() => null)
         if (!r.ok || !d || d.error) {
@@ -6568,24 +6581,34 @@ function NoBusinessScreen({ user }) {
     }
   }
 
+  // Envelope fino sobre o apiCall: o resto desta função foi escrito esperando
+  // {ok, data} e um erro de rede NÃO pode virar exceção aqui — a tela tem
+  // tratamento próprio, com mensagem pro cliente.
+  async function fetchSavebiz(corpo) {
+    try {
+      const data = await apiCall('/api/savebiz', { method: 'POST', body: JSON.stringify(corpo) })
+      return { ok: true, data }
+    } catch (e) {
+      return { ok: false, data: { error: e.message } }
+    }
+  }
+
   async function handleSelect(biz) {
     setSaving(true)
     setError("")
     try {
-      const token = localStorage.getItem("rz_token")
-      const r = await fetch("/api/savebiz", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
+      // Via apiCall pra herdar a renovação de sessão. Este é o portão de quem
+      // ACABOU de criar conta: token cru vencido aqui deixaria o cliente novo
+      // preso na tela de onboarding sem entender por quê.
+      const r = await fetchSavebiz({
           place_id: biz.place_id,
           name: biz.name,
           address: biz.address || "",
           rating: biz.rating || 0,
           total: biz.total || 0,
           plan: "free"
-        })
       })
-      const data = await r.json()
+      const data = r.data
       if (!r.ok || !data.ok) {
         setError(data.error || "Não conseguimos salvar. Tente de novo.")
         setSaving(false)
@@ -6715,7 +6738,10 @@ function NoBusinessScreen({ user }) {
             <a href="/" style={{ color: T.textMid, fontSize: 12, fontWeight: 600 }}
                onClick={(e) => {
                  e.preventDefault()
-                 localStorage.removeItem("rz_token")
+                 // limparSessao apaga TAMBÉM o token de renovação: sair sem
+                 // apagá-lo deixaria uma credencial viva no aparelho de quem
+                 // acabou de sair.
+                 limparSessao()
                  localStorage.removeItem("rz_user")
                  window.location.href = "/"
                }}
@@ -7229,7 +7255,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
               // Limpa a sessão e força a tela de Login (?login=1). NÃO usar
               // onLogout puro: ele só zera o user e o /app recai em modo
               // convidado (porta única) em vez de mostrar o login.
-              try { localStorage.removeItem('rz_token'); localStorage.removeItem('rz_user') } catch {}
+              try { limparSessao(); localStorage.removeItem('rz_user') } catch {}
               window.location.href = '/app?login=1'
             }} style={{
               background: T.blue, color:'#fff', border:'none', borderRadius: 9,

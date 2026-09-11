@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { salvarSessao } from "./lib/sessao.js";
 import { Star, RefreshCw, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 const GOOGLE_CLIENT_ID = "215106300952-pb5ucf4l8jd8ls9q6ff059b41mo26gkt.apps.googleusercontent.com";
@@ -78,7 +79,7 @@ export default function Login({ onLogin }) {
         setLoading(false);
         return;
       }
-      localStorage.setItem("rz_token", data.token);
+      salvarSessao(data);   // token + renovação + validade, num lugar só
       localStorage.setItem("rz_user", JSON.stringify(data.user));
       onLogin({ ...data.user, biz: data.business?.name || "Meu Negócio" });
     } catch {
@@ -165,7 +166,7 @@ export default function Login({ onLogin }) {
         setLoading(false);
         return;
       }
-      localStorage.setItem("rz_token", data.token);
+      salvarSessao(data);   // token + renovação + validade, num lugar só
       localStorage.setItem("rz_user", JSON.stringify(data.user));
       onLogin({ ...data.user, biz: data.business?.name || "Meu Negócio" });
     } catch {

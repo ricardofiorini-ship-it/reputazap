@@ -401,6 +401,20 @@ window.addEventListener("load", () => setTimeout(initGoogleSignIn, 100));
 
 // Não cria id novo: se a pessoa nunca passou pelo painel, manda null e o
 // evento conta sem origem — igual ao cadastro por e-mail.
+
+// ── Guarda a sessão inteira: token de acesso + token de RENOVAÇÃO + validade.
+// Até 11/09/2026 só o de acesso era guardado, e ele vence em 1 hora — o
+// cliente era deslogado e tinha que digitar e-mail e senha toda visita.
+// Mesma regra do painel (src/lib/sessao.js); repetida aqui porque esta página
+// é HTML puro, sem bundler. Se mudar lá, muda aqui.
+function salvarSessao(d){
+  try{
+    if(d && d.token) localStorage.setItem("rz_token", d.token);
+    if(d && d.refresh_token) localStorage.setItem("rz_refresh", d.refresh_token);
+    if(d && d.expires_at) localStorage.setItem("rz_token_exp", String(d.expires_at));
+  }catch(e){}
+}
+
 function anonIdLocal() {
   try { return localStorage.getItem("rz_anon"); } catch (e) { return null; }
 }
@@ -440,7 +454,7 @@ async function handleGoogleCredential(response) {
       alert(data.message || data.error || "Erro no login com Google.");
       return;
     }
-    localStorage.setItem("rz_token", data.token);
+    salvarSessao(data);
     localStorage.setItem("rz_user", JSON.stringify(data.user));
     state.user = { name: data.user.name, email: data.user.email };
 
@@ -652,7 +666,7 @@ Quer entrar com ela agora? Seu negócio continua selecionado.")){
 
     // Salva token retornado direto do register
     if(data.token){
-      localStorage.setItem("rz_token", data.token);
+      salvarSessao(data);
       localStorage.setItem("rz_user", JSON.stringify(data.user));
     } else {
       // Fallback: faz login separado
@@ -663,7 +677,7 @@ Quer entrar com ela agora? Seu negócio continua selecionado.")){
       });
       const loginData=await loginRes.json();
       if(loginData.token){
-        localStorage.setItem("rz_token",loginData.token);
+        salvarSessao(loginData);
         localStorage.setItem("rz_user",JSON.stringify(loginData.user));
       }
     }

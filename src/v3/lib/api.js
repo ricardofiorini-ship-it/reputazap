@@ -12,6 +12,8 @@
 // que custou R$452 em julho quando se perdeu de vista.
 // ============================================================
 
+import { tokenValido, apos401, limparSessao } from '../../lib/sessao.js'
+
 export function token() {
   try { return localStorage.getItem('rz_token') } catch { return null }
 }
@@ -25,7 +27,9 @@ export function currentUser() {
 
 export function logout() {
   try {
-    localStorage.removeItem('rz_token')
+    // Apaga o par inteiro (acesso + renovação). Sair apagando só o token de
+    // acesso deixaria a credencial que RENOVA viva no aparelho.
+    limparSessao()
     localStorage.removeItem('rz_user')
   } catch {}
   // Recarrega em vez de ir pro `/app`: desde que o V3 tem login proprio
@@ -34,8 +38,12 @@ export function logout() {
   window.location.reload()
 }
 
-function authHeader() {
-  const t = token()
+// Assíncrono desde 11/09/2026: além de montar o cabeçalho, RENOVA a sessão se
+// ela estiver na hora de vencer. Ver src/lib/sessao.js — o V3 e o /app dividem
+// o mesmo localStorage, então a regra tem que ser a mesma nos dois; separada,
+// um painel renovaria e o outro deslogaria o cliente.
+async function authHeader() {
+  const t = await tokenValido()
   return t ? { Authorization: `Bearer ${t}` } : {}
 }
 
@@ -53,11 +61,16 @@ export class ApiError extends Error {
   }
 }
 
-export async function get(path, { auth = false } = {}) {
-  const r = await fetch(path, { headers: auth ? authHeader() : {} })
+export async function get(path, { auth = false } = {}, _jaRenovou = false) {
+  const r = await fetch(path, { headers: auth ? await authHeader() : {} })
   let body = null
   try { body = await r.json() } catch {}
   if (!r.ok || body?.error) {
+    // Uma renovação e uma repetição — nunca em laço. Cobre relógio adiantado
+    // e sessão invalidada antes da hora marcada.
+    if (r.status === 401 && auth && !_jaRenovou && await apos401()) {
+      return get(path, { auth }, true)
+    }
     throw new ApiError(body?.error || `Falha ao carregar (${r.status})`, r.status, body)
   }
   return body || {}
@@ -71,15 +84,18 @@ export async function tryGet(path, opts) {
   try { return await get(path, opts) } catch { return null }
 }
 
-export async function post(path, data, { auth = true } = {}) {
+export async function post(path, data, { auth = true } = {}, _jaRenovou = false) {
   const r = await fetch(path, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...(auth ? authHeader() : {}) },
+    headers: { 'Content-Type': 'application/json', ...(auth ? await authHeader() : {}) },
     body: JSON.stringify(data || {})
   })
   let body = null
   try { body = await r.json() } catch {}
   if (!r.ok || body?.error) {
+    if (r.status === 401 && auth && !_jaRenovou && await apos401()) {
+      return post(path, data, { auth }, true)
+    }
     throw new ApiError(body?.error || `Falha ao salvar (${r.status})`, r.status, body)
   }
   return body || {}

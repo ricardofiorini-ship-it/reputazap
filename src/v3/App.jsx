@@ -13,6 +13,7 @@ import React from 'react'
 import { Menu, X, ArrowLeft } from 'lucide-react'
 import { gruposVisiveis, AREAS, STATUS_TXT } from './lib/areas.js'
 import { api, currentUser, logout, token } from './lib/api.js'
+import { limparSessao } from '../lib/sessao.js'
 import { modoSolo, CHAVE_SOLO, CONVIDADO, AREAS_DE_CLIENTE, urlCadastro } from './lib/acesso.js'
 import { useDados } from './lib/dados.js'
 import { Carregando, Erro } from './ui.jsx'
@@ -267,7 +268,7 @@ export default function App() {
           onTentar={() => {
             // Sessao vencida: limpa e recarrega — a porta do V3 mostra o proprio
             // login. Antes isto ia pro `/app?login=1`, de quando o V3 nao tinha um.
-            try { localStorage.removeItem('rz_token'); localStorage.removeItem('rz_user') } catch {}
+            try { limparSessao(); localStorage.removeItem('rz_user') } catch {}
             window.location.reload()
           }}/>
       )

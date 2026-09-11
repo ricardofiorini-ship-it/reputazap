@@ -55,7 +55,34 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { email, password, id_token, action, allow_signup, anon_id } = req.body;
+  const { email, password, id_token, action, allow_signup, anon_id, refresh_token } = req.body;
+
+  // ── RENOVAR A SESSÃO ────────────────────────────────────────
+  // Medido em 11/09/2026: 59 das 114 contas entraram UMA vez, no dia do
+  // cadastro. O painel não renovava a sessão — o token do Supabase vence em 1h
+  // e o cliente era jogado pra fora, então ele digitava e-mail e senha TODA
+  // vez que queria olhar o painel. Pra um lojista que compra o cartão no
+  // Mercado Livre e abre o painel de vez em quando, isso é pedágio suficiente
+  // pra não abrir nunca mais.
+  //
+  // Fica ANTES de tudo de propósito: renovar não é logar. Não manda e-mail de
+  // boas-vindas, não conta cadastro no funil, não busca negócio. É só trocar
+  // um token vencido por um novo.
+  if (action === "refresh") {
+    if (!refresh_token) return res.status(400).json({ error: "refresh_token obrigatório" });
+    const { data: nova, error: erroRefresh } = await supabase.auth.refreshSession({ refresh_token });
+    // 401 e não 500: pro front saber que o caminho é a tela de login, e não
+    // "tente de novo". Refresh vencido ou revogado é fim de sessão, não falha.
+    if (erroRefresh || !nova?.session) {
+      return res.status(401).json({ error: "Sessão expirada. Entre de novo." });
+    }
+    return res.json({
+      ok: true,
+      token: nova.session.access_token,
+      refresh_token: nova.session.refresh_token,
+      expires_at: nova.session.expires_at || null
+    });
+  }
 
   try {
     let data, error;
@@ -168,6 +195,11 @@ export default async function handler(req, res) {
     res.json({
       ok: true,
       token: data.session.access_token,
+      // O par que mantém o cliente logado entre visitas. O Supabase ROTACIONA
+      // o refresh a cada uso, então o que fica guardado no aparelho vale uma
+      // renovação só.
+      refresh_token: data.session.refresh_token || null,
+      expires_at: data.session.expires_at || null,
       user: {
         id: data.user.id,
         email: data.user.email,

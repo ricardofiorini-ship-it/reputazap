@@ -302,6 +302,20 @@ let googleAuthed = false;     // true se chegou aqui via login Google (pula senh
 // ── Google Sign-In (atalho que cobre cadastro novo + login) ──
 const GOOGLE_CLIENT_ID = "215106300952-pb5ucf4l8jd8ls9q6ff059b41mo26gkt.apps.googleusercontent.com";
 let gsiScriptLoaded = false;
+
+// ── Guarda a sessão inteira: token de acesso + token de RENOVAÇÃO + validade.
+// Até 11/09/2026 só o de acesso era guardado, e ele vence em 1 hora — o
+// cliente era deslogado e tinha que digitar e-mail e senha toda visita.
+// Mesma regra do painel (src/lib/sessao.js); repetida aqui porque esta página
+// é HTML puro, sem bundler. Se mudar lá, muda aqui.
+function salvarSessao(d){
+  try{
+    if(d && d.token) localStorage.setItem("rz_token", d.token);
+    if(d && d.refresh_token) localStorage.setItem("rz_refresh", d.refresh_token);
+    if(d && d.expires_at) localStorage.setItem("rz_token_exp", String(d.expires_at));
+  }catch(e){}
+}
+
 function loadGsiScript(){
   return new Promise((resolve)=>{
     if(gsiScriptLoaded||window.google?.accounts?.id){gsiScriptLoaded=true;return resolve();}
@@ -356,7 +370,7 @@ async function handleGoogleCredential(response){
     }
     if(!r.ok||!d.token){alert(d.error||"Erro no login Google.");return;}
     token=d.token;
-    localStorage.setItem("rz_token",token);
+    salvarSessao(d);
     if(d.user) localStorage.setItem("rz_user",JSON.stringify(d.user));
     googleAuthed = true;
 
@@ -691,7 +705,7 @@ async function submitNew(){
           msg.className="msg error"; msg.innerHTML='Esse email já tem conta StarTouch. Volte e use <b>"Já tenho conta"</b> pra entrar (ou recuperar a senha) e vincular este dispositivo.'; btn.disabled=false; btn.textContent="✓ Ativar"; return;
         }
         token=dLog.token;
-        localStorage.setItem("rz_token",token);
+        salvarSessao(dLog);
         if(dLog.user) localStorage.setItem("rz_user",JSON.stringify(dLog.user));
       } else {
         token = dReg.token;
@@ -699,7 +713,7 @@ async function submitNew(){
           const rLog=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})});
           const dLog=await rLog.json(); token=dLog.token;
         }
-        localStorage.setItem("rz_token",token);
+        salvarSessao(dReg.token ? dReg : {token:token});
         if(dReg.user) localStorage.setItem("rz_user",JSON.stringify(dReg.user));
       }
     }
@@ -745,7 +759,7 @@ async function submitLogin(){
     const dLog=await rLog.json();
     if(!rLog.ok||!dLog.token){ msg.className="msg error"; msg.textContent=dLog.error||"Email ou senha incorretos."; btn.disabled=false; btn.textContent="Entrar"; return; }
     token=dLog.token;
-    localStorage.setItem("rz_token",token);
+    salvarSessao(dLog);
     if(dLog.user) localStorage.setItem("rz_user",JSON.stringify(dLog.user));
     await goToLink();
   }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Entrar"; }

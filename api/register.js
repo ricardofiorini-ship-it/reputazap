@@ -81,6 +81,10 @@ export default async function handler(req, res) {
 
     // Retorna token direto se a sessão foi criada
     const token = data.session?.access_token || null;
+    // Mesmo par do login: sem isto, quem acabou de se cadastrar seria
+    // deslogado em 1h como era antes de 11/09/2026.
+    const refreshToken = data.session?.refresh_token || null;
+    const expiresAt = data.session?.expires_at || null;
 
     // Emails em paralelo, mas AGUARDADOS antes do res.json — caso contrário
     // o serverless da Vercel termina a função antes do Resend completar
@@ -125,6 +129,8 @@ export default async function handler(req, res) {
       ok: true,
       user_id: data.user.id,
       token,
+      refresh_token: refreshToken,
+      expires_at: expiresAt,
       user: {
         id: data.user.id,
         email: data.user.email,
