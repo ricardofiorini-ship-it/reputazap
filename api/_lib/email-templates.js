@@ -908,11 +908,20 @@ export function nextMilestone(total) {
 // dos últimos 7 dias). Leve quando fraco (lembrete pra equipe, sem ralhar),
 // parabéns quando bom. Obs: newThisWeek satura em 5 (Google só devolve as 5
 // mais recentes), então >=5 já é "semana excelente".
-export function weekVerdict(newThisWeek) {
+export function weekVerdict(newThisWeek, aoMenos) {
   const n = Number(newThisWeek) || 0;
   const GREEN = { color: "#137333", bg: "#ECFDF5", border: "#A7F3D0" };
   const AMBER = { color: "#B7791F", bg: "#FFF8E1", border: "#FCE8A6" };
-  if (n >= 5) return { ...GREEN, emoji: "🎉", title: "Que semana!", msg: "Foram 5 ou mais avaliações novas nos últimos 7 dias — esse é o ritmo que faz subir no Google. Continue assim!" };
+  // `aoMenos` = o numero bateu no teto do Google (~5 avaliacoes devolvidas) e
+  // portanto e um PISO, nao uma contagem. Ver o comentario em weeklyDigestEmail.
+  //
+  // Omitido = NAO SEI se tem teto, e ai a resposta segura e "ou mais": afirmar
+  // exatidao que nao se tem e o erro mais caro dos dois. Vale pra qualquer
+  // chamador futuro que nao conheca a historia deste parametro.
+  const piso = aoMenos === undefined ? true : !!aoMenos;
+  if (n >= 5) return { ...GREEN, emoji: "🎉", title: "Que semana!", msg: piso
+    ? "Foram 5 ou mais avaliações novas nos últimos 7 dias — esse é o ritmo que faz subir no Google. Continue assim!"
+    : `Foram ${n} avaliações novas nos últimos 7 dias — esse é o ritmo que faz subir no Google. Continue assim!` };
   if (n >= 3) return { ...GREEN, emoji: "🙌", title: "Boa semana!", msg: `${n} avaliações novas. Tá no caminho certo — mantenha o time pedindo a cada bom atendimento.` };
   if (n >= 1) return { ...AMBER, emoji: "💪", title: "Dá pra acelerar", msg: `${n === 1 ? "1 avaliação nova" : n + " avaliações novas"} esta semana. Combine com a equipe de pedir a avaliação em todo bom atendimento — apontar o dispositivo StarTouch pro cliente já acelera.` };
   return { ...AMBER, emoji: "📣", title: "Vamos buscar avaliações?", msg: "Nenhuma avaliação nova nos últimos 7 dias. Vale lembrar a equipe de pedir ao final de cada atendimento — com seu dispositivo StarTouch à vista, o cliente avalia em segundos." };
@@ -1089,7 +1098,7 @@ export function metaDeConcorrencia(gridRow, meuTotal) {
   };
 }
 
-export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl, taps7d, temDispositivo, marcoZero, meta }) {
+export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl, taps7d, temDispositivo, marcoZero, meta, novasAoMenos }) {
   const biz = escapeHtml(bizName || "seu negócio");
   const note = (typeof rating === "number" && rating > 0) ? rating.toFixed(1).replace(".", ",") : "—";
   const tot = Number(total) || 0;
@@ -1102,8 +1111,22 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
   // Quando bate, anda pra próxima dica da rotação.
   const t = semRepetirOScore(tip || WEEKLY_TIPS[0], score);
 
+  // "5" AQUI PODE NAO SER CINCO (12/09/2026). O Google devolve so as ~5
+  // avaliacoes mais recentes, entao contar "quantas dessas sao da semana" tem
+  // um TETO de 5 — e pra um negocio grande o numero real e muito maior.
+  //
+  // O erro so apareceu quando os dois numeros ficaram lado a lado: a Fleming
+  // Laboratorio recebeu "77 pessoas encostaram o celular" e "5 avaliacoes
+  // novas" no mesmo e-mail, e mais abaixo "+403 desde 22 de junho" — que da
+  // uns 34 por semana. O e-mail dizia 5 e 34 ao mesmo tempo.
+  //
+  // Enquanto a serie semanal nao tiver duas semanas pra subtrair, o honesto e
+  // dizer "ou mais" em vez de fingir precisao. Numero que finge exatidao e
+  // pior que numero declaradamente aproximado: o segundo o leitor corrige na
+  // cabeca, o primeiro ele usa pra concluir que o produto nao funciona.
+  const aoMenos = !!novasAoMenos && nw > 0;
   const newLine = nw > 0
-    ? `<span style="color:#137333;font-weight:700;">▲ +${nw} ${nw === 1 ? "nova" : "novas"}</span>`
+    ? `<span style="color:#137333;font-weight:700;">▲ +${nw}${aoMenos ? " ou mais" : ""} ${nw === 1 && !aoMenos ? "nova" : "novas"}</span>`
     : `<span style="color:#5F6368;font-weight:600;">— nenhuma nova</span>`;
 
   const row = (label, value) => `
@@ -1126,7 +1149,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
     : "";
 
   // Veredito da semana (tom adapta ao ritmo de coleta)
-  const v = weekVerdict(nw);
+  const v = weekVerdict(nw, aoMenos);
   const verdictBlock = `
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${v.bg};border:1px solid ${v.border};border-radius:12px;margin:14px 0;">
       <tr><td style="padding:14px 16px;">

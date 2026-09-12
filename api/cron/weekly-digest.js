@@ -96,7 +96,7 @@ export default async function handler(req, res) {
   const stats = {
     week, dry, started_at: new Date().toISOString(),
     businesses: 0, sent: 0, alerts_sent: 0, lista_cheia: 0, skipped_disabled: 0, skipped_dedupe: 0,
-    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0, serie_pronta: null, meta_enviada: 0, marco_contraditorio: 0, freio_do_resend: 0,
+    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0, serie_pronta: null, novas_exatas: 0, meta_enviada: 0, marco_contraditorio: 0, freio_do_resend: 0,
     errors: [], recipients: [], took_ms: 0
   };
   const t0 = Date.now();
@@ -147,10 +147,27 @@ export default async function handler(req, res) {
     return { linhas, falhou: false };
   }
 
+  // A SERIE DAS ULTIMAS SEMANAS — e o que, daqui a duas segundas, substitui o
+  // numero com teto do Google por uma SUBTRACAO EXATA (total de hoje menos o
+  // total da semana passada). Enquanto nao houver dois pontos, nada muda e o
+  // e-mail diz "ou mais". A conta se liga sozinha quando o dado existir.
+  const dozeDiasAtras = new Date(Date.now() - 12 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+
   const rToques = await todasAsLinhas("toques", () =>
     supabase.from("plate_taps").select("business_id").gte("tapped_at", seteDiasAtras));
   const rPlacas = await todasAsLinhas("dispositivos", () =>
     supabase.from("plates").select("business_id, activated_at").eq("status", "active"));
+  const rSerie = await todasAsLinhas("série de avaliações", () =>
+    supabase.from("review_history").select("business_id, on_date, reviews").gte("on_date", dozeDiasAtras));
+
+  const seriePorBiz = new Map();
+  for (const l of rSerie.linhas) {
+    if (!l.business_id || !l.on_date) continue;
+    const arr = seriePorBiz.get(l.business_id) || [];
+    arr.push(l);
+    seriePorBiz.set(l.business_id, arr);
+  }
+  const diasAtras = (d) => (Date.now() - new Date(`${d}T12:00:00Z`).getTime()) / 86400000;
 
   const tapsPorBiz = new Map();
   for (const l of rToques.linhas) {
@@ -391,6 +408,31 @@ export default async function handler(req, res) {
       const newThisWeek = reviews.filter((r) => Number(r.id) >= weekAgo).length;
       const totalReviews = rv.total ?? bi.total ?? 0;
 
+      // ── QUANTAS AVALIACOES ENTRARAM DE VERDADE NA SEMANA ────────────────
+      // `newThisWeek` vem da lista do Google, que devolve ~5 avaliacoes — ou
+      // seja, ele TEM TETO DE 5 e vira um piso disfarcado de contagem. Na
+      // Fleming (14.811 avaliacoes) isso produziu "5 avaliacoes novas" ao lado
+      // de "77 pessoas encostaram o celular" e de "+403 desde 22 de junho",
+      // que da uns 34 por semana: o mesmo e-mail dizendo 5 e 34.
+      //
+      // Com a serie, a conta e uma SUBTRACAO e nao tem teto nenhum. Enquanto
+      // nao houver um ponto de ~7 dias atras, mantem o numero do Google e
+      // MARCA como piso, pro texto dizer "ou mais" em vez de fingir precisao.
+      const serie = seriePorBiz.get(biz.id) || [];
+      const anterior = serie
+        .filter((l) => { const d = diasAtras(l.on_date); return d >= 5 && d <= 12; })
+        .sort((a, b) => Math.abs(diasAtras(a.on_date) - 7) - Math.abs(diasAtras(b.on_date) - 7))[0];
+
+      let novasNaSemana = newThisWeek;
+      let novasAoMenos = newThisWeek >= LISTA_CHEIA;
+      if (anterior && Number.isFinite(Number(anterior.reviews))) {
+        const delta = totalReviews - Number(anterior.reviews);
+        // Delta negativo = o Google removeu avaliacoes. Acontece, e nao e
+        // assunto do boletim semanal: cai no caminho antigo em vez de anunciar
+        // "-3 avaliacoes" pra quem nao fez nada de errado.
+        if (delta >= 0) { novasNaSemana = delta; novasAoMenos = false; stats.novas_exatas++; }
+      }
+
       // Grava ANTES de qualquer desistencia de envio — ver comentario acima.
       await gravaSerie(biz.id, rv.rating ?? bi.rating ?? null, totalReviews);
 
@@ -467,7 +509,8 @@ export default async function handler(req, res) {
       const unsub = unsubUrl(biz.user_id);
       const tmpl = weeklyDigestEmail({
         bizName: rv.name, rating: rv.rating, total: totalReviews,
-        newThisWeek, recentReviews: reviews, tip, score,
+        newThisWeek: novasNaSemana, novasAoMenos,
+        recentReviews: reviews, tip, score,
         milestone: nextMilestone(totalReviews), article, unsubUrl: unsub,
         marcoZero,
         meta,

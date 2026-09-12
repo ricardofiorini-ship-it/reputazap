@@ -1816,6 +1816,8 @@ export default async function handler(req, res) {
       // (cap em 5, pois o Google só devolve as 5 mais recentes — subestima, nunca infla).
       const newThisWeek = reviews.filter((r) => Number(r.id) >= weekAgo).length;
       const totalReviews = rv.total ?? bi.total ?? 0;
+      // Mesmo teto de 5 do envio real: sem serie pra subtrair, o numero e piso.
+      const novasAoMenos = newThisWeek >= 5;
       const score = emailScore({
         rating: rv.rating ?? bi.rating,
         reviews: totalReviews,
@@ -1859,6 +1861,7 @@ export default async function handler(req, res) {
         rating: rv.rating,
         total: totalReviews,
         newThisWeek,
+        novasAoMenos,
         recentReviews: reviews,
         tip: pickWeeklyTip(),
         score,
