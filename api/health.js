@@ -32,6 +32,12 @@ const REQUIRED_ENVS = [
   { name: "MP_ACCESS_TOKEN",      category: "billing",  description: "Mercado Pago — legado, honra pedidos criados até 12/09/2026" },
   { name: "MP_WEBHOOK_SECRET",    category: "billing",  description: "Validação de webhook MP (opcional, recomendado)", optional: true },
   { name: "MP_PRO_PAYMENT_LINK",  category: "billing",  description: "Link estático MP (opcional)", optional: true },
+  // Frete (Frenet). OPCIONAL enquanto o calculo nao esta ligado na tela — vira
+  // obrigatorio no mesmo deploy que ligar. Marcar como obrigatorio agora faria
+  // o monitor mandar e-mail de alerta sobre uma feature que ainda nao existe,
+  // que e o outro jeito de ninguem mais olhar pro alerta.
+  { name: "FRENET_TOKEN",         category: "frete",    description: "Cotacao de frete (painel Frenet -> icone de usuario -> Dados Cadastrais -> Chaves de acesso)", optional: true },
+  { name: "FRENET_CEP_ORIGEM",    category: "frete",    description: "CEP de postagem (opcional: o padrao 05086-010 esta no codigo)", optional: true },
   // Crons
   { name: "CRON_SECRET",          category: "cron",     description: "Auth do cron de snapshot semanal" }
 ];
