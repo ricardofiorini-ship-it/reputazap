@@ -118,7 +118,7 @@ async function authUser(req) {
 // do device e da aba. A conta viva do Google Ads (Star Touch) já importa
 // o evento `purchase` do GA4, então isso alimenta GA4 + Ads de uma vez.
 // Requer GA4_API_SECRET (chave do Measurement Protocol, criada no GA4).
-async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents, items }) {
+async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents, items, origem = "mp" }) {
   const measurementId = process.env.GA4_MEASUREMENT_ID || "G-HCLV0Z640L";
   const apiSecret = process.env.GA4_API_SECRET;
   if (!apiSecret) {
@@ -126,9 +126,11 @@ async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents,
     return;
   }
   // client_id real (cookie _ga) casa a venda com a sessão/campanha de origem.
-  // Sem ele (ex.: PIX pago noutro device), usa um id derivado do pagamento —
-  // a venda ainda conta como receita, só não amarra na jornada.
-  const cid = (clientId && String(clientId).trim()) || `mp.${transactionId}`;
+  // Sem ele (ex.: boleto pago noutro device), usa um id derivado do pagamento —
+  // a venda ainda conta como receita, só não amarra na jornada. O prefixo diz
+  // de qual provedor veio: com dois provedores no ar, um `mp.` em venda do
+  // Stripe faria a auditoria procurar o pagamento no painel errado.
+  const cid = (clientId && String(clientId).trim()) || `${origem}.${transactionId}`;
   const params = {
     transaction_id: String(transactionId),
     currency: "BRL",
@@ -208,7 +210,9 @@ const escapeHtmlLite = (s) =>
 // 7 a 9), convenção da Receita. Os dois finais são verificadores, deriváveis
 // dos outros nove — esconder justamente eles é o que impede remontar o número.
 // Dá pra casar o pedido, não dá pra reconstruir o documento. O completo fica no
-// painel do Mercado Pago, que é de onde a nota é emitida de qualquer jeito.
+// painel do provedor (Mercado Pago ou Stripe), que é de onde a nota é emitida
+// de qualquer jeito. No Stripe o pedido guest também guarda o número inteiro em
+// `orders.shipping`, porque lá quem coleta o CPF é o nosso formulário.
 function mascaraDoc(valor) {
   const d = String(valor == null ? "" : valor).replace(/\D/g, "");
   if (d.length === 11) return `•••.•••.${d.slice(6, 9)}-••`;
@@ -229,15 +233,36 @@ async function sendOrderEmail({ userId, subject, html }) {
   }
 }
 
-async function notifyAdminKitOrder({ order, pay, userId }) {
+// De onde despachar e onde está o documento completo do cliente — muda com o
+// provedor. Antes essas três frases estavam cravadas em "Mercado Pago" dentro
+// do email; com dois provedores no ar, um pedido do Stripe mandaria o admin
+// procurar o endereço num painel onde ele não está.
+const PROVEDOR_PAGAMENTO = {
+  mercadopago: {
+    nome: "Mercado Pago",
+    ondeEstaODoc: "no painel do Mercado Pago",
+    despacho: "Despache pelo painel do Mercado Pago (endereço também consta lá)."
+  },
+  stripe: {
+    nome: "Stripe",
+    ondeEstaODoc: "no pedido salvo no Supabase (tabela <code>orders</code>) e no painel do Stripe",
+    despacho: "Despache com o endereço acima — é o que o cliente preencheu no checkout e fica salvo no pedido. O pagamento e a nota você acompanha no painel do Stripe."
+  }
+};
+
+// `pagamento` é o pagamento já normalizado pelo chamador: { id, status, email,
+// totalCents }. Recebia o objeto cru do Mercado Pago (`pay`), o que obrigaria
+// o Stripe a fingir ser MP pra reusar o mesmo email.
+async function notifyAdminKitOrder({ order, userId, provedor = "mercadopago", pagamento = {} }) {
+  const prov = PROVEDOR_PAGAMENTO[provedor] || PROVEDOR_PAGAMENTO.mercadopago;
   const ship = order?.shipping || null;
-  const email = order?.email || ship?.email || pay?.payer?.email || "—";
+  const email = order?.email || ship?.email || pagamento.email || "—";
   const biz = order?.biz_name || "—";
-  const totalCents = order?.total_cents != null ? order.total_cents : Math.round((pay?.transaction_amount || 0) * 100);
+  const totalCents = order?.total_cents != null ? order.total_cents : (pagamento.totalCents || 0);
   const items = Array.isArray(order?.items) ? order.items : [];
   const itemsHtml = items.length
     ? "<ul>" + items.map((i) => `<li>${i.qty || 1}× ${escapeHtmlLite(i.name)} — ${fmtBRL(Math.round(Number(i.unit_price || 0) * 100))}</li>`).join("") + "</ul>"
-    : "<p>(itens não registrados — confira no painel do Mercado Pago)</p>";
+    : `<p>(itens não registrados — confira no painel do ${prov.nome})</p>`;
 
   // Bloco de entrega (só pra pedidos guest, que coletam endereço no nosso form).
   let shippingHtml = "";
@@ -251,7 +276,7 @@ async function notifyAdminKitOrder({ order, pay, userId }) {
       (ship.phone ? ` · ${escapeHtmlLite(ship.phone)}` : "") + `</p>` +
       (ship.cpf_cnpj
         ? `<p><strong>${ship.cpf_cnpj.length === 14 ? "CNPJ" : "CPF"}:</strong> ${escapeHtmlLite(mascaraDoc(ship.cpf_cnpj))} ` +
-          `<span style="color:#80868B;font-size:12px;">— número completo no painel do Mercado Pago</span></p>`
+          `<span style="color:#80868B;font-size:12px;">— número completo ${prov.ondeEstaODoc}</span></p>`
         : "") +
       `<p>${escapeHtmlLite(linha)}${compl}<br/>` +
       `${escapeHtmlLite(cidade)}<br/>` +
@@ -264,8 +289,8 @@ async function notifyAdminKitOrder({ order, pay, userId }) {
     `<p><strong>Itens:</strong></p>${itemsHtml}` +
     `<p><strong>Total:</strong> ${fmtBRL(totalCents)}</p>` +
     shippingHtml +
-    `<p><strong>Pagamento (MP):</strong> ${pay?.id || ""} · ${pay?.status}</p>` +
-    `<p>Despache pelo painel do Mercado Pago (endereço também consta lá).</p>`;
+    `<p><strong>Pagamento (${prov.nome}):</strong> ${escapeHtmlLite(pagamento.id || "")} · ${escapeHtmlLite(pagamento.status || "")}</p>` +
+    `<p>${prov.despacho}</p>`;
   await sendOrderEmail({ userId, subject: `🛒 Novo pedido StarTouch — ${fmtBRL(totalCents)}`, html });
 }
 
@@ -303,7 +328,13 @@ async function notifyAdminPlanoOrder({ order, pp }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// MERCADO PAGO — provedor ativo
+// MERCADO PAGO — LEGADO desde 12/09/2026
+//
+// Nenhum checkout daqui está ligado ao dispatcher. O que continua vivo é o
+// WEBHOOK: pedido criado antes de 12/09 (boleto em aberto, PIX não pago)
+// ainda compensa por aqui, e desligar isso faria a venda cair na conta sem
+// o pedido nunca virar 'paid'. Os handlers ficam pra voltar em duas linhas
+// se o Stripe decepcionar — reescrever do zero é que sai caro.
 // ─────────────────────────────────────────────────────────────
 
 let _mp;
@@ -1088,7 +1119,13 @@ async function handleWebhookMP(req, res) {
           );
           const order = up.data;
           if (order) {
-            await notifyAdminKitOrder({ order, pay, userId });
+            await notifyAdminKitOrder({
+              order, userId, provedor: "mercadopago",
+              pagamento: {
+                id: pay?.id, status: pay?.status, email: pay?.payer?.email,
+                totalCents: Math.round((pay?.transaction_amount || 0) * 100)
+              }
+            });
             // Mede a venda no GA4 (→ importa como "Compra" no Google Ads).
             // Dentro do `if (order)` = dispara exatamente 1x (na transição p/ pago).
             const m = pay.metadata || {};
@@ -1170,8 +1207,8 @@ function getStripe() {
 // fábrica. O portal do cliente (trocar cartão, ver faturas, cancelar no fim do
 // período) vem pronto, e a recuperação de cobrança falhada — que numa
 // mensalidade de R$ 19,90 é a maior fonte de perda de assinante — não tem como
-// ser construída à mão. O hardware CONTINUA no Mercado Pago: lá o PIX converte
-// e é compra única.
+// ser construída à mão. O hardware seguiu no Mercado Pago por mais cinco dias
+// (lá o PIX converte) e migrou em 12/09/2026 — ver a seção HARDWARE — STRIPE.
 //
 // TESTE GRÁTIS: 7 dias. Este número precisa ser IGUAL ao configurado no link
 // de pagamento do Stripe. Dois trials com prazos diferentes é o cliente vendo
@@ -1252,48 +1289,187 @@ async function handleCheckoutStripe(req, res) {
   }
 }
 
+// ============================================================
+// HARDWARE — STRIPE (a partir de 12/09/2026)
+// ============================================================
+// O que muda em relacao ao Mercado Pago, pra ninguem ser pego de surpresa:
+//
+// 1. NAO HA PIX na conta Stripe hoje — so cartao, Apple/Google Pay, Link e
+//    boleto. No MP o PIX era parte relevante da conversao de compra unica.
+//    Se o PIX for habilitado no Stripe depois, ele aparece sozinho aqui
+//    (os meios vem do painel, nao desta lista).
+// 2. BOLETO NAO E PAGAMENTO A VISTA. A sessao do checkout "completa" quando o
+//    boleto e EMITIDO; o dinheiro entra dias depois, por outro evento. Por isso
+//    o webhook so marca o pedido como pago quando `payment_status === "paid"`
+//    ou quando chega o `async_payment_succeeded`. Despachar na emissao do
+//    boleto seria mandar produto pra quem ainda nao pagou.
+// 3. FRETE AINDA NAO E COBRADO — igual ao que ja acontecia no MP. Quando a
+//    tabela de frete existir, ela entra como `shipping_options` aqui.
+
+// Valida o carrinho contra o catalogo. Era o mesmo bloco copiado em cada
+// checkout; com quatro checkouts, uma divergencia de preco entre copias e
+// questao de tempo — e a copia errada cobra errado sem ninguem ver.
+function montaCarrinhoStripe(items) {
+  if (!Array.isArray(items) || items.length === 0) return { erro: "Carrinho vazio" };
+  const line_items = [];
+  const itensPedido = [];
+  let totalCents = 0;
+  for (const item of items) {
+    const product = KIT_CATALOG[item?.id];
+    if (!product) return { erro: `Produto desconhecido: ${item?.id}` };
+    if (product.soldOut) return { erro: `${product.name} está esgotado no momento.` };
+    const qty = parseInt(item.qty, 10);
+    if (!Number.isFinite(qty) || qty < 1 || qty > 99) return { erro: `Quantidade inválida pra ${product.name}` };
+    line_items.push({
+      price_data: {
+        currency: "brl",
+        unit_amount: product.price_cents,
+        product_data: { name: product.name, description: product.description, images: [product.image] }
+      },
+      quantity: qty
+    });
+    itensPedido.push({
+      id: item.id, name: product.name, qty,
+      unit_price: Number((product.price_cents / 100).toFixed(2))
+    });
+    totalCents += product.price_cents * qty;
+  }
+  if (totalCents === 0) return { erro: "Total zerado" };
+  return { line_items, itensPedido, totalCents };
+}
+
 async function handleCheckoutKitStripe(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
   try {
-    const rawBody = await getRawBody(req);
-    const { items = [], biz_name = "", ga_client_id = "", ga_session_id = "" } = parseJson(rawBody);
-    if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: "Carrinho vazio" });
-    const line_items = [];
-    let totalCents = 0;
-    for (const item of items) {
-      const product = KIT_CATALOG[item?.id];
-      if (!product) return res.status(400).json({ error: `Produto desconhecido: ${item?.id}` });
-      if (product.soldOut) return res.status(400).json({ error: `${product.name} esgotado.` });
-      const qty = parseInt(item.qty, 10);
-      if (!Number.isFinite(qty) || qty < 1 || qty > 99) return res.status(400).json({ error: `Qty inválida pra ${product.name}` });
-      line_items.push({
-        price_data: { currency: "brl", product_data: { name: product.name }, unit_amount: product.price_cents },
-        quantity: qty
-      });
-      totalCents += product.price_cents * qty;
-    }
-    if (totalCents === 0) return res.status(400).json({ error: "Total zerado" });
+    const { items = [], biz_name = "", ga_client_id = "", ga_session_id = "" } = parseJson(await getRawBody(req));
+    const carrinho = montaCarrinhoStripe(items);
+    if (carrinho.erro) return res.status(400).json({ error: carrinho.erro });
+
     const stripe = getStripe();
     const origin = req.headers.origin || `https://${req.headers.host}`;
+    const extRef = `kit_${auth.user.id}_${Date.now()}`;
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items,
+      line_items: carrinho.line_items,
+      // O cliente logado nao preenche endereco no nosso site — quem coleta e o
+      // checkout. O webhook devolve esse endereco pra `orders.shipping`, que e
+      // de onde o email de despacho le.
       shipping_address_collection: { allowed_countries: ["BR"] },
       phone_number_collection: { enabled: true },
+      // CPF/CNPJ: o Mercado Pago sempre pediu, e e o que permite emitir a nota.
+      // Sem isto o pedido chega sem documento e a nota trava — uma obrigacao
+      // fiscal virando "depois eu peco por email".
+      tax_id_collection: { enabled: true, required: "if_supported" },
       customer_email: auth.user.email,
       client_reference_id: auth.user.id,
       payment_method_options: { card: { installments: { enabled: true } } },
-      metadata: { user_id: auth.user.id, biz_name, kit_total_cents: String(totalCents), order_type: "kit" },
-      payment_intent_data: { metadata: { user_id: auth.user.id, biz_name, order_type: "kit" } },
+      metadata: {
+        user_id: auth.user.id, biz_name, order_type: "kit",
+        external_reference: extRef, kit_total_cents: String(carrinho.totalCents),
+        ga_client_id: String(ga_client_id || ""), ga_session_id: String(ga_session_id || "")
+      },
+      payment_intent_data: { metadata: { user_id: auth.user.id, biz_name, order_type: "kit", external_reference: extRef } },
       allow_promotion_codes: true,
       locale: "pt-BR",
       success_url: `${origin}/app?kit=success&session={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/kit?biz=${encodeURIComponent(biz_name)}&cancelled=1`
     });
+
+    // Pedido pending com os itens conferidos AGORA. O webhook so marca 'paid'.
+    await gravar("orders", {
+      external_reference: extRef,
+      user_id: auth.user.id,
+      email: auth.user.email,
+      biz_name,
+      items: carrinho.itensPedido,
+      total_cents: carrinho.totalCents,
+      status: "pending",
+    }, "stripe/checkout-kit");
+
     return res.json({ url: session.url });
   } catch (err) {
     console.error("[stripe/checkout-kit] erro:", err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// Kit GUEST — checkout PUBLICO (sem login), compra direto da landing.
+// O endereco e o CPF/CNPJ vem do NOSSO formulario (modal de entrega do
+// kit.html), entao o Stripe nao pede de novo: pedir duas vezes a mesma coisa e
+// a forma mais rapida de perder a venda no meio do caminho. Como consequencia,
+// o endereco que vale e o que ja esta em `orders.shipping` — e o webhook nao o
+// sobrescreve com o que o Stripe eventualmente devolver.
+async function handleCheckoutKitGuestStripe(req, res) {
+  try {
+    const body = parseJson(await getRawBody(req));
+    const { items = [], customer = {} } = body;
+
+    const c = {
+      name: (customer.name || "").toString().trim(),
+      email: (customer.email || "").toString().trim(),
+      phone: (customer.phone || "").toString().trim(),
+      cpf_cnpj: (customer.cpf_cnpj || "").toString().replace(/\D/g, ""),
+      cep: (customer.cep || "").toString().trim(),
+      address: (customer.address || "").toString().trim(),
+      number: (customer.number || "").toString().trim(),
+      complement: (customer.complement || "").toString().trim(),
+      neighborhood: (customer.neighborhood || "").toString().trim(),
+      city: (customer.city || "").toString().trim(),
+      state: (customer.state || "").toString().trim(),
+    };
+    if (!c.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)) {
+      return res.status(400).json({ error: "Informe nome e um email válido." });
+    }
+    if (c.cpf_cnpj.length !== 11 && c.cpf_cnpj.length !== 14) {
+      return res.status(400).json({ error: "Informe um CPF ou CNPJ válido." });
+    }
+    if (!c.cep || !c.address || !c.number || !c.city || !c.state) {
+      return res.status(400).json({ error: "Preencha o endereço de entrega completo (CEP, rua, número, cidade e estado)." });
+    }
+
+    const carrinho = montaCarrinhoStripe(items);
+    if (carrinho.erro) return res.status(400).json({ error: carrinho.erro });
+
+    const stripe = getStripe();
+    const origin = req.headers.origin || `https://${req.headers.host}`;
+    const extRef = `kit_guest_${Date.now()}`;
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: carrinho.line_items,
+      customer_email: c.email,
+      // Nao e id de usuario (nao existe conta ainda) — e a referencia do
+      // pedido, que e o que o webhook precisa achar de volta.
+      client_reference_id: extRef,
+      payment_method_options: { card: { installments: { enabled: true } } },
+      metadata: {
+        order_type: "kit", tipo: "kit_guest",
+        external_reference: extRef, kit_total_cents: String(carrinho.totalCents),
+        ga_client_id: (body.ga_client_id || "").toString(),
+        ga_session_id: (body.ga_session_id || "").toString()
+      },
+      payment_intent_data: { metadata: { order_type: "kit", tipo: "kit_guest", external_reference: extRef } },
+      locale: "pt-BR",
+      success_url: `${origin}/kit?compra=sucesso`,
+      cancel_url: `${origin}/kit?compra=falhou`
+    });
+
+    await gravar("orders", {
+      external_reference: extRef,
+      user_id: null,
+      email: c.email,
+      biz_name: null,
+      items: carrinho.itensPedido,
+      total_cents: carrinho.totalCents,
+      status: "pending",
+      shipping: c,
+    }, "stripe/checkout-kit-guest");
+
+    return res.json({ url: session.url });
+  } catch (err) {
+    console.error("[stripe/checkout-kit-guest] erro:", err);
     return res.status(500).json({ error: err.message });
   }
 }
@@ -1397,15 +1573,120 @@ async function handlePortalStripe(req, res) {
       .select("stripe_customer_id").eq("user_id", auth.user.id).maybeSingle();
     if (!biz?.stripe_customer_id) return res.status(400).json({ error: "Sem assinatura ativa" });
     const origin = req.headers.origin || `https://${req.headers.host}`;
+    // De onde veio, pra onde volta. Lista fechada: URL vinda do cliente aqui
+    // seria redirecionamento aberto assinado pela nossa marca.
+    const RETORNOS_PORTAL = { app: "/app?aba=config", v3: "/painel-f7dsaz3c/config" };
+    const { retorno } = parseJson(await getRawBody(req));
     const session = await stripe.billingPortal.sessions.create({
       customer: biz.stripe_customer_id,
-      return_url: `${origin}/painel-f7dsaz3c/config`
+      return_url: origin + (RETORNOS_PORTAL[retorno] || RETORNOS_PORTAL.v3)
     });
     return res.json({ url: session.url });
   } catch (err) {
     console.error("[stripe/portal] erro:", err);
     return res.status(500).json({ error: err.message });
   }
+}
+
+// O ENDERECO, ONDE QUER QUE ELE ESTEJA.
+//
+// Mesmo cuidado do `fimDoPeriodo` logo acima, e pelo mesmo motivo: o Stripe
+// mudou `shipping_details` de lugar (agora vive em `collected_information`), e
+// a versao da API do webhook e escolhida no painel — ou seja, isso pode mudar
+// sem ninguem tocar neste arquivo. Com a leitura fixa num lugar so, o endereco
+// viria vazio, o email de despacho sairia sem para onde despachar, e nada no
+// log diria que faltou algo.
+function entregaDoStripe(session) {
+  const d = session?.collected_information?.shipping_details
+    ?? session?.shipping_details
+    ?? null;
+  const cd = session?.customer_details || {};
+  const a = d?.address || cd.address || null;
+
+  const docs = Array.isArray(cd.tax_ids) ? cd.tax_ids.filter((t) => t && t.value) : [];
+  const entrega = {
+    name: d?.name || cd.name || "",
+    email: cd.email || "",
+    phone: d?.phone || cd.phone || "",
+    cpf_cnpj: String(docs[0]?.value || "").replace(/\D/g, ""),
+    cep: a?.postal_code || "",
+    // O Stripe nao separa numero da rua no endereco brasileiro: os dois vem
+    // juntos em `line1`. Por isso `number` fica vazio e nao e um campo perdido.
+    address: a?.line1 || "",
+    number: "",
+    complement: a?.line2 || "",
+    neighborhood: "",
+    city: a?.city || "",
+    state: a?.state || "",
+  };
+  const temEndereco = !!(entrega.address || entrega.cep);
+  if (!temEndereco) {
+    console.warn(`[stripe/webhook] sessao ${session?.id || "?"} veio SEM endereco de entrega (nem em collected_information, nem em shipping_details). Se o pedido nao for guest, o email de despacho vai sair incompleto.`);
+  }
+  if (!entrega.cpf_cnpj) {
+    console.warn(`[stripe/webhook] sessao ${session?.id || "?"} veio SEM CPF/CNPJ — confira o tax_id_collection do checkout antes de emitir a nota.`);
+  }
+  return { entrega, temEndereco };
+}
+
+// Fecha o pedido de hardware pago pelo Stripe: marca 'paid', avisa o admin e
+// registra a venda no GA4 (que e o que alimenta a conversao do Google Ads).
+//
+// Idempotencia: o update so pega linha com `status = 'pending'`. Se o Stripe
+// repetir o evento — e ele repete —, nao acha pendente, `data` vem null e nada
+// e reenviado. E o mesmo mecanismo do webhook do Mercado Pago.
+async function concluiPedidoStripe(session) {
+  const extRef = session?.metadata?.external_reference || session?.client_reference_id || "";
+  if (!extRef || !extRef.startsWith("kit_")) {
+    console.warn(`[stripe/webhook] pagamento unico sem referencia de pedido (sessao ${session?.id || "?"}, ref="${extRef}") — nao da pra casar com a tabela orders`);
+    return;
+  }
+  const pagamentoId = String(session.payment_intent || session.id);
+  const { entrega, temEndereco } = entregaDoStripe(session);
+
+  const patch = {
+    status: "paid",
+    // Coluna criada pro id do Mercado Pago e reusada pro id do Stripe, pelo
+    // mesmo motivo que as colunas `stripe_*` guardam id do MP: e um id de
+    // pagamento, e criar coluna nova exigiria rodar SQL antes do deploy — que
+    // e exatamente o tipo de passo esquecido que faz o insert falhar calado.
+    mp_payment_id: pagamentoId,
+    paid_at: new Date().toISOString(),
+  };
+  // O pedido guest ja tem o endereco COMPLETO (com numero e bairro), vindo do
+  // nosso formulario. O do Stripe e mais pobre; sobrescrever seria piorar.
+  if (temEndereco && !extRef.startsWith("kit_guest_")) patch.shipping = entrega;
+
+  const up = await atualizarUm(
+    supabase.from("orders").update(patch)
+      .eq("external_reference", extRef)
+      .eq("status", "pending"),
+    "orders", "stripe/webhook/kit"
+  );
+  const order = up.data;
+  console.log(`[stripe/webhook] pagamento kit ${pagamentoId} ref=${extRef} -> ${order ? "pedido marcado como pago" : (up.ok ? "nenhum pedido pendente (evento repetido)" : "FALHOU ao atualizar")}`);
+  if (!order) return;
+
+  const userId = extRef.startsWith("kit_guest_") ? "guest" : extRef.split("_")[1];
+  await notifyAdminKitOrder({
+    order, userId, provedor: "stripe",
+    pagamento: {
+      id: pagamentoId,
+      status: session.payment_status || "paid",
+      email: session.customer_details?.email,
+      totalCents: session.amount_total != null ? session.amount_total : order.total_cents,
+    }
+  });
+
+  const m = session.metadata || {};
+  await sendGa4Purchase({
+    clientId: m.ga_client_id,
+    sessionId: m.ga_session_id,
+    transactionId: pagamentoId,
+    valueCents: order.total_cents != null ? order.total_cents : session.amount_total,
+    items: order.items,
+    origem: "stripe",
+  });
 }
 
 async function handleWebhookStripe(req, res) {
@@ -1425,9 +1706,24 @@ async function handleWebhookStripe(req, res) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
+
+        // COMPRA UNICA (hardware) vem ANTES da guarda de userId de proposito:
+        // o pedido guest nao tem usuario nenhum, e sair aqui por falta dele
+        // deixaria uma venda paga sem aviso pro admin e sem conversao no GA4.
+        if (session.mode === "payment") {
+          if (session.payment_status === "paid") {
+            await concluiPedidoStripe(session);
+          } else {
+            // BOLETO. A sessao "completa" quando o boleto e EMITIDO — o
+            // dinheiro entra dias depois, no `async_payment_succeeded` logo
+            // abaixo. Marcar pago aqui seria despachar produto nao pago.
+            console.log(`[stripe/webhook] sessao ${session.id} concluida SEM pagamento (payment_status=${session.payment_status}) — provavelmente boleto emitido, aguardando compensacao`);
+          }
+          break;
+        }
+
         const userId = session.client_reference_id || session.metadata?.user_id;
         if (!userId) break;
-        if (session.mode === "payment") { console.log("[stripe/webhook] kit pago", session.id); break; }
         let periodEnd = null, cancelAtEnd = false, status = null;
         if (session.subscription) {
           try {
@@ -1440,6 +1736,18 @@ async function handleWebhookStripe(req, res) {
           plan: "pro", stripe_customer_id: session.customer, stripe_subscription_id: session.subscription,
           stripe_current_period_end: periodEnd, stripe_cancel_at_period_end: cancelAtEnd, stripe_subscription_status: status
         }).eq("user_id", userId);
+        break;
+      }
+      // O boleto compensa aqui, dias depois da sessao. Sem este ramo, toda
+      // venda paga em boleto ficaria pending pra sempre — paga na conta e
+      // invisivel no sistema.
+      case "checkout.session.async_payment_succeeded": {
+        await concluiPedidoStripe(event.data.object);
+        break;
+      }
+      case "checkout.session.async_payment_failed": {
+        const s = event.data.object;
+        console.warn(`[stripe/webhook] pagamento assincrono FALHOU na sessao ${s.id} (ref=${s.metadata?.external_reference || "?"}) — o pedido segue pending, nao despachar`);
         break;
       }
       case "customer.subscription.deleted":
@@ -1464,8 +1772,9 @@ async function handleWebhookStripe(req, res) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Dispatcher — provedor ativo: Mercado Pago
-// Pra reativar Stripe: trocar as 4 linhas abaixo por handle*Stripe.
+// Dispatcher — provedor ativo: STRIPE (assinatura e hardware)
+// O Mercado Pago segue no arquivo e com o webhook ligado, pra honrar os
+// pedidos criados antes de 12/09/2026.
 // ─────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
@@ -1476,10 +1785,10 @@ export default async function handler(req, res) {
 
   const action = req.query.action || req.query.a;
 
-  // ── UM ENDEREÇO, DOIS PROVEDORES (07/09/2026) ──
-  // Assinatura Pro no Stripe (ZAYOR), hardware no Mercado Pago (GT6). Os dois
-  // avisam no MESMO endereço, porque trocar a URL do webhook do MP mexeria
-  // numa integração que já está viva vendendo — risco sem ganho.
+  // ── UM ENDEREÇO, DOIS PROVEDORES (07/09/2026; ainda vale em 12/09) ──
+  // Hoje o Stripe recebe tudo o que é novo, mas o Mercado Pago continua
+  // avisando sobre pedidos criados antes da migração. Os dois avisam no MESMO
+  // endereço — e é bom que continue assim até o último boleto antigo vencer.
   //
   // O separador é o cabeçalho `stripe-signature`: só o Stripe manda, e ele é
   // assinado, então não dá pra forjar pra desviar de provedor. Na dúvida cai
@@ -2000,15 +2309,25 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    // ── ASSINATURA: Stripe. HARDWARE: Mercado Pago. ──
-    // A troca de provedor da assinatura mora nestas duas linhas. O resto do
-    // dispatcher (kit, kit-guest, ia, plano) continua no MP de propósito: é
-    // lá que o PIX converte, e é compra única, que o MP resolve bem.
+    // ── TUDO NO STRIPE (12/09/2026) ──
+    // Assinatura foi em 07/09; o hardware foi agora. Motivo declarado: o
+    // recebimento passa a cair direto na ZAYOR, sem a GT6 no meio — e o
+    // ticket vai subir com a revenda B2B.
+    //
+    // O QUE SE PERDE NA TROCA, escrito aqui pra nao virar surpresa: a conta
+    // Stripe nao tem PIX hoje. Compra unica no Brasil vendia bem em PIX. Se a
+    // conversao do hardware cair depois deste deploy, olhe PIX antes de olhar
+    // qualquer outra coisa — e a hipotese mais provavel, nao o site.
+    //
+    // Os handlers do Mercado Pago (handleCheckoutKitMP,
+    // handleCheckoutKitGuestMP) ficam no arquivo, dormentes: voltar e trocar
+    // estas duas linhas. O webhook do MP tambem continua ligado, porque
+    // pedidos feitos ANTES deste deploy ainda vao compensar por la.
     if (action === "checkout") return await handleCheckoutStripe(req, res);
     if (action === "portal")   return await handleCancelStripe(req, res);
     if (action === "billing-portal") return await handlePortalStripe(req, res);
-    if (action === "checkout-kit") return await handleCheckoutKitMP(req, res);
-    if (action === "checkout-kit-guest") return await handleCheckoutKitGuestMP(req, res);
+    if (action === "checkout-kit") return await handleCheckoutKitStripe(req, res);
+    if (action === "checkout-kit-guest") return await handleCheckoutKitGuestStripe(req, res);
     // ── Funil do IA Radar, APOSENTADO em 07/09/2026 ──
     // Estes dois vendiam o Pacote Presença em IA (R$ 599) e os planos do
     // /radar/plano. As páginas que levavam até aqui foram redirecionadas pra

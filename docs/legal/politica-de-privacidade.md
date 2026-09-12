@@ -1,6 +1,6 @@
 # Política de Privacidade — StarTouch
 
-**Versão 1.3 — vigente a partir de 7 de setembro de 2026**
+**Versão 1.4 — vigente a partir de 12 de setembro de 2026**
 
 ---
 
@@ -183,7 +183,8 @@ Utilizamos prestadores de serviço que atuam como **operadores**, tratando dados
 |---|---|---|
 | **Supabase** | Banco de dados e autenticação | Cadastro, pedidos, preferências, registros |
 | **Vercel** | Hospedagem e execução da aplicação | Registros técnicos de acesso |
-| **Mercado Pago** | Processamento de pagamentos | Nome, e-mail, telefone, CPF/CNPJ, endereço |
+| **Stripe** | Processamento de pagamentos (dispositivos e assinatura) | Nome, e-mail, telefone, CPF/CNPJ, endereço |
+| **Mercado Pago** | Processamento de pagamentos de compras realizadas até 12/09/2026 | Nome, e-mail, telefone, CPF/CNPJ, endereço |
 | **Resend** | Envio de e-mails | Nome e e-mail do destinatário |
 | **Google (Places API)** | Consulta de perfis e avaliações públicas | Identificador do perfil do estabelecimento |
 | **Google (Analytics)** | Análise de uso do site | Dados de navegação e identificador de navegador |
@@ -278,6 +279,7 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 | 1.0 | 22/08/2026 | Versão inicial |
 | 1.1 | 02/09/2026 | Inclusão da seção 6.5 (contagem agregada de visitas) e da linha correspondente na seção 9. Alteração meramente declaratória: não reduz direitos nem amplia finalidades de tratamento de dados pessoais, razão pela qual entra em vigor imediatamente |
 | 1.2 | 04/09/2026 | A seção 6.5 passa a declarar também a contagem agregada das escolhas feitas no aviso de cookies. Mesma natureza e mesma ressalva da versão anterior: são contadores, sem dado pessoal |
+| 1.4 | 12/09/2026 | O processamento de pagamentos dos dispositivos passa do Mercado Pago para a Stripe, que já processava a assinatura. **Não há dado novo coletado**: são os mesmos campos, com a mesma finalidade e o mesmo prazo de guarda, tratados por outro operador. O Mercado Pago permanece na seção 7 porque segue guardando os dados dos pedidos feitos até esta data |
 | 1.3 | 07/09/2026 | Mudança de controladora: a ZAYOR BRASIL LTDA (CNPJ 68.972.361/0001-33) sucede a GT6 Brasil Comércio Varejista de Produtos Diversos Ltda, inclusive quanto aos dados já coletados (seção 1.1); atualização do endereço para o da nova sede. **Não é alteração meramente declaratória** como as duas anteriores — muda quem responde pelo tratamento —, mas não reduz direitos, não amplia finalidades e não altera nenhuma operação de tratamento |
 
 ---

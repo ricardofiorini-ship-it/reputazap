@@ -44,7 +44,7 @@ const PROBE_RETRY_MS = 2000;    // respiro entre elas: dá tempo da função aco
 // — viraria um teste de que o servidor responde, não de que o pagamento está
 // configurado. Vai no cabeçalho, e não na URL, pra o segredo não cair em log.
 const PROBES = [
-  { nome: "Pagamento (billing)",      url: `${BASE}/api/billing?action=debug`, papel: "checkout e webhook do Mercado Pago", auth: true },
+  { nome: "Pagamento (billing)",      url: `${BASE}/api/billing?action=debug`, papel: "checkout e webhook do Stripe", auth: true },
   { nome: "Resumo semanal (digest)",  url: `${BASE}/api/cron/weekly-digest`,   papel: "email semanal pros clientes" },
   { nome: "IA Radar",                 url: `${BASE}/api/radar`,                papel: "diagnóstico e Pacote Presença em IA" },
   { nome: "Meus negócios (mybiz)",    url: `${BASE}/api/mybiz`,                papel: "dados do painel do cliente" },

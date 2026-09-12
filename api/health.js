@@ -20,9 +20,17 @@ const REQUIRED_ENVS = [
   { name: "ADMIN_NOTIFICATIONS_EMAIL", category: "email", description: "Email do admin pra receber notificacoes de novo cliente / device ativado (opcional)", optional: true },
   // Login Google
   { name: "GOOGLE_CLIENT_ID",     category: "auth",     description: "Login com Google" },
-  // Mercado Pago
-  { name: "MP_ACCESS_TOKEN",      category: "billing",  description: "Mercado Pago (assinatura Pro + kit)" },
-  { name: "MP_WEBHOOK_SECRET",    category: "billing",  description: "Validação de webhook (opcional, recomendado)", optional: true },
+  // Stripe — provedor ativo desde 12/09/2026 (assinatura Pro desde 07/09)
+  { name: "STRIPE_SECRET_KEY",    category: "billing",  description: "Stripe (assinatura Pro + hardware) — sem ela NENHUM checkout abre" },
+  // Sem o secret do webhook a cobranca ACONTECE e o pedido nunca vira 'paid':
+  // o cliente paga, o admin nao e avisado e a venda nao conta no GA4. E o
+  // modo de falha mais caro que existe aqui, e e silencioso do lado do site.
+  { name: "STRIPE_WEBHOOK_SECRET", category: "billing", description: "Validação do webhook — sem ela pedido pago nunca é confirmado" },
+  { name: "STRIPE_PRICE_ID",      category: "billing",  description: "Preço da assinatura Pro no Stripe", optional: true },
+  // Mercado Pago — legado. Continua obrigatorio enquanto houver pedido antigo
+  // por compensar: o webhook do MP ainda precisa conseguir consultar o pagamento.
+  { name: "MP_ACCESS_TOKEN",      category: "billing",  description: "Mercado Pago — legado, honra pedidos criados até 12/09/2026" },
+  { name: "MP_WEBHOOK_SECRET",    category: "billing",  description: "Validação de webhook MP (opcional, recomendado)", optional: true },
   { name: "MP_PRO_PAYMENT_LINK",  category: "billing",  description: "Link estático MP (opcional)", optional: true },
   // Crons
   { name: "CRON_SECRET",          category: "cron",     description: "Auth do cron de snapshot semanal" }
@@ -95,7 +103,19 @@ export default async function handler(req, res) {
     error: process.env.RESEND_API_KEY ? null : "RESEND_API_KEY ausente"
   });
 
-  // Mercado Pago
+  // Stripe — provedor ativo. `/v1/balance` é a chamada mais barata que prova
+  // que a chave é válida E que a conta responde (uma chave revogada devolve
+  // 401 aqui, que é o que se quer descobrir ANTES do cliente descobrir).
+  if (process.env.STRIPE_SECRET_KEY) {
+    const r = await ping("https://api.stripe.com/v1/balance", {
+      headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` }
+    });
+    services.push({ name: "Stripe", ok: r.ok, status: r.status, error: r.error });
+  } else {
+    services.push({ name: "Stripe", ok: false, error: "STRIPE_SECRET_KEY ausente — nenhum checkout abre" });
+  }
+
+  // Mercado Pago (legado)
   if (process.env.MP_ACCESS_TOKEN) {
     const r = await ping("https://api.mercadopago.com/users/me", {
       headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` }

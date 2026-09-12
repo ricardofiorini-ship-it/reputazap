@@ -2627,8 +2627,10 @@ hora local:                ${new Date().toISOString()}`}
 // abrisse esta tela veria uma fatura que nunca existiu.
 //
 // Ficou só o que é verdade: o plano do banco e, quando houver, o status real
-// da assinatura no Mercado Pago. Data, forma de pagamento e histórico voltam
-// quando forem lidos da API do MP — não antes.
+// da assinatura. Data, forma de pagamento e histórico NÃO voltam pra cá: desde
+// 12/09/2026 esta seção abre o portal de cobrança da Stripe, que já mostra os
+// três — reimplementar a fatura aqui seria manter uma segunda versão da
+// verdade, que foi exatamente o que deu errado com o MOCK.
 function BillingSection({ billing, plan }) {
   const ehPro = plan === 'pro'
 
@@ -2645,6 +2647,23 @@ function BillingSection({ billing, plan }) {
   const [confirmando, setConfirmando] = React.useState(false)
   const [cancelando, setCancelando]   = React.useState(false)
   const [aviso, setAviso]             = React.useState('')
+
+  // O portal e do Stripe: uma URL de sessao, valida por pouco tempo, gerada
+  // sob demanda. Nao da pra deixar como link fixo na tela.
+  const [abrindoPortal, setAbrindoPortal] = React.useState(false)
+  const [erroPortal, setErroPortal]       = React.useState('')
+
+  async function abrirPortal() {
+    setAbrindoPortal(true); setErroPortal('')
+    try {
+      const r = await apiCall('/api/billing?action=billing-portal', { method: 'POST', body: JSON.stringify({ retorno: 'app' }) })
+      if (!r?.url) throw new Error('Não recebi o endereço do portal')
+      window.location.href = r.url
+    } catch (e) {
+      setErroPortal(e.message || 'Não consegui abrir o portal de cobrança')
+      setAbrindoPortal(false)
+    }
+  }
 
   async function cancelar() {
     setCancelando(true); setAviso('')
@@ -2708,15 +2727,19 @@ function BillingSection({ billing, plan }) {
               Cobrança
             </div>
             <div style={{ fontSize: 12.5, color: T.blueDk, lineHeight: 1.55, marginBottom: 10 }}>
-              Sua assinatura é cobrada pelo <strong>Mercado Pago</strong> — a data da próxima
-              cobrança, a forma de pagamento e os comprovantes ficam lá, na sua conta.
-              Para trocar a forma de pagamento, fale com a gente.
+              Sua assinatura é cobrada pela <strong>Stripe</strong>. No portal de cobrança
+              você troca o cartão, vê a data da próxima cobrança e baixa os recibos.
             </div>
-            <a href="/ajuda" style={{
-              display:'inline-block', background: T.blue, color:'#fff',
+            <button onClick={abrirPortal} disabled={abrindoPortal} style={{
+              display:'inline-block', background: T.blue, color:'#fff', border:'none',
               borderRadius: 8, padding:'9px 16px', fontSize: 13, fontWeight: 700,
-              textDecoration:'none'
-            }}>Falar com a gente</a>
+              cursor: abrindoPortal ? 'default' : 'pointer', opacity: abrindoPortal ? .65 : 1
+            }}>{abrindoPortal ? 'Abrindo…' : 'Abrir portal de cobrança'}</button>
+            {erroPortal && (
+              <div style={{ fontSize: 12, color: T.red, marginTop: 8 }}>
+                {erroPortal} — se persistir, <a href="/ajuda" style={{ color: T.red }}>fale com a gente</a>.
+              </div>
+            )}
           </div>
 
           <div style={{ marginTop: 18, paddingTop: 18, borderTop:'1px solid '+T.border }}>

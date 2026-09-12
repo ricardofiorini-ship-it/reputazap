@@ -223,12 +223,14 @@ export const AREAS = {
     ],
     decidido: [
       'O que é da PESSOA se edita aqui; o que é do NEGÓCIO vem do Google e é leitura — campo editável que não altera nada é a mentira mais fácil de cometer num painel',
-      'Sem preço, data de cobrança ou histórico: esses números vivem no Mercado Pago e o painel não os lê. O painel atual exibia todos eles, vindos de dado fictício, até 06/09/2026',
+      'Sem preço, data de cobrança ou histórico DENTRO do painel: esses números vivem na Stripe. O caminho é o portal de cobrança dela (botão em Plano), não reimplementar a fatura aqui. O painel atual exibia todos eles, vindos de dado fictício, até 06/09/2026',
       'A senha atual é exigida na troca — o token protege contra estranho na internet, a senha atual protege contra quem está na frente do celular destravado do lojista'
     ],
     falta: [
-      'Trocar o e-mail de login: hoje remete à central de ajuda. Mexer nisso exige confirmar o endereço novo ANTES de trocar, senão um erro de digitação tranca a conta pra fora',
-      'O cancelamento é IMEDIATO — o Mercado Pago não tem “cancelar no fim do período” de forma simples. Se a decisão for manter o acesso até o fim do período já pago, a mudança é no backend, não nesta tela'
+      'Trocar o e-mail de login: hoje remete à central de ajuda. Mexer nisso exige confirmar o endereço novo ANTES de trocar, senão um erro de digitação tranca a conta pra fora'
+    ],
+    resolvido: [
+      'O cancelamento IMEDIATO (limitação do Mercado Pago) deixou de existir em 07/09/2026: na Stripe o “até o fim do período pago” é nativo (cancel_at_period_end), e é o backend que já responde assim'
     ]
   },
 

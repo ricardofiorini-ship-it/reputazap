@@ -46,7 +46,7 @@ Comunique-nos imediatamente qualquer uso não autorizado.
 
 ## 4. Compra, entrega e garantia dos dispositivos
 
-**Preços e pagamento.** Os preços vigentes são os exibidos no site no momento da compra. O pagamento dos dispositivos é processado pelo **Mercado Pago**, com as formas ali disponíveis. A assinatura StarTouch Pro (item 5.3) é processada pela **Stripe**.
+**Preços e pagamento.** Os preços vigentes são os exibidos no site no momento da compra. O pagamento dos dispositivos e da assinatura StarTouch Pro (item 5.3) é processado pela **Stripe**, com as formas ali disponíveis. Compras realizadas até 12 de setembro de 2026 foram processadas pelo **Mercado Pago**.
 
 **Frete e prazo.** Frete gratuito para todo o Brasil. O prazo estimado de entrega é de 5 a 10 dias úteis após a confirmação do pagamento, contado a partir da postagem, e pode variar conforme a região e fatores alheios ao nosso controle.
 
