@@ -1243,8 +1243,14 @@ function ProPreview({ tab, isMobile, children }) {
       // promessa de venda de um recurso que NÃO existe no produto. Quem cobre
       // "te ultrapassou" é o resumo semanal, que é grátis.
       bullets:['Os nomes de quem está na sua frente','Quem está crescendo mais rápido','Evolução semana a semana'] },
-    alertas: { icon:'bell', title:'Vigie seu ranking 24/7', sub:'O alerta de avaliação negativa já é seu, de graça. O Pro adiciona a vigilância do ranking — direto no seu email:',
-      bullets:['Um concorrente te ultrapassou no ranking','Sua nota caiu — ou bateu um novo recorde','Resumo toda segunda: o que mudou e o que fazer'] },
+    // "Vigie seu ranking 24/7" saiu em 12/09/2026, pelo mesmo motivo dos
+    // gemeos removidos em 22/08: vendia vigilancia continua, e o produto manda
+    // um e-mail por semana. Os dois primeiros bullets ('te ultrapassou', 'sua
+    // nota caiu') descreviam alertas que NAO EXISTEM, e o terceiro descrevia o
+    // resumo semanal — que e gratis. Sobrava um card Pro cujo conteudo inteiro
+    // era ou inexistente ou ja incluso.
+    alertas: { icon:'bell', title:'Alertas por e-mail', sub:'Já incluso no seu plano, sem custo — chega toda segunda no seu email:',
+      bullets:['As avaliações de 1 e 2 estrelas da semana','Quem passou você no ranking e como a nota mudou','O que fazer na semana que começa'] },
     relatorios: { icon:'trendup', title:'Relatórios semanais', sub:'Toda segunda no seu email: sua evolução e o que fazer.',
       bullets:['Evolução de nota e posição','Comparativo com os concorrentes','Oportunidades pra crescer mais rápido'] }
   }[tab] || { icon:'lock', title:'Recurso Pro', sub:'', bullets:[] }
@@ -1501,24 +1507,18 @@ function AlertChannelsCard({ channels, isReal, userEmail }) {
       >
         {local.emailEnabled && (
           <>
-            <div style={{ display:'flex', gap: 6, flexWrap:'wrap', marginBottom: 8 }}>
-              {[
-                { key:'realtime',       label:'Tempo real' },
-                { key:'daily_digest',   label:'Resumo diário' },
-                { key:'weekly_digest',  label:'Resumo semanal' }
-              ].map(opt => {
-                const isActive = local.emailFreq === opt.key
-                return (
-                  <button key={opt.key} onClick={() => update({ emailFreq: opt.key })}
-                    style={{
-                      fontSize: 11.5, fontWeight: 600, padding:'5px 10px', borderRadius: 6,
-                      border:'1px solid', borderColor: isActive ? T.blue : T.border,
-                      background: isActive ? T.blueSoft : '#fff',
-                      color: isActive ? T.blueDk : T.textMid, cursor:'pointer'
-                    }}>{opt.label}</button>
-                )
-              })}
-            </div>
+            {/* Havia aqui um seletor de frequencia (Tempo real / Diario / Semanal).
+                Ele gravava `email_frequency` em alert_preferences — campo que
+                NINGUEM le: o unico robo que envia manda semanal pra todo mundo.
+                E o padrao era "realtime", entao a tela afirmava a cada cliente
+                que ele estava em tempo real. Botao que nao muda nada e a forma
+                mais cara de mentir: o cliente configura, confia e cobra depois.
+                Volta quando existir mais de uma frequencia de verdade. */}
+            <div style={{
+              fontSize: 11.5, color: T.textMid, background: T.greenSoft,
+              border: '1px solid '+T.border, borderRadius: 6,
+              padding: '6px 10px', marginBottom: 8, display: 'inline-block'
+            }}>Envio semanal, toda segunda-feira</div>
             <input
               type="email"
               value={local.emailTo}
@@ -1607,10 +1607,10 @@ function AlertsScreen({ data, isMobile, isReal, userEmail }) {
     <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 60px' : '32px 32px 64px' }}>
       <div style={{ marginBottom: 22 }}>
         <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
-          Alertas em tempo real
+          Alertas por e-mail
         </h1>
         <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
-          Saiba na hora quando um concorrente passa você, sair do Top ou ganhar várias avaliações.
+          As avaliações de 1 e 2 estrelas e o resumo do seu ranking chegam no seu e-mail, toda segunda.
         </p>
       </div>
 
@@ -1636,8 +1636,9 @@ function AlertsScreen({ data, isMobile, isReal, userEmail }) {
                 background: T.greenSoft, padding:'6px 12px', borderRadius: 999, marginBottom: 14
               }}>Avaliação negativa · Resumo semanal do ranking</div>
               <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.55, margin:'0 auto 18px', maxWidth: 480 }}>
-                Avaliação ruim nova? A gente te avisa <strong>por email</strong> em poucas horas, pra responder e recuperar o cliente.
-                E toda segunda chega o <strong>resumo do seu ranking</strong> — quem te passou, se a nota mudou e o que fazer.
+                Avaliação de 1 ou 2 estrelas na semana? Ela chega <strong>por email na segunda-feira</strong>, separada do resto,
+                pra você responder e recuperar o cliente. No mesmo envio vem o <strong>resumo do seu ranking</strong> — quem te
+                passou, se a nota mudou e o que fazer.
               </p>
               <p style={{ fontSize: 12, color: T.textDim, lineHeight: 1.5 }}>
                 Os alertas chegam no seu email. Confira no card ao lado se o email está ligado.
@@ -4019,7 +4020,7 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
             <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', background:'#FBBC04', color:'#78350F', padding:'3px 8px', borderRadius: 5 }}>PRO</span>
             </div>
-            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 10, lineHeight: 1.25 }}>Nunca seja pego de surpresa</div>
+            <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 10, lineHeight: 1.25 }}>Veja quem disputa a sua vaga</div>
             <ul style={{ listStyle:'none', padding: 0, margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.6 }}>
               {/* "Aviso na hora quando um concorrente te ultrapassar" saiu em
                   22/08/2026, junto com o gêmeo em AppV2:1189 e os da landing:
@@ -4037,7 +4038,7 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
               boxShadow: '0 4px 14px rgba(251,188,4,0.35)',
               width: '100%', justifyContent: 'center'
             }}>
-              Ativar vigilância (Pro) →
+              Conhecer o Pro →
             </a>
           </div>
         </div>
@@ -7355,13 +7356,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           icon={tab === 'concorrentes' ? 'trophy' : tab === 'alertas' ? 'bell' : tab === 'relatorios' ? 'trendup' : 'star'}
           title={
             tab === 'concorrentes' ? 'Inteligência Competitiva' :
-            tab === 'alertas'      ? 'Alertas em tempo real' :
+            tab === 'alertas'      ? 'Alertas por e-mail' :
             tab === 'relatorios'   ? 'Relatórios completos' :
                                      'Todas as suas avaliações'
           }
           desc={
             tab === 'concorrentes' ? 'Veja quem está na sua frente, quanto falta pra ultrapassar e quem está crescendo mais rápido na sua categoria.' :
-            tab === 'alertas'      ? 'Receba aviso na hora em que um concorrente passar você, sair do Top, ou ganhar várias avaliações de uma vez.' :
+            tab === 'alertas'      ? 'As avaliações de 1 e 2 estrelas e o resumo do seu ranking chegam no seu e-mail toda segunda.' :
             tab === 'relatorios'   ? 'Toda segunda, no seu e-mail: evolução semanal, ranking, comparativos e oportunidades.' :
                                      'A lista completa de avaliações fica aqui em breve. Por enquanto, veja as últimas no Painel.'
           }
