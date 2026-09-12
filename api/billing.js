@@ -196,6 +196,15 @@ const KIT_CATALOG = {
 // Preço do plano Pro mensal (em reais, NUMBER)
 const PRO_MONTHLY_PRICE = 19.90;
 
+// Referência única do pedido. O sufixo aleatório existe porque `Date.now()`
+// sozinho REPETE: dois checkouts do mesmo cliente no mesmo milissegundo (duplo
+// clique no botão) gerariam a mesma referência, o segundo insert bateria na
+// UNIQUE de `external_reference` e seria engolido como se fosse reenvio de
+// webhook — o pedido some e o pagamento dele marca o pedido anterior.
+function refDePedido(prefixo) {
+  return `${prefixo}_${Date.now()}-${crypto.randomBytes(3).toString("hex")}`;
+}
+
 // ── Notificação de pedido pago pro admin ──────────────────────
 const fmtBRL = (cents) => "R$ " + (Number(cents || 0) / 100).toFixed(2).replace(".", ",");
 const escapeHtmlLite = (s) =>
@@ -467,7 +476,7 @@ async function handleCheckoutKitMP(req, res) {
     const [first_name, ...rest] = fullName.split(/\s+/).filter(Boolean);
     const last_name = rest.join(" ") || first_name || "";
 
-    const extRef = `kit_${auth.user.id}_${Date.now()}`;
+    const extRef = refDePedido(`kit_${auth.user.id}`);
     const result = await preference.create({
       body: {
         items: mpItems,
@@ -586,7 +595,7 @@ async function handleCheckoutKitGuestMP(req, res) {
     const area_code = phoneDigits.slice(0, 2);
     const phoneNumber = phoneDigits.slice(2);
 
-    const extRef = `kit_guest_${Date.now()}`;
+    const extRef = refDePedido("kit_guest");
     const result = await preference.create({
       body: {
         items: mpItems,
@@ -1348,7 +1357,7 @@ async function handleCheckoutKitStripe(req, res) {
 
     const stripe = getStripe();
     const origin = req.headers.origin || `https://${req.headers.host}`;
-    const extRef = `kit_${auth.user.id}_${Date.now()}`;
+    const extRef = refDePedido(`kit_${auth.user.id}`);
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -1434,7 +1443,7 @@ async function handleCheckoutKitGuestStripe(req, res) {
 
     const stripe = getStripe();
     const origin = req.headers.origin || `https://${req.headers.host}`;
-    const extRef = `kit_guest_${Date.now()}`;
+    const extRef = refDePedido("kit_guest");
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -1597,8 +1606,9 @@ async function handlePortalStripe(req, res) {
 // viria vazio, o email de despacho sairia sem para onde despachar, e nada no
 // log diria que faltou algo.
 function entregaDoStripe(session) {
-  const d = session?.collected_information?.shipping_details
-    ?? session?.shipping_details
+  const d = session?.collected_information?.shipping_details   // mais nova
+    ?? session?.shipping_details                               // intermediaria
+    ?? session?.shipping                                       // 2020-03-02
     ?? null;
   const cd = session?.customer_details || {};
   const a = d?.address || cd.address || null;
@@ -1606,7 +1616,9 @@ function entregaDoStripe(session) {
   const docs = Array.isArray(cd.tax_ids) ? cd.tax_ids.filter((t) => t && t.value) : [];
   const entrega = {
     name: d?.name || cd.name || "",
-    email: cd.email || "",
+    // `customer_details` tambem e campo novo; na versao antiga o e-mail vem
+    // solto em `customer_email`.
+    email: cd.email || session?.customer_email || "",
     phone: d?.phone || cd.phone || "",
     cpf_cnpj: String(docs[0]?.value || "").replace(/\D/g, ""),
     cep: a?.postal_code || "",
@@ -1621,12 +1633,46 @@ function entregaDoStripe(session) {
   };
   const temEndereco = !!(entrega.address || entrega.cep);
   if (!temEndereco) {
-    console.warn(`[stripe/webhook] sessao ${session?.id || "?"} veio SEM endereco de entrega (nem em collected_information, nem em shipping_details). Se o pedido nao for guest, o email de despacho vai sair incompleto.`);
+    console.warn(`[stripe/webhook] sessao ${session?.id || "?"} veio SEM endereco de entrega (procurei em collected_information.shipping_details, shipping_details e shipping). Se o pedido nao for guest, o email de despacho vai sair incompleto.`);
   }
   if (!entrega.cpf_cnpj) {
     console.warn(`[stripe/webhook] sessao ${session?.id || "?"} veio SEM CPF/CNPJ — confira o tax_id_collection do checkout antes de emitir a nota.`);
   }
   return { entrega, temEndereco };
+}
+
+// ESTA CONTA ENTREGA EVENTOS NA API 2020-03-02 (visto no painel do Stripe, no
+// rodape de uma entrega: "Versao da API 2020-03-02"). A conta e antiga e nunca
+// subiu a versao padrao, e a versao vale pro FORMATO do aviso — campos que
+// existem hoje podem simplesmente nao vir.
+//
+// Isso e perigoso exatamente aqui: `payment_status` e o campo que decide se
+// marca pago. Se ele nao vier, `session.payment_status === "paid"` da falso
+// pra TODA venda, inclusive as pagas no cartao — o pedido ficaria pending pra
+// sempre, sem erro nenhum no log. Dinheiro na conta, invisivel no sistema.
+//
+// A saida nao e adivinhar a versao: e PERGUNTAR quando o campo faltar. O
+// status do PaymentIntent responde certo em qualquer versao da API.
+async function pagamentoConfirmado(session, stripe) {
+  const ps = session?.payment_status;
+  if (ps === "paid" || ps === "no_payment_required") return true;
+  if (ps === "unpaid") return false;
+
+  console.warn(`[stripe/webhook] sessao ${session?.id || "?"} veio SEM payment_status (versao antiga da API) — consultando o PaymentIntent pra decidir`);
+  const pi = session?.payment_intent;
+  if (!pi) {
+    console.warn(`[stripe/webhook] sessao ${session?.id || "?"} tambem nao trouxe payment_intent — NAO marcada como paga`);
+    return false;
+  }
+  try {
+    const intent = typeof pi === "string" ? await stripe.paymentIntents.retrieve(pi) : pi;
+    return intent?.status === "succeeded";
+  } catch (e) {
+    // Na duvida, NAO paga. Errar pra este lado atrasa um despacho; errar pro
+    // outro manda produto pra quem nao pagou.
+    console.error(`[stripe/webhook] nao consegui consultar o PaymentIntent (${typeof pi === "string" ? pi : pi?.id}): ${e?.message} — pedido NAO marcado como pago, de proposito`);
+    return false;
+  }
 }
 
 // Fecha o pedido de hardware pago pelo Stripe: marca 'paid', avisa o admin e
@@ -1706,18 +1752,24 @@ async function handleWebhookStripe(req, res) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
+        // `mode` existe desde 2019, mas se um dia faltar, a ausencia de
+        // `subscription` e o segundo sinal de que isto e compra unica. Cair no
+        // ramo errado aqui escreveria plan='pro' em quem comprou uma placa.
+        const ehCompraUnica = session.mode
+          ? session.mode === "payment"
+          : !session.subscription;
 
         // COMPRA UNICA (hardware) vem ANTES da guarda de userId de proposito:
         // o pedido guest nao tem usuario nenhum, e sair aqui por falta dele
         // deixaria uma venda paga sem aviso pro admin e sem conversao no GA4.
-        if (session.mode === "payment") {
-          if (session.payment_status === "paid") {
+        if (ehCompraUnica) {
+          if (await pagamentoConfirmado(session, stripe)) {
             await concluiPedidoStripe(session);
           } else {
             // BOLETO. A sessao "completa" quando o boleto e EMITIDO — o
             // dinheiro entra dias depois, no `async_payment_succeeded` logo
             // abaixo. Marcar pago aqui seria despachar produto nao pago.
-            console.log(`[stripe/webhook] sessao ${session.id} concluida SEM pagamento (payment_status=${session.payment_status}) — provavelmente boleto emitido, aguardando compensacao`);
+            console.log(`[stripe/webhook] sessao ${session.id} concluida SEM pagamento (payment_status=${session.payment_status ?? "ausente"}) — provavelmente boleto emitido, aguardando compensacao`);
           }
           break;
         }
