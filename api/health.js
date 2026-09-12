@@ -125,6 +125,24 @@ export default async function handler(req, res) {
     services.push({ name: "Mercado Pago", ok: false, error: "MP_ACCESS_TOKEN ausente" });
   }
 
+  // ── Que versão está no ar AGORA ──────────────────────────────
+  // A Vercel injeta estas variáveis em toda function, sem configuração. Sem
+  // isso, "o deploy subiu?" só se responde abrindo o painel e confiando na
+  // memória de qual commit era o certo — e push que não virou deploy já
+  // aconteceu duas vezes aqui (15 e 20/jul/2026).
+  //
+  // `commit` é o que importa: compare com o `git log -1` da sua máquina. Se
+  // for diferente, o que está no ar NÃO é o que você acabou de escrever.
+  const deploy = {
+    commit: (process.env.VERCEL_GIT_COMMIT_SHA || "").slice(0, 7) || null,
+    branch: process.env.VERCEL_GIT_COMMIT_REF || null,
+    mensagem: (process.env.VERCEL_GIT_COMMIT_MESSAGE || "").split("\n")[0] || null,
+    ambiente: process.env.VERCEL_ENV || null,
+    // Sem as variáveis acima não dá pra afirmar nada — e afirmar "está no ar"
+    // sem saber é pior do que não responder.
+    lendo_da_vercel: !!process.env.VERCEL_GIT_COMMIT_SHA
+  };
+
   // ── Resumo ──
   const missingRequired = envs.filter(e => e.status === "missing");
   const failingServices = services.filter(s => !s.ok);
@@ -146,6 +164,7 @@ export default async function handler(req, res) {
   res.status(allGood ? 200 : 503);
   return res.json({
     summary,
+    deploy,
     envs,
     services
   });
