@@ -16,7 +16,8 @@
 <link rel="apple-touch-icon" href="/startouch-logo.png"/>
 <style>
   :root {
-    --navy: #0C1524;
+    --navy: #0B3EA8;
+    --navy-grad: linear-gradient(135deg, #0B3EA8 0%, #1A73E8 100%);
     --blue: var(--st-blue-primary);
     --text: #172033;
     --muted: #697488;
@@ -63,16 +64,15 @@
   .heroBtns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
   .note { font-size: 12.5px; color: #818B9B; margin-top: 16px; }
 
-  .darkCard { background: var(--navy); color: #fff; border-radius: 26px; padding: 30px;
-              box-shadow: 0 26px 70px rgba(12,21,36,.18); }
+  .darkCard { background: var(--navy); background-image: var(--navy-grad); color: #fff;
+              border-radius: 26px; padding: 30px; box-shadow: 0 24px 60px rgba(11,62,168,.28); }
   .darkCard h3 { margin: 0 0 8px; font-size: 20px; font-weight: 700; letter-spacing: -.4px; }
-  .darkCard > p { color: #BCC7D7; font-size: 14px; margin: 0; }
-  .device { background: #122039; border: 1px solid rgba(255,255,255,.13); border-radius: 18px;
-            padding: 22px; margin: 18px 0; }
-  .device b { color: #69A9FF; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 800; }
-  .device h4 { margin: 8px 0 6px; font-size: 19px; font-weight: 700; }
-  .device p { color: #A9B6C9; font-size: 13.5px; margin: 0; line-height: 1.5; }
-  .ticks { display: grid; gap: 10px; font-size: 14px; color: #DDE5EF; }
+  .darkCard > p { color: #D3E3FB; font-size: 14px; margin: 0; }
+  .foto { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.18);
+           border-radius: 18px; padding: 14px; margin: 18px 0; }
+  .foto img { width: 100%; max-width: 100%; height: auto; display: block; }
+  .foto figcaption { font-size: 12.5px; color: #C6DAF8; text-align: center; margin-top: 8px; }
+  .ticks { display: grid; gap: 10px; font-size: 14px; color: #E4EEFB; }
   .ticks span::before { content: '✓'; color: #76D7AA; font-weight: 900; margin-right: 9px; }
 
   /* ── Faixa de números ── */
@@ -96,6 +96,9 @@
   th, td { padding: 20px 22px; text-align: left; border-bottom: 1px solid var(--line); }
   th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #7C8798; background: #FAFBFD; font-weight: 700; }
   tbody tr:last-child td { border-bottom: 0; }
+  .prodline { display: flex; gap: 14px; align-items: center; }
+  .thumb { width: 64px; height: 64px; flex: 0 0 64px; object-fit: contain;
+           border-radius: 12px; background: #F3F7FC; padding: 5px; }
   .prod { font-weight: 800; }
   .desc { font-size: 13px; color: var(--muted); }
   .old { text-decoration: line-through; color: #8A94A4; }
@@ -115,10 +118,10 @@
          color: var(--blue); display: grid; place-items: center; font-weight: 800; font-size: 12px; }
   .feature b { display: block; font-size: 15px; }
   .feature small { color: var(--muted); font-size: 13.5px; }
-  .quote { background: var(--navy); color: #fff; border-radius: 22px; padding: 34px;
+  .quote { background: var(--navy); background-image: var(--navy-grad); color: #fff; border-radius: 22px; padding: 34px;
            display: flex; flex-direction: column; justify-content: center; }
   .quote .big { font-size: 28px; line-height: 1.18; font-weight: 800; letter-spacing: -.7px; }
-  .quote p { color: #BCC7D7; font-size: 14.5px; margin: 18px 0 0; }
+  .quote p { color: #D3E3FB; font-size: 14.5px; margin: 18px 0 0; }
 
   /* ── Passos e condições ── */
   .steps, .conditions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
@@ -165,10 +168,10 @@
   details { border-bottom: 1px solid var(--line); padding: 18px 0; }
   summary { font-weight: 700; cursor: pointer; font-size: 15.5px; }
   details p { color: var(--muted); margin: 10px 0 0; font-size: 14.5px; }
-  .final { background: var(--navy); color: #fff; border-radius: 28px; padding: 45px;
+  .final { background: var(--navy); background-image: var(--navy-grad); color: #fff; border-radius: 28px; padding: 45px;
            display: flex; justify-content: space-between; gap: 30px; align-items: center; }
   .final h2 { margin: 0 0 10px; }
-  .final p { color: #BCC7D7; max-width: 650px; margin: 0; }
+  .final p { color: #D3E3FB; max-width: 650px; margin: 0; }
   .final .btn { background: #fff; color: var(--navy); white-space: nowrap; }
   footer { padding: 32px 0; background: #FBFCFE; border-top: 1px solid var(--line);
            font-size: 12.5px; color: #7D8798; }
@@ -250,11 +253,10 @@
     <aside class="darkCard">
       <h3>O dispositivo já vai com o sistema.</h3>
       <p>Seu cliente ativa em poucos minutos. Você vende. A StarTouch cuida da plataforma.</p>
-      <div class="device">
-        <b>StarTouch</b>
-        <h4>Avaliações no Google</h4>
-        <p>O cliente aproxima o celular e cai direto na página do negócio para avaliar.</p>
-      </div>
+      <figure class="foto">
+        <img src="/rev-placa.webp" width="440" height="440" alt="Placa de balcão StarTouch em acrílico, com QR Code para avaliar no Google"/>
+        <figcaption>Placa de Balcão G · 21 × 15 cm</figcaption>
+      </figure>
       <div class="ticks">
         <span>Painel de reputação incluso</span>
         <span>Sem mensalidade obrigatória</span>
@@ -289,19 +291,19 @@
         <thead><tr><th>Produto</th><th>Varejo</th><th>Você paga</th><th>Desconto</th></tr></thead>
         <tbody>
           <tr>
-            <td><div class="prod">Cartão de Avaliação NFC</div><div class="desc">Tamanho carteira, ideal para atendimento, equipe e balcão.</div></td>
+            <td><div class="prodline"><img class="thumb" src="/rev-cartao.webp" width="440" height="440" loading="lazy" alt="Cartão de avaliação NFC StarTouch"/><div><div class="prod">Cartão de Avaliação NFC</div><div class="desc">Tamanho carteira, ideal para atendimento, equipe e balcão.</div></div></div></td>
             <td><span class="old">R$ 29,90</span></td>
             <td><span class="pay">R$ 13,90</span></td>
             <td><span class="off">54% off</span></td>
           </tr>
           <tr>
-            <td><div class="prod">Placa de Balcão G</div><div class="desc">Acrílico, tamanho grande.</div></td>
+            <td><div class="prodline"><img class="thumb" src="/rev-placa.webp" width="440" height="440" loading="lazy" alt="Placa de balcão StarTouch em acrílico"/><div><div class="prod">Placa de Balcão G</div><div class="desc">Acrílico, 21 × 15 cm.</div></div></div></td>
             <td><span class="old">R$ 79,90</span></td>
             <td><span class="pay">R$ 32,90</span></td>
             <td><span class="off">59% off</span></td>
           </tr>
           <tr>
-            <td><div class="prod">Placa de Balcão M</div><div class="desc">Acrílico, versão compacta.</div></td>
+            <td><div class="prodline"><img class="thumb" src="/rev-placa.webp" width="440" height="440" loading="lazy" alt="Placa de balcão StarTouch em acrílico, versão compacta"/><div><div class="prod">Placa de Balcão M</div><div class="desc">Acrílico, versão compacta do mesmo modelo.</div></div></div></td>
             <td><span class="old">R$ 49,90</span></td>
             <td><span class="pay">R$ 22,90</span></td>
             <td><span class="off">54% off</span></td>
