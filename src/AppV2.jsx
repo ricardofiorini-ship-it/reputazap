@@ -228,17 +228,17 @@ const MOCK = {
     {
       id:'placa-balcao', name:'Placa de Balcão G', price:'R$ 79,90',
       img:'/gadget-placa.png',
-      images:['/gadget-placa.png','/placa-g-2.png','/placa-g-3.png','/placa-g-4.png','/placa-g-5.png'],
-      desc:'Acrílico premium com NFC + QR Code. O cliente toca o celular e avalia no Google em segundos.',
-      specs:['Acrílico cristal premium com base inclinada','21 × 15 cm (display de balcão)','NFC + QR Code de fallback impresso','Sem app — o cliente não instala nada'],
+      images:['/gadget-placa.png','/placa-g-2.png'],
+      desc:'PS preto de 2 mm com NFC + QR Code. O cliente toca o celular e avalia no Google em segundos.',
+      specs:['PS preto 2 mm com base inclinada','21 × 15 cm (display de balcão)','NFC + QR Code de fallback impresso','Sem app — o cliente não instala nada'],
       buyUrl:'/kit?add=placa-balcao'
     },
     {
       id:'placa-mesa', name:'Placa de Balcão M', price:'R$ 49,90',
-      img:'/placa-m-1.png',
-      images:['/placa-m-1.png','/placa-m-2.png','/placa-m-3.png','/placa-m-4.png'],
+      img:'/gadget-placa.png',
+      images:['/gadget-placa.png','/placa-g-2.png'],
       desc:'A mesma placa NFC + QR Code, em versão compacta — pra balcões menores, mesas e recepções.',
-      specs:['10 × 15 cm — compacta','Acrílico cristal premium','Proteção UV (não amarela)','NFC + QR Code de fallback'],
+      specs:['10 × 15 cm — compacta','PS preto 2 mm','Sem app — o cliente não instala nada','NFC + QR Code de fallback'],
       buyUrl:'/kit?add=placa-mesa'
     },
     {

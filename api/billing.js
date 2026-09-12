@@ -159,7 +159,7 @@ async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents,
 const KIT_CATALOG = {
   "placa-balcao": {
     name: "Placa de Balcão G",
-    description: "Placa NFC de balcão tamanho G — acrílico premium. Cliente aproxima o celular e avalia no Google em segundos.",
+    description: "Placa NFC de balcão tamanho G — PS preto 2 mm. Cliente aproxima o celular e avalia no Google em segundos.",
     price_cents: 7990,
     image: "https://startouch.com.br/gadget-placa.png",
     category_id: "electronics",
