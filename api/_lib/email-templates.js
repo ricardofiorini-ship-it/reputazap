@@ -949,6 +949,23 @@ const REFERRAL_LINK = "https://startouch.com.br/?utm_source=indicacao&utm_medium
 const REFERRAL_MSG = "Oi! Tô usando o StarTouch pra receber mais avaliações no Google — tá ajudando demais. Acho que ia ser útil pro seu negócio também 👉 " + REFERRAL_LINK;
 const REFERRAL_WA = "https://wa.me/?text=" + encodeURIComponent(REFERRAL_MSG);
 
+// Os mesmos cinco do banner do painel (AppV2.jsx: PROMO_BOTOES), na mesma
+// ordem. "Avalie no Google" e SEMPRE o primeiro e nunca sai: e contrato do
+// produto, nao escolha de layout — um menu que esconde a avaliacao do Google
+// deixa de ser StarTouch. A maquete tem que mostrar o produto como ele e.
+//
+// Icone em EMOJI e nao em imagem, de proposito. Metade dos clientes de e-mail
+// bloqueia imagem por padrao, e um banner que depende de imagem chega como um
+// retangulo vazio justamente pra quem nunca clicou em nada — que e exatamente
+// o publico que este banner existe pra alcancar.
+const MENU_DEMO = [
+  { i: "\u2B50", t: "Avalie no Google" },
+  { i: "\uD83D\uDCAC", t: "Fale no WhatsApp" },
+  { i: "\uD83D\uDCF7", t: "Instagram" },
+  { i: "\uD83D\uDCCB", t: "Nosso cardápio" },
+  { i: "\uD83D\uDCC5", t: "Agende seu horário" },
+];
+
 const MESES_PT = [
   "janeiro", "fevereiro", "março", "abril", "maio", "junho",
   "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
@@ -1249,13 +1266,6 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
           <div style="font-size:26px;font-weight:800;color:#202124;line-height:1;">${toques}<span style="font-size:15px;color:#5F6368;font-weight:700;"> ${toques === 1 ? "pessoa" : "pessoas"}</span></div>
           <div style="font-size:13.5px;color:#5F6368;line-height:1.55;margin-top:5px;">encostaram o celular no seu StarTouch e foram direto pra sua página no Google.</div>
 
-          <div style="margin-top:13px;padding-top:13px;border-top:1px solid #DDD2FA;">
-            <div style="font-size:13.5px;color:#202124;line-height:1.6;">Com o <strong>Menu Inteligente</strong>, ${pessoas === "1 pessoa" ? "essa mesma pessoa" : `essas mesmas ${toques}`} também poderiam abrir seu WhatsApp, ver o cardápio ou agendar um horário — com a <strong>avaliação no Google sempre em primeiro lugar</strong>, no mesmo toque.</div>
-            <table role="presentation" cellspacing="0" cellpadding="0" style="margin-top:11px;"><tr><td style="border-radius:10px;background:#6B46C1;">
-              <a href="${MENU_URL}" target="_blank" style="display:inline-block;padding:11px 22px;font-size:14px;font-weight:700;color:#fff;text-decoration:none;border-radius:10px;font-family:Arial,sans-serif;">Testar 7 dias grátis →</a>
-            </td></tr></table>
-            <div style="font-size:12px;color:#8A8F98;line-height:1.5;margin-top:8px;">R$ 19,90/mês depois, sem fidelidade. Se não assinar, seu dispositivo e seu painel continuam funcionando exatamente como hoje.</div>
-          </div>
         </td></tr>
       </table>`
     : `
@@ -1265,6 +1275,83 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
           <div style="font-size:13.5px;color:#202124;line-height:1.6;"><strong>Nenhum toque registrado nos últimos 7 dias.</strong> Vale conferir onde ele está: balcão, mesa ou ao lado da maquininha, virado pro cliente. É à vista que ele trabalha.</div>
         </td></tr>
       </table>`);
+
+  // ── O BANNER DO MENU (12/09/2026) ───────────────────────────────────
+  // Antes a oferta era uma linha de texto pendurada no bloco de toques. Vira
+  // o banner que ja existe no painel, adaptado — porque quem nunca abre o
+  // painel NUNCA VIU esse banner, e e justamente quem mais interessa: cartao
+  // tocando, dono ausente.
+  //
+  // DESENHADO COM TABELAS, NAO COM IMAGEM. Duas razoes que valem mais que o
+  // acabamento: cliente de e-mail bloqueia imagem por padrao (o banner viraria
+  // um retangulo vazio pra quem mais precisa ver), e o Outlook renderiza HTML
+  // com o motor do Word, onde flex, position e SVG simplesmente nao existem.
+  // Cantos arredondados caem pra quadrado la, e so.
+  //
+  // O CELULAR MOSTRA O NOME DO NEGOCIO DELE. E a diferenca entre "olha um menu"
+  // e "olha o SEU menu" — o mesmo motivo pelo qual o painel so cobra depois que
+  // a pessoa montou o dela e viu o proprio nome dentro (decisao de 08/09).
+  //
+  // MESMA REGRA DE SEMPRE: so aparece pra quem tem dispositivo E teve toque.
+  // Quem esta com o cartao na gaveta ve o lembrete, nunca a propaganda.
+  const inicial = escapeHtml((bizName || "S").trim().charAt(0).toUpperCase() || "S");
+  const itemMenu = ({ i, t }) => `
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 6px;">
+      <tr><td style="border:1px solid #E8EAED;border-radius:10px;padding:8px 9px;background:#FFFFFF;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>
+          <td width="16" style="width:16px;font-size:12px;line-height:1;">${i}</td>
+          <td style="font-size:10.5px;font-weight:700;color:#1F2937;text-align:left;padding-left:7px;">${t}</td>
+          <td width="8" style="width:8px;font-size:11px;color:#9AA0A6;text-align:right;">&rsaquo;</td>
+        </tr></table>
+      </td></tr>
+    </table>`;
+
+  const menuBanner = (temDispositivo && toques > 0)
+    ? `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#0B3EA8;background-image:linear-gradient(135deg,#0B3EA8 0%,#1A73E8 100%);border-radius:14px;margin:16px 0 4px;">
+        <tr><td style="padding:20px 18px;text-align:center;font-family:Arial,sans-serif;">
+
+          <div style="display:inline-block;background:rgba(255,255,255,.18);border-radius:999px;padding:4px 11px;font-size:10px;font-weight:800;letter-spacing:.09em;color:#FFFFFF;margin-bottom:11px;">✨ NOVIDADE</div>
+
+          <div style="font-size:21px;font-weight:800;color:#FFFFFF;line-height:1.2;letter-spacing:-0.02em;margin-bottom:7px;">
+            Chegou o Menu Inteligente.<br><span style="color:#8EC5FF;">Um toque, vários caminhos.</span>
+          </div>
+
+          <div style="font-size:13px;color:#DCE8FB;line-height:1.6;margin:0 auto 16px;max-width:420px;">
+            O mesmo cartão que hoje leva ao Google passa a abrir também
+            <strong style="color:#fff;">WhatsApp</strong>, <strong style="color:#fff;">Instagram</strong>,
+            <strong style="color:#fff;">cardápio</strong> e agendamento — com a avaliação sempre em primeiro lugar.
+          </div>
+
+          <table role="presentation" cellspacing="0" cellpadding="0" align="center" style="margin:0 auto 16px;">
+            <tr><td style="background:#0F172A;border-radius:24px;padding:8px;">
+              <table role="presentation" width="190" cellspacing="0" cellpadding="0" style="width:190px;background:#FFFFFF;border-radius:17px;">
+                <tr><td style="padding:13px 11px;text-align:center;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" align="center" style="margin:0 auto 7px;"><tr>
+                    <td width="36" height="36" style="width:36px;height:36px;background:#EEF3FC;border-radius:18px;text-align:center;font-size:16px;font-weight:800;color:#0B3EA8;">${inicial}</td>
+                  </tr></table>
+                  <div style="font-size:12.5px;font-weight:800;color:#111827;line-height:1.25;">${biz}</div>
+                  <div style="font-size:9.5px;color:#6B7280;margin:3px 0 11px;">Conecte-se com a nossa casa</div>
+                  ${MENU_DEMO.map(itemMenu).join("")}
+                  <div style="font-size:8px;color:#9AA0A6;margin-top:8px;">Powered by <strong style="color:#0B3EA8;">StarTouch</strong></div>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+
+          <table role="presentation" cellspacing="0" cellpadding="0" align="center" style="margin:0 auto;">
+            <tr><td style="border-radius:10px;background:#FFFFFF;">
+              <a href="${MENU_URL}" target="_blank" style="display:inline-block;padding:13px 24px;font-size:14.5px;font-weight:800;color:#0B3EA8;text-decoration:none;border-radius:10px;font-family:Arial,sans-serif;">Criar meu menu — 7 dias grátis →</a>
+            </td></tr>
+          </table>
+
+          <div style="font-size:11.5px;color:#BBD2F5;line-height:1.5;margin-top:11px;">
+            R$ 19,90/mês depois, sem fidelidade. Se não assinar, seu dispositivo e seu painel continuam funcionando exatamente como hoje.
+          </div>
+
+        </td></tr>
+      </table>`
+    : "";
 
   // A linha de comprar hardware só faz sentido pra quem AINDA NÃO TEM. Ela
   // estava indo pra todo mundo — inclusive pros 89 que compraram no Mercado
@@ -1296,6 +1383,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
         ${milestoneLine}
         ${scoreBlock}
         ${devicesBlock}
+        ${menuBanner}
         ${reviewsBlock}
         ${articleBlock}
 
