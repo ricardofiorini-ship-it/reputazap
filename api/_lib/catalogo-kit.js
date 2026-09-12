@@ -57,11 +57,35 @@ export const KIT_CATALOG = {
 // errar a MEDIDA da caixa custa mais caro do que errar a balança.
 //
 // Medidas em CENTÍMETROS e peso em QUILOS, que é o que a Frenet espera.
+// DOIS TAMANHOS PRA CADA PRODUTO, e a diferenca entre eles vale dinheiro:
+//
+//   comprimento/largura/altura = a EMBALAGEM de uma unidade, como sai no varejo.
+//   bruto                      = a PECA nua, usada quando o pedido inteiro vai
+//                                numa caixa so (revenda).
+//
+// Sem o `bruto`, cotar 500 cartoes seria mandar "500 pacotes de 16x11x2 cm"
+// pra transportadora: ~29 kg de peso cubado, quando 500 cartoes pesam 10 kg e
+// cabem numa caixa que cuba menos de 1 kg. O frete sairia pelo TRIPLO.
 export const LOGISTICA = {
-  "placa-balcao": { peso: 0.150, comprimento: 24, largura: 18, altura: 4 },
-  "placa-mesa":   { peso: 0.100, comprimento: 18, largura: 16, altura: 4 },
-  "cartao-nfc":   { peso: 0.020, comprimento: 16, largura: 11, altura: 2 },
-  "pulseira":     { peso: 0.050, comprimento: 16, largura: 11, altura: 3 }
+  "placa-balcao": {
+    peso: 0.150, comprimento: 24, largura: 18, altura: 4,
+    // 21 x 15 cm publicados no site; 0,5 cm e a espessura empilhada (chapa de
+    // PS 2 mm + a peca da base).
+    bruto: { comprimento: 21, largura: 15, altura: 0.5 }
+  },
+  "placa-mesa": {
+    peso: 0.100, comprimento: 18, largura: 16, altura: 4,
+    bruto: { comprimento: 15, largura: 10, altura: 0.5 }
+  },
+  "cartao-nfc": {
+    peso: 0.020, comprimento: 16, largura: 11, altura: 2,
+    // Tamanho de cartao de credito; 0,9 mm de espessura.
+    bruto: { comprimento: 8.5, largura: 5.4, altura: 0.09 }
+  },
+  "pulseira": {
+    peso: 0.050, comprimento: 16, largura: 11, altura: 3,
+    bruto: { comprimento: 6, largura: 6, altura: 1 }
+  }
 };
 
 // Produto no catálogo sem dados de despacho não pode ser vendido: o frete sai
@@ -70,6 +94,10 @@ export const LOGISTICA = {
 for (const id of Object.keys(KIT_CATALOG)) {
   if (!LOGISTICA[id]) {
     console.error(`[catalogo-kit] "${id}" está no catálogo e NÃO tem peso/medida em LOGISTICA — o frete deste item sairia zerado.`);
+  } else if (!LOGISTICA[id].bruto) {
+    // Sem `bruto`, a consolidação da revenda usaria a embalagem unitária e
+    // cobraria o triplo. Erra alto aqui, no boot, e não no pedido do cliente.
+    console.error(`[catalogo-kit] "${id}" não tem medida BRUTA — o frete de pedido grande sairia muito acima do real.`);
   }
 }
 for (const id of Object.keys(LOGISTICA)) {
