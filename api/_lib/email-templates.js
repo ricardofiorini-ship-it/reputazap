@@ -878,11 +878,30 @@ export function latestArticle() {
 }
 
 // Próximo marco de avaliações (motivacional). Retorna null se já passou de tudo.
-const MILESTONES = [10, 20, 30, 50, 75, 100, 150, 200, 300, 500, 1000];
+/**
+ * Proximo marco redondo, NA ESCALA DO NEGOCIO.
+ *
+ * Antes era uma lista fixa que terminava em 1.000. Quem passava disso ficava
+ * SEM MARCO — e sem meta de concorrente (que depende de medicao fresca da
+ * regiao), o e-mail chegava sem nenhum "e agora?". Medido em 12/09/2026: a
+ * Fleming Laboratorio tem 14.811 avaliacoes e 77 toques na semana. O cliente
+ * MAIS ativo da base recebia o e-mail mais vazio.
+ *
+ * O passo cresce junto: 20 pra quem tem 16, 300 pra quem tem 240, 15.000 pra
+ * quem tem 14.811. Assim o alvo fica sempre a uma distancia que da pra
+ * imaginar — nem "faltam 2" pra quem coleta 300 por mes, nem "faltam 5.000"
+ * pra padaria.
+ */
 export function nextMilestone(total) {
   const n = Number(total) || 0;
-  const target = MILESTONES.find((m) => m > n);
-  return target ? { target, remaining: target - n } : null;
+  if (n < 10) return { target: 10, remaining: 10 - n };
+  const passo =
+    n < 50   ? 10 :
+    n < 200  ? 25 :
+    n < 1000 ? 100 :
+    Math.pow(10, Math.floor(Math.log10(n)) - 1) * 5;
+  const target = (Math.floor(n / passo) + 1) * passo;   // sempre ACIMA de n
+  return { target, remaining: target - n };
 }
 
 // Veredito da semana — tom adapta ao ritmo de coleta (newThisWeek = avaliações
@@ -1116,37 +1135,38 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
       </td></tr>
     </table>`;
 
-  // AVISO DE TRANSIÇÃO — INTERRUPTOR HUMANO, SEM DATA.
+  // ── O SCORE SAI DA CARA DO CLIENTE (12/09/2026) ──────────────────────
+  // Decisao do Ricardo: "o Score StarTouch pra mim e muito subjetivo; o dono
+  // quer saber como esta em relacao aos concorrentes e o que precisa fazer".
   //
-  // Ligado em 06/09/2026 junto com a correção da entrada do Score (o resumo
-  // passou a usar `score` em vez de `avg`, ver weekly-digest.js). Quem some de
-  // pontos da região vai ver o número CAIR — de 78 para 63 no caso extremo —, e
-  // uma queda sem explicação num e-mail semanal parece defeito, não correção.
+  // A evidencia esta na propria loja dele: nota 5,0 e Score 59/100. Diante
+  // disso a conclusao natural nao e "preciso melhorar", e "esse app esta
+  // errado". E o motivo de fundo: o Score e o UNICO numero do e-mail que o
+  // dono nao consegue conferir em lugar nenhum — comparacao com concorrente
+  // ele audita abrindo o Google, e por isso ela convence e o Score nao.
   //
-  // DESLIGAR (trocar para false) depois que todo cliente tiver recebido dois
-  // resumos com o número novo, ou seja ~2 semanas. Não há data automática de
-  // propósito: data futura não desarma nada, ela chega — quem desliga isto é
-  // uma pessoa.
-  const AVISO_AJUSTE_SCORE = true;
+  // O SCORE NAO MORREU, PAROU DE APARECER. Ele continua sendo calculado e e
+  // ele quem escolhe QUAL conselho entra aqui (perfil incompleto, ausencia nas
+  // buscas, volume de avaliacoes). Vira motor. Se sumisse de vez, sumiria
+  // junto a unica coisa no e-mail que faz alguem arrumar a categoria do Google.
+  //
+  // E O AVISO DE TRANSICAO SE APOSENTA SOZINHO. Havia aqui um paragrafo
+  // explicando que "o calculo mudou", ligado a mao em 06/09 com a instrucao de
+  // que quem desliga e uma pessoa — e ninguem desligou. Ele existia SO para
+  // justificar um numero. Sem o numero, nao ha o que justificar.
+  const primeiraMaiuscula = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
 
-  // Bloco Score StarTouch (0–100) + o que falta pros 100
   const scoreBlock = score && typeof score.score === "number"
     ? `
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#FFF8E1;border:1px solid #FCE8A6;border-radius:12px;margin:14px 0;">
-        <tr><td style="padding:14px 16px;">
-          <div style="font-size:12px;font-weight:700;color:#B7791F;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">🏅 Seu Score StarTouch</div>
-          <div style="font-size:26px;font-weight:800;color:#202124;line-height:1;">${score.score}<span style="font-size:15px;color:#5F6368;font-weight:700;"> / 100</span></div>
+        <tr><td style="padding:15px 17px;">
           ${score.missing && score.missing.length
-            ? `<div style="font-size:13px;color:#5F6368;line-height:1.5;margin-top:6px;">Pra subir: ${escapeHtml(score.missing[0])}. <a href="https://startouch.com.br/app?login=1" style="color:#1A73E8;text-decoration:none;font-weight:600;">Ver o que falta →</a></div>`
-            : `<div style="font-size:13px;color:#137333;font-weight:600;margin-top:6px;">Presença completa! 🎉</div>`}
-          ${AVISO_AJUSTE_SCORE
-            ? `<div style="font-size:12px;color:#8A6D3B;line-height:1.5;margin-top:10px;padding-top:9px;border-top:1px solid #FCE8A6;">
-                 <strong>O cálculo mudou.</strong> O Score agora considera também os lugares da sua região
-                 onde seu negócio <strong>não aparece</strong> nas buscas — antes, esses lugares simplesmente
-                 saíam da conta. Se o seu número mudou de uma semana para a outra, foi por isso, e agora ele é
-                 exatamente o mesmo que você vê no painel.
-               </div>`
-            : ""}
+            ? `<div style="font-size:12px;font-weight:700;color:#B7791F;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">O que falta no seu perfil</div>
+               <div style="font-size:15.5px;font-weight:700;color:#202124;line-height:1.4;">${escapeHtml(primeiraMaiuscula(score.missing[0]))}.</div>
+               <div style="margin-top:8px;"><a href="https://startouch.com.br/app?login=1" style="font-size:13px;color:#1A73E8;text-decoration:none;font-weight:600;">Ver como resolver →</a></div>`
+            : `<div style="font-size:12px;font-weight:700;color:#137333;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Seu perfil no Google</div>
+               <div style="font-size:15.5px;font-weight:700;color:#202124;line-height:1.4;">Está completo. 🎉</div>
+               <div style="font-size:13px;color:#5F6368;line-height:1.5;margin-top:5px;">Foto, telefone, horário e categoria preenchidos — é assim que o Google gosta.</div>`}
         </td></tr>
       </table>`
     : "";
@@ -1190,7 +1210,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
 
   // Linha de próximo marco de avaliações — RESERVA, só quando não há meta.
   const milestoneLine = !meta && milestone && milestone.remaining > 0
-    ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;margin:12px 0;"><tr><td style="padding:11px 14px;font-size:13.5px;color:#202124;line-height:1.5;">🎯 <strong>Faltam ${milestone.remaining} ${milestone.remaining === 1 ? "avaliação" : "avaliações"}</strong> pra você chegar a ${milestone.target} no Google.</td></tr></table>`
+    ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;margin:12px 0;"><tr><td style="padding:11px 14px;font-size:13.5px;color:#202124;line-height:1.5;">🎯 <strong>Faltam ${milestone.remaining.toLocaleString("pt-BR")} ${milestone.remaining === 1 ? "avaliação" : "avaliações"}</strong> pra você chegar a ${milestone.target.toLocaleString("pt-BR")} no Google.</td></tr></table>`
     : "";
 
   // Bloco artigo da semana (newsletter consolidada aqui)
@@ -1227,12 +1247,31 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
     ? tot - Number(marcoZero.total)
     : 0;
   const dataMarco = marcoZero?.data ? dataPorExtenso(marcoZero.data) : null;
+  //
+  // A FRASE DECLARA DOIS NUMEROS E NAO DESENHA UMA SETA ENTRE ELES (12/09/2026).
+  //
+  // Antes dizia "desde que voce instalou seu StarTouch, seu negocio recebeu
+  // +403 avaliacoes novas". Os dois pedacos eram verdade — ele instalou em
+  // junho, e ganhou 403 desde entao — mas juntos nasce uma terceira ideia que
+  // NAO e verdade: a de que o cartao trouxe as 403. E como dizer "desde que
+  // voce contratou o contador, sua loja vendeu R$ 400 mil".
+  //
+  // Descoberto com dado real: a Fleming Laboratorio tem 14.811 avaliacoes e
+  // ganha centenas por mes com ou sem a gente. Se o dono perguntar "quais 403
+  // vieram do cartao?", nao ha resposta — o Google nunca diz de onde veio uma
+  // avaliacao. Numa padaria que sai de 12 pra 16 ninguem nota; naquele tamanho,
+  // vira uma promessa indefensavel.
+  //
+  // Agora os dois numeros aparecem e QUEM FAZ A CONTA E O DONO. Mesma noticia
+  // boa, nenhuma afirmacao que a gente nao consiga provar.
   const marcoLinha = (ganho > 0 && dataMarco)
     ? `
       <p style="font-size:13.5px;color:#202124;line-height:1.6;margin:12px 2px 0;">
-        Desde que você ${marcoZero.desde === "instalacao" ? "instalou seu StarTouch" : "entrou na StarTouch"},
-        em <strong>${dataMarco}</strong>, seu negócio recebeu
-        <strong style="color:#137333;">${ganho === 1 ? "1 avaliação nova" : `+${ganho} avaliações novas`}</strong> no Google.
+        Você tinha <strong>${Number(marcoZero.total).toLocaleString("pt-BR")}</strong>
+        ${Number(marcoZero.total) === 1 ? "avaliação" : "avaliações"} quando
+        ${marcoZero.desde === "instalacao" ? "instalou seu StarTouch" : "entrou na StarTouch"},
+        em <strong>${dataMarco}</strong>. Hoje são
+        <strong style="color:#137333;">${tot.toLocaleString("pt-BR")}</strong>.
       </p>`
     : "";
 
