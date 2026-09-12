@@ -461,7 +461,17 @@ export default async function handler(req, res) {
       // "negative_review" — de propósito: assim as avaliações que o robô antigo
       // já avisou NÃO são avisadas de novo na primeira rodada deste.
       const negativas = reviews.filter((r) => (r.rating || 0) <= NEG_MAX && Number(r.id) >= weekAgo);
-      if (negativas.length >= LISTA_CHEIA && newThisWeek >= LISTA_CHEIA) {
+      // A CONDICAO ERA `negativas.length >= LISTA_CHEIA && newThisWeek >= LISTA_CHEIA`
+      // e por isso o aviso praticamente nunca disparava: exigia CINCO NEGATIVAS na
+      // semana pra avisar que pode haver UMA negativa invisivel. Corrigido em
+      // 12/09/2026, olhando a Fleming Laboratorio — 14.811 avaliacoes, as 5 que o
+      // Google devolve sao todas de HOJE, e nenhuma negativa. Ou seja: o caso
+      // exato pra que este aviso foi escrito passava calado.
+      //
+      // A condicao certa e so a segunda: lista cheia de avaliacoes da semana
+      // significa que nao da pra ver o que ficou de fora — negativa inclusive.
+      // Alarme que so toca quando o problema ja e enorme nao e alarme.
+      if (newThisWeek >= LISTA_CHEIA) {
         // O Google só devolve ~5 avaliações. Se TODAS as 5 são da semana, a
         // lista encheu e pode ter sobrado avaliação de fora dela — inclusive
         // negativa. Não dá pra saber, então avisa alto em vez de fingir que viu
