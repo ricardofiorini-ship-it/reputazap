@@ -4417,6 +4417,23 @@
     max-width: 580px; text-wrap: balance;
   }
   @media (min-width: 1024px) { .howitworks-sub { font-size: 18px; margin-bottom: 64px; } }
+  /* Selo de objecao — as duas frases que ate agora so existiam DENTRO das
+     fotos de ambiente. Texto em imagem nao e lido pelo Google nem por leitor
+     de tela: a chamada existia pra quem enxerga e nao existia pra mais ninguem. */
+  .howitworks-selo {
+    margin: 40px auto 0; max-width: 760px;
+    background: var(--st-bg-secondary); border: 1px solid var(--st-gray-light);
+    border-radius: 16px; padding: 26px 28px; box-shadow: var(--st-shadow-sm);
+  }
+  .howitworks-selo strong {
+    display: block; font-size: 24px; font-weight: 700; letter-spacing: -0.02em;
+    color: var(--st-black-strong); margin-bottom: 8px;
+  }
+  .howitworks-selo strong .accent { color: var(--st-blue-primary); }
+  .howitworks-selo p { margin: 0; font-size: 16px; line-height: 1.65; color: var(--st-gray-text); }
+  .howitworks-selo p b { color: var(--st-black-strong); font-weight: 600; }
+  @media (max-width: 520px) { .howitworks-selo strong { font-size: 20px; } }
+
   .howitworks-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
   @media (min-width: 640px) { .howitworks-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (min-width: 1024px) { .howitworks-grid { grid-template-columns: repeat(4, 1fr); } }
@@ -4479,6 +4496,13 @@
         <h3 class="howitworks-title">Acompanhe sua evolução</h3>
         <p class="howitworks-desc">Painel com métricas, reviews e insights em tempo real.</p>
       </article>
+    </div>
+
+    <div class="howitworks-selo">
+      <strong>Basta aproximar <span class="accent">o celular</span>.</strong>
+      <p><b>Sem aplicativo. Sem cadastro. Sem complicação.</b> Nem pra você, nem pro seu cliente.
+      Você instala em segundos — tira da caixa, ativa o código e põe no balcão. Perfeito para
+      balcões e recepções, e a partir dali cada atendimento já pode virar uma avaliação no Google.</p>
     </div>
   </div>
 </section>
