@@ -1124,9 +1124,18 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
   // dizer "ou mais" em vez de fingir precisao. Numero que finge exatidao e
   // pior que numero declaradamente aproximado: o segundo o leitor corrige na
   // cabeca, o primeiro ele usa pra concluir que o produto nao funciona.
-  const aoMenos = !!novasAoMenos && nw > 0;
+  // E QUANDO NAO DA PRA CONTAR, NAO SE FALA (12/09/2026). A primeira versao
+  // disto escrevia "+5 ou mais" — e "ou mais" ainda e exibir um nao-sei com
+  // cara de numero. Vale aqui a mesma regra que ja governa a posicao: sem
+  // medicao boa, o e-mail SIMPLESMENTE NAO FALA, em vez de falar torto.
+  //
+  // Na pratica atinge so quem tem movimento alto (as 5 avaliacoes que o Google
+  // devolve sao todas da semana). Pra esse, a linha semanal e o veredito somem
+  // — e o resto do e-mail, que e verdade, continua inteiro. Volta sozinho
+  // quando a serie tiver duas semanas pra subtrair, e ai sem teto nenhum.
+  const podeContar = !(novasAoMenos && nw > 0);
   const newLine = nw > 0
-    ? `<span style="color:#137333;font-weight:700;">▲ +${nw}${aoMenos ? " ou mais" : ""} ${nw === 1 && !aoMenos ? "nova" : "novas"}</span>`
+    ? `<span style="color:#137333;font-weight:700;">▲ +${nw} ${nw === 1 ? "nova" : "novas"}</span>`
     : `<span style="color:#5F6368;font-weight:600;">— nenhuma nova</span>`;
 
   const row = (label, value) => `
@@ -1149,8 +1158,11 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
     : "";
 
   // Veredito da semana (tom adapta ao ritmo de coleta)
-  const v = weekVerdict(nw, aoMenos);
-  const verdictBlock = `
+  // `!podeContar` como 2o argumento e redundante — o bloco nem sai nesse caso —
+  // mas deixa explicito que aqui o numero E exato. Sem ele, o padrao seguro de
+  // weekVerdict (assumir piso) escreveria "5 ou mais" pra quem tem 34 contadas.
+  const v = weekVerdict(nw, !podeContar);
+  const verdictBlock = !podeContar ? "" : `
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${v.bg};border:1px solid ${v.border};border-radius:12px;margin:14px 0;">
       <tr><td style="padding:14px 16px;">
         <div style="font-size:15px;color:${v.color};font-weight:800;margin-bottom:3px;">${v.emoji} ${escapeHtml(v.title)}</div>
@@ -1436,7 +1448,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:6px 16px;margin:14px 0;">
           ${row("Sua nota no Google", `${note} ⭐`)}
           ${row("Total de avaliações", String(tot))}
-          ${row("Novas nesta semana", newLine)}
+          ${podeContar ? row("Novas nesta semana", newLine) : ""}
         </table>
         ${marcoLinha}
 
