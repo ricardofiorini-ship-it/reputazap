@@ -1,79 +1,356 @@
 {
   "trailingSlash": false,
   "redirects": [
-    { "source": "/(.*)", "has": [{ "type": "host", "value": "reputazap.com" }], "destination": "https://startouch.com.br/$1", "permanent": true },
-    { "source": "/(.*)", "has": [{ "type": "host", "value": "www.reputazap.com" }], "destination": "https://startouch.com.br/$1", "permanent": true },
-    { "source": "/(.*)", "has": [{ "type": "host", "value": "reputazap.com.br" }], "destination": "https://startouch.com.br/$1", "permanent": true },
-    { "source": "/(.*)", "has": [{ "type": "host", "value": "www.reputazap.com.br" }], "destination": "https://startouch.com.br/$1", "permanent": true },
-    { "source": "/(.*)", "has": [{ "type": "host", "value": "www.startouch.com.br" }], "destination": "https://startouch.com.br/$1", "permanent": true },
-    { "source": "/", "destination": "/landing", "permanent": false },
-    { "source": "/ativar", "missing": [{ "type": "query", "key": "from" }], "destination": "/landing", "permanent": false },
-    { "source": "/app-v2", "destination": "/app", "permanent": true },
-    { "source": "/app-v2/(.*)", "destination": "/app/$1", "permanent": true },
-    { "source": "/landing.html", "destination": "/landing", "permanent": true },
-    { "source": "/ativar.html", "destination": "/ativar", "permanent": true },
-    { "source": "/kit.html", "destination": "/kit", "permanent": true },
-    { "source": "/ativar-placa.html", "destination": "/ativar-placa", "permanent": true },
-    { "source": "/avaliar.html", "destination": "/avaliar", "permanent": true },
-    { "source": "/reset.html", "destination": "/reset", "permanent": true },
-    { "source": "/comece.html", "destination": "/comece", "permanent": true },
-    { "source": "/diagnostico.html", "destination": "/app", "permanent": false },
-    { "source": "/diagnostico", "destination": "/app", "permanent": false },
-    { "source": "/plano-pro.html", "destination": "/plano-pro", "permanent": true },
-    { "source": "/ajuda.html", "destination": "/ajuda", "permanent": true },
-    { "source": "/sobre.html", "destination": "/sobre", "permanent": true },
-    { "source": "/ranking.html", "destination": "/", "permanent": false },
-    { "source": "/ranking", "destination": "/", "permanent": false },
-    { "source": "/radar.html", "destination": "/", "permanent": false },
-    { "source": "/radar-plano.html", "destination": "/", "permanent": false },
-    { "source": "/radar-land.html", "destination": "/", "permanent": false },
-    { "source": "/radar-land", "destination": "/", "permanent": false },
-    { "source": "/radar", "destination": "/", "permanent": false },
-    { "source": "/radar/plano", "destination": "/", "permanent": false },
-    { "source": "/bem-vindo.html", "destination": "/bem-vindo", "permanent": true }
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "reputazap.com"
+        }
+      ],
+      "destination": "https://startouch.com.br/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.reputazap.com"
+        }
+      ],
+      "destination": "https://startouch.com.br/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "reputazap.com.br"
+        }
+      ],
+      "destination": "https://startouch.com.br/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.reputazap.com.br"
+        }
+      ],
+      "destination": "https://startouch.com.br/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.startouch.com.br"
+        }
+      ],
+      "destination": "https://startouch.com.br/$1",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "destination": "/landing",
+      "permanent": false
+    },
+    {
+      "source": "/ativar",
+      "missing": [
+        {
+          "type": "query",
+          "key": "from"
+        }
+      ],
+      "destination": "/landing",
+      "permanent": false
+    },
+    {
+      "source": "/app-v2",
+      "destination": "/app",
+      "permanent": true
+    },
+    {
+      "source": "/app-v2/(.*)",
+      "destination": "/app/$1",
+      "permanent": true
+    },
+    {
+      "source": "/landing.html",
+      "destination": "/landing",
+      "permanent": true
+    },
+    {
+      "source": "/ativar.html",
+      "destination": "/ativar",
+      "permanent": true
+    },
+    {
+      "source": "/kit.html",
+      "destination": "/kit",
+      "permanent": true
+    },
+    {
+      "source": "/ativar-placa.html",
+      "destination": "/ativar-placa",
+      "permanent": true
+    },
+    {
+      "source": "/avaliar.html",
+      "destination": "/avaliar",
+      "permanent": true
+    },
+    {
+      "source": "/reset.html",
+      "destination": "/reset",
+      "permanent": true
+    },
+    {
+      "source": "/comece.html",
+      "destination": "/comece",
+      "permanent": true
+    },
+    {
+      "source": "/diagnostico.html",
+      "destination": "/app",
+      "permanent": false
+    },
+    {
+      "source": "/diagnostico",
+      "destination": "/app",
+      "permanent": false
+    },
+    {
+      "source": "/revenda.html",
+      "destination": "/revenda",
+      "permanent": true
+    },
+    {
+      "source": "/plano-pro.html",
+      "destination": "/plano-pro",
+      "permanent": true
+    },
+    {
+      "source": "/ajuda.html",
+      "destination": "/ajuda",
+      "permanent": true
+    },
+    {
+      "source": "/sobre.html",
+      "destination": "/sobre",
+      "permanent": true
+    },
+    {
+      "source": "/ranking.html",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/ranking",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/radar.html",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/radar-plano.html",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/radar-land.html",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/radar-land",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/radar",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/radar/plano",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/bem-vindo.html",
+      "destination": "/bem-vindo",
+      "permanent": true
+    }
   ],
   "rewrites": [
-    { "source": "/landing", "destination": "/landing.html" },
-    { "source": "/ativar", "destination": "/ativar.html" },
-    { "source": "/kit", "destination": "/kit.html" },
-    { "source": "/ativar-placa", "destination": "/ativar-placa.html" },
-    { "source": "/avaliar", "destination": "/avaliar.html" },
-    { "source": "/reset", "destination": "/reset.html" },
-    { "source": "/comece", "destination": "/comece.html" },
-    { "source": "/admin/producao", "destination": "/admin-producao.html" },
-    { "source": "/admin/estoque", "destination": "/admin-estoque.html" },
-    { "source": "/admin/clientes", "destination": "/admin-clientes.html" },
-    { "source": "/admin/prospects", "destination": "/admin-prospects.html" },
-    { "source": "/admin/funil", "destination": "/admin-funil.html" },
-    { "source": "/admin/visitas", "destination": "/admin-visitas.html" },
-    { "source": "/admin/ranking-grade", "destination": "/admin-ranking-grade.html" },
-    { "source": "/ativar-codigo", "destination": "/ativar-codigo.html" },
-    { "source": "/plano-pro", "destination": "/plano-pro.html" },
-    { "source": "/ajuda", "destination": "/ajuda.html" },
-    { "source": "/sobre", "destination": "/sobre.html" },
-    { "source": "/privacidade", "destination": "/privacidade.html" },
-    { "source": "/termos", "destination": "/termos.html" },
-    { "source": "/privacidade/solicitacao", "destination": "/solicitacao.html" },
-    { "source": "/bem-vindo", "destination": "/bem-vindo.html" },
-    { "source": "/r/:code", "destination": "/api/r/:code" },
-    { "source": "/m/:slug", "destination": "/api/m/:slug" },
-    { "source": "/artigos", "destination": "/artigos/index.html" },
-    { "source": "/artigos/:slug", "destination": "/artigos/:slug.html" },
-    { "source": "/app", "destination": "/index-v2.html" },
-    { "source": "/app/(.*)", "destination": "/index-v2.html" },
-    { "source": "/app-legacy", "destination": "/index.html" },
-    { "source": "/painel-f7dsaz3c", "destination": "/index-v3.html" },
-    { "source": "/painel-f7dsaz3c/(.*)", "destination": "/index-v3.html" }
+    {
+      "source": "/landing",
+      "destination": "/landing.html"
+    },
+    {
+      "source": "/ativar",
+      "destination": "/ativar.html"
+    },
+    {
+      "source": "/kit",
+      "destination": "/kit.html"
+    },
+    {
+      "source": "/ativar-placa",
+      "destination": "/ativar-placa.html"
+    },
+    {
+      "source": "/avaliar",
+      "destination": "/avaliar.html"
+    },
+    {
+      "source": "/reset",
+      "destination": "/reset.html"
+    },
+    {
+      "source": "/comece",
+      "destination": "/comece.html"
+    },
+    {
+      "source": "/admin/producao",
+      "destination": "/admin-producao.html"
+    },
+    {
+      "source": "/admin/estoque",
+      "destination": "/admin-estoque.html"
+    },
+    {
+      "source": "/admin/clientes",
+      "destination": "/admin-clientes.html"
+    },
+    {
+      "source": "/admin/prospects",
+      "destination": "/admin-prospects.html"
+    },
+    {
+      "source": "/admin/funil",
+      "destination": "/admin-funil.html"
+    },
+    {
+      "source": "/admin/visitas",
+      "destination": "/admin-visitas.html"
+    },
+    {
+      "source": "/admin/ranking-grade",
+      "destination": "/admin-ranking-grade.html"
+    },
+    {
+      "source": "/ativar-codigo",
+      "destination": "/ativar-codigo.html"
+    },
+    {
+      "source": "/revenda",
+      "destination": "/revenda.html"
+    },
+    {
+      "source": "/plano-pro",
+      "destination": "/plano-pro.html"
+    },
+    {
+      "source": "/ajuda",
+      "destination": "/ajuda.html"
+    },
+    {
+      "source": "/sobre",
+      "destination": "/sobre.html"
+    },
+    {
+      "source": "/privacidade",
+      "destination": "/privacidade.html"
+    },
+    {
+      "source": "/termos",
+      "destination": "/termos.html"
+    },
+    {
+      "source": "/privacidade/solicitacao",
+      "destination": "/solicitacao.html"
+    },
+    {
+      "source": "/bem-vindo",
+      "destination": "/bem-vindo.html"
+    },
+    {
+      "source": "/r/:code",
+      "destination": "/api/r/:code"
+    },
+    {
+      "source": "/m/:slug",
+      "destination": "/api/m/:slug"
+    },
+    {
+      "source": "/artigos",
+      "destination": "/artigos/index.html"
+    },
+    {
+      "source": "/artigos/:slug",
+      "destination": "/artigos/:slug.html"
+    },
+    {
+      "source": "/app",
+      "destination": "/index-v2.html"
+    },
+    {
+      "source": "/app/(.*)",
+      "destination": "/index-v2.html"
+    },
+    {
+      "source": "/app-legacy",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/painel-f7dsaz3c",
+      "destination": "/index-v3.html"
+    },
+    {
+      "source": "/painel-f7dsaz3c/(.*)",
+      "destination": "/index-v3.html"
+    }
   ],
   "functions": {
-    "api/radar.js": { "maxDuration": 90 },
-    "api/cron/weekly-digest.js": { "maxDuration": 300 }
+    "api/radar.js": {
+      "maxDuration": 90
+    },
+    "api/cron/weekly-digest.js": {
+      "maxDuration": 300
+    }
   },
   "crons": [
-    { "path": "/api/cron/db-health", "schedule": "0 * * * *" },
-    { "path": "/api/cron/api-health", "schedule": "30 * * * *" },
-    { "path": "/api/cron/weekly-digest", "schedule": "0 12 * * 1" },
-    { "path": "/api/cron/retention", "schedule": "0 4 * * *" },
-    { "path": "/api/cron/plan-sweep", "schedule": "0 5 * * *" }
+    {
+      "path": "/api/cron/db-health",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/api-health",
+      "schedule": "30 * * * *"
+    },
+    {
+      "path": "/api/cron/weekly-digest",
+      "schedule": "0 12 * * 1"
+    },
+    {
+      "path": "/api/cron/retention",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/plan-sweep",
+      "schedule": "0 5 * * *"
+    }
   ]
 }

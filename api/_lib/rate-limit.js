@@ -174,5 +174,9 @@ export const LIMITES = {
   radar:       { nome: "radar",       porIpHora: 5,  globalDia: 100 },
   // Painel de cliente: generoso e SEM teto global — não pode quebrar pra quem paga.
   bizinfo:     { nome: "bizinfo",     porIpHora: 120 },
-  reviews:     { nome: "reviews",     porIpHora: 120 }
+  reviews:     { nome: "reviews",     porIpHora: 120 },
+  // Revenda: formulario publico que dispara e-mail. Aperta mais que os
+  // outros porque cada envio vira uma mensagem na caixa do admin — laco
+  // aqui nao gasta Google, gasta paciencia e cota do Resend.
+  revenda:     { nome: "revenda",     porIpHora: 8, globalDia: 120 }
 };

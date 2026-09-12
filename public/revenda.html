@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<!-- Consentimento de cookies + Google Consent Mode v2.
+     O /consent.js e quem carrega o GA4 e o Meta Pixel, nesta ordem:
+     `consent default denied` ANTES de qualquer tag subir. Nao trocar
+     por tag direta -- a ordem e o que faz o consentimento valer. -->
+<script src="/consent.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Programa de Revenda — StarTouch</title>
+<meta name="description" content="Revenda StarTouch: dispositivos NFC com painel de reputação incluso, sem mensalidade obrigatória para o cliente final. Pedido mínimo R$ 800, NF-e, produção em 10 dias úteis."/>
+<link rel="canonical" href="https://startouch.com.br/revenda"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/startouch-logo.png"/>
+<style>
+  :root {
+    --navy: #0C1524;
+    --blue: var(--st-blue-primary);
+    --text: #172033;
+    --muted: #697488;
+    --line: #E4E9F0;
+    --bg: #F7F9FC;
+    --green: #11865A;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; color: var(--text); background: #fff;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  a { text-decoration: none; color: inherit; }
+  .wrap { width: min(1160px, calc(100% - 40px)); margin: auto; }
+
+  /* ── Topo ── */
+  .top { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.94);
+         backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+  .topin { height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .brand img { height: 27px; display: block; }
+  .nav { display: flex; gap: 24px; align-items: center; font-size: 14px; color: var(--muted); font-weight: 700; }
+  .nav a:hover { color: var(--blue); }
+
+  .btn { border: 0; border-radius: 12px; padding: 13px 18px; font: inherit; font-weight: 800;
+         display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+  .primary { background: var(--blue); color: #fff; }
+  .primary:hover { background: var(--st-blue-dark); }
+  .secondary { border: 1px solid var(--line); background: #fff; }
+
+  /* ── Hero ── */
+  .hero { padding: 78px 0 50px;
+          background: radial-gradient(circle at 82% 12%, rgba(26,115,232,.12), transparent 30%),
+                      linear-gradient(180deg, #fff, #f9fbff);
+          border-bottom: 1px solid var(--line); }
+  .heroGrid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 70px; align-items: center; }
+  .pill { display: inline-flex; background: #EEF5FF; color: var(--blue); padding: 7px 11px;
+          border-radius: 999px; font-size: 13px; font-weight: 800; margin-bottom: 18px; }
+  h1 { font-size: clamp(42px, 5.6vw, 68px); line-height: 1.0; letter-spacing: -2.6px; margin: 0 0 24px; font-weight: 800; }
+  h2 { font-size: clamp(30px, 3.8vw, 46px); line-height: 1.07; letter-spacing: -1.5px; margin: 0 0 12px; font-weight: 800; }
+  .lead { font-size: 19px; color: var(--muted); max-width: 760px; margin: 0 0 14px; }
+  .lead strong { color: var(--text); font-weight: 650; }
+  .heroBtns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+  .note { font-size: 12.5px; color: #818B9B; margin-top: 16px; }
+
+  .darkCard { background: var(--navy); color: #fff; border-radius: 26px; padding: 30px;
+              box-shadow: 0 26px 70px rgba(12,21,36,.18); }
+  .darkCard h3 { margin: 0 0 8px; font-size: 20px; font-weight: 700; letter-spacing: -.4px; }
+  .darkCard > p { color: #BCC7D7; font-size: 14px; margin: 0; }
+  .device { background: #122039; border: 1px solid rgba(255,255,255,.13); border-radius: 18px;
+            padding: 22px; margin: 18px 0; }
+  .device b { color: #69A9FF; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 800; }
+  .device h4 { margin: 8px 0 6px; font-size: 19px; font-weight: 700; }
+  .device p { color: #A9B6C9; font-size: 13.5px; margin: 0; line-height: 1.5; }
+  .ticks { display: grid; gap: 10px; font-size: 14px; color: #DDE5EF; }
+  .ticks span::before { content: '✓'; color: #76D7AA; font-weight: 900; margin-right: 9px; }
+
+  /* ── Faixa de números ── */
+  .stats { padding: 0 0 64px; background: #f9fbff; }
+  .statGrid { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line);
+              border-radius: 18px; background: #fff; overflow: hidden; }
+  .stat { padding: 25px; border-right: 1px solid var(--line); }
+  .stat:last-child { border-right: 0; }
+  .stat strong { display: block; font-size: 28px; color: var(--navy); letter-spacing: -1px; }
+  .stat small { color: var(--muted); font-size: 13px; }
+
+  section { padding: 84px 0; }
+  .light { background: var(--bg); }
+  .head { max-width: 780px; margin-bottom: 34px; }
+  .head p { color: var(--muted); font-size: 17px; margin: 0; }
+
+  /* ── Preços ── */
+  .pricebox { border: 1px solid var(--line); border-radius: 20px; overflow: hidden;
+              box-shadow: 0 10px 34px rgba(12,21,36,.06); }
+  table { border-collapse: collapse; width: 100%; background: #fff; }
+  th, td { padding: 20px 22px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #7C8798; background: #FAFBFD; font-weight: 700; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .prod { font-weight: 800; }
+  .desc { font-size: 13px; color: var(--muted); }
+  .old { text-decoration: line-through; color: #8A94A4; }
+  .pay { font-weight: 800; font-size: 19px; }
+  .off { display: inline-block; background: #ECF8F2; color: var(--green); font-size: 12px;
+         font-weight: 800; padding: 5px 9px; border-radius: 999px; }
+  .pricefoot { padding: 20px 22px; background: #F9FBFE; display: flex; justify-content: space-between;
+               gap: 20px; border-top: 1px solid var(--line); }
+  .pricefoot span { font-size: 13px; color: var(--muted); }
+
+  /* ── O que vai junto ── */
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .card { border: 1px solid var(--line); border-radius: 18px; background: #fff; padding: 26px; }
+  .features { display: grid; gap: 14px; }
+  .feature { display: flex; gap: 12px; }
+  .ico { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 9px; background: #EEF5FF;
+         color: var(--blue); display: grid; place-items: center; font-weight: 800; font-size: 12px; }
+  .feature b { display: block; font-size: 15px; }
+  .feature small { color: var(--muted); font-size: 13.5px; }
+  .quote { background: var(--navy); color: #fff; border-radius: 22px; padding: 34px;
+           display: flex; flex-direction: column; justify-content: center; }
+  .quote .big { font-size: 28px; line-height: 1.18; font-weight: 800; letter-spacing: -.7px; }
+  .quote p { color: #BCC7D7; font-size: 14.5px; margin: 18px 0 0; }
+
+  /* ── Passos e condições ── */
+  .steps, .conditions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .step, .cond { border: 1px solid var(--line); border-radius: 18px; background: #fff; padding: 23px; }
+  .step .num { font-size: 11.5px; font-weight: 800; color: var(--blue); margin-bottom: 16px; letter-spacing: .06em; }
+  .step h3, .cond h3 { font-size: 17px; margin: 0 0 7px; font-weight: 700; }
+  .step p, .cond p { font-size: 13.5px; color: var(--muted); margin: 0; }
+
+  /* ── Pedido ── */
+  .orderGrid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 32px; align-items: start; }
+  .formcard, .summary { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 28px; }
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field { display: grid; gap: 7px; }
+  .full { grid-column: 1 / -1; }
+  label { font-size: 13px; font-weight: 700; }
+  input, textarea { width: 100%; padding: 12px 13px; border: 1px solid #D9E0E9; border-radius: 11px;
+                    font: inherit; outline: none; color: inherit; background: #fff; }
+  input:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,115,232,.12); }
+  textarea { min-height: 100px; resize: vertical; }
+  .qty { display: grid; grid-template-columns: 1fr 110px; gap: 15px; align-items: center;
+         padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .qty b { font-size: 14.5px; }
+  .qty span { font-size: 12.5px; color: var(--muted); }
+  .qty input { text-align: center; }
+  .summary { position: sticky; top: 96px; }
+  .summary h3 { margin: 0 0 4px; font-size: 17px; font-weight: 700; }
+  .sumItems { display: grid; gap: 10px; margin: 18px 0; }
+  .sumrow { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; }
+  .total { display: flex; justify-content: space-between; align-items: center;
+           border-top: 1px solid var(--line); padding-top: 18px; }
+  .total strong { font-size: 27px; letter-spacing: -1px; }
+  .min { margin: 16px 0; padding: 12px; border-radius: 12px; background: #FFF5DA; color: #946600;
+         font-size: 13px; font-weight: 700; line-height: 1.45; }
+  .min.ok { background: #ECF8F2; color: var(--green); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .small { font-size: 11.5px; color: #8A94A5; line-height: 1.5; margin: 10px 0 0; }
+  #retorno { margin-top: 14px; font-size: 13.5px; padding: 13px 15px; border-radius: 11px;
+             line-height: 1.5; display: none; }
+  #retorno.erro { display: block; background: #FCE8E6; color: #B3261E; }
+  #retorno.ok { display: block; background: #ECF8F2; color: var(--green); }
+
+  /* ── FAQ e fecho ── */
+  .faq { max-width: 900px; }
+  details { border-bottom: 1px solid var(--line); padding: 18px 0; }
+  summary { font-weight: 700; cursor: pointer; font-size: 15.5px; }
+  details p { color: var(--muted); margin: 10px 0 0; font-size: 14.5px; }
+  .final { background: var(--navy); color: #fff; border-radius: 28px; padding: 45px;
+           display: flex; justify-content: space-between; gap: 30px; align-items: center; }
+  .final h2 { margin: 0 0 10px; }
+  .final p { color: #BCC7D7; max-width: 650px; margin: 0; }
+  .final .btn { background: #fff; color: var(--navy); white-space: nowrap; }
+  footer { padding: 32px 0; background: #FBFCFE; border-top: 1px solid var(--line);
+           font-size: 12.5px; color: #7D8798; }
+  .foot { display: flex; justify-content: space-between; gap: 16px; }
+  .foot a:hover { color: var(--blue); }
+  .mobile { display: none; }
+
+  @media (max-width: 900px) {
+    .heroGrid, .two, .orderGrid { grid-template-columns: 1fr; }
+    .statGrid { grid-template-columns: 1fr 1fr; }
+    .stat:nth-child(2) { border-right: 0; }
+    .steps, .conditions { grid-template-columns: 1fr 1fr; }
+    .summary { position: static; }
+  }
+  @media (max-width: 640px) {
+    .wrap { width: min(100% - 24px, 1160px); }
+    .topin { height: 64px; }
+    .nav a { display: none; }
+    .hero { padding-top: 46px; }
+    h1 { font-size: 40px; letter-spacing: -1.6px; }
+    .heroBtns { display: grid; }
+    .heroBtns .btn { width: 100%; }
+    .stat { padding: 18px 14px; }
+    .stat strong { font-size: 23px; }
+    section { padding: 60px 0; }
+    /* A tabela vira cartões: linha larga em tela estreita rola de lado e o
+       comprador perde o preço de vista bem na hora de decidir. */
+    table thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+    tbody tr { padding: 15px 18px; border-bottom: 1px solid var(--line); }
+    td { border: 0; padding: 5px 0; display: flex; justify-content: space-between; gap: 12px; }
+    td:first-child { display: block; }
+    .pricefoot { display: block; }
+    .pricefoot span { display: block; margin-top: 7px; }
+    .steps, .conditions { grid-template-columns: 1fr; }
+    .fields { grid-template-columns: 1fr; }
+    .full { grid-column: auto; }
+    .qty { grid-template-columns: 1fr 90px; }
+    .final { display: block; padding: 32px 24px; }
+    .final .btn { width: 100%; margin-top: 20px; }
+    .foot { display: block; text-align: center; }
+    .mobile { display: block; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 30;
+              background: var(--blue); color: #fff; padding: 13px; border-radius: 14px;
+              text-align: center; font-weight: 800; box-shadow: 0 10px 28px rgba(26,115,232,.3); }
+    body { padding-bottom: 62px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap topin">
+    <a href="/landing" class="brand"><img src="/startouch-logo.png" alt="StarTouch"/></a>
+    <nav class="nav">
+      <a href="#precos">Preços</a>
+      <a href="#como">Como funciona</a>
+      <a href="#faq">Dúvidas</a>
+      <a href="#pedido" class="btn primary">Fazer pedido</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="wrap heroGrid">
+    <div>
+      <span class="pill">Programa de Revenda StarTouch</span>
+      <h1>Revenda mais do que um cartão NFC.</h1>
+      <p class="lead">Cartão NFC genérico qualquer um importa. O StarTouch chega ao seu cliente com um <strong>painel de gestão de reputação incluso, sem mensalidade obrigatória, para sempre</strong> — avaliações, posição no Google, concorrentes e relatório semanal por e-mail.</p>
+      <p class="lead">Você deixa de competir só por preço e passa a vender uma solução completa, com <strong>mais valor percebido e mais margem.</strong></p>
+      <div class="heroBtns">
+        <a class="btn primary" href="#pedido">Quero revender StarTouch</a>
+        <a class="btn secondary" href="#precos">Ver preços</a>
+      </div>
+      <div class="note">Exclusivo para pessoa jurídica · Pedido mínimo de R$ 800 + frete · NF-e em todo pedido</div>
+    </div>
+
+    <aside class="darkCard">
+      <h3>O dispositivo já vai com o sistema.</h3>
+      <p>Seu cliente ativa em poucos minutos. Você vende. A StarTouch cuida da plataforma.</p>
+      <div class="device">
+        <b>StarTouch</b>
+        <h4>Avaliações no Google</h4>
+        <p>O cliente aproxima o celular e cai direto na página do negócio para avaliar.</p>
+      </div>
+      <div class="ticks">
+        <span>Painel de reputação incluso</span>
+        <span>Sem mensalidade obrigatória</span>
+        <span>Código único por dispositivo</span>
+        <span>Suporte da plataforma com a StarTouch</span>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="wrap">
+    <div class="statGrid">
+      <div class="stat"><strong>até 59%</strong><small>de desconto sobre o varejo</small></div>
+      <div class="stat"><strong>R$ 800</strong><small>pedido mínimo, mais frete</small></div>
+      <div class="stat"><strong>10 dias</strong><small>úteis de produção</small></div>
+      <div class="stat"><strong>R$ 0</strong><small>de mensalidade obrigatória ao cliente</small></div>
+    </div>
+  </div>
+</div>
+
+<section id="precos">
+  <div class="wrap">
+    <div class="head">
+      <span class="pill">Tabela de revenda</span>
+      <h2>Preço simples. Margem clara.</h2>
+      <p>Preço fixo por unidade, sem faixa por volume. O que muda é apenas o pedido mínimo.</p>
+    </div>
+
+    <div class="pricebox">
+      <table>
+        <thead><tr><th>Produto</th><th>Varejo</th><th>Você paga</th><th>Desconto</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><div class="prod">Cartão de Avaliação NFC</div><div class="desc">Tamanho carteira, ideal para atendimento, equipe e balcão.</div></td>
+            <td><span class="old">R$ 29,90</span></td>
+            <td><span class="pay">R$ 13,90</span></td>
+            <td><span class="off">54% off</span></td>
+          </tr>
+          <tr>
+            <td><div class="prod">Placa de Balcão G</div><div class="desc">Acrílico, tamanho grande.</div></td>
+            <td><span class="old">R$ 79,90</span></td>
+            <td><span class="pay">R$ 32,90</span></td>
+            <td><span class="off">59% off</span></td>
+          </tr>
+          <tr>
+            <td><div class="prod">Placa de Balcão M</div><div class="desc">Acrílico, versão compacta.</div></td>
+            <td><span class="old">R$ 49,90</span></td>
+            <td><span class="pay">R$ 22,90</span></td>
+            <td><span class="off">54% off</span></td>
+          </tr>
+          <tr>
+            <td><div class="prod">Pulseira NFC</div><div class="desc">Temporariamente indisponível.</div></td>
+            <td><em class="desc">Esgotada</em></td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pricefoot">
+        <strong>Pedido mínimo: R$ 800 + frete.</strong>
+        <span>Na prática: 58 cartões, 25 placas G ou 35 placas M. Você pode misturar os produtos.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="light">
+  <div class="wrap">
+    <div class="head">
+      <span class="pill">O que vai junto</span>
+      <h2>Seu cliente ativa o produto e ganha o sistema.</h2>
+      <p>Sem assinatura obrigatória, sem cobrança escondida depois e sem prazo para acabar.</p>
+    </div>
+
+    <div class="two">
+      <div class="card">
+        <div class="features">
+          <div class="feature"><span class="ico">01</span><div><b>Avaliações do Google</b><small>Nota e avaliações organizadas no painel, atualizadas sozinhas.</small></div></div>
+          <div class="feature"><span class="ico">02</span><div><b>Posição nas buscas da região</b><small>Com os concorrentes lado a lado.</small></div></div>
+          <div class="feature"><span class="ico">03</span><div><b>Alerta de avaliação ruim</b><small>Aviso por e-mail quando chega uma avaliação que merece atenção.</small></div></div>
+          <div class="feature"><span class="ico">04</span><div><b>Resumo semanal</b><small>Relatório por e-mail toda segunda-feira.</small></div></div>
+          <div class="feature"><span class="ico">05</span><div><b>Link e QR Code próprios</b><small>Funcionam mesmo sem o cartão na mão.</small></div></div>
+          <div class="feature"><span class="ico">06</span><div><b>Troca do negócio vinculado</b><small>O cliente altera o negócio associado quando precisar.</small></div></div>
+        </div>
+      </div>
+
+      <div class="quote">
+        <div class="big">“Um cartão NFC sozinho é commodity. Um cartão com um painel de reputação muda a conversa.”</div>
+        <p>O diferencial ajuda você a justificar o preço de venda e evita cair na guerra de quem vende o cartão mais barato. O plano pago Menu Inteligente é opcional: o produto continua funcionando normalmente sem ele.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="como">
+  <div class="wrap">
+    <div class="head">
+      <span class="pill">Operação simples</span>
+      <h2>Você cuida da venda. A StarTouch cuida da tecnologia.</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">PASSO 01</div><h3>Você faz o pedido</h3><p>Escolhe as quantidades. Retornamos com frete, prazo e nota fiscal.</p></div>
+      <div class="step"><div class="num">PASSO 02</div><h3>Produzimos em até 10 dias úteis</h3><p>Cada unidade sai com identificação única gravada no chip e vinculada ao QR Code.</p></div>
+      <div class="step"><div class="num">PASSO 03</div><h3>Você recebe e revende</h3><p>Os dispositivos chegam prontos para ativação. Sem configuração da sua parte.</p></div>
+      <div class="step"><div class="num">PASSO 04</div><h3>Seu cliente ativa</h3><p>Ele encosta o celular, cria a conta e passa a administrar o próprio painel.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="light">
+  <div class="wrap">
+    <div class="head">
+      <span class="pill">Condições</span>
+      <h2>Sem letras miúdas.</h2>
+    </div>
+    <div class="conditions">
+      <div class="cond"><h3>Somente pessoa jurídica</h3><p>É necessário CNPJ ativo para comprar no atacado.</p></div>
+      <div class="cond"><h3>NF-e em todo pedido</h3><p>Emitimos nota fiscal para o CNPJ informado.</p></div>
+      <div class="cond"><h3>Produção em até 10 dias úteis</h3><p>Prazo contado da confirmação do pagamento, mais o transporte.</p></div>
+      <div class="cond"><h3>Personalização em breve</h3><p>Hoje os dispositivos saem no padrão StarTouch.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="pedido">
+  <div class="wrap">
+    <div class="head">
+      <span class="pill">Fazer um pedido</span>
+      <h2>Monte seu pedido agora.</h2>
+      <p>Você envia a solicitação e recebe o frete fechado, o prazo da sua região e as instruções para pagamento. <strong>Nenhum pagamento acontece nesta página.</strong></p>
+    </div>
+
+    <form id="form-revenda" autocomplete="on">
+      <div class="orderGrid">
+        <div class="formcard">
+          <div class="fields">
+            <div class="field full"><label for="f-razao">Razão social</label><input id="f-razao" required maxlength="120"/></div>
+            <div class="field"><label for="f-cnpj">CNPJ</label><input id="f-cnpj" required inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00"/></div>
+            <div class="field"><label for="f-nome">Seu nome</label><input id="f-nome" required maxlength="80"/></div>
+            <div class="field"><label for="f-email">E-mail</label><input id="f-email" type="email" required maxlength="120"/></div>
+            <div class="field"><label for="f-whats">WhatsApp</label><input id="f-whats" type="tel" required maxlength="20" placeholder="(00) 00000-0000"/></div>
+            <div class="field full"><label for="f-cep">CEP de entrega</label><input id="f-cep" required inputmode="numeric" maxlength="9" placeholder="00000-000"/></div>
+          </div>
+
+          <h3 style="margin:26px 0 4px;font-size:17px;font-weight:700;">Quantidades</h3>
+          <div class="qty"><div><b>Cartão de Avaliação NFC</b><br><span>R$ 13,90 por unidade</span></div><input id="q-cartao" type="number" min="0" max="10000" step="1" value="0" aria-label="Quantidade de cartões"/></div>
+          <div class="qty"><div><b>Placa de Balcão G</b><br><span>R$ 32,90 por unidade</span></div><input id="q-placag" type="number" min="0" max="10000" step="1" value="0" aria-label="Quantidade de placas G"/></div>
+          <div class="qty"><div><b>Placa de Balcão M</b><br><span>R$ 22,90 por unidade</span></div><input id="q-placam" type="number" min="0" max="10000" step="1" value="0" aria-label="Quantidade de placas M"/></div>
+
+          <div class="field" style="margin-top:20px"><label for="f-obs">Observações (opcional)</label><textarea id="f-obs" maxlength="600" placeholder="Prazo desejado, dúvidas sobre entrega, o que for."></textarea></div>
+        </div>
+
+        <aside class="summary">
+          <h3>Seu pedido</h3>
+          <p class="desc">O cálculo é atualizado automaticamente.</p>
+          <div id="items" class="sumItems"><span class="desc">Nenhum item ainda.</span></div>
+          <div class="total"><span><b>Total</b></span><strong id="total">R$ 0,00</strong></div>
+          <div id="min" class="min">Faltam R$ 800,00 para atingir o pedido mínimo.</div>
+          <button id="send" class="btn primary" style="width:100%" type="submit" disabled>Enviar pedido</button>
+          <p class="small">O frete não está incluído neste total. Ele é calculado pelo peso do pedido e pelo CEP informado, e vai na nossa resposta junto com o prazo de entrega.</p>
+          <div id="retorno" role="status"></div>
+        </aside>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section id="faq" class="light">
+  <div class="wrap">
+    <div class="head">
+      <span class="pill">Perguntas frequentes</span>
+      <h2>Dúvidas antes de começar?</h2>
+    </div>
+    <div class="faq">
+      <details><summary>Preciso pagar alguma coisa para revender?</summary><p>Não. Não há taxa de adesão, mensalidade nem exclusividade. Você compra os dispositivos e revende pelo preço que quiser.</p></details>
+      <details><summary>O painel do meu cliente é mesmo grátis para sempre?</summary><p>Sim. Os recursos gratuitos que acompanham o dispositivo permanecem disponíveis sem mensalidade. Existe um plano pago opcional, o Menu Inteligente, que o cliente contrata somente se quiser — e o produto funciona igual se ele nunca contratar.</p></details>
+      <details><summary>Quem dá suporte ao cliente final?</summary><p>A ativação é feita pelo próprio cliente e o suporte da plataforma é da StarTouch. Você cuida da venda; a plataforma cuida do resto.</p></details>
+      <details><summary>Posso colocar minha marca nos dispositivos?</summary><p>Ainda não. Hoje os dispositivos saem no padrão StarTouch. A personalização está em desenvolvimento e será oferecida como etapa seguinte.</p></details>
+      <details><summary>Como funciona o frete?</summary><p>Calculamos pelo peso do pedido e pelo CEP de entrega. O valor e o prazo são informados antes de qualquer pagamento.</p></details>
+      <details><summary>Qual o prazo total até eu receber?</summary><p>São até 10 dias úteis de produção, contados da confirmação do pagamento, mais o prazo de transporte até a sua região.</p></details>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="final">
+      <div>
+        <h2>Pronto para sair da guerra de preço?</h2>
+        <p>Monte seu primeiro pedido e venda ao seu cliente um dispositivo que já chega acompanhado de um painel de reputação — sem mensalidade obrigatória para ele, e sem nada a manter da sua parte.</p>
+      </div>
+      <a href="#pedido" class="btn">Montar meu pedido</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>StarTouch · Revenda exclusiva para pessoa jurídica</div>
+    <div><a href="/termos">Termos</a> · <a href="/privacidade">Privacidade</a></div>
+  </div>
+</footer>
+
+<a class="mobile" href="#pedido">Quero revender StarTouch</a>
+
+<script>
+(function () {
+  // Preços em CENTAVOS, espelhando api/revenda.js — que é quem manda. Aqui é só
+  // para o comprador ver o total antes de enviar: o servidor recalcula do zero
+  // e ignora qualquer valor que venha desta página.
+  var PRECOS = {
+    cartao: { nome: "Cartão NFC",  centavos: 1390, campo: "q-cartao" },
+    placag: { nome: "Placa G",     centavos: 3290, campo: "q-placag" },
+    placam: { nome: "Placa M",     centavos: 2290, campo: "q-placam" }
+  };
+  var MINIMO = 80000;
+  var $ = function (id) { return document.getElementById(id); };
+  var brl = function (c) { return (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); };
+
+  function qtds() {
+    var o = {};
+    Object.keys(PRECOS).forEach(function (k) {
+      var v = parseInt($(PRECOS[k].campo).value, 10);
+      o[k] = (isFinite(v) && v > 0) ? Math.min(v, 10000) : 0;
+    });
+    return o;
+  }
+
+  function calc() {
+    var q = qtds(), t = 0, linhas = "";
+    Object.keys(PRECOS).forEach(function (k) {
+      if (!q[k]) return;
+      var sub = q[k] * PRECOS[k].centavos;
+      t += sub;
+      linhas += '<div class="sumrow"><span>' + PRECOS[k].nome + " × " + q[k] + "</span><b>" + brl(sub) + "</b></div>";
+    });
+    $("items").innerHTML = linhas || '<span class="desc">Nenhum item ainda.</span>';
+    $("total").textContent = brl(t);
+    if (t >= MINIMO) {
+      $("min").className = "min ok";
+      $("min").textContent = "Pedido mínimo atingido. Você já pode enviar a solicitação.";
+      $("send").disabled = false;
+    } else {
+      $("min").className = "min";
+      $("min").textContent = "Faltam " + brl(MINIMO - t) + " para atingir o pedido mínimo de R$ 800,00.";
+      $("send").disabled = true;
+    }
+  }
+
+  Object.keys(PRECOS).forEach(function (k) { $(PRECOS[k].campo).addEventListener("input", calc); });
+
+  $("f-cnpj").addEventListener("input", function (e) {
+    var v = e.target.value.replace(/\D/g, "").slice(0, 14);
+    e.target.value = v.replace(/^(\d{2})(\d)/, "$1.$2")
+                      .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+                      .replace(/\.(\d{3})(\d)/, ".$1/$2")
+                      .replace(/(\d{4})(\d)/, "$1-$2");
+  });
+  $("f-cep").addEventListener("input", function (e) {
+    var v = e.target.value.replace(/\D/g, "").slice(0, 8);
+    e.target.value = v.replace(/^(\d{5})(\d)/, "$1-$2");
+  });
+
+  $("form-revenda").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var btn = $("send"), ret = $("retorno");
+    if (btn.disabled) return;
+    ret.className = ""; ret.textContent = "";
+    btn.disabled = true; btn.textContent = "Enviando…";
+
+    fetch("/api/revenda", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        razao: $("f-razao").value.trim(),
+        cnpj: $("f-cnpj").value.trim(),
+        nome: $("f-nome").value.trim(),
+        email: $("f-email").value.trim(),
+        whatsapp: $("f-whats").value.trim(),
+        cep: $("f-cep").value.trim(),
+        observacoes: $("f-obs").value.trim(),
+        itens: qtds()
+      })
+    })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.j || !res.j.ok) throw new Error((res.j && res.j.error) || "Não consegui enviar agora.");
+        ret.className = "ok";
+        ret.textContent = "Pedido recebido. Respondemos com o frete, o prazo e a nota fiscal em até um dia útil, no e-mail e no WhatsApp informados.";
+        btn.textContent = "Pedido enviado";
+        if (window.gtag) gtag("event", "generate_lead", { event_category: "revenda" });
+      })
+      .catch(function (e) {
+        ret.className = "erro";
+        ret.textContent = e.message;
+        btn.disabled = false;
+        btn.textContent = "Enviar pedido";
+      });
+  });
+
+  calc();
+})();
+</script>
+
+</body>
+</html>
