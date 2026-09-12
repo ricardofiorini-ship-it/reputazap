@@ -96,7 +96,7 @@ export default async function handler(req, res) {
   const stats = {
     week, dry, started_at: new Date().toISOString(),
     businesses: 0, sent: 0, alerts_sent: 0, lista_cheia: 0, skipped_disabled: 0, skipped_dedupe: 0,
-    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0, serie_pronta: null, novas_exatas: 0, meta_enviada: 0, marco_contraditorio: 0, freio_do_resend: 0,
+    skipped_no_email: 0, nao_consegui_perguntar: 0, barrados_pelo_freio: 0, serie_gravada: 0, serie_pronta: null, novas_exatas: 0, semana_sem_contagem: 0, meta_enviada: 0, marco_contraditorio: 0, freio_do_resend: 0,
     errors: [], recipients: [], took_ms: 0
   };
   const t0 = Date.now();
@@ -432,6 +432,10 @@ export default async function handler(req, res) {
         // "-3 avaliacoes" pra quem nao fez nada de errado.
         if (delta >= 0) { novasNaSemana = delta; novasAoMenos = false; stats.novas_exatas++; }
       }
+      // Quantos ficaram SEM a linha da semana por nao dar pra contar. E o preco
+      // da honestidade, e precisa ter tamanho: se for alto, vale apressar a
+      // subtracao pela serie em vez de deixar meio boletim mudo por duas semanas.
+      if (novasAoMenos && novasNaSemana > 0) stats.semana_sem_contagem++;
 
       // Grava ANTES de qualquer desistencia de envio — ver comentario acima.
       await gravaSerie(biz.id, rv.rating ?? bi.rating ?? null, totalReviews);
