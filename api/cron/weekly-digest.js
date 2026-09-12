@@ -19,7 +19,7 @@
 //   ?to=email (manda TUDO pra esse email, ignora destinatário real — debug).
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
-import { sendTransactionalEmail } from "../_lib/email-sender.js";
+import { sendTransactionalEmail, sendRawEmail } from "../_lib/email-sender.js";
 import {
   weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia,
   // O alerta de nota baixa agora sai daqui (ver nota no loop) — o cron diário morreu.
@@ -569,5 +569,73 @@ export default async function handler(req, res) {
 
   stats.took_ms = Date.now() - t0;
   console.log("[cron/weekly-digest] concluído:", JSON.stringify({ ...stats, recipients: stats.recipients.length }));
+
+  // ── RECIBO PRO ADMIN (12/09/2026) ────────────────────────────────────
+  // Até aqui o resultado da rodada existia só no log da Vercel — ou seja, só
+  // pra quem soubesse onde procurar, e apagado depois de um tempo. Uma rodada
+  // que entrega 118 e-mails e some sem deixar recibo é a mesma familia de
+  // problema que este arquivo passou o dia inteiro consertando: o silêncio
+  // parecendo sucesso.
+  //
+  // Agora ele se reporta. Os números que importam vão pro e-mail do admin
+  // assim que a rodada fecha, toda segunda, sem ninguém precisar perguntar.
+  //
+  // NUNCA DERRUBA O CRON: o envio inteiro vive num try/catch e é AGUARDADO
+  // antes do res.json — em serverless, promessa não-aguardada é cortada no
+  // meio quando a resposta sai.
+  if (!dry) {
+    try {
+      const admin = process.env.ADMIN_NOTIFICATIONS_EMAIL;
+      if (!admin) {
+        console.warn("[weekly-digest] ADMIN_NOTIFICATIONS_EMAIL ausente — recibo da rodada não enviado.");
+      } else {
+        const seg = (n) => `${(n / 1000).toFixed(0)}s`;
+        const linha = (rot, val, obs = "") => `
+          <tr>
+            <td style="padding:8px 10px;border-bottom:1px solid #eef0f3;font-size:13.5px;color:#5F6368;">${rot}</td>
+            <td style="padding:8px 10px;border-bottom:1px solid #eef0f3;font-size:15px;font-weight:700;color:#202124;text-align:right;white-space:nowrap;">${val}</td>
+            <td style="padding:8px 10px;border-bottom:1px solid #eef0f3;font-size:12px;color:#9AA0A6;">${obs}</td>
+          </tr>`;
+
+        const erros = stats.errors.slice(0, 5)
+          .map((e) => `<li style="font-size:12px;color:#8C1A17;">${e.business_id}: ${e.error}</li>`).join("");
+
+        const html = `
+          <div style="font-family:Arial,Helvetica,sans-serif;max-width:620px;margin:0 auto;padding:22px;">
+            <h1 style="font-size:19px;color:#202124;margin:0 0 4px;">Resumo semanal enviado</h1>
+            <p style="font-size:13.5px;color:#5F6368;margin:0 0 16px;">Semana de ${week} · rodou em ${seg(stats.took_ms)}</p>
+            <table width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5e7eb;border-radius:10px;">
+              ${linha("E-mails enviados", stats.sent, `de ${stats.businesses} negócios processados`)}
+              ${linha("Tempo da rodada", seg(stats.took_ms), "teto de 300s")}
+              ${linha("Histórico gravado", stats.serie_gravada, stats.serie_pronta === false ? "TABELA INDISPONÍVEL" : "linhas em review_history")}
+              ${linha("Receberam meta de concorrente", stats.meta_enviada, "depende de medição fresca da região")}
+              ${linha("Sem contagem da semana", stats.semana_sem_contagem, "o número do Google bateu no teto de 5")}
+              ${linha("Estamos cegos a negativas", stats.lista_cheia || 0, "lista do Google cheia de avaliações da semana")}
+              ${linha("Contagem exata por subtração", stats.novas_exatas, "zero até a série ter 2 semanas")}
+              ${linha("Pulados: pediram pra sair", stats.skipped_disabled, "")}
+              ${linha("Pulados: já receberam", stats.skipped_dedupe, "re-execução na mesma semana")}
+              ${linha("Não consegui consultar", stats.nao_consegui_perguntar, stats.barrados_pelo_freio ? `${stats.barrados_pelo_freio} barrados pelo freio` : "")}
+              ${linha("Rajada barrada pelo Resend", stats.freio_do_resend, "retentadas automaticamente")}
+              ${linha("Alertas de avaliação negativa", stats.alerts_sent, "e-mails separados")}
+            </table>
+            ${erros ? `<p style="font-size:13px;color:#202124;font-weight:700;margin:16px 0 6px;">Primeiros erros</p><ul style="margin:0;padding-left:18px;">${erros}</ul>` : ""}
+            <p style="font-size:11.5px;color:#9AA0A6;margin-top:18px;line-height:1.6;">
+              Recibo automático do cron weekly-digest. Se este e-mail não chegar numa segunda-feira,
+              a rodada não terminou — e isso é o próprio aviso.
+            </p>
+          </div>`;
+
+        const r = await sendRawEmail({
+          to: admin,
+          subject: `Resumo semanal: ${stats.sent} enviados em ${seg(stats.took_ms)}`,
+          html,
+        });
+        if (r?.error) console.warn(`[weekly-digest] recibo não saiu: ${r.error}`);
+      }
+    } catch (e) {
+      console.warn(`[weekly-digest] recibo falhou: ${e?.message || e}`);
+    }
+  }
+
   return res.status(200).json(stats);
 }
