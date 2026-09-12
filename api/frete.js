@@ -28,8 +28,13 @@ import { limitou, LIMITES } from "./_lib/rate-limit.js";
 
 const FRENET_URL = "https://api.frenet.com.br/shipping/quote";
 
-// CEP de onde a mercadoria sai. Sem ele a Frenet não cota nada.
-const CEP_ORIGEM = (process.env.FRENET_CEP_ORIGEM || "").replace(/\D/g, "");
+// CEP de onde a mercadoria SAI (não é o endereço da empresa: é de onde o
+// pacote é postado). Informado pelo Ricardo em 12/09/2026.
+//
+// Fica no código, com a env como atalho pra trocar sem deploy, porque não é
+// segredo — e porque assim a configuração na Vercel vira UMA variável só (o
+// token). Menos coisa pra esquecer é menos jeito de isto falhar calado.
+const CEP_ORIGEM = (process.env.FRENET_CEP_ORIGEM || "05086010").replace(/\D/g, "");
 
 // Quantas opções devolver pro cliente escolher. A Stripe aceita no máximo 5
 // `shipping_options` por sessão, e mais que isso na tela também vira ruído.
@@ -138,10 +143,10 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return respostaDeErro(res, 405, "Method not allowed");
 
   const token = process.env.FRENET_TOKEN;
-  if (!token || !CEP_ORIGEM) {
+  if (!token || CEP_ORIGEM.length !== 8) {
     // Não é erro do cliente e não pode ser confundido com "não entregamos aí".
     console.error(
-      `[frete] configuração faltando: ${!token ? "FRENET_TOKEN " : ""}${!CEP_ORIGEM ? "FRENET_CEP_ORIGEM" : ""}`.trim()
+      `[frete] configuração faltando: ${!token ? "FRENET_TOKEN " : ""}${CEP_ORIGEM.length !== 8 ? `CEP de origem inválido ("${CEP_ORIGEM}")` : ""}`.trim()
     );
     return respostaDeErro(res, 503, "O cálculo de frete está indisponível no momento.", { motivo: "config" });
   }
