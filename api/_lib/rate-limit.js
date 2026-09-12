@@ -178,5 +178,10 @@ export const LIMITES = {
   // Revenda: formulario publico que dispara e-mail. Aperta mais que os
   // outros porque cada envio vira uma mensagem na caixa do admin — laco
   // aqui nao gasta Google, gasta paciencia e cota do Resend.
-  revenda:     { nome: "revenda",     porIpHora: 8, globalDia: 120 }
+  revenda:     { nome: "revenda",     porIpHora: 8, globalDia: 120 },
+  // Frete: cada cotacao e uma chamada paga na cota da Frenet, e quem esta
+  // comprando refaz a conta algumas vezes (troca o CEP, muda a quantidade).
+  // Folgado o bastante pra ninguem esbarrar comprando, apertado o bastante
+  // pra um laco nao queimar a cota — que, se acabar, derruba TODO checkout.
+  frete:       { nome: "frete",       porIpHora: 40, globalDia: 800 }
 };

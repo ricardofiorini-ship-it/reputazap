@@ -6,6 +6,7 @@ import crypto from "crypto";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
 import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia } from "./_lib/email-templates.js";
 import { resolvePlano } from "./_lib/plan.js";
+import { KIT_CATALOG } from "./_lib/catalogo-kit.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -156,42 +157,6 @@ async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents,
   }
 }
 
-// Catalogo do kit — fonte de verdade pra preços. Deve refletir public/kit.html.
-// Preços em centavos. soldOut: true bloqueia o item no checkout.
-const KIT_CATALOG = {
-  "placa-balcao": {
-    name: "Placa de Balcão G",
-    description: "Placa NFC de balcão tamanho G — PS preto 2 mm. Cliente aproxima o celular e avalia no Google em segundos.",
-    price_cents: 7990,
-    image: "https://startouch.com.br/gadget-placa.png",
-    category_id: "electronics",
-    soldOut: false
-  },
-  "placa-mesa": {
-    name: "Placa de Balcão M",
-    description: "Placa NFC de balcão tamanho M — versão compacta, perfeita pra balcões menores e mesas.",
-    price_cents: 4990,
-    image: "https://startouch.com.br/gadget-placa.png",
-    category_id: "electronics",
-    soldOut: false
-  },
-  "cartao-nfc": {
-    name: "Cartão de Avaliação NFC",
-    description: "Cartão NFC tamanho carteira. Ideal pra atendimento, networking e aproximação rápida.",
-    price_cents: 2990,
-    image: "https://startouch.com.br/gadget-cartao.png",
-    category_id: "electronics",
-    soldOut: false
-  },
-  "pulseira": {
-    name: "Pulseira NFC",
-    description: "Pulseira NFC pra atendimento e experiências em eventos.",
-    price_cents: 10990,
-    image: "https://startouch.com.br/gadget-pulseira.png",
-    category_id: "electronics",
-    soldOut: true
-  }
-};
 
 // Preço do plano Pro mensal (em reais, NUMBER)
 const PRO_MONTHLY_PRICE = 19.90;
