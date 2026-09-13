@@ -124,6 +124,34 @@
   .btn-checkout:disabled{opacity:.45;cursor:not-allowed;transform:none;}
   .cart-secure{text-align:center;font-size:11.5px;color:#94a3b8;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:5px;}
 
+  /* Guia de escolha. Fica ANTES dos cards de proposito: a duvida vem antes
+     da vitrine, e depois que a pessoa ja esta comparando preco e tarde. */
+  .guia{
+    background:#fff;border:1px solid #e8ecf1;border-radius:16px;
+    padding:20px;margin-bottom:22px;
+  }
+  .guia-titulo{
+    font-family:'Inter','General Sans',sans-serif;
+    font-size:15px;font-weight:700;color:#0f172a;
+    margin:0 0 14px;letter-spacing:-0.01em;
+  }
+  .guia-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+  .guia-item p{font-size:13.5px;color:#475569;line-height:1.55;margin:5px 0 0;}
+  .guia-item strong{color:#0f172a;font-weight:600;}
+  .guia-tag{
+    display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.02em;
+    color:#1e40af;background:#eff6ff;border-radius:999px;padding:3px 10px;
+  }
+  .guia-dica{
+    font-size:13px;color:#475569;line-height:1.6;
+    margin:16px 0 0;padding-top:14px;border-top:1px solid #eef2f6;
+  }
+  .guia-dica strong{color:#0f172a;font-weight:600;}
+  @media(min-width:760px){
+    .guia{padding:24px 26px;}
+    .guia-grid{grid-template-columns:repeat(3,1fr);gap:22px;}
+  }
+
   /* Trust signals (entre cards e barra mobile/footer) */
   .trust-signals{
     margin-top:40px;
@@ -217,13 +245,32 @@
 
 <div class="kit-wrap">
   <header class="kit-head">
-    <h1>Dispositivos para o seu negócio crescer</h1>
-    <p class="kit-sub">Equipamentos pra <strong id="bizName">seu negócio</strong> coletar mais avaliações</p>
+    <h1>Escolha onde o cliente vai avaliar</h1>
+    <p class="kit-sub">Cada dispositivo é um lugar a mais onde alguém pode avaliar <strong id="bizName">seu negócio</strong> no Google em segundos, sem instalar nada.</p>
     <div class="kit-info">
       <span>🚚 Frete grátis pra todo Brasil</span>
-      <span>✓ Pagamento seguro via Stripe</span>
+      <span>⭐ Painel StarTouch incluso, de graça</span>
     </div>
   </header>
+
+  <section class="guia" aria-label="Qual escolher">
+    <h2 class="guia-titulo">Qual escolher?</h2>
+    <div class="guia-grid">
+      <div class="guia-item">
+        <span class="guia-tag">Placa G · 21 × 15 cm</span>
+        <p>Para o <strong>balcão, a recepção, o caixa</strong> — onde o cliente já para e espera. É a maior, lê de longe e ninguém precisa pegar na mão.</p>
+      </div>
+      <div class="guia-item">
+        <span class="guia-tag">Placa M · 10 × 15 cm</span>
+        <p>A mesma placa em <strong>mesas, bancadas e cantos apertados</strong>, onde a G não cabe. Mesmo alcance, menos espaço ocupado.</p>
+      </div>
+      <div class="guia-item">
+        <span class="guia-tag">Cartão · 8,5 × 5,4 cm</span>
+        <p><strong>Um para cada pessoa que atende.</strong> Vai no bolso e sai junto com o atendimento — é o único que acompanha o cliente em vez de esperar por ele.</p>
+      </div>
+    </div>
+    <p class="guia-dica">Se for começar por algo: <strong>uma placa onde o cliente espera</strong> e <strong>um cartão para cada atendente</strong>. Dá pra acrescentar depois — cada dispositivo tem código próprio e entra no mesmo painel.</p>
+  </section>
 
   <div class="kit-layout">
     <div class="products-grid" id="productsGrid">
