@@ -186,7 +186,10 @@ export default async function handler(req, res) {
          <tr><td colspan="3" style="padding:9px 10px;border-top:1px solid #eef0f3;font-size:12px;color:#9AA0A6;line-height:1.6;">
            Prazo já inclui os ${DIAS_DE_PRODUCAO} dias úteis de produção.
            Pacote estimado: ${frete.pacote ? `${frete.pacote.Length}×${frete.pacote.Width}×${frete.pacote.Height} cm · ${String(frete.pacote.Weight).replace(".", ",")} kg` : "—"}.
-           <strong>Confira antes de fechar</strong> — peso e caixa ainda são estimados, não medidos.
+           ${frete.pacote && frete.pacote.Weight > 30
+             ? `<br/><strong style="color:#B3261E;">Passa de 30 kg</strong> — os Correios não aceitam volume acima disso, então na prática vai em mais de uma caixa e o preço acima está subestimado. Cote na mão este.`
+             : ""}
+           <br/>Peso é medido; a <strong>caixa ainda é estimada</strong>. Confira contra o que você pagar.
          </td></tr>
        </table>`;
 

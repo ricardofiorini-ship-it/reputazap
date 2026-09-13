@@ -46,9 +46,14 @@ export const KIT_CATALOG = {
 
 
 // ── Dados de despacho (para a cotação de frete) ───────────────
-// PROVISÓRIO — ESTIMADO, NÃO MEDIDO (12/09/2026). Calculado a partir das
-// medidas publicadas no site (PS 2 mm, densidade do poliestireno ≈ 1,05 g/cm³)
-// mais uma margem de embalagem. Ricardo vai conferir com balança e régua.
+// PESO: MEDIDO pelo Ricardo em 12/09/2026 (cartão 50 g, placa M 350 g,
+// placa G 500 g). As estimativas anteriores erravam MUITO pra menos — 20 g,
+// 100 g e 150 g —, o que teria cobrado frete abaixo do real em todo pedido de
+// revenda. É a diferença entre calcular e adivinhar.
+//
+// CAIXA: ainda estimada. O Ricardo vai conferir na medida das vendas. Fica
+// anotado qual metade é medida e qual é chute, porque tratar as duas como
+// iguais é o jeito de nunca mais conferir nenhuma.
 //
 // O QUE MAIS PESA NO PREÇO AQUI NÃO É O PESO: Correios e transportadora cobram
 // pelo maior entre o peso real e o "peso cubado" (comprimento × largura ×
@@ -68,17 +73,17 @@ export const KIT_CATALOG = {
 // cabem numa caixa que cuba menos de 1 kg. O frete sairia pelo TRIPLO.
 export const LOGISTICA = {
   "placa-balcao": {
-    peso: 0.150, comprimento: 24, largura: 18, altura: 4,
+    peso: 0.500, comprimento: 24, largura: 18, altura: 4,
     // 21 x 15 cm publicados no site; 0,5 cm e a espessura empilhada (chapa de
     // PS 2 mm + a peca da base).
     bruto: { comprimento: 21, largura: 15, altura: 0.5 }
   },
   "placa-mesa": {
-    peso: 0.100, comprimento: 18, largura: 16, altura: 4,
+    peso: 0.350, comprimento: 18, largura: 16, altura: 4,
     bruto: { comprimento: 15, largura: 10, altura: 0.5 }
   },
   "cartao-nfc": {
-    peso: 0.020, comprimento: 16, largura: 11, altura: 2,
+    peso: 0.050, comprimento: 16, largura: 11, altura: 2,
     // Tamanho de cartao de credito; 0,9 mm de espessura.
     bruto: { comprimento: 8.5, largura: 5.4, altura: 0.09 }
   },
