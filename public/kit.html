@@ -57,6 +57,19 @@
   .product-card.selected{border-color:#1A73E8;box-shadow:0 8px 24px -8px rgba(0,196,154,0.25);}
   .product-image{position:relative;background:linear-gradient(135deg,#f5f7f9,#eef2f6);border-radius:14px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:16px;margin-bottom:14px;overflow:hidden;}
   .product-image img{max-width:100%;max-height:100%;object-fit:contain;display:block;filter:drop-shadow(0 4px 12px rgba(60,64,67,0.12));}
+  /* Produto menor aparece menor. A classe `small` ja era escrita no HTML e
+     nao tinha regra nenhuma no CSS: a placa de 10x15 e a de 21x15 saiam do
+     mesmo tamanho, na tela em que a diferenca entre as duas E a decisao. */
+  .product-image.small img{max-width:68%;max-height:68%;}
+  /* O tamanho, na foto, onde o olho bate primeiro. Sem isto, a unica pista
+     ficava perdida no meio da lista de especificacoes. */
+  .product-size{
+    position:absolute;top:10px;left:10px;z-index:2;
+    background:rgba(15,23,42,.82);color:#fff;
+    font-size:11px;font-weight:700;letter-spacing:.02em;
+    padding:4px 9px;border-radius:999px;
+    backdrop-filter:saturate(140%) blur(2px);
+  }
   .product-badge-soldout{
     position:absolute;top:14px;right:14px;
     background:#0f172a;color:#fff;
@@ -334,6 +347,7 @@
 const PRODUCTS = [
   {
     id: "placa-balcao", name: "Placa de Balcão G", price: 79.90, small: false,
+    size: "21 × 15 cm",
     descTemplate: "PS preto de 2 mm com NFC + QR Code. O cliente toca o celular e avalia no Google em segundos.",
     image: "/gadget-placa.png",
     images: ["/gadget-placa.png", "/placa-g-2.png", "/placa-g-3.png", "/placa-g-4.png", "/placa-g-5.png"],
@@ -341,13 +355,15 @@ const PRODUCTS = [
   },
   {
     id: "placa-mesa", name: "Placa de Balcão M", price: 49.90, small: true,
+    size: "10 × 15 cm",
     descTemplate: "A mesma placa NFC + QR Code, em versão compacta — pra balcões menores, mesas e recepções.",
-    image: "/placa-m-1.png",
-    images: ["/placa-m-1.png", "/placa-m-2.png", "/placa-m-3.png", "/placa-m-4.png"],
+    image: "/placa-m-2.png",
+    images: ["/placa-m-2.png", "/placa-m-3.png", "/placa-m-4.png"],
     specs: ["10 × 15 cm — compacta", "PS preto 2 mm", "Sem app — o cliente não instala nada", "NFC + QR Code de fallback"]
   },
   {
     id: "cartao-nfc", name: "Cartão de Avaliação NFC", price: 29.90, small: true,
+    size: "8,5 × 5,4 cm",
     descTemplate: "Do tamanho de um cartão de crédito. Ideal pra atendimento e um cartão por vendedor.",
     image: "/cartao-1.png",
     images: ["/cartao-1.png", "/cartao-2.png", "/cartao-3.png", "/cartao-4.png", "/cartao-5.png", "/cartao-6.png"],
@@ -401,6 +417,7 @@ function renderProducts() {
     return `
     <article class="product-card${p.soldOut ? ' sold-out' : ''}" id="card-${p.id}">
       <div class="product-image${p.small ? ' small' : ''}">
+        ${p.size ? `<span class="product-size">${p.size}</span>` : ""}
         <img id="main-${p.id}" src="${imgs[0]}" alt="${p.name}" loading="lazy"/>
         ${p.soldOut ? '<span class="product-badge-soldout">ESGOTADO</span>' : ''}
       </div>

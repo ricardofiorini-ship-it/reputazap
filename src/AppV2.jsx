@@ -235,8 +235,8 @@ const MOCK = {
     },
     {
       id:'placa-mesa', name:'Placa de Balcão M', price:'R$ 49,90',
-      img:'/placa-m-1.png',
-      images:['/placa-m-1.png','/placa-m-2.png','/placa-m-3.png','/placa-m-4.png'],
+      img:'/placa-m-2.png',
+      images:['/placa-m-2.png','/placa-m-3.png','/placa-m-4.png'],
       desc:'A mesma placa NFC + QR Code, em versão compacta — pra balcões menores, mesas e recepções.',
       specs:['10 × 15 cm — compacta','PS preto 2 mm','Sem app — o cliente não instala nada','NFC + QR Code de fallback'],
       buyUrl:'/kit?add=placa-mesa'
@@ -4483,7 +4483,7 @@ const PRODUCT_ICONS = {
 // pontos de captação). Fallback pra placa de balcão.
 const PRODUCT_IMAGES = {
   placa_balcao: '/gadget-placa.png',
-  placa_mesa:   '/placa-m-1.png',
+  placa_mesa:   '/placa-m-2.png',
   placa_parede: '/gadget-placa.png',
   pulseira_nfc: '/gadget-pulseira.png',
   cartao_nfc:   '/cartao-1.png'
