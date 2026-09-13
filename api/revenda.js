@@ -18,6 +18,8 @@ import { createClient } from "@supabase/supabase-js";
 import { sendRawEmail } from "./_lib/email-sender.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
 import { cotaFrete } from "./_lib/frenet.js";
+import Stripe from "stripe";
+import crypto from "crypto";
 
 const supabase = (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY)
   ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY, { auth: { persistSession: false } })
@@ -38,6 +40,20 @@ const MAX_UNIDADES = 10000;
 // mesmo produto ja existiam aqui; o que nao pode e o frete e o preco
 // discordarem sobre QUAL item e.
 const ALIASES_CATALOGO = { cartao: "cartao-nfc", placag: "placa-balcao", placam: "placa-mesa" };
+
+// Acima deste peso a conta de UM volume deixa de valer: os Correios nao aceitam
+// volume acima de 30 kg, e a carga vai em mais de uma caixa. Cotar assim
+// mesmo daria um numero baixo demais, e a diferenca sairia do nosso bolso em
+// silencio. Pedido desse tamanho volta pro caminho antigo — solicitacao de
+// orcamento, com uma pessoa olhando.
+const PESO_MAX_UM_VOLUME = 30;
+
+let _stripe;
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY nao configurada");
+  if (!_stripe) _stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  return _stripe;
+}
 
 // Dias uteis de producao antes de postar. O numero e do Ricardo e ja esta
 // publicado na pagina de revenda — fica aqui pra somar ao prazo da
@@ -68,6 +84,72 @@ function cnpjValido(bruto) {
   return Number(n[12]) === digito(n.slice(0, 12)) && Number(n[13]) === digito(n.slice(0, 13));
 }
 
+// Le e valida o corpo do pedido. Os TRES caminhos (cotar frete, pagar, pedir
+// orcamento) precisam exatamente da mesma validacao — e validacao duplicada e
+// a forma classica de um caminho ficar mais frouxo que o outro sem ninguem ver.
+// `exigirCliente` e falso na hora de COTAR o frete: a pessoa digita o CEP
+// antes de preencher razao social e CNPJ, e recusar a cotacao por isso daria
+// um erro sobre campo obrigatorio pra quem so queria saber o preco da entrega.
+// Na hora de PAGAR, exige tudo.
+function lePedido(b, { exigirCliente = true } = {}) {
+  const c = {
+    razao: limpo(b.razao, 120),
+    cnpj: limpo(b.cnpj, 18),
+    nome: limpo(b.nome, 80),
+    email: limpo(b.email, 120),
+    whatsapp: limpo(b.whatsapp, 20),
+    cep: limpo(b.cep, 9),
+    observacoes: limpo(b.observacoes, 600),
+  };
+
+  // O CEP e os itens valem sempre: sao o que define o frete.
+  if (String(c.cep).replace(/\D/g, "").length !== 8) return { erro: "Confira o CEP informado." };
+
+  if (exigirCliente) {
+    if (!c.razao || !c.nome || !c.email || !c.whatsapp) {
+      return { erro: "Faltou preencher um dos campos obrigatórios." };
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)) return { erro: "Confira o e-mail informado." };
+    if (!cnpjValido(c.cnpj)) {
+      return { erro: "Esse CNPJ não confere. A revenda é somente para pessoa jurídica." };
+    }
+  }
+
+  const itens = [];
+  let total = 0;
+  for (const [id, prod] of Object.entries(REVENDA)) {
+    const q = parseInt((b.itens || {})[id], 10);
+    if (!Number.isFinite(q) || q <= 0) continue;
+    if (q > MAX_UNIDADES) {
+      return { erro: `Quantidade acima do que dá pra pedir por aqui em ${prod.nome}. Fale com a gente.` };
+    }
+    const sub = q * prod.centavos;
+    total += sub;
+    itens.push({ id, nome: prod.nome, qtd: q, unitario: prod.centavos, subtotal: sub });
+  }
+
+  if (!itens.length) return { erro: "Escolha ao menos um produto." };
+  if (total < MINIMO_CENTAVOS) {
+    return { erro: `O pedido mínimo é ${brl(MINIMO_CENTAVOS)} sem o frete. Faltam ${brl(MINIMO_CENTAVOS - total)}.` };
+  }
+
+  return { cliente: c, itens, total };
+}
+
+// Cota o frete do pedido. Sempre pelos NOSSOS numeros: quantidade vem do
+// corpo, mas peso, caixa e preco saem do catalogo do servidor.
+async function cotaPedido(itens, total, cep) {
+  return await cotaFrete({
+    cep,
+    items: itens.map((i) => ({ id: i.id, qty: i.qtd })),
+    aliases: ALIASES_CATALOGO,
+    modo: "consolidado",
+    checarEstoque: false,
+    maxQtd: MAX_UNIDADES,
+    valorCentavos: total,
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "Método não permitido" });
 
@@ -76,47 +158,144 @@ export default async function handler(req, res) {
   if (await limitou(req, res, LIMITES.revenda)) return;
 
   const b = req.body || {};
-  const razao = limpo(b.razao, 120);
-  const cnpj = limpo(b.cnpj, 18);
-  const nome = limpo(b.nome, 80);
-  const email = limpo(b.email, 120);
-  const whatsapp = limpo(b.whatsapp, 20);
-  const cep = limpo(b.cep, 9);
-  const observacoes = limpo(b.observacoes, 600);
+  const acao = String(req.query?.action || b.action || "").trim();
 
-  if (!razao || !nome || !email || !whatsapp || !cep) {
-    return res.status(400).json({ ok: false, error: "Faltou preencher um dos campos obrigatórios." });
-  }
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    return res.status(400).json({ ok: false, error: "Confira o e-mail informado." });
-  }
-  if (String(cep).replace(/\D/g, "").length !== 8) {
-    return res.status(400).json({ ok: false, error: "Confira o CEP informado." });
-  }
-  if (!cnpjValido(cnpj)) {
-    return res.status(400).json({ ok: false, error: "Esse CNPJ não confere. A revenda é somente para pessoa jurídica." });
-  }
+  const pedido = lePedido(b, { exigirCliente: acao !== "frete" });
+  if (pedido.erro) return res.status(400).json({ ok: false, error: pedido.erro });
+  const { cliente, itens, total } = pedido;
+  const { razao, cnpj, nome, email, whatsapp, cep, observacoes } = cliente;
 
-  // Monta o pedido SÓ com o que existe na tabela daqui.
-  const itens = [];
-  let total = 0;
-  for (const [id, prod] of Object.entries(REVENDA)) {
-    const q = parseInt((b.itens || {})[id], 10);
-    if (!Number.isFinite(q) || q <= 0) continue;
-    if (q > MAX_UNIDADES) {
-      return res.status(400).json({ ok: false, error: `Quantidade acima do que dá pra pedir por aqui em ${prod.nome}. Fale com a gente.` });
+  // ══════════════════════════════════════════════════════════════
+  // COTAR O FRETE (sem gravar nada, sem mandar e-mail)
+  // ══════════════════════════════════════════════════════════════
+  if (acao === "frete") {
+    const frete = await cotaPedido(itens, total, cep);
+    if (frete.erro) {
+      return res.status(frete.motivo === "cep_sem_cobertura" ? 422 : 502)
+        .json({ ok: false, error: frete.erro, motivo: frete.motivo });
     }
-    const sub = q * prod.centavos;
-    total += sub;
-    itens.push({ id, nome: prod.nome, qtd: q, unitario: prod.centavos, subtotal: sub });
+    // Acima de 30 kg a conta de um volume so deixa de valer. Em vez de cobrar
+    // um numero que sabemos estar baixo, a pagina volta pro caminho de
+    // orcamento — com uma pessoa olhando o pedido.
+    if ((frete.pacote?.Weight || 0) > PESO_MAX_UM_VOLUME) {
+      return res.status(200).json({
+        ok: true, sobCotacao: true,
+        motivo: "peso",
+        error: `Esse pedido passa de ${PESO_MAX_UM_VOLUME} kg e vai em mais de uma caixa — o frete precisa ser fechado na mão. Envie a solicitação que respondemos com o valor.`,
+        subtotalCentavos: total,
+      });
+    }
+    return res.status(200).json({
+      ok: true,
+      subtotalCentavos: total,
+      opcoes: frete.opcoes,
+      diasDeProducao: DIAS_DE_PRODUCAO,
+    });
   }
 
-  if (!itens.length) return res.status(400).json({ ok: false, error: "Escolha ao menos um produto." });
-  if (total < MINIMO_CENTAVOS) {
-    return res.status(400).json({ ok: false, error: `O pedido mínimo é ${brl(MINIMO_CENTAVOS)} sem o frete. Faltam ${brl(MINIMO_CENTAVOS - total)}.` });
+  // ══════════════════════════════════════════════════════════════
+  // FECHAR E PAGAR
+  // ══════════════════════════════════════════════════════════════
+  if (acao === "checkout") {
+    // O FRETE É COTADO DE NOVO AQUI, e é isso que impede a fraude mais óbvia:
+    // o navegador manda só o CÓDIGO do serviço escolhido, nunca o preço. Se
+    // aceitássemos o valor da tela, qualquer um fecharia um pedido de 20 kg
+    // com R$ 0,01 de frete. Também cobre o caso honesto de a tabela mudar
+    // entre a cotação e o clique.
+    const frete = await cotaPedido(itens, total, cep);
+    if (frete.erro) {
+      return res.status(frete.motivo === "cep_sem_cobertura" ? 422 : 502)
+        .json({ ok: false, error: frete.erro, motivo: frete.motivo });
+    }
+    if ((frete.pacote?.Weight || 0) > PESO_MAX_UM_VOLUME) {
+      return res.status(422).json({ ok: false, sobCotacao: true, error: `Esse pedido passa de ${PESO_MAX_UM_VOLUME} kg. Envie a solicitação e fechamos o frete na mão.` });
+    }
+
+    const escolhido = frete.opcoes.find((o) => o.codigo === String(b.freteCodigo || ""));
+    if (!escolhido) {
+      return res.status(409).json({
+        ok: false, recotar: true,
+        error: "O frete que você escolheu não está mais disponível. Calcule de novo, por favor.",
+        opcoes: frete.opcoes,
+      });
+    }
+
+    const ref = `revenda_${Date.now()}-${crypto.randomBytes(3).toString("hex")}`;
+    const origin = req.headers.origin || `https://${req.headers.host}`;
+
+    let session;
+    try {
+      const stripe = getStripe();
+      session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        customer_email: email,
+        client_reference_id: ref,
+        line_items: itens.map((i) => ({
+          price_data: {
+            currency: "brl",
+            unit_amount: i.unitario,
+            product_data: { name: i.nome },
+          },
+          quantity: i.qtd,
+        })),
+        // Frete como linha própria, com o nome da transportadora: na fatura e
+        // no comprovante fica claro o que é produto e o que é entrega.
+        shipping_options: [{
+          shipping_rate_data: {
+            type: "fixed_amount",
+            fixed_amount: { amount: escolhido.precoCentavos, currency: "brl" },
+            display_name: `${escolhido.servico} — ${escolhido.transportadora}`,
+            delivery_estimate: escolhido.prazoDias ? {
+              minimum: { unit: "business_day", value: escolhido.prazoDias + DIAS_DE_PRODUCAO },
+              maximum: { unit: "business_day", value: escolhido.prazoDias + DIAS_DE_PRODUCAO + 3 },
+            } : undefined,
+          },
+        }],
+        payment_method_options: { card: { installments: { enabled: true } } },
+        metadata: {
+          external_reference: ref, tipo: "revenda",
+          razao, cnpj, frete_codigo: escolhido.codigo,
+          frete_centavos: String(escolhido.precoCentavos),
+        },
+        payment_intent_data: { metadata: { external_reference: ref, tipo: "revenda" } },
+        locale: "pt-BR",
+        success_url: `${origin}/revenda?pedido=pago`,
+        cancel_url: `${origin}/revenda?pedido=cancelado#pedido`,
+      });
+    } catch (e) {
+      console.error("[revenda/checkout] Stripe recusou:", e?.message);
+      return res.status(502).json({ ok: false, error: "Não consegui abrir o pagamento agora. Tente de novo em instantes." });
+    }
+
+    // Grava ANTES de devolver a URL. Se o cliente pagar e a linha não existir,
+    // o webhook não acha o pedido e a venda vira um pagamento órfão.
+    if (supabase) {
+      const { error } = await supabase.from("orders").insert({
+        external_reference: ref,
+        status: "pending",
+        total_cents: total + escolhido.precoCentavos,
+        items: itens,
+        shipping: {
+          razao, cnpj, nome, email, whatsapp, cep, observacoes, tipo: "revenda",
+          frete: {
+            servico: escolhido.servico, transportadora: escolhido.transportadora,
+            centavos: escolhido.precoCentavos, prazoDias: escolhido.prazoDias,
+            prazoTotalDias: escolhido.prazoDias ? escolhido.prazoDias + DIAS_DE_PRODUCAO : null,
+          },
+          produtos_centavos: total,
+        },
+      });
+      if (error) console.error("[revenda/checkout] NÃO gravei o pedido:", error.message);
+    }
+
+    return res.status(200).json({ ok: true, url: session.url, referencia: ref });
   }
 
-  const ref = `revenda_${Date.now()}`;
+  // ══════════════════════════════════════════════════════════════
+  // SOLICITAÇÃO DE ORÇAMENTO (caminho antigo — segue valendo)
+  // Para pedido acima de 30 kg, personalização, ou quando a Frenet não cota.
+  // ══════════════════════════════════════════════════════════════
+  const ref = `revenda_${Date.now()}-${crypto.randomBytes(3).toString("hex")}`;
 
   // Grava antes de avisar. E-mail se perde no spam, sistema de e-mail cai, e
   // um pedido que só existe numa caixa de entrada é um pedido a uma pane de
@@ -126,7 +305,7 @@ export default async function handler(req, res) {
     const { error } = await supabase.from("orders").insert({
       external_reference: ref,
       status: "pending",
-      amount_cents: total,
+      total_cents: total,
       items: itens,
       shipping: { razao, cnpj, nome, email, whatsapp, cep, observacoes, tipo: "revenda" },
     });

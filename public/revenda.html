@@ -360,7 +360,7 @@
       <h2>Você cuida da venda. A StarTouch cuida da tecnologia.</h2>
     </div>
     <div class="steps">
-      <div class="step"><div class="num">PASSO 01</div><h3>Você faz o pedido</h3><p>Escolhe as quantidades. Retornamos com frete, prazo e nota fiscal.</p></div>
+      <div class="step"><div class="num">PASSO 01</div><h3>Você fecha o pedido</h3><p>Escolhe as quantidades, o frete é calculado pelo seu CEP e você paga na hora. NF-e em todo pedido.</p></div>
       <div class="step"><div class="num">PASSO 02</div><h3>Produzimos em até 10 dias úteis</h3><p>Cada unidade sai com identificação única gravada no chip e vinculada ao QR Code.</p></div>
       <div class="step"><div class="num">PASSO 03</div><h3>Você recebe e revende</h3><p>Os dispositivos chegam prontos para ativação. Sem configuração da sua parte.</p></div>
       <div class="step"><div class="num">PASSO 04</div><h3>Seu cliente ativa</h3><p>Ele encosta o celular, cria a conta e passa a administrar o próprio painel.</p></div>
@@ -388,7 +388,7 @@
     <div class="head">
       <span class="pill">Fazer um pedido</span>
       <h2>Monte seu pedido agora.</h2>
-      <p>Você envia a solicitação e recebe o frete fechado, o prazo da sua região e as instruções para pagamento. <strong>Nenhum pagamento acontece nesta página.</strong></p>
+      <p>Escolha as quantidades, informe o CEP e o frete é calculado na hora. <strong>Você fecha e paga aqui mesmo</strong>, com NF-e em nome do seu CNPJ. Pedido acima de 30 kg vai em mais de uma caixa: nesse caso a gente fecha o frete na mão e responde em até um dia útil.
     </div>
 
     <form id="form-revenda" autocomplete="on">
@@ -415,11 +415,25 @@
           <h3>Seu pedido</h3>
           <p class="desc">O cálculo é atualizado automaticamente.</p>
           <div id="items" class="sumItems"><span class="desc">Nenhum item ainda.</span></div>
+
+          <div id="freteBox" class="freteBox" hidden></div>
+
           <div class="total"><span><b>Total</b></span><strong id="total">R$ 0,00</strong></div>
           <div id="min" class="min">Faltam R$ 800,00 para atingir o pedido mínimo.</div>
-          <button id="send" class="btn primary" style="width:100%" type="submit" disabled>Enviar pedido</button>
-          <p class="small">O frete não está incluído neste total. Ele é calculado pelo peso do pedido e pelo CEP informado, e vai na nossa resposta junto com o prazo de entrega.</p>
+          <button id="send" class="btn primary" style="width:100%" type="submit" disabled>Ir para o pagamento</button>
+          <p class="small" id="sendNota">O frete é calculado pelo CEP e some no total antes do pagamento. Nota fiscal em todo pedido.</p>
           <div id="retorno" role="status"></div>
+          <style>
+            .freteBox{margin:14px 0 4px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);}
+            .freteBox .ftit{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.7;margin-bottom:8px;}
+            .freteOpt{display:flex;align-items:flex-start;gap:9px;padding:8px 0;cursor:pointer;line-height:1.4;}
+            .freteOpt input{margin-top:3px;flex:none;}
+            .freteOpt .fnome{font-size:13.5px;font-weight:600;}
+            .freteOpt .fprazo{display:block;font-size:12px;opacity:.72;margin-top:1px;}
+            .freteOpt .fpreco{margin-left:auto;font-size:13.5px;font-weight:700;white-space:nowrap;}
+            .freteMsg{font-size:12.5px;line-height:1.55;opacity:.85;}
+            .freteMsg.erro{color:#ffb4a9;opacity:1;}
+          </style>
         </aside>
       </div>
     </form>
@@ -437,8 +451,8 @@
       <details><summary>O painel do meu cliente é mesmo grátis para sempre?</summary><p>Sim. Os recursos gratuitos que acompanham o dispositivo permanecem disponíveis sem mensalidade. Existe um plano pago opcional, o Menu Inteligente, que o cliente contrata somente se quiser — e o produto funciona igual se ele nunca contratar.</p></details>
       <details><summary>Quem dá suporte ao cliente final?</summary><p>A ativação é feita pelo próprio cliente e o suporte da plataforma é da StarTouch. Você cuida da venda; a plataforma cuida do resto.</p></details>
       <details><summary>Posso colocar minha marca nos dispositivos?</summary><p>Ainda não. Hoje os dispositivos saem no padrão StarTouch. A personalização está em desenvolvimento e será oferecida como etapa seguinte.</p></details>
-      <details><summary>Como funciona o frete?</summary><p>Calculamos pelo peso do pedido e pelo CEP de entrega. O valor e o prazo são informados antes de qualquer pagamento.</p></details>
-      <details><summary>Qual o prazo total até eu receber?</summary><p>São até 10 dias úteis de produção, contados da confirmação do pagamento, mais o prazo de transporte até a sua região.</p></details>
+      <details><summary>Como funciona o frete?</summary><p>É calculado na hora, pelo peso real do pedido e pelo CEP de entrega, com as transportadoras que atendem a sua região. Você escolhe o serviço e vê o valor somado ao total <strong>antes</strong> de pagar. Pedidos acima de 30 kg vão em mais de uma caixa e o frete desses é fechado na mão — a página avisa quando é o caso.</p></details>
+      <details><summary>Qual o prazo total até eu receber?</summary><p>São até 10 dias úteis de produção, contados da confirmação do pagamento, mais o prazo da transportadora. O prazo que aparece junto de cada opção de frete <strong>já soma os dois</strong> — é o tempo até chegar na sua porta, não só o do transporte.</p></details>
     </div>
   </div>
 </section>
@@ -489,6 +503,12 @@
     return o;
   }
 
+  function totalProdutos() {
+    var q = qtds(), t = 0;
+    Object.keys(PRECOS).forEach(function (k) { t += q[k] * PRECOS[k].centavos; });
+    return t;
+  }
+
   function calc() {
     var q = qtds(), t = 0, linhas = "";
     Object.keys(PRECOS).forEach(function (k) {
@@ -497,16 +517,47 @@
       t += sub;
       linhas += '<div class="sumrow"><span>' + PRECOS[k].nome + " × " + q[k] + "</span><b>" + brl(sub) + "</b></div>";
     });
+    if (frete.escolhido) {
+      linhas += '<div class="sumrow"><span>Frete — ' + frete.escolhido.servico + "</span><b>" + brl(frete.escolhido.precoCentavos) + "</b></div>";
+    }
     $("items").innerHTML = linhas || '<span class="desc">Nenhum item ainda.</span>';
-    $("total").textContent = brl(t);
-    if (t >= MINIMO) {
-      $("min").className = "min ok";
-      $("min").textContent = "Pedido mínimo atingido. Você já pode enviar a solicitação.";
-      $("send").disabled = false;
-    } else {
+
+    // O mínimo de R$ 800 é sobre os PRODUTOS, sem o frete — é o que a página
+    // anuncia em três lugares. Somar o frete aqui faria um pedido de R$ 760
+    // "atingir o mínimo" por causa da entrega.
+    var totalPagar = t + (frete.escolhido ? frete.escolhido.precoCentavos : 0);
+    $("total").textContent = brl(totalPagar);
+
+    var btn = $("send"), nota = $("sendNota");
+
+    if (t < MINIMO) {
       $("min").className = "min";
       $("min").textContent = "Faltam " + brl(MINIMO - t) + " para atingir o pedido mínimo de R$ 800,00.";
-      $("send").disabled = true;
+      btn.disabled = true;
+      btn.textContent = "Ir para o pagamento";
+      nota.textContent = "O frete é calculado pelo CEP e some no total antes do pagamento. Nota fiscal em todo pedido.";
+      return;
+    }
+
+    $("min").className = "min ok";
+
+    if (frete.escolhido) {
+      $("min").textContent = "Pedido mínimo atingido.";
+      btn.disabled = false;
+      btn.textContent = "Ir para o pagamento";
+      nota.textContent = "Você paga produtos + frete agora. A NF-e sai em nome do CNPJ informado.";
+    } else if (frete.sobCotacao) {
+      // Pedido grande demais pra uma caixa, ou transportadora fora do ar: o
+      // caminho antigo continua valendo, com uma pessoa fechando o frete.
+      $("min").textContent = "Pedido mínimo atingido.";
+      btn.disabled = false;
+      btn.textContent = "Enviar solicitação";
+      nota.textContent = "Esse pedido precisa de frete fechado na mão. Envie a solicitação e respondemos com o valor em até um dia útil.";
+    } else {
+      $("min").textContent = "Informe o CEP de entrega para calcular o frete.";
+      btn.disabled = true;
+      btn.textContent = "Ir para o pagamento";
+      nota.textContent = "O frete é calculado pelo CEP e some no total antes do pagamento. Nota fiscal em todo pedido.";
     }
   }
 
@@ -524,30 +575,161 @@
     e.target.value = v.replace(/^(\d{5})(\d)/, "$1-$2");
   });
 
+  // ── FRETE ────────────────────────────────────────────────────────
+  // Guarda o que a ULTIMA cotacao devolveu. Se qualquer coisa mudar depois
+  // (quantidade, CEP), isto e zerado: frete de um carrinho antigo somado a um
+  // carrinho novo e um numero que parece certo e nao e.
+  var frete = { opcoes: null, escolhido: null, cepCotado: "", assinatura: "", sobCotacao: false };
+
+  function assinaturaDoPedido() {
+    var q = qtds();
+    return Object.keys(PRECOS).map(function (k) { return k + ":" + q[k]; }).join("|")
+      + "@" + $("f-cep").value.replace(/\D/g, "");
+  }
+
+  function limpaFrete(msg, classe) {
+    frete.opcoes = null; frete.escolhido = null; frete.sobCotacao = false;
+    var box = $("freteBox");
+    if (msg) {
+      box.hidden = false;
+      box.innerHTML = '<div class="freteMsg' + (classe ? " " + classe : "") + '">' + msg + "</div>";
+    } else {
+      box.hidden = true;
+      box.innerHTML = "";
+    }
+    calc();
+  }
+
+  function desenhaFrete() {
+    var box = $("freteBox");
+    box.hidden = false;
+    var html = '<div class="ftit">Frete e prazo</div>';
+    frete.opcoes.forEach(function (o, i) {
+      var prazo = o.prazoDias
+        ? (o.prazoDias + frete.diasDeProducao) + " dias úteis, já com a produção"
+        : "prazo sob consulta";
+      html += '<label class="freteOpt">'
+        + '<input type="radio" name="frete" value="' + o.codigo + '"' + (i === 0 ? " checked" : "") + "/>"
+        + '<span><span class="fnome">' + o.servico + "</span>"
+        + '<span class="fprazo">' + o.transportadora + " · " + prazo + "</span></span>"
+        + '<span class="fpreco">' + brl(o.precoCentavos) + "</span></label>";
+    });
+    box.innerHTML = html;
+    frete.escolhido = frete.opcoes[0];
+    box.querySelectorAll('input[name="frete"]').forEach(function (r) {
+      r.addEventListener("change", function () {
+        frete.escolhido = frete.opcoes.filter(function (o) { return o.codigo === r.value; })[0] || null;
+        calc();
+      });
+    });
+    calc();
+  }
+
+  var cotando = false;
+  function cotaFrete() {
+    var cep = $("f-cep").value.replace(/\D/g, "");
+    var t = totalProdutos();
+    if (cep.length !== 8 || t < MINIMO) { limpaFrete(""); return; }
+
+    var assinatura = assinaturaDoPedido();
+    if (assinatura === frete.assinatura && frete.opcoes) return;   // nada mudou
+    if (cotando) return;
+
+    cotando = true;
+    limpaFrete("Calculando o frete…");
+    fetch("/api/revenda?action=frete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(corpoDoPedido())
+    })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        cotando = false;
+        frete.assinatura = assinatura;
+        if (res.j && res.j.sobCotacao) {
+          frete.sobCotacao = true;
+          limpaFrete(res.j.error);
+          frete.sobCotacao = true;   // limpaFrete zera; repoe depois dele
+          calc();
+          return;
+        }
+        if (!res.ok || !res.j || !res.j.ok) throw new Error((res.j && res.j.error) || "Não consegui calcular o frete agora.");
+        frete.opcoes = res.j.opcoes;
+        frete.diasDeProducao = res.j.diasDeProducao || 10;
+        desenhaFrete();
+      })
+      .catch(function (e) {
+        cotando = false;
+        frete.assinatura = "";   // erro nao vira cache: tenta de novo na proxima mudanca
+        limpaFrete(e.message + " Você ainda pode enviar a solicitação e a gente responde com o valor.", "erro");
+        frete.sobCotacao = true;
+        calc();
+      });
+  }
+
+  function corpoDoPedido() {
+    return {
+      razao: $("f-razao").value.trim(),
+      cnpj: $("f-cnpj").value.trim(),
+      nome: $("f-nome").value.trim(),
+      email: $("f-email").value.trim(),
+      whatsapp: $("f-whats").value.trim(),
+      cep: $("f-cep").value.trim(),
+      observacoes: $("f-obs").value.trim(),
+      itens: qtds()
+    };
+  }
+
+  // Cotar a cada tecla digitada no CEP queimaria a cota da Frenet. Espera a
+  // pessoa parar de digitar.
+  var timer = null;
+  function agendaCotacao() {
+    clearTimeout(timer);
+    timer = setTimeout(cotaFrete, 600);
+  }
+  $("f-cep").addEventListener("input", agendaCotacao);
+  Object.keys(PRECOS).forEach(function (k) {
+    $(PRECOS[k].campo).addEventListener("input", function () { frete.assinatura = ""; limpaFrete(""); agendaCotacao(); });
+  });
+
   $("form-revenda").addEventListener("submit", function (ev) {
     ev.preventDefault();
     var btn = $("send"), ret = $("retorno");
     if (btn.disabled) return;
     ret.className = ""; ret.textContent = "";
-    btn.disabled = true; btn.textContent = "Enviando…";
+    btn.disabled = true;
+    btn.textContent = frete.escolhido ? "Abrindo o pagamento…" : "Enviando…";
 
-    fetch("/api/revenda", {
+    // Dois destinos, decididos por ter frete escolhido ou não. O corpo é o
+    // mesmo — o servidor revalida tudo e RECOTA o frete nos dois casos.
+    var vaiPagar = !!frete.escolhido;
+    var corpo = corpoDoPedido();
+    if (vaiPagar) corpo.freteCodigo = frete.escolhido.codigo;
+
+    fetch("/api/revenda" + (vaiPagar ? "?action=checkout" : ""), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        razao: $("f-razao").value.trim(),
-        cnpj: $("f-cnpj").value.trim(),
-        nome: $("f-nome").value.trim(),
-        email: $("f-email").value.trim(),
-        whatsapp: $("f-whats").value.trim(),
-        cep: $("f-cep").value.trim(),
-        observacoes: $("f-obs").value.trim(),
-        itens: qtds()
-      })
+      body: JSON.stringify(corpo)
     })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (res) {
-        if (!res.ok || !res.j || !res.j.ok) throw new Error((res.j && res.j.error) || "Não consegui enviar agora.");
+        if (!res.ok || !res.j || !res.j.ok) {
+          // O frete mudou entre a cotação e o clique: redesenha as opções
+          // novas em vez de mandar a pessoa recomeçar.
+          if (res.j && res.j.recotar && res.j.opcoes) {
+            frete.opcoes = res.j.opcoes;
+            desenhaFrete();
+            throw new Error(res.j.error);
+          }
+          throw new Error((res.j && res.j.error) || "Não consegui enviar agora.");
+        }
+
+        if (vaiPagar) {
+          if (window.gtag) gtag("event", "begin_checkout", { event_category: "revenda" });
+          window.location.href = res.j.url;
+          return;
+        }
+
         ret.className = "ok";
         ret.textContent = "Pedido recebido. Respondemos com o frete, o prazo e a nota fiscal em até um dia útil, no e-mail e no WhatsApp informados.";
         btn.textContent = "Pedido enviado";
@@ -557,11 +739,27 @@
         ret.className = "erro";
         ret.textContent = e.message;
         btn.disabled = false;
-        btn.textContent = "Enviar pedido";
+        calc();
       });
   });
 
   calc();
+
+  // Volta do Stripe. `pedido=pago` e a confirmacao; `cancelado` traz a pessoa
+  // de volta ao formulario sem apagar nada do que ela ja tinha digitado.
+  (function () {
+    var p = new URLSearchParams(location.search).get("pedido");
+    if (!p) return;
+    var ret = $("retorno");
+    if (p === "pago") {
+      ret.className = "ok";
+      ret.textContent = "Pagamento confirmado. A nota fiscal e o código de rastreio chegam no e-mail informado — a produção leva 10 dias úteis e o prazo da transportadora começa depois da postagem.";
+      if (window.gtag) gtag("event", "purchase_revenda_retorno", { event_category: "revenda" });
+    } else if (p === "cancelado") {
+      ret.className = "";
+      ret.textContent = "Pagamento não concluído. Seu pedido continua aqui — é só calcular o frete e tentar de novo.";
+    }
+  })();
 })();
 </script>
 

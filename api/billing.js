@@ -268,6 +268,54 @@ async function notifyAdminKitOrder({ order, userId, provedor = "mercadopago", pa
   await sendOrderEmail({ userId, subject: `🛒 Novo pedido StarTouch — ${fmtBRL(totalCents)}`, html });
 }
 
+// Pedido de REVENDA pago. Diferente do kit: aqui tem CNPJ, razao social e o
+// frete que o proprio cliente escolheu e pagou — coisas que mudam o que voce
+// faz a seguir (emitir NF-e pra pessoa juridica, despachar pelo servico que
+// ele pagou, nao pelo mais barato do dia).
+async function notifyAdminRevendaPaga({ order, pagamentoId, status }) {
+  const c = order?.shipping || {};
+  const f = c.frete || {};
+  const itens = Array.isArray(order?.items) ? order.items : [];
+  const produtos = c.produtos_centavos != null
+    ? c.produtos_centavos
+    : itens.reduce((t, i) => t + (i.subtotal || 0), 0);
+
+  const linhas = itens.map((i) =>
+    `<tr>
+       <td style="padding:8px 10px;border-bottom:1px solid #eef0f3;">${escapeHtmlLite(i.nome)}</td>
+       <td style="padding:8px 10px;border-bottom:1px solid #eef0f3;text-align:right;">${i.qtd}</td>
+       <td style="padding:8px 10px;border-bottom:1px solid #eef0f3;text-align:right;">${fmtBRL(i.unitario)}</td>
+       <td style="padding:8px 10px;border-bottom:1px solid #eef0f3;text-align:right;font-weight:700;">${fmtBRL(i.subtotal)}</td>
+     </tr>`).join("");
+
+  const html =
+    `<h2>💼 Pedido de REVENDA pago</h2>` +
+    `<p><strong>${escapeHtmlLite(c.razao || "—")}</strong> · CNPJ ${escapeHtmlLite(c.cnpj || "—")}</p>` +
+    `<p>${escapeHtmlLite(c.nome || "—")} &lt;${escapeHtmlLite(order?.email || c.email || "—")}&gt;` +
+    (c.whatsapp ? ` · ${escapeHtmlLite(c.whatsapp)}` : "") + `</p>` +
+    `<table width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5e7eb;border-radius:10px;margin:14px 0;">${linhas}` +
+    `<tr><td colspan="3" style="padding:8px 10px;text-align:right;">Produtos</td>` +
+    `<td style="padding:8px 10px;text-align:right;">${fmtBRL(produtos)}</td></tr>` +
+    `<tr><td colspan="3" style="padding:8px 10px;text-align:right;">Frete — ${escapeHtmlLite(f.servico || "—")} (${escapeHtmlLite(f.transportadora || "—")})</td>` +
+    `<td style="padding:8px 10px;text-align:right;">${fmtBRL(f.centavos)}</td></tr>` +
+    `<tr><td colspan="3" style="padding:11px 10px;text-align:right;font-weight:700;">Total pago</td>` +
+    `<td style="padding:11px 10px;text-align:right;font-weight:800;font-size:17px;">${fmtBRL(order?.total_cents)}</td></tr>` +
+    `</table>` +
+    `<h3>📦 Entrega</h3>` +
+    `<p>CEP ${escapeHtmlLite(c.cep || "—")}` +
+    (f.prazoTotalDias ? ` · prometido em <strong>${f.prazoTotalDias} dias úteis</strong> (${f.prazoDias} da transportadora + 10 de produção)` : "") +
+    `</p>` +
+    (c.observacoes ? `<p><strong>Observações do cliente:</strong> ${escapeHtmlLite(c.observacoes)}</p>` : "") +
+    `<p><strong>Pagamento (Stripe):</strong> ${escapeHtmlLite(pagamentoId || "")} · ${escapeHtmlLite(status || "")}</p>` +
+    `<p><strong>O frete já foi pago pelo cliente</strong> — despache pelo serviço acima, não pelo mais barato do dia. Falta emitir a NF-e (pessoa jurídica).</p>`;
+
+  await sendOrderEmail({
+    userId: "admin",
+    subject: `💼 Revenda PAGA ${fmtBRL(order?.total_cents)} — ${c.razao || "sem razão social"}`,
+    html
+  });
+}
+
 async function notifyAdminIaOrder({ pay }) {
   const m = pay?.metadata || {};
   const totalCents = Math.round((pay?.transaction_amount || 0) * 100);
@@ -1648,7 +1696,8 @@ async function pagamentoConfirmado(session, stripe) {
 // e reenviado. E o mesmo mecanismo do webhook do Mercado Pago.
 async function concluiPedidoStripe(session) {
   const extRef = session?.metadata?.external_reference || session?.client_reference_id || "";
-  if (!extRef || !extRef.startsWith("kit_")) {
+  const ehRevenda = extRef.startsWith("revenda_");
+  if (!extRef || !(extRef.startsWith("kit_") || ehRevenda)) {
     console.warn(`[stripe/webhook] pagamento unico sem referencia de pedido (sessao ${session?.id || "?"}, ref="${extRef}") — nao da pra casar com a tabela orders`);
     return;
   }
@@ -1666,7 +1715,7 @@ async function concluiPedidoStripe(session) {
   };
   // O pedido guest ja tem o endereco COMPLETO (com numero e bairro), vindo do
   // nosso formulario. O do Stripe e mais pobre; sobrescrever seria piorar.
-  if (temEndereco && !extRef.startsWith("kit_guest_")) patch.shipping = entrega;
+  if (temEndereco && !extRef.startsWith("kit_guest_") && !ehRevenda) patch.shipping = entrega;
 
   const up = await atualizarUm(
     supabase.from("orders").update(patch)
@@ -1678,16 +1727,22 @@ async function concluiPedidoStripe(session) {
   console.log(`[stripe/webhook] pagamento kit ${pagamentoId} ref=${extRef} -> ${order ? "pedido marcado como pago" : (up.ok ? "nenhum pedido pendente (evento repetido)" : "FALHOU ao atualizar")}`);
   if (!order) return;
 
-  const userId = extRef.startsWith("kit_guest_") ? "guest" : extRef.split("_")[1];
-  await notifyAdminKitOrder({
-    order, userId, provedor: "stripe",
-    pagamento: {
-      id: pagamentoId,
-      status: session.payment_status || "paid",
-      email: session.customer_details?.email,
-      totalCents: session.amount_total != null ? session.amount_total : order.total_cents,
-    }
-  });
+  if (ehRevenda) {
+    await notifyAdminRevendaPaga({
+      order, pagamentoId, status: session.payment_status || "paid"
+    });
+  } else {
+    const userId = extRef.startsWith("kit_guest_") ? "guest" : extRef.split("_")[1];
+    await notifyAdminKitOrder({
+      order, userId, provedor: "stripe",
+      pagamento: {
+        id: pagamentoId,
+        status: session.payment_status || "paid",
+        email: session.customer_details?.email,
+        totalCents: session.amount_total != null ? session.amount_total : order.total_cents,
+      }
+    });
+  }
 
   const m = session.metadata || {};
   await sendGa4Purchase({
