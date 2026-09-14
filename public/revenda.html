@@ -64,7 +64,7 @@
   .hlBlue { color: var(--blue); }
   .pill { display: inline-flex; background: #EEF5FF; color: var(--blue); padding: 7px 11px;
           border-radius: 999px; font-size: 13px; font-weight: 800; margin-bottom: 18px; }
-  h1 { font-size: clamp(38px, 4.4vw, 56px); line-height: 1.05; letter-spacing: -2px; margin: 0 0 22px; font-weight: 800; }
+  h1 { font-size: clamp(34px, 3.4vw, 47px); line-height: 1.1; letter-spacing: -1.6px; margin: 0 0 22px; font-weight: 800; }
   h2 { font-size: clamp(30px, 3.8vw, 46px); line-height: 1.07; letter-spacing: -1.5px; margin: 0 0 12px; font-weight: 800; }
   .lead { font-size: 19px; color: var(--muted); max-width: 760px; margin: 0 0 14px; }
   .lead strong { color: var(--text); font-weight: 650; }
@@ -80,7 +80,10 @@
   /* Sem a caixa azul, a foto ocupa a coluna inteira. O teto de altura sai
      junto: ele existia porque o cartao era vertical e esticava o cartao azul;
      a foto da linha e horizontal e nao tem esse problema. */
-  .heroArte .foto { margin: 0; }
+  /* A foto da linha tem fundo TRANSPARENTE, entao o cartao branco do .foto
+     (feito pra destacar a imagem dentro do antigo bloco azul) so criava um
+     retangulo em cima do degrade do topo. Sem ele, os produtos flutuam. */
+  .heroArte .foto { margin: 0; background: none; border: 0; padding: 0; }
   .heroArte .foto img { width: 100%; height: auto; display: block; }
   /* Os ticks saem do fundo azul e vao pro claro: texto escuro, check azul. */
   .heroArte .ticks span { color: var(--text); }
