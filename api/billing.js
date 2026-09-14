@@ -290,7 +290,8 @@ async function notifyAdminRevendaPaga({ order, pagamentoId, status }) {
 
   const html =
     `<h2>💼 Pedido de REVENDA pago</h2>` +
-    `<p><strong>${escapeHtmlLite(c.razao || "—")}</strong> · CNPJ ${escapeHtmlLite(c.cnpj || "—")}</p>` +
+    `<p><strong>${escapeHtmlLite(c.razao || "—")}</strong> · CNPJ ${escapeHtmlLite(c.cnpj || "—")}` +
+    ` · IE ${escapeHtmlLite(c.ie || "não informada")}</p>` +
     `<p>${escapeHtmlLite(c.nome || "—")} &lt;${escapeHtmlLite(order?.email || c.email || "—")}&gt;` +
     (c.whatsapp ? ` · ${escapeHtmlLite(c.whatsapp)}` : "") + `</p>` +
     `<table width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5e7eb;border-radius:10px;margin:14px 0;">${linhas}` +

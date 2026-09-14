@@ -66,6 +66,20 @@ const limpo = (s, max) => String(s == null ? "" : s).replace(/\s+/g, " ").trim()
 const esc = (s) => String(s == null ? "" : s)
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+// Inscrição Estadual. Devolve "ISENTO" ou só os dígitos; "" se não serve.
+//
+// NÃO tenta validar de verdade: são 27 algoritmos, um por estado, cada um com
+// exceções. Validar mal é pior do que não validar — recusa IE boa e deixa
+// passar IE ruim. Aqui é formato; o resto confere quem emite a nota.
+function normalizaIE(bruto) {
+  const cru = String(bruto || "").trim();
+  if (!cru) return "";
+  // "isento", "ISENTO", "Isenta", "isenta de IE" — tudo cai no mesmo lugar.
+  if (/isen/i.test(cru)) return "ISENTO";
+  const d = cru.replace(/\D/g, "");
+  return d.length >= 8 && d.length <= 14 ? d : "";
+}
+
 // Validação real do CNPJ (dígitos verificadores). Formato sozinho deixa passar
 // 00.000.000/0000-00 e qualquer sequência inventada — e pedido com CNPJ falso
 // custa uma ida e volta de e-mail pra descobrir.
@@ -95,6 +109,7 @@ function lePedido(b, { exigirCliente = true } = {}) {
   const c = {
     razao: limpo(b.razao, 120),
     cnpj: limpo(b.cnpj, 18),
+    ie: normalizaIE(b.ie),
     nome: limpo(b.nome, 80),
     email: limpo(b.email, 120),
     whatsapp: limpo(b.whatsapp, 20),
@@ -112,6 +127,9 @@ function lePedido(b, { exigirCliente = true } = {}) {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)) return { erro: "Confira o e-mail informado." };
     if (!cnpjValido(c.cnpj)) {
       return { erro: "Esse CNPJ não confere. A revenda é somente para pessoa jurídica." };
+    }
+    if (!c.ie) {
+      return { erro: "Informe a Inscrição Estadual (só os números) ou escreva ISENTO, se a empresa não tiver." };
     }
   }
 
@@ -254,7 +272,7 @@ export default async function handler(req, res) {
         payment_method_options: { card: { installments: { enabled: true } } },
         metadata: {
           external_reference: ref, tipo: "revenda",
-          razao, cnpj, frete_codigo: escolhido.codigo,
+          razao, cnpj, ie: cliente.ie, frete_codigo: escolhido.codigo,
           frete_centavos: String(escolhido.precoCentavos),
         },
         payment_intent_data: { metadata: { external_reference: ref, tipo: "revenda" } },
@@ -276,7 +294,7 @@ export default async function handler(req, res) {
         total_cents: total + escolhido.precoCentavos,
         items: itens,
         shipping: {
-          razao, cnpj, nome, email, whatsapp, cep, observacoes, tipo: "revenda",
+          razao, cnpj, ie: cliente.ie, nome, email, whatsapp, cep, observacoes, tipo: "revenda",
           frete: {
             servico: escolhido.servico, transportadora: escolhido.transportadora,
             centavos: escolhido.precoCentavos, prazoDias: escolhido.prazoDias,
@@ -307,7 +325,7 @@ export default async function handler(req, res) {
       status: "pending",
       total_cents: total,
       items: itens,
-      shipping: { razao, cnpj, nome, email, whatsapp, cep, observacoes, tipo: "revenda" },
+      shipping: { razao, cnpj, ie: cliente.ie, nome, email, whatsapp, cep, observacoes, tipo: "revenda" },
     });
     if (error) console.error("[revenda] não gravei o pedido:", error.message);
     else gravado = true;
@@ -392,6 +410,7 @@ export default async function handler(req, res) {
         <table width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5e7eb;border-radius:10px;">
           <tr><td style="padding:8px 10px;color:#5F6368;font-size:13px;">Razão social</td><td style="padding:8px 10px;font-weight:600;">${esc(razao)}</td></tr>
           <tr><td style="padding:8px 10px;color:#5F6368;font-size:13px;">CNPJ</td><td style="padding:8px 10px;font-weight:600;">${esc(cnpj)}</td></tr>
+          <tr><td style="padding:8px 10px;color:#5F6368;font-size:13px;">Inscrição Estadual</td><td style="padding:8px 10px;font-weight:600;">${esc(cliente.ie || "—")}</td></tr>
           <tr><td style="padding:8px 10px;color:#5F6368;font-size:13px;">Contato</td><td style="padding:8px 10px;font-weight:600;">${esc(nome)}</td></tr>
           <tr><td style="padding:8px 10px;color:#5F6368;font-size:13px;">E-mail</td><td style="padding:8px 10px;"><a href="mailto:${esc(email)}">${esc(email)}</a></td></tr>
           <tr><td style="padding:8px 10px;color:#5F6368;font-size:13px;">WhatsApp</td><td style="padding:8px 10px;font-weight:600;">${esc(whatsapp)}</td></tr>

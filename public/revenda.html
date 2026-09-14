@@ -397,6 +397,7 @@
           <div class="fields">
             <div class="field full"><label for="f-razao">Razão social</label><input id="f-razao" required maxlength="120"/></div>
             <div class="field"><label for="f-cnpj">CNPJ</label><input id="f-cnpj" required inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00"/></div>
+            <div class="field"><label for="f-ie">Inscrição Estadual</label><input id="f-ie" required maxlength="20" placeholder="Números, ou ISENTO"/><small style="display:block;margin-top:5px;font-size:12px;opacity:.7;">Se a empresa for isenta, escreva <b>ISENTO</b>. É o que permite emitir a NF-e.</small></div>
             <div class="field"><label for="f-nome">Seu nome</label><input id="f-nome" required maxlength="80"/></div>
             <div class="field"><label for="f-email">E-mail</label><input id="f-email" type="email" required maxlength="120"/></div>
             <div class="field"><label for="f-whats">WhatsApp</label><input id="f-whats" type="tel" required maxlength="20" placeholder="(00) 00000-0000"/></div>
@@ -671,6 +672,7 @@
     return {
       razao: $("f-razao").value.trim(),
       cnpj: $("f-cnpj").value.trim(),
+      ie: $("f-ie").value.trim(),
       nome: $("f-nome").value.trim(),
       email: $("f-email").value.trim(),
       whatsapp: $("f-whats").value.trim(),
