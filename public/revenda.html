@@ -125,6 +125,12 @@
      porque a comparacao E a mensagem: o revendedor precisa ver que o ganho
      dele nao tira nada do cliente. Empilhado no celular, na ordem "voce"
      primeiro — quem abre a pagina veio saber quanto ganha. */
+  .painelShot { margin: 34px auto 0; max-width: 720px; text-align: center; }
+  .painelShot img { width: 100%; height: auto; display: block; }
+  .painelShot figcaption {
+    margin-top: 10px; font-size: 12.5px; color: #8b95a3; line-height: 1.55;
+  }
+
   .ganhos { display: grid; grid-template-columns: 1fr; gap: 30px; }
   .ganhos .lado h3 { font-size: 21px; letter-spacing: -0.5px; margin: 0 0 18px; }
   .ganhos .item { display: flex; gap: 14px; align-items: flex-start; padding: 13px 0; border-top: 1px solid #e8ecf1; }
@@ -303,12 +309,28 @@
   </div>
 </div>
 
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="pill">O que vem junto</span>
+      <h2>A diferença não está no chip.</h2>
+      <p>Existem milhares de cartões e placas NFC à venda, e todos fazem a mesma coisa: abrem um link. O que separa o seu é o que acontece <strong>depois</strong> que o cliente compra — cada dispositivo StarTouch chega ligado a um painel onde o negócio acompanha a nota no Google, as avaliações que chegam, a posição nas buscas da região e quantas pessoas usaram cada ponto de contato.</p>
+    </div>
+
+    <figure class="painelShot">
+      <img src="/painel-notebook.png" width="1254" height="1254" loading="lazy"
+           alt="O painel StarTouch aberto num notebook e num celular, mostrando nota do Google, total de avaliações, posição nas buscas, concorrentes monitorados e interações"/>
+      <figcaption>Imagem ilustrativa do painel. Os números da tela são exemplo, não resultado prometido.</figcaption>
+    </figure>
+  </div>
+</section>
+
 <section class="light">
   <div class="wrap">
     <div class="head">
       <span class="pill">Os dois lados</span>
       <h2>Seu cliente ganha. Você ganha.</h2>
-      <p>Existem milhares de cartões e placas NFC à venda. A diferença não está no chip — está no que acontece <strong>depois</strong> que o cliente compra.</p>
+      <p>Um lado não tira do outro. A sua margem vem do preço de atacado; o painel que o seu cliente recebe é o mesmo de qualquer cliente StarTouch, sem versão reduzida.</p>
     </div>
 
     <div class="ganhos">
