@@ -77,7 +77,14 @@
   .darkCard > p { color: #D3E3FB; font-size: 14px; margin: 0; }
   /* O cartao e foto VERTICAL onde antes havia uma horizontal. Sem teto de
      altura ela estica o bloco azul e empurra os ticks pra fora da dobra. */
-  .foto img { max-height: 330px; width: auto; margin-left: auto; margin-right: auto; }
+  /* Sem a caixa azul, a foto ocupa a coluna inteira. O teto de altura sai
+     junto: ele existia porque o cartao era vertical e esticava o cartao azul;
+     a foto da linha e horizontal e nao tem esse problema. */
+  .heroArte .foto { margin: 0; }
+  .heroArte .foto img { width: 100%; height: auto; display: block; }
+  /* Os ticks saem do fundo azul e vao pro claro: texto escuro, check azul. */
+  .heroArte .ticks span { color: var(--text); }
+  .heroArte .ticks span::before { color: var(--blue); }
   .foto { background: #fff; border: 1px solid rgba(255,255,255,.28);
            border-radius: 18px; padding: 12px; margin: 18px 0; }
   .foto img { width: 100%; max-width: 100%; height: auto; display: block; }
@@ -296,12 +303,9 @@
       <div class="note">Exclusivo para pessoa jurídica · Pedido mínimo de R$ 800 + frete · NF-e em todo pedido</div>
     </div>
 
-    <aside class="darkCard">
-      <h3>O dispositivo já vai com o sistema.</h3>
-      <p>Seu cliente ativa em poucos minutos. Você vende. A StarTouch cuida da plataforma.</p>
+    <aside class="heroArte">
       <figure class="foto">
-        <img src="/cartao-1.png" width="1122" height="1402" alt="Cartão de Avaliação NFC StarTouch: chip NFC, QR Code e a chamada Avalie nossa empresa, com o selo Powered by StarTouch"/>
-        <figcaption>Cartão de Avaliação NFC · 8,5 × 5,4 cm · R$ 13,90 na revenda</figcaption>
+        <img src="/linha-startouch.png" width="1400" height="933" alt="A linha StarTouch em PS preto: Placa de Balcão G, Placa de Balcão M, Cartão de Avaliação NFC e Pulseira NFC, todos com QR Code e chip NFC"/>
       </figure>
       <div class="ticks">
         <span>Painel de reputação incluso</span>
