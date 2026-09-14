@@ -167,7 +167,11 @@
   .quote p { color: #D3E3FB; font-size: 14.5px; margin: 18px 0 0; }
 
   /* ── Passos e condições ── */
-  .steps, .conditions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .steps, .conditions { display: grid; gap: 18px; }
+  .steps { grid-template-columns: repeat(4, 1fr); }
+  /* Eram 4 condicoes e a grade era compartilhada com os passos. Com 3,
+     uma coluna ficava vazia na direita. */
+  .conditions { grid-template-columns: repeat(3, 1fr); }
   .step, .cond { border: 1px solid var(--line); border-radius: 18px; background: #fff; padding: 23px; }
   .step .num { font-size: 11.5px; font-weight: 800; color: var(--blue); margin-bottom: 16px; letter-spacing: .06em; }
   .step h3, .cond h3 { font-size: 17px; margin: 0 0 7px; font-weight: 700; }
@@ -509,7 +513,6 @@
       <div class="cond"><h3>Somente pessoa jurídica</h3><p>É necessário CNPJ ativo para comprar no atacado.</p></div>
       <div class="cond"><h3>NF-e em todo pedido</h3><p>Emitimos nota fiscal para o CNPJ informado.</p></div>
       <div class="cond"><h3>Produção em até 10 dias úteis</h3><p>Prazo contado da confirmação do pagamento, mais o transporte.</p></div>
-      <div class="cond"><h3>Personalização em breve</h3><p>Hoje os dispositivos saem no padrão StarTouch.</p></div>
     </div>
   </div>
 </section>
