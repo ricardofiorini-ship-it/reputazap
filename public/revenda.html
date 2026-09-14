@@ -57,6 +57,10 @@
   .heroGrid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 70px; align-items: center; }
   /* A frase-promessa em azul, como na referencia. So a terceira linha: as
      duas primeiras sao o argumento, e destacar tudo nao destaca nada. */
+  /* O cabecalho e fixo (72 px). Sem isto, clicar em "Precos" ou "Duvidas" no
+     menu leva a secao pra debaixo da barra e o TITULO some — a pessoa chega
+     no lugar certo achando que chegou no errado. */
+  [id] { scroll-margin-top: 88px; }
   .hlBlue { color: var(--blue); }
   .pill { display: inline-flex; background: #EEF5FF; color: var(--blue); padding: 7px 11px;
           border-radius: 999px; font-size: 13px; font-weight: 800; margin-bottom: 18px; }

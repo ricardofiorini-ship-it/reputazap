@@ -386,6 +386,11 @@
 
   /* HEADER — dark */
   /* === REDESIGN Google Business — HEADER === */
+  /* Mesmo motivo da revenda: o cabecalho e sticky, e sem margem de rolagem
+     as ancoras (#produtos, #como-funciona, #funcionalidades) entregam a secao
+     com o titulo escondido atras da barra. */
+  [id] { scroll-margin-top: 96px; }
+
   header {
     position: sticky; top: 0; z-index: 50;
     background: rgba(255,255,255,0.92);
