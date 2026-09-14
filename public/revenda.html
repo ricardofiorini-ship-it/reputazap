@@ -101,6 +101,9 @@
   .light { background: var(--bg); }
   .head { max-width: 780px; margin-bottom: 34px; }
   .head p { color: var(--muted); font-size: 17px; margin: 0; }
+  /* Ate agora todo .head tinha UM paragrafo, entao margin:0 bastava. Com
+     dois, eles encostam e viram um bloco unico. */
+  .head p + p { margin-top: 14px; }
 
   /* ── Preços ── */
   .pricebox { border: 1px solid var(--line); border-radius: 20px; overflow: hidden;
@@ -321,9 +324,10 @@
 <section>
   <div class="wrap">
     <div class="head">
-      <span class="pill">O que vem junto</span>
-      <h2>A diferença não está no chip.</h2>
-      <p>Existem milhares de cartões e placas NFC à venda, e todos fazem a mesma coisa: abrem um link. O que separa o seu é o que acontece <strong>depois</strong> que o cliente compra — cada dispositivo StarTouch chega ligado a um painel onde o negócio acompanha a nota no Google, as avaliações que chegam, a posição nas buscas da região e quantas pessoas usaram cada ponto de contato.</p>
+      <span class="pill">A solução</span>
+      <h2>Uma solução feita para continuar gerando valor.</h2>
+      <p>A StarTouch combina dispositivos físicos e tecnologia para ajudar negócios a se conectarem melhor com seus clientes e acompanharem seus resultados.</p>
+      <p>Para quem revende, isso significa <strong>mais valor percebido, mais argumentos de venda</strong> e uma solução pronta para oferecer à sua carteira de clientes.</p>
     </div>
 
     <figure class="painelShot">
