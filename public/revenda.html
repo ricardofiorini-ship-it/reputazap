@@ -92,6 +92,9 @@
   .stat { padding: 25px; border-right: 1px solid var(--line); }
   .stat:last-child { border-right: 0; }
   .stat strong { display: block; font-size: 28px; color: var(--navy); letter-spacing: -1px; }
+  /* Este cartao da faixa e o unico com TEXTO no lugar de numero. No corpo
+     dos outros ele quebraria no meio da palavra. */
+  .stat strong.statTexto { font-size: 21px; letter-spacing: -0.5px; line-height: 1.2; }
   .stat small { color: var(--muted); font-size: 13px; }
 
   section { padding: 84px 0; }
@@ -307,7 +310,7 @@
 <div class="stats">
   <div class="wrap">
     <div class="statGrid">
-      <div class="stat"><strong>até 59%</strong><small>de desconto sobre o varejo</small></div>
+      <div class="stat"><strong class="statTexto">Margem saudável</strong><small>em cada unidade revendida</small></div>
       <div class="stat"><strong>R$ 800</strong><small>pedido mínimo, mais frete</small></div>
       <div class="stat"><strong>10 dias</strong><small>úteis de produção</small></div>
       <div class="stat"><strong>R$ 0</strong><small>de mensalidade obrigatória ao cliente</small></div>
@@ -324,8 +327,8 @@
     </div>
 
     <figure class="painelShot">
-      <img src="/painel-notebook.png" width="1402" height="1122" loading="lazy"
-           alt="O painel StarTouch aberto num notebook e num celular, mostrando nota do Google, total de avaliações, posição nas buscas, concorrentes monitorados e interações"/>
+      <img src="/painel-notebook.png" width="1536" height="1024" loading="lazy"
+           alt="O painel StarTouch aberto num notebook e num celular, mostrando a nota do Google, o total de avaliações e a lista de dispositivos com os toques de cada ponto de contato"/>
       <figcaption>Imagem ilustrativa do painel. Os números da tela são exemplo, não resultado prometido.</figcaption>
     </figure>
   </div>
@@ -346,8 +349,8 @@
         <div class="item">
           <span class="bolha">%</span>
           <div>
-            <b>Margem de até 59%</b>
-            <small>A mesma Placa de Balcão G que sai por R$ 79,90 no nosso site custa R$ 32,90 para você. Preço fixo por unidade, sem faixa por volume.</small>
+            <b>Margem saudável</b>
+            <small>Preço de atacado fixo por unidade, sem faixa por volume — o mesmo valor no primeiro pedido e no décimo. A diferença para o preço de varejo está na tabela, logo abaixo.</small>
           </div>
         </div>
 
@@ -416,30 +419,26 @@
 
     <div class="pricebox">
       <table>
-        <thead><tr><th>Produto</th><th>Varejo</th><th>Você paga</th><th>Desconto</th></tr></thead>
+        <thead><tr><th>Produto</th><th>Varejo</th><th>Você paga</th></tr></thead>
         <tbody>
           <tr>
             <td><div class="prodline"><img class="thumb" src="/rev-cartao.webp" width="440" height="440" loading="lazy" alt="Cartão de avaliação NFC StarTouch"/><div><div class="prod">Cartão de Avaliação NFC</div><div class="desc">Tamanho carteira, ideal para atendimento, equipe e balcão.</div></div></div></td>
             <td><span class="old">R$ 29,90</span></td>
             <td><span class="pay">R$ 13,90</span></td>
-            <td><span class="off">54% off</span></td>
           </tr>
           <tr>
             <td><div class="prodline"><img class="thumb" src="/rev-placa.webp" width="293" height="440" loading="lazy" alt="Placa de Balcão G StarTouch em PS preto"/><div><div class="prod">Placa de Balcão G</div><div class="desc">PS preto 2 mm, 21 × 15 cm.</div></div></div></td>
             <td><span class="old">R$ 79,90</span></td>
             <td><span class="pay">R$ 32,90</span></td>
-            <td><span class="off">59% off</span></td>
           </tr>
           <tr>
             <td><div class="prodline"><img class="thumb" src="/rev-placa-m.webp" width="293" height="440" loading="lazy" alt="Placa de Balcão M StarTouch em PS preto"/><div><div class="prod">Placa de Balcão M</div><div class="desc">PS preto 2 mm, 10 × 15 cm.</div></div></div></td>
             <td><span class="old">R$ 49,90</span></td>
             <td><span class="pay">R$ 22,90</span></td>
-            <td><span class="off">54% off</span></td>
           </tr>
           <tr>
             <td><div class="prod">Pulseira NFC</div><div class="desc">Temporariamente indisponível.</div></td>
             <td><em class="desc">Esgotada</em></td>
-            <td>—</td>
             <td>—</td>
           </tr>
         </tbody>
