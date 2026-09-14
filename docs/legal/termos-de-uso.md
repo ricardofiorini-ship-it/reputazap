@@ -1,6 +1,6 @@
 # Termos de Uso — StarTouch
 
-**Versão 1.2 — vigente a partir de 7 de setembro de 2026**
+**Versão 1.3 — vigente a partir de 14 de setembro de 2026**
 
 ---
 
@@ -64,16 +64,18 @@ Acompanha a aquisição do dispositivo, **sem mensalidade**:
 
 - painel com as avaliações públicas do seu perfil no Google;
 - posição no ranking local e identificação de concorrentes na sua região;
-- aviso por e-mail quando uma avaliação negativa é publicada;
+- aviso por e-mail, no envio semanal, das avaliações de 1 ou 2 estrelas publicadas nos últimos 7 dias;
 - relatório semanal por e-mail com a evolução da sua posição e o que mudou na sua região;
 - edição do destino do dispositivo a qualquer momento, sem troca do produto físico;
 - métricas de uso dos seus dispositivos.
 
-### 5.2 Por que o painel é gratuito, e o que pode mudar
+### 5.2 O plano gratuito é vitalício
 
 O dispositivo StarTouch é compra única, e é ela que sustenta a plataforma. Os recursos do item 5.1 não têm mensalidade porque já vieram com o produto que você comprou — não são cortesia temporária nem período promocional.
 
-Podemos rever no futuro quais recursos ficam no plano gratuito. Se isso acontecer, **avisaremos por e-mail com pelo menos 30 dias de antecedência**, e nunca cobraremos por período já utilizado.
+**Não há mensalidade, não há prazo de validade e não existe etapa futura em que o plano gratuito passe a ser cobrado.** O dispositivo que você comprou continua funcionando e o painel continua acessível sem nenhum pagamento, enquanto a StarTouch mantiver a plataforma no ar.
+
+**O que já é seu continua seu.** Se algum recurso hoje gratuito passar a integrar o plano pago, a mudança valerá somente para dispositivos adquiridos depois dela: quem já tem o seu permanece com os recursos do item 5.1, sem custo e sem prazo. Recursos criados no futuro podem nascer no plano pago — o que não acontece é o que você já recebeu deixar de ser gratuito.
 
 **O que estiver incluído no plano pago no momento em que você assina permanece incluído enquanto sua assinatura estiver ativa**, mesmo que as condições oferecidas a novos assinantes mudem depois.
 
@@ -199,6 +201,17 @@ A eventual invalidade de uma cláusula não afeta as demais. A tolerância quant
 Estes Termos são regidos pela lei brasileira.
 
 Fica eleito o foro da comarca de São Paulo/SP para dirimir controvérsias, ressalvado ao consumidor pessoa física o direito de demandar no foro de seu domicílio, na forma do Art. 101, I, do Código de Defesa do Consumidor.
+
+---
+
+## Histórico de versões
+
+| Versão | Vigência | O que mudou |
+|---|---|---|
+| 1.0 | 22/08/2026 | Versão inicial |
+| 1.1 | 02/09/2026 | Ajustes de redação |
+| 1.2 | 07/09/2026 | Mudança de controladora (GT6 → ZAYOR) e processamento da assinatura pela Stripe |
+| 1.3 | 14/09/2026 | O item 5.2 passa a **garantir que o plano gratuito é vitalício**: sem mensalidade, sem prazo, e sem possibilidade de o que já foi entregue virar pago depois. Substitui a cláusula anterior, que permitia rever quais recursos ficavam no plano gratuito mediante aviso de 30 dias — **a mudança amplia direitos do cliente e não reduz nenhum**. No mesmo ato, o item 5.1 passa a descrever o aviso de avaliação negativa como ele de fato funciona (semanal, com as notas 1 e 2 dos últimos 7 dias), corrigindo uma descrição que prometia aviso no momento da publicação |
 
 ---
 
