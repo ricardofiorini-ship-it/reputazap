@@ -182,6 +182,35 @@ export function ordenaPorVisibilidade(lista) {
     (b.appearance_count ?? 0) - (a.appearance_count ?? 0));
 }
 
+/**
+ * "5ª mais visível nesta área" — a posição do cliente entre todos os negócios
+ * que apareceram na grade, pela regra de `ordenaPorVisibilidade`.
+ *
+ * É a única posição que a tela pode afirmar, porque é a posição DENTRO DA NOSSA
+ * MEDIÇÃO — não uma colocação do Google. Medido em 15/09: a lista real do Maps
+ * muda conforme o zoom do mapa (overlap de 30% a 70% entre 15z e 18z), então
+ * "a posição no Google" não é uma coisa que exista para ser afirmada.
+ */
+export function posicaoDeVisibilidade(observations, placeId) {
+  const pts = medidos(observations);
+  if (!pts.length) return null;
+  const m = metricasDoCliente(observations);
+  const presentes = m.measured_points - (m.not_found_count || 0);
+  const outros = confrontoDireto(observations, placeId);
+  // Sumiu de todos os pontos medidos: não há posição a dar. `total` ainda vai,
+  // porque "não apareci entre 14 negócios" é informação.
+  if (!presentes) return { rank: null, total: outros.length + 1 };
+  const eu = {
+    place_id: placeId,
+    top10_coverage: m.top10_coverage,
+    median_position_when_visible: m.median_position_when_visible,
+    appearance_count: presentes,
+  };
+  const todos = ordenaPorVisibilidade([...outros, eu]);
+  const i = todos.findIndex((x) => x.place_id === placeId);
+  return { rank: i >= 0 ? i + 1 : null, total: todos.length };
+}
+
 // ------------------------------------------------------------
 // Comparação controlada por distância
 // ------------------------------------------------------------

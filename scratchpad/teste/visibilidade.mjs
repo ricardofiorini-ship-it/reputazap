@@ -222,3 +222,48 @@ if (falhas.length) { falhas.forEach(f => console.log("  x " + f)); process.exit(
 console.log("\n" + "=".repeat(60));
 console.log("TOTAL: " + ok + " OK, " + falhas.length + " falhas");
 if (falhas.length) process.exit(1);
+
+// ============================================================
+// 10. POSICAO DE VISIBILIDADE (passo 7 — o numero que vai na tela)
+// ============================================================
+{
+  const { posicaoDeVisibilidade, confrontoDireto: cd } = await import("../../api/_lib/visibilidade.js");
+  const P = JSON.parse(fs.readFileSync(new URL("./grade-real-parcial.json", import.meta.url), "utf8"));
+  console.log("\n10. Posicao de visibilidade");
+
+  for (const [rot, G] of [["cobertura cheia", F], ["com ausencia", P]]) {
+    const p = posicaoDeVisibilidade(G.observations, G.placeId);
+    const nOutros = cd(G.observations, G.placeId).length;
+    checa(`${rot}: total = concorrentes + o proprio (${nOutros + 1})`,
+      p.total === nOutros + 1, `${p.total} vs ${nOutros + 1}`);
+    checa(`${rot}: rank dentro de 1..total`,
+      p.rank >= 1 && p.rank <= p.total, `${p.rank} de ${p.total}`);
+    console.log(`       -> ${G.name}: ${p.rank}a mais visivel entre ${p.total}`);
+  }
+
+  // Quem some de TODOS os pontos medidos nao tem posicao — mas o total vai,
+  // porque "nao apareci entre 14" e informacao, nao ausencia de dado.
+  const sumiu = posicaoDeVisibilidade([
+    { point_id: "A", ok: true, client_position: null,
+      results: [{ place_id: "x", position: 1, distance_m: 10 },
+                { place_id: "y", position: 2, distance_m: 20 }] }], "eu");
+  checa("sumiu de todos: rank null", sumiu.rank === null, JSON.stringify(sumiu));
+  checa("sumiu de todos: total ainda conta os concorrentes", sumiu.total === 3, sumiu.total);
+  checa("sem ponto medido devolve null inteiro",
+    posicaoDeVisibilidade([{ point_id: "A", ok: false, results: [] }], "eu") === null);
+  checa("observations ausente devolve null", posicaoDeVisibilidade(null, "eu") === null);
+
+  // Coerencia com a regra: quem aparece em TODOS os pontos, sempre em 1o, tem
+  // que ficar em primeiro. Controle de sanidade da ordenacao.
+  const obs = [1, 2, 3].map((i) => ({
+    point_id: "P" + i, ok: true, client_position: 1,
+    results: [{ place_id: "eu", position: 1, distance_m: 10 },
+              { place_id: "rival", position: 2, distance_m: 20 }] }));
+  const dom = posicaoDeVisibilidade(obs, "eu");
+  checa("quem e 1o em todos os pontos sai como 1a mais visivel",
+    dom.rank === 1 && dom.total === 2, JSON.stringify(dom));
+}
+
+console.log("\n" + "=".repeat(60));
+console.log("TOTAL FINAL: " + ok + " OK, " + falhas.length + " falhas");
+if (falhas.length) { falhas.forEach(f => console.log("  x " + f)); process.exit(1); }

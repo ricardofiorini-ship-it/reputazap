@@ -4,6 +4,7 @@ import React from 'react'
 // o único jeito de garantir que painel e email nunca mais mostrem números
 // diferentes pro mesmo negócio. Ver a nota longa em score-core.js.
 import { calcularScore } from '../api/_lib/score-core.js'
+import { metricasDoCliente, posicaoDeVisibilidade } from '../api/_lib/visibilidade.js'
 import {
   Home, Star, ShoppingBag, ShoppingCart, Menu, Lock, Unlock, TrendingUp, TrendingDown,
   Bell, Target, Search, Award, Medal, Rocket, AlertTriangle, MessageSquare, Info,
@@ -3212,6 +3213,80 @@ function LacunaHeadline({ lacuna, isMobile }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// VISIBILIDADE — cobertura medida, não colocação no Google
+// ─────────────────────────────────────────────────────────────
+// A tela dizia "8º lugar · é a colocação média da sua empresa no Google Maps".
+// Era falso de duas maneiras, e as duas foram medidas em 15/09/2026:
+//
+//   1. O 8 não existe no Google. É a média de cinco pontos que, num raio de
+//      1 km em São Paulo, caem em QUATRO BAIRROS diferentes. A Brascatta é 4ª
+//      na porta dela e 15ª a 1 km a oeste, que já é Vila Leopoldina.
+//   2. Não existe "a" posição do Google para afirmar. Comparando com o Maps
+//      real, deslogado, o overlap do Top 10 pulou de ~30% para ~70% só mudando
+//      o zoom do mapa (15z → 18z). A lista muda com o enquadramento.
+//
+// O que a gente pode afirmar é o que a gente mediu: em quantos dos pontos
+// medidos o negócio aparece bem, e onde ele some. Daí "nesta área analisada",
+// nunca "na sua região" e nunca "no Google".
+function VisibilidadeHeadline({ visib, isMobile }) {
+  if (!visib) return null
+  const { metricas: m, posicao } = visib
+  const grande = { fontSize: isMobile ? 34 : 42, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em' }
+  const apoio = { fontSize: 13, color: T.textMuted, lineHeight: 1.45 }
+  const pct = (v) => Math.round(v * 100) + '%'
+
+  // Mediu e não apareceu em ponto nenhum. Não é "sem dado" — é a pior notícia
+  // possível, e tem que aparecer como tal em vez de virar um traço.
+  if (posicao?.rank == null) {
+    return (
+      <>
+        <div style={{ display:'inline-flex', alignItems:'center', gap: 6, fontSize: isMobile ? 19 : 23, fontWeight: 800, color: T.danger, lineHeight: 1.1 }}>
+          <AlertTriangle size={isMobile ? 19 : 21}/> Fora da lista
+        </div>
+        <div style={apoio}>você não apareceu em nenhum dos {m.measured_points} pontos medidos</div>
+      </>
+    )
+  }
+
+  // A COBERTURA VAI GRANDE, NAO O RANK — decidido medindo, 15/09.
+  // Calibragem com 8 negocios de 8 categorias, cada um na propria grade:
+  //
+  //   rank  "mais visivel":  1, 1, 1, 1, 4, 6, 10, 11   -> 4 de 8 dao "1a"
+  //   cobertura Top 10:     40,40,60,60,80,100,100,100  -> espalha
+  //
+  // A ordem do rank esta certa (quem mede bem fica no topo), mas o topo e
+  // comprimido: o cliente e o unico negocio no CENTRO da grade, entao ele
+  // alcanca os 5 pontos e o concorrente a 1 km alcanca 1 ou 2. Numero que da
+  // "primeiro lugar" pra metade da base nao informa — e a familia do "1o de N"
+  // que saiu em agosto depois de dar 1o pra 17 de 20.
+  //
+  // A cobertura nao tem esse vies porque nao compara com ninguem: e quantos dos
+  // pontos medidos mostram VOCE. O rank fica de apoio, rotulado "nesta area".
+  const cor = m.top10_coverage >= 0.8 ? T.success : m.top10_coverage >= 0.4 ? T.accent : T.danger
+  return (
+    <>
+      <div style={{ ...grande, color: cor }}>
+        {pct(m.top10_coverage)}
+      </div>
+      <div style={apoio}>
+        dos pontos medidos mostram você no <strong style={{ color: T.text }}>Top 10</strong>
+        {m.top3_coverage > 0 && <> · Top 3 em {pct(m.top3_coverage)}</>}
+      </div>
+      {posicao.rank != null && (
+        <div style={apoio}>{posicao.rank}ª mais visível nesta área, entre {posicao.total} negócios</div>
+      )}
+      {/* Onde ele SOME é a única linha acionável aqui — "melhore a colocação"
+          não é instrução, "você não aparece em 2 dos 5 pontos" é. */}
+      {m.not_found_count > 0 && (
+        <div style={{ ...apoio, color: T.accent, fontWeight: 600 }}>
+          você não aparece em {m.not_found_count} de {m.measured_points} pontos
+        </div>
+      )}
+    </>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // ENDEREÇO NA TELA — o nome sozinho não identifica um negócio
 // ─────────────────────────────────────────────────────────────
 // "Brascatta Alto da Lapa" e "Brascatta Vila Leopoldina" são duas lojas a
@@ -3294,7 +3369,7 @@ function lacunaDeAvaliacoes(ranking) {
   }
 }
 
-function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, onSeeCompetitors, lacuna = null }) {
+function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, onSeeCompetitors, lacuna = null, visib = null }) {
   const score = calcStarTouchScore(d)
   // Coluna B consome a MESMA fonte do ranking (lente "Bem perto de você") — não o
   // d.kpis.rankingPos, que ficava null e mostrava placeholder mesmo com ranking cheio.
@@ -3326,6 +3401,10 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
             colocação responde a primeira pergunta sem precisar de legenda. */}
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 8, borderRight:`1px solid ${T.border}`, paddingRight: isMobile ? 8 : 16 }}>
           {visitante ? (
+            /* COBERTURA quando a medição é nova (tem `observations`); a
+               colocação antiga enquanto houver cache v2, que expira sozinho em
+               até 7 dias. Degradar sem quebrar. */
+            visib ? <VisibilidadeHeadline visib={visib} isMobile={isMobile}/> :
             lugar != null ? (
               <>
                 <div style={{ fontSize: isMobile ? 34 : 42, fontWeight: 800, lineHeight: 1, letterSpacing:'-0.02em', color: corLugar }}>
@@ -3367,7 +3446,10 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
             direto pro que a StarTouch vende. Quem já é cliente segue com a
             posição: mudar o painel de quem já usa é outra decisão. */}
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 6, paddingLeft: isMobile ? 4 : 8 }}>
-          {lacuna ? <LacunaHeadline lacuna={lacuna} isMobile={isMobile}/> : gridPos ? (
+          {lacuna ? <LacunaHeadline lacuna={lacuna} isMobile={isMobile}/>
+            : visib ? <><VisibilidadeHeadline visib={visib} isMobile={isMobile}/>
+                <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button></>
+            : gridPos ? (
             gridPos.coverage > 0 && gridPos.score != null ? (
               <>
                 {/* QUAL NÚMERO VAI GRANDE — histórico das tentativas, pra não
@@ -7469,6 +7551,19 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     [gridPrimary]
   )
 
+  // VISIBILIDADE (15/09). `observations` só existe em medições feitas a partir
+  // de hoje; com cache v2 isto fica null e a tela cai no que mostrava antes.
+  // O place_id vem do negócio do dono no convidado e no logado — sem ele não há
+  // de quem calcular.
+  const visib = React.useMemo(() => {
+    const obs = gridPrimary?.observations
+    const pid = d?.biz?.placeId
+    if (!Array.isArray(obs) || !obs.some(o => o && o.ok) || !pid) return null
+    const metricas = metricasDoCliente(obs)
+    if (!metricas.measured_points) return null
+    return { metricas, posicao: posicaoDeVisibilidade(obs, pid) }
+  }, [gridPrimary, d?.biz?.placeId])
+
   const guestPitch = React.useMemo(() => {
     const g = gridPrimary
     const rows = Array.isArray(g?.ranking) ? g.ranking : null
@@ -7674,6 +7769,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <Section>
           <HeroBlock
             gridPos={gridPrimary}
+            visib={visib}
             lacuna={isGuest ? lacuna : null}
             d={d}
             position={heroPos}
