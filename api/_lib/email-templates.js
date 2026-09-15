@@ -177,7 +177,7 @@ export function tapsHistoryNewsEmail({ userName, unsubUrl }) {
 export function revendaNewsEmail({ userName, unsubUrl }) {
   const name = escapeHtml(userName?.split(" ")[0] || "tudo bem");
   return {
-    subject: "Agora dá pra revender StarTouch",
+    subject: "A StarTouch acaba de lançar seu Programa de Revenda",
     html: shell({
       title: "🤝 PROGRAMA DE REVENDA",
       unsubUrl,
@@ -186,44 +186,68 @@ export function revendaNewsEmail({ userName, unsubUrl }) {
         <h1 style="margin:0 0 12px;font-size:23px;color:#202124;line-height:1.3;">
           Olá, ${name}!
         </h1>
+        <p style="font-size:15px;color:#202124;line-height:1.6;margin:0 0 14px;font-weight:600;">
+          A StarTouch acaba de lançar seu Programa de Revenda.
+        </p>
         <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
-          Muita gente nos escreveu pedindo a mesma coisa: comprar em quantidade para
-          <strong style="color:#202124;">revender aos próprios clientes</strong>. Até agora a resposta era
-          caso a caso, por WhatsApp. A partir de hoje existe uma página com tudo aberto —
-          preço de atacado, prazo e pedido fechado na hora.
+          Agora, empresas com CNPJ podem comprar nossas soluções em condições de atacado e revender
+          para os próprios clientes, com pedido mínimo acessível e processo simples pelo site.
+        </p>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 18px;">
+          Você encontra tudo em uma única página: preços de revenda, condições comerciais, prazo,
+          cálculo de frete e fechamento do pedido.
         </p>
 
-        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin:14px 0;">
-          <ul style="font-size:14px;color:#202124;line-height:1.7;margin:0;padding-left:20px;">
-            <li>Preço de atacado <strong>fixo por unidade</strong>, sem faixa por volume</li>
-            <li>Pedido a partir de <strong>R$ 800</strong>, somente para CNPJ</li>
-            <li><strong>Frete calculado na hora</strong>, pelo seu CEP, e pago junto</li>
-            <li>Produção em até <strong>10 dias úteis</strong>, com NF-e em todo pedido</li>
-          </ul>
-        </div>
+        <table width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 14px;"><tr>
+            <td style="padding:0 0 0 14px;border-left:3px solid #1A73E8;">
+              <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.35;">Preço de atacado por unidade</div>
+              <div style="font-size:14px;color:#5F6368;line-height:1.55;margin-top:2px;">Condições claras, sem depender de faixas de volume.</div>
+            </td>
+          </tr></table>
+          <table width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 14px;"><tr>
+            <td style="padding:0 0 0 14px;border-left:3px solid #1A73E8;">
+              <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.35;">Pedido inicial a partir de R$ 800</div>
+              <div style="font-size:14px;color:#5F6368;line-height:1.55;margin-top:2px;">Exclusivo para empresas com CNPJ.</div>
+            </td>
+          </tr></table>
+          <table width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 14px;"><tr>
+            <td style="padding:0 0 0 14px;border-left:3px solid #1A73E8;">
+              <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.35;">Frete calculado na hora</div>
+              <div style="font-size:14px;color:#5F6368;line-height:1.55;margin-top:2px;">Informe o CEP, veja o valor e finalize tudo pelo próprio site.</div>
+            </td>
+          </tr></table>
+          <table width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 14px;"><tr>
+            <td style="padding:0 0 0 14px;border-left:3px solid #1A73E8;">
+              <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.35;">Produção em até 10 dias úteis</div>
+              <div style="font-size:14px;color:#5F6368;line-height:1.55;margin-top:2px;">Com NF-e em todos os pedidos.</div>
+            </td>
+          </tr></table>
 
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:18px 0 14px;">
+          Seu cliente recebe uma solução StarTouch completa, com recursos gratuitos disponíveis
+          <strong style="color:#202124;">sem mensalidade obrigatória</strong> e sem prazo promocional
+          para acabar.
+        </p>
         <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
-          O que o seu cliente recebe é o mesmo que você já conhece: o dispositivo chega ligado
-          ao painel, com código próprio, e os recursos gratuitos são
-          <strong style="color:#202124;">vitalícios</strong> — sem mensalidade obrigatória, sem prazo
-          para acabar. É uma promessa que você pode repetir sem medo.
+          Para você, é uma nova forma de ampliar o portfólio, gerar mais valor para seus clientes
+          e criar uma nova oportunidade de negócio.
         </p>
 
-        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
-          Você faz a venda; a plataforma, a ativação e o suporte dela ficam com a gente.
-        </p>
-
-        ${cta("https://startouch.com.br/revenda", "Ver o programa de revenda →")}
+        ${cta("https://startouch.com.br/revenda", "Conhecer o Programa de Revenda \u2192")}
 
         <div style="background:#F1F5FB;border:1px solid #DCE6F5;border-radius:10px;padding:14px 16px;margin:18px 0 0;">
           <p style="font-size:13.5px;color:#3C4858;line-height:1.6;margin:0;">
-            <strong>Não quer revender?</strong> Nada muda para você. Seus dispositivos, seu painel e
-            seu plano seguem exatamente como estão — este e-mail é só um aviso de que a porta abriu.
+            Se revender não fizer parte dos seus planos, nada muda na sua experiência atual com a
+            StarTouch. Mas, se fizer sentido para o seu negócio, a porta está aberta.
+            <strong>Vamos crescer juntos.</strong>
           </p>
         </div>
 
         <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:18px 0 0;">
-          Dúvida sobre quantidade, prazo ou região? É só responder este e-mail — a gente lê tudo.
+          Se tiver qualquer dúvida sobre quantidade, prazo ou condições, é só responder este e-mail.
+        </p>
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:14px 0 0;">
+          Equipe StarTouch
         </p>
       `
     })
