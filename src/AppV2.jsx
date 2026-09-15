@@ -3167,7 +3167,7 @@ function LacunaHeadline({ lacuna, isMobile }) {
     return (
       <>
         <div style={{ ...grande, color: T.success }}>{meus.toLocaleString('pt-BR')}</div>
-        <div style={apoio}>avaliações — <strong style={{ color: T.text }}>você lidera na sua região</strong></div>
+        <div style={apoio}>avaliações — <strong style={{ color: T.text }}>ninguém por perto tem mais</strong></div>
         {rival && lacuna.vantagem != null && (
           <div style={{ ...apoio, marginTop: 4 }}>
             {rival.nome} vem logo atrás, com {rival.reviews.toLocaleString('pt-BR')}.
@@ -3179,6 +3179,14 @@ function LacunaHeadline({ lacuna, isMobile }) {
   }
 
   // 'perto' e 'longe' partilham a dor; só o remédio muda de forma.
+  //
+  // TODA FRASE AQUI NOMEIA O EIXO ("em avaliações"). A tabela logo abaixo
+  // ordena por LUGAR NO GOOGLE, que é outra medição — o rival que tem mais
+  // avaliações pode perfeitamente aparecer ATRÁS dele na lista, e aparece:
+  // na Padaria Bicho Pão (15/09) a manchete mandava passar a Nova São Luiz,
+  // 267 avaliações, enquanto a lista mostrava ela em 8,7º contra o 7,0º dele.
+  // Manchete que briga com a tabela de baixo foi exatamente o defeito que
+  // derrubou a manchete de posição. Não repetir por descuido de redação.
   return (
     <>
       <div style={{ ...grande, color: caso === 'perto' ? T.accent : T.text }}>
@@ -3188,13 +3196,13 @@ function LacunaHeadline({ lacuna, isMobile }) {
       </div>
       <div style={apoio}>
         {caso === 'perto'
-          ? <>é o que falta pra você passar <strong style={{ color: T.text }}>{rival.nome}</strong></>
-          : <>é quanto <strong style={{ color: T.text }}>{rival.nome}</strong> tem. Você tem {meus.toLocaleString('pt-BR')}.</>}
+          ? <>é o que falta pra você passar <strong style={{ color: T.text }}>{rival.nome}</strong> em avaliações — são {rival.reviews.toLocaleString('pt-BR')} contra as suas {meus.toLocaleString('pt-BR')}.</>
+          : <>é quanto <strong style={{ color: T.text }}>{rival.nome}</strong> tem em avaliações. Você tem {meus.toLocaleString('pt-BR')}.</>}
       </div>
       {lacuna.notaMelhor && (
         <div style={{ ...apoio, marginTop: 4 }}>
-          Sua nota é <strong style={{ color: T.text }}>{lacuna.minhaNota.toFixed(1).replace('.', ',')}</strong> e a dele{' '}
-          {rival.nota.toFixed(1).replace('.', ',')} — você é melhor avaliado e mesmo assim aparece atrás.
+          Sua nota é <strong style={{ color: T.text }}>{lacuna.minhaNota.toFixed(1).replace('.', ',')}</strong> contra{' '}
+          {rival.nota.toFixed(1).replace('.', ',')} — você é melhor avaliado e ainda assim tem menos avaliações.
         </div>
       )}
     </>
