@@ -28,6 +28,11 @@
   @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(5,150,105,0.45)}50%{box-shadow:0 0 0 8px rgba(5,150,105,0)}}
   .container{max-width:520px;margin:0 auto;animation:fadeUp 0.4s ease;}
+  /* Bloco do dispositivo: aparece só pra quem TEM um ativo. */
+  .dev-box{margin-top:18px;padding:16px 18px;border:1px solid #DCE7F5;background:#F2F7FD;border-radius:14px;}
+  .dev-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#1A5FB4;margin-bottom:6px;}
+  .dev-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;font-weight:700;color:#0f172a;margin-bottom:8px;}
+  .dev-text{font-size:13.5px;line-height:1.55;color:#3D4A57;margin:0;}
   .logo{display:flex;align-items:center;justify-content:center;margin-bottom:32px;text-decoration:none;}
   .logo img{display:block;height:48px;width:auto;}
   @media(min-width:768px){.logo img{height:54px;}}
@@ -104,6 +109,20 @@
       </div>
     </div>
 
+    <!-- SÓ PARA QUEM TEM DISPOSITIVO ATIVO. A página falava em "seu link"
+         sem nunca mencionar o cartão recém-ativado, e o cliente não tinha como
+         saber se era a mesma coisa. Aqui a diferença fica explícita — e o link
+         do dispositivo NÃO é oferecido pra divulgação de propósito: cada
+         abertura dele conta um toque, e toque tem que significar "alguém
+         encostou o celular no cartão". -->
+    <div class="dev-box" id="devBox" style="display:none">
+      <div class="dev-label" id="devLabel">Seu dispositivo já está ativo</div>
+      <div class="dev-code" id="devCode">—</div>
+      <p class="dev-text">Ele leva ao <strong>mesmo lugar</strong> que o link acima. A diferença:
+        os toques no dispositivo aparecem no seu painel, e o link acima não conta toque —
+        ele é para divulgar no WhatsApp, nas redes e no site.</p>
+    </div>
+
     <div class="share-hint">
       <span class="share-hint-icon">💡</span>
       <span>Comece compartilhando este link no WhatsApp, redes sociais ou no balcão da loja.</span>
@@ -146,8 +165,38 @@ async function init() {
 
     document.getElementById("loading").style.display = "none";
     document.getElementById("content").style.display = "block";
+
+    // Dispositivos ativos — consulta separada e TOLERANTE A FALHA: esta tela é
+    // a primeira coisa que o cliente vê depois de ativar, e não pode quebrar
+    // por causa de um bloco informativo. Falhou, o bloco simplesmente não
+    // aparece e o resto da página segue igual.
+    mostraDispositivos(token);
   } catch {
     window.location.href = "/landing";
+  }
+}
+
+async function mostraDispositivos(token) {
+  try {
+    const r = await fetch("/api/plates?action=my-plates", { headers: { Authorization: `Bearer ${token}` }});
+    if (!r.ok) return;
+    const d = await r.json();
+    const ativos = (d.plates || []).filter(p => p && p.status === "active" && p.code);
+    if (!ativos.length) return;
+    const nomes = { cartao_nfc: "cartão NFC", placa_balcao: "placa de balcão",
+                    placa_mesa: "placa de mesa", pulseira_nfc: "pulseira NFC",
+                    adesivo_nfc: "adesivo NFC" };
+    const primeiro = ativos[0];
+    const tipo = nomes[primeiro.product_type] || "dispositivo";
+    document.getElementById("devLabel").textContent =
+      ativos.length === 1
+        ? `Seu ${tipo} já está ativo`
+        : `Seus ${ativos.length} dispositivos já estão ativos`;
+    document.getElementById("devCode").textContent =
+      ativos.length === 1 ? primeiro.code : ativos.map(p => p.code).join(" · ");
+    document.getElementById("devBox").style.display = "block";
+  } catch {
+    /* silêncio proposital: bloco informativo não derruba a tela */
   }
 }
 
