@@ -257,6 +257,88 @@ export function revendaNewsEmail({ userName, unsubUrl }) {
 // ─────────────────────────────────────────────────────────────
 // 2. NEGÓCIO VINCULADO
 // ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// PEDIDO — os dois e-mails que o CLIENTE recebe
+// ─────────────────────────────────────────────────────────────
+// Até 15/09/2026 não existia nenhum: todo aviso de pedido ia só pro admin.
+// No cartão isso era falta de educação; no BOLETO era perda de venda, porque
+// sem o link a pessoa não tem como pagar — o boleto só existia dentro do
+// painel do Stripe, onde ela não entra.
+const brl = (c) => (Number(c || 0) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+function linhasDoPedido(itens) {
+  return (Array.isArray(itens) ? itens : []).map((i) =>
+    `<tr>
+       <td style="padding:9px 12px;border-bottom:1px solid #eef0f3;">${escapeHtml(i.nome || "Item")}</td>
+       <td style="padding:9px 12px;border-bottom:1px solid #eef0f3;text-align:right;">${i.qtd || 1}</td>
+       <td style="padding:9px 12px;border-bottom:1px solid #eef0f3;text-align:right;font-weight:600;">${brl(i.subtotal)}</td>
+     </tr>`).join("");
+}
+
+/**
+ * PEDIDO RECEBIDO — sai assim que a sessão de checkout fecha.
+ *
+ * No boleto isso acontece na EMISSÃO, então o texto NÃO pode dizer que está
+ * pago. Ele diz o contrário, com o link em destaque: é o único e-mail em que
+ * a ação mais importante é do cliente, não nossa.
+ *
+ * @param {object} boleto  { url, numero, vence } — ausente quando é cartão
+ */
+export function pedidoRecebidoEmail({ nome, ref, itens, totalCentavos, boleto = null, ehRevenda = false }) {
+  const saudacao = nome ? `Olá, ${escapeHtml(nome)}!` : "Olá!";
+  const prazo = ehRevenda
+    ? "A produção leva 10 dias úteis e o prazo da transportadora começa depois da postagem."
+    : "Assim que o pagamento for confirmado, preparamos o envio.";
+
+  const blocoBoleto = boleto && boleto.url
+    ? `<table width="100%" cellspacing="0" cellpadding="0" style="background:#FFF8E1;border:1px solid #FDE68A;border-radius:12px;margin:18px 0;">
+         <tr><td style="padding:18px 20px;">
+           <div style="font-size:15px;font-weight:700;color:#7A5A00;margin-bottom:6px;">Falta pagar o boleto</div>
+           <p style="margin:0 0 14px;font-size:14px;color:#6B5200;line-height:1.55;">
+             Seu pedido <strong>ainda não está confirmado</strong>. Ele entra na fila assim que o
+             pagamento compensar — o que leva de 1 a 3 dias úteis depois de você pagar.
+           </p>
+           <a href="${escapeHtml(boleto.url)}" style="display:inline-block;background:#1A5FB4;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:13px 22px;border-radius:10px;">Abrir o boleto →</a>
+           ${boleto.vence ? `<p style="margin:14px 0 0;font-size:13px;color:#7A5A00;">Vence em <strong>${escapeHtml(boleto.vence)}</strong>.</p>` : ""}
+         </td></tr>
+       </table>`
+    : `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">Estamos confirmando o pagamento. Você recebe um novo e-mail assim que der tudo certo.</p>`;
+
+  const html =
+    `<h2 style="margin:0 0 6px;">Recebemos seu pedido</h2>` +
+    `<p style="font-size:15px;color:#3D4A57;line-height:1.6;margin:0 0 4px;">${saudacao}</p>` +
+    `<p style="font-size:13px;color:#68757F;margin:0 0 16px;">Pedido <code>${escapeHtml(ref || "—")}</code></p>` +
+    blocoBoleto +
+    `<table width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5e7eb;border-radius:12px;margin:18px 0;">` +
+    linhasDoPedido(itens) +
+    `<tr><td colspan="2" style="padding:11px 12px;text-align:right;font-weight:700;">Total</td>` +
+    `<td style="padding:11px 12px;text-align:right;font-weight:700;">${brl(totalCentavos)}</td></tr>` +
+    `</table>` +
+    `<p style="font-size:14px;color:#68757F;line-height:1.6;">${prazo}</p>` +
+    `<p style="font-size:14px;color:#68757F;line-height:1.6;">Qualquer dúvida, é só responder este e-mail.</p>`;
+
+  return {
+    subject: boleto && boleto.url
+      ? "Seu boleto StarTouch — falta pagar pra confirmar o pedido"
+      : "Recebemos seu pedido StarTouch",
+    html,
+  };
+}
+
+/** PEDIDO CONFIRMADO — sai quando o dinheiro entra de verdade. */
+export function pedidoConfirmadoEmail({ nome, ref, totalCentavos, ehRevenda = false }) {
+  const saudacao = nome ? `Olá, ${escapeHtml(nome)}!` : "Olá!";
+  const html =
+    `<h2 style="margin:0 0 6px;">Pagamento confirmado ✅</h2>` +
+    `<p style="font-size:15px;color:#3D4A57;line-height:1.6;margin:0 0 4px;">${saudacao}</p>` +
+    `<p style="font-size:13px;color:#68757F;margin:0 0 16px;">Pedido <code>${escapeHtml(ref || "—")}</code> · ${brl(totalCentavos)}</p>` +
+    (ehRevenda
+      ? `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">Seu pedido entrou na produção. A nota fiscal e o código de rastreio chegam neste mesmo e-mail — a produção leva <strong>10 dias úteis</strong> e o prazo da transportadora começa depois da postagem.</p>`
+      : `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">Já estamos preparando o envio. <strong>Quando os dispositivos chegarem, ative em startouch.com.br</strong> — leva menos de um minuto, e o suporte ajuda se precisar.</p>`) +
+    `<p style="font-size:14px;color:#68757F;line-height:1.6;">Qualquer dúvida, é só responder este e-mail.</p>`;
+  return { subject: "Pagamento confirmado — pedido StarTouch", html };
+}
+
 export function businessLinkedEmail({ userName, bizName }) {
   const name = escapeHtml(userName?.split(" ")[0] || "tudo bem?");
   const biz = escapeHtml(bizName || "seu negócio");

@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { MercadoPagoConfig, PreApproval, Preference, Payment } from "mercadopago";
 import crypto from "crypto";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
+import { pedidoRecebidoEmail, pedidoConfirmadoEmail } from "./_lib/email-templates.js";
 import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia } from "./_lib/email-templates.js";
 import { resolvePlano } from "./_lib/plan.js";
 import { KIT_CATALOG } from "./_lib/catalogo-kit.js";
@@ -1699,6 +1700,108 @@ async function pagamentoConfirmado(session, stripe) {
   }
 }
 
+// ============================================================
+// E-MAILS DO CLIENTE (15/09/2026)
+// ============================================================
+// Ate esta data o cliente nao recebia NADA sobre o proprio pedido: todos os
+// avisos eram `notifyAdmin*`. No cartao isso era falta de educacao; no boleto
+// era perda de venda — sem o link a pessoa nao tem como pagar, e o boleto so
+// existe dentro do painel do Stripe, onde ela nao entra.
+
+/** Busca o pedido pendente pra ter itens, total e o nome de quem comprou. */
+async function pedidoPorRef(extRef) {
+  try {
+    const { data } = await supabase.from("orders").select("*")
+      .eq("external_reference", extRef).limit(1).maybeSingle();
+    return data || null;
+  } catch { return null; }
+}
+
+/**
+ * Detalhes do boleto, que so existem no PaymentIntent — e so enquanto ele
+ * estiver aguardando pagamento (`next_action`). A sessao de checkout nao
+ * carrega isso.
+ */
+async function boletoDaSessao(session, stripe) {
+  try {
+    const piId = typeof session?.payment_intent === "string"
+      ? session.payment_intent : session?.payment_intent?.id;
+    if (!piId) return null;
+    const pi = await stripe.paymentIntents.retrieve(piId);
+    const b = pi?.next_action?.boleto_display_details;
+    if (!b) return null;
+    return {
+      url: b.hosted_voucher_url || b.pdf || null,
+      numero: b.number || null,
+      vence: b.expires_at
+        ? new Date(b.expires_at * 1000).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })
+        : null,
+    };
+  } catch (e) {
+    console.warn("[stripe/webhook] nao consegui ler o boleto:", e?.message);
+    return null;
+  }
+}
+
+/**
+ * "Recebemos seu pedido" — sai quando a sessao fecha, pago ou nao.
+ *
+ * `emailType` distingue os dois casos de proposito: o de boleto precisa poder
+ * sair mesmo que um "recebido" ja tenha saido, e a idempotencia do sender e
+ * por (user_id, email_type).
+ */
+async function avisaClientePedidoRecebido({ session, stripe, extRef }) {
+  const to = session?.customer_details?.email || session?.customer_email;
+  if (!to) { console.warn(`[stripe/webhook] pedido ${extRef} sem e-mail do cliente — aviso pulado`); return; }
+  const order = await pedidoPorRef(extRef);
+  const boleto = await boletoDaSessao(session, stripe);
+  const c = order?.shipping || {};
+  const { subject, html } = pedidoRecebidoEmail({
+    nome: c.nome || session?.customer_details?.name || null,
+    ref: extRef,
+    itens: Array.isArray(order?.items) ? order.items : [],
+    totalCentavos: session?.amount_total ?? order?.total_cents ?? 0,
+    boleto,
+    ehRevenda: extRef.startsWith("revenda_"),
+  });
+  // PEDIDO DE CONVIDADO NAO TEM USUARIO, e `userId` vazio faz o sender PULAR o
+  // envio inteiro (email-sender.js:62) — que aqui seria o pior resultado
+  // possivel. Entao vai "guest": o e-mail sai, mas a desduplicacao vira no-op
+  // (a coluna e uuid e a comparacao nao casa) e o registro no email_log falha
+  // calado — o defeito ja mapeado na pendencia 3 do CLAUDE.md.
+  // Efeito pratico: se o Stripe repetir `checkout.session.completed` num pedido
+  // guest, o cliente recebe o mesmo aviso duas vezes. Chato, e correto — melhor
+  // que nao receber o boleto. Some quando a pendencia 3 for resolvida.
+  await sendTransactionalEmail({
+    userId: order?.user_id || "guest",
+    emailType: boleto ? "pedido_boleto" : "pedido_recebido",
+    to, subject, html,
+    // Sem isto, dois pedidos do mesmo cliente colidiriam na idempotencia por
+    // (user_id, email_type) e o segundo nunca sairia.
+    dedupeByMetadata: { key: "ref", value: extRef },
+    metadata: { ref: extRef },
+  });
+  console.log(`[stripe/webhook] aviso de pedido enviado ao cliente (${boleto ? "com boleto" : "sem boleto"}) ref=${extRef}`);
+}
+
+/** "Pagamento confirmado" — so quando o dinheiro entrou de verdade. */
+async function avisaClientePedidoPago({ order, extRef, totalCentavos }) {
+  const c = order?.shipping || {};
+  const to = order?.email || c.email;
+  if (!to) { console.warn(`[stripe/webhook] pedido ${extRef} pago sem e-mail do cliente — aviso pulado`); return; }
+  const { subject, html } = pedidoConfirmadoEmail({
+    nome: c.nome || null, ref: extRef, totalCentavos,
+    ehRevenda: extRef.startsWith("revenda_"),
+  });
+  await sendTransactionalEmail({
+    userId: order?.user_id || "guest",
+    emailType: "pedido_confirmado",
+    to, subject, html,
+    dedupeByMetadata: { key: "ref", value: extRef },
+    metadata: { ref: extRef },
+  });
+}
+
 // Fecha o pedido de hardware pago pelo Stripe: marca 'paid', avisa o admin e
 // registra a venda no GA4 (que e o que alimenta a conversao do Google Ads).
 //
@@ -1737,6 +1840,12 @@ async function concluiPedidoStripe(session) {
   const order = up.data;
   console.log(`[stripe/webhook] pagamento kit ${pagamentoId} ref=${extRef} -> ${order ? "pedido marcado como pago" : (up.ok ? "nenhum pedido pendente (evento repetido)" : "FALHOU ao atualizar")}`);
   if (!order) return;
+
+  // O cliente primeiro: ate hoje ele era o unico que nao ficava sabendo.
+  await avisaClientePedidoPago({
+    order, extRef,
+    totalCentavos: session.amount_total != null ? session.amount_total : order.total_cents,
+  });
 
   if (ehRevenda) {
     await notifyAdminRevendaPaga({
@@ -1801,6 +1910,11 @@ async function handleWebhookStripe(req, res) {
             // dinheiro entra dias depois, no `async_payment_succeeded` logo
             // abaixo. Marcar pago aqui seria despachar produto nao pago.
             console.log(`[stripe/webhook] sessao ${session.id} concluida SEM pagamento (payment_status=${session.payment_status ?? "ausente"}) — provavelmente boleto emitido, aguardando compensacao`);
+            // O CLIENTE PRECISA DO LINK. Sem este e-mail o boleto so existe
+            // dentro do painel do Stripe, e a venda morre por falta de acesso
+            // ao proprio pagamento.
+            const refBoleto = session?.metadata?.external_reference || session?.client_reference_id || "";
+            if (refBoleto) await avisaClientePedidoRecebido({ session, stripe, extRef: refBoleto });
           }
           break;
         }
