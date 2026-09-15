@@ -3162,47 +3162,49 @@ function LacunaHeadline({ lacuna, isMobile }) {
   const { caso, meus, rival } = lacuna
   const grande = { fontSize: isMobile ? 34 : 42, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em' }
   const apoio  = { fontSize: 13, color: T.textMuted, lineHeight: 1.45 }
+  const unidade = { fontSize: isMobile ? 16 : 19, fontWeight: 700, color: T.textMuted }
 
+  // UMA LINHA DE APOIO, NO MAXIMO DUAS (15/09). A versao anterior repetia aqui
+  // os totais dos dois negocios — que estao logo abaixo, na coluna AVALIACOES
+  // da tabela. Manchete nao conta de novo o que a tabela conta melhor.
+  //
+  // A UNIDADE VIVE DENTRO DO NUMERO ("18 avaliacoes"), e e ela que diz em que
+  // eixo o rival esta na frente. Sem isso a frase briga com a colocacao, que
+  // agora aparece na coluna do lado: sao duas medicoes diferentes.
   if (caso === 'lider') {
     return (
       <>
-        <div style={{ ...grande, color: T.success }}>{meus.toLocaleString('pt-BR')}</div>
-        <div style={apoio}>avaliações — <strong style={{ color: T.text }}>ninguém por perto tem mais</strong></div>
-        {rival && lacuna.vantagem != null && (
-          <div style={{ ...apoio, marginTop: 4 }}>
-            {rival.nome} vem logo atrás, com {rival.reviews.toLocaleString('pt-BR')}.
-            {' '}São {lacuna.vantagem.toLocaleString('pt-BR')} de vantagem — quem para de coletar, perde.
-          </div>
+        <div style={{ ...grande, color: T.success }}>
+          {meus.toLocaleString('pt-BR')}<span style={unidade}> avaliações</span>
+        </div>
+        <div style={apoio}><strong style={{ color: T.text }}>ninguém por perto tem mais</strong></div>
+        {rival && (
+          <div style={apoio}>o segundo tem {rival.reviews.toLocaleString('pt-BR')}</div>
         )}
       </>
     )
   }
 
-  // 'perto' e 'longe' partilham a dor; só o remédio muda de forma.
-  //
-  // TODA FRASE AQUI NOMEIA O EIXO ("em avaliações"). A tabela logo abaixo
-  // ordena por LUGAR NO GOOGLE, que é outra medição — o rival que tem mais
-  // avaliações pode perfeitamente aparecer ATRÁS dele na lista, e aparece:
-  // na Padaria Bicho Pão (15/09) a manchete mandava passar a Nova São Luiz,
-  // 267 avaliações, enquanto a lista mostrava ela em 8,7º contra o 7,0º dele.
-  // Manchete que briga com a tabela de baixo foi exatamente o defeito que
-  // derrubou a manchete de posição. Não repetir por descuido de redação.
+  if (caso === 'longe') {
+    return (
+      <>
+        <div style={{ ...grande, color: T.text }}>
+          {rival.reviews.toLocaleString('pt-BR')}<span style={unidade}> avaliações</span>
+        </div>
+        <div style={apoio}>é o que <strong style={{ color: T.text }}>{rival.nome}</strong> tem. Você tem {meus.toLocaleString('pt-BR')}.</div>
+      </>
+    )
+  }
+
   return (
     <>
-      <div style={{ ...grande, color: caso === 'perto' ? T.accent : T.text }}>
-        {caso === 'perto'
-          ? <>{lacuna.faltam.toLocaleString('pt-BR')}<span style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: T.textMuted }}> avaliações</span></>
-          : rival.reviews.toLocaleString('pt-BR')}
+      <div style={{ ...grande, color: T.accent }}>
+        {lacuna.faltam.toLocaleString('pt-BR')}<span style={unidade}> avaliações</span>
       </div>
-      <div style={apoio}>
-        {caso === 'perto'
-          ? <>é o que falta pra você passar <strong style={{ color: T.text }}>{rival.nome}</strong> em avaliações — são {rival.reviews.toLocaleString('pt-BR')} contra as suas {meus.toLocaleString('pt-BR')}.</>
-          : <>é quanto <strong style={{ color: T.text }}>{rival.nome}</strong> tem em avaliações. Você tem {meus.toLocaleString('pt-BR')}.</>}
-      </div>
+      <div style={apoio}>é o que te separa de <strong style={{ color: T.text }}>{rival.nome}</strong></div>
       {lacuna.notaMelhor && (
-        <div style={{ ...apoio, marginTop: 4 }}>
-          Sua nota é <strong style={{ color: T.text }}>{lacuna.minhaNota.toFixed(1).replace('.', ',')}</strong> contra{' '}
-          {rival.nota.toFixed(1).replace('.', ',')} — você é melhor avaliado e ainda assim tem menos avaliações.
+        <div style={apoio}>
+          Você é melhor avaliado: <strong style={{ color: T.text }}>{lacuna.minhaNota.toFixed(1).replace('.', ',')}</strong> contra {rival.nota.toFixed(1).replace('.', ',')}.
         </div>
       )}
     </>
@@ -3277,14 +3279,50 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
   const showPos = !!(position && position.inResults && pos != null)
   const notClassified = !!(position && !position.inResults)   // tem lente, mas o Places não retorna o negócio
   const link = { display:'inline-flex', alignItems:'center', gap: 3, fontSize: 12.5, fontWeight: 600, color: T.primary, textDecoration:'none', cursor:'pointer', background:'none', border:'none', padding: 0, fontFamily:'inherit' }
+  // COLOCACAO EM NUMERO INTEIRO (15/09). Era "7,0º" — uma casa decimal que so
+  // faz sentido pra quem sabe que o numero e a MEDIA de varios pontos medidos.
+  // Pro dono, "7º lugar" e a mesma informacao sem a pergunta "por que tem
+  // virgula?". O arredondamento nao inventa nada: a ordem da lista continua
+  // sendo a da media cheia.
+  const lugarBruto = (gridPos && gridPos.coverage > 0)
+    ? (gridPos.avg != null ? gridPos.avg : gridPos.score)
+    : null
+  const lugar = lugarBruto != null ? Math.max(1, Math.round(lugarBruto)) : null
+  const corLugar = lugar == null ? T.text : lugar <= 3 ? T.success : lugar <= 10 ? T.accent : T.danger
+  // `lacuna` so e calculada pro visitante — entao ela e, aqui dentro, o
+  // interruptor "esta tela e de aquisicao".
+  const visitante = !!lacuna
   return (
     <Card>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap: isMobile ? 10 : 20 }}>
-        {/* Coluna A — Score StarTouch (a estrela do painel) */}
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', gap: 8, borderRight:`1px solid ${T.border}`, paddingRight: isMobile ? 8 : 16 }}>
-          <ScoreRing score={score} size={isMobile ? 104 : 128}/>
-          <div style={{ fontSize: 13, fontWeight: 600, color: T.textMuted }}>Score StarTouch</div>
-          <button onClick={onScoreDetails} style={link}>Por que {score}? Ver o que falta <ChevronRight size={14}/></button>
+        {/* Coluna A — VISITANTE: a colocação. CLIENTE: o Score StarTouch.
+            O Score é número nosso: "86" não responde nem onde ele está, nem o
+            que falta, nem quem são os vizinhos. Pra quem chega de fora, a
+            colocação responde a primeira pergunta sem precisar de legenda. */}
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 8, borderRight:`1px solid ${T.border}`, paddingRight: isMobile ? 8 : 16 }}>
+          {visitante ? (
+            lugar != null ? (
+              <>
+                <div style={{ fontSize: isMobile ? 34 : 42, fontWeight: 800, lineHeight: 1, letterSpacing:'-0.02em', color: corLugar }}>
+                  {lugar}<span style={{ fontSize: isMobile ? 16 : 19, fontWeight: 700, color: T.textMuted }}>º lugar</span>
+                </div>
+                <div style={{ fontSize: 13, color: T.textMuted, lineHeight: 1.45 }}>no Google, aqui na sua região</div>
+              </>
+            ) : (
+              <>
+                <div style={{ display:'inline-flex', alignItems:'center', gap: 6, fontSize: isMobile ? 19 : 23, fontWeight: 800, color: T.accent, lineHeight: 1.1 }}>
+                  <AlertTriangle size={isMobile ? 19 : 21}/> Fora da lista
+                </div>
+                <div style={{ fontSize: 13, color: T.textMuted, lineHeight: 1.45 }}>o Google não mostra você por aqui</div>
+              </>
+            )
+          ) : (
+            <>
+              <ScoreRing score={score} size={isMobile ? 104 : 128}/>
+              <div style={{ fontSize: 13, fontWeight: 600, color: T.textMuted }}>Score StarTouch</div>
+              <button onClick={onScoreDetails} style={link}>Por que {score}? Ver o que falta <ChevronRight size={14}/></button>
+            </>
+          )}
         </div>
         {/* Coluna B — Posição no ranking. Fonte preferida: GRADE (posição média
             real de 5 pontos). Sem grade ainda, cai na lente antiga (fallback).
@@ -6326,9 +6364,11 @@ function GridRankingList({ data, isGuest, signupUrl }) {
           ("4 de 5", "lugar no Google") vira código interno — o dono não tem por
           que saber que a resposta do Google muda conforme a localização de quem
           procura. É justamente essa variação que o produto vende. */}
+      {/* A busca medida e o raio já estão na faixa logo acima desta tabela
+          ("Medindo quem busca X a até 1 km do seu endereço"). Aqui sobra só a
+          ideia que a faixa não dá: a lista do Google não é uma só. */}
       <div style={{ fontSize: 12.5, color: T.textMuted, marginBottom: 12, lineHeight: 1.5 }}>
-        O Google não mostra a mesma lista pra todo mundo: ela muda conforme o lugar de onde a pessoa procura.
-        Testamos <b style={{ color: T.textMid }}>{data.term}</b> em {data.measured} lugares ao redor do seu endereço, até {raioNum(data.spacingM)} de distância.
+        A lista do Google muda conforme o lugar de onde a pessoa procura.
       </div>
 
       <div style={{ display:'flex', alignItems:'flex-end', gap: 8, padding:'0 8px 6px', borderBottom:`1px solid ${T.border}`, marginBottom: 4 }}>
@@ -6353,13 +6393,18 @@ function GridRankingList({ data, isGuest, signupUrl }) {
             </span>
             <span style={{ ...num, width: COL.avg }}>
               <span style={{ display:'block', fontSize: 13, fontWeight: 700, color: me ? T.primaryDark : T.text }}>
-                {r.avg != null ? `${r.avg.toFixed(1).replace('.', ',')}º` : '—'}
+                {r.avg != null ? `${Math.max(1, Math.round(r.avg))}º` : '—'}
               </span>
-              {/* A cobertura vem colada no número, e não numa coluna nova, pra
-                  caber no celular sem espremer o nome do negócio. */}
-              <span style={{ display:'block', fontSize: 10, lineHeight: 1.2, marginTop: 1, color: some ? T.accent : T.textDim, fontWeight: some ? 700 : 500 }}>
-                em {r.points ?? 0} de {data.measured}
-              </span>
+              {/* A cobertura vira UMA PALAVRA, e só em quem não aparece na
+                  região inteira (15/09). Era "em 4 de 6" em toda linha — o dono
+                  não tem por que saber que existem 6 pontos de medição. Mas o
+                  fato não podia sumir: sem ele, quem aparece em 1º num canto só
+                  encabeça a lista e passa por líder do bairro. */}
+              {some && (
+                <span style={{ display:'block', fontSize: 10, lineHeight: 1.2, marginTop: 1, color: T.accent, fontWeight: 700 }}>
+                  parcial
+                </span>
+              )}
             </span>
             <span style={{ ...num, width: COL.rating, fontSize: 12, color: T.textMuted, display:'inline-flex', alignItems:'center', justifyContent:'flex-end', gap: 2 }}>
               {r.rating != null ? r.rating.toFixed(1).replace('.', ',') : '—'}<Star size={11} fill={T.accent} color={T.accent} strokeWidth={0}/>
@@ -6370,15 +6415,14 @@ function GridRankingList({ data, isGuest, signupUrl }) {
           </div>
         )
       })}
-      <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.55 }}>
-        <b style={{ color: T.textMuted }}>Lugar no Google</b> — a posição em que o negócio costuma aparecer.
-        1,0 é o primeiro da lista; quanto menor, melhor.
-        <div style={{ marginTop: 3 }}>
-          <b style={{ color: T.textMuted }}>Em 4 de {data.measured}</b> — em quantos dos {data.measured} lugares
-          testados o negócio apareceu. Aparecer bem em poucos lugares alcança menos gente
-          do que aparecer razoável em todos.
+      {/* UMA LINHA DE LEGENDA, e só quando existe alguém "parcial" na lista.
+          Eram dois parágrafos explicando duas colunas — e o dono lia a
+          explicação antes de conseguir ler o dado. */}
+      {data.ranking.some(r => r.points != null && r.points < data.measured) && (
+        <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.55 }}>
+          <b style={{ color: T.accent }}>parcial</b> — aparece só em parte da região.
         </div>
-      </div>
+      )}
       {isGuest && data.ranking.some(r => !r.is_me) && (
         <div style={{ marginTop: 12, display:'flex', alignItems:'center', gap: 12, flexWrap:'wrap', background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 12, padding:'12px 14px' }}>
           <Lock size={18} color={T.primary} style={{ flexShrink: 0 }}/>
