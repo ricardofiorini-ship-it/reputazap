@@ -34,7 +34,14 @@ const ALVOS = [
   { tabela: "email_log",    coluna: "sent_at",      prazo: "12 months", schema: "supabase/003_email_log.sql" },
   // A Política diz "24 meses a partir do cadastro" porque radar_leads não tem
   // coluna de último contato. O texto foi ajustado ao dado, não o contrário.
-  { tabela: "radar_leads",  coluna: "created_at",   prazo: "24 months", schema: "supabase/schema-radar.sql" }
+  { tabela: "radar_leads",  coluna: "created_at",   prazo: "24 months", schema: "supabase/schema-radar.sql" },
+  // Histórico de visibilidade (15/09/2026). 24 meses porque é o que permite
+  // comparação ano-contra-ano — a única pergunta que a série responde e que
+  // um prazo menor impediria. Não guarda dado de pessoa natural (place_id é
+  // identificador público de ficha do Google, e o resto são números), mas a
+  // ficha de um MEI pode ser o nome de uma pessoa: o prazo é declarado por
+  // precaução, não por obrigação estrita.
+  { tabela: "visibility_scans", coluna: "scanned_at", prazo: "24 months", schema: "supabase/schema-visibilidade-historico.sql" }
 ];
 
 // Aviso ao Encarregado. Nunca derruba o expurgo: e-mail que falha vira log,

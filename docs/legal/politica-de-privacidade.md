@@ -1,6 +1,6 @@
 # Política de Privacidade — StarTouch
 
-**Versão 1.4 — vigente a partir de 12 de setembro de 2026**
+**Versão 1.5 — vigente a partir de 15 de setembro de 2026**
 
 ---
 
@@ -223,6 +223,7 @@ Nenhum sistema é imune a incidentes. Caso ocorra incidente de segurança com ri
 | Preferências de alerta | Enquanto a conta existir |
 | Registro de e-mails enviados | 12 meses |
 | Leads que não se tornaram clientes | 24 meses a partir do cadastro |
+| Histórico de visibilidade do estabelecimento no Google | 24 meses |
 | Registro de toques nos dispositivos | Indefinidamente — não contém dado pessoal |
 | Contagem agregada de visitas e de escolhas no aviso de cookies (seção 6.5) | Indefinidamente — são contadores, não contêm dado pessoal |
 | Cache de avaliações do Google | Até 30 dias, limite estabelecido pelos termos da API do Google. Na prática, o conteúdo é renovado a cada poucas horas e o registro é eliminado por rotina automática de expurgo |
@@ -280,6 +281,7 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 | 1.1 | 02/09/2026 | Inclusão da seção 6.5 (contagem agregada de visitas) e da linha correspondente na seção 9. Alteração meramente declaratória: não reduz direitos nem amplia finalidades de tratamento de dados pessoais, razão pela qual entra em vigor imediatamente |
 | 1.2 | 04/09/2026 | A seção 6.5 passa a declarar também a contagem agregada das escolhas feitas no aviso de cookies. Mesma natureza e mesma ressalva da versão anterior: são contadores, sem dado pessoal |
 | 1.4 | 12/09/2026 | O processamento de pagamentos dos dispositivos passa do Mercado Pago para a Stripe, que já processava a assinatura. **Não há dado novo coletado**: são os mesmos campos, com a mesma finalidade e o mesmo prazo de guarda, tratados por outro operador. O Mercado Pago permanece na seção 7 porque segue guardando os dados dos pedidos feitos até esta data |
+| 1.5 | 15/09/2026 | Inclusão da linha "Histórico de visibilidade do estabelecimento no Google" na seção 9, com prazo de 24 meses. A medição de como o estabelecimento aparece nas buscas do Google passa a ser guardada ao longo do tempo, para responder se a visibilidade melhorou ou piorou. O registro contém o identificador público da ficha do estabelecimento no Google, o termo de busca medido e números de posicionamento — **não contém dado de pessoa natural**. O prazo é declarado por precaução, já que a ficha de um empresário individual pode coincidir com o nome de uma pessoa. Alteração meramente declaratória: não reduz direitos nem amplia finalidades |
 | 1.3 | 07/09/2026 | Mudança de controladora: a ZAYOR BRASIL LTDA (CNPJ 68.972.361/0001-33) sucede a GT6 Brasil Comércio Varejista de Produtos Diversos Ltda, inclusive quanto aos dados já coletados (seção 1.1); atualização do endereço para o da nova sede. **Não é alteração meramente declaratória** como as duas anteriores — muda quem responde pelo tratamento —, mas não reduz direitos, não amplia finalidades e não altera nenhuma operação de tratamento |
 
 ---
