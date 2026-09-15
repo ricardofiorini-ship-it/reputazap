@@ -3154,7 +3154,112 @@ function ScoreRing({ score, size = 128 }) {
   )
 }
 
-function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, onSeeCompetitors }) {
+// Manchete do visitante. Um número grande, um nome, e — só quando faz sentido
+// cobrar — quanto falta. A DOR vem primeiro (o total do rival), o REMÉDIO
+// fecha (o que a StarTouch faz a respeito).
+function LacunaHeadline({ lacuna, isMobile }) {
+  if (!lacuna) return null
+  const { caso, meus, rival } = lacuna
+  const grande = { fontSize: isMobile ? 34 : 42, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em' }
+  const apoio  = { fontSize: 13, color: T.textMuted, lineHeight: 1.45 }
+
+  if (caso === 'lider') {
+    return (
+      <>
+        <div style={{ ...grande, color: T.success }}>{meus.toLocaleString('pt-BR')}</div>
+        <div style={apoio}>avaliações — <strong style={{ color: T.text }}>você lidera na sua região</strong></div>
+        {rival && lacuna.vantagem != null && (
+          <div style={{ ...apoio, marginTop: 4 }}>
+            {rival.nome} vem logo atrás, com {rival.reviews.toLocaleString('pt-BR')}.
+            {' '}São {lacuna.vantagem.toLocaleString('pt-BR')} de vantagem — quem para de coletar, perde.
+          </div>
+        )}
+      </>
+    )
+  }
+
+  // 'perto' e 'longe' partilham a dor; só o remédio muda de forma.
+  return (
+    <>
+      <div style={{ ...grande, color: caso === 'perto' ? T.accent : T.text }}>
+        {caso === 'perto'
+          ? <>{lacuna.faltam.toLocaleString('pt-BR')}<span style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: T.textMuted }}> avaliações</span></>
+          : rival.reviews.toLocaleString('pt-BR')}
+      </div>
+      <div style={apoio}>
+        {caso === 'perto'
+          ? <>é o que falta pra você passar <strong style={{ color: T.text }}>{rival.nome}</strong></>
+          : <>é quanto <strong style={{ color: T.text }}>{rival.nome}</strong> tem. Você tem {meus.toLocaleString('pt-BR')}.</>}
+      </div>
+      {lacuna.notaMelhor && (
+        <div style={{ ...apoio, marginTop: 4 }}>
+          Sua nota é <strong style={{ color: T.text }}>{lacuna.minhaNota.toFixed(1).replace('.', ',')}</strong> e a dele{' '}
+          {rival.nota.toFixed(1).replace('.', ',')} — você é melhor avaliado e mesmo assim aparece atrás.
+        </div>
+      )}
+    </>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// A LACUNA EM AVALIAÇÕES — fonte única da manchete do visitante
+// ─────────────────────────────────────────────────────────────
+// Recebe o `ranking` da grade (a MESMA lista que a tela desenha logo abaixo) e
+// responde três coisas, nesta ordem de importância pra quem está olhando:
+// quem está imediatamente à frente, quanto falta, e se dá pra alcançar.
+//
+// O ALVO É O PRÓXIMO EM VOLUME, não o primeiro da lista nem o vizinho de
+// posição. Três motivos:
+//   1. é o único alcançável — passar o líder pode ser questão de anos;
+//   2. é a mesma regra que a meta do e-mail semanal já usa desde 11/09, então
+//      o painel e o e-mail dizem a mesma coisa (foi o erro de julho: dois
+//      números discordando sobre o mesmo negócio);
+//   3. volume de avaliações é dado público e duro — não depende da calibragem
+//      da grade, que é centrada no próprio negócio e infla a favor dele.
+//
+// ACIMA DESTE LIMITE A GENTE PARA DE COBRAR. Medido na base: 30 dos 114
+// negócios têm o vizinho mais próximo a 200+ avaliações de distância. "Faltam
+// 433" não é meta, é atropelamento — a frase se desqualifica e leva o resto da
+// tela junto. 50 é o corte: com um dispositivo no balcão, é alguns meses de
+// trabalho; acima disso o nome e o número do rival contam a história sozinhos.
+const LACUNA_ALCANCAVEL = 50
+
+function lacunaDeAvaliacoes(ranking) {
+  const rows = Array.isArray(ranking) ? ranking : []
+  const eu = rows.find(r => r.is_me)
+  if (!eu || eu.reviews == null) return null
+
+  const meus = eu.reviews
+  const outros = rows.filter(r => !r.is_me && r.reviews != null && r.name)
+
+  // Quem está logo à frente: o de MENOR total entre os que têm mais que eu.
+  const frente = outros
+    .filter(r => r.reviews > meus)
+    .sort((a, b) => a.reviews - b.reviews)[0] || null
+
+  if (!frente) {
+    // Lidero em volume. A manchete vira defesa: quanto de vantagem eu tenho.
+    const segundo = outros.sort((a, b) => b.reviews - a.reviews)[0] || null
+    return {
+      caso: 'lider', meus, minhaNota: eu.rating ?? null,
+      rival: segundo ? { nome: segundo.name, reviews: segundo.reviews, nota: segundo.rating ?? null } : null,
+      vantagem: segundo ? meus - segundo.reviews : null,
+    }
+  }
+
+  const faltam = frente.reviews - meus
+  return {
+    caso: faltam <= LACUNA_ALCANCAVEL ? 'perto' : 'longe',
+    meus, minhaNota: eu.rating ?? null,
+    rival: { nome: frente.name, reviews: frente.reviews, nota: frente.rating ?? null },
+    faltam,
+    // A linha que fecha o argumento — e que vale em 56% da base, não é bônus:
+    // nota melhor E atrás quer dizer que o problema não é a qualidade dele.
+    notaMelhor: (eu.rating != null && frente.rating != null && eu.rating > frente.rating),
+  }
+}
+
+function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, onSeeCompetitors, lacuna = null }) {
   const score = calcStarTouchScore(d)
   // Coluna B consome a MESMA fonte do ranking (lente "Bem perto de você") — não o
   // d.kpis.rankingPos, que ficava null e mostrava placeholder mesmo com ranking cheio.
@@ -3183,8 +3288,15 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
             (1,16km de distância) davam AMBOS "#1", cada um na própria grade —
             numa arena neutra o Iroha ganha por larga margem. A média (Sankayo
             3,2 · Iroha 1,4) é o número que não mente. */}
+        {/* VISITANTE VÊ A LACUNA, CLIENTE VÊ A POSIÇÃO (15/09/2026).
+            A posição média é número de analista: o visitante não sabe se é bom,
+            não sente nada, e ela ainda brigava com a lista logo abaixo (topo
+            dizia "1,4º lugar", a lista mostrava ele em nono). A lacuna em
+            avaliações é dado público, duro, que ele NÃO conhece — e aponta
+            direto pro que a StarTouch vende. Quem já é cliente segue com a
+            posição: mudar o painel de quem já usa é outra decisão. */}
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 6, paddingLeft: isMobile ? 4 : 8 }}>
-          {gridPos ? (
+          {lacuna ? <LacunaHeadline lacuna={lacuna} isMobile={isMobile}/> : gridPos ? (
             gridPos.coverage > 0 && gridPos.score != null ? (
               <>
                 {/* QUAL NÚMERO VAI GRANDE — histórico das tentativas, pra não
@@ -7213,6 +7325,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   // topo e "faltam 293 avaliações pro 2º lugar" na tarja. Quem é 1º não tem
   // ninguém na frente; o número mais alarmante ganhava e destruía a credibilidade
   // dos dois. Agora o pitch sai da MESMA lista que o dono vê logo abaixo.
+  // Calculada uma vez e usada pelo Hero. Só pro visitante — ver a nota na
+  // coluna B do HeroBlock.
+  const lacuna = React.useMemo(
+    () => ((guestMode && !!guestContext?.placeId) ? lacunaDeAvaliacoes(gridPrimary?.ranking) : null),
+    [gridPrimary, guestMode, guestContext?.placeId]
+  )
+
   const guestPitch = React.useMemo(() => {
     const g = gridPrimary
     const rows = Array.isArray(g?.ranking) ? g.ranking : null
@@ -7410,6 +7529,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <Section>
           <HeroBlock
             gridPos={gridPrimary}
+            lacuna={lacuna}
             d={d}
             position={heroPos}
             demoMode={demoMode}
