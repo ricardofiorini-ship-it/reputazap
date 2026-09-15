@@ -1483,7 +1483,9 @@ async function handleCheckoutKitGuestStripe(req, res) {
       },
       payment_intent_data: { metadata: { order_type: "kit", tipo: "kit_guest", external_reference: extRef } },
       locale: "pt-BR",
-      success_url: `${origin}/kit?compra=sucesso`,
+      // `{CHECKOUT_SESSION_ID}` e substituido pelo Stripe no redirect. Sem ele
+      // a pagina nao tem como saber se o boleto foi pago ou so emitido.
+      success_url: `${origin}/kit?compra=sucesso&sid={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/kit?compra=falhou`
     });
 
@@ -1865,6 +1867,48 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
 
   const action = req.query.action || req.query.a;
+
+  // ───────────────────────────────────────────────────────────
+  // "EU PAGUEI MESMO?" — a pergunta que a tela de volta precisa fazer
+  // ───────────────────────────────────────────────────────────
+  // No BOLETO o Stripe redireciona pro success_url quando o boleto e EMITIDO,
+  // nao quando e pago. Ate 15/09/2026 as duas telas de retorno (/kit e
+  // /revenda) escreviam "Pagamento confirmado" nesse momento. A pessoa lia
+  // isso, fechava o boleto e nunca pagava: pedido `pending` pra sempre, e ela
+  // convencida de que tinha comprado.
+  //
+  // Publico de proposito e sem segredo: o id da sessao (`cs_...`) e
+  // inadivinhavel e so quem comprou o tem, na propria URL. A resposta nao
+  // carrega nada pessoal — so se pagou, por qual meio, e quanto.
+  if (action === "status-compra") {
+    const sid = (req.query.sid || "").toString().trim();
+    if (!/^cs_[A-Za-z0-9_]+$/.test(sid)) return res.status(400).json({ error: "sid invalido" });
+    try {
+      const stripe = getStripe();
+      const s = await stripe.checkout.sessions.retrieve(sid);
+      // `payment_status` nao existe na versao 2020-03-02 desta conta em toda
+      // resposta — o mesmo motivo que obrigou `pagamentoConfirmado()` no
+      // webhook. Na duvida, PERGUNTA ao PaymentIntent em vez de assumir pago:
+      // errar pra "ainda nao pagou" custa um susto; errar pro outro lado faz a
+      // pessoa jogar o boleto fora.
+      const pago = await pagamentoConfirmado(s, stripe);
+      const meio = s?.payment_method_types?.[0]
+        || (typeof s?.payment_intent === "object" ? s.payment_intent?.payment_method_types?.[0] : null)
+        || null;
+      res.setHeader("Cache-Control", "no-store");
+      return res.json({
+        ok: true,
+        pago: !!pago,
+        meio,
+        boleto: meio === "boleto",
+        total_centavos: s?.amount_total ?? null,
+      });
+    } catch (e) {
+      console.error("[status-compra] erro:", e?.message);
+      // Falhou a consulta: NAO inventa "pago". A tela cai numa mensagem neutra.
+      return res.status(502).json({ ok: false, error: "nao consegui consultar agora" });
+    }
+  }
 
   // ── UM ENDEREÇO, DOIS PROVEDORES (07/09/2026; ainda vale em 12/09) ──
   // Hoje o Stripe recebe tudo o que é novo, mas o Mercado Pago continua

@@ -940,9 +940,29 @@
     if (!p) return;
     var ret = $("retorno");
     if (p === "pago") {
-      ret.className = "ok";
-      ret.textContent = "Pagamento confirmado. A nota fiscal e o código de rastreio chegam no e-mail informado — a produção leva 10 dias úteis e o prazo da transportadora começa depois da postagem.";
-      if (window.gtag) gtag("event", "purchase_revenda_retorno", { event_category: "revenda" });
+      // NASCE NEUTRO. No boleto o Stripe redireciona pra ca na EMISSAO, nao no
+      // pagamento — e ate 15/09/2026 esta linha escrevia "Pagamento
+      // confirmado" naquele instante. Num pedido de revenda, que tem valor
+      // alto e costuma ser pago em boleto, isso e o erro mais caro possivel.
+      ret.className = "";
+      ret.textContent = "Pedido registrado. Estamos confirmando o pagamento — você recebe um e-mail assim que der tudo certo.";
+      var sid = new URLSearchParams(location.search).get("sid");
+      if (sid) {
+        fetch("/api/billing?action=status-compra&sid=" + encodeURIComponent(sid))
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (!d || !d.ok) return;                   // mantem o neutro
+            if (d.pago) {
+              ret.className = "ok";
+              ret.textContent = "Pagamento confirmado. A nota fiscal e o código de rastreio chegam no e-mail informado — a produção leva 10 dias úteis e o prazo da transportadora começa depois da postagem.";
+              if (window.gtag) gtag("event", "purchase_revenda_retorno", { event_category: "revenda" });
+            } else if (d.boleto) {
+              ret.className = "";
+              ret.textContent = "Boleto gerado — o pedido só entra em produção quando o pagamento compensar (1 a 3 dias úteis). O boleto foi enviado para o e-mail informado; guarde o link, é a única forma de concluir a compra.";
+            }
+          })
+          .catch(function () {});                      // mantem o neutro
+      }
     } else if (p === "cancelado") {
       ret.className = "";
       ret.textContent = "Pagamento não concluído. Seu pedido continua aqui — é só calcular o frete e tentar de novo.";

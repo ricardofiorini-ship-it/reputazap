@@ -235,11 +235,18 @@
   <img src="/startouch-logo-dark.png" alt="StarTouch"/>
 </a>
 
+<style>
+  /* Boleto emitido nao e venda fechada: o banner perde o verde e o ✅ vira
+     relogio. Cor de sucesso num pedido nao pago e a mesma mentira do texto. */
+  #successBanner.aguardando { background: #FFF8E1; border-color: #FDE68A; color: #7A5A00; }
+  #successBanner.aguardando .sb-icon::after { content: "⏳"; }
+  #successBanner.aguardando .sb-icon { font-size: 0; }
+</style>
 <div class="success-banner" id="successBanner" style="display:none;">
   <span class="sb-icon" aria-hidden="true">✅</span>
   <div>
-    <h2>Pagamento recebido! Obrigado 🎉</h2>
-    <p>Seu pedido está confirmado e vamos despachar em breve. <strong>Quando os dispositivos chegarem, volte em startouch.com.br pra ativar</strong> — é rapidinho e o suporte te ajuda se precisar.</p>
+    <h2 id="sbTitulo">Pedido registrado</h2>
+    <p id="sbTexto">Estamos confirmando o pagamento. Você recebe um e-mail assim que der tudo certo.</p>
   </div>
 </div>
 
@@ -796,6 +803,39 @@ coForm.addEventListener("submit", async (e) => {
 if (params.get("compra") === "sucesso") {
   const sb = document.getElementById("successBanner");
   if (sb) { sb.style.display = "flex"; sb.scrollIntoView({ behavior: "smooth", block: "center" }); }
+
+  // NO BOLETO O STRIPE MANDA PRA CA NA EMISSAO, NAO NO PAGAMENTO (15/09/2026).
+  // Ate esta data o banner ja abria dizendo "Pagamento recebido!" — a pessoa
+  // lia, fechava o boleto e nunca pagava. O pedido ficava `pending` pra sempre
+  // e ela achava que tinha comprado.
+  //
+  // O texto NASCE NEUTRO no HTML e so vira confirmacao depois que o servidor
+  // responde que o dinheiro entrou. Se a consulta falhar, ou se a sessao for
+  // antiga (sem `sid`), o neutro fica — errar pra "ainda estamos confirmando"
+  // custa um susto; errar pro outro lado faz a pessoa jogar o boleto fora.
+  const sid = params.get("sid");
+  const tit = document.getElementById("sbTitulo");
+  const txt = document.getElementById("sbTexto");
+  if (sid && tit && txt) {
+    fetch("/api/billing?action=status-compra&sid=" + encodeURIComponent(sid))
+      .then(r => r.json())
+      .then(d => {
+        if (!d || !d.ok) return;                       // mantem o neutro
+        if (d.pago) {
+          tit.textContent = "Pagamento recebido! Obrigado 🎉";
+          txt.innerHTML = 'Seu pedido está confirmado e vamos despachar em breve. ' +
+            '<strong>Quando os dispositivos chegarem, volte em startouch.com.br pra ativar</strong>' +
+            ' — é rapidinho e o suporte te ajuda se precisar.';
+        } else if (d.boleto) {
+          document.getElementById("successBanner").classList.add("aguardando");
+          tit.textContent = "Boleto gerado — falta pagar";
+          txt.innerHTML = '<strong>O pedido só é confirmado quando o boleto for pago</strong> ' +
+            '(a compensação leva 1 a 3 dias úteis). O boleto foi enviado para o seu e-mail — ' +
+            'guarde o link, ele é a única forma de concluir a compra.';
+        }
+      })
+      .catch(() => {});                                // mantem o neutro
+  }
 }
 
 // Pré-seleção via ?add=<id> (vindo da vitrine da landing). Seta o carrinho

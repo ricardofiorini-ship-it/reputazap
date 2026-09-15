@@ -292,7 +292,10 @@ export default async function handler(req, res) {
         },
         payment_intent_data: { metadata: { external_reference: ref, tipo: "revenda" } },
         locale: "pt-BR",
-        success_url: `${origin}/revenda?pedido=pago`,
+        // `{CHECKOUT_SESSION_ID}` e substituido pelo Stripe no redirect. Sem ele
+        // a pagina nao tem como saber se o boleto foi pago ou so emitido — e
+        // ate 15/09 ela escrevia "Pagamento confirmado" na emissao.
+        success_url: `${origin}/revenda?pedido=pago&sid={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/revenda?pedido=cancelado#pedido`,
       });
     } catch (e) {
