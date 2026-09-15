@@ -1,0 +1,545 @@
+{
+ "placeId": "ChIJo4LcX4H4zpQRNnrb37QV7W8",
+ "name": "Brascatta pizzaria e restaurante Alto da lapa",
+ "term": "pizzaria",
+ "observations": [
+  {
+   "point_id": "centro",
+   "ok": true,
+   "client_position": 3,
+   "results": [
+    {
+     "place_id": "ChIJoUS2S5ZXzpQRFdqTWZH0WLM",
+     "position": 1,
+     "distance_m": 684
+    },
+    {
+     "place_id": "ChIJjWyqVZ5QzpQRc4mmBkdUxok",
+     "position": 2,
+     "distance_m": 82
+    },
+    {
+     "place_id": "ChIJo4LcX4H4zpQRNnrb37QV7W8",
+     "position": 3,
+     "distance_m": 0
+    },
+    {
+     "place_id": "ChIJdQpOzzb5zpQRuQRXBQu5sv0",
+     "position": 4,
+     "distance_m": 226
+    },
+    {
+     "place_id": "ChIJOaKFLnH4zpQROs-2AoXDR50",
+     "position": 5,
+     "distance_m": 906
+    },
+    {
+     "place_id": "ChIJD0dFMYP4zpQRA5PJuG7BXDc",
+     "position": 6,
+     "distance_m": 456
+    },
+    {
+     "place_id": "ChIJueMVgQ35zpQRVP_hUIi7EiY",
+     "position": 7,
+     "distance_m": 861
+    },
+    {
+     "place_id": "ChIJ5YOfy4P4zpQR-nJkhcy--Fk",
+     "position": 8,
+     "distance_m": 430
+    },
+    {
+     "place_id": "ChIJx5XVUH34zpQRPrKpvD2FpXM",
+     "position": 9,
+     "distance_m": 1067
+    },
+    {
+     "place_id": "ChIJEyP4Xpf4zpQRZWZH5uX9QXM",
+     "position": 10,
+     "distance_m": 707
+    },
+    {
+     "place_id": "ChIJ9YzjMJb4zpQRiB3wqg2WrUM",
+     "position": 11,
+     "distance_m": 953
+    },
+    {
+     "place_id": "ChIJnVxMOQxXzpQRstx_bLxCUhI",
+     "position": 12,
+     "distance_m": 798
+    },
+    {
+     "place_id": "ChIJIWwSEX_5zpQRuSYy-zfyi_c",
+     "position": 13,
+     "distance_m": 986
+    },
+    {
+     "place_id": "ChIJ7yEDlqD5zpQR-okQjXCIsE4",
+     "position": 14,
+     "distance_m": 1001
+    },
+    {
+     "place_id": "ChIJCyYWoqf5zpQRtc29wOksy4U",
+     "position": 15,
+     "distance_m": 306
+    },
+    {
+     "place_id": "ChIJU_JvM534zpQR1ABQi3E8WBM",
+     "position": 16,
+     "distance_m": 664
+    },
+    {
+     "place_id": "ChIJKx6iOMX5zpQR09RGQ9yhGSU",
+     "position": 17,
+     "distance_m": 1009
+    }
+   ],
+   "beyond_radius_count": 3
+  },
+  {
+   "point_id": "N",
+   "ok": true,
+   "client_position": 2,
+   "results": [
+    {
+     "place_id": "ChIJjWyqVZ5QzpQRc4mmBkdUxok",
+     "position": 1,
+     "distance_m": 983
+    },
+    {
+     "place_id": "ChIJo4LcX4H4zpQRNnrb37QV7W8",
+     "position": 2,
+     "distance_m": 999
+    },
+    {
+     "place_id": "ChIJmy6ylWH4zpQRw3PVCx3JiaQ",
+     "position": 3,
+     "distance_m": 1068
+    },
+    {
+     "place_id": "ChIJx5XVUH34zpQRPrKpvD2FpXM",
+     "position": 4,
+     "distance_m": 996
+    },
+    {
+     "place_id": "ChIJc2_8Q-v4zpQR7LCNQol-998",
+     "position": 5,
+     "distance_m": 443
+    },
+    {
+     "place_id": "ChIJIWwSEX_5zpQRuSYy-zfyi_c",
+     "position": 6,
+     "distance_m": 1009
+    },
+    {
+     "place_id": "ChIJ2Vy7wGL5zpQRDWJHouNY4wY",
+     "position": 7,
+     "distance_m": 480
+    },
+    {
+     "place_id": "ChIJy1RcScb4zpQR7fYwHhVVu_4",
+     "position": 8,
+     "distance_m": 934
+    },
+    {
+     "place_id": "ChIJuRuXzZf4zpQRpa-YIzPe_wc",
+     "position": 9,
+     "distance_m": 839
+    },
+    {
+     "place_id": "ChIJSQwhlO75zpQRo_0eqWBp7tY",
+     "position": 10,
+     "distance_m": 883
+    },
+    {
+     "place_id": "ChIJ5aaHlGL5zpQR1NmzdniJAQ8",
+     "position": 11,
+     "distance_m": 1003
+    }
+   ],
+   "beyond_radius_count": 9
+  },
+  {
+   "point_id": "S",
+   "ok": true,
+   "client_position": 7,
+   "results": [
+    {
+     "place_id": "ChIJoUS2S5ZXzpQRFdqTWZH0WLM",
+     "position": 1,
+     "distance_m": 789
+    },
+    {
+     "place_id": "ChIJR0E9AABXzpQRNd0SKLa1QPg",
+     "position": 2,
+     "distance_m": 640
+    },
+    {
+     "place_id": "ChIJnVxMOQxXzpQRstx_bLxCUhI",
+     "position": 3,
+     "distance_m": 228
+    },
+    {
+     "place_id": "ChIJjWyqVZ5QzpQRc4mmBkdUxok",
+     "position": 4,
+     "distance_m": 1021
+    },
+    {
+     "place_id": "ChIJD0dFMYP4zpQRA5PJuG7BXDc",
+     "position": 5,
+     "distance_m": 551
+    },
+    {
+     "place_id": "ChIJhQ4witRXzpQR4k5CyelhkZc",
+     "position": 6,
+     "distance_m": 127
+    },
+    {
+     "place_id": "ChIJo4LcX4H4zpQRNnrb37QV7W8",
+     "position": 7,
+     "distance_m": 999
+    },
+    {
+     "place_id": "ChIJdQpOzzb5zpQRuQRXBQu5sv0",
+     "position": 8,
+     "distance_m": 791
+    },
+    {
+     "place_id": "ChIJU_JvM534zpQR1ABQi3E8WBM",
+     "position": 9,
+     "distance_m": 358
+    },
+    {
+     "place_id": "ChIJ__-eTIP4zpQR_rva1LN_bKU",
+     "position": 10,
+     "distance_m": 602
+    },
+    {
+     "place_id": "ChIJCyYWoqf5zpQRtc29wOksy4U",
+     "position": 11,
+     "distance_m": 928
+    }
+   ],
+   "beyond_radius_count": 9
+  },
+  {
+   "point_id": "L",
+   "ok": true,
+   "client_position": 8,
+   "results": [
+    {
+     "place_id": "ChIJoUS2S5ZXzpQRFdqTWZH0WLM",
+     "position": 1,
+     "distance_m": 625
+    },
+    {
+     "place_id": "ChIJlTcBd3z4zpQRjxbi4f6RIXI",
+     "position": 2,
+     "distance_m": 536
+    },
+    {
+     "place_id": "ChIJx5XVUH34zpQRPrKpvD2FpXM",
+     "position": 3,
+     "distance_m": 581
+    },
+    {
+     "place_id": "ChIJIWwSEX_5zpQRuSYy-zfyi_c",
+     "position": 4,
+     "distance_m": 495
+    },
+    {
+     "place_id": "ChIJgTc9s3j4zpQRn_H7C2daGag",
+     "position": 5,
+     "distance_m": 419
+    },
+    {
+     "place_id": "ChIJjWyqVZ5QzpQRc4mmBkdUxok",
+     "position": 6,
+     "distance_m": 919
+    },
+    {
+     "place_id": "ChIJJeNfo3lXzpQRxsBnzgTOJXc",
+     "position": 7,
+     "distance_m": 640
+    },
+    {
+     "place_id": "ChIJo4LcX4H4zpQRNnrb37QV7W8",
+     "position": 8,
+     "distance_m": 999
+    },
+    {
+     "place_id": "ChIJ4RPBi3v4zpQRW01ZZNMoNOI",
+     "position": 9,
+     "distance_m": 583
+    },
+    {
+     "place_id": "ChIJkxm4bnz4zpQR09fW7aCLt4A",
+     "position": 10,
+     "distance_m": 388
+    },
+    {
+     "place_id": "ChIJPeyJF374zpQRcU9Xprawb48",
+     "position": 11,
+     "distance_m": 95
+    },
+    {
+     "place_id": "ChIJ8SNwmHv4zpQRO5xo-PKSMlU",
+     "position": 12,
+     "distance_m": 703
+    },
+    {
+     "place_id": "ChIJI60TsX34zpQRxM97aC3-CLk",
+     "position": 13,
+     "distance_m": 326
+    },
+    {
+     "place_id": "ChIJdQpOzzb5zpQRuQRXBQu5sv0",
+     "position": 14,
+     "distance_m": 946
+    },
+    {
+     "place_id": "ChIJSegRlXn4zpQRvlmZNXh4xeU",
+     "position": 15,
+     "distance_m": 779
+    },
+    {
+     "place_id": "ChIJOVQ7xHf4zpQRRzq-X8WBpM0",
+     "position": 16,
+     "distance_m": 1030
+    },
+    {
+     "place_id": "ChIJ06qkyC_5zpQRNfmScm0oJf4",
+     "position": 17,
+     "distance_m": 337
+    }
+   ],
+   "beyond_radius_count": 3
+  },
+  {
+   "point_id": "O",
+   "ok": true,
+   "client_position": 13,
+   "results": [
+    {
+     "place_id": "ChIJOaKFLnH4zpQROs-2AoXDR50",
+     "position": 1,
+     "distance_m": 94
+    },
+    {
+     "place_id": "ChIJjW_3J5b4zpQRTwNmm_3s_5c",
+     "position": 2,
+     "distance_m": 220
+    },
+    {
+     "place_id": "ChIJueMVgQ35zpQRVP_hUIi7EiY",
+     "position": 3,
+     "distance_m": 196
+    },
+    {
+     "place_id": "ChIJ9YzjMJb4zpQRiB3wqg2WrUM",
+     "position": 4,
+     "distance_m": 164
+    },
+    {
+     "place_id": "ChIJ7yEDlqD5zpQR-okQjXCIsE4",
+     "position": 5,
+     "distance_m": 288
+    },
+    {
+     "place_id": "ChIJEyP4Xpf4zpQRZWZH5uX9QXM",
+     "position": 6,
+     "distance_m": 293
+    },
+    {
+     "place_id": "ChIJ4SslSrz4zpQRXxpKoRiWj-M",
+     "position": 7,
+     "distance_m": 395
+    },
+    {
+     "place_id": "ChIJKx6iOMX5zpQR09RGQ9yhGSU",
+     "position": 8,
+     "distance_m": 229
+    },
+    {
+     "place_id": "ChIJA5UJrcD4zpQR4g69D9jOklM",
+     "position": 9,
+     "distance_m": 981
+    },
+    {
+     "place_id": "ChIJYQczwSD5zpQRp7FsMwMHhG4",
+     "position": 10,
+     "distance_m": 738
+    },
+    {
+     "place_id": "ChIJjWyqVZ5QzpQRc4mmBkdUxok",
+     "position": 11,
+     "distance_m": 1079
+    },
+    {
+     "place_id": "ChIJOcf0OMf4zpQRhs-DhQoAsck",
+     "position": 12,
+     "distance_m": 1078
+    },
+    {
+     "place_id": "ChIJo4LcX4H4zpQRNnrb37QV7W8",
+     "position": 13,
+     "distance_m": 999
+    },
+    {
+     "place_id": "ChIJayKmP8D4zpQRcVXOBBjk488",
+     "position": 14,
+     "distance_m": 1049
+    },
+    {
+     "place_id": "ChIJk3YjP9P5zpQROhNtiF6ajJs",
+     "position": 15,
+     "distance_m": 587
+    },
+    {
+     "place_id": "ChIJpdApLL_4zpQRQ8hfHyuPnZQ",
+     "position": 16,
+     "distance_m": 759
+    },
+    {
+     "place_id": "ChIJ7fvMSsf4zpQRW-LiaPCS4KI",
+     "position": 17,
+     "distance_m": 925
+    },
+    {
+     "place_id": "ChIJCyYWoqf5zpQRtc29wOksy4U",
+     "position": 18,
+     "distance_m": 724
+    }
+   ],
+   "beyond_radius_count": 2
+  }
+ ],
+ "ranking": [
+  {
+   "name": "Tutto Buona Pizzaria",
+   "address": "R. Dr. José Elias, 324 - Alto da Lapa, São Paulo - SP, 05083-030",
+   "rating": 4.7,
+   "reviews": 153,
+   "points": 5,
+   "is_me": false,
+   "avg": 4.8,
+   "score": 4.8
+  },
+  {
+   "name": "Brascatta pizzaria e restaurante Alto da lapa",
+   "address": "R. Dr. José Elias, 396 - Alto da Lapa, São Paulo - SP, 05083-030",
+   "rating": 4.5,
+   "reviews": 2811,
+   "points": 5,
+   "is_me": true,
+   "avg": 6.6,
+   "score": 6.6
+  },
+  {
+   "name": "Pizzaria Soggiorno - Alto da Lapa",
+   "address": "R. Cerro Corá, 1841 - Vila Romana, São Paulo - SP, 05061-350",
+   "rating": 4.7,
+   "reviews": 2281,
+   "points": 3,
+   "is_me": false,
+   "avg": 1,
+   "score": 9
+  },
+  {
+   "name": "Famiglia Lucco",
+   "address": "R. Pio XI, 240 - Alto da Lapa, São Paulo - SP, 05060-000",
+   "rating": 4.6,
+   "reviews": 1717,
+   "points": 3,
+   "is_me": false,
+   "avg": 5.3,
+   "score": 11.6
+  },
+  {
+   "name": "Al Capizza Lapa/Vila Romana",
+   "address": "R. Pio XI, 327 - Vila Leopoldina, São Paulo - SP, 05060-000",
+   "rating": 3.7,
+   "reviews": 808,
+   "points": 3,
+   "is_me": false,
+   "avg": 7.7,
+   "score": 13
+  },
+  {
+   "name": "NA'PIZZA NAPOLETANI",
+   "address": "R. Dr. Cintra Gordinho, 183 - Alto da Lapa, São Paulo - SP, 05083-001",
+   "rating": 4.8,
+   "reviews": 373,
+   "points": 3,
+   "is_me": false,
+   "avg": 8.7,
+   "score": 13.6
+  },
+  {
+   "name": "Brassi Pizzaria Bar",
+   "address": "R. Carlos Weber, 1409 - Vila Leopoldina, São Paulo - SP, 05303-000",
+   "rating": 4.4,
+   "reviews": 784,
+   "points": 2,
+   "is_me": false,
+   "avg": 3,
+   "score": 13.8
+  },
+  {
+   "name": "Pizzaria Paulino Vila Leopoldina",
+   "address": "R. Carlos Weber, 1530 - Vila Leopoldina, São Paulo - SP, 05303-000",
+   "rating": 4.6,
+   "reviews": 372,
+   "points": 2,
+   "is_me": false,
+   "avg": 5,
+   "score": 14.6
+  },
+  {
+   "name": "Casa da Pizza Delivery - Alto da Lapa",
+   "address": "Av. Diógenes Ribeiro de Lima, 2822 - Alto da Lapa, São Paulo - SP, 05083-010",
+   "rating": 4.3,
+   "reviews": 62,
+   "points": 2,
+   "is_me": false,
+   "avg": 5.5,
+   "score": 14.8
+  },
+  {
+   "name": "Delícia Leopoldina Pizzaria",
+   "address": "R. Brentano, 468 - Vila Leopoldina, São Paulo - SP, 05302-041",
+   "rating": 4.3,
+   "reviews": 175,
+   "points": 2,
+   "is_me": false,
+   "avg": 7.5,
+   "score": 15.6
+  },
+  {
+   "name": "Brazza Pizza",
+   "address": "R. Dardanelos, 341 - Alto de Pinheiros, São Paulo - SP, 05468-010",
+   "rating": 4.3,
+   "reviews": 92,
+   "points": 2,
+   "is_me": false,
+   "avg": 7.5,
+   "score": 15.6
+  },
+  {
+   "name": "Urbano Pizza",
+   "address": "R. Brentano, 173 - Vila Leopoldina, São Paulo - SP, 05302-040",
+   "rating": 4.6,
+   "reviews": 238,
+   "points": 2,
+   "is_me": false,
+   "avg": 8,
+   "score": 15.8
+  }
+ ],
+ "legado": {
+  "avg": 6.6,
+  "score": 6.6,
+  "coverage": 5,
+  "measured": 5
+ }
+}

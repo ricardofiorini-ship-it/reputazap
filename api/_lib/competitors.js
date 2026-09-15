@@ -1293,7 +1293,12 @@ export async function fetchGridRanking({ placeId, terms, spacingM = GRID_SPACING
       // nem penalidade). Contar como ausência seria inventar uma má notícia.
       if (ordered == null) {
         console.warn(`[grid] ponto ${pt.dir} descartado (${erro?.message || "erro"})`);
-        return { dir: pt.dir, ok: false, rank: null, total: 0, list: [] };
+        return { dir: pt.dir, ok: false, rank: null, total: 0, list: [],
+                 // Observacao do ponto NAO MEDIDO. Existe pra que quem consome
+                 // saiba a diferenca entre "o Google nao respondeu aqui" e "o
+                 // negocio nao aparece aqui" — a segunda e ma noticia, a
+                 // primeira e ignorancia nossa.
+                 obs: { point_id: pt.dir, ok: false, client_position: null, results: [], beyond_radius_count: 0 } };
       }
       // CORTE POR DISTÂNCIA, medido a partir DESTE ponto — não da loja. A grade
       // pergunta "como você aparece pra quem está nesta esquina?", então quem
@@ -1309,6 +1314,26 @@ export async function fetchGridRanking({ placeId, terms, spacingM = GRID_SPACING
         total: perto.length,
         beyondRadius: ordered.length - perto.length,
         list: perto.slice(0, 20),          // lista ordenada do ponto (pra agregar)
+        // OBSERVACAO DO PONTO (15/09/2026). A lista ordenada + a distancia de
+        // cada negocio ATE ESTE PONTO. Alimenta o confronto direto e a
+        // comparacao controlada por distancia; sem ela as duas sao impossiveis.
+        //
+        // As posicoes sao as da lista JA CORTADA por distancia (`perto`), a
+        // mesma base do `rank` e da tabela que o cliente ve. Usar a ordem crua
+        // aqui e a filtrada la criaria dois sistemas de posicao na mesma tela —
+        // que e o defeito que este projeto ja pagou caro tres vezes. Quem foi
+        // cortado esta contado em `beyond_radius_count`, nao escondido.
+        obs: {
+          point_id: pt.dir,
+          ok: true,
+          client_position: idx >= 0 ? idx + 1 : null,
+          results: perto.slice(0, 20).map((p, i) => ({
+            place_id: p.place_id,
+            position: i + 1,
+            distance_m: Math.round(haversineM(pt, p)),
+          })),
+          beyond_radius_count: ordered.length - perto.length,
+        },
       };
     }));
     const pts = allPts.filter((p) => p.ok);   // só pontos realmente medidos entram na conta
@@ -1361,6 +1386,10 @@ export async function fetchGridRanking({ placeId, terms, spacingM = GRID_SPACING
     return {
       term,
       points: allPts.map(({ dir, ok, rank, total, beyondRadius }) => ({ dir, ok, rank, total, beyondRadius: beyondRadius || 0 })),
+      // A MATERIA-PRIMA, ao lado do resumo. `points` segue identico pra nao
+      // quebrar ninguem neste passo; `observations` e o que as metricas novas
+      // consomem (api/_lib/visibilidade.js).
+      observations: allPts.map((p) => p.obs),
       avg, score, coverage: present.length, measured: nPts,
       rank, total: rankingArr.length, ranking,
     };
