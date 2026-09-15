@@ -38,10 +38,13 @@
   /* ── Topo ── */
   .top { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.94);
          backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
-  .topin { height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-  .brand img { height: 27px; display: block; }
+  .topin { height: 84px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .brand img { height: 44px; display: block; width: auto; }
+  @media (min-width: 768px) { .brand img { height: 52px; } }
   .nav { display: flex; gap: 24px; align-items: center; font-size: 14px; color: var(--muted); font-weight: 700; }
   .nav a:hover { color: var(--blue); }
+  .nav a.voltar { color: var(--muted); font-weight: 600; }
+  .nav a.voltar:hover { color: var(--text); }
 
   .btn { border: 0; border-radius: 12px; padding: 13px 18px; font: inherit; font-weight: 800;
          display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -253,8 +256,12 @@
   }
   @media (max-width: 640px) {
     .wrap { width: min(100% - 24px, 1160px); }
-    .topin { height: 64px; }
+    .topin { height: 68px; }
+    .brand img { height: 34px; }
     .nav a { display: none; }
+    /* A saida e o unico link que sobrevive no celular: quem caiu aqui
+       por engano e exatamente quem nao pode ficar sem porta. */
+    .nav a.voltar { display: inline; font-size: 13px; }
     .hero { padding-top: 46px; }
     h1 { font-size: 40px; letter-spacing: -1.6px; }
     .heroBtns { display: grid; }
@@ -291,6 +298,7 @@
   <div class="wrap topin">
     <a href="/landing" class="brand"><img src="/startouch-logo-dark.png" alt="StarTouch"/></a>
     <nav class="nav">
+      <a href="/landing" class="voltar">← Ir para o site</a>
       <a href="#precos">Preços</a>
       <a href="#como">Como funciona</a>
       <a href="#faq">Dúvidas</a>
