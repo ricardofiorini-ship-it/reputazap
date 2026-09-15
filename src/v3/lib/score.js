@@ -31,6 +31,7 @@
 // se move, e esta nota sai junto.
 // ============================================================
 import { calcularScore, PESOS } from '../../../api/_lib/score-core.js'
+import { entradaDoScore } from '../../../api/_lib/visibilidade.js'
 
 /**
  * Monta o Score a partir do pacote de dados do V3 (`useDados`).
@@ -41,12 +42,10 @@ export function scoreDoNegocio({ avaliacoes, info, posicao }) {
   const rating = avaliacoes?.rating ?? info?.rating ?? 0
   const reviews = avaliacoes?.total ?? info?.total ?? 0
 
-  // Só entra posição quando ela foi medida E o negócio apareceu em algum ponto.
-  const gridAvg = (posicao && posicao.coverage > 0 && posicao.score != null) ? posicao.score : null
-  // Medido em pelo menos um ponto e ausente em TODOS: é informação ("você não
-  // aparece"), não falta de dado. A conta trata os dois casos diferente de
-  // propósito — dar meio termo aqui premiaria justamente o pior caso.
-  const gridSemCobertura = !!(posicao && posicao.measured > 0 && posicao.coverage === 0)
+  // FONTE ÚNICA desde 15/09: a mesma função que o resumo semanal chama. Estas
+  // linhas eram uma cópia das que vivem em api/cron/weekly-digest.js, e foi
+  // assim que em julho e-mail e painel divergiram sobre o mesmo negócio.
+  const { gridAvg, gridSemCobertura } = entradaDoScore(posicao)
 
   return calcularScore({
     rating,

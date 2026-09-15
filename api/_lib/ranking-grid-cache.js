@@ -11,11 +11,28 @@ import { fetchGridRanking, GRID_SPACING_M } from "./competitors.js";
 
 const TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-// Versão do FORMATO/CÁLCULO do resultado guardado. Subir invalida o cache sem
-// mexer na tabela — necessário quando a medição muda de significado, senão o
-// painel serve por até 7 dias um número que a gente acabou de corrigir.
+// Versão do FORMATO/CÁLCULO do resultado guardado.
 // v2 (27/jul): pontos passam a cortar concorrentes fora do raio (haversine).
-const RESULT_V = 2;
+// v3 (15/set): entra `observations` — a lista ordenada de cada ponto, com
+//   distância. Nenhum número mudou.
+const RESULT_V = 3;
+
+// DUAS PERGUNTAS DIFERENTES, e misturá-las custa caro nos dois sentidos.
+//
+// "Este resultado ainda é VERDADE?" → V_COMPATIVEIS. Subir a versão invalidava
+// tudo, o que é certo quando a medição foi CORRIGIDA: número velho não pode
+// sobreviver ao conserto (foi o caso da v1, sem corte de distância, que fica
+// fora desta lista de propósito e para sempre).
+//
+// "Este resultado tem os CAMPOS novos?" → quem consome checa `observations`.
+// A v3 só acrescentou campo; avg, score, coverage e ranking saem idênticos.
+// Tratar v2 como miss recomputaria a grade da base inteira de uma vez — ~570
+// chamadas ao Places — pra ganhar um campo que ainda não está em nenhuma tela.
+// Servindo v2 até os 7 dias vencerem, a migração sai de graça e espalhada.
+//
+// REGRA: só entra aqui versão que MUDOU O FORMATO sem mudar número. Versão que
+// consertou uma conta nunca entra.
+const V_COMPATIVEIS = new Set([2, 3]);
 
 let _sb = null;
 function sb() {
@@ -58,8 +75,10 @@ async function getCached(placeId, term) {
     // Trata como miss → recomputa no formato novo (auto-conserta o cache velho).
     if (!data.result || data.result.ranking === undefined) return null;
     // Guard de VERSÃO: entrada medida por uma regra anterior (ex: sem corte de
-    // distância) também é miss — número velho não pode sobreviver ao conserto.
-    if ((data.result.v || 1) < RESULT_V) return null;
+    // distância) é miss — número velho não pode sobreviver ao conserto. Versão
+    // que só ganhou campo novo continua válida (ver V_COMPATIVEIS acima); quem
+    // precisa do campo testa `observations`, não a versão.
+    if (!V_COMPATIVEIS.has(data.result.v || 1)) return null;
     // Carimba QUANDO foi medido. Sem isso o painel mostra a posição de até 7 dias
     // atrás como se fosse a de hoje — e não há como distinguir, olhando a tela,
     // um bug de ranking de um cache velho.

@@ -26,6 +26,9 @@ import {
   negativeReviewEmail
 } from "../_lib/email-templates.js";
 import { unsubUrl } from "../_lib/unsubscribe.js";
+// Fonte unica do que o Score StarTouch le da grade — a MESMA funcao que o
+// painel V3 chama. Ver o comentario em api/_lib/visibilidade.js.
+import { entradaDoScore } from "../_lib/visibilidade.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -374,12 +377,18 @@ export default async function handler(req, res) {
       // Ou seja: o resumo semanal — a peca que chega sozinha ao cliente toda
       // semana — dizia "esta tudo bem" justamente para quem estava sumindo do
       // Google. Nao era so divergir do painel; era elogiar o problema.
-      const gridAvg = (gridRow && gridRow.coverage > 0 && gridRow.score != null) ? gridRow.score : null;
-      const gridSemCobertura = !!(gridRow && gridRow.measured > 0 && gridRow.coverage === 0);
+      // FONTE UNICA desde 15/09: a mesma funcao que o painel V3 chama. O bloco
+      // que vivia aqui era uma COPIA do que vive la — foi assim que em julho
+      // e-mail e painel passaram a dizer numeros diferentes sobre o mesmo
+      // negocio. Alinhar a mao conserta uma vez; ter uma funcao so conserta
+      // sempre.
+      const ent = entradaDoScore(gridRow);
+      const gridAvg = ent.gridAvg;
+      const gridSemCobertura = ent.gridSemCobertura;
       // Cobertura parcial: sem isto, quem some de ALGUNS pontos ve o numero
       // cair sem uma linha explicando por que.
-      const gridCobertura = gridRow?.coverage ?? null;
-      const gridMedidos = gridRow?.measured ?? null;
+      const gridCobertura = ent.cobertura;
+      const gridMedidos = ent.medidos;
       // Duas coisas MUITO diferentes, que antes eram a mesma linha:
       //   1. não consegui perguntar  → problema NOSSO, o cliente existe
       //   2. perguntei e não voltou nada → ficha do Google sumiu/place_id errado

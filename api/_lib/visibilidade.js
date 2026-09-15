@@ -217,6 +217,73 @@ export function comparacaoControlada(observations, placeId, rivalId, { toleranci
 export const COMPARAVEL_MINIMO = 2;
 
 // ------------------------------------------------------------
+// Ponte para o Score StarTouch (transição)
+// ------------------------------------------------------------
+/**
+ * A POSIÇÃO COM AUSÊNCIA PESANDO — a conta que o campo `score` da grade fazia.
+ *
+ * Cada ponto em que o negócio não aparece entra como 21ª posição. É uma
+ * penalidade escolhida a dedo, e é por isso que ela está saindo do ranking:
+ * um número não pode responder "em que lugar você aparece" e "em quantos
+ * lugares você aparece" ao mesmo tempo.
+ *
+ * Mas ela ainda alimenta o **Score StarTouch**, que é outro produto — o anel
+ * colorido do painel e a nota do e-mail semanal. Trocar a fórmula dele muda a
+ * nota de todos os clientes de uma vez, e isso é decisão de produto, não
+ * efeito colateral de uma refatoração. Então a conta continua aqui, explícita
+ * e com nome, até essa decisão ser tomada.
+ *
+ * Não usar para ordenar nada.
+ */
+export function posicaoComAusencia(observations, { penalidade = 21 } = {}) {
+  const pts = medidos(observations);
+  if (!pts.length) return null;
+  const soma = pts.reduce((a, o) => a + (o.client_position ?? penalidade), 0);
+  return Math.round((soma / pts.length) * 10) / 10;
+}
+
+/**
+ * O QUE O SCORE STARTOUCH PRECISA SABER SOBRE A GRADE — fonte única.
+ *
+ * Existe porque `api/cron/weekly-digest.js` e `src/v3/lib/score.js` tinham o
+ * mesmo bloco de três linhas, copiado. Em julho as duas cópias divergiram e o
+ * e-mail passou a dizer "está tudo bem" para quem estava sumindo do Google;
+ * em 06/09 foram alinhadas à mão. Alinhar à mão conserta uma vez — apagar uma
+ * das cópias conserta para sempre.
+ *
+ * Aceita os dois formatos de cache: lê `observations` (v3) quando existe e cai
+ * no campo `score` (v2) enquanto houver entrada antiga viva. O `fonte` diz qual
+ * caminho foi usado, para a migração não terminar no escuro.
+ *
+ * @param {object} grid  a linha da grade para um termo
+ */
+export function entradaDoScore(grid) {
+  const obs = grid?.observations;
+  if (Array.isArray(obs) && obs.some((o) => o && o.ok)) {
+    const m = metricasDoCliente(obs);
+    const presentes = m.measured_points - (m.not_found_count || 0);
+    return {
+      gridAvg: presentes > 0 ? posicaoComAusencia(obs) : null,
+      // Mediu e não apareceu em NENHUM ponto é informação ("você não aparece"),
+      // não falta de dado. Quem chama trata os dois casos diferente de
+      // propósito: dar meio-termo aqui premiaria justamente o pior caso.
+      gridSemCobertura: m.measured_points > 0 && presentes === 0,
+      cobertura: presentes,
+      medidos: m.measured_points,
+      fonte: "observations",
+    };
+  }
+  // Cache v2: ainda não tem observações. Some sozinho em até 7 dias.
+  return {
+    gridAvg: (grid && grid.coverage > 0 && grid.score != null) ? grid.score : null,
+    gridSemCobertura: !!(grid && grid.measured > 0 && grid.coverage === 0),
+    cobertura: grid?.coverage ?? null,
+    medidos: grid?.measured ?? null,
+    fonte: "legado",
+  };
+}
+
+// ------------------------------------------------------------
 // Histórico
 // ------------------------------------------------------------
 /**

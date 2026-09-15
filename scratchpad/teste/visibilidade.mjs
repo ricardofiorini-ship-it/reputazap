@@ -166,3 +166,59 @@ console.log("\n8. Diferenca entre scans");
 console.log("\n" + "=".repeat(60));
 console.log(ok + " verificacoes OK, " + falhas.length + " falhas");
 if (falhas.length) { falhas.forEach(f => console.log("  x " + f)); process.exit(1); }
+
+// ============================================================
+// 9. EQUIVALENCIA COM O NUMERO ANTIGO (passo 5)
+// ============================================================
+// `entradaDoScore` substitui o bloco copiado que vivia no weekly-digest e no
+// V3. Se ela nao reproduzir EXATAMENTE o `score` que a grade ja calculava, a
+// nota de todo cliente muda calada — e o e-mail semanal volta a divergir do
+// painel, que e o bug de julho.
+{
+  const { entradaDoScore, posicaoComAusencia } = await import("../../api/_lib/visibilidade.js");
+  const P = JSON.parse(fs.readFileSync(new URL("./grade-real-parcial.json", import.meta.url), "utf8"));
+
+  console.log("\n9. Equivalencia com o `score` legado");
+  // Controle positivo: a fixture parcial precisa TER ausencia, senao o teste
+  // nao prova nada sobre a penalidade.
+  checa("a fixture parcial tem ausencia de verdade (6, ausente, 15, 10, 4)",
+    JSON.stringify(P.observations.map(o => o.client_position)) === "[6,null,15,10,4]",
+    JSON.stringify(P.observations.map(o => o.client_position)));
+  checa("e o legado dela penaliza: score 11,2 > avg 8,8",
+    P.legado.score === 11.2 && P.legado.avg === 8.8, JSON.stringify(P.legado));
+
+  checa("COBERTURA CHEIA: reproduz o score legado (6,6)",
+    posicaoComAusencia(F.observations) === F.legado.score,
+    `${posicaoComAusencia(F.observations)} vs ${F.legado.score}`);
+  checa("COM AUSENCIA: reproduz o score legado (11,2 = (6+21+15+10+4)/5)",
+    posicaoComAusencia(P.observations) === P.legado.score,
+    `${posicaoComAusencia(P.observations)} vs ${P.legado.score}`);
+
+  const eC = entradaDoScore({ observations: F.observations });
+  const eP = entradaDoScore({ observations: P.observations });
+  checa("entradaDoScore usa as observacoes quando existem", eC.fonte === "observations");
+  checa("gridAvg identico ao legado (cheia)", eC.gridAvg === F.legado.score, eC.gridAvg);
+  checa("gridAvg identico ao legado (parcial)", eP.gridAvg === P.legado.score, eP.gridAvg);
+  checa("cobertura identica (cheia 5)", eC.cobertura === F.legado.coverage, eC.cobertura);
+  checa("cobertura identica (parcial 4)", eP.cobertura === P.legado.coverage, eP.cobertura);
+  checa("nenhuma das duas e 'sem cobertura'", !eC.gridSemCobertura && !eP.gridSemCobertura);
+
+  // Cache v2 (sem observations): tem que cair no campo antigo, nao quebrar.
+  const v2 = entradaDoScore({ coverage: 4, measured: 5, score: 11.2 });
+  checa("cache v2 cai no legado e devolve o mesmo numero",
+    v2.fonte === "legado" && v2.gridAvg === 11.2, JSON.stringify(v2));
+
+  // Mediu e sumiu de TODOS: nao pode virar gridAvg, tem que virar o sinalizador.
+  const sumiu = entradaDoScore({ observations: [
+    { point_id: "A", ok: true, client_position: null, results: [] },
+    { point_id: "B", ok: true, client_position: null, results: [] }] });
+  checa("sumiu de todos: gridAvg null e gridSemCobertura true",
+    sumiu.gridAvg === null && sumiu.gridSemCobertura === true, JSON.stringify(sumiu));
+  const nadaMedido = entradaDoScore({ observations: [{ point_id: "A", ok: false, results: [] }] });
+  checa("nada medido NAO e 'sem cobertura' (e ignorancia, nao ma noticia)",
+    nadaMedido.gridAvg === null && nadaMedido.gridSemCobertura === false, JSON.stringify(nadaMedido));
+}
+
+console.log("\n" + "=".repeat(60));
+console.log("TOTAL: " + ok + " OK, " + falhas.length + " falhas");
+if (falhas.length) process.exit(1);

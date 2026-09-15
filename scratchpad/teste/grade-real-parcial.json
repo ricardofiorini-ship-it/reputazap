@@ -1,0 +1,368 @@
+{
+ "placeId": "ChIJ0aax3sD4zpQRJdfAUbrvYAo",
+ "name": "Brascatta Vila Leopoldina",
+ "term": "pizzaria",
+ "observations": [
+  {
+   "point_id": "centro",
+   "ok": true,
+   "client_position": 6,
+   "results": [
+    {
+     "place_id": "ChIJA5UJrcD4zpQR4g69D9jOklM",
+     "position": 1,
+     "distance_m": 198
+    },
+    {
+     "place_id": "ChIJOcf0OMf4zpQRhs-DhQoAsck",
+     "position": 2,
+     "distance_m": 203
+    },
+    {
+     "place_id": "ChIJayKmP8D4zpQRcVXOBBjk488",
+     "position": 3,
+     "distance_m": 322
+    },
+    {
+     "place_id": "ChIJjW_3J5b4zpQRTwNmm_3s_5c",
+     "position": 4,
+     "distance_m": 909
+    },
+    {
+     "place_id": "ChIJYQczwSD5zpQRp7FsMwMHhG4",
+     "position": 5,
+     "distance_m": 493
+    },
+    {
+     "place_id": "ChIJ0aax3sD4zpQRJdfAUbrvYAo",
+     "position": 6,
+     "distance_m": 0
+    },
+    {
+     "place_id": "ChIJ7fvMSsf4zpQRW-LiaPCS4KI",
+     "position": 7,
+     "distance_m": 320
+    },
+    {
+     "place_id": "ChIJ7yEDlqD5zpQR-okQjXCIsE4",
+     "position": 8,
+     "distance_m": 909
+    },
+    {
+     "place_id": "ChIJpdApLL_4zpQRQ8hfHyuPnZQ",
+     "position": 9,
+     "distance_m": 477
+    },
+    {
+     "place_id": "ChIJ4SslSrz4zpQRXxpKoRiWj-M",
+     "position": 10,
+     "distance_m": 866
+    },
+    {
+     "place_id": "ChIJ-5sv8Jf5zpQR06WVdJrlCo0",
+     "position": 11,
+     "distance_m": 215
+    },
+    {
+     "place_id": "ChIJuRuXzZf4zpQRpa-YIzPe_wc",
+     "position": 12,
+     "distance_m": 715
+    },
+    {
+     "place_id": "ChIJy1RcScb4zpQR7fYwHhVVu_4",
+     "position": 13,
+     "distance_m": 629
+    },
+    {
+     "place_id": "ChIJKx6iOMX5zpQR09RGQ9yhGSU",
+     "position": 14,
+     "distance_m": 941
+    },
+    {
+     "place_id": "ChIJR0T9Lr_4zpQRPZIcRSMRvTE",
+     "position": 15,
+     "distance_m": 465
+    },
+    {
+     "place_id": "ChIJv6CM-CH5zpQRNoh90B6PM3Q",
+     "position": 16,
+     "distance_m": 270
+    }
+   ],
+   "beyond_radius_count": 4
+  },
+  {
+   "point_id": "N",
+   "ok": true,
+   "client_position": null,
+   "results": [
+    {
+     "place_id": "ChIJayKmP8D4zpQRcVXOBBjk488",
+     "position": 1,
+     "distance_m": 1020
+    },
+    {
+     "place_id": "ChIJ4XTUWyf5zpQRb3zEShpnX9s",
+     "position": 2,
+     "distance_m": 880
+    },
+    {
+     "place_id": "ChIJIYvgmyD5zpQR4d5aNIk7TJ8",
+     "position": 3,
+     "distance_m": 924
+    },
+    {
+     "place_id": "ChIJy1RcScb4zpQR7fYwHhVVu_4",
+     "position": 4,
+     "distance_m": 1028
+    },
+    {
+     "place_id": "ChIJffsMLt_4zpQRUcfhRZm9h6o",
+     "position": 5,
+     "distance_m": 678
+    },
+    {
+     "place_id": "ChIJIzLNzUf5zpQRHJgJCcvv1oQ",
+     "position": 6,
+     "distance_m": 328
+    },
+    {
+     "place_id": "ChIJSVngUif5zpQRpz9FzIuYUmc",
+     "position": 7,
+     "distance_m": 914
+    }
+   ],
+   "beyond_radius_count": 13
+  },
+  {
+   "point_id": "S",
+   "ok": true,
+   "client_position": 15,
+   "results": [
+    {
+     "place_id": "ChIJjW_3J5b4zpQRTwNmm_3s_5c",
+     "position": 1,
+     "distance_m": 480
+    },
+    {
+     "place_id": "ChIJOaKFLnH4zpQROs-2AoXDR50",
+     "position": 2,
+     "distance_m": 619
+    },
+    {
+     "place_id": "ChIJ9YzjMJb4zpQRiB3wqg2WrUM",
+     "position": 3,
+     "distance_m": 604
+    },
+    {
+     "place_id": "ChIJueMVgQ35zpQRVP_hUIi7EiY",
+     "position": 4,
+     "distance_m": 685
+    },
+    {
+     "place_id": "ChIJ7yEDlqD5zpQR-okQjXCIsE4",
+     "position": 5,
+     "distance_m": 633
+    },
+    {
+     "place_id": "ChIJ4SslSrz4zpQRXxpKoRiWj-M",
+     "position": 6,
+     "distance_m": 217
+    },
+    {
+     "place_id": "ChIJA5UJrcD4zpQR4g69D9jOklM",
+     "position": 7,
+     "distance_m": 805
+    },
+    {
+     "place_id": "ChIJYQczwSD5zpQRp7FsMwMHhG4",
+     "position": 8,
+     "distance_m": 507
+    },
+    {
+     "place_id": "ChIJOcf0OMf4zpQRhs-DhQoAsck",
+     "position": 9,
+     "distance_m": 861
+    },
+    {
+     "place_id": "ChIJKx6iOMX5zpQR09RGQ9yhGSU",
+     "position": 10,
+     "distance_m": 589
+    },
+    {
+     "place_id": "ChIJpdApLL_4zpQRQ8hfHyuPnZQ",
+     "position": 11,
+     "distance_m": 523
+    },
+    {
+     "place_id": "ChIJEyP4Xpf4zpQRZWZH5uX9QXM",
+     "position": 12,
+     "distance_m": 818
+    },
+    {
+     "place_id": "ChIJ7fvMSsf4zpQRW-LiaPCS4KI",
+     "position": 13,
+     "distance_m": 698
+    },
+    {
+     "place_id": "ChIJayKmP8D4zpQRcVXOBBjk488",
+     "position": 14,
+     "distance_m": 1078
+    },
+    {
+     "place_id": "ChIJ0aax3sD4zpQRJdfAUbrvYAo",
+     "position": 15,
+     "distance_m": 999
+    },
+    {
+     "place_id": "ChIJR0T9Lr_4zpQRPZIcRSMRvTE",
+     "position": 16,
+     "distance_m": 534
+    },
+    {
+     "place_id": "ChIJ-5sv8Jf5zpQR06WVdJrlCo0",
+     "position": 17,
+     "distance_m": 800
+    },
+    {
+     "place_id": "ChIJk3YjP9P5zpQROhNtiF6ajJs",
+     "position": 18,
+     "distance_m": 1038
+    },
+    {
+     "place_id": "ChIJv6CM-CH5zpQRNoh90B6PM3Q",
+     "position": 19,
+     "distance_m": 743
+    }
+   ],
+   "beyond_radius_count": 1
+  },
+  {
+   "point_id": "L",
+   "ok": true,
+   "client_position": 10,
+   "results": [
+    {
+     "place_id": "ChIJayKmP8D4zpQRcVXOBBjk488",
+     "position": 1,
+     "distance_m": 679
+    },
+    {
+     "place_id": "ChIJjW_3J5b4zpQRTwNmm_3s_5c",
+     "position": 2,
+     "distance_m": 976
+    },
+    {
+     "place_id": "ChIJOaKFLnH4zpQROs-2AoXDR50",
+     "position": 3,
+     "distance_m": 1080
+    },
+    {
+     "place_id": "ChIJ7yEDlqD5zpQR-okQjXCIsE4",
+     "position": 4,
+     "distance_m": 834
+    },
+    {
+     "place_id": "ChIJA5UJrcD4zpQR4g69D9jOklM",
+     "position": 5,
+     "distance_m": 1054
+    },
+    {
+     "place_id": "ChIJuRuXzZf4zpQRpa-YIzPe_wc",
+     "position": 6,
+     "distance_m": 335
+    },
+    {
+     "place_id": "ChIJc2_8Q-v4zpQR7LCNQol-998",
+     "position": 7,
+     "distance_m": 150
+    },
+    {
+     "place_id": "ChIJy1RcScb4zpQR7fYwHhVVu_4",
+     "position": 8,
+     "distance_m": 428
+    },
+    {
+     "place_id": "ChIJEyP4Xpf4zpQRZWZH5uX9QXM",
+     "position": 9,
+     "distance_m": 987
+    },
+    {
+     "place_id": "ChIJ0aax3sD4zpQRJdfAUbrvYAo",
+     "position": 10,
+     "distance_m": 999
+    },
+    {
+     "place_id": "ChIJKx6iOMX5zpQR09RGQ9yhGSU",
+     "position": 11,
+     "distance_m": 895
+    }
+   ],
+   "beyond_radius_count": 9
+  },
+  {
+   "point_id": "O",
+   "ok": true,
+   "client_position": 4,
+   "results": [
+    {
+     "place_id": "ChIJOcf0OMf4zpQRhs-DhQoAsck",
+     "position": 1,
+     "distance_m": 873
+    },
+    {
+     "place_id": "ChIJA5UJrcD4zpQR4g69D9jOklM",
+     "position": 2,
+     "distance_m": 981
+    },
+    {
+     "place_id": "ChIJs8eXeC7_zpQRHYVFOBl_Afk",
+     "position": 3,
+     "distance_m": 1072
+    },
+    {
+     "place_id": "ChIJ0aax3sD4zpQRJdfAUbrvYAo",
+     "position": 4,
+     "distance_m": 999
+    },
+    {
+     "place_id": "ChIJ7fvMSsf4zpQRW-LiaPCS4KI",
+     "position": 5,
+     "distance_m": 960
+    },
+    {
+     "place_id": "ChIJpdApLL_4zpQRQ8hfHyuPnZQ",
+     "position": 6,
+     "distance_m": 1084
+    },
+    {
+     "place_id": "ChIJ-5sv8Jf5zpQR06WVdJrlCo0",
+     "position": 7,
+     "distance_m": 948
+    },
+    {
+     "place_id": "ChIJR0T9Lr_4zpQRPZIcRSMRvTE",
+     "position": 8,
+     "distance_m": 1091
+    },
+    {
+     "place_id": "ChIJB3qCxCD_zpQRcGTCOGq3Ht8",
+     "position": 9,
+     "distance_m": 1004
+    },
+    {
+     "place_id": "ChIJv6CM-CH5zpQRNoh90B6PM3Q",
+     "position": 10,
+     "distance_m": 959
+    }
+   ],
+   "beyond_radius_count": 10
+  }
+ ],
+ "legado": {
+  "avg": 8.8,
+  "score": 11.2,
+  "coverage": 4,
+  "measured": 5
+ }
+}
