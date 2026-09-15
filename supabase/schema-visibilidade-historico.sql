@@ -14,6 +14,19 @@
 -- garantir que, no dia em que o cache for limpo, a série histórica vá junto.
 --
 -- É uma tabela de SÉRIE TEMPORAL: só insere, nunca atualiza.
+--
+-- VALIDADA EM PRODUÇÃO NO DIA 15/09/2026. Duas medições disparadas de verdade
+-- contra a ficha ChIJ0aax3sD4zpQRJdfAUbrvYAo, com os valores calculados à mão
+-- ANTES de olhar o banco — e os sete bateram:
+--
+--   "pizza"  → posições 10, ausente, 16, 10, 5
+--              medidos 5 · não achou 1 · top10 0,60 · top20 0,80
+--              mediana 10 · média 10,3 · grid_version 3
+--
+-- A linha de "pizzaria napolitana" (ausente nos 5 pontos) fechou com
+-- mediana e média `null` — a ausência ficou na coluna dela, e NÃO virou
+-- "21ª posição" dentro da média. Era o ponto principal da mudança.
+-- Consulta de conferência em supabase/confere-historico.sql.
 -- ============================================================
 
 create table if not exists visibility_scans (
@@ -42,7 +55,38 @@ create table if not exists visibility_scans (
   competitors  jsonb
 );
 
--- Leitura típica: a série de um negócio+termo, do mais novo pro mais velho.
+-- ============================================================
+-- A REGRA DE LEITURA: place_id NÃO IDENTIFICA UMA SÉRIE
+-- ============================================================
+-- Uma série é `place_id + term + grid_version`. Os TRÊS, sempre. Quem ler só
+-- por place_id vai comparar coisas diferentes e chamar isso de tendência.
+--
+--   ✅  where place_id = :p and term = :t and grid_version = :v
+--       order by scanned_at desc
+--
+--   ❌  where place_id = :p order by scanned_at desc
+--
+-- POR QUE O MESMO NEGÓCIO TEM VÁRIOS TERMOS NO HISTÓRICO — e não é bug:
+--
+-- 1. O dono pode trocar a busca medida ("Trocar busca" no painel). A série
+--    antiga continua válida para o termo antigo; não é a mesma coisa medida.
+--
+-- 2. A SEGUNDA TENTATIVA (api/diagnostico.js:262). Quando o termo automático
+--    não acha o negócio em nenhum ponto, o sistema remede com um termo reserva
+--    antes de dar a má notícia. Essa medição é real, custou 5 chamadas ao
+--    Places, e grava — mesmo quando o resultado é descartado e a tela continua
+--    mostrando o termo original.
+--
+--    Observado em 15/09, na ficha ChIJ0aax3sD4zpQRJdfAUbrvYAo: a medição de
+--    "restaurante" não achou o negócio, o sistema tentou "bar", também não
+--    achou, e manteve "restaurante" na tela. O histórico ficou com as duas.
+--    É informação boa (sabemos que os dois termos falharam) e é exatamente o
+--    tipo de linha que arruína um gráfico lido sem filtro de termo.
+--
+-- 3. O mesmo negócio pode ter até 3 termos medidos de propósito.
+--
+-- O índice abaixo está nesta ordem para que o caminho certo seja também o mais
+-- rápido — a consulta errada não ganha nada por ser errada.
 create index if not exists idx_visibility_scans_serie
   on visibility_scans (place_id, term, grid_version, scanned_at desc);
 
