@@ -17,6 +17,8 @@ import { createClient } from "@supabase/supabase-js";
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { suggestTerms, fetchPlaceSeed } from "./_lib/competitors.js";
 import { fetchGridRankingCached } from "./_lib/ranking-grid-cache.js";
+import { validaTransicao, camposDaTransicao, destinosPossiveis, ROTULO }
+  from "./_lib/pedido-estados.js";
 
 // Lista de emails autorizados como admin (hardcoded)
 const ADMIN_EMAILS = new Set([
@@ -79,7 +81,9 @@ export default async function handler(req, res) {
     if (action === "visitas")      return await handleVisitas(req, res);
     if (action === "grid-suggest") return await handleGridSuggest(req, res);
     if (action === "grid")         return await handleGrid(req, res);
-    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects, funnel, visitas, grid-suggest ou grid" });
+    if (action === "pedidos")      return await handlePedidos(req, res);
+    if (action === "pedido-status") return await handlePedidoStatus(req, res, admin);
+    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects, funnel, visitas, grid-suggest, grid, pedidos ou pedido-status" });
   } catch (err) {
     console.error("[admin] erro:", err);
     return res.status(500).json({ error: err.message });
@@ -922,4 +926,93 @@ async function handleProspects(req, res) {
   }
 
   return res.json({ ok: true, term: q, location: locExpanded, total: prospects.length, prospects });
+}
+
+// ═══════════════════════════════════════════════════════════
+// PEDIDOS — a tela que faltava
+// ═══════════════════════════════════════════════════════════
+// Sete telas de /admin e nenhuma de vendas. O primeiro revendedor perguntou
+// onde acompanhava o pedido dele e nem o admin tinha onde olhar: a resposta
+// estava numa consulta SQL escrita à mão.
+
+/** Lista os pedidos, do mais novo pro mais velho. */
+async function handlePedidos(req, res) {
+  const tipo = (req.query.tipo || "").toString();      // "revenda" | "kit" | ""
+  const status = (req.query.status || "").toString();
+  const limite = Math.min(parseInt(req.query.limit, 10) || 60, 200);
+
+  let q = supabase.from("orders")
+    .select("id, external_reference, status, total_cents, items, shipping, email, " +
+            "created_at, paid_at, production_started_at, shipped_at, delivered_at, " +
+            "cancelled_at, tracking_code, status_updated_at, status_updated_by, admin_note")
+    .order("created_at", { ascending: false })
+    .limit(limite);
+
+  if (status) q = q.eq("status", status);
+  // O tipo mora dentro do jsonb: pedido de revenda carrega `shipping.tipo`.
+  if (tipo === "revenda") q = q.eq("shipping->>tipo", "revenda");
+
+  const { data, error } = await q;
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Pedido de KIT não tem `shipping.tipo`; separa pelo prefixo da referência,
+  // que é a única marca que existe nos dois provedores.
+  let linhas = data || [];
+  if (tipo === "kit") {
+    linhas = linhas.filter((o) => (o.external_reference || "").startsWith("kit_"));
+  }
+
+  const pedidos = linhas.map((o) => {
+    const c = o.shipping || {};
+    return {
+      ...o,
+      // `destinos` vem do servidor pra tela não precisar conhecer a regra — e
+      // pra que mudar a regra não exija mexer em dois lugares.
+      destinos: destinosPossiveis(o.status).map((d) => ({ estado: d, rotulo: ROTULO[d] })),
+      rotulo: ROTULO[o.status] || o.status,
+      cliente: c.razao || c.nome || c.name || null,
+      contato: c.nome || c.name || null,
+      email_cliente: o.email || c.email || null,
+      whatsapp: c.whatsapp || c.phone || null,
+      cnpj: c.cnpj || null,
+      eh_revenda: c.tipo === "revenda" || (o.external_reference || "").startsWith("revenda_"),
+      transportadora: c.frete?.transportadora || null,
+    };
+  });
+
+  return res.json({ ok: true, pedidos, total: pedidos.length });
+}
+
+/** Avança (ou cancela) um pedido. A regra vive em _lib/pedido-estados.js. */
+async function handlePedidoStatus(req, res, admin) {
+  if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
+  const { ref, destino, rastreio, nota } = req.body || {};
+  if (!ref || !destino) return res.status(400).json({ error: "informe `ref` e `destino`" });
+
+  const { data: pedido, error: e1 } = await supabase.from("orders")
+    .select("id, status, external_reference").eq("external_reference", ref).maybeSingle();
+  if (e1) return res.status(500).json({ error: e1.message });
+  if (!pedido) return res.status(404).json({ error: "pedido não encontrado" });
+
+  const v = validaTransicao(pedido.status, destino, { rastreio });
+  if (!v.ok) return res.status(400).json({ error: v.erro });
+
+  const patch = camposDaTransicao(destino, { rastreio, quem: admin?.email || null });
+  if (typeof nota === "string") patch.admin_note = nota.slice(0, 500);
+
+  // A GUARDA DO ESTADO ATUAL NO WHERE, e não só na validação acima: entre ler e
+  // escrever, o webhook pode ter mexido no mesmo pedido. Sem isto, dois cliques
+  // rápidos ou uma corrida com o Stripe gravariam por cima um do outro.
+  const { data, error } = await supabase.from("orders")
+    .update(patch)
+    .eq("external_reference", ref)
+    .eq("status", pedido.status)
+    .select("external_reference, status, tracking_code, status_updated_at")
+    .maybeSingle();
+
+  if (error) return res.status(500).json({ error: error.message });
+  if (!data) return res.status(409).json({ error: "o pedido mudou de estado enquanto você olhava — recarregue" });
+
+  console.log(`[admin/pedidos] ${ref}: ${pedido.status} -> ${destino} por ${admin?.email || "?"}`);
+  return res.json({ ok: true, pedido: data });
 }

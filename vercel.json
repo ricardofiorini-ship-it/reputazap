@@ -247,6 +247,10 @@
       "destination": "/admin-visitas.html"
     },
     {
+      "source": "/admin/pedidos",
+      "destination": "/admin-pedidos.html"
+    },
+    {
       "source": "/admin/ranking-grade",
       "destination": "/admin-ranking-grade.html"
     },

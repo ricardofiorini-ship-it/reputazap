@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<script src="/consent.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pedidos — StarTouch Admin</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;background:#f6f7f9;color:#111820;line-height:1.55;padding:28px 16px 80px}
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+  .sub{font-size:14px;color:#68757F;margin-bottom:22px}
+  .card{background:#fff;border:1px solid #e3e8ed;border-radius:12px;padding:18px 20px;margin-bottom:14px}
+
+  /* login */
+  #login{max-width:380px;margin:60px auto}
+  #login input{width:100%;padding:12px 14px;border:1px solid #dce2e8;border-radius:9px;font-size:15px;margin-bottom:10px;font-family:inherit}
+  .btn{background:#1A5FB4;color:#fff;border:none;border-radius:9px;padding:12px 18px;font-size:14.5px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn-sec{background:#fff;color:#1A5FB4;border:1px solid #cddcf0}
+  .btn-sm{padding:7px 12px;font-size:13px;border-radius:8px}
+
+  /* filtros */
+  .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .chip{background:#fff;border:1px solid #dce2e8;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;color:#3D4A57;cursor:pointer;font-family:inherit}
+  .chip.on{background:#1A5FB4;border-color:#1A5FB4;color:#fff}
+
+  /* pedido */
+  .ped-top{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .ped-cliente{flex:1 1 220px;min-width:0}
+  .ped-nome{font-size:16px;font-weight:700}
+  .ped-meta{font-size:12.5px;color:#68757F;font-variant-numeric:tabular-nums}
+  .ped-total{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .badge{display:inline-block;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .b-pending{background:#FFF8E1;color:#8A5A00}
+  .b-paid{background:#E4F2EC;color:#15654A}
+  .b-em_producao{background:#EAF1FA;color:#1A5FB4}
+  .b-postado{background:#EDE9FE;color:#5B21B6}
+  .b-entregue{background:#F1F5F9;color:#475569}
+  .b-cancelado{background:#FBEBEB;color:#9B2226}
+  .ref{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#8B9BA6}
+  .itens{font-size:13px;color:#3D4A57;margin-top:10px;padding-top:10px;border-top:1px solid #eef1f4}
+  .end{font-size:12.5px;color:#68757F;margin-top:6px}
+  .acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #eef1f4;align-items:center}
+  .rast{font-family:ui-monospace,Menlo,monospace;font-size:13px;padding:8px 10px;border:1px solid #dce2e8;border-radius:8px;width:190px;font-family:inherit}
+  .track{font-size:12.5px;color:#15654A;font-weight:600}
+  .erro{color:#9B2226;font-size:13px;margin-top:8px}
+  .vazio{text-align:center;color:#68757F;padding:40px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="login" class="card" style="display:none">
+    <h1 style="font-size:20px">Admin — Pedidos</h1>
+    <p class="sub">Entre com a conta de administrador.</p>
+    <input id="email" type="email" placeholder="E-mail" autocomplete="username"/>
+    <input id="senha" type="password" placeholder="Senha" autocomplete="current-password"/>
+    <button class="btn" style="width:100%" onclick="entrar()">Entrar</button>
+    <p id="loginErro" class="erro"></p>
+  </div>
+
+  <div id="app" style="display:none">
+    <h1>Pedidos</h1>
+    <p class="sub" id="resumo">Carregando…</p>
+
+    <div class="filtros" id="filtros"></div>
+    <div id="lista"></div>
+  </div>
+
+</div>
+
+<script>
+const TK = () => localStorage.getItem("rz_token");
+let filtroTipo = "revenda", filtroStatus = "";
+
+const brl = c => (Number(c||0)/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const dt = s => s ? new Date(s).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+async function entrar(){
+  const email = document.getElementById("email").value.trim();
+  const senha = document.getElementById("senha").value;
+  const er = document.getElementById("loginErro"); er.textContent = "";
+  try{
+    const r = await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email,password:senha})});
+    const d = await r.json();
+    if(!r.ok || !d.token){ er.textContent = d.error || "Não consegui entrar."; return; }
+    localStorage.setItem("rz_token", d.token);
+    inicia();
+  }catch{ er.textContent = "Falha de conexão."; }
+}
+
+function desenhaFiltros(){
+  const tipos = [["revenda","Revenda"],["kit","Kit"],["","Todos"]];
+  const sts = [["","Qualquer estado"],["paid","Pago"],["em_producao","Em produção"],
+               ["postado","Postado"],["pending","Aguardando pagamento"],["entregue","Entregue"]];
+  document.getElementById("filtros").innerHTML =
+    tipos.map(([v,l])=>`<button class="chip ${filtroTipo===v?"on":""}" onclick="setTipo('${v}')">${l}</button>`).join("") +
+    `<span style="width:12px"></span>` +
+    sts.map(([v,l])=>`<button class="chip ${filtroStatus===v?"on":""}" onclick="setStatus('${v}')">${l}</button>`).join("");
+}
+function setTipo(v){ filtroTipo=v; desenhaFiltros(); carrega(); }
+function setStatus(v){ filtroStatus=v; desenhaFiltros(); carrega(); }
+
+async function carrega(){
+  const qs = new URLSearchParams({ action:"pedidos" });
+  if(filtroTipo) qs.set("tipo", filtroTipo);
+  if(filtroStatus) qs.set("status", filtroStatus);
+  const r = await fetch("/api/admin?"+qs, { headers:{ Authorization:"Bearer "+TK() } });
+  if(r.status===401 || r.status===403){ localStorage.removeItem("rz_token"); inicia(); return; }
+  const d = await r.json();
+  const ps = d.pedidos || [];
+  const soma = ps.filter(p=>p.status!=="pending"&&p.status!=="cancelado").reduce((t,p)=>t+(p.total_cents||0),0);
+  document.getElementById("resumo").textContent =
+    `${ps.length} pedido${ps.length===1?"":"s"} · ${brl(soma)} confirmado${ps.length===1?"":"s"}`;
+
+  document.getElementById("lista").innerHTML = ps.length
+    ? ps.map(cartao).join("")
+    : `<div class="card vazio">Nenhum pedido com esses filtros.</div>`;
+}
+
+function cartao(p){
+  const itens = (p.items||[]).map(i=>`${i.qtd||i.qty||1}× ${esc(i.nome||i.name||"item")}`).join(" · ");
+  const c = p.shipping || {};
+  const end = c.endereco ? `${esc(c.endereco)}, ${esc(c.numero||"s/n")}${c.bairro?" · "+esc(c.bairro):""} · ${esc(c.cidade||"")}/${esc(c.uf||"")} · ${esc(c.cep||"")}` : "";
+  // O SERVIDOR diz quais destinos existem. A tela não conhece a regra — assim
+  // mudar a regra não exige mexer aqui, e não há como a tela oferecer um botão
+  // que o backend vai recusar.
+  const botoes = (p.destinos||[]).map(d=>
+    `<button class="btn btn-sm ${d.estado==="cancelado"?"btn-sec":""}" onclick="muda('${p.external_reference}','${d.estado}')">${esc(d.rotulo)}</button>`).join("");
+  const precisaRastreio = (p.destinos||[]).some(d=>d.estado==="postado");
+  return `<div class="card">
+    <div class="ped-top">
+      <div class="ped-cliente">
+        <div class="ped-nome">${esc(p.cliente||"—")}</div>
+        <div class="ped-meta">${esc(p.contato||"")}${p.email_cliente?" · "+esc(p.email_cliente):""}${p.cnpj?" · CNPJ "+esc(p.cnpj):""}</div>
+        <div class="ref">${esc(p.external_reference)} · ${dt(p.created_at)}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="ped-total">${brl(p.total_cents)}</div>
+        <span class="badge b-${esc(p.status)}">${esc(p.rotulo)}</span>
+      </div>
+    </div>
+    ${itens?`<div class="itens">${itens}</div>`:""}
+    ${end?`<div class="end">📦 ${end}${p.transportadora?" · "+esc(p.transportadora):""}</div>`:""}
+    ${p.tracking_code?`<div class="end track">Rastreio ${esc(p.tracking_code)} · postado ${dt(p.shipped_at)}</div>`:""}
+    ${botoes?`<div class="acoes">
+        ${precisaRastreio?`<input class="rast" id="r_${esc(p.external_reference)}" placeholder="código de rastreio"/>`:""}
+        ${botoes}
+      </div>`:""}
+    <div class="erro" id="e_${esc(p.external_reference)}"></div>
+  </div>`;
+}
+
+async function muda(ref, destino){
+  const er = document.getElementById("e_"+ref); if(er) er.textContent="";
+  const campo = document.getElementById("r_"+ref);
+  const rastreio = campo ? campo.value.trim() : "";
+  if(destino==="cancelado" && !confirm("Cancelar este pedido? Não tem volta.")) return;
+  try{
+    const r = await fetch("/api/admin?action=pedido-status",{ method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+TK() },
+      body: JSON.stringify({ ref, destino, rastreio }) });
+    const d = await r.json();
+    // A MENSAGEM DO SERVIDOR VAI NA TELA, inteira. "Não foi possível" esconde
+    // justamente o que a pessoa precisa saber pra consertar — por exemplo que
+    // falta o código de rastreio, ou que o pedido mudou enquanto ela olhava.
+    if(!r.ok){ if(er) er.textContent = d.error || "Não consegui atualizar."; return; }
+    carrega();
+  }catch{ if(er) er.textContent = "Falha de conexão."; }
+}
+
+function inicia(){
+  if(!TK()){ document.getElementById("login").style.display="block";
+             document.getElementById("app").style.display="none"; return; }
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+  desenhaFiltros(); carrega();
+}
+inicia();
+</script>
+</body>
+</html>
