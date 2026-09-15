@@ -819,6 +819,7 @@ export async function fetchRankingByTerm({ placeId, keyword, radius }) {
     ordered.push({
       place_id: p.place_id,
       name: p.name,
+      address: p.formatted_address || null,   // de graça na MESMA resposta; nome sozinho não identifica loja
       rating: p.rating,
       reviews: p.user_ratings_total || 0,
       lat: p.geometry?.location?.lat ?? null,
@@ -929,6 +930,7 @@ export async function runTextSearch(term, lat, lng, radius) {
     ordered.push({
       place_id: p.place_id,
       name: p.name,
+      address: p.formatted_address || null,   // de graça na MESMA resposta; nome sozinho não identifica loja
       rating: p.rating,
       reviews: p.user_ratings_total || 0,
       lat: p.geometry?.location?.lat ?? null,
@@ -1322,7 +1324,7 @@ export async function fetchGridRanking({ placeId, terms, spacingM = GRID_SPACING
     const nPts = pts.length;          // denominador = pontos MEDIDOS (não os 5 fixos)
     const agg = new Map();            // place_id -> { name, rating, reviews, positions[] }
     for (const p of pts) (p.list || []).forEach((biz, i) => {
-      const cur = agg.get(biz.place_id) || { place_id: biz.place_id, name: biz.name, rating: biz.rating, reviews: biz.reviews, positions: [] };
+      const cur = agg.get(biz.place_id) || { place_id: biz.place_id, name: biz.name, address: biz.address || null, rating: biz.rating, reviews: biz.reviews, positions: [] };
       cur.positions.push(i + 1);
       agg.set(biz.place_id, cur);
     });
@@ -1331,7 +1333,7 @@ export async function fetchGridRanking({ placeId, terms, spacingM = GRID_SPACING
         const sum = c.positions.reduce((a, b) => a + b, 0);
         const score = (sum + PENALTY * (nPts - c.positions.length)) / nPts;
         return {
-          place_id: c.place_id, name: c.name, rating: c.rating, reviews: c.reviews,
+          place_id: c.place_id, name: c.name, address: c.address || null, rating: c.rating, reviews: c.reviews,
           _score: score, points: c.positions.length, is_me: c.place_id === placeId,
           // DOIS números, de propósito:
           // `avg`   = média crua dos pontos em que aparece (some quando ausente).

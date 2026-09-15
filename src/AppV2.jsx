@@ -544,7 +544,7 @@ function buildData(real, user, demoMode) {
 
   return {
     ...MOCK,
-    biz: { id: biz.id, name: biz.name, placeId: biz.place_id },
+    biz: { id: biz.id, name: biz.name, placeId: biz.place_id, address: bizInfo?.address || null },
     kpis: {
       ...MOCK.kpis,
       rating: typeof rating === 'number' ? rating : MOCK.kpis.rating,
@@ -3209,6 +3209,31 @@ function LacunaHeadline({ lacuna, isMobile }) {
       )}
     </>
   )
+}
+
+// ─────────────────────────────────────────────────────────────
+// ENDEREÇO NA TELA — o nome sozinho não identifica um negócio
+// ─────────────────────────────────────────────────────────────
+// "Brascatta Alto da Lapa" e "Brascatta Vila Leopoldina" são duas lojas a
+// 1,8 km, com fichas separadas no Google. Com o nome sozinho, o dono não tem
+// como saber qual das duas o painel está analisando — e o Ricardo levou 40
+// minutos pra descobrir que estava comparando unidades diferentes.
+//
+// O Google devolve "R. Passo da Pátria, 1685 - Vila Leopoldina, São Paulo -
+// SP, 05085-080". Cidade, estado e CEP não distinguem nada aqui (a disputa é
+// sempre dentro do mesmo bairro) e só ocupariam a linha.
+function bairroDe(addr) {
+  if (!addr) return null
+  const p = String(addr).split(' - ')
+  const b = (p[1] || '').split(',')[0].trim()
+  return b || null
+}
+function enderecoCurto(addr) {
+  if (!addr) return null
+  const rua = String(addr).split(' - ')[0].trim()
+  const bairro = bairroDe(addr)
+  if (rua && bairro) return `${rua} · ${bairro}`
+  return rua || null
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -6432,9 +6457,20 @@ function GridRankingList({ data, isGuest, signupUrl }) {
         const some = r.points != null && r.points < data.measured
         return (
           <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'8px', borderRadius: 8, marginBottom: 2, background: me ? T.primarySoft : 'transparent' }}>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: me ? 700 : 500, color: me ? T.primaryDark : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
+            <span style={{ flex: 1, minWidth: 0,
               ...(blurName && { filter:'blur(5px)', userSelect:'none', pointerEvents:'none' }) }}>
-              {me ? `${r.name || 'Você'} (você)` : (r.name || 'Concorrente')}
+              <span style={{ display:'block', fontSize: 13, fontWeight: me ? 700 : 500, color: me ? T.primaryDark : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                {me ? `${r.name || 'Você'} (você)` : (r.name || 'Concorrente')}
+              </span>
+              {/* Só o bairro: a coluna do nome já trunca no celular, e é o
+                  bairro que separa duas unidades da mesma marca. Medições
+                  guardadas antes de 15/09 não têm endereço — a linha
+                  simplesmente não aparece, em vez de quebrar. */}
+              {bairroDe(r.address) && (
+                <span style={{ display:'block', fontSize: 10.5, lineHeight: 1.25, marginTop: 1, color: T.textDim, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                  {bairroDe(r.address)}
+                </span>
+              )}
             </span>
             <span style={{ ...num, width: COL.avg }}>
               <span style={{ display:'block', fontSize: 13, fontWeight: 700, color: me ? T.primaryDark : T.text }}>
@@ -7621,6 +7657,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           <h1 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin:'0 0 4px', letterSpacing:'-0.02em' }}>
             Olá, {d.biz.name}.
           </h1>
+          {/* QUAL das lojas é esta. Uma rede com duas unidades tem duas fichas
+              no Google, com nomes quase iguais — sem o endereço, o dono não tem
+              como conferir se está olhando a certa. */}
+          {enderecoCurto(d.biz.address) && (
+            <p style={{ display:'flex', alignItems:'center', gap: 5, fontSize: isMobile ? 12.5 : 13.5, color: T.textDim, margin:'0 0 4px' }}>
+              <MapPin size={13} style={{ flexShrink: 0 }}/> {enderecoCurto(d.biz.address)}
+            </p>
+          )}
           <p style={{ fontSize: isMobile ? 13.5 : 15, color: T.textMid, margin: 0 }}>
             {demoMode ? 'Veja como seu negócio está crescendo · atualizado agora' : greetingSubtitle(d, gridPrimary)}
           </p>
