@@ -162,6 +162,74 @@ export function tapsHistoryNewsEmail({ userName, unsubUrl }) {
   };
 }
 
+
+/**
+ * Programa de revenda — aviso pontual pra base.
+ *
+ * O texto fala com DUAS pessoas de uma vez, porque a lista tem as duas: quem
+ * ja usa a StarTouch numa loja e quem se cadastrou e nunca comprou. Por isso
+ * abre pelo convite e não por "você que já é cliente".
+ *
+ * NÃO promete margem em número: a página de revenda deixou de anunciar o
+ * percentual por decisão do Ricardo, e um e-mail que diga "até 59%" mandaria
+ * a pessoa para uma página que não confirma o número.
+ */
+export function revendaNewsEmail({ userName, unsubUrl }) {
+  const name = escapeHtml(userName?.split(" ")[0] || "tudo bem");
+  return {
+    subject: "Agora dá pra revender StarTouch",
+    html: shell({
+      title: "🤝 PROGRAMA DE REVENDA",
+      unsubUrl,
+      unsubLabel: "receber nossos emails",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:23px;color:#202124;line-height:1.3;">
+          Olá, ${name}!
+        </h1>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          Muita gente nos escreveu pedindo a mesma coisa: comprar em quantidade para
+          <strong style="color:#202124;">revender aos próprios clientes</strong>. Até agora a resposta era
+          caso a caso, por WhatsApp. A partir de hoje existe uma página com tudo aberto —
+          preço de atacado, prazo e pedido fechado na hora.
+        </p>
+
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin:14px 0;">
+          <ul style="font-size:14px;color:#202124;line-height:1.7;margin:0;padding-left:20px;">
+            <li>Preço de atacado <strong>fixo por unidade</strong>, sem faixa por volume</li>
+            <li>Pedido a partir de <strong>R$ 800</strong>, somente para CNPJ</li>
+            <li><strong>Frete calculado na hora</strong>, pelo seu CEP, e pago junto</li>
+            <li>Produção em até <strong>10 dias úteis</strong>, com NF-e em todo pedido</li>
+          </ul>
+        </div>
+
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          O que o seu cliente recebe é o mesmo que você já conhece: o dispositivo chega ligado
+          ao painel, com código próprio, e os recursos gratuitos são
+          <strong style="color:#202124;">vitalícios</strong> — sem mensalidade obrigatória, sem prazo
+          para acabar. É uma promessa que você pode repetir sem medo.
+        </p>
+
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          Você faz a venda; a plataforma, a ativação e o suporte dela ficam com a gente.
+        </p>
+
+        ${cta("https://startouch.com.br/revenda", "Ver o programa de revenda →")}
+
+        <div style="background:#F1F5FB;border:1px solid #DCE6F5;border-radius:10px;padding:14px 16px;margin:18px 0 0;">
+          <p style="font-size:13.5px;color:#3C4858;line-height:1.6;margin:0;">
+            <strong>Não quer revender?</strong> Nada muda para você. Seus dispositivos, seu painel e
+            seu plano seguem exatamente como estão — este e-mail é só um aviso de que a porta abriu.
+          </p>
+        </div>
+
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:18px 0 0;">
+          Dúvida sobre quantidade, prazo ou região? É só responder este e-mail — a gente lê tudo.
+        </p>
+      `
+    })
+  };
+}
+
 // ─────────────────────────────────────────────────────────────
 // 2. NEGÓCIO VINCULADO
 // ─────────────────────────────────────────────────────────────

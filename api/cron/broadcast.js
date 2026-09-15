@@ -26,7 +26,7 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { sendTransactionalEmail } from "../_lib/email-sender.js";
-import { tapsHistoryNewsEmail } from "../_lib/email-templates.js";
+import { tapsHistoryNewsEmail, revendaNewsEmail } from "../_lib/email-templates.js";
 import { unsubUrl } from "../_lib/unsubscribe.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
@@ -38,6 +38,10 @@ const CAMPAIGNS = {
   "toques-por-data": {
     label: "Novidade: histórico de toques por data",
     build: ({ userName, unsub }) => tapsHistoryNewsEmail({ userName, unsubUrl: unsub }),
+  },
+  "revenda": {
+    label: "Programa de revenda aberto",
+    build: ({ userName, unsub }) => revendaNewsEmail({ userName, unsubUrl: unsub }),
   },
 };
 
