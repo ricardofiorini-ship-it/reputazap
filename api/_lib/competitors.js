@@ -1377,7 +1377,12 @@ export async function fetchGridRanking({ placeId, terms, spacingM = GRID_SPACING
     // (e não `avg`), senão o topo diz 3,2 e a linha do dono na lista diz outra
     // coisa quando ele some de algum ponto.
     const score = myIdx >= 0 ? rankingArr[myIdx].score : null;
-    const strip = ({ _score, place_id, ...r }) => r;
+    // `place_id` FICA (15/09). Sem ele, `ranking` e `observations` nao podem
+    // ser cruzados — e e justamente o cruzamento que permite dizer "a X ficou
+    // acima de voce nos pontos em que voces estavam a distancias parecidas".
+    // Nao e dado sensivel: viaja na URL de qualquer ficha do Google Maps.
+    // Sai so o `_score`, que e conta interna.
+    const strip = ({ _score, ...r }) => r;
     let ranking = rankingArr.slice(0, 12).map(strip);
     if (myIdx >= 12) ranking.push(strip(rankingArr[myIdx]));   // garante o dono na lista
 

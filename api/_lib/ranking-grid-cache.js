@@ -8,6 +8,7 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { fetchGridRanking, GRID_SPACING_M } from "./competitors.js";
+import { metricasDoCliente, confrontoDireto, principaisConcorrentes } from "./visibilidade.js";
 
 const TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -102,6 +103,56 @@ async function setCached(placeId, term, result) {
   }
 }
 
+// ============================================================
+// HISTORICO — uma linha por medicao NOVA (passo 8, 15/09/2026)
+// ============================================================
+// O cache responde "como voce esta agora" e sobrescreve o passado. A pergunta
+// que vende e outra: "melhorou ou piorou desde a semana passada". Tabela
+// propria (supabase/schema-visibilidade-historico.sql), so insere.
+//
+// SO GRAVA MEDICAO NOVA. Leitura de cache nao e um scan — gravaria a mesma
+// medicao varias vezes e o grafico mostraria "estabilidade" que e so gente
+// abrindo o painel.
+let _avisouHist = false;
+async function gravaHistorico({ placeId, termo, spacingM, radius }) {
+  const supabase = sb();
+  if (!supabase) return;
+  try {
+    const obs = termo?.observations;
+    if (!Array.isArray(obs) || !obs.some((o) => o && o.ok)) return;
+    const metrics = metricasDoCliente(obs);
+    if (!metrics.measured_points) return;   // nada medido: nao ha o que registrar
+
+    // Catalogo de nomes vem do `ranking`, que ja foi montado nesta medicao.
+    const cat = {};
+    for (const r of termo.ranking || []) if (r && r.name) cat[r.place_id || r.name] = { name: r.name };
+    const principais = principaisConcorrentes(confrontoDireto(obs, placeId, cat), 5);
+
+    const { error } = await supabase.from("visibility_scans").insert({
+      place_id: placeId,
+      term: termo.term,
+      grid_version: RESULT_V,
+      spacing_m: spacingM ?? GRID_SPACING_M,
+      radius_m: radius ?? null,
+      metrics,
+      competitors: principais,
+    });
+    // O supabase-js NAO lanca em erro de escrita: devolve {error} e segue. Sem
+    // conferir, a falha e muda e a serie historica fica com buracos que so
+    // aparecem meses depois, quando alguem for montar o grafico. E o defeito
+    // que existe ate hoje em _lib/email-sender.js:118, e que nao se repete aqui.
+    if (error) throw new Error(error.message);
+  } catch (e) {
+    // Grita UMA VEZ por instancia. O caso mais provavel e a tabela nao existir
+    // porque o SQL nao foi rodado — foi exatamente o que aconteceu com o
+    // proprio ranking_grid_cache, que passou dias "ligado" sem guardar nada.
+    if (_avisouHist) return;
+    _avisouHist = true;
+    console.error("[visibilidade] HISTORICO NAO ESTA SENDO GRAVADO: " + e.message +
+      " — rodou supabase/schema-visibilidade-historico.sql?");
+  }
+}
+
 /**
  * Ranking por grade COM cache por termo. Só computa (queima Places) os termos
  * que não estão no cache/expiraram; o resto vem do banco. Se TODOS os termos
@@ -131,8 +182,13 @@ export async function fetchGridRankingCached({ placeId, terms, spacingM, radius,
   const measuredNow = new Date().toISOString();
   if (cold.length) {
     computed = await fetchGridRanking({ placeId, terms: cold, spacingM, radius });
+    // AWAIT de verdade nos dois: em serverless a funcao congela assim que a
+    // resposta sai, e promessa solta morre pela metade. Regra do projeto.
     await Promise.all((computed.terms || []).map((t) =>
       setCached(placeId, t.term, { ...t, v: RESULT_V, name: computed.name, center: computed.center })
+    ));
+    await Promise.allSettled((computed.terms || []).map((t) =>
+      gravaHistorico({ placeId, termo: t, spacingM, radius })
     ));
   }
 

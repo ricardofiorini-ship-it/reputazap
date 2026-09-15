@@ -4,7 +4,8 @@ import React from 'react'
 // o único jeito de garantir que painel e email nunca mais mostrem números
 // diferentes pro mesmo negócio. Ver a nota longa em score-core.js.
 import { calcularScore } from '../api/_lib/score-core.js'
-import { metricasDoCliente, posicaoDeVisibilidade } from '../api/_lib/visibilidade.js'
+import { metricasDoCliente, posicaoDeVisibilidade, confrontoDireto,
+  principaisConcorrentes, comparacaoControlada, COMPARAVEL_MINIMO } from '../api/_lib/visibilidade.js'
 import {
   Home, Star, ShoppingBag, ShoppingCart, Menu, Lock, Unlock, TrendingUp, TrendingDown,
   Bell, Target, Search, Award, Medal, Rocket, AlertTriangle, MessageSquare, Info,
@@ -6488,8 +6489,72 @@ function RankingGrid({ data }) {
 // o ordinal do dono ("1º de 9") continua no Hero, onde é manchete.
 // Larguras somam ~164px + gaps: num card de 328px (celular de 360) sobram ~124px
 // pro nome, que trunca com reticências. Apertar mais espreme o cabeçalho.
+// ─────────────────────────────────────────────────────────────
+// QUANDO A DISTÂNCIA NÃO EXPLICA
+// ─────────────────────────────────────────────────────────────
+// O Google local é dominado por distância — medido nesta base: a pizzaria com
+// 13 avaliações ficou em 1,6 na grade e a com 2.811 ficou em 7,4, porque uma
+// está num quarteirão vazio e a outra no mais disputado do bairro.
+//
+// Então "ele aparece acima de você" quase sempre tem resposta geográfica. O que
+// INTERESSA é o resto: os pontos onde os dois estavam a distâncias parecidas de
+// quem buscava, e mesmo assim um ficou acima. Aí a diferença é outra coisa.
+//
+// O bloco mostra o FATO (nota e volume lado a lado) e para. Não afirma causa:
+// quando o concorrente vence com nota menor E menos avaliações, a honestidade é
+// dizer que avaliações não explicam.
+function DistanciaNaoExplica({ comp, eu, rival, isMobile }) {
+  if (!comp || comp.comparable_points < COMPARAVEL_MINIMO) return null
+  const venceu = comp.competitor_wins > comp.client_wins
+  if (!venceu) return null
+  const notaMenor = rival.rating != null && eu.rating != null && rival.rating < eu.rating
+  const menosAvals = rival.reviews != null && eu.reviews != null && rival.reviews < eu.reviews
+  const naoExplica = notaMenor && menosAvals
+  const num = { fontVariantNumeric: 'tabular-nums' }
+  return (
+    <div style={{ marginTop: 14, borderLeft: `3px solid ${T.accent}`, background: T.bg,
+      borderRadius: '0 8px 8px 0', padding: '12px 14px' }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, letterSpacing: '.05em',
+        textTransform: 'uppercase', marginBottom: 6 }}>Quando a distância não explica</div>
+      <p style={{ fontSize: 13, color: T.textMid, lineHeight: 1.5, margin: '0 0 10px' }}>
+        Em <strong style={{ color: T.text }}>{comp.comparable_points}</strong> {comp.comparable_points === 1 ? 'ponto' : 'pontos'} onde
+        vocês estavam a distâncias parecidas de quem buscava, <strong style={{ color: T.text }}>{rival.name}</strong> apareceu
+        acima em <strong style={{ color: T.text }}>{comp.competitor_wins}</strong>.
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '4px 12px',
+        fontSize: 12.5, color: T.textMuted, alignItems: 'center' }}>
+        <span style={{ color: T.text, fontWeight: 600 }}>Você</span>
+        <span style={num}>{eu.rating != null ? eu.rating.toFixed(1).replace('.', ',') : '—'} ★</span>
+        <span style={num}>{(eu.reviews ?? 0).toLocaleString('pt-BR')} avaliações</span>
+        <span style={{ color: T.text, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{rival.name}</span>
+        <span style={num}>{rival.rating != null ? rival.rating.toFixed(1).replace('.', ',') : '—'} ★</span>
+        <span style={num}>{(rival.reviews ?? 0).toLocaleString('pt-BR')} avaliações</span>
+      </div>
+      <p style={{ fontSize: 12, color: T.textDim, lineHeight: 1.5, margin: '10px 0 0' }}>
+        {naoExplica
+          ? <>Nota e volume de avaliações <strong>não explicam</strong> essa diferença — a vantagem dele está em outro lugar.</>
+          : <>Nota e volume de avaliações são a diferença mensurável entre vocês. Não é prova de causa, mas é onde dá pra agir.</>}
+      </p>
+    </div>
+  )
+}
+
 const COL = { avg: 58, rating: 46, reviews: 60 }
-function GridRankingList({ data, isGuest, signupUrl }) {
+function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = false }) {
+  // Comparação controlada: só com medição nova (`observations`) e só contra o
+  // concorrente que mais fica acima. Um rival por vez — lista de cinco viraria
+  // relatório, e o dono não age sobre cinco coisas.
+  const controlada = React.useMemo(() => {
+    const obs = data?.observations
+    if (!Array.isArray(obs) || !obs.some(o => o && o.ok) || !placeId) return null
+    const cat = {}
+    for (const r of data.ranking || []) if (r?.place_id) cat[r.place_id] = r
+    const top = principaisConcorrentes(confrontoDireto(obs, placeId, cat), 1)[0]
+    if (!top || !top.name) return null
+    const eu = (data.ranking || []).find(r => r.is_me)
+    if (!eu) return null
+    return { comp: comparacaoControlada(obs, placeId, top.place_id, { toleranciaM: 250 }), eu, rival: top }
+  }, [data, placeId])
   if (!data?.ranking?.length) return null
   const th = { fontSize: 10, fontWeight: 700, letterSpacing:'0.04em', textTransform:'uppercase', color: T.textDim, flexShrink: 0 }
   const num = { fontVariantNumeric:'tabular-nums', flexShrink: 0, textAlign:'right' }
@@ -6586,6 +6651,13 @@ function GridRankingList({ data, isGuest, signupUrl }) {
           <b style={{ color: T.accent }}>parcial</b> — aparece só em parte da região.
         </div>
       )}
+      {/* Só pro cliente: o convidado tem o nome do concorrente borrado na
+          tabela, e este bloco o diria em texto aberto — o portão precisa ser
+          um só, não um com buraco do lado. */}
+      {!isGuest && controlada && (
+        <DistanciaNaoExplica comp={controlada.comp} eu={controlada.eu} rival={controlada.rival} isMobile={isMobile}/>
+      )}
+
       {isGuest && data.ranking.some(r => !r.is_me) && (
         <div style={{ marginTop: 12, display:'flex', alignItems:'center', gap: 12, flexWrap:'wrap', background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 12, padding:'12px 14px' }}>
           <Lock size={18} color={T.primary} style={{ flexShrink: 0 }}/>
@@ -7850,7 +7922,8 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           {/* Com a grade disponível, a LISTA vem dela (fonte única com o Hero).
               Sem grade (fallback), usa as lentes 1/3km antigas. */}
           {gridPrimary ? (
-            <GridRankingList data={gridPrimary} isGuest={isGuest} signupUrl={guestSignupUrl} />
+            <GridRankingList data={gridPrimary} isGuest={isGuest} signupUrl={guestSignupUrl}
+              placeId={d?.biz?.placeId} isMobile={isMobile} />
           ) : (gridError || lensState.error) && !lensState.loading && !(lensState.data?.lenses?.length) ? (
             /* As DUAS medições falharam (ou foram barradas): mostra a falha em
                vez de esconder o bloco e deixar parecer "sem concorrente". */
