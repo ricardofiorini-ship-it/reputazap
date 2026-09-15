@@ -3380,8 +3380,12 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
                   const cor = media <= 3 ? T.success : media <= 10 ? T.accent : T.danger
                   return (
                     <>
+                      {/* INTEIRO, como na tabela de concorrentes (15/09). Era
+                          "1,2º" aqui e "1º" lá embaixo — mesmo número, dois
+                          formatos, na mesma tela. A casa decimal só dizia algo
+                          pra quem sabe que o número é média de vários pontos. */}
                       <div style={{ fontSize: isMobile ? 40 : 48, fontWeight: 800, color: cor, lineHeight: 1, letterSpacing:'-0.02em' }}>
-                        {media.toFixed(1).replace('.', ',')}
+                        {Math.max(1, Math.round(media))}
                         <span style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: T.textMuted }}>º lugar</span>
                       </div>
                       {/* UMA LINHA SÓ (03/ago, decisão do Ricardo). Eram três:
@@ -4341,15 +4345,29 @@ function Opportunities({ count, placeId }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Bloco 3 — Ação da semana (1 só). Regra de prioridade da spec seção 3:
-//  1) avaliação sem resposta → responder no Google. Entre várias, escolhe a PIOR:
-//     menor nota primeiro, mais recente como desempate. Uma nota 1-2 sem resposta
-//     sempre vence qualquer outra ação.
-//  2) sem dispositivo ativo → ativar código
-//  3) fallback → maior lacuna do Score StarTouch
-// Absorve o banner amarelo gigante: fundo surface, ícone accent, badge discreto.
+// Bloco 3 — Ação da semana (1 só). Escada de prioridade:
+//  1) avaliação de 1-2 estrelas sem resposta → responder. Nota baixa calada
+//     pesa mais do que qualquer outra coisa e vence sempre.
+//  2) ALGUÉM À FRENTE, AO ALCANCE → passar o concorrente.
+//  3) sem dispositivo ativo → ativar código
+//  4) avaliação de 3-5 estrelas sem resposta → responder
+//  5) fallback → a maior lacuna do Score StarTouch
+//
+// O DEGRAU 2 É DE 15/09/2026, e nasceu do painel da SAIF: nota 5,0, 16
+// avaliações, alguém na frente em volume — e a ação da semana dizia "responda a
+// avaliação de Janaina". Responder um 5 estrelas é simpático; não é o que faz
+// ela passar ninguém. A escada inteira só olhava pra dentro de casa (avaliação
+// sem resposta, dispositivo sem ativar, lacuna do Score): o vizinho que está
+// na frente não entrava em degrau nenhum.
+//
+// SÓ ENTRA SE FOR ALCANÇÁVEL ('perto', ou seja, lacuna de até 50 avaliações —
+// o mesmo corte da manchete e da meta do e-mail semanal). "Faltam 433" não é
+// meta de semana nenhuma; ali a escada segue pros degraus de sempre.
 // ─────────────────────────────────────────────────────────────
-function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate }) {
+function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate, lacuna = null }) {
+  // O modal "Gerar mais avaliações" (copiar link + WhatsApp) já existe e é o
+  // destino natural de quem acabou de ler quantas avaliações faltam.
+  const [pedirOpen, setPedirOpen] = React.useState(false)
   const reviews = d.recentReviews || []
   // Avaliações SEM resposta (real: sem flag `replied` → todas contam).
   const unreplied = reviews.filter(r => !r.replied)
@@ -4357,21 +4375,32 @@ function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate }) {
   const worst = unreplied.length
     ? [...unreplied].sort((a, b) => (a.rating - b.rating) || (reviews.indexOf(a) - reviews.indexOf(b)))[0]
     : null
+  const grave = !!worst && worst.rating <= 2
   const noDevice = (d.activePlates || []).length === 0
+  const alvo = (lacuna && lacuna.caso === 'perto') ? lacuna : null
   const googleUrl = placeId ? `https://search.google.com/local/reviews?placeid=${placeId}` : 'https://business.google.com/'
 
   let a
-  if (worst) {
-    const low = worst.rating <= 2
+  if (grave) {
     a = {
-      Icon: low ? AlertTriangle : MessageSquare, type: 'respond',
-      title: low
-        ? `Responda à avaliação de ${worst.rating} ${worst.rating === 1 ? 'estrela' : 'estrelas'} de ${worst.name}`
-        : `Responda a avaliação de ${worst.name}`,
-      context: low
-        ? 'Uma nota baixa sem resposta pesa muito na sua reputação — responder com cuidado reduz o impacto.'
-        : 'Responder transmite confiança e fortalece sua presença no Google.',
+      Icon: AlertTriangle, type: 'respond',
+      title: `Responda à avaliação de ${worst.rating} ${worst.rating === 1 ? 'estrela' : 'estrelas'} de ${worst.name}`,
+      context: 'Uma nota baixa sem resposta pesa muito na sua reputação — responder com cuidado reduz o impacto.',
       badge: 'até 30% mais visitas', cta: 'Responder no Google', href: googleUrl
+    }
+  } else if (alvo) {
+    // O CTA muda conforme o que a pessoa TEM na mão. Quem ainda não ativou
+    // dispositivo recebe a lacuna como motivo e a ativação como caminho — o
+    // porquê e o como na mesma tela, em vez de dois avisos concorrendo.
+    a = {
+      Icon: Target, type: 'overtake',
+      title: `Faltam ${alvo.faltam.toLocaleString('pt-BR')} ${alvo.faltam === 1 ? 'avaliação' : 'avaliações'} pra passar ${alvo.rival.nome}`,
+      context: alvo.notaMelhor
+        ? `Você tem nota ${alvo.minhaNota.toFixed(1).replace('.', ',')} e ${alvo.rival.nome} tem ${alvo.rival.nota.toFixed(1).replace('.', ',')} — o que falta é volume, não qualidade.`
+        : `${alvo.rival.nome} tem ${alvo.rival.reviews.toLocaleString('pt-BR')} avaliações e você tem ${alvo.meus.toLocaleString('pt-BR')}.`,
+      badge: null,
+      cta: noDevice ? 'Ativar meu dispositivo' : 'Pedir avaliação agora',
+      onClick: noDevice ? onActivate : () => setPedirOpen(true)
     }
   } else if (noDevice) {
     a = {
@@ -4380,14 +4409,22 @@ function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate }) {
       context: 'Um dispositivo NFC coleta avaliações a cada atendimento, sem esforço.',
       badge: null, cta: 'Ativar código', onClick: onActivate
     }
+  } else if (worst) {
+    a = {
+      Icon: MessageSquare, type: 'respond',
+      title: `Responda a avaliação de ${worst.name}`,
+      context: 'Responder transmite confiança e fortalece sua presença no Google.',
+      badge: 'até 30% mais visitas', cta: 'Responder no Google', href: googleUrl
+    }
   } else {
     const { factors } = scoreBreakdown(d)
     const gap = [...factors].sort((x, y) => (y.max - y.earned) - (x.max - x.earned))[0]
+    // SEM "12/20 pts" (15/09). Pontuação interna não é instrução: o dono não
+    // age sobre um placar que só nós sabemos calcular. Fica a dica sozinha.
     a = {
       Icon: Target, type: 'tip',
       title: gap ? gap.hint : 'Continue coletando avaliações toda semana',
-      context: gap ? `${gap.label}: ${Math.round(gap.earned)}/${gap.max} pts no seu Score StarTouch.` : '',
-      badge: null, cta: null
+      context: '', badge: null, cta: null
     }
   }
 
@@ -4417,6 +4454,14 @@ function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate }) {
       {a.cta && (a.href
         ? <a href={a.href} target="_blank" rel="noopener noreferrer" onClick={fireGA} style={ctaStyle}>{a.cta} <ChevronRight size={16}/></a>
         : <button onClick={() => { fireGA(); a.onClick && a.onClick() }} style={ctaStyle}>{a.cta} <ChevronRight size={16}/></button>
+      )}
+      {pedirOpen && (
+        <ShareReviewsModal
+          placeId={placeId}
+          bizName={d.biz?.name}
+          onClose={() => setPedirOpen(false)}
+          onActivatePlate={onActivate}
+        />
       )}
     </Card>
   )
@@ -7379,9 +7424,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   // dos dois. Agora o pitch sai da MESMA lista que o dono vê logo abaixo.
   // Calculada uma vez e usada pelo Hero. Só pro visitante — ver a nota na
   // coluna B do HeroBlock.
+  // CALCULADA PRA TODO MUNDO desde 15/09 — o cliente logado usa na ação da
+  // semana. Quem decide onde ela aparece é o ponto de uso, não este cálculo:
+  // no Hero ela segue exclusiva do visitante (`isGuest ? lacuna : null`),
+  // porque lá ela toma o lugar do Score StarTouch.
   const lacuna = React.useMemo(
-    () => ((guestMode && !!guestContext?.placeId) ? lacunaDeAvaliacoes(gridPrimary?.ranking) : null),
-    [gridPrimary, guestMode, guestContext?.placeId]
+    () => lacunaDeAvaliacoes(gridPrimary?.ranking),
+    [gridPrimary]
   )
 
   const guestPitch = React.useMemo(() => {
@@ -7581,7 +7630,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <Section>
           <HeroBlock
             gridPos={gridPrimary}
-            lacuna={lacuna}
+            lacuna={isGuest ? lacuna : null}
             d={d}
             position={heroPos}
             demoMode={demoMode}
@@ -7614,7 +7663,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             Convidado: portão suave — teaser do "acompanhar" (evolução/alertas/ação).
             Logado — Demo: itens MOCK. Real: calculadas do estado competitivo. */}
         <Section>
-          <WeeklyAction d={d} demoMode={demoMode} isMobile={isMobile} placeId={d.biz.placeId}
+          <WeeklyAction d={d} demoMode={demoMode} isMobile={isMobile} placeId={d.biz.placeId} lacuna={lacuna}
             onActivate={() => {
               // Sexto caminho até o cadastro. Conta como os outros cinco: um
               // passo do funil que só conta em alguns botões mede o botão, não
