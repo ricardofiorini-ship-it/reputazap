@@ -209,7 +209,7 @@
     <div class="qr-box">
       <div id="qrcode"></div>
     </div>
-    <div class="qr-sub">startouch.vercel.app/ativar</div>
+    <div class="qr-sub" id="qrSub">startouch.com.br/ativar</div>
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
       <div style="font-size:12px;color:#9ca3af;margin-bottom:10px;">Ou continue aqui e grave o NFC depois pelo celular</div>
       <button class="btn-ghost" onclick="goToStep(1)">Continuar assim mesmo</button>
@@ -461,7 +461,7 @@ async function handleGoogleCredential(response) {
     // Web flow: ja tem biz selecionado — salva e vai pro dashboard /app (ranking)
     if (state.from === "web" && state.business) {
       state.plan = "free";
-      state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
+      state.nfcLink = `${window.location.origin}/avaliar?place_id=${state.business.place_id}`;
       await saveBiz();
       state.bizSaved = true;
       if (state.activity) localStorage.setItem("rz_activity", state.activity);
@@ -522,7 +522,12 @@ window.addEventListener("load", () => {
 });
 
 function generateQR() {
-  const url = "https://startouch.vercel.app/ativar";
+  // ESTE QR LEVA A PESSOA DO COMPUTADOR PRO CELULAR. Ate 15/09/2026 ele era
+  // gerado com `https://startouch.vercel.app/ativar`, que responde 404 — quem
+  // escaneava caia numa pagina que nao existe, no meio da ativacao.
+  // O `ativar-placa.html` ja fazia certo; esta tela era a gemea esquecida.
+  const url = `${window.location.origin}/ativar`;
+  document.getElementById("qrSub").textContent = url.replace(/^https?:\/\//, "");
   new QRCode(document.getElementById("qrcode"), {
     text: url,
     width: 140,
@@ -686,7 +691,7 @@ Quer entrar com ela agora? Seu negócio continua selecionado.")){
     // Web flow: ja tem biz selecionado — salva e segue pro dashboard /app (ranking)
     if (state.from === "web" && state.business) {
       state.plan = "free";
-      state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
+      state.nfcLink = `${window.location.origin}/avaliar?place_id=${state.business.place_id}`;
       await saveBiz();
       state.bizSaved = true;
       if (state.activity) localStorage.setItem("rz_activity", state.activity);
@@ -838,7 +843,18 @@ function goToStep3(){
   state.plan = "free";
   // NFC sempre aponta pra /avaliar — assim upgrade Free→Pro nao requer
   // re-gravar o cartao (a peneira liga/desliga via plan no DB)
-  state.nfcLink = `https://startouch.vercel.app/avaliar?place_id=${state.business.place_id}`;
+  // DOMINIO DA PROPRIA PAGINA, nunca fixo (15/09/2026). Estas tres linhas
+  // montavam o link com `https://startouch.vercel.app`, que responde 404 — e
+  // dai o link ia pra TRES lugares: a tela pra pessoa copiar (abaixo), a
+  // gravacao do chip via ndef.write, e a area de transferencia.
+  //
+  // Chip gravado por esta tela ficou com endereco morto. E fisico: quem tocar
+  // nele hoje nao vai a lugar nenhum, e nao ha conserto por software do nosso
+  // lado — o endereco esta no chip. Mesma familia do incidente de 08/06/2026.
+  //
+  // Os chips ja gravados so voltam se `startouch.vercel.app` for apontado pro
+  // projeto na Vercel; esta correcao salva os proximos.
+  state.nfcLink = `${window.location.origin}/avaliar?place_id=${state.business.place_id}`;
   document.getElementById("nfcLinkDisplay").textContent = state.nfcLink;
   if (state.from === "web") {
     goToSuccess();
