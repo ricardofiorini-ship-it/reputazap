@@ -114,6 +114,12 @@ function lePedido(b, { exigirCliente = true } = {}) {
     email: limpo(b.email, 120),
     whatsapp: limpo(b.whatsapp, 20),
     cep: limpo(b.cep, 9),
+    endereco: limpo(b.endereco, 140),
+    numero: limpo(b.numero, 12),
+    complemento: limpo(b.complemento, 60),
+    bairro: limpo(b.bairro, 80),
+    cidade: limpo(b.cidade, 80),
+    uf: limpo(b.uf, 2).toUpperCase(),
     observacoes: limpo(b.observacoes, 600),
   };
 
@@ -130,6 +136,15 @@ function lePedido(b, { exigirCliente = true } = {}) {
     }
     if (!c.ie) {
       return { erro: "Informe a Inscrição Estadual (só os números) ou escreva ISENTO, se a empresa não tiver." };
+    }
+    // Sem isto o pedido chega pago e sem para onde despachar. Ja aconteceu de
+    // o formulario pedir so o CEP — bastava pra cotar o frete e por isso
+    // passou despercebido ate alguem precisar postar a caixa.
+    if (!c.endereco || !c.numero || !c.bairro || !c.cidade) {
+      return { erro: "Preencha o endereço de entrega completo: rua, número, bairro e cidade." };
+    }
+    if (c.uf.length !== 2) {
+      return { erro: "Informe o estado com duas letras (ex.: SP)." };
     }
   }
 
@@ -294,7 +309,10 @@ export default async function handler(req, res) {
         total_cents: total + escolhido.precoCentavos,
         items: itens,
         shipping: {
-          razao, cnpj, ie: cliente.ie, nome, email, whatsapp, cep, observacoes, tipo: "revenda",
+          razao, cnpj, ie: cliente.ie, nome, email, whatsapp, observacoes, tipo: "revenda",
+          cep, endereco: cliente.endereco, numero: cliente.numero,
+          complemento: cliente.complemento, bairro: cliente.bairro,
+          cidade: cliente.cidade, uf: cliente.uf,
           frete: {
             servico: escolhido.servico, transportadora: escolhido.transportadora,
             centavos: escolhido.precoCentavos, prazoDias: escolhido.prazoDias,
@@ -325,7 +343,12 @@ export default async function handler(req, res) {
       status: "pending",
       total_cents: total,
       items: itens,
-      shipping: { razao, cnpj, ie: cliente.ie, nome, email, whatsapp, cep, observacoes, tipo: "revenda" },
+      shipping: {
+        razao, cnpj, ie: cliente.ie, nome, email, whatsapp, observacoes, tipo: "revenda",
+        cep, endereco: cliente.endereco, numero: cliente.numero,
+        complemento: cliente.complemento, bairro: cliente.bairro,
+        cidade: cliente.cidade, uf: cliente.uf,
+      },
     });
     if (error) console.error("[revenda] não gravei o pedido:", error.message);
     else gravado = true;
@@ -414,7 +437,10 @@ export default async function handler(req, res) {
           <tr><td style="padding:8px 10px;color:#5F6368;font-size:13px;">Contato</td><td style="padding:8px 10px;font-weight:600;">${esc(nome)}</td></tr>
           <tr><td style="padding:8px 10px;color:#5F6368;font-size:13px;">E-mail</td><td style="padding:8px 10px;"><a href="mailto:${esc(email)}">${esc(email)}</a></td></tr>
           <tr><td style="padding:8px 10px;color:#5F6368;font-size:13px;">WhatsApp</td><td style="padding:8px 10px;font-weight:600;">${esc(whatsapp)}</td></tr>
-          <tr><td style="padding:8px 10px;color:#5F6368;font-size:13px;">CEP</td><td style="padding:8px 10px;font-weight:600;">${esc(cep)}</td></tr>
+          <tr><td style="padding:8px 10px;color:#5F6368;font-size:13px;vertical-align:top;">Entrega</td><td style="padding:8px 10px;font-weight:600;">
+            ${esc(cliente.endereco)}, ${esc(cliente.numero)}${cliente.complemento ? " — " + esc(cliente.complemento) : ""}<br/>
+            ${esc(cliente.bairro)} · ${esc(cliente.cidade)}/${esc(cliente.uf)}<br/>CEP ${esc(cep)}
+          </td></tr>
           ${observacoes ? `<tr><td style="padding:8px 10px;color:#5F6368;font-size:13px;vertical-align:top;">Observações</td><td style="padding:8px 10px;">${esc(observacoes)}</td></tr>` : ""}
         </table>
 

@@ -195,6 +195,10 @@
   .orderGrid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 32px; align-items: start; }
   .formcard, .summary { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 28px; }
   .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .cepStatus { font-weight: 600; font-size: 12px; margin-left: 6px; }
+  .cepStatus.ok { color: #1E8E5A; }
+  .cepStatus.erro { color: #B3261E; }
+  .opc { font-weight: 400; color: var(--muted); font-size: 12px; }
   .field { display: grid; gap: 7px; }
   .full { grid-column: 1 / -1; }
   label { font-size: 13px; font-weight: 700; }
@@ -532,7 +536,13 @@
             <div class="field"><label for="f-nome">Seu nome</label><input id="f-nome" required maxlength="80"/></div>
             <div class="field"><label for="f-email">E-mail</label><input id="f-email" type="email" required maxlength="120"/></div>
             <div class="field"><label for="f-whats">WhatsApp</label><input id="f-whats" type="tel" required maxlength="20" placeholder="(00) 00000-0000"/></div>
-            <div class="field full"><label for="f-cep">CEP de entrega</label><input id="f-cep" required inputmode="numeric" maxlength="9" placeholder="00000-000"/></div>
+            <div class="field"><label for="f-cep">CEP de entrega <span id="cepStatus" class="cepStatus"></span></label><input id="f-cep" required inputmode="numeric" maxlength="9" placeholder="00000-000" autocomplete="postal-code"/></div>
+            <div class="field"><label for="f-numero">Número</label><input id="f-numero" required maxlength="12" placeholder="123" autocomplete="address-line2"/></div>
+            <div class="field full"><label for="f-endereco">Endereço</label><input id="f-endereco" required maxlength="140" placeholder="Rua, avenida…" autocomplete="address-line1"/></div>
+            <div class="field"><label for="f-compl">Complemento <span class="opc">(opcional)</span></label><input id="f-compl" maxlength="60" placeholder="Sala, bloco…"/></div>
+            <div class="field"><label for="f-bairro">Bairro</label><input id="f-bairro" required maxlength="80" autocomplete="address-level3"/></div>
+            <div class="field"><label for="f-cidade">Cidade</label><input id="f-cidade" required maxlength="80" autocomplete="address-level2"/></div>
+            <div class="field"><label for="f-uf">Estado (UF)</label><input id="f-uf" required maxlength="2" placeholder="SP" autocomplete="address-level1" style="text-transform:uppercase"/></div>
           </div>
 
           <h3 style="margin:26px 0 4px;font-size:17px;font-weight:700;">Quantidades</h3>
@@ -704,7 +714,39 @@
   $("f-cep").addEventListener("input", function (e) {
     var v = e.target.value.replace(/\D/g, "").slice(0, 8);
     e.target.value = v.replace(/^(\d{5})(\d)/, "$1-$2");
+    if (v.length === 8) buscaCep(v);
+    else $("cepStatus").textContent = "";
   });
+
+  // Preenche endereco pelo CEP. Se o ViaCEP estiver fora, NAO trava o pedido:
+  // os campos continuam editaveis e a pessoa digita. Autocomplete que impede
+  // de comprar quando o servico de terceiro cai e pior que nao ter nenhum.
+  var ultimoCepBuscado = "";
+  function buscaCep(cep) {
+    if (cep === ultimoCepBuscado) return;
+    ultimoCepBuscado = cep;
+    var st = $("cepStatus");
+    st.className = "cepStatus";
+    st.textContent = "buscando…";
+    fetch("https://viacep.com.br/ws/" + cep + "/json/")
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.erro) { st.className = "cepStatus erro"; st.textContent = "não encontrado"; return; }
+        if (d.logradouro && !$("f-endereco").value) $("f-endereco").value = d.logradouro;
+        if (d.bairro && !$("f-bairro").value) $("f-bairro").value = d.bairro;
+        if (d.localidade) $("f-cidade").value = d.localidade;
+        if (d.uf) $("f-uf").value = d.uf;
+        st.className = "cepStatus ok";
+        st.textContent = "✓";
+        if (!$("f-numero").value) $("f-numero").focus();
+      })
+      .catch(function () {
+        // Silencio de proposito: o campo fica vazio e a pessoa preenche.
+        st.className = "cepStatus";
+        st.textContent = "";
+        ultimoCepBuscado = "";
+      });
+  }
 
   // ── FRETE ────────────────────────────────────────────────────────
   // Guarda o que a ULTIMA cotacao devolveu. Se qualquer coisa mudar depois
@@ -807,6 +849,12 @@
       email: $("f-email").value.trim(),
       whatsapp: $("f-whats").value.trim(),
       cep: $("f-cep").value.trim(),
+      endereco: $("f-endereco").value.trim(),
+      numero: $("f-numero").value.trim(),
+      complemento: $("f-compl").value.trim(),
+      bairro: $("f-bairro").value.trim(),
+      cidade: $("f-cidade").value.trim(),
+      uf: $("f-uf").value.trim().toUpperCase(),
       observacoes: $("f-obs").value.trim(),
       itens: qtds()
     };

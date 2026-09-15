@@ -303,7 +303,15 @@ async function notifyAdminRevendaPaga({ order, pagamentoId, status }) {
     `<td style="padding:11px 10px;text-align:right;font-weight:800;font-size:17px;">${fmtBRL(order?.total_cents)}</td></tr>` +
     `</table>` +
     `<h3>📦 Entrega</h3>` +
-    `<p>CEP ${escapeHtmlLite(c.cep || "—")}` +
+    // Antes so o CEP vinha aqui, porque o formulario de revenda so pedia o
+    // CEP. Com o endereco completo gravado, o aviso passa a dizer PARA ONDE
+    // despachar — que era a unica coisa que faltava pra fechar o pedido.
+    (c.endereco
+      ? `<p>${escapeHtmlLite(c.endereco)}, ${escapeHtmlLite(c.numero || "s/n")}` +
+        (c.complemento ? ` — ${escapeHtmlLite(c.complemento)}` : "") + `<br/>` +
+        `${escapeHtmlLite(c.bairro || "")} · ${escapeHtmlLite(c.cidade || "")}/${escapeHtmlLite(c.uf || "")}<br/>` +
+        `CEP ${escapeHtmlLite(c.cep || "—")}`
+      : `<p>CEP ${escapeHtmlLite(c.cep || "—")}`) +
     (f.prazoTotalDias ? ` · prometido em <strong>${f.prazoTotalDias} dias úteis</strong> (${f.prazoDias} da transportadora + 10 de produção)` : "") +
     `</p>` +
     (c.observacoes ? `<p><strong>Observações do cliente:</strong> ${escapeHtmlLite(c.observacoes)}</p>` : "") +
