@@ -16,7 +16,11 @@ create table if not exists ranking_grid_cache (
   place_id text not null,
   term_norm text not null,      -- termo normalizado (minúsculo, sem acento)
   term text not null,           -- termo original (exibição)
-  result jsonb not null,        -- { points:[{dir,rank,total,top}], avg, coverage, competitors, name, center }
+  result jsonb not null,        -- { term, points, avg, score, coverage, measured, rank, total,
+                                --   ranking:[{name,rating,reviews,avg,score,points,is_me}] }
+                                -- O array chama-se RANKING, nao 'competitors'. O nome errado
+                                -- neste comentario ja custou uma consulta que voltou cinco
+                                -- zeros parecendo base vazia (15/09/2026).
   created_at timestamptz default now(),
   unique (place_id, term_norm)
 );

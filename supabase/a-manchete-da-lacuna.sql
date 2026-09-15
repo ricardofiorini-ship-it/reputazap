@@ -9,9 +9,9 @@
 -- concorrente à frente costuma ter 3 avaliações a mais, a manchete murcha e
 -- a ideia morre aqui — que é mais barato do que morrer depois de pronta.
 --
--- De onde sai o dado: `ranking_grid_cache.result->'competitors'`, o mesmo
+-- De onde sai o dado: `ranking_grid_cache.result->'ranking'`, o mesmo
 -- array que o painel já desenha em forma de tabela. Cada item traz
--- `name`, `rating`, `reviews`, `points` e `is_me`. Ou seja, NADA de dado
+-- `name`, `rating`, `reviews`, `points`, `avg` e `is_me`. Ou seja, NADA de dado
 -- novo — a pergunta é só se o que já está na tela dá uma boa frase.
 --
 -- Uma linha por place_id: a medição mais recente. Um negócio pode ter vários
@@ -33,7 +33,7 @@ itens as (
     nullif(c->>'rating', '')::numeric       as nota,
     nullif(c->>'points', '')::int           as pontos
   from grade g
-  cross join lateral jsonb_array_elements(g.result->'competitors') c
+  cross join lateral jsonb_array_elements(g.result->'ranking') c
 ),
 
 eu as (
@@ -106,7 +106,7 @@ itens as (
     nullif(c->>'rating', '')::numeric       as nota,
     nullif(c->>'points', '')::int           as pontos
   from grade g
-  cross join lateral jsonb_array_elements(g.result->'competitors') c
+  cross join lateral jsonb_array_elements(g.result->'ranking') c
 ),
 
 eu as (
