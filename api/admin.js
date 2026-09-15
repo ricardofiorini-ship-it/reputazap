@@ -19,6 +19,8 @@ import { suggestTerms, fetchPlaceSeed } from "./_lib/competitors.js";
 import { fetchGridRankingCached } from "./_lib/ranking-grid-cache.js";
 import { validaTransicao, camposDaTransicao, destinosPossiveis, ROTULO }
   from "./_lib/pedido-estados.js";
+import { sendTransactionalEmail } from "./_lib/email-sender.js";
+import { pedidoAtualizadoEmail } from "./_lib/email-templates.js";
 
 // Lista de emails autorizados como admin (hardcoded)
 const ADMIN_EMAILS = new Set([
@@ -990,7 +992,8 @@ async function handlePedidoStatus(req, res, admin) {
   if (!ref || !destino) return res.status(400).json({ error: "informe `ref` e `destino`" });
 
   const { data: pedido, error: e1 } = await supabase.from("orders")
-    .select("id, status, external_reference").eq("external_reference", ref).maybeSingle();
+    .select("id, status, external_reference, email, user_id, shipping")
+    .eq("external_reference", ref).maybeSingle();
   if (e1) return res.status(500).json({ error: e1.message });
   if (!pedido) return res.status(404).json({ error: "pedido não encontrado" });
 
@@ -1014,5 +1017,58 @@ async function handlePedidoStatus(req, res, admin) {
   if (!data) return res.status(409).json({ error: "o pedido mudou de estado enquanto você olhava — recarregue" });
 
   console.log(`[admin/pedidos] ${ref}: ${pedido.status} -> ${destino} por ${admin?.email || "?"}`);
-  return res.json({ ok: true, pedido: data });
+
+  // O CLIENTE SÓ EXISTE SE FICAR SABENDO. Sem este aviso, a tela de admin é um
+  // diário particular: o pedido anda aqui dentro e quem está esperando a caixa
+  // continua sem notícia — que foi exatamente a reclamação que originou tudo.
+  //
+  // DEPOIS da escrita, e com `await` de verdade: em serverless a função congela
+  // no res.json e promessa solta morre pela metade. E se o e-mail falhar, a
+  // virada de estado NÃO volta atrás — ela já aconteceu, e desfazer seria
+  // mentir sobre o mundo físico. O erro vai pro log e pra resposta.
+  let aviso = null;
+  try {
+    aviso = await avisaClienteDoPedido({ pedido, destino, rastreio, admin });
+  } catch (e) {
+    console.error(`[admin/pedidos] ${ref}: estado gravado, e-mail FALHOU:`, e?.message);
+    aviso = { enviado: false, erro: e?.message || "falha no envio" };
+  }
+
+  return res.json({ ok: true, pedido: data, aviso });
+}
+
+/**
+ * Avisa o cliente de que o pedido andou. Só três estados mandam e-mail — ver
+ * o porquê em `pedidoAtualizadoEmail`.
+ */
+async function avisaClienteDoPedido({ pedido, destino, rastreio, admin }) {
+  const c = pedido?.shipping || {};
+  const to = pedido?.email || c.email;
+  if (!to) return { enviado: false, erro: "pedido sem e-mail do cliente" };
+
+  const corpo = pedidoAtualizadoEmail({
+    nome: c.nome || c.name || null,
+    ref: pedido.external_reference,
+    estado: destino,
+    rastreio: String(rastreio || "").trim().toUpperCase() || null,
+    transportadora: c.frete?.transportadora || null,
+    ehRevenda: c.tipo === "revenda" || (pedido.external_reference || "").startsWith("revenda_"),
+  });
+  if (!corpo) return { enviado: false, motivo: "estado não manda e-mail" };
+
+  // `userId` vazio faz o sender PULAR o envio (email-sender.js:62), e pedido de
+  // convidado não tem usuário — daí "guest". Custo: a desduplicação vira no-op
+  // e o registro no email_log falha calado (pendência 3 do CLAUDE.md). Aqui o
+  // risco de duplicata é baixo: quem dispara é um clique humano, não um webhook
+  // que se repete sozinho.
+  const r = await sendTransactionalEmail({
+    userId: pedido.user_id || "guest",
+    emailType: `pedido_${destino}`,
+    to, subject: corpo.subject, html: corpo.html,
+    dedupeByMetadata: { key: "ref", value: pedido.external_reference },
+    metadata: { ref: pedido.external_reference, por: admin?.email || null },
+  });
+  if (r?.error) return { enviado: false, erro: r.error };
+  if (r?.skipped) return { enviado: false, motivo: r.reason };
+  return { enviado: true, para: to };
 }

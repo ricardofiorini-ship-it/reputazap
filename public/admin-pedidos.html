@@ -48,6 +48,10 @@
   .rast{font-family:ui-monospace,Menlo,monospace;font-size:13px;padding:8px 10px;border:1px solid #dce2e8;border-radius:8px;width:190px;font-family:inherit}
   .track{font-size:12.5px;color:#15654A;font-weight:600}
   .erro{color:#9B2226;font-size:13px;margin-top:8px}
+  .aviso-ok{color:#15654A;font-size:13px;margin-top:8px;font-weight:600}
+  .aviso-nao{color:#8A5A00;font-size:13px;margin-top:8px;font-weight:600}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111820;color:#fff;
+         padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:50;max-width:92vw}
   .vazio{text-align:center;color:#68757F;padding:40px 0}
 </style>
 </head>
@@ -154,6 +158,7 @@ function cartao(p){
         ${botoes}
       </div>`:""}
     <div class="erro" id="e_${esc(p.external_reference)}"></div>
+    <div id="a_${esc(p.external_reference)}"></div>
   </div>`;
 }
 
@@ -171,8 +176,25 @@ async function muda(ref, destino){
     // justamente o que a pessoa precisa saber pra consertar — por exemplo que
     // falta o código de rastreio, ou que o pedido mudou enquanto ela olhava.
     if(!r.ok){ if(er) er.textContent = d.error || "Não consegui atualizar."; return; }
+
+    // O ESTADO GRAVOU. E o e-mail? Estado que anda sem o cliente ficar sabendo
+    // e a tela de admin virando diario particular — que e a reclamacao que
+    // originou tudo isto. Entao o resultado do envio aparece, sempre, inclusive
+    // quando nao ha e-mail a mandar.
+    const a = d.aviso || {};
+    const msg = a.enviado ? `Cliente avisado em ${a.para}`
+      : a.motivo === "estado não manda e-mail" ? "Estado gravado. Este estado não manda e-mail."
+      : `Estado gravado, MAS O E-MAIL NAO SAIU: ${a.erro || a.motivo || "motivo desconhecido"}`;
+    toast(msg);
     carrega();
   }catch{ if(er) er.textContent = "Falha de conexão."; }
+}
+
+function toast(txt){
+  let t = document.getElementById("toast");
+  if(!t){ t = document.createElement("div"); t.id="toast"; t.className="toast"; document.body.appendChild(t); }
+  t.textContent = txt; t.style.display = "block";
+  clearTimeout(window.__tt); window.__tt = setTimeout(()=>{ t.style.display="none"; }, 5000);
 }
 
 function inicia(){

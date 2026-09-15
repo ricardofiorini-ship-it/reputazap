@@ -325,6 +325,74 @@ export function pedidoRecebidoEmail({ nome, ref, itens, totalCentavos, boleto = 
   };
 }
 
+/**
+ * PEDIDO ANDOU — sai a cada virada de estado que o cliente precisa saber.
+ *
+ * Só três estados mandam e-mail, de propósito:
+ *   em_producao  ele descobre que saiu da fila
+ *   postado      ele recebe o código e passa a poder agir
+ *   cancelado    ele precisa saber, e rápido
+ *
+ * `entregue` NÃO manda: a marcação acontece depois do fato, e avisar alguém de
+ * que recebeu o que já está na mão dele é ruído — e ruído ensina a ignorar os
+ * outros avisos, que são os que importam.
+ */
+export function pedidoAtualizadoEmail({ nome, ref, estado, rastreio, transportadora, ehRevenda = false }) {
+  const saudacao = nome ? `Olá, ${escapeHtml(nome)}!` : "Olá!";
+  const rodape = `<p style="font-size:14px;color:#68757F;line-height:1.6;margin-top:18px;">Pedido <code>${escapeHtml(ref || "—")}</code>. Qualquer dúvida, é só responder este e-mail.</p>`;
+
+  if (estado === "em_producao") {
+    return {
+      subject: "Seu pedido entrou em produção",
+      html:
+        `<h2 style="margin:0 0 6px;">Entrou em produção 🛠️</h2>` +
+        `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">${saudacao}</p>` +
+        `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">Seus dispositivos começaram a ser produzidos. ` +
+        (ehRevenda
+          ? `A produção leva <strong>10 dias úteis</strong>; assim que a caixa for postada, você recebe o código de rastreio aqui mesmo.`
+          : `Assim que a caixa for postada, você recebe o código de rastreio aqui mesmo.`) +
+        `</p>` + rodape,
+    };
+  }
+
+  if (estado === "postado") {
+    // O código vai em bloco próprio e em fonte monoespaçada: ele existe pra ser
+    // copiado, e código de rastreio colado errado é suporte na certa.
+    return {
+      subject: "Seu pedido foi postado 📦",
+      html:
+        `<h2 style="margin:0 0 6px;">A caminho 📦</h2>` +
+        `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">${saudacao}</p>` +
+        `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">Seu pedido saiu daqui` +
+        (transportadora ? ` pela <strong>${escapeHtml(transportadora)}</strong>` : "") + `.</p>` +
+        (rastreio
+          ? `<table width="100%" cellspacing="0" cellpadding="0" style="background:#F2F7FD;border:1px solid #DCE7F5;border-radius:12px;margin:16px 0;">
+               <tr><td style="padding:16px 20px;text-align:center;">
+                 <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#1A5FB4;margin-bottom:6px;">Código de rastreio</div>
+                 <div style="font-family:ui-monospace,Menlo,monospace;font-size:20px;font-weight:700;letter-spacing:.04em;color:#0f172a;">${escapeHtml(rastreio)}</div>
+               </td></tr>
+             </table>
+             <p style="font-size:13.5px;color:#68757F;line-height:1.6;">Acompanhe no site da transportadora. O código pode levar algumas horas até aparecer no rastreamento.</p>`
+          : "") +
+        rodape,
+    };
+  }
+
+  if (estado === "cancelado") {
+    return {
+      subject: "Seu pedido foi cancelado",
+      html:
+        `<h2 style="margin:0 0 6px;">Pedido cancelado</h2>` +
+        `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">${saudacao}</p>` +
+        `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">Seu pedido foi cancelado e não será produzido. ` +
+        `Se houve pagamento, o estorno segue o prazo da operadora. <strong>Se isso foi engano, responda este e-mail</strong> que a gente resolve.</p>` +
+        rodape,
+    };
+  }
+
+  return null;   // estado que nao merece e-mail
+}
+
 /** PEDIDO CONFIRMADO — sai quando o dinheiro entra de verdade. */
 export function pedidoConfirmadoEmail({ nome, ref, totalCentavos, ehRevenda = false }) {
   const saudacao = nome ? `Olá, ${escapeHtml(nome)}!` : "Olá!";
