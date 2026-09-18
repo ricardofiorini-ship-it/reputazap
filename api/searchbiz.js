@@ -89,7 +89,12 @@ export default async function handler(req, res) {
   // corrigindo o nome repete a consulta anterior varias vezes.
   // A chave carrega os TRES parametros que mudam o resultado — q (nome+tipo),
   // name (o que ranqueia) e cep (a ancora). Trocar `v1` invalida tudo de uma vez.
-  const chaveCache = `searchbiz:v1:${chaveDe(q)}|${chaveDe(nameQuery)}|${cepDigits}`;
+  // v2 em 18/09/2026: o filtro de "so estabelecimento" entrou depois que estas
+  // buscas ja estavam gravadas. Sem virar a versao, quem buscou um endereco nas
+  // ultimas 24h continuaria recebendo o endereco — o conserto no ar e o bug na
+  // tela ao mesmo tempo, que e o jeito mais rapido de dar o caso por resolvido
+  // sem ele estar.
+  const chaveCache = `searchbiz:v2:${chaveDe(q)}|${chaveDe(nameQuery)}|${cepDigits}`;
 
   try {
     const { data } = await comCachePlaces({
@@ -128,6 +133,26 @@ async function buscar({ q, nameQuery, cepDigits, API_KEY }) {
   // 3. Trava de Brasil + remove lojas fechadas (Google mantem fechadas no indice).
   raw = raw.filter((p) => inBrazil(p.geometry?.location));
   raw = raw.filter((p) => !p.business_status || p.business_status === "OPERATIONAL");
+
+  // 3b. SO ESTABELECIMENTO. O textsearch tambem devolve ENDERECO PURO
+  //     (types ["street_address","subpremise"]) com exatamente a mesma cara de
+  //     um negocio na lista de resultados. Em 17/09/2026 um cliente escolheu o
+  //     endereco da propria loja em vez da loja: place_id de rua, e com ele o
+  //     produto inteiro aponta pro vazio — nao existe avaliacao de rua, entao
+  //     todo toque no dispositivo mandava o consumidor pra uma ficha onde nao
+  //     da pra avaliar, e nada no sistema reclamava.
+  //     Regra POSITIVA (exige "establishment") em vez de lista negra de tipos:
+  //     um tipo novo de endereco que o Google invente ja nasce barrado.
+  //     `types` AUSENTE nao descarta: se um dia o Google parar de mandar o
+  //     campo, a busca volta a ser a de antes em vez de nao achar mais nada.
+  const semTipo = (p) => !Array.isArray(p.types) || p.types.length === 0;
+  const antes = raw.length;
+  raw = raw.filter((p) => semTipo(p) || p.types.includes("establishment"));
+  if (raw.length !== antes) {
+    // Barulho de proposito: filtro que corta calado e filtro quebrado sao a
+    // mesma coisa no log.
+    console.warn(`[searchbiz] ${antes - raw.length} resultado(s) descartado(s) por nao ser estabelecimento (q="${q}")`);
+  }
 
   if (!raw.length) return null;   // nada achado: nao grava no cache
 
