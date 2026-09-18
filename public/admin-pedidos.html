@@ -78,7 +78,79 @@
 </div>
 
 <script>
-const TK = () => localStorage.getItem("rz_token");
+// ============================================================
+// SESSÃO QUE NÃO CAI — mesma regra de `src/lib/sessao.js`
+// ============================================================
+// O token do Supabase vence em 1 HORA. Esta tela nasceu sem renovação: bastava
+// abrir a aba uma hora depois pra levar 401, e o código de baixo APAGAVA o
+// token e mostrava o login. Do lado de quem usa isso é "entrei e ele me
+// deslogou" — e pior, derrubava junto a sessão do /app, porque `rz_token` é a
+// MESMA chave das duas telas.
+//
+// Está copiado aqui, e não importado, porque `src/lib/` é empacotado pelo vite
+// e esta página é HTML estático servido direto. Se a regra mudar lá, muda aqui.
+const K_TOKEN = "rz_token", K_REFRESH = "rz_refresh", K_EXP = "rz_token_exp";
+const MARGEM_S = 60;  // renova ANTES de vencer; sem margem, chamada iniciada no
+                      // último segundo chega vencida no servidor.
+
+const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const gravar = (k,v) => { try { v==null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch {} };
+
+function salvarSessao(d){
+  if(!d) return;
+  if(d.token) gravar(K_TOKEN, d.token);
+  if(d.refresh_token) gravar(K_REFRESH, d.refresh_token);
+  if(d.expires_at) gravar(K_EXP, String(d.expires_at));
+}
+function limparSessao(){ gravar(K_TOKEN,null); gravar(K_REFRESH,null); gravar(K_EXP,null); }
+
+// Uma renovação por vez: o token de renovação é ROTATIVO, então dois pedidos
+// simultâneos com o mesmo token fariam o segundo falhar e derrubar a sessão.
+let renovando = null;
+async function renovar(){
+  const refresh = ler(K_REFRESH);
+  if(!refresh) return null;
+  if(renovando) return renovando;
+  renovando = (async () => {
+    try{
+      const r = await fetch("/api/login",{ method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ action:"refresh", refresh_token: refresh }) });
+      const d = await r.json().catch(()=>null);
+      if(!r.ok || !d?.token){ limparSessao(); return null; }
+      salvarSessao(d); return d.token;
+    }catch{
+      // Falha de REDE não é sessão inválida. Apagar aqui deslogaria quem só
+      // passou por um túnel.
+      return null;
+    }finally{ renovando = null; }
+  })();
+  return renovando;
+}
+
+async function TK(){
+  const t = ler(K_TOKEN);
+  if(!t) return null;
+  const exp = parseInt(ler(K_EXP) || "0", 10);
+  if(!exp) return t;  // sessão antiga, sem validade guardada: o 401 resolve
+  if(exp - MARGEM_S > Math.floor(Date.now()/1000)) return t;
+  return (await renovar()) || t;
+}
+
+// Envia com o token de agora; se levar 401, renova UMA vez e repete. Uma só —
+// repetir em laço transforma sessão morta em martelada no servidor.
+async function comSessao(url, opcoes = {}){
+  const monta = t => ({ ...opcoes, headers: { ...(opcoes.headers||{}), Authorization: "Bearer "+t } });
+  let t = await TK();
+  if(!t) return { semSessao: true };
+  let r = await fetch(url, monta(t));
+  if(r.status === 401){
+    const novo = await renovar();
+    if(!novo) return { semSessao: true };
+    r = await fetch(url, monta(novo));
+  }
+  return { resposta: r };
+}
+
 let filtroTipo = "revenda", filtroStatus = "";
 
 const brl = c => (Number(c||0)/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -94,7 +166,9 @@ async function entrar(){
       body:JSON.stringify({email,password:senha})});
     const d = await r.json();
     if(!r.ok || !d.token){ er.textContent = d.error || "Não consegui entrar."; return; }
-    localStorage.setItem("rz_token", d.token);
+    // O PAR INTEIRO, não só o token de acesso. Guardar só o token era o que
+    // fazia a sessão morrer em 1h sem ter como renovar.
+    salvarSessao(d);
     inicia();
   }catch{ er.textContent = "Falha de conexão."; }
 }
@@ -115,9 +189,32 @@ async function carrega(){
   const qs = new URLSearchParams({ action:"pedidos" });
   if(filtroTipo) qs.set("tipo", filtroTipo);
   if(filtroStatus) qs.set("status", filtroStatus);
-  const r = await fetch("/api/admin?"+qs, { headers:{ Authorization:"Bearer "+TK() } });
-  if(r.status===401 || r.status===403){ localStorage.removeItem("rz_token"); inicia(); return; }
-  const d = await r.json();
+  const { resposta: r, semSessao } = await comSessao("/api/admin?"+qs);
+  if(semSessao){ limparSessao(); inicia(); return; }
+
+  // 403 NÃO É 401, e tratar os dois igual era um laço sem saída: o token está
+  // bom, a conta é que não é admin. Apagar a sessão mandava pro login, o login
+  // dava o mesmo token, e o mesmo 403 voltava — pra sempre, sem nunca dizer o
+  // motivo. Aqui a sessão fica de pé e a tela explica o que houve.
+  if(r.status === 403){
+    document.getElementById("resumo").textContent = "Sem acesso";
+    document.getElementById("lista").innerHTML =
+      `<div class="card vazio">Esta conta não tem acesso ao painel de pedidos.
+       Saia e entre com a conta de administrador.</div>`;
+    return;
+  }
+
+  const d = await r.json().catch(()=>({}));
+
+  // Erro do servidor aparece INTEIRO. Um 500 caindo em `d.pedidos || []` viraria
+  // "Nenhum pedido com esses filtros" — a tela mentindo que não há venda.
+  if(!r.ok){
+    document.getElementById("resumo").textContent = "Erro ao carregar";
+    document.getElementById("lista").innerHTML =
+      `<div class="card vazio">${esc(d.error || ("O servidor respondeu "+r.status+"."))}</div>`;
+    return;
+  }
+
   const ps = d.pedidos || [];
   const soma = ps.filter(p=>p.status!=="pending"&&p.status!=="cancelado").reduce((t,p)=>t+(p.total_cents||0),0);
   document.getElementById("resumo").textContent =
@@ -168,10 +265,17 @@ async function muda(ref, destino){
   const rastreio = campo ? campo.value.trim() : "";
   if(destino==="cancelado" && !confirm("Cancelar este pedido? Não tem volta.")) return;
   try{
-    const r = await fetch("/api/admin?action=pedido-status",{ method:"POST",
-      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+TK() },
+    const { resposta: r, semSessao } = await comSessao("/api/admin?action=pedido-status",{
+      method:"POST", headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({ ref, destino, rastreio }) });
-    const d = await r.json();
+
+    // A SESSÃO VENCENDO NO MEIO DO CLIQUE é o pior momento possível: a pessoa
+    // acabou de digitar um código de rastreio. Por isso o `comSessao` já tentou
+    // renovar e repetir antes de chegar aqui; se mesmo assim não há sessão, o
+    // recado é explícito em vez de um erro mudo.
+    if(semSessao){ if(er) er.textContent = "Sua sessão venceu. Recarregue a página e entre de novo."; return; }
+
+    const d = await r.json().catch(()=>({}));
     // A MENSAGEM DO SERVIDOR VAI NA TELA, inteira. "Não foi possível" esconde
     // justamente o que a pessoa precisa saber pra consertar — por exemplo que
     // falta o código de rastreio, ou que o pedido mudou enquanto ela olhava.
@@ -198,7 +302,10 @@ function toast(txt){
 }
 
 function inicia(){
-  if(!TK()){ document.getElementById("login").style.display="block";
+  // `ler(K_TOKEN)` e não `TK()`: o `TK()` virou assíncrono, e uma Promise é
+  // SEMPRE verdadeira — `if(!TK())` nunca mais daria certo e a tela mostraria o
+  // painel pra quem não está logado, quebrando calada.
+  if(!ler(K_TOKEN)){ document.getElementById("login").style.display="block";
              document.getElementById("app").style.display="none"; return; }
   document.getElementById("login").style.display="none";
   document.getElementById("app").style.display="block";
