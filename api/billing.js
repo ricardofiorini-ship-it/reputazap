@@ -8,6 +8,7 @@ import { pedidoRecebidoEmail, pedidoConfirmadoEmail } from "./_lib/email-templat
 import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia } from "./_lib/email-templates.js";
 import { resolvePlano } from "./_lib/plan.js";
 import { KIT_CATALOG } from "./_lib/catalogo-kit.js";
+import { dadosDoCliente } from "./_lib/pedido-cliente.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -239,23 +240,29 @@ async function notifyAdminKitOrder({ order, userId, provedor = "mercadopago", pa
     ? "<ul>" + items.map((i) => `<li>${i.qty || 1}× ${escapeHtmlLite(i.name)} — ${fmtBRL(Math.round(Number(i.unit_price || 0) * 100))}</li>`).join("") + "</ul>"
     : `<p>(itens não registrados — confira no painel do ${prov.nome})</p>`;
 
-  // Bloco de entrega (só pra pedidos guest, que coletam endereço no nosso form).
+  // Bloco de entrega. Lê pelo tradutor (`_lib/pedido-cliente.js`) em vez das
+  // chaves cruas: hoje esta função só recebe pedido de kit, que grava em inglês,
+  // e o de revenda vai pra `notifyAdminRevendaPaga`, que lê português. Funciona
+  // — mas funciona porque o DESPACHANTE acerta, não porque a função saiba ler.
+  // Um pedido entregue na função errada sairia sem endereço nenhum e sem
+  // reclamar. Pelo tradutor, qualquer uma lê qualquer formato.
+  const d = dadosDoCliente(ship);
   let shippingHtml = "";
-  if (ship && (ship.address || ship.cep || ship.name)) {
-    const linha = [ship.address, ship.number].filter(Boolean).join(", ");
-    const compl = ship.complement ? ` — ${escapeHtmlLite(ship.complement)}` : "";
-    const cidade = [ship.neighborhood, ship.city, ship.state].filter(Boolean).join(" · ");
+  if (d.endereco || d.cep || d.nome || d.razao) {
+    const linha = [d.endereco, d.numero].filter(Boolean).join(", ");
+    const compl = d.complemento ? ` — ${escapeHtmlLite(d.complemento)}` : "";
+    const cidade = [d.bairro, d.cidade, d.uf].filter(Boolean).join(" · ");
     shippingHtml =
       `<h3>📦 Entrega</h3>` +
-      `<p><strong>${escapeHtmlLite(ship.name || "—")}</strong>` +
-      (ship.phone ? ` · ${escapeHtmlLite(ship.phone)}` : "") + `</p>` +
-      (ship.cpf_cnpj
-        ? `<p><strong>${ship.cpf_cnpj.length === 14 ? "CNPJ" : "CPF"}:</strong> ${escapeHtmlLite(mascaraDoc(ship.cpf_cnpj))} ` +
+      `<p><strong>${escapeHtmlLite(d.razao || d.nome || "—")}</strong>` +
+      (d.telefone ? ` · ${escapeHtmlLite(d.telefone)}` : "") + `</p>` +
+      (d.documento
+        ? `<p><strong>${d.documento_tipo || "Documento"}:</strong> ${escapeHtmlLite(mascaraDoc(d.documento))} ` +
           `<span style="color:#80868B;font-size:12px;">— número completo ${prov.ondeEstaODoc}</span></p>`
         : "") +
       `<p>${escapeHtmlLite(linha)}${compl}<br/>` +
       `${escapeHtmlLite(cidade)}<br/>` +
-      `CEP ${escapeHtmlLite(ship.cep || "—")}</p>`;
+      `CEP ${escapeHtmlLite(d.cep || "—")}</p>`;
   }
 
   const html =
@@ -1755,9 +1762,13 @@ async function avisaClientePedidoRecebido({ session, stripe, extRef }) {
   if (!to) { console.warn(`[stripe/webhook] pedido ${extRef} sem e-mail do cliente — aviso pulado`); return; }
   const order = await pedidoPorRef(extRef);
   const boleto = await boletoDaSessao(session, stripe);
-  const c = order?.shipping || {};
+  // Mesma armadilha da `avisaClientePedidoPago`: atende revenda E kit lendo um
+  // vocabulario so. Aqui o estrago ficava escondido atras do `||` — o nome vinha
+  // do Stripe quando `c.nome` faltava, entao o e-mail saia certo por acidente,
+  // nao por acerto. Passa a ler o dado do pedido direto, com o Stripe de reserva.
+  const cliente = dadosDoCliente(order?.shipping);
   const { subject, html } = pedidoRecebidoEmail({
-    nome: c.nome || session?.customer_details?.name || null,
+    nome: cliente.nome || session?.customer_details?.name || null,
     ref: extRef,
     itens: Array.isArray(order?.items) ? order.items : [],
     totalCentavos: session?.amount_total ?? order?.total_cents ?? 0,
@@ -1786,11 +1797,18 @@ async function avisaClientePedidoRecebido({ session, stripe, extRef }) {
 
 /** "Pagamento confirmado" — so quando o dinheiro entrou de verdade. */
 async function avisaClientePedidoPago({ order, extRef, totalCentavos }) {
-  const c = order?.shipping || {};
-  const to = order?.email || c.email;
+  // ESTA FUNCAO ATENDE OS DOIS TIPOS DE PEDIDO (revenda e kit), e era a unica
+  // que fazia isso lendo UM vocabulario so. A revenda grava `nome`, a compra do
+  // site grava `name` — entao todo cliente de kit recebia a confirmacao sem o
+  // proprio nome, um "Ola!" seco no lugar de "Ola, Carlos!".
+  //
+  // Nao dava erro nenhum: `c.nome` num objeto que so tem `name` e undefined, e
+  // o template trata nome vazio como caso legitimo. Falha silenciosa classica.
+  const cliente = dadosDoCliente(order?.shipping);
+  const to = order?.email || cliente.email;
   if (!to) { console.warn(`[stripe/webhook] pedido ${extRef} pago sem e-mail do cliente — aviso pulado`); return; }
   const { subject, html } = pedidoConfirmadoEmail({
-    nome: c.nome || null, ref: extRef, totalCentavos,
+    nome: cliente.nome || null, ref: extRef, totalCentavos,
     ehRevenda: extRef.startsWith("revenda_"),
   });
   await sendTransactionalEmail({
