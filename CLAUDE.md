@@ -99,7 +99,13 @@ Fluxo end-to-end funcionando:
 
 **O que o checkout coleta em cada caminho:** no **logado**, o Stripe coleta endereço (`shipping_address_collection`) e CPF/CNPJ (`tax_id_collection`, necessário pra nota fiscal); o webhook devolve isso pra `orders.shipping`. No **convidado**, quem coleta é o nosso modal do `kit.html` — o Stripe não pede de novo, e o webhook **não sobrescreve** o endereço bom (com número e bairro) pelo mais pobre do Stripe.
 
-**Frete continua R$ 0** — igual ao que já acontecia no MP. Quando a tabela de frete existir, entra como `shipping_options` em `handleCheckoutKitStripe`.
+**Frete é COBRADO desde 18/09/2026** (era R$ 0 desde sempre). Calculado pela Frenet (`_lib/frenet.js`, peso medido), **grátis a partir de R$ 149 em produtos, sem o frete**. Três coisas que não são óbvias e custam caro se esquecidas:
+
+1. **O endereço agora é coletado pelo NOSSO modal nos dois caminhos** (logado e convidado). Inverteu por necessidade: pra cotar frete é preciso o CEP **antes** de montar a sessão, e o Stripe só entrega o endereço depois do pagamento. Sumiram `shipping_address_collection` e `tax_id_collection` — quem pede CPF/CNPJ agora é o nosso formulário.
+2. **O frete entra como LINE ITEM, não como `shipping_options`.** `shipping_options` exigiria também `shipping_address_collection`, e o Stripe pediria o endereço de novo logo depois do nosso modal. Trocar exige testar numa sessão real do Stripe primeiro.
+3. **O webhook NÃO sobrescreve mais `orders.shipping` com o endereço do Stripe** — virou plano B, só quando o pedido chegou sem endereço utilizável (boleto criado antes de 18/09). O Stripe ainda manda o endereço de **cobrança do cartão**, então a sobrescrita antiga continuaria acontecendo calada e trocaria o endereço bom pelo pobre, levando junto o frete pago.
+
+**Os Termos de Uso vão junto, sempre.** Eles prometiam "frete gratuito para todo o Brasil"; cobrar com aquele texto no ar é cobrar o que o contrato diz ser grátis. Mudança de política de frete ou preço = **revisar `docs/legal/termos-de-uso.md` no mesmo commit** (hoje na versão 1.4, sem retroagir a pedido já feito) + os lugares da landing que repetem a promessa, inclusive o **JSON-LD** que o Google lê.
 
 **Setup:**
 1. Rodar o SQL acima no Supabase (as colunas `stripe_*` são **reusadas** pra guardar IDs do MP — simplifica schema).
