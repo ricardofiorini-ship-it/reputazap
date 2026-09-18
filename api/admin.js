@@ -17,7 +17,7 @@ import { createClient } from "@supabase/supabase-js";
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { suggestTerms, fetchPlaceSeed } from "./_lib/competitors.js";
 import { fetchGridRankingCached } from "./_lib/ranking-grid-cache.js";
-import { validaTransicao, camposDaTransicao, destinosPossiveis, ROTULO }
+import { validaTransicao, camposDaTransicao, destinosPossiveis, pulaEnvio, ROTULO }
   from "./_lib/pedido-estados.js";
 import { dadosDoCliente, enderecoCompleto, textoDaEtiqueta }
   from "./_lib/pedido-cliente.js";
@@ -1051,7 +1051,9 @@ async function handlePedidos(req, res) {
       // perde os destinos de logística e fica só com o que faz sentido nele.
       destinos: destinosPossiveis(o.status)
         .filter((d) => fam.fisico || (d !== "postado" && d !== "entregue"))
-        .map((d) => ({ estado: d, rotulo: ROTULO[d] })),
+        // `pula` viaja com o destino pra tela saber QUANDO confirmar sem
+        // precisar conhecer a regra — mesma razão de `destinos` vir daqui.
+        .map((d) => ({ estado: d, rotulo: ROTULO[d], pula: pulaEnvio(o.status, d) })),
       rotulo: ROTULO[o.status] || o.status,
 
       // TUDO O QUE A ETIQUETA PRECISA, já traduzido pro formato único. Antes a

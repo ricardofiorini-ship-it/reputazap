@@ -300,8 +300,11 @@ function cartao(p){
   // O SERVIDOR diz quais destinos existem. A tela não conhece a regra — assim
   // mudar a regra não exige mexer aqui, e não há como a tela oferecer um botão
   // que o backend vai recusar.
+  // "Entregue" fora do fluxo normal (pulando o envio) é a EXCEÇÃO e vai como
+  // botão secundário: dar baixa num pedido antigo não pode competir visualmente
+  // com "Postado", que é o que se clica no dia a dia.
   const botoes = (p.destinos||[]).map(d=>
-    `<button class="btn btn-sm ${d.estado==="cancelado"?"btn-sec":""}" onclick="muda('${p.external_reference}','${d.estado}')">${esc(d.rotulo)}</button>`).join("");
+    `<button class="btn btn-sm ${(d.estado==="cancelado"||d.pula)?"btn-sec":""}" onclick="muda('${p.external_reference}','${d.estado}',${d.pula?1:0})">${esc(d.rotulo)}${d.pula?" (dar baixa)":""}</button>`).join("");
   const precisaRastreio = (p.destinos||[]).some(d=>d.estado==="postado");
   return `<div class="card">
     <div class="ped-top">
@@ -334,11 +337,21 @@ function cartao(p){
   </div>`;
 }
 
-async function muda(ref, destino){
+async function muda(ref, destino, pula){
   const er = document.getElementById("e_"+ref); if(er) er.textContent="";
   const campo = document.getElementById("r_"+ref);
   const rastreio = campo ? campo.value.trim() : "";
   if(destino==="cancelado" && !confirm("Cancelar este pedido? Não tem volta.")) return;
+
+  // Só o ATALHO confirma. Marcar entregue vindo de "Postado" é o fim natural do
+  // fluxo e não pergunta nada — confirmação que aparece sempre vira clique
+  // automático e para de proteger. A frase diz o que fica para trás, não
+  // "tem certeza?": o que se perde aqui é o aviso de envio ao cliente.
+  if(pula && !confirm(
+    "Marcar como ENTREGUE sem passar por 'Postado'.\n\n" +
+    "Use para dar baixa em pedido já entregue por fora do sistema.\n" +
+    "O cliente NÃO recebe aviso de envio e não fica código de rastreio no pedido.\n\n" +
+    "Confirmar?")) return;
   try{
     const { resposta: r, semSessao } = await comSessao("/api/admin?action=pedido-status",{
       method:"POST", headers:{ "Content-Type":"application/json" },

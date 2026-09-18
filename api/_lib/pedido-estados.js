@@ -43,14 +43,40 @@ export const ROTULO_CLIENTE = {
 //
 // Um boleto que compensou vira `paid` sozinho, pelo `async_payment_succeeded`.
 // Se não virou, o lugar de investigar é o Stripe, não este campo.
+// ============================================================
+// "Entregue" SAI DE QUALQUER ESTADO PAGO, e não só de `postado` (18/09/2026).
+// ============================================================
+// O caminho bonito é paid → em_producao → postado → entregue. Mas `postado`
+// EXIGE código de rastreio, e um pedido já entregue por fora do sistema — o
+// cliente que buscou na mão, a entrega local, o pedido despachado antes desta
+// tela existir — não tem código nenhum pra informar.
+//
+// Sem a saída direta, dar baixa nesse pedido exigiria passar por `postado`
+// inventando um código. Isso é pior que o atalho por dois motivos: grava um
+// rastreio falso em `tracking_code`, onde ele vira verdade pra quem olhar
+// depois, e dispara pro cliente um e-mail "A caminho 📦" de uma caixa que ele
+// JÁ TEM na mão.
+//
+// `pending` continua sem essa saída: pedido não pago não se entrega. E o atalho
+// pede confirmação na tela, porque pular a etapa de envio é a exceção, não o
+// caminho — quem clica precisa ter percebido que está pulando.
 export const TRANSICOES = {
   pending:     ["cancelado"],
-  paid:        ["em_producao", "postado", "cancelado"],
-  em_producao: ["postado", "cancelado"],
+  paid:        ["em_producao", "postado", "entregue", "cancelado"],
+  em_producao: ["postado", "entregue", "cancelado"],
   postado:     ["entregue"],
   entregue:    [],
   cancelado:   [],
 };
+
+/**
+ * A virada PULA a etapa de envio? Serve pra tela pedir confirmação só no
+ * atalho, e não em todo clique — confirmação que aparece sempre é confirmação
+ * que ninguém lê.
+ */
+export function pulaEnvio(atual, destino) {
+  return destino === "entregue" && atual !== "postado";
+}
 
 /** Só o que o admin pode escolher a partir do estado atual. */
 export function destinosPossiveis(atual) {
