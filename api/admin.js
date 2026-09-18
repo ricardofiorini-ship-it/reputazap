@@ -19,6 +19,8 @@ import { suggestTerms, fetchPlaceSeed } from "./_lib/competitors.js";
 import { fetchGridRankingCached } from "./_lib/ranking-grid-cache.js";
 import { validaTransicao, camposDaTransicao, destinosPossiveis, ROTULO }
   from "./_lib/pedido-estados.js";
+import { dadosDoCliente, enderecoCompleto, textoDaEtiqueta }
+  from "./_lib/pedido-cliente.js";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
 import { pedidoAtualizadoEmail } from "./_lib/email-templates.js";
 
@@ -1036,6 +1038,7 @@ async function handlePedidos(req, res) {
   const pedidos = linhas.map((o) => {
     const fam = familiaDoPedido(o);
     const c = o.shipping || {};
+    const cliente = dadosDoCliente(c);
     return {
       ...o,
       familia: fam.chave,
@@ -1050,13 +1053,23 @@ async function handlePedidos(req, res) {
         .filter((d) => fam.fisico || (d !== "postado" && d !== "entregue"))
         .map((d) => ({ estado: d, rotulo: ROTULO[d] })),
       rotulo: ROTULO[o.status] || o.status,
-      cliente: c.razao || c.nome || c.name || null,
-      contato: c.nome || c.name || null,
-      email_cliente: o.email || c.email || null,
-      whatsapp: c.whatsapp || c.phone || null,
-      cnpj: c.cnpj || null,
+
+      // TUDO O QUE A ETIQUETA PRECISA, já traduzido pro formato único. Antes a
+      // tela lia `c.endereco` direto e a compra do site — que grava `address` —
+      // aparecia sem endereço e sem CPF, embora os dados estivessem gravados.
+      cli: { ...cliente, email: cliente.email || o.email || "" },
+      etiqueta: textoDaEtiqueta(
+        { ...cliente, email: cliente.email || o.email || "" }, o.external_reference),
+      endereco_ok: enderecoCompleto(cliente),
+
+      // Campos antigos, mantidos porque o cabeçalho do cartão os usa.
+      cliente: cliente.razao || cliente.nome || null,
+      contato: cliente.nome || null,
+      email_cliente: o.email || cliente.email || null,
+      whatsapp: cliente.telefone || null,
+      cnpj: cliente.documento_tipo === "CNPJ" ? cliente.documento : null,
       eh_revenda: c.tipo === "revenda" || (o.external_reference || "").startsWith("revenda_"),
-      transportadora: c.frete?.transportadora || null,
+      transportadora: cliente.transportadora || null,
     };
   });
 

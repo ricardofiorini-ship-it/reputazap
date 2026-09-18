@@ -47,6 +47,12 @@
   .acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #eef1f4;align-items:center}
   .rast{font-family:ui-monospace,Menlo,monospace;font-size:13px;padding:8px 10px;border:1px solid #dce2e8;border-radius:8px;width:190px;font-family:inherit}
   .track{font-size:12.5px;color:#15654A;font-weight:600}
+  .etq{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+  /* `white-space:pre-wrap` + `word-break` porque endereço longo em tela de
+     celular não pode furar o cartão nem criar barra horizontal na página. */
+  .etq-txt{flex-basis:100%;margin:8px 0 0;padding:12px 14px;background:#F7F9FB;
+    border:1px solid #e6ebf0;border-radius:9px;font-size:12.5px;line-height:1.7;
+    color:#3D4A57;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,Menlo,monospace}
   .erro{color:#9B2226;font-size:13px;margin-top:8px}
   .aviso-ok{color:#15654A;font-size:13px;margin-top:8px;font-weight:600}
   .aviso-nao{color:#8A5A00;font-size:13px;margin-top:8px;font-weight:600}
@@ -250,10 +256,47 @@ async function carrega(){
     : `<div class="card vazio">${esc(vazio)}</div>`);
 }
 
+// DIZ O QUE FALTA, não que "falta algo". Sem o nome do campo, conferir exige
+// abrir o Supabase — que é justamente o trabalho manual que esta tela existe
+// pra evitar. `numero` fica de fora: o Stripe manda rua e número juntos, então
+// cobrá-lo marcaria como incompleto um endereço que está inteiro.
+function faltando(cli){
+  const fs = [["CEP",cli.cep],["rua",cli.endereco],["cidade",cli.cidade],["UF",cli.uf]]
+    .filter(([,v])=>!v).map(([k])=>k);
+  return fs.length ? fs.join(", ") : "conferir";
+}
+
+// A área de transferência exige HTTPS e pode ser recusada pelo navegador. Se
+// falhar, ABRE o bloco em vez de não fazer nada: dá pra selecionar e copiar na
+// mão, e o aviso diz o que houve — botão que não responde é pior que botão feio.
+async function copiaEtiqueta(ref){
+  const el = document.getElementById("etq_"+ref);
+  if(!el) return;
+  try{
+    await navigator.clipboard.writeText(el.textContent);
+    toast("Dados copiados — é só colar no Frenet.");
+  }catch{
+    el.hidden = false;
+    toast("O navegador bloqueou a cópia automática. Os dados estão abertos aí embaixo.");
+  }
+}
+function verEtiqueta(ref){
+  const el = document.getElementById("etq_"+ref);
+  if(el) el.hidden = !el.hidden;
+}
+
 function cartao(p){
   const itens = (p.items||[]).map(i=>`${i.qtd||i.qty||1}× ${esc(i.nome||i.name||"item")}`).join(" · ");
-  const c = p.shipping || {};
-  const end = c.endereco ? `${esc(c.endereco)}, ${esc(c.numero||"s/n")}${c.bairro?" · "+esc(c.bairro):""} · ${esc(c.cidade||"")}/${esc(c.uf||"")} · ${esc(c.cep||"")}` : "";
+  // `p.cli` vem TRADUZIDO do servidor (api/_lib/pedido-cliente.js). Ler
+  // `p.shipping` direto aqui era o bug: a compra do site grava `address`/
+  // `cpf_cnpj` em inglês e esta tela procurava `endereco`/`cnpj` em português,
+  // então o endereço existia no banco e simplesmente não aparecia.
+  const cli = p.cli || {};
+  const end = cli.endereco
+    ? `${esc(cli.endereco)}${cli.numero?", "+esc(cli.numero):""}${cli.complemento?" — "+esc(cli.complemento):""}`
+      + `${cli.bairro?" · "+esc(cli.bairro):""} · ${esc(cli.cidade||"")}/${esc(cli.uf||"")}`
+      + `${cli.cep?" · CEP "+esc(cli.cep):""}`
+    : "";
   // O SERVIDOR diz quais destinos existem. A tela não conhece a regra — assim
   // mudar a regra não exige mexer aqui, e não há como a tela oferecer um botão
   // que o backend vai recusar.
@@ -264,7 +307,7 @@ function cartao(p){
     <div class="ped-top">
       <div class="ped-cliente">
         <div class="ped-nome">${esc(p.cliente||"—")}</div>
-        <div class="ped-meta">${esc(p.contato||"")}${p.email_cliente?" · "+esc(p.email_cliente):""}${p.cnpj?" · CNPJ "+esc(p.cnpj):""}</div>
+        <div class="ped-meta">${esc(p.contato||"")}${p.email_cliente?" · "+esc(p.email_cliente):""}${cli.telefone?" · "+esc(cli.telefone):""}${cli.documento?` · ${esc(cli.documento_tipo||"Doc")} ${esc(cli.documento)}`:""}</div>
         <div class="ref">${esc(p.familia_rotulo||"—")} · ${esc(p.external_reference)} · ${dt(p.created_at)}</div>
       </div>
       <div style="text-align:right">
@@ -274,8 +317,13 @@ function cartao(p){
     </div>
     ${itens?`<div class="itens">${itens}</div>`:""}
     ${end?`<div class="end">📦 ${end}${p.transportadora?" · "+esc(p.transportadora):""}</div>`:""}
-    ${(p.fisico && !end)?`<div class="end" style="color:#B42318">⚠️ Pedido físico sem endereço — confira antes de produzir.</div>`:""}
+    ${(p.fisico && !p.endereco_ok)?`<div class="end" style="color:#B42318">⚠️ Endereço incompleto pra etiqueta — falta ${esc(faltando(cli))}.</div>`:""}
     ${(p.fisico && !p.email_cliente)?`<div class="end" style="color:#B42318">⚠️ Sem e-mail do cliente — ele não vai ser avisado do envio.</div>`:""}
+    ${(p.fisico && p.etiqueta)?`<div class="etq">
+        <button class="btn btn-sm btn-sec" onclick="copiaEtiqueta('${esc(p.external_reference)}')">📋 Copiar dados da etiqueta</button>
+        <button class="btn btn-sm btn-sec" onclick="verEtiqueta('${esc(p.external_reference)}')">Ver</button>
+        <pre class="etq-txt" id="etq_${esc(p.external_reference)}" hidden>${esc(p.etiqueta)}</pre>
+      </div>`:""}
     ${p.tracking_code?`<div class="end track">Rastreio ${esc(p.tracking_code)} · postado ${dt(p.shipped_at)}</div>`:""}
     ${botoes?`<div class="acoes">
         ${precisaRastreio?`<input class="rast" id="r_${esc(p.external_reference)}" placeholder="código de rastreio"/>`:""}
