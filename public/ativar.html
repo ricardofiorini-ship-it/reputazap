@@ -658,9 +658,11 @@ async function goToStep2(){
       // formulário que acabou de recusá-la é onde o caminho morria.
       if(data.codigo==="email_ja_existe"){
         const proximo=`/app?login=1&email=${encodeURIComponent(email)}`;
-        if(confirm("Você já tem uma conta com esse e-mail.
-
-Quer entrar com ela agora? Seu negócio continua selecionado.")){
+        // `\n\n` ESCRITO, não quebra de linha de verdade: string com aspas
+        // simples/duplas não atravessa linha em JavaScript. Escrita assim, ela
+        // derrubou por sintaxe o <script> INTEIRO desta página (615 linhas) —
+        // e com ele o cadastro todo, de 10/09 a 18/09/2026.
+        if(confirm("Você já tem uma conta com esse e-mail.\n\nQuer entrar com ela agora? Seu negócio continua selecionado.")){
           window.location.href=proximo;
         }
         return;
