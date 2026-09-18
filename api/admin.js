@@ -937,40 +937,118 @@ async function handleProspects(req, res) {
 // onde acompanhava o pedido dele e nem o admin tinha onde olhar: a resposta
 // estava numa consulta SQL escrita à mão.
 
+// ═══════════════════════════════════════════════════════════
+// A QUE FAMÍLIA O PEDIDO PERTENCE
+// ═══════════════════════════════════════════════════════════
+// O `external_reference` carrega o prefixo de quem criou o pedido, e é a ÚNICA
+// marca que existe em todos eles — `shipping.tipo` só o de revenda tem.
+//
+//   revenda_  distribuidor            FÍSICO — produz, posta, rastreia
+//   kit_      compra normal do site   FÍSICO — idem (inclui `kit_guest`)
+//   ia_       Pacote Presença em IA   DIGITAL — não existe caixa
+//   plano_ / pro_   assinatura        DIGITAL — idem
+//
+// SEPARAR FÍSICO DE DIGITAL NÃO É ENFEITE. A máquina de estados oferece
+// "Postado" pra qualquer pedido pago; num pedido digital isso pede um código de
+// rastreio que não existe e dispara pro cliente um e-mail "A caminho 📦" de uma
+// caixa que nunca foi despachada. O filtro é o que impede esse clique.
+const FAMILIAS = [
+  { chave: "revenda", rotulo: "Revenda", prefixo: "revenda_", fisico: true },
+  { chave: "kit",     rotulo: "Kit",     prefixo: "kit_",     fisico: true },
+  { chave: "ia",      rotulo: "Pacote IA", prefixo: "ia_",    fisico: false },
+  { chave: "plano",   rotulo: "Assinatura", prefixo: "plano_", fisico: false },
+  { chave: "pro",     rotulo: "Assinatura", prefixo: "pro_",  fisico: false },
+];
+
+function familiaDoPedido(o) {
+  const ref = (o?.external_reference || "").toLowerCase();
+  const f = FAMILIAS.find((x) => ref.startsWith(x.prefixo));
+  if (f) return f;
+  // Prefixo desconhecido cai aqui. Tratado como FÍSICO de propósito: some da
+  // lista um pedido que talvez precise ser enviado é pior do que mostrar um a
+  // mais. Erro visível, não silencioso.
+  if ((o?.shipping || {}).tipo === "revenda") return FAMILIAS[0];
+  return { chave: "outro", rotulo: "Outro", prefixo: "", fisico: true };
+}
+
 /** Lista os pedidos, do mais novo pro mais velho. */
 async function handlePedidos(req, res) {
-  const tipo = (req.query.tipo || "").toString();      // "revenda" | "kit" | ""
+  // "envio" (padrão) = tudo que tem caixa pra despachar: revenda + kit.
+  // Antes o padrão era "revenda", então a tela abria escondendo justamente a
+  // compra normal do site — a venda que mais acontece.
+  const tipo = (req.query.tipo || "envio").toString();
   const status = (req.query.status || "").toString();
   const limite = Math.min(parseInt(req.query.limit, 10) || 60, 200);
+
+  // ─────────────────────────────────────────────────────────
+  // A JANELA DE LEITURA É MAIOR QUE A PÁGINA, e é o conserto do bug principal.
+  // ─────────────────────────────────────────────────────────
+  // Antes: `.limit(60)` no banco e o filtro de "kit" rodando DEPOIS, em JS.
+  // Ou seja, pegava os 60 pedidos mais recentes de TODOS os tipos e só então
+  // separava os de kit. Numa semana de muita revenda, os pedidos de kit ficavam
+  // fora dos 60 e a tela dizia "Nenhum pedido com esses filtros" — afirmando que
+  // não há venda quando o que houve foi a lista ter sido cortada antes da conta.
+  //
+  // A família mora num prefixo de texto e o projeto nunca usou `.like`/`.or` do
+  // PostgREST; estrear essa sintaxe aqui, sem conseguir testá-la contra o banco,
+  // trocaria um erro silencioso por outro. Então lê uma janela folgada, filtra
+  // aqui, e AVISA quando a janela encheu — ver `truncado` no retorno.
+  const JANELA = 500;
 
   let q = supabase.from("orders")
     .select("id, external_reference, status, total_cents, items, shipping, email, " +
             "created_at, paid_at, production_started_at, shipped_at, delivered_at, " +
             "cancelled_at, tracking_code, status_updated_at, status_updated_by, admin_note")
     .order("created_at", { ascending: false })
-    .limit(limite);
+    .limit(JANELA);
 
   if (status) q = q.eq("status", status);
-  // O tipo mora dentro do jsonb: pedido de revenda carrega `shipping.tipo`.
-  if (tipo === "revenda") q = q.eq("shipping->>tipo", "revenda");
 
   const { data, error } = await q;
   if (error) return res.status(500).json({ error: error.message });
 
-  // Pedido de KIT não tem `shipping.tipo`; separa pelo prefixo da referência,
-  // que é a única marca que existe nos dois provedores.
-  let linhas = data || [];
-  if (tipo === "kit") {
-    linhas = linhas.filter((o) => (o.external_reference || "").startsWith("kit_"));
+  const todas = data || [];
+
+  // Contagem POR FAMÍLIA sempre, sobre a janela inteira e antes de qualquer
+  // filtro de tipo: é o que deixa a tela mostrar "Kit (7)" e responder de
+  // relance "existe pedido normal?" — sem obrigar a clicar em cada aba pra
+  // descobrir que está vazia.
+  const contagem = {};
+  for (const o of todas) {
+    const f = familiaDoPedido(o);
+    contagem[f.chave] = (contagem[f.chave] || 0) + 1;
   }
+  contagem.envio = FAMILIAS.filter((f) => f.fisico)
+    .reduce((t, f) => t + (contagem[f.chave] || 0), 0) + (contagem.outro || 0);
+  // `digital` é o RESTO, não uma segunda soma: assim envio + digital = todos
+  // sempre, inclusive se amanhã surgir um prefixo que ninguém mapeou aqui.
+  contagem.digital = todas.length - contagem.envio;
+  contagem.todos = todas.length;
+
+  const linhas = todas.filter((o) => {
+    const f = familiaDoPedido(o);
+    if (tipo === "envio")   return f.fisico;
+    if (tipo === "digital") return !f.fisico;
+    if (!tipo)              return true;          // "Todos"
+    return f.chave === tipo;
+  }).slice(0, limite);
 
   const pedidos = linhas.map((o) => {
+    const fam = familiaDoPedido(o);
     const c = o.shipping || {};
     return {
       ...o,
+      familia: fam.chave,
+      familia_rotulo: fam.rotulo,
+      // A TELA PRECISA SABER QUE NÃO HÁ CAIXA. Sem isto ela ofereceria "Postado"
+      // pra uma assinatura e pediria rastreio de algo que não é despachado.
+      fisico: fam.fisico,
       // `destinos` vem do servidor pra tela não precisar conhecer a regra — e
-      // pra que mudar a regra não exija mexer em dois lugares.
-      destinos: destinosPossiveis(o.status).map((d) => ({ estado: d, rotulo: ROTULO[d] })),
+      // pra que mudar a regra não exija mexer em dois lugares. Pedido digital
+      // perde os destinos de logística e fica só com o que faz sentido nele.
+      destinos: destinosPossiveis(o.status)
+        .filter((d) => fam.fisico || (d !== "postado" && d !== "entregue"))
+        .map((d) => ({ estado: d, rotulo: ROTULO[d] })),
       rotulo: ROTULO[o.status] || o.status,
       cliente: c.razao || c.nome || c.name || null,
       contato: c.nome || c.name || null,
@@ -982,7 +1060,13 @@ async function handlePedidos(req, res) {
     };
   });
 
-  return res.json({ ok: true, pedidos, total: pedidos.length });
+  return res.json({
+    ok: true, pedidos, total: pedidos.length, tipo, contagem,
+    // A JANELA ENCHEU = pode haver pedido antigo fora da conta. Vai pra tela
+    // como aviso em vez de virar uma lista curta que parece completa — que era
+    // exatamente o defeito que este handler tinha.
+    truncado: todas.length >= JANELA,
+  });
 }
 
 /** Avança (ou cancela) um pedido. A regra vive em _lib/pedido-estados.js. */
@@ -999,6 +1083,17 @@ async function handlePedidoStatus(req, res, admin) {
 
   const v = validaTransicao(pedido.status, destino, { rastreio });
   if (!v.ok) return res.status(400).json({ error: v.erro });
+
+  // A MESMA REGRA AQUI, e não só no filtro da lista: esconder o botão some com
+  // o caminho fácil, não com o caminho. Uma aba velha aberta antes deste deploy
+  // ainda tem o botão "Postado" desenhado, e clicar nele mandaria pro cliente
+  // de uma assinatura um e-mail "A caminho 📦" de uma caixa que não existe.
+  const fam = familiaDoPedido(pedido);
+  if (!fam.fisico && (destino === "postado" || destino === "entregue")) {
+    return res.status(400).json({
+      error: `"${ROTULO[destino]}" não se aplica a este pedido (${fam.rotulo}): não há nada a despachar.`,
+    });
+  }
 
   const patch = camposDaTransicao(destino, { rastreio, quem: admin?.email || null });
   if (typeof nota === "string") patch.admin_note = nota.slice(0, 500);

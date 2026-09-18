@@ -151,7 +151,9 @@ async function comSessao(url, opcoes = {}){
   return { resposta: r };
 }
 
-let filtroTipo = "revenda", filtroStatus = "";
+// "envio" = tudo que tem caixa pra despachar (revenda + kit). Era "revenda", e
+// por isso a tela abria escondendo a compra normal do site.
+let filtroTipo = "envio", filtroStatus = "", contagem = {};
 
 const brl = c => (Number(c||0)/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const dt = s => s ? new Date(s).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
@@ -174,11 +176,16 @@ async function entrar(){
 }
 
 function desenhaFiltros(){
-  const tipos = [["revenda","Revenda"],["kit","Kit"],["","Todos"]];
+  // A CONTAGEM VAI NO PRÓPRIO BOTÃO. Sem ela, uma aba vazia é ambígua: não dá
+  // pra saber se não existe pedido daquele tipo ou se o filtro está errado —
+  // e foi essa dúvida que fez a compra normal parecer inexistente.
+  const n = k => contagem[k] == null ? "" : ` (${contagem[k]})`;
+  const tipos = [["envio","Pra enviar"],["revenda","Revenda"],["kit","Kit"],
+                 ["digital","Digital"],["","Todos"]];
   const sts = [["","Qualquer estado"],["paid","Pago"],["em_producao","Em produção"],
                ["postado","Postado"],["pending","Aguardando pagamento"],["entregue","Entregue"]];
   document.getElementById("filtros").innerHTML =
-    tipos.map(([v,l])=>`<button class="chip ${filtroTipo===v?"on":""}" onclick="setTipo('${v}')">${l}</button>`).join("") +
+    tipos.map(([v,l])=>`<button class="chip ${filtroTipo===v?"on":""}" onclick="setTipo('${v}')">${l}${n(v||"todos")}</button>`).join("") +
     `<span style="width:12px"></span>` +
     sts.map(([v,l])=>`<button class="chip ${filtroStatus===v?"on":""}" onclick="setStatus('${v}')">${l}</button>`).join("");
 }
@@ -216,13 +223,31 @@ async function carrega(){
   }
 
   const ps = d.pedidos || [];
+  // A contagem chega do servidor a cada carga e realimenta os botões — por isso
+  // `desenhaFiltros()` roda DEPOIS, e não só na abertura da tela.
+  contagem = d.contagem || {};
+  desenhaFiltros();
+
   const soma = ps.filter(p=>p.status!=="pending"&&p.status!=="cancelado").reduce((t,p)=>t+(p.total_cents||0),0);
   document.getElementById("resumo").textContent =
     `${ps.length} pedido${ps.length===1?"":"s"} · ${brl(soma)} confirmado${ps.length===1?"":"s"}`;
 
-  document.getElementById("lista").innerHTML = ps.length
+  // LISTA VAZIA NÃO É UMA COISA SÓ. "Não existe pedido nenhum" e "existem, mas
+  // não neste filtro" pedem ações opostas, e dizer a mesma frase pros dois foi o
+  // que fez a compra normal parecer que nunca tinha acontecido.
+  let vazio = "Nenhum pedido ainda.";
+  if(!ps.length && (contagem.todos||0) > 0){
+    vazio = filtroStatus
+      ? `Nenhum pedido aqui com esse estado. Há ${contagem.todos} pedido(s) no total — experimente "Qualquer estado".`
+      : `Nenhum pedido nesta aba. Há ${contagem.todos} pedido(s) no total — veja em "Todos".`;
+  }
+
+  const aviso = d.truncado
+    ? `<div class="card vazio">Mostrando os mais recentes. Há pedidos antigos fora desta janela.</div>` : "";
+
+  document.getElementById("lista").innerHTML = aviso + (ps.length
     ? ps.map(cartao).join("")
-    : `<div class="card vazio">Nenhum pedido com esses filtros.</div>`;
+    : `<div class="card vazio">${esc(vazio)}</div>`);
 }
 
 function cartao(p){
@@ -240,7 +265,7 @@ function cartao(p){
       <div class="ped-cliente">
         <div class="ped-nome">${esc(p.cliente||"—")}</div>
         <div class="ped-meta">${esc(p.contato||"")}${p.email_cliente?" · "+esc(p.email_cliente):""}${p.cnpj?" · CNPJ "+esc(p.cnpj):""}</div>
-        <div class="ref">${esc(p.external_reference)} · ${dt(p.created_at)}</div>
+        <div class="ref">${esc(p.familia_rotulo||"—")} · ${esc(p.external_reference)} · ${dt(p.created_at)}</div>
       </div>
       <div style="text-align:right">
         <div class="ped-total">${brl(p.total_cents)}</div>
@@ -249,6 +274,8 @@ function cartao(p){
     </div>
     ${itens?`<div class="itens">${itens}</div>`:""}
     ${end?`<div class="end">📦 ${end}${p.transportadora?" · "+esc(p.transportadora):""}</div>`:""}
+    ${(p.fisico && !end)?`<div class="end" style="color:#B42318">⚠️ Pedido físico sem endereço — confira antes de produzir.</div>`:""}
+    ${(p.fisico && !p.email_cliente)?`<div class="end" style="color:#B42318">⚠️ Sem e-mail do cliente — ele não vai ser avisado do envio.</div>`:""}
     ${p.tracking_code?`<div class="end track">Rastreio ${esc(p.tracking_code)} · postado ${dt(p.shipped_at)}</div>`:""}
     ${botoes?`<div class="acoes">
         ${precisaRastreio?`<input class="rast" id="r_${esc(p.external_reference)}" placeholder="código de rastreio"/>`:""}
