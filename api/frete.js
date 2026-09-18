@@ -10,6 +10,9 @@
 // shipping options". Ela aceita um valor já decidido. Logo o CEP tem que ser
 // perguntado no NOSSO site antes de mandar o cliente pra lá.
 //
+// ATUALIZADO EM 18/09/2026: o varejo passou a COBRAR frete (grátis só acima de
+// R$ 149 em produtos) — este endpoint deixou de ser só informativo e virou o
+// que alimenta o checkout do `kit.html`. O texto abaixo é o estado anterior.
 // ESTADO EM 12/09/2026: o varejo vende com FRETE GRÁTIS por decisão do
 // Ricardo, então nenhuma tela chama isto ainda. Quem usa o cálculo hoje é a
 // revenda, direto pelo `_lib/frenet.js`. Este endpoint fica de pé porque é

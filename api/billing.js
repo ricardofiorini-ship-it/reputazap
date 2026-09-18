@@ -8,7 +8,8 @@ import { pedidoRecebidoEmail, pedidoConfirmadoEmail } from "./_lib/email-templat
 import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia } from "./_lib/email-templates.js";
 import { resolvePlano } from "./_lib/plan.js";
 import { KIT_CATALOG } from "./_lib/catalogo-kit.js";
-import { dadosDoCliente } from "./_lib/pedido-cliente.js";
+import { dadosDoCliente, enderecoCompleto } from "./_lib/pedido-cliente.js";
+import { cotaFrete } from "./_lib/frenet.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -121,7 +122,7 @@ async function authUser(req) {
 // do device e da aba. A conta viva do Google Ads (Star Touch) já importa
 // o evento `purchase` do GA4, então isso alimenta GA4 + Ads de uma vez.
 // Requer GA4_API_SECRET (chave do Measurement Protocol, criada no GA4).
-async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents, items, origem = "mp" }) {
+async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents, items, origem = "mp", shippingCents = 0 }) {
   const measurementId = process.env.GA4_MEASUREMENT_ID || "G-HCLV0Z640L";
   const apiSecret = process.env.GA4_API_SECRET;
   if (!apiSecret) {
@@ -147,6 +148,10 @@ async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents,
     })),
   };
   if (sessionId) params.session_id = String(sessionId);
+  // `value` do GA4 e o total COM frete (e a convencao do e-commerce do Google),
+  // e `shipping` diz quanto daquilo foi entrega. Sem este campo o relatorio
+  // conta o frete como receita de produto e a margem aparece maior do que e.
+  if (shippingCents > 0) params.shipping = Number((shippingCents / 100).toFixed(2));
   const body = { client_id: cid, events: [{ name: "purchase", params }] };
   try {
     const r = await fetch(
@@ -263,6 +268,21 @@ async function notifyAdminKitOrder({ order, userId, provedor = "mercadopago", pa
       `<p>${escapeHtmlLite(linha)}${compl}<br/>` +
       `${escapeHtmlLite(cidade)}<br/>` +
       `CEP ${escapeHtmlLite(d.cep || "—")}</p>`;
+  }
+
+  // FRETE — qual servico despachar. Sem esta linha o despachante escolhe o mais
+  // barato do dia, e o cliente que pagou Sedex recebe PAC: cobranca e entrega
+  // discordando, o que no varejo volta como reclamacao e estorno.
+  const fr = ship?.frete || null;
+  if (fr && (fr.servico || fr.centavos != null)) {
+    const nome = [d.transportadora, d.servico].filter(Boolean).join(" ") || "—";
+    shippingHtml +=
+      `<p><strong>Frete:</strong> ${escapeHtmlLite(nome)}` +
+      (fr.prazoDias ? ` · ${fr.prazoDias} dia(s) útil(eis)` : "") + `<br/>` +
+      (fr.gratis
+        ? `<span style="color:#137333;font-weight:700;">Frete grátis</span> (pedido acima da faixa) — despache pelo serviço acima mesmo assim.`
+        : `<strong>Pago pelo cliente: ${fmtBRL(fr.centavos || 0)}</strong> — despache por este serviço, não pelo mais barato do dia.`) +
+      `</p>`;
   }
 
   const html =
@@ -1342,8 +1362,143 @@ async function handleCheckoutStripe(req, res) {
 //    o webhook so marca o pedido como pago quando `payment_status === "paid"`
 //    ou quando chega o `async_payment_succeeded`. Despachar na emissao do
 //    boleto seria mandar produto pra quem ainda nao pagou.
-// 3. FRETE AINDA NAO E COBRADO — igual ao que ja acontecia no MP. Quando a
-//    tabela de frete existir, ela entra como `shipping_options` aqui.
+// 3. FRETE E COBRADO desde 18/09/2026 (antes era gratis incondicional, e os
+//    Termos de Uso diziam isso — por isso a mudanca veio junto da versao 1.4
+//    do documento, e nao retroage a pedido ja feito).
+
+// ============================================================
+// FRETE DO VAREJO (B2C)
+// ============================================================
+// Gratis a partir daqui, contado SOBRE OS PRODUTOS, sem o frete. Somar o frete
+// nesta conta faria um pedido de R$ 130 "atingir" a faixa por causa da entrega
+// — a mesma regra e o mesmo cuidado que a revenda ja usa no pedido minimo.
+const FRETE_GRATIS_ACIMA_CENTAVOS = 14900;
+
+/**
+ * Resolve o frete de um pedido de varejo. SEMPRE recota no servidor, mesmo que
+ * o navegador ja tenha cotado: o navegador manda o CODIGO do servico escolhido,
+ * nunca o preco. Aceitar o valor da tela deixaria qualquer um fechar uma placa
+ * com R$ 0,01 de frete — e tambem cobre o caso honesto de a tabela da
+ * transportadora mudar entre a cotacao e o clique em pagar.
+ *
+ * Acima da faixa de frete gratis a cotacao continua sendo feita, porque o
+ * DESPACHANTE precisa saber por qual servico mandar e qual prazo prometer. Mas
+ * ali a falha da Frenet nao derruba a venda: gratis com prazo desconhecido
+ * ainda e' um pedido correto, enquanto cobrar sem cotar seria inventar numero.
+ */
+async function resolveFreteKit({ cep, items, produtosCentavos, codigo }) {
+  const gratis = produtosCentavos >= FRETE_GRATIS_ACIMA_CENTAVOS;
+  const cotacao = await cotaFrete({ cep, items, modo: "unitario", valorCentavos: produtosCentavos });
+
+  if (gratis) {
+    // Melhor opcao disponivel so pra registrar servico e prazo; o cliente paga 0.
+    const melhor = (cotacao?.opcoes || []).find((o) => o.codigo === String(codigo || "")) ||
+                   (cotacao?.opcoes || [])[0] || null;
+    if (cotacao?.erro) {
+      console.warn(`[frete/kit] pedido com frete gratis seguiu sem cotacao (${cotacao.motivo}): ${cotacao.erro}`);
+    }
+    return {
+      gratis: true, centavos: 0,
+      transportadora: melhor?.transportadora || null,
+      servico: melhor?.servico || null,
+      prazoDias: melhor?.prazoDias ?? null,
+      codigo: melhor?.codigo || null,
+    };
+  }
+
+  if (cotacao?.erro) return { erro: cotacao.erro, motivo: cotacao.motivo };
+
+  const escolhido = (cotacao.opcoes || []).find((o) => o.codigo === String(codigo || ""));
+  if (!escolhido) {
+    return {
+      erro: "O frete que você escolheu não está mais disponível. Calcule de novo, por favor.",
+      motivo: "opcao_indisponivel",
+      opcoes: cotacao.opcoes,
+    };
+  }
+  return {
+    gratis: false, centavos: escolhido.precoCentavos,
+    transportadora: escolhido.transportadora, servico: escolhido.servico,
+    prazoDias: escolhido.prazoDias ?? null, codigo: escolhido.codigo,
+  };
+}
+
+/**
+ * O frete entra como LINE ITEM, nao como `shipping_options` do Stripe.
+ *
+ * Motivo, escrito pra ninguem "melhorar" isso sem saber o que quebra: usar
+ * `shipping_options` exigiria tambem `shipping_address_collection`, e ai o
+ * Stripe pede o endereco DE NOVO — o cliente acabou de digitar no nosso modal.
+ * Pedir duas vezes a mesma coisa e a forma mais rapida de perder a venda no
+ * meio do caminho, que e exatamente o motivo pelo qual o fluxo de convidado
+ * nunca deixou o Stripe coletar endereco.
+ *
+ * Como line item o valor aparece na tela do checkout, entra no total, sai no
+ * recibo e nao depende de nenhum campo extra. O que se perde e o Stripe
+ * classificar aquilo como "frete" nos relatorios dele — irrelevante aqui, ja
+ * que quem fecha a conta e a nossa tabela `orders`.
+ */
+function linhaDeFrete(frete) {
+  if (!frete || frete.centavos <= 0) return null;
+  const nome = [frete.transportadora, frete.servico].filter(Boolean).join(" ") || "Entrega";
+  return {
+    price_data: {
+      currency: "brl",
+      unit_amount: frete.centavos,
+      product_data: {
+        name: `Frete — ${nome}`,
+        description: frete.prazoDias
+          ? `Entrega estimada em ${frete.prazoDias} dia(s) útil(eis) após a postagem.`
+          : "Entrega para o endereço informado.",
+      },
+    },
+    quantity: 1,
+  };
+}
+
+/**
+ * Endereco de entrega do varejo. Era um bloco so do convidado; desde 18/09/2026
+ * o cliente LOGADO tambem preenche aqui, porque sem o CEP antes do checkout nao
+ * ha como cotar frete — o Stripe so revela o endereco depois de pago.
+ * Vocabulario em INGLES de proposito: e o que o caminho de varejo ja gravava, e
+ * um terceiro formato pro mesmo dado foi exatamente o bug dos dois vocabularios.
+ */
+function leClienteEntrega(customer = {}) {
+  const c = {
+    name: (customer.name || "").toString().trim(),
+    email: (customer.email || "").toString().trim(),
+    phone: (customer.phone || "").toString().trim(),
+    cpf_cnpj: (customer.cpf_cnpj || "").toString().replace(/\D/g, ""),
+    cep: (customer.cep || "").toString().trim(),
+    address: (customer.address || "").toString().trim(),
+    number: (customer.number || "").toString().trim(),
+    complement: (customer.complement || "").toString().trim(),
+    neighborhood: (customer.neighborhood || "").toString().trim(),
+    city: (customer.city || "").toString().trim(),
+    state: (customer.state || "").toString().trim(),
+  };
+  if (!c.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)) {
+    return { erro: "Informe nome e um email válido." };
+  }
+  if (c.cpf_cnpj.length !== 11 && c.cpf_cnpj.length !== 14) {
+    return { erro: "Informe um CPF ou CNPJ válido." };
+  }
+  if (!c.cep || !c.address || !c.number || !c.city || !c.state) {
+    return { erro: "Preencha o endereço de entrega completo (CEP, rua, número, cidade e estado)." };
+  }
+  return { cliente: c };
+}
+
+// Bloco `frete` gravado em `orders.shipping`, no MESMO formato que a revenda ja
+// usa — o tradutor (`_lib/pedido-cliente.js`) le dali. Terceiro formato pro
+// mesmo dado e como nasceu o bug dos dois vocabularios; um basta.
+function freteParaPedido(frete) {
+  return {
+    servico: frete.servico, transportadora: frete.transportadora,
+    centavos: frete.centavos, prazoDias: frete.prazoDias,
+    gratis: !!frete.gratis,
+  };
+}
 
 // Valida o carrinho contra o catalogo. Era o mesmo bloco copiado em cada
 // checkout; com quatro checkouts, uma divergencia de preco entre copias e
@@ -1381,9 +1536,28 @@ async function handleCheckoutKitStripe(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
   try {
-    const { items = [], biz_name = "", ga_client_id = "", ga_session_id = "" } = parseJson(await getRawBody(req));
+    const { items = [], biz_name = "", ga_client_id = "", ga_session_id = "",
+            customer = {}, frete_codigo = "" } = parseJson(await getRawBody(req));
     const carrinho = montaCarrinhoStripe(items);
     if (carrinho.erro) return res.status(400).json({ error: carrinho.erro });
+
+    // Desde 18/09/2026 o logado tambem informa o endereco aqui (ver
+    // leClienteEntrega). O email da CONTA prevalece sobre o digitado: e nele
+    // que o cliente recebe tudo o mais, e deixar dois emails no mesmo pedido
+    // faria o aviso de despacho sair pro endereco errado.
+    const lido = leClienteEntrega({ ...customer, email: customer.email || auth.user.email });
+    if (lido.erro) return res.status(400).json({ error: lido.erro });
+    const c = { ...lido.cliente, email: auth.user.email };
+
+    const frete = await resolveFreteKit({
+      cep: c.cep, items, produtosCentavos: carrinho.totalCents, codigo: frete_codigo,
+    });
+    if (frete.erro) {
+      return res.status(frete.motivo === "cep" ? 400 : 422)
+        .json({ error: frete.erro, motivo: frete.motivo, opcoes: frete.opcoes });
+    }
+    const totalComFrete = carrinho.totalCents + frete.centavos;
+    const linhaFrete = linhaDeFrete(frete);
 
     const stripe = getStripe();
     const origin = req.headers.origin || `https://${req.headers.host}`;
@@ -1391,22 +1565,21 @@ async function handleCheckoutKitStripe(req, res) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: carrinho.line_items,
-      // O cliente logado nao preenche endereco no nosso site — quem coleta e o
-      // checkout. O webhook devolve esse endereco pra `orders.shipping`, que e
-      // de onde o email de despacho le.
-      shipping_address_collection: { allowed_countries: ["BR"] },
-      phone_number_collection: { enabled: true },
-      // CPF/CNPJ: o Mercado Pago sempre pediu, e e o que permite emitir a nota.
-      // Sem isto o pedido chega sem documento e a nota trava — uma obrigacao
-      // fiscal virando "depois eu peco por email".
-      tax_id_collection: { enabled: true, required: "if_supported" },
+      line_items: linhaFrete ? [...carrinho.line_items, linhaFrete] : carrinho.line_items,
+      // O ENDERECO E O CPF/CNPJ AGORA VEM DO NOSSO MODAL, nao do Stripe.
+      // Inverteu em 18/09/2026 por necessidade, nao por gosto: pra cobrar frete
+      // e preciso saber o CEP ANTES de montar a sessao, e o Stripe so entrega o
+      // endereco depois do pagamento. Como ja temos tudo, deixar o Stripe pedir
+      // de novo seria pedir duas vezes a mesma coisa na hora mais cara da
+      // jornada. Efeito colateral bom: os dois caminhos de varejo passam a
+      // gravar `orders.shipping` do mesmo jeito.
       customer_email: auth.user.email,
       client_reference_id: auth.user.id,
       payment_method_options: { card: { installments: { enabled: true } } },
       metadata: {
         user_id: auth.user.id, biz_name, order_type: "kit",
         external_reference: extRef, kit_total_cents: String(carrinho.totalCents),
+        frete_cents: String(frete.centavos),
         ga_client_id: String(ga_client_id || ""), ga_session_id: String(ga_session_id || "")
       },
       payment_intent_data: { metadata: { user_id: auth.user.id, biz_name, order_type: "kit", external_reference: extRef } },
@@ -1423,8 +1596,12 @@ async function handleCheckoutKitStripe(req, res) {
       email: auth.user.email,
       biz_name,
       items: carrinho.itensPedido,
-      total_cents: carrinho.totalCents,
+      // Total COM frete — e o que o cliente paga e o que o aviso de pedido e o
+      // GA4 leem. `produtos_centavos` guarda a parte sem frete, que e a base da
+      // regra de frete gratis e da conferencia de margem.
+      total_cents: totalComFrete,
       status: "pending",
+      shipping: { ...c, frete: freteParaPedido(frete), produtos_centavos: carrinho.totalCents },
     }, "stripe/checkout-kit");
 
     return res.json({ url: session.url });
@@ -1443,33 +1620,24 @@ async function handleCheckoutKitStripe(req, res) {
 async function handleCheckoutKitGuestStripe(req, res) {
   try {
     const body = parseJson(await getRawBody(req));
-    const { items = [], customer = {} } = body;
+    const { items = [], customer = {}, frete_codigo = "" } = body;
 
-    const c = {
-      name: (customer.name || "").toString().trim(),
-      email: (customer.email || "").toString().trim(),
-      phone: (customer.phone || "").toString().trim(),
-      cpf_cnpj: (customer.cpf_cnpj || "").toString().replace(/\D/g, ""),
-      cep: (customer.cep || "").toString().trim(),
-      address: (customer.address || "").toString().trim(),
-      number: (customer.number || "").toString().trim(),
-      complement: (customer.complement || "").toString().trim(),
-      neighborhood: (customer.neighborhood || "").toString().trim(),
-      city: (customer.city || "").toString().trim(),
-      state: (customer.state || "").toString().trim(),
-    };
-    if (!c.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)) {
-      return res.status(400).json({ error: "Informe nome e um email válido." });
-    }
-    if (c.cpf_cnpj.length !== 11 && c.cpf_cnpj.length !== 14) {
-      return res.status(400).json({ error: "Informe um CPF ou CNPJ válido." });
-    }
-    if (!c.cep || !c.address || !c.number || !c.city || !c.state) {
-      return res.status(400).json({ error: "Preencha o endereço de entrega completo (CEP, rua, número, cidade e estado)." });
-    }
+    const lido = leClienteEntrega(customer);
+    if (lido.erro) return res.status(400).json({ error: lido.erro });
+    const c = lido.cliente;
 
     const carrinho = montaCarrinhoStripe(items);
     if (carrinho.erro) return res.status(400).json({ error: carrinho.erro });
+
+    const frete = await resolveFreteKit({
+      cep: c.cep, items, produtosCentavos: carrinho.totalCents, codigo: frete_codigo,
+    });
+    if (frete.erro) {
+      return res.status(frete.motivo === "cep" ? 400 : 422)
+        .json({ error: frete.erro, motivo: frete.motivo, opcoes: frete.opcoes });
+    }
+    const totalComFrete = carrinho.totalCents + frete.centavos;
+    const linhaFrete = linhaDeFrete(frete);
 
     const stripe = getStripe();
     const origin = req.headers.origin || `https://${req.headers.host}`;
@@ -1477,7 +1645,7 @@ async function handleCheckoutKitGuestStripe(req, res) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: carrinho.line_items,
+      line_items: linhaFrete ? [...carrinho.line_items, linhaFrete] : carrinho.line_items,
       customer_email: c.email,
       // Nao e id de usuario (nao existe conta ainda) — e a referencia do
       // pedido, que e o que o webhook precisa achar de volta.
@@ -1486,6 +1654,7 @@ async function handleCheckoutKitGuestStripe(req, res) {
       metadata: {
         order_type: "kit", tipo: "kit_guest",
         external_reference: extRef, kit_total_cents: String(carrinho.totalCents),
+        frete_cents: String(frete.centavos),
         ga_client_id: (body.ga_client_id || "").toString(),
         ga_session_id: (body.ga_session_id || "").toString()
       },
@@ -1503,9 +1672,9 @@ async function handleCheckoutKitGuestStripe(req, res) {
       email: c.email,
       biz_name: null,
       items: carrinho.itensPedido,
-      total_cents: carrinho.totalCents,
+      total_cents: totalComFrete,
       status: "pending",
-      shipping: c,
+      shipping: { ...c, frete: freteParaPedido(frete), produtos_centavos: carrinho.totalCents },
     }, "stripe/checkout-kit-guest");
 
     return res.json({ url: session.url });
@@ -1664,12 +1833,12 @@ function entregaDoStripe(session) {
     state: a?.state || "",
   };
   const temEndereco = !!(entrega.address || entrega.cep);
-  if (!temEndereco) {
-    console.warn(`[stripe/webhook] sessao ${session?.id || "?"} veio SEM endereco de entrega (procurei em collected_information.shipping_details, shipping_details e shipping). Se o pedido nao for guest, o email de despacho vai sair incompleto.`);
-  }
-  if (!entrega.cpf_cnpj) {
-    console.warn(`[stripe/webhook] sessao ${session?.id || "?"} veio SEM CPF/CNPJ — confira o tax_id_collection do checkout antes de emitir a nota.`);
-  }
+  // OS AVISOS SAIRAM DAQUI em 18/09/2026, e o motivo e' o principio de que
+  // alarme que grita a toa acaba ignorado como o que nao toca. Desde que o
+  // nosso modal passou a coletar endereco e CPF, o Stripe legitimamente NAO
+  // manda mais esses campos — avisar aqui faria os dois alertas dispararem em
+  // TODO pedido, todos falsos. Quem sabe se falta alguma coisa e' o chamador,
+  // que enxerga o que o pedido ja tem gravado; o aviso mora la agora.
   return { entrega, temEndereco };
 }
 
@@ -1845,10 +2014,20 @@ async function concluiPedidoStripe(session) {
     mp_payment_id: pagamentoId,
     paid_at: new Date().toISOString(),
   };
-  // O pedido guest ja tem o endereco COMPLETO (com numero e bairro), vindo do
-  // nosso formulario. O do Stripe e mais pobre; sobrescrever seria piorar.
-  if (temEndereco && !extRef.startsWith("kit_guest_") && !ehRevenda) patch.shipping = entrega;
-
+  // O ENDERECO DO STRIPE VIROU PLANO B, e a inversao e de 18/09/2026.
+  //
+  // Antes, todo pedido de cliente logado tinha o `shipping` SOBRESCRITO pelo
+  // que o Stripe devolvia — fazia sentido, porque era o Stripe quem coletava.
+  // Agora quem coleta somos nos, no modal, e o nosso dado e melhor: tem numero,
+  // bairro e o FRETE que o cliente escolheu e pagou. Sobrescrever apagaria tudo
+  // isso, e o mais grave e que o Stripe ainda manda um endereco de COBRANCA do
+  // cartao — ou seja, `temEndereco` continuaria verdadeiro e a troca aconteceria
+  // calada, trocando o endereco de entrega bom por um de cobranca pobre.
+  //
+  // Mas o plano B precisa existir: ha pedidos criados ANTES deste deploy (boleto
+  // em aberto) que nao tem endereco nenhum gravado e so contam com o do Stripe.
+  // Por isso a gravacao virou condicional ao que o pedido JA tem, decidida
+  // depois do update em vez de antes.
   const up = await atualizarUm(
     supabase.from("orders").update(patch)
       .eq("external_reference", extRef)
@@ -1858,6 +2037,39 @@ async function concluiPedidoStripe(session) {
   const order = up.data;
   console.log(`[stripe/webhook] pagamento kit ${pagamentoId} ref=${extRef} -> ${order ? "pedido marcado como pago" : (up.ok ? "nenhum pedido pendente (evento repetido)" : "FALHOU ao atualizar")}`);
   if (!order) return;
+
+  // Plano B do endereco (ver acima): so entra quando o pedido chegou aqui SEM
+  // endereco utilizavel — pedido antigo, de antes de o modal coletar. Grita no
+  // log quando usa, porque depois do periodo de transicao isso nao deveria mais
+  // acontecer, e um plano B que vira regra sem ninguem ver e como a gente
+  // descobre tarde que o caminho principal parou de funcionar.
+  // AGORA SIM os avisos, olhando o pedido de verdade em vez da sessao: falta
+  // endereco ou documento no que ESTA GRAVADO? Se nao falta, silencio.
+  if (!ehRevenda) {
+    const dPedido = dadosDoCliente(order.shipping);
+    if (!enderecoCompleto(dPedido) && !temEndereco) {
+      console.warn(`[stripe/webhook] pedido ${extRef} PAGO e sem endereco de entrega — nem o nosso formulario nem o Stripe trouxeram. O despacho vai travar.`);
+    }
+    if (!dPedido.documento) {
+      console.warn(`[stripe/webhook] pedido ${extRef} sem CPF/CNPJ — a nota fiscal trava ate alguem pedir por email.`);
+    }
+  }
+  if (!ehRevenda && temEndereco && !enderecoCompleto(dadosDoCliente(order.shipping))) {
+    console.warn(`[stripe/webhook] pedido ${extRef} sem endereco proprio — usando o do Stripe (pedido anterior a 18/09/2026?)`);
+    // Merge que NAO apaga: so o campo vazio do pedido recebe o valor do Stripe.
+    // Espalhar `entrega` por cima levaria junto os campos que o Stripe devolve
+    // em branco (numero, bairro) e zeraria dado bom que porventura estivesse la.
+    const mesclado = { ...(order.shipping || {}) };
+    for (const [k, v] of Object.entries(entrega)) {
+      if (v !== "" && v != null && !mesclado[k]) mesclado[k] = v;
+    }
+    const comp = await atualizarUm(
+      supabase.from("orders").update({ shipping: mesclado })
+        .eq("external_reference", extRef),
+      "orders", "stripe/webhook/kit-endereco"
+    );
+    if (comp.data) order.shipping = comp.data.shipping;
+  }
 
   // O cliente primeiro: ate hoje ele era o unico que nao ficava sabendo.
   await avisaClientePedidoPago({
@@ -1890,6 +2102,7 @@ async function concluiPedidoStripe(session) {
     valueCents: order.total_cents != null ? order.total_cents : session.amount_total,
     items: order.items,
     origem: "stripe",
+    shippingCents: Number(order?.shipping?.frete?.centavos || 0),
   });
 }
 

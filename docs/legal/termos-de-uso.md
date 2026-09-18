@@ -1,6 +1,6 @@
 # Termos de Uso — StarTouch
 
-**Versão 1.3 — vigente a partir de 14 de setembro de 2026**
+**Versão 1.4 — vigente a partir de 18 de setembro de 2026**
 
 ---
 
@@ -48,11 +48,13 @@ Comunique-nos imediatamente qualquer uso não autorizado.
 
 **Preços e pagamento.** Os preços vigentes são os exibidos no site no momento da compra. O pagamento dos dispositivos e da assinatura StarTouch Pro (item 5.3) é processado pela **Stripe**, com as formas ali disponíveis. Compras realizadas até 12 de setembro de 2026 foram processadas pelo **Mercado Pago**.
 
-**Frete e prazo.** Frete gratuito para todo o Brasil. O prazo estimado de entrega é de 5 a 10 dias úteis após a confirmação do pagamento, contado a partir da postagem, e pode variar conforme a região e fatores alheios ao nosso controle.
+**Frete e prazo.** O frete é calculado no momento da compra, a partir do CEP de entrega e do peso e das dimensões do pedido, e é **exibido para você antes de confirmar o pagamento** — nada é cobrado a título de frete sem estar na tela. **Pedidos a partir de R$ 149,00 em produtos, sem contar o frete, têm frete gratuito para todo o Brasil.** O prazo estimado de entrega é de 5 a 10 dias úteis após a confirmação do pagamento, contado a partir da postagem, e pode variar conforme a região, o serviço de entrega escolhido e fatores alheios ao nosso controle.
+
+Compras realizadas **até 18 de setembro de 2026** tiveram frete gratuito para todo o Brasil, independentemente do valor, e essa condição é mantida para os pedidos feitos até essa data.
 
 **Garantia.** Os dispositivos têm garantia de 30 dias contra defeito de fabricação, contados do recebimento, sem prejuízo dos prazos legais do Código de Defesa do Consumidor. A garantia não cobre danos por mau uso, queda, exposição a calor excessivo, perfuração do chip ou tentativa de reprogramação.
 
-**Direito de arrependimento.** Nas compras realizadas pelo site, você pode desistir em até **7 dias corridos** do recebimento, conforme o Art. 49 do Código de Defesa do Consumidor, com devolução integral do valor pago. O produto deve ser devolvido em condições de revenda. Escreva para contato@startouch.com.br para iniciar o processo.
+**Direito de arrependimento.** Nas compras realizadas pelo site, você pode desistir em até **7 dias corridos** do recebimento, conforme o Art. 49 do Código de Defesa do Consumidor, com devolução integral do valor pago — **incluindo o frete que você pagou na compra**. O produto deve ser devolvido em condições de revenda. Escreva para contato@startouch.com.br para iniciar o processo.
 
 ---
 
@@ -211,6 +213,7 @@ Fica eleito o foro da comarca de São Paulo/SP para dirimir controvérsias, ress
 | 1.0 | 22/08/2026 | Versão inicial |
 | 1.1 | 02/09/2026 | Ajustes de redação |
 | 1.2 | 07/09/2026 | Mudança de controladora (GT6 → ZAYOR) e processamento da assinatura pela Stripe |
+| 1.4 | 18/09/2026 | O frete das compras pelo site passa a ser **calculado por CEP, peso e dimensões**, e exibido antes da confirmação do pagamento — no lugar do frete gratuito incondicional. Fica **gratuito acima de R$ 149,00 em produtos**. A mudança **não retroage**: pedidos feitos até 18/09/2026 mantêm o frete gratuito que vigorava. No mesmo ato, o direito de arrependimento passa a dizer expressamente que a devolução **inclui o frete pago**, como já determina o Art. 49 do Código de Defesa do Consumidor |
 | 1.3 | 14/09/2026 | O item 5.2 passa a **garantir que o plano gratuito é vitalício**: sem mensalidade, sem prazo, e sem possibilidade de o que já foi entregue virar pago depois. Substitui a cláusula anterior, que permitia rever quais recursos ficavam no plano gratuito mediante aviso de 30 dias — **a mudança amplia direitos do cliente e não reduz nenhum**. No mesmo ato, o item 5.1 passa a descrever o aviso de avaliação negativa como ele de fato funciona (semanal, com as notas 1 e 2 dos últimos 7 dias), corrigindo uma descrição que prometia aviso no momento da publicação |
 
 ---

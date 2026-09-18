@@ -219,6 +219,19 @@
   .co-submit:hover:not(:disabled){background:#174EA6;transform:translateY(-1px);}
   .co-submit:disabled{opacity:.5;cursor:not-allowed;transform:none;}
   .co-secure{text-align:center;font-size:11.5px;color:#94a3b8;margin-top:4px;}
+  .co-frete{border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;background:#fff;}
+  .co-frete-tit{font-size:12px;font-weight:700;color:#475569;letter-spacing:.03em;text-transform:uppercase;margin-bottom:8px;}
+  .co-frete-opt{display:flex;align-items:center;gap:10px;padding:9px 4px;border-top:1px solid #f1f5f9;cursor:pointer;font-size:13.5px;color:#334155;}
+  .co-frete-opt:first-of-type{border-top:0;}
+  .co-frete-opt input{margin:0;flex-shrink:0;}
+  .co-frete-opt .fnome{flex:1;min-width:0;}
+  .co-frete-opt .fprazo{color:#94a3b8;font-size:12px;}
+  .co-frete-opt .fpreco{font-weight:700;color:#0f172a;white-space:nowrap;}
+  .co-frete-msg{font-size:12.5px;color:#64748b;line-height:1.45;}
+  .co-frete-msg.erro{color:#C5221F;}
+  .co-frete-msg.ok{color:#137333;font-weight:600;}
+  .co-linhas{display:flex;flex-direction:column;gap:5px;font-size:13px;color:#64748b;}
+  .co-linhas div{display:flex;justify-content:space-between;}
   .co-cep-status{font-size:11.5px;font-weight:500;color:#64748b;}
 </style>
 </head>
@@ -255,7 +268,7 @@
     <h1>Escolha onde o cliente vai avaliar</h1>
     <p class="kit-sub">Cada dispositivo é um lugar a mais onde alguém pode avaliar <strong id="bizName">seu negócio</strong> no Google em segundos, sem instalar nada.</p>
     <div class="kit-info">
-      <span>🚚 Frete grátis pra todo Brasil</span>
+      <span>🚚 Frete grátis acima de R$ 149</span>
       <span>⭐ Painel StarTouch incluso e vitalício</span>
     </div>
   </header>
@@ -337,7 +350,7 @@
   <div class="checkout-sheet" role="dialog" aria-modal="true" aria-labelledby="coTitle">
     <button class="checkout-close" id="coClose" type="button" aria-label="Fechar">×</button>
     <h2 id="coTitle">Dados para entrega</h2>
-    <p class="checkout-intro">Preencha pra receber seus dispositivos. <strong>Você não precisa criar conta agora</strong> — depois de receber, é só voltar aqui pra ativar (leva 2 min).</p>
+    <p class="checkout-intro" id="coIntro">Preencha pra receber seus dispositivos. <strong>Você não precisa criar conta agora</strong> — depois de receber, é só voltar aqui pra ativar (leva 2 min).</p>
     <form id="coForm" novalidate>
       <div class="co-row">
         <label>Nome completo
@@ -386,9 +399,25 @@
           <input name="state" required maxlength="2" autocomplete="address-level1" placeholder="SP" style="text-transform:uppercase;"/>
         </label>
       </div>
-      <div class="co-summary"><span id="coSummaryItems">Seu kit</span><strong id="coSummaryTotal">R$ 0,00</strong></div>
+      <div class="co-row">
+        <div class="co-frete" id="coFreteBox">
+          <div class="co-frete-tit">🚚 Entrega</div>
+          <div id="coFreteOpts"></div>
+          <div class="co-frete-msg" id="coFreteMsg">Preencha o CEP acima pra calcular o frete.</div>
+        </div>
+      </div>
+      <div class="co-summary" style="flex-direction:column;align-items:stretch;gap:9px;">
+        <div class="co-linhas">
+          <div><span id="coSummaryItems">Seu kit</span><span id="coSummarySub">R$ 0,00</span></div>
+          <div><span>Frete</span><span id="coSummaryFrete">—</span></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e2e8f0;padding-top:9px;">
+          <span style="font-weight:600;color:#0f172a;">Total</span>
+          <strong id="coSummaryTotal">R$ 0,00</strong>
+        </div>
+      </div>
       <button type="submit" class="co-submit" id="coSubmit">Ir para o pagamento →</button>
-      <p class="co-secure">🔒 Pagamento seguro via Stripe · 🚚 Frete grátis pra todo Brasil</p>
+      <p class="co-secure">🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149</p>
     </form>
   </div>
 </div>
@@ -580,84 +609,62 @@ function gaIds() {
   } catch (_) { return { ga_client_id: "", ga_session_id: "" }; }
 }
 
-async function handleCheckout() {
-  const items = Object.keys(cart).map(id => ({ id, qty: cart[id] }));
-  if (items.length === 0) return;
-
-  const token = localStorage.getItem("rz_token");
-  if (!token) {
-    // Visitante (sem login): abre o formulário de entrega e segue como guest.
-    openGuestModal();
-    return;
-  }
-
-  const btn = document.getElementById("checkoutBtn");
-  const btnMobile = document.getElementById("checkoutBtnMobile");
-  const origLabel = btn.textContent;
-  const origLabelMobile = btnMobile.textContent;
-  btn.disabled = true;
-  btnMobile.disabled = true;
-  btn.textContent = "Carregando…";
-  btnMobile.textContent = "…";
-
-  try {
-    const res = await fetch("/api/billing?action=checkout-kit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({ items, biz_name: bizName || "", ...gaIds() })
-    });
-    const data = await res.json();
-    // Token expirado/inválido: limpa e segue como visitante (guest), sem erro.
-    if (res.status === 401) {
-      localStorage.removeItem("rz_token");
-      btn.disabled = false;
-      btnMobile.disabled = false;
-      btn.textContent = origLabel;
-      btnMobile.textContent = origLabelMobile;
-      openGuestModal();
-      return;
-    }
-    if (!res.ok || !data.url) {
-      alert(data.error || "Erro ao iniciar o checkout. Tente novamente.");
-      btn.disabled = false;
-      btnMobile.disabled = false;
-      btn.textContent = origLabel;
-      btnMobile.textContent = origLabelMobile;
-      return;
-    }
-    window.location.href = data.url;
-  } catch (err) {
-    console.error("[checkout-kit] erro:", err);
-    alert("Erro de conexão. Tente novamente.");
-    btn.disabled = false;
-    btnMobile.disabled = false;
-    btn.textContent = origLabel;
-    btnMobile.textContent = origLabelMobile;
-  }
+// O MODAL DE ENTREGA AGORA VALE PRA TODO MUNDO (18/09/2026).
+//
+// Antes, só o visitante preenchia endereço aqui; o cliente logado ia direto pro
+// Stripe e era o Stripe quem coletava. Isso deixou de funcionar no momento em
+// que o frete passou a ser cobrado: pra calcular o frete é preciso o CEP ANTES
+// de montar o checkout, e o Stripe só entrega o endereço depois do pagamento.
+// Um caminho só também acaba com a divergência que fazia os dois gravarem o
+// endereço em formatos diferentes.
+function handleCheckout() {
+  if (Object.keys(cart).length === 0) return;
+  openCheckoutModal();
 }
 
 document.getElementById("checkoutBtn").addEventListener("click", handleCheckout);
 document.getElementById("checkoutBtnMobile").addEventListener("click", handleCheckout);
 
-// ── Checkout GUEST (visitante sem login) ────────────────────────
+// ── Checkout (visitante e cliente logado usam o mesmo modal) ─────
 const modal = document.getElementById("checkoutModal");
 const coForm = document.getElementById("coForm");
+
+// Espelha FRETE_GRATIS_ACIMA_CENTAVOS do servidor. Quem DECIDE é o servidor —
+// esta cópia existe só pra tela não mentir enquanto o cliente monta o carrinho.
+const FRETE_GRATIS_ACIMA = 149;
+
+// Estado do frete. `codigo` é a única coisa que viaja pro servidor: o preço é
+// sempre recotado lá. Aceitar o valor da tela deixaria qualquer um fechar uma
+// placa com R$ 0,01 de entrega.
+let frete = { status: "vazio", opcoes: [], codigo: null, valor: 0, gratis: false };
 
 function cartTotalValue() {
   return Object.keys(cart).reduce((sum, id) => sum + PRODUCTS.find(p => p.id === id).price * cart[id], 0);
 }
+function cartItems() {
+  return Object.keys(cart).map(id => ({ id, qty: cart[id] }));
+}
 
-function openGuestModal() {
-  const ids = Object.keys(cart);
-  const itemCount = ids.reduce((s, id) => s + cart[id], 0);
-  document.getElementById("coSummaryItems").textContent = itemCount === 1 ? "1 item" : `${itemCount} itens`;
-  document.getElementById("coSummaryTotal").textContent = fmt(cartTotalValue());
+function openCheckoutModal() {
+  const logado = !!localStorage.getItem("rz_token");
+  document.getElementById("coIntro").innerHTML = logado
+    ? "Confirme pra onde enviamos seus dispositivos. O frete é calculado pelo seu CEP."
+    : "Preencha pra receber seus dispositivos. <strong>Você não precisa criar conta agora</strong> — depois de receber, é só voltar aqui pra ativar (leva 2 min).";
+  // Cliente logado já se identificou uma vez; pedir o e-mail de novo é atrito
+  // à toa. O servidor usa o e-mail da CONTA de qualquer forma.
+  if (logado) {
+    try {
+      const u = JSON.parse(localStorage.getItem("rz_user") || "null");
+      const campo = coForm.querySelector('input[name="email"]');
+      if (u?.email && !campo.value) campo.value = u.email;
+    } catch (_) {}
+  }
+  atualizaResumo();
   modal.hidden = false;
   document.body.style.overflow = "hidden";
   setTimeout(() => coForm.querySelector('input[name="name"]')?.focus(), 50);
+  // Carrinho pode ter mudado desde a última cotação — o CEP continua ali.
+  if (coForm.querySelector('input[name="cep"]').value.replace(/\D/g, "").length === 8) cotarFrete();
 }
 function closeGuestModal() {
   modal.hidden = true;
@@ -666,6 +673,108 @@ function closeGuestModal() {
 document.getElementById("coClose").addEventListener("click", closeGuestModal);
 modal.addEventListener("click", (e) => { if (e.target === modal) closeGuestModal(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closeGuestModal(); });
+
+// ── FRETE ───────────────────────────────────────────────────────
+function atualizaResumo() {
+  const sub = cartTotalValue();
+  const itemCount = Object.keys(cart).reduce((s, id) => s + cart[id], 0);
+  document.getElementById("coSummaryItems").textContent = itemCount === 1 ? "1 item" : `${itemCount} itens`;
+  document.getElementById("coSummarySub").textContent = fmt(sub);
+
+  const gratis = sub >= FRETE_GRATIS_ACIMA;
+  let valorFrete = 0, rotulo = "—";
+  if (gratis) { rotulo = "grátis"; }
+  else if (frete.status === "ok" && frete.codigo) { valorFrete = frete.valor; rotulo = fmt(frete.valor); }
+  else if (frete.status === "carregando") { rotulo = "calculando…"; }
+
+  document.getElementById("coSummaryFrete").textContent = rotulo;
+  document.getElementById("coSummaryTotal").textContent = fmt(sub + valorFrete);
+
+  // Só libera o pagamento quando o frete está resolvido. Deixar passar sem
+  // resolver levaria o cliente pro Stripe e o servidor recusaria lá na frente,
+  // que é o pior lugar pra descobrir que faltava algo.
+  const pronto = gratis || (frete.status === "ok" && !!frete.codigo);
+  document.getElementById("coSubmit").disabled = !pronto;
+}
+
+function renderFrete() {
+  const box = document.getElementById("coFreteOpts");
+  const msg = document.getElementById("coFreteMsg");
+  const sub = cartTotalValue();
+  box.innerHTML = "";
+  msg.className = "co-frete-msg";
+
+  if (sub >= FRETE_GRATIS_ACIMA) {
+    msg.classList.add("ok");
+    const via = frete.opcoes[0] ? ` Enviamos por ${frete.opcoes[0].transportadora} ${frete.opcoes[0].servico}.` : "";
+    msg.textContent = `🎉 Frete grátis neste pedido.${via}`;
+    atualizaResumo();
+    return;
+  }
+
+  const falta = FRETE_GRATIS_ACIMA - sub;
+  if (frete.status === "carregando") { msg.textContent = "Calculando o frete…"; atualizaResumo(); return; }
+  if (frete.status === "erro")   { msg.classList.add("erro"); msg.textContent = frete.erro; atualizaResumo(); return; }
+  if (frete.status !== "ok")     { msg.textContent = "Preencha o CEP acima pra calcular o frete."; atualizaResumo(); return; }
+
+  box.innerHTML = frete.opcoes.map((o, i) => `
+    <label class="co-frete-opt">
+      <input type="radio" name="frete_opt" value="${o.codigo}" ${o.codigo === frete.codigo ? "checked" : ""}/>
+      <span class="fnome">${o.transportadora} ${o.servico}
+        ${o.prazoDias ? `<span class="fprazo">· ${o.prazoDias} dia(s) útil(eis)</span>` : ""}</span>
+      <span class="fpreco">${fmt(o.precoCentavos / 100)}</span>
+    </label>`).join("");
+
+  box.querySelectorAll('input[name="frete_opt"]').forEach(r => {
+    r.addEventListener("change", () => {
+      const op = frete.opcoes.find(o => o.codigo === r.value);
+      if (op) { frete.codigo = op.codigo; frete.valor = op.precoCentavos / 100; atualizaResumo(); }
+    });
+  });
+
+  // Empurrão pro frete grátis — só quando está perto o bastante pra valer.
+  msg.textContent = falta > 0 && falta <= 80
+    ? `Faltam ${fmt(falta)} em produtos pra o frete sair de graça.`
+    : "Prazo contado a partir da postagem (produção em até 2 dias úteis).";
+  atualizaResumo();
+}
+
+let freteReq = 0;
+async function cotarFrete() {
+  const cep = coForm.querySelector('input[name="cep"]').value.replace(/\D/g, "");
+  const items = cartItems();
+  if (cep.length !== 8 || items.length === 0) {
+    frete = { status: "vazio", opcoes: [], codigo: null, valor: 0 };
+    renderFrete();
+    return;
+  }
+  const req = ++freteReq;
+  frete = { ...frete, status: "carregando" };
+  renderFrete();
+  try {
+    const r = await fetch("/api/frete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cep, items, modo: "unitario" })
+    });
+    const d = await r.json();
+    // Resposta atrasada de um CEP que o cliente já trocou não pode sobrescrever
+    // a cotação nova — senão o preço na tela é de outro endereço.
+    if (req !== freteReq) return;
+    if (!r.ok || !Array.isArray(d.opcoes) || d.opcoes.length === 0) {
+      frete = { status: "erro", opcoes: [], codigo: null, valor: 0,
+                erro: d.error || "Não consegui calcular o frete pra esse CEP." };
+    } else {
+      const maisBarata = d.opcoes[0];
+      frete = { status: "ok", opcoes: d.opcoes, codigo: maisBarata.codigo,
+                valor: maisBarata.precoCentavos / 100 };
+    }
+  } catch (_) {
+    if (req !== freteReq) return;
+    frete = { status: "erro", opcoes: [], codigo: null, valor: 0, erro: "Erro de conexão ao calcular o frete." };
+  }
+  renderFrete();
+}
 
 // Máscara leve de CEP + busca ViaCEP no blur
 const cepInput = coForm.querySelector('input[name="cep"]');
@@ -692,6 +801,9 @@ cepInput.addEventListener("blur", async () => {
   } catch {
     cepStatus.textContent = "";
   }
+  // CEP resolvido (ou não) — cotar assim que houver 8 dígitos. A cotação não
+  // depende do ViaCEP ter achado o endereço: quem precisa do CEP é a Frenet.
+  cotarFrete();
 });
 
 // CPF/CNPJ — máscara automática (alterna CPF<->CNPJ) + validação
@@ -773,14 +885,34 @@ coForm.addEventListener("submit", async (e) => {
   const orig = submitBtn.textContent;
   submitBtn.disabled = true;
   submitBtn.textContent = "Redirecionando…";
+
+  // Cliente logado vai pelo endpoint autenticado (o pedido nasce amarrado à
+  // conta dele); visitante vai pelo público. Mesmo formulário, mesmo corpo —
+  // só muda a porta e o cabeçalho.
+  const token = localStorage.getItem("rz_token");
+  const url = token ? "/api/billing?action=checkout-kit" : "/api/billing?action=checkout-kit-guest";
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const corpo = { items, customer, frete_codigo: frete.codigo || "", ...gaIds() };
+  if (token) corpo.biz_name = bizName || "";
+
   try {
-    const res = await fetch("/api/billing?action=checkout-kit-guest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items, customer, ...gaIds() })
-    });
+    let res = await fetch(url, { method: "POST", headers, body: JSON.stringify(corpo) });
+    // Token vencido não pode virar beco sem saída: cai pro caminho de visitante
+    // com os mesmos dados já preenchidos, em vez de mandar o cliente logar de
+    // novo no meio do pagamento.
+    if (res.status === 401 && token) {
+      localStorage.removeItem("rz_token");
+      res = await fetch("/api/billing?action=checkout-kit-guest", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items, customer, frete_codigo: frete.codigo || "", ...gaIds() })
+      });
+    }
     const data = await res.json();
     if (!res.ok || !data.url) {
+      // O frete escolhido caducou entre a cotação e o clique: recota e deixa o
+      // cliente escolher de novo, em vez de só dizer "erro".
+      if (data.motivo === "opcao_indisponivel" || data.motivo === "frenet") await cotarFrete();
       alert(data.error || "Erro ao iniciar o checkout. Tente novamente.");
       submitBtn.disabled = false;
       submitBtn.textContent = orig;
