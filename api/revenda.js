@@ -33,7 +33,7 @@ const REVENDA = {
   placag: { nome: "Placa de Balcão G",       centavos: 3290 },
   placam: { nome: "Placa de Balcão M",       centavos: 2290 },
 };
-const MINIMO_CENTAVOS = 80000;   // R$ 800,00, sem o frete
+const MINIMO_CENTAVOS = 200000;  // R$ 2.000,00, sem o frete (era R$ 800 ate 18/09/2026)
 const MAX_UNIDADES = 10000;
 
 // A tabela da revenda usa outros ids que o catalogo do site. Duas grafias pro
@@ -61,7 +61,14 @@ function getStripe() {
 // por fazer.
 const DIAS_DE_PRODUCAO = 10;
 
-const brl = (c) => "R$ " + (Number(c || 0) / 100).toFixed(2).replace(".", ",");
+// Separador de milhar escrito na mao, nao via toLocaleString: o valor sai em
+// e-mail e em mensagem de erro, e formatacao por locale muda com o ICU do
+// runtime. Com o minimo em R$ 2.000 todo pedido tem 4 digitos — "R$ 2000,00"
+// ao lado do "R$ 2.000,00" que a pagina mostra parece dois numeros.
+const brl = (c) => {
+  const [inteiro, dec] = (Number(c || 0) / 100).toFixed(2).split(".");
+  return "R$ " + inteiro.replace(/\B(?=(\d{3})+$)/g, ".") + "," + dec;
+};
 const limpo = (s, max) => String(s == null ? "" : s).replace(/\s+/g, " ").trim().slice(0, max);
 const esc = (s) => String(s == null ? "" : s)
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

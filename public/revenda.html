@@ -9,7 +9,7 @@
 <script src="/consent.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Programa de Revenda — StarTouch</title>
-<meta name="description" content="Revenda StarTouch: dispositivos NFC com painel de reputação vitalício incluso, sem mensalidade obrigatória para o cliente final. Pedido mínimo R$ 800, NF-e, produção em 10 dias úteis."/>
+<meta name="description" content="Revenda StarTouch: dispositivos NFC com painel de reputação vitalício incluso, sem mensalidade obrigatória para o cliente final. Pedido mínimo R$ 2.000, NF-e, produção em 10 dias úteis."/>
 <link rel="canonical" href="https://startouch.com.br/revenda"/>
 <link rel="stylesheet" href="/startouch-vars.css"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
@@ -319,7 +319,7 @@
         <a class="btn primary" href="#pedido">Quero revender StarTouch</a>
         <a class="btn secondary" href="#precos">Ver preços</a>
       </div>
-      <div class="note">Exclusivo para <strong>pessoa jurídica</strong> · Pedido mínimo de <strong>R$ 800</strong> + frete</div>
+      <div class="note">Exclusivo para <strong>pessoa jurídica</strong> · Pedido mínimo de <strong>R$ 2.000</strong> + frete</div>
     </div>
 
     <aside class="heroArte">
@@ -462,7 +462,7 @@
         </tbody>
       </table>
       <div class="pricefoot">
-        <strong>Pedido mínimo: R$ 800 + frete.</strong>
+        <strong>Pedido mínimo: R$ 2.000 + frete.</strong>
       </div>
     </div>
   </div>
@@ -569,7 +569,7 @@
           <div id="freteBox" class="freteBox" hidden></div>
 
           <div class="total"><span><b>Total</b></span><strong id="total">R$ 0,00</strong></div>
-          <div id="min" class="min">Faltam R$ 800,00 para atingir o pedido mínimo.</div>
+          <div id="min" class="min">Faltam R$ 2.000,00 para atingir o pedido mínimo.</div>
           <button id="send" class="btn primary" style="width:100%" type="submit" disabled>Ir para o pagamento</button>
           <p class="small" id="sendNota">O frete é calculado pelo CEP e some no total antes do pagamento. Nota fiscal em todo pedido.</p>
           <div id="retorno" role="status"></div>
@@ -639,7 +639,7 @@
     placag: { nome: "Placa G",     centavos: 3290, campo: "q-placag" },
     placam: { nome: "Placa M",     centavos: 2290, campo: "q-placam" }
   };
-  var MINIMO = 80000;
+  var MINIMO = 200000;
   var $ = function (id) { return document.getElementById(id); };
   var brl = function (c) { return (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); };
 
@@ -671,9 +671,9 @@
     }
     $("items").innerHTML = linhas || '<span class="desc">Nenhum item ainda.</span>';
 
-    // O mínimo de R$ 800 é sobre os PRODUTOS, sem o frete — é o que a página
-    // anuncia em três lugares. Somar o frete aqui faria um pedido de R$ 760
-    // "atingir o mínimo" por causa da entrega.
+    // O mínimo é sobre os PRODUTOS, sem o frete — é o que a página anuncia em
+    // três lugares. Somar o frete aqui faria um pedido de R$ 1.950 "atingir o
+    // mínimo" por causa da entrega.
     var totalPagar = t + (frete.escolhido ? frete.escolhido.precoCentavos : 0);
     $("total").textContent = brl(totalPagar);
 
@@ -681,7 +681,9 @@
 
     if (t < MINIMO) {
       $("min").className = "min";
-      $("min").textContent = "Faltam " + brl(MINIMO - t) + " para atingir o pedido mínimo de R$ 800,00.";
+      // Valor vindo de MINIMO, nao escrito a mao: este texto ja discordou do
+      // resto da pagina uma vez por ter o numero fixo aqui dentro.
+      $("min").textContent = "Faltam " + brl(MINIMO - t) + " para atingir o pedido mínimo de " + brl(MINIMO) + ".";
       btn.disabled = true;
       btn.textContent = "Ir para o pagamento";
       nota.textContent = "O frete é calculado pelo CEP e some no total antes do pagamento. Nota fiscal em todo pedido.";
