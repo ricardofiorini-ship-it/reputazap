@@ -24,6 +24,12 @@ const EMAIL_FROM = process.env.RESEND_FROM || "StarTouch <onboarding@resend.dev>
 // que os templates prometem cai no vazio. Aponta pra uma caixa de verdade.
 const REPLY_TO = process.env.REPLY_TO_EMAIL || process.env.ADMIN_NOTIFICATIONS_EMAIL || null;
 
+// UUID reservado pros e-mails que nao tem usuario dono (avisos ao admin).
+// Nao pertence a ninguem e nunca casa com `auth.uid()`, entao a policy de
+// leitura do email_log continua escondendo essas linhas de todo cliente.
+const UUID_SEM_DONO = "00000000-0000-0000-0000-000000000000";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // Tipos únicos (só 1 vez por user, idempotente)
 const UNIQUE_TYPES = new Set([
   "welcome",
@@ -65,12 +71,30 @@ export async function sendTransactionalEmail({
     return { skipped: true, reason: "params faltando" };
   }
 
+  // E-MAIL SEM DONO (aviso administrativo) PRECISA DE UM UUID MESMO ASSIM.
+  //
+  // `email_log.user_id` e' `UUID NOT NULL`. Quem avisa o admin de um pedido
+  // novo nao tem usuario dono e vinha mandando a string "admin" — que o
+  // Postgres recusa. O envio acontecia e o registro NUNCA era gravado, entao a
+  // tabela dizia menos do que o nome promete (achado em 22/08, corrigido em
+  // 19/09/2026). Nao e' NULL nem coluna nova de proposito: as duas exigiriam
+  // rodar SQL ANTES do deploy, que e o passo esquecido classico deste projeto.
+  //
+  // Nao afeta a idempotencia: o unico tipo que chega sem dono e'
+  // `admin_new_order`, que nao esta em UNIQUE_TYPES. O `admin_new_client`, que
+  // esta, sempre viaja com o UUID real do cliente — e continua deduplicando por
+  // cliente, como deve.
+  const userIdLog = UUID_RE.test(String(userId)) ? String(userId) : UUID_SEM_DONO;
+  if (userIdLog === UUID_SEM_DONO && String(userId) !== "admin") {
+    console.warn(`[email-sender] userId "${userId}" nao e UUID em ${emailType} — logando como e-mail sem dono.`);
+  }
+
   // Idempotência: por user+type por padrão, ou por user+type+metadata[key] se dedupeByMetadata
   if (UNIQUE_TYPES.has(emailType) || dedupeByMetadata) {
     let q = supabase
       .from("email_log")
       .select("id")
-      .eq("user_id", userId)
+      .eq("user_id", userIdLog)
       .eq("email_type", emailType);
 
     if (dedupeByMetadata && dedupeByMetadata.key && dedupeByMetadata.value != null) {
@@ -117,13 +141,21 @@ export async function sendTransactionalEmail({
 
     // Registra envio (não bloqueia se falhar)
     try {
-      await supabase.from("email_log").insert({
-        user_id: userId,
+      // O ERRO VEM NO RETORNO, NAO POR EXCECAO. O supabase-js devolve
+      // `{ data, error }` — nao lanca. Sem ler o `error`, o `catch` abaixo
+      // nunca dispara e QUALQUER falha de escrita neste log era muda: a tabela
+      // ficava incompleta e nada dizia isso (achado em 22/08, corrigido em
+      // 19/09/2026). O log continua nao bloqueando o envio, mas agora grita.
+      const { error: insErr } = await supabase.from("email_log").insert({
+        user_id: userIdLog,
         email_type: emailType,
         to_email: to,
         resend_id: data.id || null,
         metadata: metadata || {}
       });
+      if (insErr) {
+        console.error(`[email-sender] ${emailType} ENVIADO mas NAO registrado em email_log: ${insErr.message}`);
+      }
     } catch (logErr) {
       console.error("[email-sender] erro ao gravar log:", logErr);
       // Não rejeita — email já foi enviado
