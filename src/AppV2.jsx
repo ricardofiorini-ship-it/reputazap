@@ -5,7 +5,12 @@ import React from 'react'
 // diferentes pro mesmo negócio. Ver a nota longa em score-core.js.
 import { calcularScore } from '../api/_lib/score-core.js'
 import { metricasDoCliente, posicaoDeVisibilidade, confrontoDireto,
-  principaisConcorrentes, comparacaoControlada, COMPARAVEL_MINIMO } from '../api/_lib/visibilidade.js'
+  principaisConcorrentes, comparacaoControlada, COMPARAVEL_MINIMO,
+  // Desde 19/09/2026 a grade nao devolve mais o campo `score` (a media punida
+  // com 21 por ausencia). Quem precisa daquele numero pede aqui: e a fonte
+  // UNICA, e por dentro ela usa `posicaoComAusencia()`, o unico lugar do
+  // projeto onde o 21 ainda existe.
+  entradaDoScore } from '../api/_lib/visibilidade.js'
 import {
   Home, Star, ShoppingBag, ShoppingCart, Menu, Lock, Unlock, TrendingUp, TrendingDown,
   Bell, Target, Search, Award, Medal, Rocket, AlertTriangle, MessageSquare, Info,
@@ -3386,7 +3391,7 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
   // virgula?". O arredondamento nao inventa nada: a ordem da lista continua
   // sendo a da media cheia.
   const lugarBruto = (gridPos && gridPos.coverage > 0)
-    ? (gridPos.avg != null ? gridPos.avg : gridPos.score)
+    ? (gridPos.avg != null ? gridPos.avg : entradaDoScore(gridPos).gridAvg)
     : null
   const lugar = lugarBruto != null ? Math.max(1, Math.round(lugarBruto)) : null
   const corLugar = lugar == null ? T.text : lugar <= 3 ? T.success : lugar <= 10 ? T.accent : T.danger
@@ -3451,7 +3456,7 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
             : visib ? <><VisibilidadeHeadline visib={visib} isMobile={isMobile}/>
                 <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button></>
             : gridPos ? (
-            gridPos.coverage > 0 && gridPos.score != null ? (
+            gridPos.coverage > 0 && entradaDoScore(gridPos).gridAvg != null ? (
               <>
                 {/* QUAL NÚMERO VAI GRANDE — histórico das tentativas, pra não
                     repetir nenhuma:
@@ -3484,7 +3489,7 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
                   // punição por ausência). O score punido no topo brigava com a
                   // lista logo abaixo: 8,4 aqui e a linha dele em 1º lá. A
                   // ausência não sumiu da tela — virou a linha de cobertura.
-                  const media = gridPos.avg != null ? gridPos.avg : gridPos.score
+                  const media = gridPos.avg != null ? gridPos.avg : entradaDoScore(gridPos).gridAvg
                   const cor = media <= 3 ? T.success : media <= 10 ? T.accent : T.danger
                   return (
                     <>
@@ -6432,8 +6437,15 @@ function raioTxt(spacingM) {
 // Rótulo/cor por termo (forte / melhorar / subir / oportunidade).
 function gridStatus(t) {
   if (!t || !t.coverage) return { label: 'oportunidade', color: '#A50E0E', bg: '#FCE8E6' }
-  if (t.score <= 3)  return { label: 'forte',           color: '#137333', bg: '#E6F4EA' }
-  if (t.score <= 10) return { label: 'dá pra melhorar', color: '#B45309', bg: '#FEF3C7' }
+  // A REGUA DO ROTULO NAO MUDOU — continua sendo a posicao penalizada, de
+  // proposito: mexer nos limiares mudaria o rotulo de todo cliente de uma vez,
+  // e isso e decisao de produto. O que mudou e de onde o numero vem.
+  const pos = entradaDoScore(t).gridAvg
+  // Sem numero, ambar. Antes isto caia em "forte": `null <= 3` e VERDADEIRO em
+  // JavaScript, entao termo sem dado saia verde na tela do cliente.
+  if (pos == null)  return { label: 'dá pra melhorar', color: '#B45309', bg: '#FEF3C7' }
+  if (pos <= 3)     return { label: 'forte',           color: '#137333', bg: '#E6F4EA' }
+  if (pos <= 10)    return { label: 'dá pra melhorar', color: '#B45309', bg: '#FEF3C7' }
   return { label: 'precisa subir', color: '#A50E0E', bg: '#FCE8E6' }
 }
 
@@ -6463,7 +6475,7 @@ function RankingGrid({ data }) {
                   {/* Mesmo par de números da tabela: onde aparece + em quantos
                       pontos. Aqui era `score` (punido) e brigava com a lista. */}
                   {t.coverage > 0
-                    ? <>aparece no <b style={{ color: T.text }}>{(t.avg != null ? t.avg : t.score).toFixed(1).replace('.', ',')}º lugar</b>, em {t.coverage} dos {t.measured} lugares testados</>
+                    ? <>aparece no <b style={{ color: T.text }}>{(t.avg != null ? t.avg : entradaDoScore(t).gridAvg).toFixed(1).replace('.', ',')}º lugar</b>, em {t.coverage} dos {t.measured} lugares testados</>
                     : `não aparece em nenhum dos ${t.measured} lugares testados`}
                 </div>
               </div>
@@ -7210,7 +7222,7 @@ function scoreBreakdown(d) {
   // com 74 no painel e 59 no email, no mesmo dia. Aqui sobra só a MONTAGEM dos
   // cards de detalhe; o número é o mesmo dos dois lados, por construção.
   const g = d.gridPos
-  const gridAvg = (g && g.coverage > 0 && g.score != null) ? g.score : null
+  const gridAvg = entradaDoScore(g).gridAvg
   // Medido em pelo menos 1 ponto e não apareceu em NENHUM: sabemos que está
   // fora, não é falta de dado. O Hero já diz "Fora da lista" na cara dele.
   const gridForaDeTudo = !!(g && g.measured > 0 && g.coverage === 0)
@@ -7652,7 +7664,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       // Quantas avaliações a mais tem quem aparece melhor que ele? Se não tiver
       // mais, não inventa causa — o gap some e a tarja usa só a cobertura.
       const gap = i > 0 ? (Math.max(0, (rows[i - 1].reviews || 0) - (rows[i].reviews || 0)) || null) : null
-      return { posicao: g.score, top3, medidos: pts.length, gap }
+      return { posicao: entradaDoScore(g).gridAvg, top3, medidos: pts.length, gap }
     }
     // SEM GRADE → tarja GENÉRICA, de propósito. A tentação é cair no
     // /api/competitors pra não perder a personalização, mas ali o negócio pode

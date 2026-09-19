@@ -9,6 +9,7 @@ import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArti
 import { resolvePlano } from "./_lib/plan.js";
 import { KIT_CATALOG } from "./_lib/catalogo-kit.js";
 import { dadosDoCliente, enderecoCompleto } from "./_lib/pedido-cliente.js";
+import { entradaDoScore } from "./_lib/visibilidade.js";
 import { cotaFrete } from "./_lib/frenet.js";
 
 export const config = { api: { bodyParser: false } };
@@ -2582,7 +2583,9 @@ export default async function handler(req, res) {
           })
           .catch(() => null),
       ]);
-      const gridAvg = (gridRow && gridRow.coverage > 0 && gridRow.score != null) ? gridRow.score : null;
+      // Fonte unica (`entradaDoScore`), nao copia: a grade parou de devolver
+      // `score` em 19/09/2026 e ler o campo direto daria null pra todo mundo.
+      const gridAvg = entradaDoScore(gridRow).gridAvg;
       const gridSemCobertura = !!(gridRow && gridRow.measured > 0 && gridRow.coverage === 0);
       const gridCobertura = gridRow?.coverage ?? null;
       const gridMedidos = gridRow?.measured ?? null;
@@ -2667,7 +2670,10 @@ export default async function handler(req, res) {
         // medicao" — que e a diferenca entre conferir o e-mail e ser enganado
         // por ele.
         grid: gridRow
-          ? { fonte: "cache", coverage: gridCobertura, measured: gridMedidos, score: gridRow.score ?? null }
+          // `posicao` no lugar do antigo `score` da grade (que deixou de
+          // existir em 19/09/2026): o diagnostico tem que mostrar o numero que
+          // REALMENTE entrou no Score, senao ele confere outra coisa.
+          ? { fonte: "cache", coverage: gridCobertura, measured: gridMedidos, posicao: gridAvg ?? null }
           : { fonte: "sem cache fresco", aviso: "o Score deste teste nao inclui posicao — o envio real inclui, se houver medicao dos ultimos 7 dias" },
         // DECLARA o que entrou no e-mail. Sem isto, um marco ausente ou um
         // negocio sem dispositivo produziriam um e-mail mais curto sem que o

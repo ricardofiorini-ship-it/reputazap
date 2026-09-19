@@ -1345,7 +1345,18 @@ export async function fetchGridRanking({ placeId, terms, spacingM = GRID_SPACING
     // ranqueia melhor. Sem isso, um negócio que aparece 1x em #1 furava a fila
     // de quem está sempre em #3. A LISTA e a posição do dono vêm da MESMA
     // medição do Hero (o "#N" do topo bate com a lista).
-    const PENALTY = 21;               // "além do top 20" pros pontos onde o negócio some
+    // A PENALIDADE DE 21 SAIU DAQUI (19/09/2026). Ela era o "além do top 20"
+    // atribuido a cada ponto em que o negocio nao aparecia, e servia pra
+    // ordenar. O problema e' que um numero so nao responde "em que lugar voce
+    // aparece" e "em quantos lugares voce aparece" ao mesmo tempo — foi o que
+    // fez o topo dizer 8,4 com a lista mostrando o dono em 1o.
+    // Agora a ordem e' explicita: COBERTURA primeiro (em quantos pontos
+    // aparece), POSICAO como desempate. Mesma intencao de antes — quem aparece
+    // sempre em 3o vence quem apareceu uma vez em 1o — sem numero inventado.
+    // O 21 continua existindo em UM lugar so, com nome: `posicaoComAusencia()`
+    // em `_lib/visibilidade.js`, que alimenta o Score StarTouch (anel do painel
+    // e nota do e-mail). Mexer nele muda a nota de todo cliente de uma vez e e'
+    // decisao de produto, tomada em 15/09 por manter.
     const nPts = pts.length;          // denominador = pontos MEDIDOS (não os 5 fixos)
     const agg = new Map();            // place_id -> { name, rating, reviews, positions[] }
     for (const p of pts) (p.list || []).forEach((biz, i) => {
@@ -1356,35 +1367,28 @@ export async function fetchGridRanking({ placeId, terms, spacingM = GRID_SPACING
     const rankingArr = [...agg.values()]
       .map((c) => {
         const sum = c.positions.reduce((a, b) => a + b, 0);
-        const score = (sum + PENALTY * (nPts - c.positions.length)) / nPts;
         return {
           place_id: c.place_id, name: c.name, address: c.address || null, rating: c.rating, reviews: c.reviews,
-          _score: score, points: c.positions.length, is_me: c.place_id === placeId,
-          // DOIS números, de propósito:
-          // `avg`   = média crua dos pontos em que aparece (some quando ausente).
-          // `score` = média contando cada ausência como 21ª. É o que ORDENA.
-          // Só o `score` pode ir na tela ao lado do ordinal: mostrar `avg` numa
-          // lista ordenada por `score` produz "5º com 9,4 acima de 6º com 7,0"
-          // (quem some em 1 ponto tem avg boa e posição ruim) — parece bug.
+          points: c.positions.length, is_me: c.place_id === placeId,
+          // `avg` = média dos pontos EM QUE APARECE. Sozinha ela nao ordena
+          // (quem aparece uma vez em 1o teria a melhor media da lista), e por
+          // isso a ordem usa `points` antes dela.
           avg: Math.round((sum / c.positions.length) * 10) / 10,
-          score: Math.round(score * 10) / 10,
         };
       })
-      .sort((a, b) => a._score - b._score);
+      // COBERTURA primeiro, POSICAO como desempate. Le-se: "aparece em mais
+      // lugares vem antes; entre os que aparecem no mesmo tanto, quem aparece
+      // melhor vem antes".
+      .sort((a, b) => (b.points - a.points) || (a.avg - b.avg));
     const myIdx = rankingArr.findIndex((c) => c.is_me);
     const rank = myIdx >= 0 ? myIdx + 1 : null;   // posição ORDINAL do dono na região
-    // `score` do dono: MESMA conta que ordena a lista. O Hero mostra este número
-    // (e não `avg`), senão o topo diz 3,2 e a linha do dono na lista diz outra
-    // coisa quando ele some de algum ponto.
-    const score = myIdx >= 0 ? rankingArr[myIdx].score : null;
     // `place_id` FICA (15/09). Sem ele, `ranking` e `observations` nao podem
     // ser cruzados — e e justamente o cruzamento que permite dizer "a X ficou
     // acima de voce nos pontos em que voces estavam a distancias parecidas".
     // Nao e dado sensivel: viaja na URL de qualquer ficha do Google Maps.
-    // Sai so o `_score`, que e conta interna.
-    const strip = ({ _score, ...r }) => r;
-    let ranking = rankingArr.slice(0, 12).map(strip);
-    if (myIdx >= 12) ranking.push(strip(rankingArr[myIdx]));   // garante o dono na lista
+    // Nao ha mais campo interno a esconder: o `_score` sumiu junto com o 21.
+    let ranking = rankingArr.slice(0, 12);
+    if (myIdx >= 12) ranking.push(rankingArr[myIdx]);   // garante o dono na lista
 
     // `measured` = quantos dos 5 pontos o Google respondeu. measured 0 = não
     // sabemos nada; o chamador NÃO pode ler isso como "fora da lista".
@@ -1395,7 +1399,7 @@ export async function fetchGridRanking({ placeId, terms, spacingM = GRID_SPACING
       // quebrar ninguem neste passo; `observations` e o que as metricas novas
       // consomem (api/_lib/visibilidade.js).
       observations: allPts.map((p) => p.obs),
-      avg, score, coverage: present.length, measured: nPts,
+      avg, coverage: present.length, measured: nPts,
       rank, total: rankingArr.length, ranking,
     };
   }));
