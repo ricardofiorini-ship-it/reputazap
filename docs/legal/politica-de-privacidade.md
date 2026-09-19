@@ -10,7 +10,7 @@ A StarTouch é uma marca operada por:
 
 **ZAYOR BRASIL LTDA**
 CNPJ 68.972.361/0001-33
-Rua João Cordeiro, 111 — Box A007
+Rua João Cordeiro, 311
 Moinho Velho — São Paulo/SP — CEP 02960-000
 
 Para os fins da Lei Geral de Proteção de Dados (Lei nº 13.709/2018), a ZAYOR BRASIL é a **controladora** dos dados pessoais tratados no site startouch.com.br e no painel StarTouch.
@@ -290,7 +290,7 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 
 **Encarregado pelo Tratamento de Dados Pessoais:** Ricardo Fiorini
 **E-mail:** privacidade@startouch.com.br
-**Endereço:** Rua João Cordeiro, 111 — Box A007 — Moinho Velho — São Paulo/SP — CEP 02960-000
+**Endereço:** Rua João Cordeiro, 311 — Moinho Velho — São Paulo/SP — CEP 02960-000
 
 Para assuntos comerciais e de suporte, o canal continua sendo contato@startouch.com.br.
 

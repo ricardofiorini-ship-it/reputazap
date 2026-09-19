@@ -8,7 +8,7 @@
 
 **ZAYOR BRASIL LTDA**
 CNPJ 68.972.361/0001-33
-Rua João Cordeiro, 111 — Box A007
+Rua João Cordeiro, 311
 Moinho Velho — São Paulo/SP — CEP 02960-000
 contato@startouch.com.br · (11) 97694-4026
 
