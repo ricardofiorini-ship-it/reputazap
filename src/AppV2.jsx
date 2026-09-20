@@ -4321,7 +4321,7 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
                   <Stars rating={r.rating} size={11} />
                   <span>{r.rating.toFixed(1).replace('.', ',')}</span>
                   <span style={{ color: T.textDim }}>·</span>
-                  <span>{r.reviews} avaliações</span>
+                  <span>{(r.reviews ?? 0).toLocaleString('pt-BR')} avaliações</span>
                 </div>
               </div>
               {/* Teaser de movimento — concorrente acelerando / ▲ seu crescimento */}
@@ -4455,7 +4455,7 @@ function Opportunities({ count, placeId }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 16, fontWeight: 700, color:'#78350F', margin:'0 0 8px', lineHeight: 1.3 }}>
             {count != null
-              ? <>Você possui <span style={{ color: T.amber }}>{count} avaliações</span> aguardando resposta.</>
+              ? <>Você possui <span style={{ color: T.amber }}>{(count ?? 0).toLocaleString('pt-BR')} avaliações</span> aguardando resposta.</>
               : <>Responda suas avaliações no Google.</>}
           </h3>
           <p style={{ fontSize: 13, color:'#92400E', margin: 0, lineHeight: 1.55 }}>
@@ -5332,7 +5332,7 @@ ${corte}
         <>
           <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 16px', lineHeight: 1.5 }}>
             {hasReviews
-              ? `Você já tem ${reviewCount} avaliações — ótimo! Um dispositivo NFC transforma cada cliente em avaliação, sem você precisar pedir.`
+              ? `Você já tem ${(reviewCount ?? 0).toLocaleString('pt-BR')} avaliações — ótimo! Um dispositivo NFC transforma cada cliente em avaliação, sem você precisar pedir.`
               : 'Coloque um dispositivo NFC no balcão e transforme cada atendimento em avaliação no Google, no automático.'}
           </p>
 
@@ -5731,7 +5731,7 @@ function ReviewsScreen({ data, isMobile }) {
                 {(data.kpis.rating || avg).toFixed(1).replace('.', ',')}
               </div>
               <div style={{ margin:'4px 0' }}><Stars rating={data.kpis.rating || avg} size={isMobile ? 16 : 18}/></div>
-              <div style={{ fontSize: 12.5, color: T.textMid }}>{data.kpis.reviewCount || total} avaliações</div>
+              <div style={{ fontSize: 12.5, color: T.textMid }}>{(data.kpis.reviewCount || total || 0).toLocaleString('pt-BR')} avaliações</div>
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap: 4 }}>
               {counts.map(({ s, n }) => {
@@ -6143,7 +6143,7 @@ function GuestSearch({ isMobile }) {
                       }}>
                         <span style={{ fontSize:14.5, fontWeight:700, color:T.text }}>{b.name}</span>
                         <span style={{ fontSize:12.5, color:T.textMid }}>{b.address || 'Endereço não informado no Google'}</span>
-                        <span style={{ fontSize:12, color:T.textDim }}>{b.rating || '—'} · {b.total || 0} avaliações</span>
+                        <span style={{ fontSize:12, color:T.textDim }}>{typeof b.rating === 'number' ? b.rating.toFixed(1).replace('.', ',') : '—'} · {(b.total || 0).toLocaleString('pt-BR')} avaliações</span>
                       </button>
                     ))}
                   </div>
