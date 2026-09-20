@@ -4492,6 +4492,266 @@ function Opportunities({ count, placeId }) {
   )
 }
 
+// ═════════════════════════════════════════════════════════════
+// PAINEL DO VISITANTE — VITRINE (20/09/2026)
+// ─────────────────────────────────────────────────────────────
+// Desenho aprovado pelo Ricardo. O painel do visitante deixa de ser relatório
+// e vira vitrine: quatro números de leitura instantânea, o anúncio do produto,
+// o que ele ganha, como ele está contra os vizinhos e o convite final.
+//
+// SÓ O VISITANTE. Quem já é cliente continua com o painel de sempre — o herói
+// aqui diz "leve a StarTouch pro seu negócio", frase que só é verdade pra quem
+// ainda não levou. Trocar a tela de quem paga é outra decisão, e não foi
+// tomada.
+//
+// TUDO É DADO MEDIDO, menos o anúncio. Nenhum número desta tela é escolhido a
+// dedo: nota e avaliações saem da leitura ao vivo do Google, presença local sai
+// da cobertura da grade e "concorrentes analisados" é o tamanho da lista que a
+// própria tela desenha logo abaixo. A frase que resume a tabela muda conforme a
+// posição real — no desenho ela diz "aparece com destaque", e dizer isso pra
+// quem está em 11º seria a mentira mais cara da tela.
+// ═════════════════════════════════════════════════════════════
+
+const VITRINE_CORES = {
+  amber:  { fg:'#B45309', icon:'#F59E0B', bg:'#FFFBEB', ring:'#FDE68A' },
+  blue:   { fg:'#1E40AF', icon:'#2563EB', bg:'#EFF6FF', ring:'#BFDBFE' },
+  green:  { fg:'#047857', icon:'#10B981', bg:'#ECFDF5', ring:'#A7F3D0' },
+  purple: { fg:'#6D28D9', icon:'#7C3AED', bg:'#F5F3FF', ring:'#DDD6FE' },
+  red:    { fg:'#B91C1C', icon:'#EF4444', bg:'#FEF2F2', ring:'#FECACA' },
+}
+
+// "Presença local: Forte" em uma palavra, a partir da COBERTURA medida — em
+// quantos dos pontos da grade o negócio aparece no Top 10. É a mesma medição
+// que alimentava o "100%" do painel antigo, só que traduzida: o dono não tem
+// que saber o que é cobertura pra entender "Forte".
+// Sem medição não inventa rótulo — diz que está medindo.
+function presencaLocal(visib) {
+  const c = visib?.metricas?.top10_coverage
+  if (typeof c !== 'number') return { texto: 'Medindo…', tom: 'blue', pct: null }
+  if (c >= 0.8) return { texto: 'Forte', tom: 'green', pct: c }
+  if (c >= 0.4) return { texto: 'Média', tom: 'amber', pct: c }
+  return { texto: 'Fraca', tom: 'red', pct: c }
+}
+
+function VitrineKpiCard({ tom, Icon, label, valor, sufixo = null, isMobile }) {
+  const c = VITRINE_CORES[tom] || VITRINE_CORES.blue
+  return (
+    <div style={{
+      background: c.bg, border:`1px solid ${c.ring}`, borderRadius: 14,
+      padding: isMobile ? '13px 14px' : '16px 18px',
+      display:'flex', alignItems:'center', gap: isMobile ? 11 : 14, minWidth: 0
+    }}>
+      <span style={{
+        flexShrink: 0, width: isMobile ? 38 : 44, height: isMobile ? 38 : 44, borderRadius: 12,
+        background:'#fff', color: c.icon, boxShadow:'0 1px 2px rgba(0,0,0,.05)',
+        display:'inline-flex', alignItems:'center', justifyContent:'center'
+      }}>
+        <Icon size={isMobile ? 19 : 22}/>
+      </span>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: isMobile ? 11.5 : 12.5, color: T.textMid, fontWeight: 600, marginBottom: 2, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{label}</div>
+        <div style={{
+          fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 19 : 24, fontWeight: 800,
+          color: c.fg, lineHeight: 1.1, letterSpacing:'-0.02em',
+          display:'inline-flex', alignItems:'center', gap: 5
+        }}>{valor}{sufixo}</div>
+      </div>
+    </div>
+  )
+}
+
+function VitrineKpis({ meLive, visib, gridPrimary, isMobile }) {
+  const nota = Number.isFinite(meLive?.rating) ? meLive.rating : null
+  const total = Number.isFinite(meLive?.reviews) ? meLive.reviews : null
+  const presenca = presencaLocal(visib)
+  // Concorrentes ANALISADOS, não "existentes": é o tamanho da lista que a tela
+  // desenha logo abaixo, então o número do card e a tabela nunca divergem.
+  const rivais = (gridPrimary?.ranking || []).filter(r => r && !r.is_me).length
+  return (
+    <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, minmax(0,1fr))', gap: isMobile ? 10 : 14 }}>
+      <VitrineKpiCard tom="amber" Icon={Star} label="Nota no Google" isMobile={isMobile}
+        valor={nota != null ? nota.toFixed(1).replace('.', ',') : '—'}
+        sufixo={nota != null ? <Star size={isMobile ? 15 : 18} fill={VITRINE_CORES.amber.icon} color={VITRINE_CORES.amber.icon} strokeWidth={0}/> : null}/>
+      <VitrineKpiCard tom="blue" Icon={MessageSquare} label="Avaliações" isMobile={isMobile}
+        valor={total != null ? total.toLocaleString('pt-BR') : '—'}/>
+      <VitrineKpiCard tom={presenca.tom} Icon={MapPin} label="Presença local" isMobile={isMobile}
+        valor={presenca.texto}/>
+      <VitrineKpiCard tom="purple" Icon={Users} label="Concorrentes analisados" isMobile={isMobile}
+        valor={rivais || '—'}/>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// O ANÚNCIO — o único bloco da tela que não é medição
+// ─────────────────────────────────────────────────────────────
+// A arte é a foto real dos quatro dispositivos (`/hero-header.png`, a mesma da
+// landing). Não é render nem mockup: o que aparece aqui é o que chega na caixa.
+function VitrineAnuncio({ isMobile, onConhecer, onAtivar }) {
+  const btnBase = {
+    display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 8,
+    borderRadius: 12, padding: isMobile ? '13px 18px' : '14px 22px',
+    fontSize: isMobile ? 14 : 15, fontWeight: 700, fontFamily:"'Inter', sans-serif",
+    textDecoration:'none', cursor:'pointer', border:'none', minHeight: 48
+  }
+  const linkPe = {
+    display:'flex', alignItems:'center', gap: 10, textDecoration:'none',
+    background:'none', border:'none', padding: 0, cursor:'pointer',
+    fontFamily:'inherit', textAlign:'left', minWidth: 0
+  }
+  return (
+    <Card padded={false}>
+      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0,1.05fr) minmax(0,0.95fr)' }}>
+        {/* Coluna do texto */}
+        <div style={{ padding: isMobile ? '24px 20px 22px' : '36px 38px 32px', minWidth: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing:'.12em', textTransform:'uppercase', color: T.primary, marginBottom: 14 }}>
+            StarTouch para o seu negócio
+          </div>
+          <h2 style={{
+            fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 27 : 38, fontWeight: 800,
+            color: T.text, letterSpacing:'-0.03em', lineHeight: 1.12, margin:'0 0 14px', textWrap:'balance'
+          }}>
+            Leve a <span style={{ color: T.primary }}>StarTouch</span><br/>para o seu negócio
+          </h2>
+          <p style={{ fontSize: isMobile ? 15 : 16.5, fontWeight: 700, color: T.text, lineHeight: 1.4, margin:'0 0 10px' }}>
+            Peça a avaliação no momento certo e acompanhe quais pontos estão gerando mais interações.
+          </p>
+          <p style={{ fontSize: isMobile ? 13.5 : 14.5, color: T.textMid, lineHeight: 1.55, margin:'0 0 22px', maxWidth: 480 }}>
+            Com um cartão ou placa StarTouch, sua equipe aproxima o cliente do Google de forma simples — e você acompanha tudo pelo painel.
+          </p>
+
+          <div style={{ display:'flex', gap: 12, flexWrap:'wrap' }}>
+            <a href="/kit" onClick={onConhecer} style={{ ...btnBase, background: T.primary, color:'#fff', flex: isMobile ? '1 1 100%' : '0 0 auto' }}>
+              <ShoppingCart size={18}/> Conhecer os dispositivos
+            </a>
+            <a href="/ativar-codigo" onClick={onAtivar} style={{ ...btnBase, background:'#fff', color: T.primary, border:`1.5px solid ${T.primary}`, flex: isMobile ? '1 1 100%' : '0 0 auto' }}>
+              <Key size={18}/> Ativar meu dispositivo
+            </a>
+          </div>
+          <div style={{ fontSize: 12, color: T.textDim, marginTop: 10 }}>
+            Sem mensalidade obrigatória nos recursos gratuitos.
+          </div>
+
+          <div style={{ height: 1, background: T.border, margin: isMobile ? '20px 0 16px' : '24px 0 18px' }}/>
+
+          <div style={{ display:'flex', gap: isMobile ? 14 : 22, flexWrap:'wrap', alignItems:'center' }}>
+            <a href="/kit" onClick={onConhecer} style={{ ...linkPe, flex:'1 1 200px' }}>
+              <span style={{ flexShrink:0, color: T.primary, display:'inline-flex' }}><Sparkles size={19}/></span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display:'block', fontSize: 13.5, fontWeight: 700, color: T.primary, lineHeight: 1.3 }}>Ainda não tem StarTouch?</span>
+                <span style={{ display:'block', fontSize: 12.5, color: T.textDim, lineHeight: 1.35 }}>Conheça os dispositivos.</span>
+              </span>
+            </a>
+            {!isMobile && <span style={{ width: 1, alignSelf:'stretch', background: T.border }}/>}
+            <a href="/ativar-codigo" onClick={onAtivar} style={{ ...linkPe, flex:'1 1 200px' }}>
+              <span style={{ flexShrink:0, color: T.primary, display:'inline-flex' }}><Smartphone size={19}/></span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display:'block', fontSize: 13.5, fontWeight: 700, color: T.primary, lineHeight: 1.3 }}>Já comprou seu dispositivo?</span>
+                <span style={{ display:'block', fontSize: 12.5, color: T.textDim, lineHeight: 1.35 }}>Ative em poucos minutos.</span>
+              </span>
+            </a>
+          </div>
+        </div>
+
+        {/* Coluna da arte */}
+        <div style={{
+          background:'linear-gradient(140deg, #EFF6FF 0%, #E3EDFF 55%, #DBEAFE 100%)',
+          display:'flex', alignItems:'center', justifyContent:'center', position:'relative',
+          padding: isMobile ? '10px 18px 26px' : '28px 26px', minHeight: isMobile ? 0 : 340
+        }}>
+          <img src="/hero-header.png" width="1400" height="933"
+            alt="Placa de balcão, cartão e pulseira StarTouch com QR Code para avaliar no Google"
+            style={{ width:'100%', maxWidth: isMobile ? 400 : 460, height:'auto', display:'block' }}/>
+          {!isMobile && (
+            <div style={{
+              position:'absolute', right: 20, top: 34, maxWidth: 150, textAlign:'right',
+              fontSize: 13, fontStyle:'italic', fontWeight: 600, color: T.primaryDark, lineHeight: 1.5,
+              transform:'rotate(-4deg)'
+            }}>
+              Mais clientes.<br/>Mais avaliações.<br/>Mais resultados.
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// O QUE ELE GANHA — três frases, nenhuma promessa de posição
+// ─────────────────────────────────────────────────────────────
+// Nenhum dos três cartões promete subir no Google, e isso é de propósito: o que
+// a StarTouch entrega é pedido de avaliação na hora certa e medição de quem
+// pediu. Posição é consequência, não contrato.
+function VitrineBeneficios({ isMobile }) {
+  const itens = [
+    { tom:'blue',   Icon: BarChart3, titulo:'Conquistar mais avaliações', texto:'Facilite o pedido de avaliação no momento do atendimento.' },
+    { tom:'green',  Icon: Tag,       titulo:'Identificar cada dispositivo', texto:'Nomeie cada cartão, placa ou ponto de contato para saber o que performa melhor.' },
+    { tom:'purple', Icon: TrendingUp, titulo:'Acompanhar resultados', texto:'Veja interações, desempenho por dispositivo e evolução ao longo do tempo.' },
+  ]
+  return (
+    <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0,1fr))', gap: isMobile ? 12 : 16 }}>
+      {itens.map(({ tom, Icon, titulo, texto }) => {
+        const c = VITRINE_CORES[tom]
+        return (
+          <Card key={titulo} style={{ padding: isMobile ? 18 : 22 }}>
+            <div style={{ display:'flex', alignItems:'flex-start', gap: 14 }}>
+              <span style={{
+                flexShrink: 0, width: 44, height: 44, borderRadius: 12,
+                background: c.bg, color: c.icon,
+                display:'inline-flex', alignItems:'center', justifyContent:'center'
+              }}><Icon size={22}/></span>
+              <div style={{ minWidth: 0 }}>
+                <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 15.5, fontWeight: 700, color: T.text, margin:'0 0 5px', lineHeight: 1.3 }}>{titulo}</h3>
+                <p style={{ fontSize: 13, color: T.textMid, lineHeight: 1.5, margin: 0 }}>{texto}</p>
+              </div>
+            </div>
+          </Card>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// O CONVITE FINAL
+// ─────────────────────────────────────────────────────────────
+function VitrineCta({ isMobile, onClick }) {
+  return (
+    <Card padded={false} style={{ border:'none', background:`linear-gradient(115deg, ${T.primary} 0%, ${T.primaryDark} 100%)` }}>
+      <div style={{ position:'absolute', inset: 0, background:'radial-gradient(ellipse 80% 70% at 105% 10%, rgba(255,255,255,.14), transparent 62%)', pointerEvents:'none' }}/>
+      <div style={{
+        position:'relative', padding: isMobile ? '22px 20px' : '26px 30px',
+        display:'flex', alignItems:'center', gap: isMobile ? 14 : 20,
+        flexWrap:'wrap'
+      }}>
+        <span style={{
+          flexShrink: 0, width: 48, height: 48, borderRadius: 14,
+          background:'rgba(255,255,255,.16)', color:'#fff',
+          display:'inline-flex', alignItems:'center', justifyContent:'center'
+        }}><Rocket size={24}/></span>
+        <div style={{ flex:'1 1 260px', minWidth: 0, color:'#fff' }}>
+          <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 17 : 20, fontWeight: 700, margin:'0 0 4px', letterSpacing:'-0.02em', lineHeight: 1.25 }}>
+            Pronto para transformar cada atendimento em uma nova avaliação?
+          </h3>
+          <p style={{ fontSize: isMobile ? 13 : 14, opacity: .9, margin: 0, lineHeight: 1.5 }}>
+            Comece com um dispositivo StarTouch e acompanhe os resultados desde o primeiro toque.
+          </p>
+        </div>
+        <a href="/kit" onClick={onClick} style={{
+          flexShrink: 0, display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6,
+          background:'#fff', color: T.primaryDark, textDecoration:'none',
+          borderRadius: 12, padding:'13px 20px', fontSize: 14, fontWeight: 700,
+          fontFamily:"'Inter', sans-serif", minHeight: 48,
+          width: isMobile ? '100%' : 'auto'
+        }}>
+          Quero começar com a StarTouch <ChevronRight size={17}/>
+        </a>
+      </div>
+    </Card>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────
 // Bloco 3 — Ação da semana (1 só). Escada de prioridade:
 //  1) avaliação de 1-2 estrelas sem resposta → responder. Nota baixa calada
@@ -6613,7 +6873,7 @@ const COL = { avg: 58, rating: 46, reviews: 60 }
 // usa esses valores; os concorrentes ficam com o que a grade mediu (até 7 dias).
 // Mesma decisão de `lacunaDeAvaliacoes` — e pelo mesmo motivo: era o mesmo
 // negócio aparecendo com dois totais na mesma tela.
-function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = false, meLive = null }) {
+function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = false, meLive = null, vitrine = false }) {
   // Comparação controlada: só com medição nova (`observations`) e só contra o
   // concorrente que mais fica acima. Um rival por vez — lista de cinco viraria
   // relatório, e o dono não age sobre cinco coisas.
@@ -6631,12 +6891,61 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
   if (!data?.ranking?.length) return null
   const th = { fontSize: 10, fontWeight: 700, letterSpacing:'0.04em', textTransform:'uppercase', color: T.textDim, flexShrink: 0 }
   const num = { fontVariantNumeric:'tabular-nums', flexShrink: 0, textAlign:'right' }
+  // A ORDEM SAI DE UM LUGAR SÓ, e é calculada antes do cabeçalho porque a frase
+  // que resume a tabela depende de onde o dono caiu nela.
+  // MESMA REGRA DO SERVIDOR: COBERTURA primeiro, POSIÇÃO como desempate
+  // (20/09). O `competitors.js` passou a ordenar assim em 19/09 (commit
+  // 26581d7) e a TELA continuou reordenando pelo critério antigo — posição
+  // primeiro —, desfazendo a mudança antes de desenhar. Resultado no painel da
+  // Smart Fit: quatro negócios "parcial" (aparecem só num pedaço da área)
+  // encabeçando a lista em 1º e 2º, e o dono — que aparece nos cinco pontos —
+  // em 6º, contradizendo o topo da mesma tela.
+  // Fica AQUI, e não só no servidor, de propósito: payload servido de cache v2
+  // chega na ordem velha e esta linha normaliza as duas eras.
+  const linhas = [...data.ranking]
+    .sort((a, b) => (b.points ?? 0) - (a.points ?? 0) || (a.avg ?? 99) - (b.avg ?? 99))
+  const minhaPos = linhas.findIndex(r => r && r.is_me)
+  // A FRASE DO MOCK VALE PRO PRIMEIRO CASO, E SÓ PRA ELE. "Aparece com destaque
+  // na região" dito a quem está em 11º é a mentira mais cara que esta tela
+  // poderia contar — o dono confere em trinta segundos e não volta.
+  const resumo = minhaPos < 0
+    ? 'Ainda não localizamos sua empresa nesta busca — veja quem está aparecendo no seu lugar.'
+    : minhaPos === 0
+      ? 'Sua empresa aparece com destaque na região, mas ainda há espaço para evoluir.'
+      : minhaPos <= 2
+        ? 'Sua empresa aparece bem na região, mas há concorrentes na sua frente.'
+        : 'Há vários concorrentes aparecendo mais que você na região — dá pra virar esse jogo.'
   return (
     <Card>
+      {vitrine ? (
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap: 14, flexWrap:'wrap', marginBottom: 10 }}>
+          <div style={{ display:'flex', alignItems:'flex-start', gap: 11, flex:'1 1 280px', minWidth: 0 }}>
+            <span style={{ flexShrink: 0, color: T.accent, display:'inline-flex', marginTop: 1 }}><Award size={24}/></span>
+            <div style={{ minWidth: 0 }}>
+              <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 16 : 18, fontWeight: 700, color: T.text, margin:'0 0 3px', letterSpacing:'-0.01em', lineHeight: 1.3 }}>
+                Veja como você está em relação aos concorrentes
+              </h3>
+              <p style={{ fontSize: 13, color: T.textMid, margin: 0, lineHeight: 1.45 }}>{resumo}</p>
+            </div>
+          </div>
+          {/* O botão do desenho é, no visitante, o portão: os nomes continuam
+              borrados e é aqui que ele troca cadastro por eles. Pro cliente
+              logado ele leva à lista inteira, que já está logo abaixo. */}
+          {isGuest && (
+            <a href={signupUrl || '/ativar?from=web'} onClick={() => trackFunnel('guest_signup_click', { from: 'ranking' })}
+              style={{ flexShrink: 0, display:'inline-flex', alignItems:'center', gap: 6, background:'#fff', color: T.primary,
+                border:`1.5px solid ${T.primary}`, borderRadius: 10, padding:'9px 15px', fontSize: 13, fontWeight: 700,
+                textDecoration:'none', fontFamily:"'Inter', sans-serif" }}>
+              Ver análise completa dos concorrentes <ChevronRight size={16}/>
+            </a>
+          )}
+        </div>
+      ) : (
       <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4 }}>
         <Search size={18} style={{ color: T.primary }}/>
         <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Concorrentes por perto</h3>
       </div>
+      )}
       {/* UM NÚMERO NÃO PODE FAZER DOIS TRABALHOS (01/ago, achado do Ricardo).
           Até aqui a tabela mostrava e ordenava pelo `score` — a posição média JÁ
           com a punição de 21 por ausência embutida. Resultado: a Salve Man
@@ -6668,18 +6977,7 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
         <span style={{ ...th, ...num, width: COL.reviews }}>Avaliações</span>
       </div>
 
-      {[...data.ranking]
-        // MESMA REGRA DO SERVIDOR: COBERTURA primeiro, POSIÇÃO como desempate
-        // (20/09). O `competitors.js` passou a ordenar assim em 19/09 (commit
-        // 26581d7) e a TELA continuou reordenando pelo critério antigo — posição
-        // primeiro —, desfazendo a mudança antes de desenhar. Resultado no
-        // painel da Smart Fit: quatro negócios "parcial" (aparecem só num pedaço
-        // da área) encabeçando a lista em 1º e 2º, e o dono — que aparece nos
-        // cinco pontos — em 6º, contradizendo o topo da mesma tela.
-        // Fica AQUI, e não só no servidor, de propósito: payload servido de
-        // cache v2 chega na ordem velha e esta linha normaliza as duas eras.
-        .sort((a, b) => (b.points ?? 0) - (a.points ?? 0) || (a.avg ?? 99) - (b.avg ?? 99))
-        .map((r, i) => {
+      {linhas.map((r, i) => {
         const me = r.is_me
         const blurName = isGuest && !me
         const some = r.points != null && r.points < data.measured
@@ -6741,7 +7039,10 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
         <DistanciaNaoExplica comp={controlada.comp} eu={controlada.eu} rival={controlada.rival} isMobile={isMobile}/>
       )}
 
-      {isGuest && data.ranking.some(r => !r.is_me) && (
+      {/* Na vitrine o convite já é o botão do cabeçalho ("Ver análise completa
+          dos concorrentes"). Dois botões pedindo a mesma conta no mesmo cartão
+          viram ruído e nenhum dos dois é clicado. */}
+      {isGuest && !vitrine && data.ranking.some(r => !r.is_me) && (
         <div style={{ marginTop: 12, display:'flex', alignItems:'center', gap: 12, flexWrap:'wrap', background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 12, padding:'12px 14px' }}>
           <Lock size={18} color={T.primary} style={{ flexShrink: 0 }}/>
           <div style={{ flex:'1 1 180px', minWidth: 0, fontSize: 13, color: T.textMid, lineHeight: 1.45 }}>
@@ -7928,7 +8229,18 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           </p>
         </div>
 
-        {/* BLOCO 1 — HERO: placar de 5 segundos (score + posição + mini-cards). Spec 3. */}
+        {/* BLOCO 1 — O PLACAR.
+            VISITANTE (20/09): quatro números de leitura instantânea, no lugar
+            do HeroBlock. O HeroBlock respondia "onde eu estou" com cobertura e
+            lacuna — duas ideias que exigem legenda. Nota, avaliações, presença
+            local e concorrentes analisados não exigem nenhuma.
+            CLIENTE: segue com o HeroBlock (Score StarTouch). Mudar a tela de
+            quem paga é outra decisão, e não foi tomada. */}
+        {isGuest ? (
+          <Section>
+            <VitrineKpis meLive={meLive} visib={visib} gridPrimary={gridPrimary} isMobile={isMobile}/>
+          </Section>
+        ) : (
         <Section>
           <HeroBlock
             gridPos={gridPrimary}
@@ -7942,6 +8254,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             onSeeCompetitors={() => { const el = document.getElementById('bloco-concorrentes'); if (el) el.scrollIntoView({ behavior:'smooth', block:'start' }) }}
           />
         </Section>
+        )}
 
         {/* BLOCO 2 — A PORTA PRO MENU INTELIGENTE (08/09/2026).
             O Menu Inteligente vive só no painel novo, e não havia NENHUM
@@ -7975,6 +8288,24 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
               setActivatePlateOpen(true)
             }} />
         </Section>
+
+        {/* BLOCOS 4 e 5 — A VITRINE (20/09). Só pro visitante: é o anúncio do
+            produto e o que ele ganha. Para quem já tem dispositivo ativo isso
+            seria vender o que ele já comprou. */}
+        {isGuest && (
+          <Section>
+            <VitrineAnuncio
+              isMobile={isMobile}
+              onConhecer={() => trackFunnel('guest_kit_click', { from: 'vitrine' })}
+              onAtivar={() => trackFunnel('guest_ativar_click', { from: 'vitrine' })}
+            />
+          </Section>
+        )}
+        {isGuest && (
+          <Section>
+            <VitrineBeneficios isMobile={isMobile}/>
+          </Section>
+        )}
 
         {/* BLOCO 4 — Concorrentes por perto: lentes 1km/3km + categoria. Spec 3.
             TermBar em cima: deixa EXPLÍCITA a categoria de comparação e permite trocá-la. */}
@@ -8014,7 +8345,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
               Sem grade (fallback), usa as lentes 1/3km antigas. */}
           {gridPrimary ? (
             <GridRankingList data={gridPrimary} isGuest={isGuest} signupUrl={guestSignupUrl}
-              placeId={d?.biz?.placeId} isMobile={isMobile} meLive={meLive} />
+              placeId={d?.biz?.placeId} isMobile={isMobile} meLive={meLive} vitrine={isGuest} />
           ) : (gridError || lensState.error) && !lensState.loading && !(lensState.data?.lenses?.length) ? (
             /* As DUAS medições falharam (ou foram barradas): mostra a falha em
                vez de esconder o bloco e deixar parecer "sem concorrente". */
@@ -8046,16 +8377,29 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         )}
 
 
-        {/* BLOCO 5 — Avaliações recentes (mesmo layout em demo e real; o ranking
-            já está nas lentes 1/3km acima). */}
+        {/* AVALIAÇÕES RECENTES e PONTOS DE CAPTAÇÃO — só pra quem é cliente.
+            No visitante os dois viravam cartões quase vazios no fim de uma
+            página que já tinha feito o trabalho dela: as avaliações inteiras
+            estão na aba "Avaliações", ali no menu, e pontos de captação de quem
+            não tem dispositivo nenhum é uma lista de zeros. */}
+        {!isGuest && (
         <Section>
           <RecentReviews items={d.recentReviews} trend={demoMode ? d.trend : null} isMobile={isMobile} onSeeAll={() => setTab('avaliacoes')} />
         </Section>
+        )}
 
-        {/* CAPTURE POINTS — id pra scroll automático de /app#pontos-de-captacao */}
+        {!isGuest && (
         <Section id="pontos-de-captacao">
           <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} bizName={d.biz.name} isAdmin={isAdminUser(user)} reviewCount={d.kpis.reviewCount} isMobile={isMobile} />
         </Section>
+        )}
+
+        {/* O CONVITE FINAL — fecha a vitrine do visitante. */}
+        {isGuest && (
+          <Section>
+            <VitrineCta isMobile={isMobile} onClick={() => trackFunnel('guest_kit_click', { from: 'cta_final' })}/>
+          </Section>
+        )}
 
         {/* O card "Acompanhe sua evolução — crie conta grátis" SAIU (03/ago).
             Ele prometia três coisas de graça por criar conta (evolução semanal,

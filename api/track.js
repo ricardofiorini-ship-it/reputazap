@@ -29,6 +29,13 @@ const STEPS = new Set([
   // com dois remédios diferentes escondidos dentro.
   "signup_form_view",
   "signup_complete",
+  // A VITRINE DO VISITANTE (20/09/2026). O painel do convidado passou a ter
+  // dois destinos que não são o cadastro: a loja (`/kit`) e a ativação de um
+  // dispositivo já comprado (`/ativar-codigo`). Sem estes dois passos aqui, o
+  // clique some — o endpoint devolve 204 e ninguém fica sabendo que a vitrine
+  // funcionou ou não. `meta.from` diz de qual bloco da tela ele saiu.
+  "guest_kit_click",
+  "guest_ativar_click",
 ]);
 
 // Reutilizável pelo próprio backend (ex: /api/register loga signup_complete).
