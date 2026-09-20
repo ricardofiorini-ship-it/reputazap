@@ -6902,9 +6902,22 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
   // em 6º, contradizendo o topo da mesma tela.
   // Fica AQUI, e não só no servidor, de propósito: payload servido de cache v2
   // chega na ordem velha e esta linha normaliza as duas eras.
-  const linhas = [...data.ranking]
+  const ordenadas = [...data.ranking]
     .sort((a, b) => (b.points ?? 0) - (a.points ?? 0) || (a.avg ?? 99) - (b.avg ?? 99))
-  const minhaPos = linhas.findIndex(r => r && r.is_me)
+  const minhaPos = ordenadas.findIndex(r => r && r.is_me)
+  // NA VITRINE A TABELA É CURTA. Doze linhas borradas empurravam o convite pro
+  // fim do mundo e transformavam o bloco num paredão cinza — e o botão "Ver
+  // análise completa" só significa alguma coisa se a lista visível NÃO for
+  // completa. O dono entra na lista mesmo que esteja fora do corte: uma lista
+  // de concorrentes sem o próprio negócio não responde a pergunta que ele veio
+  // fazer.
+  const CORTE_VITRINE = 5
+  let linhas = ordenadas
+  if (vitrine && ordenadas.length > CORTE_VITRINE) {
+    linhas = ordenadas.slice(0, CORTE_VITRINE)
+    if (minhaPos >= CORTE_VITRINE) linhas = [...linhas, ordenadas[minhaPos]]
+  }
+  const ocultas = ordenadas.length - linhas.length
   // A FRASE DO MOCK VALE PRO PRIMEIRO CASO, E SÓ PRA ELE. "Aparece com destaque
   // na região" dito a quem está em 11º é a mentira mais cara que esta tela
   // poderia contar — o dono confere em trinta segundos e não volta.
@@ -7030,6 +7043,14 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
       {data.ranking.some(r => r.points != null && r.points < data.measured) && (
         <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.55 }}>
           <b style={{ color: T.accent }}>parcial</b> — aparece só em parte da região.
+        </div>
+      )}
+      {/* O QUE FICOU DE FORA É DITO EM VOZ ALTA. Cortar a lista sem avisar é o
+          tipo de silêncio que faz o dono achar que só existem cinco academias
+          na região dele. */}
+      {ocultas > 0 && (
+        <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 6, lineHeight: 1.55 }}>
+          Mais {ocultas.toLocaleString('pt-BR')} {ocultas === 1 ? 'negócio disputa' : 'negócios disputam'} esta busca na sua região.
         </div>
       )}
       {/* Só pro cliente: o convidado tem o nome do concorrente borrado na
