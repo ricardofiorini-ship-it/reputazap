@@ -3234,7 +3234,10 @@ function LacunaHeadline({ lacuna, isMobile }) {
 // O que a gente pode afirmar é o que a gente mediu: em quantos dos pontos
 // medidos o negócio aparece bem, e onde ele some. Daí "nesta área analisada",
 // nunca "na sua região" e nunca "no Google".
-function VisibilidadeHeadline({ visib, isMobile }) {
+// `lugar` é a posição média do dono NA LISTA que a tela desenha logo abaixo —
+// vem de quem chama, não de uma conta própria daqui. Ver a nota do dia 20/09
+// em `HeroBlock`, que explica por que a linha de apoio deixou de ser um rank.
+function VisibilidadeHeadline({ visib, isMobile, lugar = null }) {
   if (!visib) return null
   const { metricas: m, posicao } = visib
   const grande = { fontSize: isMobile ? 34 : 42, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em' }
@@ -3278,8 +3281,19 @@ function VisibilidadeHeadline({ visib, isMobile }) {
         dos pontos medidos mostram você no <strong style={{ color: T.text }}>Top 10</strong>
         {m.top3_coverage > 0 && <> · Top 3 em {pct(m.top3_coverage)}</>}
       </div>
-      {posicao.rank != null && (
-        <div style={apoio}>{posicao.rank}ª mais visível nesta área, entre {posicao.total} negócios</div>
+      {/* AQUI MORREU O "Xª MAIS VISÍVEL NESTA ÁREA, ENTRE N NEGÓCIOS" (20/09).
+          Ele ordenava por COBERTURA, e a grade é desenhada ao redor da porta do
+          dono: ele alcança os cinco pontos e o vizinho a 1 km alcança um ou
+          dois, então a medalha saía quase automática — a calibragem de 15/09 já
+          tinha dado "1ª" pra 4 de 8 negócios testados, e por isso a frase virou
+          linha de apoio em vez de manchete. Só que continuar na tela não bastava
+          rebaixar: ela ficava a três centímetros de uma tabela dizendo "6º", e
+          as duas respondiam à MESMA pergunta do dono ("em que lugar eu estou?")
+          com números que se desmentiam. É a família do "1º de N" de agosto.
+          No lugar dela vai o número que a tabela imprime, vindo da mesma linha
+          da mesma lista — não uma segunda conta parecida. */}
+      {lugar != null && (
+        <div style={apoio}>quando aparece, é em <strong style={{ color: T.text }}>{lugar}º lugar</strong>, em média</div>
       )}
       {/* Onde ele SOME é a única linha acionável aqui — "melhore a colocação"
           não é instrução, "você não aparece em 2 dos 5 pontos" é. */}
@@ -3340,12 +3354,21 @@ function enderecoCurto(addr) {
 // trabalho; acima disso o nome e o número do rival contam a história sozinhos.
 const LACUNA_ALCANCAVEL = 50
 
-function lacunaDeAvaliacoes(ranking) {
+// `meLive` = a nota e o total do dono lidos AGORA do Google (`/api/bizinfo` e
+// `/api/reviews`). Quando existem, mandam — ver a nota logo abaixo.
+function lacunaDeAvaliacoes(ranking, meLive = null) {
   const rows = Array.isArray(ranking) ? ranking : []
   const eu = rows.find(r => r.is_me)
   if (!eu || eu.reviews == null) return null
 
-  const meus = eu.reviews
+  // O NÚMERO DO DONO É O DE HOJE, EM TODA A TELA (20/09). A grade fica em cache
+  // por até 7 dias: o topo mostrava o total vivo e a lista logo abaixo o total
+  // da semana passada — o mesmo negócio com dois totais e duas notas na mesma
+  // tela, e quem confere no Google vê só o de hoje. Os CONCORRENTES seguem com
+  // o valor medido: não temos leitura ao vivo deles, e estimar seria trocar um
+  // número velho e honesto por um inventado.
+  const meus = (meLive && Number.isFinite(meLive.reviews)) ? meLive.reviews : eu.reviews
+  const minhaNota = (meLive && Number.isFinite(meLive.rating)) ? meLive.rating : (eu.rating ?? null)
   const outros = rows.filter(r => !r.is_me && r.reviews != null && r.name)
 
   // Quem está logo à frente: o de MENOR total entre os que têm mais que eu.
@@ -3357,7 +3380,7 @@ function lacunaDeAvaliacoes(ranking) {
     // Lidero em volume. A manchete vira defesa: quanto de vantagem eu tenho.
     const segundo = outros.sort((a, b) => b.reviews - a.reviews)[0] || null
     return {
-      caso: 'lider', meus, minhaNota: eu.rating ?? null,
+      caso: 'lider', meus, minhaNota,
       rival: segundo ? { nome: segundo.name, reviews: segundo.reviews, nota: segundo.rating ?? null } : null,
       vantagem: segundo ? meus - segundo.reviews : null,
     }
@@ -3366,12 +3389,12 @@ function lacunaDeAvaliacoes(ranking) {
   const faltam = frente.reviews - meus
   return {
     caso: faltam <= LACUNA_ALCANCAVEL ? 'perto' : 'longe',
-    meus, minhaNota: eu.rating ?? null,
+    meus, minhaNota,
     rival: { nome: frente.name, reviews: frente.reviews, nota: frente.rating ?? null },
     faltam,
     // A linha que fecha o argumento — e que vale em 56% da base, não é bônus:
     // nota melhor E atrás quer dizer que o problema não é a qualidade dele.
-    notaMelhor: (eu.rating != null && frente.rating != null && eu.rating > frente.rating),
+    notaMelhor: (minhaNota != null && frente.rating != null && minhaNota > frente.rating),
   }
 }
 
@@ -3395,6 +3418,14 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
     : null
   const lugar = lugarBruto != null ? Math.max(1, Math.round(lugarBruto)) : null
   const corLugar = lugar == null ? T.text : lugar <= 3 ? T.success : lugar <= 10 ? T.accent : T.danger
+  // O MESMO NÚMERO QUE A TABELA IMPRIME (20/09). A linha de apoio da coluna de
+  // visibilidade sai da LINHA DO DONO na lista de concorrentes logo abaixo,
+  // arredondada do mesmo jeito — não de uma conta paralela. Duas contas
+  // parecidas na mesma tela foi exatamente o que produziu "1ª mais visível" a
+  // três centímetros de "6º". `lugar` (a média da grade) fica de reserva pra
+  // medição antiga, que não traz `ranking`.
+  const euNaLista = (gridPos?.ranking || []).find(r => r && r.is_me)
+  const lugarNaLista = (euNaLista && euNaLista.avg != null) ? Math.max(1, Math.round(euNaLista.avg)) : lugar
   // `lacuna` so e calculada pro visitante — entao ela e, aqui dentro, o
   // interruptor "esta tela e de aquisicao".
   const visitante = !!lacuna
@@ -3410,7 +3441,7 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
             /* COBERTURA quando a medição é nova (tem `observations`); a
                colocação antiga enquanto houver cache v2, que expira sozinho em
                até 7 dias. Degradar sem quebrar. */
-            visib ? <VisibilidadeHeadline visib={visib} isMobile={isMobile}/> :
+            visib ? <VisibilidadeHeadline visib={visib} isMobile={isMobile} lugar={lugarNaLista}/> :
             lugar != null ? (
               <>
                 <div style={{ fontSize: isMobile ? 34 : 42, fontWeight: 800, lineHeight: 1, letterSpacing:'-0.02em', color: corLugar }}>
@@ -3453,7 +3484,7 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
             posição: mudar o painel de quem já usa é outra decisão. */}
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap: 6, paddingLeft: isMobile ? 4 : 8 }}>
           {lacuna ? <LacunaHeadline lacuna={lacuna} isMobile={isMobile}/>
-            : visib ? <><VisibilidadeHeadline visib={visib} isMobile={isMobile}/>
+            : visib ? <><VisibilidadeHeadline visib={visib} isMobile={isMobile} lugar={lugarNaLista}/>
                 <button onClick={onSeeCompetitors} style={link}>Ver concorrentes <ChevronRight size={14}/></button></>
             : gridPos ? (
             gridPos.coverage > 0 && entradaDoScore(gridPos).gridAvg != null ? (
@@ -4477,7 +4508,14 @@ function Opportunities({ count, placeId }) {
 // o mesmo corte da manchete e da meta do e-mail semanal). "Faltam 433" não é
 // meta de semana nenhuma; ali a escada segue pros degraus de sempre.
 // ─────────────────────────────────────────────────────────────
-function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate, lacuna = null }) {
+// O DEGRAU 3 NÃO VALE PRO VISITANTE (20/09). "Ative seu dispositivo · Ativar
+// código" é ordem que ele não tem como cumprir: ele não tem dispositivo nenhum,
+// e o botão levava pro cadastro. Era a ÚNICA ação da tela toda, então o painel
+// do visitante terminava sem nada pra fazer hoje — enquanto "responder a
+// avaliação de fulano" e "pedir avaliação" estavam ali, funcionam sem conta,
+// sem compra e sem esperar o correio. Pro cliente logado o degrau continua onde
+// estava: ele comprou o dispositivo, ativar é uma ordem legítima.
+function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate, lacuna = null, isGuest = false }) {
   // O modal "Gerar mais avaliações" (copiar link + WhatsApp) já existe e é o
   // destino natural de quem acabou de ler quantas avaliações faltam.
   const [pedirOpen, setPedirOpen] = React.useState(false)
@@ -4490,6 +4528,10 @@ function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate, lacuna = nul
     : null
   const grave = !!worst && worst.rating <= 2
   const noDevice = (d.activePlates || []).length === 0
+  // Quem PODE ativar: só quem tem um código impresso na mão, ou seja, não o
+  // visitante. O `noDevice` continua respondendo "não tem dispositivo ativo" —
+  // são duas perguntas diferentes e só uma delas manda numa ordem de fazer.
+  const podeAtivar = noDevice && !isGuest
   const alvo = (lacuna && lacuna.caso === 'perto') ? lacuna : null
   const googleUrl = placeId ? `https://search.google.com/local/reviews?placeid=${placeId}` : 'https://business.google.com/'
 
@@ -4512,10 +4554,10 @@ function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate, lacuna = nul
         ? `Você tem nota ${alvo.minhaNota.toFixed(1).replace('.', ',')} e ${alvo.rival.nome} tem ${alvo.rival.nota.toFixed(1).replace('.', ',')} — o que falta é volume, não qualidade.`
         : `${alvo.rival.nome} tem ${alvo.rival.reviews.toLocaleString('pt-BR')} avaliações e você tem ${alvo.meus.toLocaleString('pt-BR')}.`,
       badge: null,
-      cta: noDevice ? 'Ativar meu dispositivo' : 'Pedir avaliação agora',
-      onClick: noDevice ? onActivate : () => setPedirOpen(true)
+      cta: podeAtivar ? 'Ativar meu dispositivo' : 'Pedir avaliação agora',
+      onClick: podeAtivar ? onActivate : () => setPedirOpen(true)
     }
-  } else if (noDevice) {
+  } else if (podeAtivar) {
     a = {
       Icon: Rocket, type: 'activate',
       title: 'Ative seu dispositivo e capte avaliações no automático',
@@ -4528,6 +4570,17 @@ function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate, lacuna = nul
       title: `Responda a avaliação de ${worst.name}`,
       context: 'Responder transmite confiança e fortalece sua presença no Google.',
       badge: 'até 30% mais visitas', cta: 'Responder no Google', href: googleUrl
+    }
+  } else if (isGuest) {
+    // Visitante sem avaliação pendente de resposta. Em vez do tip do Score
+    // (número nosso, que ele não conhece e não move), a coisa que ele consegue
+    // fazer hoje: mandar o link de avaliação pros clientes que já atendeu. Roda
+    // só com o place_id — sem conta, sem dispositivo, sem esperar nada chegar.
+    a = {
+      Icon: MessageSquare, type: 'ask_review',
+      title: 'Peça avaliação aos clientes que você atendeu esta semana',
+      context: 'Copie seu link de avaliação e mande por WhatsApp. É o jeito mais rápido de subir o volume sem depender de nada nosso.',
+      badge: null, cta: 'Pegar meu link', onClick: () => setPedirOpen(true)
     }
   } else {
     const { factors } = scoreBreakdown(d)
@@ -6552,7 +6605,11 @@ function DistanciaNaoExplica({ comp, eu, rival, isMobile }) {
 }
 
 const COL = { avg: 58, rating: 46, reviews: 60 }
-function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = false }) {
+// `meLive`: nota e total do dono lidos agora do Google. A linha dele na tabela
+// usa esses valores; os concorrentes ficam com o que a grade mediu (até 7 dias).
+// Mesma decisão de `lacunaDeAvaliacoes` — e pelo mesmo motivo: era o mesmo
+// negócio aparecendo com dois totais na mesma tela.
+function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = false, meLive = null }) {
   // Comparação controlada: só com medição nova (`observations`) e só contra o
   // concorrente que mais fica acima. Um rival por vez — lista de cinco viraria
   // relatório, e o dono não age sobre cinco coisas.
@@ -6608,12 +6665,22 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
       </div>
 
       {[...data.ranking]
-        // Ordena pelo lugar REAL. Empate → quem aparece em mais pontos primeiro.
-        .sort((a, b) => (a.avg ?? 99) - (b.avg ?? 99) || (b.points ?? 0) - (a.points ?? 0))
+        // MESMA REGRA DO SERVIDOR: COBERTURA primeiro, POSIÇÃO como desempate
+        // (20/09). O `competitors.js` passou a ordenar assim em 19/09 (commit
+        // 26581d7) e a TELA continuou reordenando pelo critério antigo — posição
+        // primeiro —, desfazendo a mudança antes de desenhar. Resultado no
+        // painel da Smart Fit: quatro negócios "parcial" (aparecem só num pedaço
+        // da área) encabeçando a lista em 1º e 2º, e o dono — que aparece nos
+        // cinco pontos — em 6º, contradizendo o topo da mesma tela.
+        // Fica AQUI, e não só no servidor, de propósito: payload servido de
+        // cache v2 chega na ordem velha e esta linha normaliza as duas eras.
+        .sort((a, b) => (b.points ?? 0) - (a.points ?? 0) || (a.avg ?? 99) - (b.avg ?? 99))
         .map((r, i) => {
         const me = r.is_me
         const blurName = isGuest && !me
         const some = r.points != null && r.points < data.measured
+        const nota = (me && meLive && Number.isFinite(meLive.rating)) ? meLive.rating : r.rating
+        const avals = (me && meLive && Number.isFinite(meLive.reviews)) ? meLive.reviews : r.reviews
         return (
           <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'8px', borderRadius: 8, marginBottom: 2, background: me ? T.primarySoft : 'transparent' }}>
             <span style={{ flex: 1, minWidth: 0,
@@ -6647,10 +6714,10 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
               )}
             </span>
             <span style={{ ...num, width: COL.rating, fontSize: 12, color: T.textMuted, display:'inline-flex', alignItems:'center', justifyContent:'flex-end', gap: 2 }}>
-              {r.rating != null ? r.rating.toFixed(1).replace('.', ',') : '—'}<Star size={11} fill={T.accent} color={T.accent} strokeWidth={0}/>
+              {nota != null ? nota.toFixed(1).replace('.', ',') : '—'}<Star size={11} fill={T.accent} color={T.accent} strokeWidth={0}/>
             </span>
             <span style={{ ...num, width: COL.reviews, fontSize: 12, color: T.textMuted }}>
-              {(r.reviews ?? 0).toLocaleString('pt-BR')}
+              {(avals ?? 0).toLocaleString('pt-BR')}
             </span>
           </div>
         )
@@ -7630,9 +7697,17 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   // semana. Quem decide onde ela aparece é o ponto de uso, não este cálculo:
   // no Hero ela segue exclusiva do visitante (`isGuest ? lacuna : null`),
   // porque lá ela toma o lugar do Score StarTouch.
+  // A nota e o total do dono vêm de `real.bizInfo` (leitura de agora do Google),
+  // NÃO de `d.kpis` — `buildData` preenche `d.kpis` com os valores do MOCK
+  // quando o Google não devolve nota, e um número de demonstração escorrendo pra
+  // dentro do ranking de um negócio real é pior do que um número de 7 dias atrás.
+  const meLive = React.useMemo(
+    () => ({ rating: real.bizInfo?.rating, reviews: real.bizInfo?.total }),
+    [real.bizInfo?.rating, real.bizInfo?.total]
+  )
   const lacuna = React.useMemo(
-    () => lacunaDeAvaliacoes(gridPrimary?.ranking),
-    [gridPrimary]
+    () => lacunaDeAvaliacoes(gridPrimary?.ranking, meLive),
+    [gridPrimary, meLive]
   )
 
   // VISIBILIDADE (15/09). `observations` só existe em medições feitas a partir
@@ -7887,7 +7962,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             Convidado: portão suave — teaser do "acompanhar" (evolução/alertas/ação).
             Logado — Demo: itens MOCK. Real: calculadas do estado competitivo. */}
         <Section>
-          <WeeklyAction d={d} demoMode={demoMode} isMobile={isMobile} placeId={d.biz.placeId} lacuna={lacuna}
+          <WeeklyAction d={d} demoMode={demoMode} isMobile={isMobile} placeId={d.biz.placeId} lacuna={lacuna} isGuest={isGuest}
             onActivate={() => {
               // Sexto caminho até o cadastro. Conta como os outros cinco: um
               // passo do funil que só conta em alguns botões mede o botão, não
@@ -7935,7 +8010,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
               Sem grade (fallback), usa as lentes 1/3km antigas. */}
           {gridPrimary ? (
             <GridRankingList data={gridPrimary} isGuest={isGuest} signupUrl={guestSignupUrl}
-              placeId={d?.biz?.placeId} isMobile={isMobile} />
+              placeId={d?.biz?.placeId} isMobile={isMobile} meLive={meLive} />
           ) : (gridError || lensState.error) && !lensState.loading && !(lensState.data?.lenses?.length) ? (
             /* As DUAS medições falharam (ou foram barradas): mostra a falha em
                vez de esconder o bloco e deixar parecer "sem concorrente". */
