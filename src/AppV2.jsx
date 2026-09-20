@@ -1763,7 +1763,7 @@ function DeltaBadge({ value, suffix = '', invert = false }) {
 function ReportSummaryGrid({ summary, isMobile }) {
   const items = [
     { label:'Novas avaliações', value: summary.newReviews,      delta: summary.newReviewsDelta, suffix:' vs anterior', icon:'star' },
-    { label:'Nota atual',       value: summary.currentRating.toFixed(1), delta: summary.ratingDelta, suffix:'',  isFloat: true, icon:'trendup' },
+    { label:'Nota atual',       value: summary.currentRating.toFixed(1).replace('.', ','), delta: summary.ratingDelta, suffix:'',  isFloat: true, icon:'trendup' },
     { label:'Posição no rank',  value: `${summary.currentPosition}º`, delta: summary.positionDelta, suffix:' pos.', invert: false, icon:'trophy' },
     { label:'Próximo concorrente', value: `-${Math.abs(summary.competitorDelta)} ${Math.abs(summary.competitorDelta) === 1 ? 'avaliação' : 'avaliações'}`, delta: null, sub:'mais perto que antes', icon:'target' }
   ]
@@ -1829,7 +1829,7 @@ function ReportRatingChart({ data, labels, mode }) {
           <g key={i}>
             <circle cx={xs[i]} cy={ys[i]} r={i === data.length - 1 ? 5 : 3} fill="#fff" stroke={T.blue} strokeWidth="2"/>
             {i === data.length - 1 && (
-              <text x={xs[i]} y={ys[i] - 12} fontSize="11" fontWeight="700" fill={T.blueDk} textAnchor="middle">{v.toFixed(1)}</text>
+              <text x={xs[i]} y={ys[i] - 12} fontSize="11" fontWeight="700" fill={T.blueDk} textAnchor="middle">{v.toFixed(1).replace('.', ',')}</text>
             )}
           </g>
         ))}
@@ -1838,8 +1838,8 @@ function ReportRatingChart({ data, labels, mode }) {
           <text key={i} x={xs[i]} y={h - 8} fontSize="10" fill={T.textDim} textAnchor="middle">{l}</text>
         ))}
         {/* labels y */}
-        <text x={padL - 6} y={padT + 4} fontSize="10" fill={T.textDim} textAnchor="end">{max.toFixed(1)}</text>
-        <text x={padL - 6} y={h - padB + 4} fontSize="10" fill={T.textDim} textAnchor="end">{min.toFixed(1)}</text>
+        <text x={padL - 6} y={padT + 4} fontSize="10" fill={T.textDim} textAnchor="end">{max.toFixed(1).replace('.', ',')}</text>
+        <text x={padL - 6} y={h - padB + 4} fontSize="10" fill={T.textDim} textAnchor="end">{min.toFixed(1).replace('.', ',')}</text>
       </svg>
     </Card>
   )
@@ -3588,14 +3588,18 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
         <div style={{ display:'flex', alignItems:'center', gap: 8 }}>
           <Star size={18} fill={T.accent} color={T.accent} strokeWidth={0}/>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, lineHeight: 1.1 }}>{typeof d.kpis.rating === 'number' && d.kpis.rating ? d.kpis.rating.toFixed(1) : '—'}</div>
+            {/* pt-BR nos dois mini-cards (20/09): a nota saía "4.5" com ponto e o
+                total saía "1294" sem separador, a dois centímetros de um topo
+                escrevendo "4,5" e "1.294". Mesmo negócio, mesma tela, duas
+                grafias — parece erro de leitura antes de parecer formatação. */}
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, lineHeight: 1.1 }}>{typeof d.kpis.rating === 'number' && d.kpis.rating ? d.kpis.rating.toFixed(1).replace('.', ',') : '—'}</div>
             <div style={{ fontSize: 11.5, color: T.textMuted }}>reputação atual</div>
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap: 8 }}>
           <MessageSquare size={18} color={T.primary}/>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, lineHeight: 1.1 }}>{d.kpis.reviewCount ?? 0}</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, lineHeight: 1.1 }}>{(d.kpis.reviewCount ?? 0).toLocaleString('pt-BR')}</div>
             <div style={{ fontSize: 11.5, color: T.textMuted }}>recebidas</div>
           </div>
         </div>
@@ -4315,7 +4319,7 @@ function RankingList({ items, isMobile, plan, category, onEditCategory }) {
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap: 6, fontSize: 12, color: T.textMid }}>
                   <Stars rating={r.rating} size={11} />
-                  <span>{r.rating.toFixed(1)}</span>
+                  <span>{r.rating.toFixed(1).replace('.', ',')}</span>
                   <span style={{ color: T.textDim }}>·</span>
                   <span>{r.reviews} avaliações</span>
                 </div>
@@ -4415,7 +4419,7 @@ function EvolutionChart({ data, growthPct, isMobile }) {
         <span style={{ fontSize: 13, fontWeight: 600 }}>de crescimento nos últimos 90 dias</span>
       </div>
       <p style={{ fontSize: 12.5, color: T.textMid, margin: '0 0 8px' }}>
-        Nota subiu de <strong>{data.rating[0].toFixed(1)}</strong> pra <strong>{data.rating[data.rating.length - 1].toFixed(1)}</strong> · Posição de <strong>{data.rankings[0]}º</strong> pra <strong>{data.rankings[data.rankings.length - 1]}º</strong>
+        Nota subiu de <strong>{data.rating[0].toFixed(1).replace('.', ',')}</strong> pra <strong>{data.rating[data.rating.length - 1].toFixed(1).replace('.', ',')}</strong> · Posição de <strong>{data.rankings[0]}º</strong> pra <strong>{data.rankings[data.rankings.length - 1]}º</strong>
       </p>
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width:'100%', height: isMobile ? 160 : 200 }}>
         <defs>
@@ -4663,7 +4667,7 @@ function RecentReviews({ items, trend, isMobile, onSeeAll }) {
           marginBottom: 12
         }}>
           <span style={{ fontWeight: 700 }}>{arrow}</span>
-          <span>Média recente <strong>{trend.recentAvg.toFixed(1)}</strong> · {label} média geral <strong>{trend.overallAvg.toFixed(1)}</strong></span>
+          <span>Média recente <strong>{trend.recentAvg.toFixed(1).replace('.', ',')}</strong> · {label} média geral <strong>{trend.overallAvg.toFixed(1).replace('.', ',')}</strong></span>
         </div>
       )}
       {items.length === 0 ? (
@@ -5724,7 +5728,7 @@ function ReviewsScreen({ data, isMobile }) {
           <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'auto 1fr', gap: isMobile ? 16 : 28, alignItems:'center' }}>
             <div style={{ textAlign:'center' }}>
               <div style={{ fontFamily:"'Inter', sans-serif", fontSize: isMobile ? 40 : 52, fontWeight: 800, color: T.text, letterSpacing:'-0.03em', lineHeight: 1 }}>
-                {(data.kpis.rating || avg).toFixed(1)}
+                {(data.kpis.rating || avg).toFixed(1).replace('.', ',')}
               </div>
               <div style={{ margin:'4px 0' }}><Stars rating={data.kpis.rating || avg} size={isMobile ? 16 : 18}/></div>
               <div style={{ fontSize: 12.5, color: T.textMid }}>{data.kpis.reviewCount || total} avaliações</div>
