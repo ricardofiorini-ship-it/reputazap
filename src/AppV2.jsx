@@ -7157,6 +7157,7 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
       </div>
 
       <div style={{ display:'flex', alignItems:'flex-end', gap: 8, padding:'0 8px 6px', borderBottom:`1px solid ${T.border}`, marginBottom: 4 }}>
+        <span style={{ ...th, ...num, width: 26 }}>#</span>
         <span style={{ ...th, flex: 1, minWidth: 0 }}>Negócio</span>
         <span style={{ ...th, ...num, width: COL.rating }}>Nota</span>
         <span style={{ ...th, ...num, width: COL.reviews }}>Avaliações</span>
@@ -7164,6 +7165,12 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
 
       {linhas.map((r, i) => {
         const me = r.is_me
+        // A POSIÇÃO É A DA LISTA INTEIRA, não a da fatia (21/09). Com o corte em
+        // 5 linhas + a do dono, ele aparecia como a 6ª e última linha — e o olho
+        // lê "sexto". A Fabrique é OITAVA: as linhas 6 e 7 estão escondidas. A
+        // frase do cabeçalho dizia a verdade ("os 7 que estão à frente") e
+        // perdia pra ordem visual, que é o que o leitor processa primeiro.
+        const posicao = ordenadas.indexOf(r) + 1
         const nota = notaDe(r)
         const avals = avalsDe(r)
         return (
@@ -7172,6 +7179,13 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
                 todos"). O nome do concorrente era a última informação que o
                 painel trocava por cadastro. Agora o diagnóstico é inteiro e de
                 graça — o que se vende é a cura, não a informação. */}
+            {/* O número da CLASSIFICAÇÃO — não é colocação no Google, é o lugar
+                nesta lista, que o dono confere somando nota e avaliações ao
+                lado. Sempre crescente, nunca fora de ordem: foi a coluna
+                anterior estar fora de ordem que exigia a etiqueta "parcial". */}
+            <span style={{ ...num, width: 26, fontSize: 12.5, fontWeight: me ? 800 : 600, color: me ? T.primaryDark : T.textDim }}>
+              {posicao}º
+            </span>
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display:'block', fontSize: 13, fontWeight: me ? 700 : 500, color: me ? T.primaryDark : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                 {me ? `${r.name || 'Você'} (você)` : (r.name || 'Concorrente')}
