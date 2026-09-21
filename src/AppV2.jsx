@@ -3399,6 +3399,14 @@ function lacunaDeAvaliacoes(ranking, meLive = null) {
   }
 }
 
+// ⚠️ NÃO RENDERIZA MAIS NADA DESDE 21/09/2026. O painel passou a abrir com os
+// quatro cartões (`VitrineKpis`) pros dois públicos, e o Score foi pro
+// `ScoreCompacto`. Este bloco — e os dois auxiliares acima, `LacunaHeadline` e
+// `VisibilidadeHeadline` — ficam como registro: os comentários de dentro
+// guardam as QUATRO tentativas de responder "qual número vai grande" (posição
+// média penalizada, cobertura sempre, ordinal "1º de N", e a lacuna em
+// avaliações), cada uma com o motivo da queda. Quem for propor a quinta lê isto
+// primeiro. O bundler já os descarta; custo em produção é zero.
 function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, onSeeCompetitors, lacuna = null, visib = null }) {
   const score = calcStarTouchScore(d)
   // Coluna B consome a MESMA fonte do ranking (lente "Bem perto de você") — não o
@@ -4749,6 +4757,63 @@ function VitrineCta({ isMobile, onClick }) {
           Quero começar com a StarTouch <ChevronRight size={17}/>
         </a>
       </div>
+    </Card>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCORE COMPACTO — o painel do cliente (21/09/2026)
+// ─────────────────────────────────────────────────────────────
+// O cliente ficou uma semana com uma tela pior que a do visitante: o
+// `HeroBlock` dava a ele duas colunas de número — anel do Score de um lado,
+// cobertura do outro ("100% dos pontos medidos mostram você no Top 10 · Top 3
+// em 20% · quando aparece, é em 4º lugar, em média") — e embaixo mini-cards
+// repetindo nota e avaliações. Seis números, três réguas diferentes, nenhum
+// deles respondendo "e daí?".
+//
+// Agora ele recebe os MESMOS quatro cartões do visitante (nota, avaliações,
+// presença local, concorrentes analisados) e o Score vem aqui, sozinho, do
+// tamanho que ele merece: é número NOSSO, útil como resumo e como motor do
+// e-mail semanal, mas não é o que responde "onde eu estou".
+//
+// REGRA QUE GOVERNA ESTA TELA: nenhum número aparece duas vezes. A cobertura
+// virou o cartão "Presença local"; a posição média está na coluna da tabela;
+// nota e avaliações estão nos cartões. O que sobra pro Score é o Score — e a
+// única linha da cobertura que é ACIONÁVEL, que é onde ele some.
+function ScoreCompacto({ d, visib, onScoreDetails, isMobile }) {
+  const score = calcStarTouchScore(d)
+  const m = visib?.metricas
+  return (
+    <Card>
+      <div style={{ display:'flex', alignItems:'center', gap: isMobile ? 16 : 22, flexWrap:'wrap' }}>
+        <ScoreRing score={score} size={isMobile ? 84 : 100}/>
+        <div style={{ flex:'1 1 240px', minWidth: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing:'.08em', textTransform:'uppercase', color: T.textMuted, marginBottom: 5 }}>
+            Score StarTouch
+          </div>
+          <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.5, margin:'0 0 10px' }}>
+            Sua presença local de 0 a 100, juntando nota, volume de avaliações, posição e perfil.
+          </p>
+          <button onClick={onScoreDetails}
+            style={{ display:'inline-flex', alignItems:'center', gap: 4, background:'none', border:'none', padding: 0,
+              fontSize: 13, fontWeight: 700, color: T.primary, cursor:'pointer', fontFamily:'inherit' }}>
+            Por que {score}? Ver o que falta <ChevronRight size={15}/>
+          </button>
+        </div>
+      </div>
+      {/* ONDE ELE SOME é a única linha da medição que manda fazer alguma coisa.
+          "Melhore sua colocação" não é instrução; "você não aparece em 2 dos 5
+          pontos medidos" é. Some da tela quando não há o que apontar, em vez de
+          virar um "0 de 5" que só ocupa espaço. */}
+      {m && m.not_found_count > 0 && (
+        <div style={{ display:'flex', alignItems:'flex-start', gap: 9, marginTop: 16, paddingTop: 14, borderTop:`1px solid ${T.border}`,
+          fontSize: 13, color: T.textMid, lineHeight: 1.5 }}>
+          <span style={{ flexShrink: 0, color: T.accent, display:'inline-flex', marginTop: 1 }}><AlertTriangle size={17}/></span>
+          <span>
+            Você <b style={{ color: T.text }}>não aparece em {m.not_found_count} dos {m.measured_points} pontos</b> que medimos na sua região — nesses, quem procura pelo seu tipo de negócio não encontra você.
+          </span>
+        </div>
+      )}
     </Card>
   )
 }
@@ -6874,7 +6939,14 @@ const COL = { avg: 58, rating: 46, reviews: 60 }
 // usa esses valores; os concorrentes ficam com o que a grade mediu (até 7 dias).
 // Mesma decisão de `lacunaDeAvaliacoes` — e pelo mesmo motivo: era o mesmo
 // negócio aparecendo com dois totais na mesma tela.
-function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = false, meLive = null, vitrine = false }) {
+//
+// UMA TABELA SÓ, PROS DOIS (21/09). O prop `vitrine` decidia se o cliente via o
+// cabeçalho velho ("Concorrentes por perto", sem frase de resumo) ou o novo
+// (troféu, resumo e o botão de abrir a lista). Nenhum motivo sobrevive a ser
+// dito em voz alta: por que o cliente, que paga, veria a versão pior? Duas
+// versões da mesma tabela é o tipo de bifurcação que este arquivo já pagou caro
+// — uma delas envelhece sozinha e ninguém percebe.
+function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = false, meLive = null }) {
   // "Ver análise completa" abre a lista AQUI, não leva pro cadastro (21/09).
   // Enquanto os nomes eram borrados, esse botão era o portão; sem o borrão ele
   // passaria a cobrar conta por uma lista que já está na tela, três linhas
@@ -6946,7 +7018,7 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
   // fazer.
   const CORTE_VITRINE = 5
   let linhas = ordenadas
-  if (vitrine && !verTudo && ordenadas.length > CORTE_VITRINE) {
+  if (!verTudo && ordenadas.length > CORTE_VITRINE) {
     linhas = ordenadas.slice(0, CORTE_VITRINE)
     if (minhaPos >= CORTE_VITRINE) linhas = [...linhas, ordenadas[minhaPos]]
   }
@@ -6979,8 +7051,7 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
           : `${minhaPos} ${minhaPos === 1 ? 'negócio tem' : 'negócios têm'} reputação melhor que a sua por aqui — nota e volume de avaliações contam juntos.`
   return (
     <Card>
-      {vitrine ? (
-        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap: 14, flexWrap:'wrap', marginBottom: 10 }}>
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap: 14, flexWrap:'wrap', marginBottom: 10 }}>
           <div style={{ display:'flex', alignItems:'flex-start', gap: 11, flex:'1 1 280px', minWidth: 0 }}>
             <span style={{ flexShrink: 0, color: T.accent, display:'inline-flex', marginTop: 1 }}><Award size={24}/></span>
             <div style={{ minWidth: 0 }}>
@@ -6999,13 +7070,7 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
               <ChevronRight size={16} style={{ transform: verTudo ? 'rotate(90deg)' : 'none', transition:'transform .15s' }}/>
             </button>
           )}
-        </div>
-      ) : (
-      <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 4 }}>
-        <Search size={18} style={{ color: T.primary }}/>
-        <h3 style={{ fontFamily:"'Inter', sans-serif", fontSize: 17, fontWeight: 700, color: T.text, margin: 0 }}>Concorrentes por perto</h3>
       </div>
-      )}
       {/* UM NÚMERO NÃO PODE FAZER DOIS TRABALHOS (01/ago, achado do Ricardo).
           Até aqui a tabela mostrava e ordenava pelo `score` — a posição média JÁ
           com a punição de 21 por ausência embutida. Resultado: a Salve Man
@@ -8281,24 +8346,30 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             local e concorrentes analisados não exigem nenhuma.
             CLIENTE: segue com o HeroBlock (Score StarTouch). Mudar a tela de
             quem paga é outra decisão, e não foi tomada. */}
-        {isGuest ? (
-          <Section>
-            <VitrineKpis meLive={meLive} visib={visib} gridPrimary={gridPrimary} isMobile={isMobile}/>
-          </Section>
-        ) : (
+        {/* BLOCO 1 — O PLACAR, IGUAL PROS DOIS (21/09).
+            Os quatro cartões agora abrem o painel do cliente também. Ele passou
+            uma semana com uma tela pior que a do visitante: o `HeroBlock` dava a
+            ele seis números em três réguas diferentes (anel do Score, cobertura
+            em %, posição média, e mini-cards repetindo nota e avaliações).
+            Duas telas diferentes pro mesmo negócio também é como nascem as
+            contradições que passamos o dia consertando. */}
         <Section>
-          <HeroBlock
-            gridPos={gridPrimary}
-            visib={visib}
-            lacuna={isGuest ? lacuna : null}
-            d={d}
-            position={heroPos}
-            demoMode={demoMode}
-            isMobile={isMobile}
-            onScoreDetails={() => { try { window.gtag && window.gtag('event', 'click_score_details') } catch {} ; setScoreOpen(true) }}
-            onSeeCompetitors={() => { const el = document.getElementById('bloco-concorrentes'); if (el) el.scrollIntoView({ behavior:'smooth', block:'start' }) }}
-          />
+          <VitrineKpis meLive={meLive} visib={visib} gridPrimary={gridPrimary} isMobile={isMobile}/>
         </Section>
+
+        {/* O Score vem depois dos fatos, e só pro cliente: é número NOSSO, bom
+            como resumo e como motor do e-mail semanal, mas não é ele que
+            responde "onde eu estou". Pro visitante não entra — ele não tem o
+            que fazer com um placar da nossa fórmula antes de ser cliente. */}
+        {!isGuest && (
+          <Section>
+            <ScoreCompacto
+              d={d}
+              visib={visib}
+              isMobile={isMobile}
+              onScoreDetails={() => { try { window.gtag && window.gtag('event', 'click_score_details') } catch {} ; setScoreOpen(true) }}
+            />
+          </Section>
         )}
 
         {/* BLOCO 2 — A PORTA PRO MENU INTELIGENTE (08/09/2026).
@@ -8390,7 +8461,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
               Sem grade (fallback), usa as lentes 1/3km antigas. */}
           {gridPrimary ? (
             <GridRankingList data={gridPrimary} isGuest={isGuest} signupUrl={guestSignupUrl}
-              placeId={d?.biz?.placeId} isMobile={isMobile} meLive={meLive} vitrine={isGuest} />
+              placeId={d?.biz?.placeId} isMobile={isMobile} meLive={meLive} />
           ) : (gridError || lensState.error) && !lensState.loading && !(lensState.data?.lenses?.length) ? (
             /* As DUAS medições falharam (ou foram barradas): mostra a falha em
                vez de esconder o bloco e deixar parecer "sem concorrente". */
