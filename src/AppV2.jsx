@@ -24,6 +24,20 @@ import {
   ArrowRight, Zap, Heart, ChevronDown
 } from 'lucide-react'
 import PhoneFrame from './v3/PhoneFrame.jsx'
+// ─────────────────────────────────────────────────────────────
+// O MENU INTELIGENTE VEM DO V3, IMPORTADO — NUNCA COPIADO (21/09/2026)
+// ─────────────────────────────────────────────────────────────
+// A tela do Menu tem ~1.500 linhas entre `Experiencia` e `EditorMenu`. Copiar
+// pra cá criaria a segunda implementação que diverge sozinha — foi exatamente
+// isso que aconteceu com a tabela de concorrentes, que ficou UM DIA atrás no V3
+// e o Ricardo achou o desencontro na tela.
+//
+// O `theme.css` do V3 passou a ser ESCOPADO sob `.v3` no mesmo dia, pra poder
+// entrar aqui sem mexer no painel: sem isso, o `body { font-size:14px }` dele
+// encolheria todo texto do /app que não declara tamanho.
+import './v3/theme.css'
+import ExperienciaMenu from './v3/screens/Experiencia.jsx'
+import { useDados as useDadosV3 } from './v3/lib/dados.js'
 import { IconeMenu } from './marcas.jsx'
 import { tokenValido, apos401, salvarSessao, limparSessao } from './lib/sessao.js'
 
@@ -767,7 +781,10 @@ const TABS = [
   // interruptor de desligar; depois dele, quem quiser voltar ao menu não
   // teria por onde. Recurso pago sem lugar fixo na navegação é recurso que o
   // cliente usa uma vez e não acha mais.
-  { id: 'menu',         icon: 'sparkles', label: 'Menu Inteligente', link: '/painel-f7dsaz3c/experiencia?solo=1' },
+  // O `link` SAIU em 21/09: a aba abre a tela AQUI, não manda pro outro painel.
+  // `soLogado` porque o visitante não tem conta nem dispositivo — pra ele a
+  // aba seria uma porta pra uma tela que pede as duas coisas.
+  { id: 'menu',         icon: 'sparkles', label: 'Menu Inteligente', soLogado: true },
   { id: 'loja',         icon: 'bag', label: 'Loja',         pro: false }
 ]
 
@@ -778,7 +795,7 @@ const TABS = [
 const MOBILE_PRIMARY_TABS = [
   { id: 'painel',       icon: 'home', label: 'Painel'       },
   { id: 'avaliacoes',   icon: 'star', label: 'Avaliações'   },
-  { id: 'menu',         icon: 'sparkles', label: 'Menu', link: '/painel-f7dsaz3c/experiencia?solo=1' },
+  { id: 'menu',         icon: 'sparkles', label: 'Menu', soLogado: true },
   { id: 'loja',         icon: 'bag', label: 'Loja'         },
   { id: 'more',         icon: 'menu',  label: 'Mais'         }
 ]
@@ -876,7 +893,7 @@ function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen, guest }) {
   // A largura de cada item sai da lista JÁ FILTRADA: com o Menu fora, sobram
   // quatro e eles ocupam 25% cada. Calcular sobre a lista cheia deixaria um
   // buraco de 20% na barra do visitante.
-  const itens = MOBILE_PRIMARY_TABS.filter(t => !(guest && t.link))
+  const itens = MOBILE_PRIMARY_TABS.filter(t => !(guest && (t.link || t.soLogado)))
   return (
     <nav style={{
       position:'fixed', bottom: 0, left: 0, right: 0,
@@ -1148,7 +1165,7 @@ function TopTabs({ active, onChange, plan, isMobile, guest }) {
             /* Hide webkit scrollbar */
             div[style*="overflowX: auto"]::-webkit-scrollbar{display:none}
           `}</style>
-        {TABS.filter(t => !(guest && t.link)).map(tab => {
+        {TABS.filter(t => !(guest && (t.link || t.soLogado))).map(tab => {
           const isActive = active === tab.id
           const isLocked = false   // tudo free: sem selo PRO na navegação
           return (
@@ -2992,7 +3009,7 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
             outro lugar. */}
         {!isMobile && onTabChange ? (
           <nav style={{ display:'flex', alignItems:'center', gap: 2, minWidth: 0, overflowX:'auto', scrollbarWidth:'none' }}>
-            {TABS.filter(t => !(guest && t.link)).map(tab => {
+            {TABS.filter(t => !(guest && (t.link || t.soLogado))).map(tab => {
               const ativa = activeTab === tab.id
               return (
                 <a key={tab.id} href={tab.link || '#'}
@@ -3764,38 +3781,14 @@ function BalaoMarca({ tipo, texto, lado, topo }) {
 //
 // `requestIdleCallback`: só roda quando o navegador está ocioso, então não
 // disputa banda com o que a pessoa está de fato olhando. Falha em silêncio
-// de propósito — é só uma otimização, e nada aqui pode quebrar o painel.
-function useAdiantarPainelNovo() {
-  React.useEffect(() => {
-    let cancelado = false
-    const rodar = async () => {
-      try {
-        const r = await fetch('/painel-f7dsaz3c', { credentials: 'omit' })
-        if (!r.ok || cancelado) return
-        const html = await r.text()
-        const arquivos = [...new Set(html.match(/\/assets\/[A-Za-z0-9._-]+\.(js|css)/g) || [])]
-        for (const a of arquivos.slice(0, 12)) {
-          if (cancelado) return
-          const l = document.createElement('link')
-          l.rel = 'prefetch'
-          l.href = a
-          l.as = a.endsWith('.css') ? 'style' : 'script'
-          document.head.appendChild(l)
-        }
-      } catch {}
-    }
-    const id = window.requestIdleCallback
-      ? window.requestIdleCallback(rodar, { timeout: 4000 })
-      : setTimeout(rodar, 2500)
-    return () => {
-      cancelado = true
-      if (window.cancelIdleCallback) window.cancelIdleCallback(id); else clearTimeout(id)
-    }
-  }, [])
-}
+// O PRE-CARREGAMENTO DO PAINEL V3 SAIU (21/09/2026). Ele baixava o bundle
+// inteiro do outro painel — ~91 KB de JS e ~76 KB de CSS — em TODO carregamento
+// do painel de TODO cliente, só pra o salto até a tela do Menu parecer rápido.
+// Agora o Menu é uma aba daqui: o salto não existe mais, e o download viraria
+// custo sem contrapartida. Quando o resto do V3 for absorvido, some o motivo
+// que sobrou pra alguém querer isto de volta.
 
-function MenuInteligenteSlot({ plan, bizName, isMobile }) {
-  useAdiantarPainelNovo()
+function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu }) {
   const ehPro = plan === 'pro'
   const nome = (bizName || 'Seu negócio').trim()
 
@@ -3821,12 +3814,12 @@ function MenuInteligenteSlot({ plan, bizName, isMobile }) {
                 : 'Hoje seu dispositivo leva direto à avaliação no Google. Com o Pro, o mesmo toque abre um menu com vários caminhos — e a avaliação continua sendo a primeira opção.'}
             </div>
           </div>
-          <a href="/painel-f7dsaz3c/experiencia?solo=1" style={{
+          <button type="button" onClick={onAbrirMenu} style={{ border:'none', cursor:'pointer', fontFamily:'inherit',
             background: T.blue, color: '#fff', borderRadius: 9, padding: '11px 18px',
             fontSize: 13.5, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', flex: '0 0 auto'
           }}>
             {ehPro ? 'Configurar menu →' : 'Conhecer o Menu Inteligente →'}
-          </a>
+          </button>
         </div>
       </Section>
     )
@@ -3877,7 +3870,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile }) {
             mantendo a avaliação sempre em primeiro lugar.
           </div>
 
-          <a href="/painel-f7dsaz3c/experiencia?solo=1" style={{
+          <button type="button" onClick={onAbrirMenu} style={{ border:'none', cursor:'pointer', fontFamily:'inherit',
             display: 'inline-flex', alignItems: 'center', gap: 9,
             background: '#fff', color: '#0B3EA8', borderRadius: 10,
             padding: '13px 24px', fontSize: 14.5, fontWeight: 800, textDecoration: 'none',
@@ -3885,7 +3878,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile }) {
           }}>
             {ehPro ? 'Configurar meu menu' : 'Criar meu menu — 7 dias grátis'}
             <ArrowRight size={17}/>
-          </a>
+          </button>
 
           {/* O VALOR NÃO ENTRA AQUI (decisão do Ricardo, 08/09/2026).
               O banner desperta interesse; quem cobra é a caixa que abre no
@@ -7973,6 +7966,22 @@ function greetingSubtitle(d, grid) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Menu Inteligente — a tela do V3 morando dentro do /app
+// ─────────────────────────────────────────────────────────────
+// Sem adaptador, sem cópia: o MESMO componente e o MESMO hook de dados que o
+// V3 usa. Se um dia a tela mudar lá, muda aqui no mesmo commit — que é o
+// contrário do que aconteceu com a tabela de concorrentes, onde duas versões
+// viveram um dia inteiro discordando.
+function MenuInteligenteTab() {
+  const dados = useDadosV3({ area: 'experiencia' })
+  return (
+    <div className="v3 v3-solo">
+      <main className="v3-main"><ExperienciaMenu dados={dados}/></main>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // Main layout
 // ─────────────────────────────────────────────────────────────
 export default function AppV2({ user = null, onLogout, demoMode = false, guestMode = false, guestContext = null } = {}) {
@@ -8329,6 +8338,17 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       {/* Aba LOJA virou página única (/kit) — clicar em "Loja" abre o /kit
           (vitrine + carrinho + checkout). Sem render interno; ver navigateFromMore. */}
 
+      {/* Aba: MENU INTELIGENTE — a tela vem do V3, importada (21/09/2026).
+          Ela se vira sozinha com carregamento e erro, e `area: 'experiencia'`
+          pede a CARGA LEVE do V3: só negócio, plano e foto, sem a medição da
+          grade — que é a chamada cara e que esta tela não usa.
+          O invólucro `.v3 v3-solo` é o que dá o layout de uma coluna; sem ele
+          o `.v3` abre a grade de duas colunas e sobra uma faixa de 252px vazia
+          onde no outro painel fica a barra lateral. */}
+      {tab === 'menu' && !isGuest && (
+        <MenuInteligenteTab/>
+      )}
+
       {/* Aba: AVALIAÇÕES — lista todas as reviews do Google (free + pro) */}
       {tab === 'avaliacoes' && (
         <ReviewsScreen data={d} isMobile={isMobile}/>
@@ -8344,7 +8364,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       {/* Fallback p/ abas desconhecidas (as Pro já são tratadas acima com preview).
           'concorrentes' voltou pra cá quando a tela saiu (03/ago): sem tela E sem
           fallback, um link velho renderizaria uma página em branco. */}
-      {tab !== 'painel' && tab !== 'alertas' && tab !== 'relatorios' && tab !== 'loja' && tab !== 'avaliacoes' && tab !== 'config' && (
+      {tab !== 'painel' && tab !== 'alertas' && tab !== 'relatorios' && tab !== 'loja' && tab !== 'avaliacoes' && tab !== 'config' && tab !== 'menu' && (
         <ComingSoon
           icon={tab === 'concorrentes' ? 'trophy' : tab === 'alertas' ? 'bell' : tab === 'relatorios' ? 'trendup' : 'star'}
           title={
@@ -8424,7 +8444,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             e não teria como configurar o que comprou.
             Ocupa o espaço que era do widget do Radar, desligado desde 09/07 e
             aposentado em 07/09. */}
-        {!guestMode && <MenuInteligenteSlot plan={plan} bizName={d?.biz?.name} isMobile={isMobile} />}
+        {!guestMode && <MenuInteligenteSlot plan={plan} bizName={d?.biz?.name} isMobile={isMobile} onAbrirMenu={() => setTab('menu')} />}
 
         {/* Widget Radar IA — desligado desde 09/07 e o produto foi aposentado
             em 07/09/2026. O componente devolve null; fica como referência. */}

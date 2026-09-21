@@ -47,10 +47,26 @@
   --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
+/* ── ESCOPADO SOB .v3 EM 21/09/2026 ──────────────────────────
+   Estas regras eram GLOBAIS (`body`, `a`, `button`, `*`). Enquanto o V3 tinha
+   pagina propria isso era inofensivo. A partir de hoje o /app importa este
+   arquivo pra renderizar a tela do Menu Inteligente dentro dele, e duas regras
+   daqui mudariam o painel inteiro do cliente:
+
+     · `body { font-size: 14px }`  -> encolheria todo texto do /app que nao
+       declara tamanho (o padrao do navegador e 16px);
+     · `body { background: var(--bg) }` -> trocaria o fundo do painel.
+
+   `box-sizing: border-box` ficou fora do escopo de proposito: o `v2.css` ja
+   declara exatamente o mesmo `* { box-sizing: border-box }`, entao nao ha
+   conflito e mante-lo global evita depender da ordem de carregamento.
+
+   O V3 continua igual porque sua raiz SEMPRE teve a classe `.v3` — tanto o
+   painel completo (`<div className="v3">`) quanto o modo solo
+   (`<div className="v3 v3-solo">`). Conferido antes de mexer. */
 * { box-sizing: border-box; }
-html, body, #root { height: 100%; }
-body {
-  margin: 0;
+.v3 { height: 100%; }
+.v3 {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font);
@@ -58,10 +74,11 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
-button { font: inherit; }
-a { color: var(--blue); text-decoration: none; }
-:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+html, body { margin: 0; }
+.v3 button { font: inherit; }
+.v3 a { color: var(--blue); text-decoration: none; }
+.v3 :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) { .v3 * { transition: none !important; animation: none !important; } }
 
 /* ── Casca ────────────────────────────────────────────────── */
 .v3 { display: grid; grid-template-columns: 252px 1fr; min-height: 100vh; }
