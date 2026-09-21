@@ -302,7 +302,54 @@ function render(data){
     </div>`;
   }).join("");
 
-  $("content").innerHTML = headline + steps + blocoMenu(data.menu);
+  $("content").innerHTML = headline + steps + blocoVitrine(data) + blocoMenu(data.menu);
+}
+
+// ── Saídas da vitrine (21/09/2026) ──
+// O painel do visitante virou vitrine e ganhou dois destinos que NÃO são o
+// cadastro: a loja e a ativação de um dispositivo já comprado. Desde 20/09 o
+// cadastro deixou de ser pedido no corpo da página — a conversão agora é
+// COMPRAR, e sem este bloco o funil de cima mostraria o cadastro caindo sem
+// mostrar pra onde a intenção foi.
+//
+// FORA DA ESCADA DE PROPÓSITO: o funil acima é uma sequência em que cada degrau
+// é subconjunto do anterior, e "% do topo" e "queda" só significam algo assim.
+// Estes dois são saídas laterais; enfiá-los na escada estragaria a queda do
+// passo seguinte e ninguém perceberia.
+function blocoVitrine(data){
+  const lista = data.vitrine;
+  if(!lista || !lista.length) return "";
+  const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const viuPainel = (data.cadastros && data.cadastros.viu_painel) || 0;
+
+  // Passo que nasceu depois do começo do período: zerado por não ter sido
+  // medido, não por ninguém ter clicado. A diferença é tudo — sem este aviso um
+  // zero histórico se lê como "a vitrine não funciona".
+  const inicio = (data.periodo && data.periodo.de) ? String(data.periodo.de).slice(0,10) : null;
+  const desde = data.vitrine_desde;
+  const aviso = (desde && inicio && inicio < desde)
+    ? `<div class="nota-medicao">⚠ Estes dois cliques só passaram a ser gravados em ${desde.slice(8,10)}/${desde.slice(5,7)}/${desde.slice(0,4)}. O período consultado começa antes, então o número está incompleto: é medição que faltava, não gente que não clicou.</div>`
+    : '';
+
+  const linhas = lista.map(v => {
+    const pct = viuPainel ? Math.round((v.people / viuPainel) * 100) : 0;
+    return `<div class="step">
+      <div class="row1">
+        <span class="label">${esc(v.label)}</span>
+        <span class="count">${v.people}${viuPainel ? `<small>${pct}% de quem viu o painel</small>` : ''}</span>
+      </div>
+      <div class="track"><div class="fill" style="width:${Math.max(2, pct)}%"></div></div>
+      ${blocoOrigens(v.por_origem, v.people)}
+    </div>`;
+  }).join('');
+
+  return `<h2 style="font-size:15px;font-weight:700;margin:26px 0 4px">Saídas da vitrine</h2>
+    <p style="font-size:12.5px;color:#64748B;margin:0 0 12px;line-height:1.5">
+      Não são degraus do funil acima — são os dois caminhos que saem do painel <b>sem passar pelo cadastro</b>.
+      Desde 20/09 o painel do visitante não pede conta no meio da página: a conversão é comprar.
+      A comparação é com <b>quem viu o painel</b>, não com o topo da busca.
+    </p>
+    ${aviso}${linhas}`;
 }
 
 // ── Funil do Menu Inteligente ──

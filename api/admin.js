@@ -157,13 +157,19 @@ async function handleFunnel(req, res) {
   // botão, e quem clicou em dois aparece nos dois. O total do passo conta a
   // pessoa uma vez só. A tela diz isso — número que não fecha e não se explica
   // vira desconfiança na medição inteira.
+  // ⚠️ DOIS DESTES BOTÕES NÃO EXISTEM MAIS (21/09/2026), e os rótulos dizem
+  // isso: o borrão dos nomes dos concorrentes e a trava do Score foram
+  // abertos pra todo mundo, e a "Ação da semana" do visitante deixou de levar
+  // ao cadastro. Número histórico sem essa marca vira leitura errada: quem
+  // abrir o painel em outubro veria três origens zeradas e procuraria um bug
+  // onde houve uma decisão.
   const ORIGEM_LABEL = {
-    ranking:     "Faixa dos concorrentes borrados",
+    ranking:     "Faixa dos concorrentes borrados (desligado em 21/09)",
     gate:        "Portão de Alertas / Relatórios / Configurações",
     exit_intent: "Modal de saída (\"antes de sair…\")",
-    score:       "Modal do Score",
+    score:       "Modal do Score (desligado em 21/09)",
     header:      "Menu do avatar",
-    acao_semana: "Ação da semana",
+    acao_semana: "Ação da semana (deixou de levar ao cadastro em 20/09)",
     desconhecido: "Origem não registrada"
   };
   const origens = {}; let j = 0;
@@ -204,6 +210,45 @@ async function handleFunnel(req, res) {
   }
   sets["signup_complete"] = cadastroDoFunil;
 
+  // ── AS SAÍDAS DA VITRINE (21/09/2026) ───────────────────────
+  // O painel do visitante virou vitrine e passou a ter dois destinos que NÃO
+  // são o cadastro: a loja (`/kit`) e a ativação de um dispositivo já comprado
+  // (`/ativar-codigo`). Desde 20/09 o cadastro deixou de ser pedido no corpo da
+  // página — a conversão agora é COMPRAR.
+  //
+  // FICAM FORA DA ESCADA DE PROPÓSITO. O funil acima é uma sequência em que
+  // cada degrau é subconjunto do anterior, e "% do topo" e "queda" só
+  // significam algo assim. Estes dois são saídas laterais: enfiá-los na escada
+  // faria a queda do passo seguinte ficar errada e ninguém perceberia.
+  const VITRINE_STEPS = [
+    { key: "guest_kit_click",    label: "Clicou em conhecer/comprar dispositivo" },
+    { key: "guest_ativar_click", label: "Clicou em ativar um dispositivo que já tem" },
+  ];
+  const VITRINE_ORIGEM = {
+    vitrine:   "Anúncio no meio do painel",
+    cta_final: "Faixa azul do rodapé",
+    desconhecido: "Origem não registrada"
+  };
+  let k = 0;
+  const vitrine = VITRINE_STEPS.map((vs) => {
+    const pessoas = new Set();
+    const porOnde = {};
+    for (const r of (data || [])) {
+      if (r.step !== vs.key) continue;
+      const id = r.anon_id || `evt-v-${k++}`;
+      pessoas.add(id);
+      const from = (r.meta && r.meta.from) || "desconhecido";
+      if (!porOnde[from]) porOnde[from] = new Set();
+      porOnde[from].add(id);
+    }
+    return {
+      key: vs.key, label: vs.label, people: pessoas.size,
+      por_origem: Object.entries(porOnde)
+        .map(([from, set]) => ({ from, label: VITRINE_ORIGEM[from] || from, people: set.size }))
+        .sort((a, b) => b.people - a.people),
+    };
+  });
+
   const top = sets[STEPS[0].key].size || 0;
   let prev = null;
   const funnel = STEPS.map(s => {
@@ -237,7 +282,11 @@ async function handleFunnel(req, res) {
 
   return res.json({
     days, de, ate, periodo: { de: since, ate: until },
-    total_events: (data || []).length, funnel, menu,
+    total_events: (data || []).length, funnel, menu, vitrine,
+    // `vitrine_desde`: os dois passos só passaram a ser gravados em 20/09. Sem
+    // esta data, um período que comece antes mostra zero e se lê como "ninguém
+    // clicou", quando o certo é "ainda não media".
+    vitrine_desde: "2026-09-20",
     cadastros: {
       do_funil: cadastroDoFunil.size,
       fora_do_funil: cadastroForaDoFunil,
