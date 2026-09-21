@@ -62,6 +62,12 @@
       "permanent": false
     },
     {
+      "comentario": "O painel legado morreu em 21/09/2026 (arquivos apagados). Vira REDIRECT e nao 404: ninguem linkava pro /app-legacy, mas quem tinha o endereco anotado era interno, e mandar essa pessoa pra uma pagina de erro e o jeito mais rapido de ela achar que o painel caiu. Nao e permanente porque nao ha o que preservar em buscador - a rota nunca foi publica.",
+      "source": "/app-legacy",
+      "destination": "/app",
+      "permanent": false
+    },
+    {
       "source": "/ativar",
       "missing": [
         {
@@ -313,10 +319,6 @@
     {
       "source": "/app/(.*)",
       "destination": "/index-v2.html"
-    },
-    {
-      "source": "/app-legacy",
-      "destination": "/index.html"
     },
     {
       "source": "/painel-f7dsaz3c",
