@@ -21,7 +21,7 @@ import {
   Image as ImageIcon, Store, PartyPopper, Construction, Monitor, Bookmark, RefreshCw,
   Truck, ShieldCheck, Siren, ClipboardList, Inbox, Tag, UtensilsCrossed, Hand, ChevronRight,
   Smartphone, QrCode, Pencil, MessageCircle, Globe, CalendarCheck,
-  ArrowRight, Zap, Heart
+  ArrowRight, Zap, Heart, ChevronDown
 } from 'lucide-react'
 import PhoneFrame from './v3/PhoneFrame.jsx'
 import { IconeMenu } from './marcas.jsx'
@@ -1081,6 +1081,12 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
 // explicação. (Foi o que aconteceu — o banner já era escondido do visitante e
 // a aba tinha ficado, incoerência apontada pelo Ricardo em 08/09/2026.)
 // Quem quiser conhecer o Menu antes de ter conta acha na /plano-pro, pública.
+// ⚠️ NÃO RENDERIZA MAIS DESDE 21/09/2026 — as abas passaram pra dentro do
+// `Header`, em pílulas, numa barra só. Fica como registro do que a barra
+// separada resolvia e que o header precisa continuar resolvendo: scroll
+// horizontal com fade nas pontas quando as abas não cabem, e centralizar a aba
+// ativa ao trocar. Hoje são 3 ou 4 abas e cabem; se voltarem as de Alertas e
+// Relatórios (comentadas em TABS), é aqui que está a solução pronta.
 function TopTabs({ active, onChange, plan, isMobile, guest }) {
   const scrollerRef = React.useRef(null)
   const activeRef = React.useRef(null)
@@ -2902,7 +2908,25 @@ function ConfigScreen({ data, isMobile, plan, isReal, isAdmin }) {
 // ─────────────────────────────────────────────────────────────
 // Header — agora com dropdown do avatar
 // ─────────────────────────────────────────────────────────────
-function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode, guest = false, signupUrl = null }) {
+// ─────────────────────────────────────────────────────────────
+// HEADER — uma barra só (21/09/2026, formato do mock)
+// ─────────────────────────────────────────────────────────────
+// Eram DUAS barras grudadas: a do logo (com "NEGÓCIO / nome" à esquerda e o
+// botão Ajuda à direita) e, colada embaixo, a das abas. Duas faixas brancas
+// empilhadas comiam ~120px de altura antes de qualquer conteúdo.
+//
+// Agora: logo + abas à esquerda, negócio + avatar à direita, tudo numa linha.
+// As abas viram pílulas (a ativa com fundo azul claro) em vez de sublinhado,
+// porque sublinhado dentro de uma barra só some visualmente.
+//
+// O BOTÃO "AJUDA" SAI, e não se perde nada: "Central de ajuda" já está dentro
+// do menu do avatar, nos DOIS ramos (visitante e cliente) — conferido antes de
+// tirar, não suposto.
+//
+// NO CELULAR NADA DISSO VALE: lá as abas vivem na barra de baixo
+// (`BottomTabBar`) e o header continua com o nome do negócio à esquerda, que é
+// o único lugar onde ele cabe.
+function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode, guest = false, signupUrl = null, activeTab = null, onTabChange = null }) {
   const [open, setOpen] = React.useState(false)
   const ref = React.useRef(null)
 
@@ -2931,6 +2955,16 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
     return src.slice(0, 2).toUpperCase()
   })()
 
+  // Iniciais do NEGÓCIO, não do usuário — é o que o mock mostra e é o que
+  // importa nesta tela: o painel fala de um negócio, não de uma pessoa. O menu
+  // que abre embaixo continua sendo o da conta.
+  const bizInitials = (() => {
+    const parts = String(bizName || '').replace(/[^A-Za-zÀ-ÿ0-9 ]/g, ' ').split(/\s+/).filter(Boolean)
+    if (!parts.length) return 'ST'
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+    return (parts[0][0] + parts[1][0]).toUpperCase()
+  })()
+
   const handleLogout = (e) => {
     e.preventDefault()
     setOpen(false)
@@ -2953,12 +2987,41 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
         <a href="/" style={{ display:'inline-flex', alignItems:'center', textDecoration:'none', flexShrink: 0 }}>
           <img src="/startouch-logo-dark.png" alt="StarTouch" style={{ height: isMobile ? 38 : 46, width:'auto' }}/>
         </a>
-        {!isMobile && <div style={{ width: 1, height: 28, background: T.border }}/>}
-        {/* Nome do negócio — secundário (com label sutil pra hierarquia clara) */}
-        <div style={{ display:'flex', flexDirection:'column', minWidth: 0, gap: 1 }}>
-          <span style={{ fontSize: 9.5, fontWeight: 700, color: T.textDim, letterSpacing:'.06em', textTransform:'uppercase' }}>Negócio</span>
-          <span title={bizName} style={{ fontWeight: 600, fontSize: isMobile ? 12.5 : 13.5, color: T.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight: 1.2, maxWidth: isMobile ? 180 : 280 }}>{bizName}</span>
-        </div>
+        {/* DESKTOP: as abas moram aqui, ao lado do logo. CELULAR: o nome do
+            negócio, porque lá as abas estão na barra de baixo e o nome não tem
+            outro lugar. */}
+        {!isMobile && onTabChange ? (
+          <nav style={{ display:'flex', alignItems:'center', gap: 2, minWidth: 0, overflowX:'auto', scrollbarWidth:'none' }}>
+            {TABS.filter(t => !(guest && t.link)).map(tab => {
+              const ativa = activeTab === tab.id
+              return (
+                <a key={tab.id} href={tab.link || '#'}
+                  onClick={(e) => { if (tab.link) return; e.preventDefault(); onTabChange(tab.id) }}
+                  style={{
+                    display:'inline-flex', alignItems:'center', gap: 7, flexShrink: 0,
+                    padding:'9px 14px', borderRadius: 10, textDecoration:'none', whiteSpace:'nowrap',
+                    fontSize: 13.5, fontWeight: ativa ? 700 : 500,
+                    color: ativa ? T.primary : T.textMid,
+                    background: ativa ? T.primarySoft : 'transparent',
+                    transition:'background .12s, color .12s'
+                  }}
+                  onMouseEnter={(e) => { if (!ativa) { e.currentTarget.style.background = T.bg; e.currentTarget.style.color = T.text } }}
+                  onMouseLeave={(e) => { if (!ativa) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMid } }}>
+                  <span style={{ lineHeight: 1, display:'inline-flex' }}><Ico name={tab.icon} size={17}/></span>
+                  <span>{tab.label}</span>
+                </a>
+              )
+            })}
+          </nav>
+        ) : (
+          <>
+            <div style={{ width: 1, height: 28, background: T.border }}/>
+            <div style={{ display:'flex', flexDirection:'column', minWidth: 0, gap: 1 }}>
+              <span style={{ fontSize: 9.5, fontWeight: 700, color: T.textDim, letterSpacing:'.06em', textTransform:'uppercase' }}>Negócio</span>
+              <span title={bizName} style={{ fontWeight: 600, fontSize: isMobile ? 12.5 : 13.5, color: T.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', lineHeight: 1.2, maxWidth: isMobile ? 180 : 280 }}>{bizName}</span>
+            </div>
+          </>
+        )}
       </div>
 
       <div ref={ref} style={{ display:'flex', alignItems:'center', gap: 10, flexShrink: 0, position:'relative' }}>
@@ -2970,49 +3033,37 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
           }}>PRO</span>
         )}
 
-        {/* Botão de ajuda (desktop only — mobile usa o MoreSheet) */}
-        {!isMobile && (
-          <a href="/ajuda" target="_blank" rel="noopener"
-            title="Abrir central de ajuda em nova aba"
-            aria-label="Abrir central de ajuda"
-            style={{
-              display:'inline-flex', alignItems:'center', gap: 6,
-              padding:'7px 12px 7px 10px', borderRadius: 8,
-              background:'transparent', color: T.textMid,
-              border:'1px solid '+T.border, textDecoration:'none',
-              fontSize: 13, fontWeight: 600, transition:'all .15s',
-              whiteSpace:'nowrap'
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = T.blueSoft
-              e.currentTarget.style.color = T.blue
-              e.currentTarget.style.borderColor = T.blue
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = T.textMid
-              e.currentTarget.style.borderColor = T.border
-            }}
-          >
-            <span aria-hidden="true" style={{
-              display:'inline-flex', alignItems:'center', justifyContent:'center',
-              width: 18, height: 18, borderRadius:'50%',
-              background:'currentColor', color:'#fff', fontSize: 11, fontWeight: 800
-            }}>?</span>
-            <span>Ajuda</span>
-          </a>
-        )}
+        {/* O BOTÃO "AJUDA" SAIU (21/09) — "Central de ajuda" já está no menu do
+            avatar, nos dois ramos. Ver a nota no topo do componente. */}
 
         {/* Avatar clicável — neutro quando convidado (sem conta ainda) */}
         <button
           onClick={() => setOpen(o => !o)}
           aria-label={guest ? 'Menu do visitante' : 'Menu da conta'}
+          title={bizName || undefined}
           style={{
-            width: 32, height: 32, borderRadius:'50%', background: guest ? T.textDim : '#1A73E8', color:'#fff',
-            fontWeight: 700, fontSize: guest ? 15 : 12, display:'flex', alignItems:'center', justifyContent:'center',
-            border:'none', cursor:'pointer', padding: 0,
+            display:'flex', alignItems:'center', gap: 9, minWidth: 0, maxWidth: isMobile ? 'none' : 260,
+            border:'none', cursor:'pointer', padding: isMobile ? 0 : '5px 8px 5px 5px', borderRadius: 999,
+            background: open && !isMobile ? T.bg : 'transparent', fontFamily:'inherit',
+            transition:'background .15s'
+          }}>
+          <span style={{
+            flexShrink: 0, width: 32, height: 32, borderRadius:'50%',
+            /* O círculo do visitante continua CINZA e com o boneco: é o sinal de
+               "você ainda não tem conta", e trocá-lo pelas iniciais do negócio
+               daria a ele a cara de quem já é cliente. */
+            background: guest ? T.textDim : '#1A73E8', color:'#fff',
+            fontWeight: 700, fontSize: guest ? 15 : 12,
+            display:'flex', alignItems:'center', justifyContent:'center',
             boxShadow: open ? '0 0 0 3px '+T.blueSoft : 'none', transition:'box-shadow .15s'
-          }}>{guest ? <User size={18}/> : initials}</button>
+          }}>{guest ? <User size={18}/> : bizInitials}</span>
+          {!isMobile && (
+            <>
+              <span style={{ minWidth: 0, fontSize: 13.5, fontWeight: 600, color: T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{bizName}</span>
+              <ChevronDown size={16} style={{ flexShrink: 0, color: T.textDim, transform: open ? 'rotate(180deg)' : 'none', transition:'transform .15s' }}/>
+            </>
+          )}
+        </button>
 
         {/* Dropdown */}
         {open && (
@@ -8258,8 +8309,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         spacingM={gridPrimary?.spacingM}
         {...guestPitch}
       />}
-      <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl} />
-      {!isMobile && <TopTabs active={tab} onChange={navigateFromMore} plan={plan} isMobile={false} guest={isGuest} />}
+      <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl}
+        activeTab={tab} onTabChange={navigateFromMore} />
+      {/* A SEGUNDA BARRA (`TopTabs`) SAIU em 21/09: as abas subiram pra dentro
+          do header, numa linha só. No celular ela nunca renderizou — lá quem
+          navega é a `BottomTabBar`. */}
 
       {/* A aba CONCORRENTES foi REMOVIDA em 03/ago. Ela era uma tela inteira
           (mapa, simulador, oportunidades) construída sobre o /api/competitors —
