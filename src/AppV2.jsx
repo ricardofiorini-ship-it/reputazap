@@ -11,6 +11,7 @@ import { metricasDoCliente, posicaoDeVisibilidade, confrontoDireto,
   // UNICA, e por dentro ela usa `posicaoComAusencia()`, o unico lugar do
   // projeto onde o 21 ainda existe.
   entradaDoScore } from '../api/_lib/visibilidade.js'
+import { calcForca } from '../api/_lib/forca.js'
 import {
   Home, Star, ShoppingBag, ShoppingCart, Menu, Lock, Unlock, TrendingUp, TrendingDown,
   Bell, Target, Search, Award, Medal, Rocket, AlertTriangle, MessageSquare, Info,
@@ -6896,19 +6897,46 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
   if (!data?.ranking?.length) return null
   const th = { fontSize: 10, fontWeight: 700, letterSpacing:'0.04em', textTransform:'uppercase', color: T.textDim, flexShrink: 0 }
   const num = { fontVariantNumeric:'tabular-nums', flexShrink: 0, textAlign:'right' }
-  // A ORDEM SAI DE UM LUGAR SÓ, e é calculada antes do cabeçalho porque a frase
-  // que resume a tabela depende de onde o dono caiu nela.
-  // MESMA REGRA DO SERVIDOR: COBERTURA primeiro, POSIÇÃO como desempate
-  // (20/09). O `competitors.js` passou a ordenar assim em 19/09 (commit
-  // 26581d7) e a TELA continuou reordenando pelo critério antigo — posição
-  // primeiro —, desfazendo a mudança antes de desenhar. Resultado no painel da
-  // Smart Fit: quatro negócios "parcial" (aparecem só num pedaço da área)
-  // encabeçando a lista em 1º e 2º, e o dono — que aparece nos cinco pontos —
-  // em 6º, contradizendo o topo da mesma tela.
-  // Fica AQUI, e não só no servidor, de propósito: payload servido de cache v2
-  // chega na ordem velha e esta linha normaliza as duas eras.
+  // ─────────────────────────────────────────────────────────
+  // A ORDEM É REPUTAÇÃO: nota × volume (21/09/2026, ideia do Ricardo)
+  // ─────────────────────────────────────────────────────────
+  // Ordenar pela MEDIÇÃO DA GRADE — cobertura, ou posição — tinha três defeitos
+  // que só ficaram visíveis com a tabela de uma padaria na mão:
+  //
+  //   1. O DONO IA PRO TOPO POR CONSTRUÇÃO. A grade é desenhada ao redor da
+  //      porta dele, então ele é o único que aparece nos 5 pontos e ganha a
+  //      cobertura sempre. Uma padaria de 231 avaliações encabeçava a lista
+  //      acima de uma de 5.387 — o dono lê isso como "a ferramenta errou", e
+  //      ele não está sendo injusto. É a família do "1º de N" de agosto, que já
+  //      voltou por duas portas diferentes.
+  //   2. A ORDEM FICAVA ILEGÍVEL. A chave era a cobertura, que na tela virava a
+  //      palavra "parcial" — binária, e com TODO MUNDO parcial ela não informa
+  //      nada. O leitor via 2º, 2º, 4º, 6º, 9º, 3º, 1º, 1º e concluía, com
+  //      razão, que a lista estava quebrada: dois negócios em 1º no rodapé.
+  //   3. A MÉDIA DE POSIÇÃO SOMAVA O QUE NÃO SE SOMA. Medido na Fabrique Pão e
+  //      Café: os 5 pontos tinham 11, 4, 11, 9 e 3 concorrentes. "2º de 3" e
+  //      "3º de 11" entravam com o mesmo peso.
+  //
+  // A reputação não tem nenhum dos três: não depende de onde medimos, é
+  // conferível a olho nas duas colunas ao lado, e é a mesma pergunta que o
+  // consumidor faz ao escolher. A conta é a `calcForca` — nota × log10 do
+  // volume —, que já existia no projeto e cuja tela foi revertida em 08/08. O
+  // que matou ela lá foi a TELA (9 informações e jargão), não a conta; e o
+  // bloqueio de então ("vizinhança de 3 ou 4 negócios") não vale aqui, porque
+  // esta lista vem da grade e tem a região inteira.
+  //
+  // A posição no Google FICA na tabela, como coluna. Ela só deixa de mandar na
+  // ordem — e é por isso que ela pode aparecer fora de ordem sem confundir:
+  // agora ninguém tenta explicar a fila por ela.
+  // A CONTA USA OS MESMOS NÚMEROS QUE A LINHA IMPRIME. A linha do dono é
+  // desenhada com a leitura ao vivo do Google (`meLive`) e o resto com o que a
+  // grade mediu; se a ordem usasse o valor do cache pro dono, ele poderia
+  // aparecer com 4,7 e 1.294 numa posição calculada com 4,6 e 1.284. É o
+  // mesmo defeito de 20/09, um andar acima.
+  const notaDe   = (r) => (r.is_me && meLive && Number.isFinite(meLive.rating))  ? meLive.rating  : r.rating
+  const avalsDe  = (r) => (r.is_me && meLive && Number.isFinite(meLive.reviews)) ? meLive.reviews : r.reviews
   const ordenadas = [...data.ranking]
-    .sort((a, b) => (b.points ?? 0) - (a.points ?? 0) || (a.avg ?? 99) - (b.avg ?? 99))
+    .sort((a, b) => calcForca(notaDe(b), avalsDe(b)) - calcForca(notaDe(a), avalsDe(a)))
   const minhaPos = ordenadas.findIndex(r => r && r.is_me)
   // NA VITRINE A TABELA É CURTA. Doze linhas borradas empurravam o convite pro
   // fim do mundo e transformavam o bloco num paredão cinza — e o botão "Ver
@@ -6926,13 +6954,29 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
   // A FRASE DO MOCK VALE PRO PRIMEIRO CASO, E SÓ PRA ELE. "Aparece com destaque
   // na região" dito a quem está em 11º é a mentira mais cara que esta tela
   // poderia contar — o dono confere em trinta segundos e não volta.
+  // Tenho a melhor nota entre os que estão na minha frente? (só faz sentido se
+  // houver alguém na frente e se as notas existirem — sem nota o `>` mente.)
+  const minhaNotaAqui = minhaPos >= 0 ? notaDe(ordenadas[minhaPos]) : null
+  const notaMelhorQueOsDaFrente = minhaPos > 0 && Number.isFinite(minhaNotaAqui) &&
+    ordenadas.slice(0, minhaPos).every(r => Number.isFinite(notaDe(r)) && notaDe(r) < minhaNotaAqui)
+  // A frase segue a MESMA régua da ordem: reputação, não aparição. Dizer
+  // "aparece com destaque" numa lista que agora ordena por nota e volume seria
+  // descrever outra tabela.
   const resumo = minhaPos < 0
-    ? 'Ainda não localizamos sua empresa nesta busca — veja quem está aparecendo no seu lugar.'
+    ? 'Ainda não localizamos sua empresa nesta busca — veja quem está disputando a região.'
     : minhaPos === 0
-      ? 'Sua empresa aparece com destaque na região, mas ainda há espaço para evoluir.'
-      : minhaPos <= 2
-        ? 'Sua empresa aparece bem na região, mas há concorrentes na sua frente.'
-        : 'Há vários concorrentes aparecendo mais que você na região — dá pra virar esse jogo.'
+      ? 'Sua empresa tem a melhor reputação da região, mas ainda há espaço para evoluir.'
+      : notaMelhorQueOsDaFrente
+        // A MELHOR NOTÍCIA DA TABELA ESTAVA ESCONDIDA NUMA COLUNA. Quando o
+        // dono tem a nota mais alta de todos os que estão na frente dele, o que
+        // o separa deles é volume — e volume é exatamente o que um dispositivo
+        // no balcão resolve. É verdade, é conferível nas duas colunas ao lado e
+        // é a ponte honesta entre o diagnóstico e o que a gente vende. Sem ela
+        // a tela diz só "oito estão na sua frente" e some.
+        ? `Você tem a melhor nota entre os ${minhaPos} que estão à frente — o que te separa deles é volume de avaliações.`
+        : minhaPos <= 2
+          ? `Sua empresa está entre as melhores da região — ${minhaPos} ${minhaPos === 1 ? 'negócio está' : 'negócios estão'} à frente.`
+          : `${minhaPos} ${minhaPos === 1 ? 'negócio tem' : 'negócios têm'} reputação melhor que a sua por aqui — nota e volume de avaliações contam juntos.`
   return (
     <Card>
       {vitrine ? (
@@ -6982,8 +7026,10 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
       {/* A busca medida e o raio já estão na faixa logo acima desta tabela
           ("Medindo quem busca X a até 1 km do seu endereço"). Aqui sobra só a
           ideia que a faixa não dá: a lista do Google não é uma só. */}
+      {/* A LINHA QUE ENSINA A LER A TABELA. Sem ela, a ordem parece arbitrária
+          pra quem olha só a coluna de posição — que agora não manda em nada. */}
       <div style={{ fontSize: 12.5, color: T.textMuted, marginBottom: 12, lineHeight: 1.5 }}>
-        A lista do Google muda conforme o lugar de onde a pessoa procura.
+        Ordenado por reputação: <b>nota e volume de avaliações contam juntos</b>. A coluna do Google é à parte — aquela lista muda conforme o lugar de onde a pessoa procura.
       </div>
 
       <div style={{ display:'flex', alignItems:'flex-end', gap: 8, padding:'0 8px 6px', borderBottom:`1px solid ${T.border}`, marginBottom: 4 }}>
@@ -6996,8 +7042,8 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
       {linhas.map((r, i) => {
         const me = r.is_me
         const some = r.points != null && r.points < data.measured
-        const nota = (me && meLive && Number.isFinite(meLive.rating)) ? meLive.rating : r.rating
-        const avals = (me && meLive && Number.isFinite(meLive.reviews)) ? meLive.reviews : r.reviews
+        const nota = notaDe(r)
+        const avals = avalsDe(r)
         return (
           <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'8px', borderRadius: 8, marginBottom: 2, background: me ? T.primarySoft : 'transparent' }}>
             {/* SEM BORRÃO (21/09/2026, decisão do Ricardo: "pode desborrar pra

@@ -1,5 +1,6 @@
 import { fetchWithTimeout } from "./fetch-timeout.js";
 import { comCachePlaces, chaveDe, TTL } from "./places-cache.js";
+import { calcForca } from "./forca.js";
 
 // ============================================================
 // StarTouch — Helper de busca de concorrentes (compartilhado)
@@ -563,11 +564,10 @@ export function detectSpecialtiesFromName(name, types) {
 // esmagaria a nota e a métrica viraria "quem tem mais avaliação", que já é o que
 // o dono vê sozinho.
 const FORCA_RAIO_M = 1000;   // 1 km — a tela cita este número, mexeu aqui, mexeu no texto
-export function calcForca(rating, reviews) {
-  const n = Number(rating) || 0;
-  const v = Number(reviews) || 0;
-  return Math.round(n * Math.log10(v + 1) * 10) / 10;
-}
+// A CONTA MUDOU DE ENDEREÇO (21/09), não de valor: mora em `_lib/forca.js`,
+// que é puro e por isso o painel também consegue importar. Reexportada aqui
+// pra não quebrar quem já importava deste módulo.
+export { calcForca };
 
 /**
  * Força competitiva do negócio entre os vizinhos do mesmo termo, num raio de 1 km.
