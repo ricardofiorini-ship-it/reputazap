@@ -7687,11 +7687,10 @@ function ScoreModal({ d, onClose, isGuest, signupUrl }) {
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  // GA4: impressão da trava (só no modo prévia/convidado) — pra medir conversão.
-  React.useEffect(() => {
-    if (!isGuest) return
-    try { if (typeof window !== 'undefined' && window.gtag) window.gtag('event', 'score_breakdown_gate_view') } catch {}
-  }, [isGuest])
+  // O evento `score_breakdown_gate_view` SAIU (21/09) junto com a trava. Evento
+  // de impressão de um portão que não existe mais mediria zero pra sempre — e
+  // zero num relatório antigo se lê como "ninguém chega lá", não como
+  // "desligamos isso".
 
   const scoreColor = score >= 80 ? T.green : score >= 55 ? T.amber : T.red
 
@@ -7724,14 +7723,20 @@ function ScoreModal({ d, onClose, isGuest, signupUrl }) {
             : <>Score máximo. Seu negócio tá com a presença local completa pela nossa fórmula.</>}
         </p>
 
-        {/* Fatores. Convidado: só o 1º fator revelado; os demais com blur (só a
-            pontuação legível) + trava. Logado: todos abertos (nada muda). */}
+        {/* Fatores — todos abertos, pra todo mundo, desde 21/09. O ramo da
+            trava fica no código logo abaixo, inerte (`locked = false`), porque
+            apagá-lo exigiria reescrever a lista inteira num commit que só
+            precisava abrir uma porta. */}
         <div style={{ display:'flex', flexDirection:'column', gap: 14 }}>
           {factors.map((f, idx) => {
             const pct = f.max > 0 ? Math.round((f.earned / f.max) * 100) : 0
             const full = f.earned >= f.max
             const barColor = full ? T.green : pct >= 50 ? T.blue : T.amber
-            const locked = isGuest && idx > 0
+            // SEM TRAVA (21/09): "pode abrir o score também". Era o último
+            // portão do corpo do painel do visitante. Ver a nota do borrão na
+            // GridRankingList — mesma régua, mesmo dia: o diagnóstico inteiro é
+            // de graça, o que se vende é a cura.
+            const locked = false
 
             if (locked) {
               return (
@@ -7774,29 +7779,14 @@ function ScoreModal({ d, onClose, isGuest, signupUrl }) {
           })}
         </div>
 
-        {isGuest ? (
-          /* CTA primário do gate — mesmo destino do fluxo de criar conta */
-          <a href={signupUrl || '/ativar?from=web'}
-            onClick={() => {
-              // Os dois de propósito: `score_breakdown_gate_click` é antigo e pode
-              // estar em relatório do GA4; `guest_signup_click` é o passo 4 do
-              // funil e é o que o /admin/funil conta.
-              try { window.gtag && window.gtag('event', 'score_breakdown_gate_click') } catch {}
-              trackFunnel('guest_signup_click', { from: 'score' })
-            }}
-            style={{
-              marginTop: 16, width:'100%', minHeight: 48, background: T.primary, color:'#fff', textDecoration:'none',
-              borderRadius: 12, padding:'12px 18px', fontSize: 14, fontWeight: 700, fontFamily:"'Inter', sans-serif",
-              display:'flex', alignItems:'center', justifyContent:'center', gap: 6
-            }}>
-            Criar conta grátis e ver tudo <ChevronRight size={16}/>
-          </a>
-        ) : (
-          /* Rodapé honesto — o que ainda não entra na conta (só logado) */
-          <p style={{ fontSize: 11.5, color: T.textDim, margin:'16px 0 0', lineHeight: 1.5, borderTop:`1px solid ${T.border}`, paddingTop: 12 }}>
-            Ainda não contamos <b>taxa de resposta às avaliações</b> nem <b>recência</b> — o Google não expõe esses dados de forma confiável hoje. Quando der, entram na fórmula.
-          </p>
-        )}
+        {/* O RODAPÉ HONESTO AGORA É PRA TODO MUNDO. Ele estava só no ramo do
+            cliente; o visitante via no lugar dele o botão "Criar conta grátis e
+            ver tudo" — que, sem trava nenhuma, prometeria mostrar o que já está
+            aberto acima. E o visitante é justamente quem mais precisa saber o
+            que a fórmula NÃO olha, porque é dele a primeira impressão. */}
+        <p style={{ fontSize: 11.5, color: T.textDim, margin:'16px 0 0', lineHeight: 1.5, borderTop:`1px solid ${T.border}`, paddingTop: 12 }}>
+          Ainda não contamos <b>taxa de resposta às avaliações</b> nem <b>recência</b> — o Google não expõe esses dados de forma confiável hoje. Quando der, entram na fórmula.
+        </p>
       </Card>
     </div>
   )
