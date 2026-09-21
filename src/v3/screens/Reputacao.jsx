@@ -38,6 +38,7 @@ const DEPENDE_DA_CONEXAO = [
   }
 ]
 import { Head, Kpi, Panel, Chip, Estrelas, dataBr } from '../ui.jsx'
+import { calcForca } from '../../../api/_lib/forca.js'
 
 function Avaliacao({ r }) {
   return (
@@ -107,7 +108,7 @@ export default function Reputacao({ dados }) {
           titulo="Sua posição na região"
           extra={<Chip tipo="g">Free</Chip>}
           sub={`Busca medida: “${posicao.term}”${posicao.measuredAt ? ` · medido em ${dataBr(posicao.measuredAt)}` : ''}`}
-          rodape="O Google não mostra a mesma lista para todo mundo: ela muda conforme o lugar de onde a pessoa procura. Por isso medimos em vários pontos ao redor do seu endereço, e não em um só.">
+          rodape="Ordenado por reputação: nota e volume de avaliações contam juntos — é por isso que nota alta com pouco volume fica abaixo de nota média com muito.">
           {posicao.coverage === 0 ? (
             <p style={{ fontSize: 12.8, color: 'var(--mid)', padding: '8px 0' }}>
               Testamos {posicao.measured} lugares ao redor do seu endereço e em nenhum deles você aparece
@@ -118,27 +119,39 @@ export default function Reputacao({ dados }) {
             <div className="v3-table-wrap">
               <table className="v3-t">
                 <thead>
-                  <tr><th>Negócio</th><th className="num">Lugar no Google</th><th className="num">Nota</th><th className="num">Avaliações</th></tr>
+                  <tr><th className="num">#</th><th>Negócio</th><th className="num">Nota</th><th className="num">Avaliações</th></tr>
                 </thead>
                 <tbody>
-                  {[...(posicao.ranking || [])]
-                    .sort((a, b) => (a.avg ?? 99) - (b.avg ?? 99) || (b.points ?? 0) - (a.points ?? 0))
-                    .slice(0, 10)
-                    .map((r, i) => (
+                  {(() => {
+                    // ALINHADO COM O /app EM 21/09/2026. Esta tabela ficou UM DIA
+                    // atrás e o Ricardo viu a diferença na tela: aqui ela ainda
+                    // ordenava por `avg` (posição média no Google) e mostrava a
+                    // coluna "Lugar no Google" com a cobertura embaixo do nome. Lá
+                    // aquilo saiu, por três motivos medidos numa padaria real: o
+                    // dono ia pro topo por construção (a grade é centrada na porta
+                    // dele), a ordem ficava ilegível (1º no rodapé, 5º em cima) e a
+                    // média de posição somava pontos com 3 e com 11 concorrentes
+                    // como se fossem a mesma coisa.
+                    //
+                    // MESMO NEGÓCIO EM DOIS PAINÉIS TEM QUE DAR A MESMA FILA. Quem
+                    // abrisse os dois veria dois rankings de si mesmo — e a partir
+                    // daí não acreditaria em nenhum dos dois. A conta é a mesma
+                    // função, não uma cópia: `_lib/forca.js`.
+                    const ordenadas = [...(posicao.ranking || [])]
+                      .sort((a, b) => calcForca(b.rating, b.reviews) - calcForca(a.rating, a.reviews))
+                    return ordenadas.slice(0, 10).map((r, i) => (
                       <tr key={i} style={r.is_me ? { background: 'var(--blue-soft)' } : null}>
+                        <td className="num" style={r.is_me ? { color: 'var(--blue-dk)', fontWeight: 700 } : null}>{i + 1}º</td>
                         <td>
                           <div className={r.is_me ? 'nm' : ''} style={r.is_me ? { color: 'var(--blue-dk)' } : null}>
                             {r.name}{r.is_me ? ' · você' : ''}
                           </div>
-                          {r.points != null && r.points < posicao.measured && (
-                            <div className="sm">aparece em {r.points} de {posicao.measured} pontos</div>
-                          )}
                         </td>
-                        <td className="num">{r.avg != null ? Math.round(r.avg) + 'º' : '—'}</td>
                         <td className="num">{r.rating != null ? r.rating.toFixed(1).replace('.', ',') : '—'}</td>
                         <td className="num">{r.reviews != null ? r.reviews.toLocaleString('pt-BR') : '—'}</td>
                       </tr>
-                    ))}
+                    ))
+                  })()}
                 </tbody>
               </table>
             </div>
