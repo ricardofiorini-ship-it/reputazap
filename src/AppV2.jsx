@@ -6874,6 +6874,11 @@ const COL = { avg: 58, rating: 46, reviews: 60 }
 // Mesma decisão de `lacunaDeAvaliacoes` — e pelo mesmo motivo: era o mesmo
 // negócio aparecendo com dois totais na mesma tela.
 function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = false, meLive = null, vitrine = false }) {
+  // "Ver análise completa" abre a lista AQUI, não leva pro cadastro (21/09).
+  // Enquanto os nomes eram borrados, esse botão era o portão; sem o borrão ele
+  // passaria a cobrar conta por uma lista que já está na tela, três linhas
+  // abaixo. Botão que promete o que já é visível queima os outros botões junto.
+  const [verTudo, setVerTudo] = React.useState(false)
   // Comparação controlada: só com medição nova (`observations`) e só contra o
   // concorrente que mais fica acima. Um rival por vez — lista de cinco viraria
   // relatório, e o dono não age sobre cinco coisas.
@@ -6913,7 +6918,7 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
   // fazer.
   const CORTE_VITRINE = 5
   let linhas = ordenadas
-  if (vitrine && ordenadas.length > CORTE_VITRINE) {
+  if (vitrine && !verTudo && ordenadas.length > CORTE_VITRINE) {
     linhas = ordenadas.slice(0, CORTE_VITRINE)
     if (minhaPos >= CORTE_VITRINE) linhas = [...linhas, ordenadas[minhaPos]]
   }
@@ -6941,16 +6946,14 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
               <p style={{ fontSize: 13, color: T.textMid, margin: 0, lineHeight: 1.45 }}>{resumo}</p>
             </div>
           </div>
-          {/* O botão do desenho é, no visitante, o portão: os nomes continuam
-              borrados e é aqui que ele troca cadastro por eles. Pro cliente
-              logado ele leva à lista inteira, que já está logo abaixo. */}
-          {isGuest && (
-            <a href={signupUrl || '/ativar?from=web'} onClick={() => trackFunnel('guest_signup_click', { from: 'ranking' })}
+          {(ocultas > 0 || verTudo) && (
+            <button type="button" onClick={() => setVerTudo(v => !v)}
               style={{ flexShrink: 0, display:'inline-flex', alignItems:'center', gap: 6, background:'#fff', color: T.primary,
                 border:`1.5px solid ${T.primary}`, borderRadius: 10, padding:'9px 15px', fontSize: 13, fontWeight: 700,
-                textDecoration:'none', fontFamily:"'Inter', sans-serif" }}>
-              Ver análise completa dos concorrentes <ChevronRight size={16}/>
-            </a>
+                cursor:'pointer', fontFamily:"'Inter', sans-serif" }}>
+              {verTudo ? 'Ver só os principais' : 'Ver análise completa dos concorrentes'}
+              <ChevronRight size={16} style={{ transform: verTudo ? 'rotate(90deg)' : 'none', transition:'transform .15s' }}/>
+            </button>
           )}
         </div>
       ) : (
@@ -6992,14 +6995,16 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
 
       {linhas.map((r, i) => {
         const me = r.is_me
-        const blurName = isGuest && !me
         const some = r.points != null && r.points < data.measured
         const nota = (me && meLive && Number.isFinite(meLive.rating)) ? meLive.rating : r.rating
         const avals = (me && meLive && Number.isFinite(meLive.reviews)) ? meLive.reviews : r.reviews
         return (
           <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'8px', borderRadius: 8, marginBottom: 2, background: me ? T.primarySoft : 'transparent' }}>
-            <span style={{ flex: 1, minWidth: 0,
-              ...(blurName && { filter:'blur(5px)', userSelect:'none', pointerEvents:'none' }) }}>
+            {/* SEM BORRÃO (21/09/2026, decisão do Ricardo: "pode desborrar pra
+                todos"). O nome do concorrente era a última informação que o
+                painel trocava por cadastro. Agora o diagnóstico é inteiro e de
+                graça — o que se vende é a cura, não a informação. */}
+            <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display:'block', fontSize: 13, fontWeight: me ? 700 : 500, color: me ? T.primaryDark : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                 {me ? `${r.name || 'Você'} (você)` : (r.name || 'Concorrente')}
               </span>
@@ -7060,21 +7065,9 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
         <DistanciaNaoExplica comp={controlada.comp} eu={controlada.eu} rival={controlada.rival} isMobile={isMobile}/>
       )}
 
-      {/* Na vitrine o convite já é o botão do cabeçalho ("Ver análise completa
-          dos concorrentes"). Dois botões pedindo a mesma conta no mesmo cartão
-          viram ruído e nenhum dos dois é clicado. */}
-      {isGuest && !vitrine && data.ranking.some(r => !r.is_me) && (
-        <div style={{ marginTop: 12, display:'flex', alignItems:'center', gap: 12, flexWrap:'wrap', background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 12, padding:'12px 14px' }}>
-          <Lock size={18} color={T.primary} style={{ flexShrink: 0 }}/>
-          <div style={{ flex:'1 1 180px', minWidth: 0, fontSize: 13, color: T.textMid, lineHeight: 1.45 }}>
-            <strong style={{ color: T.text }}>Quem são seus concorrentes?</strong> Crie sua conta grátis pra ver os nomes.
-          </div>
-          <a href={signupUrl || '/ativar?from=web'} onClick={() => trackFunnel('guest_signup_click', { from: 'ranking' })}
-            style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6, flexShrink: 0, background: T.primary, color:'#fff', fontSize: 13.5, fontWeight: 700, textDecoration:'none', borderRadius: 10, padding:'10px 16px' }}>
-            Criar conta grátis <ChevronRight size={16}/>
-          </a>
-        </div>
-      )}
+      {/* O CONVITE "crie conta pra ver os nomes" SAIU (21/09). Os nomes estão
+          na tela — a frase virou promessa de uma coisa que o dono já está
+          lendo, e promessa vazia contamina o resto da tela. */}
     </Card>
   )
 }
@@ -7228,14 +7221,14 @@ function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGues
               {(active.top || []).map((c, i) => {
                 const meFirst = c.isMe && c.pos === 1
                 // Convidado (sem cadastro): nome do concorrente borrado — força o cadastro.
-                const blurName = isGuest && !c.isMe
+                // Sem borrão desde 21/09 — ver a nota na GridRankingList.
                 return (
                   <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'8px', borderRadius: 8, marginBottom: 2,
                     background: c.isMe ? T.primarySoft : 'transparent' }}>
                     <span style={{ width: 24, flexShrink: 0, textAlign:'center', fontSize: 12, fontWeight: 700,
                       ...(meFirst ? { background: T.success, color:'#fff', borderRadius: 6, padding:'2px 0' } : { color: T.textDim }) }}>{c.pos}º</span>
                     <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: c.isMe ? 700 : 500, color: c.isMe ? T.primaryDark : T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
-                      ...(blurName && { filter:'blur(5px)', userSelect:'none', pointerEvents:'none' }) }}>
+                      }}>
                       {c.isMe ? `${c.name || 'Você'} (você)` : (c.name || 'Concorrente')}
                     </span>
                     <span style={{ fontSize: 12, color: T.textMuted, flexShrink: 0, display:'inline-flex', alignItems:'center', gap: 2 }}>
@@ -7245,23 +7238,8 @@ function VisibilityLenses({ data, loading, isMobile, googleUrl, category, isGues
                 )
               })}
 
-              {/* Aviso convidado: nomes borrados → cadastro pra revelar. */}
-              {isGuest && (active.top || []).some(c => !c.isMe) && (
-                <div style={{ marginTop: 12, display:'flex', alignItems:'center', gap: 12, flexWrap:'wrap',
-                  background: T.primarySoft, border:`1px solid ${T.primary}22`, borderRadius: 12, padding:'12px 14px' }}>
-                  <Lock size={18} color={T.primary} style={{ flexShrink: 0 }}/>
-                  <div style={{ flex:'1 1 180px', minWidth: 0, fontSize: 13, color: T.textMid, lineHeight: 1.45 }}>
-                    <strong style={{ color: T.text }}>Quem são seus concorrentes?</strong> Crie sua conta grátis pra ver os nomes de quem aparece na sua frente.
-                  </div>
-                  <a href={signupUrl || '/ativar?from=web'}
-                    onClick={() => trackFunnel('guest_signup_click', { from: 'ranking' })}
-                    style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6, flexShrink: 0,
-                      background: T.primary, color:'#fff', fontSize: 13.5, fontWeight: 700, textDecoration:'none',
-                      borderRadius: 10, padding:'10px 16px' }}>
-                    Criar conta grátis <ChevronRight size={16}/>
-                  </a>
-                </div>
-              )}
+              {/* O convite "crie conta pra ver os nomes" saiu daqui também
+                  (21/09): os nomes estão logo acima, sem borrão. */}
             </div>
           )}
         </>
