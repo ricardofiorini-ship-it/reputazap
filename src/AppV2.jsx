@@ -6985,7 +6985,14 @@ function DistanciaNaoExplica({ comp, eu, rival, isMobile }) {
   )
 }
 
-const COL = { avg: 58, rating: 46, reviews: 60 }
+// A COLUNA "LUGAR NO GOOGLE" SAIU (21/09, pedido do Ricardo: "não soa bem pro
+// cliente, parcial etc... vamos mostrar só notas e avaliações, isso confunde").
+// Ele está certo, e o motivo é estrutural: desde que a fila passou a ser de
+// REPUTAÇÃO, aquela coluna virou enfeite que CONTRADIZ a ordem — mostrava 2º,
+// 1º, 5º descendo a tabela e pedia uma etiqueta ("parcial") pra explicar por
+// que o 1º estava embaixo. Coluna que precisa de nota de rodapé pra não mentir
+// é coluna que custa mais do que rende.
+const COL = { rating: 46, reviews: 60 }
 // `meLive`: nota e total do dono lidos agora do Google. A linha dele na tabela
 // usa esses valores; os concorrentes ficam com o que a grade mediu (até 7 dias).
 // Mesma decisão de `lacunaDeAvaliacoes` — e pelo mesmo motivo: era o mesmo
@@ -7142,22 +7149,21 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
       {/* A busca medida e o raio já estão na faixa logo acima desta tabela
           ("Medindo quem busca X a até 1 km do seu endereço"). Aqui sobra só a
           ideia que a faixa não dá: a lista do Google não é uma só. */}
-      {/* A LINHA QUE ENSINA A LER A TABELA. Sem ela, a ordem parece arbitrária
-          pra quem olha só a coluna de posição — que agora não manda em nada. */}
+      {/* A LINHA QUE ENSINA A LER A TABELA. Com duas colunas só, ela explica a
+          fila inteira: por que 4,7 com 231 avaliações fica abaixo de 4,3 com
+          5.387. Sem ela a ordem parece arbitrária. */}
       <div style={{ fontSize: 12.5, color: T.textMuted, marginBottom: 12, lineHeight: 1.5 }}>
-        Ordenado por reputação: <b>nota e volume de avaliações contam juntos</b>. A coluna do Google é à parte — aquela lista muda conforme o lugar de onde a pessoa procura.
+        Ordenado por reputação: <b>nota e volume de avaliações contam juntos</b>.
       </div>
 
       <div style={{ display:'flex', alignItems:'flex-end', gap: 8, padding:'0 8px 6px', borderBottom:`1px solid ${T.border}`, marginBottom: 4 }}>
         <span style={{ ...th, flex: 1, minWidth: 0 }}>Negócio</span>
-        <span style={{ ...th, ...num, width: COL.avg, lineHeight: 1.2 }}>Lugar no<br/>Google</span>
         <span style={{ ...th, ...num, width: COL.rating }}>Nota</span>
         <span style={{ ...th, ...num, width: COL.reviews }}>Avaliações</span>
       </div>
 
       {linhas.map((r, i) => {
         const me = r.is_me
-        const some = r.points != null && r.points < data.measured
         const nota = notaDe(r)
         const avals = avalsDe(r)
         return (
@@ -7180,21 +7186,6 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
                 </span>
               )}
             </span>
-            <span style={{ ...num, width: COL.avg }}>
-              <span style={{ display:'block', fontSize: 13, fontWeight: 700, color: me ? T.primaryDark : T.text }}>
-                {r.avg != null ? `${Math.max(1, Math.round(r.avg))}º` : '—'}
-              </span>
-              {/* A cobertura vira UMA PALAVRA, e só em quem não aparece na
-                  região inteira (15/09). Era "em 4 de 6" em toda linha — o dono
-                  não tem por que saber que existem 6 pontos de medição. Mas o
-                  fato não podia sumir: sem ele, quem aparece em 1º num canto só
-                  encabeça a lista e passa por líder do bairro. */}
-              {some && (
-                <span style={{ display:'block', fontSize: 10, lineHeight: 1.2, marginTop: 1, color: T.accent, fontWeight: 700 }}>
-                  parcial
-                </span>
-              )}
-            </span>
             <span style={{ ...num, width: COL.rating, fontSize: 12, color: T.textMuted, display:'inline-flex', alignItems:'center', justifyContent:'flex-end', gap: 2 }}>
               {nota != null ? nota.toFixed(1).replace('.', ',') : '—'}<Star size={11} fill={T.accent} color={T.accent} strokeWidth={0}/>
             </span>
@@ -7204,14 +7195,6 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
           </div>
         )
       })}
-      {/* UMA LINHA DE LEGENDA, e só quando existe alguém "parcial" na lista.
-          Eram dois parágrafos explicando duas colunas — e o dono lia a
-          explicação antes de conseguir ler o dado. */}
-      {data.ranking.some(r => r.points != null && r.points < data.measured) && (
-        <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.55 }}>
-          <b style={{ color: T.accent }}>parcial</b> — aparece só em parte da região.
-        </div>
-      )}
       {/* O QUE FICOU DE FORA É DITO EM VOZ ALTA. Cortar a lista sem avisar é o
           tipo de silêncio que faz o dono achar que só existem cinco academias
           na região dele. */}
@@ -7220,16 +7203,10 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
           Mais {ocultas.toLocaleString('pt-BR')} {ocultas === 1 ? 'negócio disputa' : 'negócios disputam'} esta busca na sua região.
         </div>
       )}
-      {/* BUSCA DESPREZADA É DITA EM VOZ ALTA (21/09). O servidor tira da conta
-          da posição os pontos onde o Google achou pouquíssimos negócios — em
-          lista de três nomes, o 2º é o penúltimo, e ele entrava na média como
-          um "2". Sem esta linha, a coluna do Google passa a se apoiar em três
-          buscas e a tela continua dando a entender que são cinco. */}
-      {data.rasos > 0 && (
-        <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 6, lineHeight: 1.55 }}>
-          A coluna do Google se apoia em {data.measured} das {data.measured + data.rasos} buscas da região: nas outras havia negócios de menos, e ali a colocação não significaria nada.
-        </div>
-      )}
+      {/* O aviso das buscas rasas saiu com a coluna que ele qualificava. O
+          DESCARTE CONTINUA ACONTECENDO no servidor e continua importando: ele é
+          o que mantém o cartão "Presença local" honesto. Só não há mais, nesta
+          tabela, número que precise dessa ressalva. */}
       {/* Só pro cliente: o convidado tem o nome do concorrente borrado na
           tabela, e este bloco o diria em texto aberto — o portão precisa ser
           um só, não um com buraco do lado. */}
