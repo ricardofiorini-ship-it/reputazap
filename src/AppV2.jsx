@@ -7104,6 +7104,16 @@ function GridRankingList({ data, isGuest, signupUrl, placeId = null, isMobile = 
           Mais {ocultas.toLocaleString('pt-BR')} {ocultas === 1 ? 'negócio disputa' : 'negócios disputam'} esta busca na sua região.
         </div>
       )}
+      {/* BUSCA DESPREZADA É DITA EM VOZ ALTA (21/09). O servidor tira da conta
+          da posição os pontos onde o Google achou pouquíssimos negócios — em
+          lista de três nomes, o 2º é o penúltimo, e ele entrava na média como
+          um "2". Sem esta linha, a coluna do Google passa a se apoiar em três
+          buscas e a tela continua dando a entender que são cinco. */}
+      {data.rasos > 0 && (
+        <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 6, lineHeight: 1.55 }}>
+          A coluna do Google se apoia em {data.measured} das {data.measured + data.rasos} buscas da região: nas outras havia negócios de menos, e ali a colocação não significaria nada.
+        </div>
+      )}
       {/* Só pro cliente: o convidado tem o nome do concorrente borrado na
           tabela, e este bloco o diria em texto aberto — o portão precisa ser
           um só, não um com buraco do lado. */}

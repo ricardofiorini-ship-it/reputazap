@@ -1336,7 +1336,50 @@ export async function fetchGridRanking({ placeId, terms, spacingM = GRID_SPACING
         },
       };
     }));
-    const pts = allPts.filter((p) => p.ok);   // só pontos realmente medidos entram na conta
+    const medidos = allPts.filter((p) => p.ok);   // só pontos realmente medidos entram na conta
+
+    // ─────────────────────────────────────────────────────────
+    // PONTO RASO NÃO ENTRA NA CONTA DA POSIÇÃO (21/09/2026)
+    // ─────────────────────────────────────────────────────────
+    // Medido na Fabrique Pão e Café (Vila Leopoldina, termo "Padaria"): os
+    // cinco pontos tinham 11, 4, 11, 9 e 3 negócios dentro do raio. Ser "2º de
+    // 3" é ser o PENÚLTIMO, e ser "3º de 4" também — mas na média eles entram
+    // como um 2 e um 3, números baixos que parecem ótimos e puxam a média pra
+    // baixo. A dela dava 3,8º (≈4º na tela); só com os três pontos que tinham
+    // disputa de verdade, dá 4,7º (≈5º).
+    //
+    // É a mesma armadilha de tirar média de colocações em corridas de tamanhos
+    // diferentes: 2º numa corrida de 3 não vale o mesmo que 3º numa de 11.
+    //
+    // O erro não é do negócio, é DE ONDE A GENTE MEDIU — e um número otimista
+    // por acidente é pior que um número ruim honesto, porque o dono confere no
+    // Google e encontra o ruim de qualquer jeito, levando junto a confiança no
+    // resto da tela.
+    //
+    // O CORTE É 5 (o negócio + 4 concorrentes dentro do raio). Abaixo disso a
+    // colocação não distingue nada: em três nomes, o 2º é o penúltimo.
+    const MIN_DISPUTA = 5;
+    const ehRaso = (p) => (p.total || 0) < MIN_DISPUTA;
+    const comDisputa = medidos.filter((p) => !ehRaso(p));
+    // NUNCA FICAR SEM NÚMERO. Se a região inteira for rasa (bairro com três
+    // padarias, e existem), descartar tudo deixaria o painel mudo — pior que um
+    // número fraco. Aí volta a usar todos e o aviso vai no log e na resposta.
+    const pts = comDisputa.length ? comDisputa : medidos;
+    const rasos = medidos.length - pts.length;
+    // Quem ficou de fora, por nome. O MESMO conjunto tem que sair das
+    // `observations`, senão a correção conserta a coluna de posição e deixa o
+    // card "Presença local" — que se alimenta delas — inflado do mesmo jeito.
+    // Dois consumidores da mesma medição com réguas diferentes é como este
+    // projeto produz contradição na tela (ver 20/09).
+    const foraDaConta = new Set(comDisputa.length ? medidos.filter(ehRaso).map((p) => p.dir) : []);
+    if (rasos > 0) {
+      console.warn(`[grid] ${term}: ${rasos} de ${medidos.length} pontos fora da conta da posição ` +
+        `(menos de ${MIN_DISPUTA} negócios no raio): ` +
+        medidos.filter(ehRaso).map((p) => `${p.dir}=${p.total}`).join(", "));
+    } else if (!comDisputa.length && medidos.length) {
+      console.warn(`[grid] ${term}: TODOS os ${medidos.length} pontos são rasos — posição calculada com eles mesmo.`);
+    }
+
     const present = pts.filter((p) => p.rank != null).map((p) => p.rank);
     const avg = present.length ? Math.round((present.reduce((a, b) => a + b, 0) / present.length) * 10) / 10 : null;
 
@@ -1394,12 +1437,18 @@ export async function fetchGridRanking({ placeId, terms, spacingM = GRID_SPACING
     // sabemos nada; o chamador NÃO pode ler isso como "fora da lista".
     return {
       term,
-      points: allPts.map(({ dir, ok, rank, total, beyondRadius }) => ({ dir, ok, rank, total, beyondRadius: beyondRadius || 0 })),
+      // `raso` viaja junto: ponto descartado da conta continua VISÍVEL pra quem
+      // for conferir de onde saiu o número. Descarte que some é indistinguível
+      // de ponto que nunca existiu.
+      points: allPts.map(({ dir, ok, rank, total, beyondRadius }) => ({ dir, ok, rank, total, beyondRadius: beyondRadius || 0, raso: foraDaConta.has(dir) })),
       // A MATERIA-PRIMA, ao lado do resumo. `points` segue identico pra nao
       // quebrar ninguem neste passo; `observations` e o que as metricas novas
       // consomem (api/_lib/visibilidade.js).
-      observations: allPts.map((p) => p.obs),
+      observations: allPts.filter((p) => !foraDaConta.has(p.dir)).map((p) => p.obs),
       avg, coverage: present.length, measured: nPts,
+      // Quantos pontos saíram da conta por não terem disputa. Vai na resposta
+      // pra a tela poder dizer em voz alta em quantas buscas o número se apoia.
+      rasos,
       rank, total: rankingArr.length, ranking,
     };
   }));
