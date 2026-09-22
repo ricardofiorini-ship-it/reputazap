@@ -155,7 +155,7 @@ async function handleActivate(req, res, user) {
   // Busca a placa (inclui business_id atual pra detectar "ativa mas orfã")
   const { data: plate, error: plateErr } = await supabase
     .from("plates")
-    .select("id, code, status, business_id")
+    .select("id, code, status, business_id, linha")
     .eq("code", normalized)
     .maybeSingle();
   if (plateErr) return res.status(500).json({ error: plateErr.message });
@@ -196,14 +196,33 @@ async function handleActivate(req, res, user) {
   if (!biz) return res.status(403).json({ error: "Negócio não pertence a você" });
 
   // Ativa (vincula ou re-vincula)
+  const patch = {
+    business_id,
+    channel_name: channel_name || null,
+    status: "active",
+    activated_at: new Date().toISOString()
+  };
+
+  // ── Cartão Trybo (22/09/2026) ──────────────────────────────
+  // Um cartão de redes sociais ativado precisa nascer servindo 'social', não
+  // 'google_direto': o google_direto mandaria o cliente da barbearia avaliar
+  // no Google, que é o produto errado. Nasce SEM destino nenhum — quem
+  // preenche é o onboarding, logo em seguida. Até lá a rota /t/ mostra
+  // "cartão ativo, sem destino", que é honesto, em vez de mandar a pessoa
+  // pra um lugar que o lojista não escolheu.
+  //
+  // A condição é sobre `linha`, que veio da ficha do produto na criação do
+  // lote — não de palpite sobre o formato do código.
+  if (plate.linha === "social") {
+    patch.served_mode = "social";
+    patch.served_reason = "padrao";
+    patch.served_destinations = [];
+    patch.served_at = new Date().toISOString();
+  }
+
   const { data: updated, error: updErr } = await supabase
     .from("plates")
-    .update({
-      business_id,
-      channel_name: channel_name || null,
-      status: "active",
-      activated_at: new Date().toISOString()
-    })
+    .update(patch)
     .eq("id", plate.id)
     .select()
     .single();
