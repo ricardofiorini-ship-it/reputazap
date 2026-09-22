@@ -179,6 +179,67 @@ if (comTag === 0) {
   erros.push("Nenhuma pagina com tag encontrada -- varredura vazia nao e aprovacao");
 }
 
+// ── AS PAGINAS QUE NAO SAO ARQUIVO (22/09/2026) ──────────────
+// Buraco encontrado ao escrever a /t/CODIGO da Trybo: esta sonda varre o
+// disco atras de .html, e uma pagina montada DENTRO de um .js e invisivel
+// pra ela. Sao justamente as paginas que o consumidor do lojista atravessa
+// (/t/CODIGO e /m/SLUG) — as mesmas que a Politica de Privacidade declara
+// sem rastreamento nenhum. Estavam limpas e sem vigia: ninguem impediria
+// alguem de colar um gtag ali seis meses depois.
+//
+// A lista vem do DISCO (qualquer .js de api/ que monte HTML entra sozinho),
+// nunca escolhida a dedo — foi lista a dedo que deixou o /app passar em
+// agosto.
+const RASTREIO = /gtag\(|googletagmanager|fbq\(|connect\.facebook|consent\.js/;
+
+function jsQueMontamHtml(dir) {
+  const saida = [];
+  if (!existsSync(dir)) return saida;
+  for (const item of readdirSync(dir)) {
+    const caminho = join(dir, item);
+    if (statSync(caminho).isDirectory()) saida.push(...jsQueMontamHtml(caminho));
+    else if (item.endsWith(".js")) {
+      const txt = readFileSync(caminho, "utf8");
+      if (/<!doctype html/i.test(txt)) saida.push([caminho, txt]);
+    }
+  }
+  return saida;
+}
+
+const paginasEmJs = jsQueMontamHtml(join(ROOT, "api"));
+let sujas = 0;
+for (const [caminho, txt] of paginasEmJs) {
+  if (RASTREIO.test(txt)) {
+    sujas++;
+    erros.push(
+      `${caminho} monta HTML e carrega rastreamento. Quem atravessa essas paginas ` +
+      `e o consumidor do lojista, que nao teve onde consentir (Politica 4.2).`
+    );
+  }
+}
+
+// CONTROLE POSITIVO embutido: um texto que SE SABE ter rastreamento. Sem ele,
+// "nenhuma pagina suja" seria indistinguivel de uma expressao mal escrita.
+const ISCA = '<!doctype html><script>gtag("config","G-XXX")</script>';
+if (!RASTREIO.test(ISCA)) {
+  erros.push(
+    "CONTROLE POSITIVO falhou: a sonda de rastreamento em JS nao reconheceu " +
+    "nem a isca embutida. Ela esta cega, nao aprovada."
+  );
+}
+// CONTROLE NEGATIVO embutido: HTML limpo nao pode ser acusado.
+if (RASTREIO.test('<!doctype html><h1>oi</h1>')) {
+  erros.push("CONTROLE NEGATIVO falhou: a sonda acusou HTML limpo.");
+}
+// E a lista precisa ter achado alguma coisa: zero arquivos e sonda cega, nao
+// projeto limpo.
+if (paginasEmJs.length === 0) {
+  erros.push(
+    "Nenhuma pagina montada em JS foi encontrada em api/. Ou o projeto mudou, " +
+    "ou a varredura quebrou — em qualquer um dos casos ela nao esta vigiando nada."
+  );
+}
+
 // ── Resultado ────────────────────────────────────────────────
 if (erros.length) {
   console.error("\n[check-tracking] BUILD BARRADO — a medicao esta errada:\n");
@@ -195,5 +256,6 @@ console.log(
   `[check-tracking] OK — ${comTag} paginas medindo, ${prefs} legais (so preferencias), ` +
   `${semTag} sem tag por decisao, ${isentas} isentas. ` +
   `Catraca (/api/visitas) presente no consent.js. ` +
-  `Controles: landing.html tem, avaliar.html nao tem.`
+  `${paginasEmJs.length} paginas montadas em JS, ${sujas} com rastreamento. ` +
+  `Controles: landing.html tem, avaliar.html nao tem, isca embutida reconhecida.`
 );

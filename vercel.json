@@ -300,6 +300,10 @@
       "destination": "/api/r/:code"
     },
     {
+      "source": "/t/:code",
+      "destination": "/api/t/:code"
+    },
+    {
       "source": "/m/:slug",
       "destination": "/api/m/:slug"
     },
