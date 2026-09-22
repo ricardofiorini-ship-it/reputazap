@@ -37,6 +37,7 @@ import PhoneFrame from './v3/PhoneFrame.jsx'
 // encolheria todo texto do /app que não declara tamanho.
 import './v3/theme.css'
 import ExperienciaMenu from './v3/screens/Experiencia.jsx'
+import ResultadosMenu from './v3/screens/Resultados.jsx'
 import { useDados as useDadosV3 } from './v3/lib/dados.js'
 import { IconeMenu } from './marcas.jsx'
 import { tokenValido, apos401, salvarSessao, limparSessao } from './lib/sessao.js'
@@ -785,6 +786,12 @@ const TABS = [
   // `soLogado` porque o visitante não tem conta nem dispositivo — pra ele a
   // aba seria uma porta pra uma tela que pede as duas coisas.
   { id: 'menu',         icon: 'sparkles', label: 'Menu Inteligente', soLogado: true },
+  // O PAR DO MENU (21/09): "Resultados" responde se o Menu e os dispositivos
+  // estão dando retorno — toques, quantos abriram o menu, quais ações foram
+  // escolhidas. Vem logo depois dele de propósito: configurar e medir são o
+  // mesmo assunto, e separá-los em lugares distantes foi o que fez esta tela
+  // viver num painel que o cliente não abria.
+  { id: 'resultados',   icon: 'trendup', label: 'Resultados', soLogado: true },
   { id: 'loja',         icon: 'bag', label: 'Loja',         pro: false }
 ]
 
@@ -955,7 +962,11 @@ function BottomTabBar({ active, onChange, plan, onOpenMore, moreOpen, guest }) {
 }
 
 // Bottom Sheet "Mais" — overlay com secundários
-function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
+// `guest` desde 21/09: esta folha não filtrava nada, então um item novo marcado
+// `soLogado` apareceria pro visitante e o levaria a uma TELA EM BRANCO — a aba
+// não renderiza pra ele e o fallback já a exclui. Porta que abre pro nada é o
+// mesmo defeito que a varredura de 06/09 encontrou três vezes no painel.
+function MoreSheet({ open, onClose, onPick, plan, user, onLogout, guest = false }) {
   // Fecha com ESC
   React.useEffect(() => {
     if (!open) return
@@ -971,6 +982,9 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
     // pra vender. Pra reexibir, descomente as 2 linhas abaixo.
     // { label:'Alertas',     icon:'bell', tabId:'alertas',    pro: true  },
     // { label:'Relatórios',  icon:'chart', tabId:'relatorios', pro: true  },
+    // Resultados fica AQUI e não na barra de baixo: ela já tem cinco itens, que
+    // é o teto antes de os rótulos virarem reticências num celular estreito.
+    { label:'Resultados',  icon:'chart', tabId:'resultados', soLogado: true },
     { label:'Loja',        icon:'cart', tabId:'loja'                   },
     { label:'Configurações', icon:'settings', tabId:'config', hash:'negocio' },
     { label:'Minha conta', icon:'user', tabId:'config', hash:'conta' },
@@ -1032,7 +1046,7 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout }) {
 
         {/* Lista */}
         <div style={{ padding:'0 8px' }}>
-          {items.map((it, i) => {
+          {items.filter(it => !(guest && it.soLogado)).map((it, i) => {
             const isLocked = false   // tudo free: sem selo PRO na lista
             // Item com link externo (ex: Central de ajuda → /ajuda em nova aba)
             const isExternal = !!it.external
@@ -8349,6 +8363,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         <MenuInteligenteTab/>
       )}
 
+      {/* Aba: RESULTADOS — também vinda do V3, importada. Ela busca os próprios
+          dados (só recebe `preview`), então não precisa de nada daqui. */}
+      {tab === 'resultados' && !isGuest && (
+        <div className="v3 v3-solo">
+          <main className="v3-main"><ResultadosMenu/></main>
+        </div>
+      )}
+
       {/* Aba: AVALIAÇÕES — lista todas as reviews do Google (free + pro) */}
       {tab === 'avaliacoes' && (
         <ReviewsScreen data={d} isMobile={isMobile}/>
@@ -8364,7 +8386,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       {/* Fallback p/ abas desconhecidas (as Pro já são tratadas acima com preview).
           'concorrentes' voltou pra cá quando a tela saiu (03/ago): sem tela E sem
           fallback, um link velho renderizaria uma página em branco. */}
-      {tab !== 'painel' && tab !== 'alertas' && tab !== 'relatorios' && tab !== 'loja' && tab !== 'avaliacoes' && tab !== 'config' && tab !== 'menu' && (
+      {tab !== 'painel' && tab !== 'alertas' && tab !== 'relatorios' && tab !== 'loja' && tab !== 'avaliacoes' && tab !== 'config' && tab !== 'menu' && tab !== 'resultados' && (
         <ComingSoon
           icon={tab === 'concorrentes' ? 'trophy' : tab === 'alertas' ? 'bell' : tab === 'relatorios' ? 'trendup' : 'star'}
           title={
@@ -8609,6 +8631,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             plan={plan}
             user={user}
             onLogout={onLogout}
+            guest={isGuest}
           />
         </>
       )}
