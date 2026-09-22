@@ -57,7 +57,24 @@
       "permanent": true
     },
     {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.trybo.co"
+        }
+      ],
+      "destination": "https://trybo.co/$1",
+      "permanent": true
+    },
+    {
       "source": "/",
+      "missing": [
+        {
+          "type": "host",
+          "value": "trybo.co"
+        }
+      ],
       "destination": "/landing",
       "permanent": false
     },
@@ -72,6 +89,10 @@
         {
           "type": "query",
           "key": "from"
+        },
+        {
+          "type": "host",
+          "value": "trybo.co"
         }
       ],
       "destination": "/landing",
@@ -199,6 +220,36 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "trybo.co"
+        }
+      ],
+      "destination": "/trybo/index.html"
+    },
+    {
+      "source": "/ativar",
+      "has": [
+        {
+          "type": "host",
+          "value": "trybo.co"
+        }
+      ],
+      "destination": "/trybo/ativacao.html"
+    },
+    {
+      "source": "/painel",
+      "has": [
+        {
+          "type": "host",
+          "value": "trybo.co"
+        }
+      ],
+      "destination": "/trybo/painel.html"
+    },
     {
       "source": "/landing",
       "destination": "/landing.html"
