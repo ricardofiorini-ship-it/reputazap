@@ -22,41 +22,75 @@ const CODE_LEN = 5;
 //
 // É o COMPRIMENTO que separa as duas eras. Nunca leia a letra de um código
 // de 5 caracteres — ali ela é sorteada. Código já impresso nunca muda.
-const PRODUCT_LETTER = {
-  cartao_nfc:   "C",
-  placa_balcao: "B",
-  placa_mesa:   "M",
-  pulseira_nfc: "P"
+// ── A FICHA DE CADA PRODUTO, NUM LUGAR SÓ (22/09/2026) ──────
+// Era um mapa de letras. Virou uma ficha por produto quando a Trybo entrou,
+// porque agora cada produto carrega QUATRO coisas que precisam concordar
+// entre si, e mapas paralelos divergem calados: basta alguém acrescentar um
+// produto em três dos quatro. Aqui não há como acrescentar pela metade.
+//
+//   letra    → viaja dentro do código impresso (ver bloco acima)
+//   prefixo  → de qual produto da casa o código é. STAR- avaliação, TRY- Trybo
+//   linha    → o que o dispositivo faz (grava em plates.linha)
+//   rotaBase → ⚠️ A URL QUE VAI GRAVADA NO CHIP. Errar aqui não tem conserto
+//              por software: o chip já saiu da gráfica. Foi assim o incidente
+//              de 08/06/2026, quando um lote inteiro foi gravado com
+//              /ativar-codigo em vez de /r/ e só se salvou por sorte.
+const PRODUCTS = {
+  cartao_nfc:    { letra: "C", prefixo: "STAR", linha: "avaliacao", rotaBase: "https://startouch.com.br/r/", utmSource: "placa" },
+  placa_balcao:  { letra: "B", prefixo: "STAR", linha: "avaliacao", rotaBase: "https://startouch.com.br/r/", utmSource: "placa" },
+  placa_mesa:    { letra: "M", prefixo: "STAR", linha: "avaliacao", rotaBase: "https://startouch.com.br/r/", utmSource: "placa" },
+  pulseira_nfc:  { letra: "P", prefixo: "STAR", linha: "avaliacao", rotaBase: "https://startouch.com.br/r/", utmSource: "placa" },
+  // Trybo — cartão de redes sociais. Domínio e rota PRÓPRIOS: trybo.co/t/.
+  // O briefing chama isto de "a única decisão irreversível do projeto".
+  cartao_social: { letra: "S", prefixo: "TRY",  linha: "social",    rotaBase: "https://trybo.co/t/",         utmSource: "trybo" }
 };
 
-// Fonte única dos tipos válidos: quem tem letra pode virar lote. Evita que a
-// lista de tipos aceitos e o mapa de letras divirjam (api/plates.js importa
-// daqui em vez de manter a própria cópia).
-export const PRODUCT_TYPES = Object.keys(PRODUCT_LETTER);
+// Fonte única dos tipos válidos: quem tem ficha pode virar lote. Evita que a
+// lista de tipos aceitos e a ficha divirjam (api/plates.js importa daqui em
+// vez de manter a própria cópia).
+export const PRODUCT_TYPES = Object.keys(PRODUCTS);
 
-// Falha ALTA de propósito: gerar código sem letra recriaria exatamente a
+// Falha ALTA de propósito: gerar código sem ficha recriaria exatamente a
 // ambiguidade que este formato existe pra acabar. Se um produto novo entrar
-// e esquecerem a letra aqui, o lote não sai — em vez de sair marcado errado
+// e esquecerem a ficha aqui, o lote não sai — em vez de sair marcado errado
 // e ninguém descobrir três meses depois.
-export function letterForProduct(productType) {
-  const letter = PRODUCT_LETTER[productType];
-  if (!letter) {
+export function productSpec(productType) {
+  const spec = PRODUCTS[productType];
+  if (!spec) {
     throw new Error(
-      `Produto "${productType}" não tem letra de código definida. ` +
-      `Adicione em PRODUCT_LETTER (api/_lib/plates.js) antes de gerar o lote.`
+      `Produto "${productType}" não tem ficha definida. ` +
+      `Adicione em PRODUCTS (api/_lib/plates.js) antes de gerar o lote.`
     );
   }
-  return letter;
+  return spec;
 }
 
-// Gera um código no formato STAR-<letra><XXXXX> (não verifica unicidade).
+export function letterForProduct(productType) {
+  return productSpec(productType).letra;
+}
+
+// Qual linha de produto este dispositivo é: avaliacao | social | contato.
+// Gravada em plates.linha na criação do lote.
+export function lineForProduct(productType) {
+  return productSpec(productType).linha;
+}
+
+// A base da URL que a gráfica grava no chip e imprime no QR.
+export function tapBaseForProduct(productType) {
+  const { rotaBase, utmSource } = productSpec(productType);
+  return { rotaBase, utmSource };
+}
+
+// Gera um código no formato <PREFIXO>-<letra><XXXXX> (não verifica unicidade).
+//   STAR-C9K4T7  → cartão de avaliação
+//   TRY-S9K4T7   → cartão Trybo
 export function generatePlateCode(productType) {
-  const letter = letterForProduct(productType);
+  const { letra, prefixo } = productSpec(productType);
   let s = "";
   for (let i = 0; i < CODE_LEN; i++) {
     s += CHARS[randomInt(CHARS.length)];
   }
-  return `STAR-${letter}${s}`;
+  return `${prefixo}-${letra}${s}`;
 }
 
 // Gera um código garantindo unicidade no banco (até maxAttempts tentativas).

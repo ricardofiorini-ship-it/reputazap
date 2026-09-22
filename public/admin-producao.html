@@ -88,6 +88,7 @@
             <option value="placa_mesa">Placa de Mesa</option>
             <option value="cartao_nfc">Cartão NFC</option>
             <option value="pulseira_nfc">Pulseira NFC</option>
+            <option value="cartao_social">Cartão Trybo (redes sociais)</option>
           </select>
         </div>
         <div>
@@ -131,12 +132,16 @@
 const token = localStorage.getItem("rz_token");
 let lastBatch = null;
 let lastCodes = [];
+// Base da URL que vai no chip, decidida PELO SERVIDOR na criação do lote.
+// Esta tela não monta essa URL sozinha de propósito — ver exportCSV().
+let lastTap = null;
 
 const TYPE_LABELS = {
   placa_balcao: "Placa de Balcão",
   placa_mesa: "Placa de Mesa",
   cartao_nfc: "Cartão NFC",
   pulseira_nfc: "Pulseira NFC",
+  cartao_social: "Cartão Trybo (redes sociais)",
   adesivo_nfc: "Adesivo NFC"
 };
 
@@ -202,6 +207,7 @@ async function createBatch() {
     msg.textContent = `Lote "${data.batch.batch_name}" criado com ${data.codes.length} placas!`;
     lastBatch = data.batch;
     lastCodes = data.codes;
+    lastTap = data.tap || null;
     renderCodes(data.codes);
     // recarrega lista
     const lb = await fetch("/api/plates?action=list-batches", { headers: { "Authorization": `Bearer ${token}` } });
@@ -220,19 +226,48 @@ function renderCodes(codes) {
 
 function exportCSV() {
   if (!lastCodes.length || !lastBatch) return;
-  const base = "https://startouch.com.br/r/";
+
+  // ⚠️ A URL vem do SERVIDOR, que a decide pela ficha do produto — cartão de
+  // avaliação vai pra startouch.com.br/r/, cartão Trybo vai pra trybo.co/t/.
+  // Se ela não vier, o CSV NÃO SAI. Um palpite aqui sairia impresso no chip e
+  // chip gravado não se regrava: seria um lote inteiro no lixo, descoberto só
+  // quando o primeiro cliente encostasse o celular.
+  if (!lastTap || !lastTap.rotaBase) {
+    alert("Não consegui a URL de destino deste lote (o servidor não mandou).\n\n" +
+          "O CSV NÃO foi gerado de propósito: chutar a URL aqui viraria um lote " +
+          "de chips gravados errado, e chip gravado não se regrava.\n\n" +
+          "Crie o lote de novo. Se repetir, é bug — não exporte.");
+    return;
+  }
+  const base = lastTap.rotaBase;
+  const src = lastTap.utmSource || "placa";
+
+  // Lote Trybo: confirmação humana antes de o arquivo sair. O endereço deste
+  // CSV vai QUEIMADO no chip; se trybo.co ainda não estiver no ar servindo
+  // /t/, o cartão nasce morto e não há conserto por software. É o único passo
+  // irreversível do projeto — vale um clique a mais.
+  if (base.includes("trybo.co")) {
+    const ok = confirm(
+      "Este CSV grava " + base + "CODIGO no chip.\n\n" +
+      "Confirma que trybo.co já está no ar e respondendo em /t/ ?\n\n" +
+      "Se ainda não estiver, cancele: chip gravado não se regrava."
+    );
+    if (!ok) return;
+  }
+
   let csv = "codigo,product_type,batch_name,nfc_url,qr_url\n";
   for (const code of lastCodes) {
-    // Mesma rota /r/CODE nas duas colunas; UTMs distinguem o meio físico (chip NFC vs QR impresso).
-    // O servidor (/api/r/[code]) repassa esses UTMs pro destino final (GA4/gtag).
-    const nfcUrl = base + code + "?utm_source=placa&utm_medium=nfc";
-    const qrUrl = base + code + "?utm_source=placa&utm_medium=qr";
+    // Mesma rota nas duas colunas; o UTM distingue o meio físico (chip NFC vs QR impresso).
+    // O servidor repassa esses UTMs pro destino final (GA4/gtag).
+    const nfcUrl = `${base}${code}?utm_source=${src}&utm_medium=nfc`;
+    const qrUrl  = `${base}${code}?utm_source=${src}&utm_medium=qr`;
     csv += `${code},${lastBatch.product_type},"${lastBatch.batch_name}",${nfcUrl},${qrUrl}\n`;
   }
+  const marca = base.includes("trybo.co") ? "trybo" : "startouch";
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `startouch-${lastBatch.batch_name.replace(/\s+/g,'-').toLowerCase()}.csv`;
+  a.download = `${marca}-${lastBatch.batch_name.replace(/\s+/g,'-').toLowerCase()}.csv`;
   a.click();
 }
 

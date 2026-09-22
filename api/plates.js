@@ -5,7 +5,7 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { MOTIVO_SERVIDO } from "./_lib/plan.js";
-import { generateBatchCodes, PRODUCT_TYPES } from "./_lib/plates.js";
+import { generateBatchCodes, PRODUCT_TYPES, lineForProduct, tapBaseForProduct } from "./_lib/plates.js";
 import { sendInBackground } from "./_lib/email-sender.js";
 import { firstDeviceEmail, additionalDeviceEmail, adminDeviceActivatedEmail, deviceUnlinkedEmail } from "./_lib/email-templates.js";
 
@@ -87,9 +87,15 @@ async function handleCreateBatch(req, res, user) {
   }
 
   // 3. insere N placas in_stock vinculadas ao lote
+  // `linha` sai da mesma ficha que deu a letra do código — não é digitada nem
+  // inferida depois. Um lote da Trybo nasce com linha='social'; todo o resto
+  // nasce 'avaliacao', que é o DEFAULT da coluna (então nada muda pro que já
+  // existe).
+  const linha = lineForProduct(product_type);
   const rows = codes.map((code) => ({
     code,
     product_type,
+    linha,
     batch_id: batch.id,
     status: "in_stock",
     source: "site"
@@ -100,7 +106,11 @@ async function handleCreateBatch(req, res, user) {
     return res.status(500).json({ error: "Erro ao criar placas: " + platesErr.message });
   }
 
-  return res.json({ ok: true, batch, codes });
+  // A base da URL vai JUNTO com o lote, decidida no servidor pela ficha do
+  // produto. A tela de produção não monta essa URL sozinha: um cartão Trybo
+  // exportado com a URL da StarTouch viraria um lote de chips inúteis, e chip
+  // gravado não se regrava.
+  return res.json({ ok: true, batch, codes, tap: tapBaseForProduct(product_type) });
 }
 
 // ── ADMIN: listar lotes ─────────────────────────────────────
