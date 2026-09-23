@@ -26,6 +26,7 @@ import {
   negativeReviewEmail
 } from "../_lib/email-templates.js";
 import { unsubUrl } from "../_lib/unsubscribe.js";
+import { soStartouch, logsSoStartouch } from "../_lib/linha.js";
 // Fonte unica do que o Score StarTouch le da grade — a MESMA funcao que o
 // painel V3 chama. Ver o comentario em api/_lib/visibilidade.js.
 import { entradaDoScore } from "../_lib/visibilidade.js";
@@ -157,9 +158,9 @@ export default async function handler(req, res) {
   const dozeDiasAtras = new Date(Date.now() - 12 * 24 * 3600 * 1000).toISOString().slice(0, 10);
 
   const rToques = await todasAsLinhas("toques", () =>
-    supabase.from("plate_taps").select("business_id").gte("tapped_at", seteDiasAtras));
+    logsSoStartouch(supabase.from("plate_taps").select("business_id")).gte("tapped_at", seteDiasAtras));
   const rPlacas = await todasAsLinhas("dispositivos", () =>
-    supabase.from("plates").select("business_id, activated_at").eq("status", "active"));
+    soStartouch(supabase.from("plates").select("business_id, activated_at")).eq("status", "active"));
   const rSerie = await todasAsLinhas("série de avaliações", () =>
     supabase.from("review_history").select("business_id, on_date, reviews").gte("on_date", dozeDiasAtras));
 

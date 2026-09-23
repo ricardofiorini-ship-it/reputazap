@@ -14,6 +14,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { sendInBackground } from "../_lib/email-sender.js";
 import { firstReviewEmail } from "../_lib/email-templates.js";
+import { codigoDeOutraLinha } from "../_lib/linha.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -120,6 +121,16 @@ export default async function handler(req, res) {
   if (!code) {
     if (checkOnly) return res.status(200).json({ ok: true, status: "not_found", reviewReady: false });
     return res.redirect(302, withUtm("/ativar-codigo?error=invalida", utm));
+  }
+
+  // Cartão Trybo que chegou pela rota da StarTouch (código digitado à mão no
+  // lugar errado, link copiado torto): vai pra rota dele. Sem isto, um cartão
+  // ativo mandaria o cliente da barbearia AVALIAR no Google — o produto
+  // errado — e contaria o toque no painel errado. Decidido pelo prefixo, sem
+  // ir ao banco (_lib/linha.js).
+  if (codigoDeOutraLinha(code)) {
+    if (checkOnly) return res.status(200).json({ ok: true, status: "outra_linha", reviewReady: false });
+    return res.redirect(302, `https://trybo.co/t/${encodeURIComponent(code)}`);
   }
 
   try {

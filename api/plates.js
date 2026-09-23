@@ -7,6 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import { MOTIVO_SERVIDO } from "./_lib/plan.js";
 import { generateBatchCodes, PRODUCT_TYPES, lineForProduct, tapBaseForProduct } from "./_lib/plates.js";
 import { sendInBackground } from "./_lib/email-sender.js";
+import { LINHA_STARTOUCH, logsSoStartouch } from "./_lib/linha.js";
 import { firstDeviceEmail, additionalDeviceEmail, adminDeviceActivatedEmail, deviceUnlinkedEmail } from "./_lib/email-templates.js";
 
 const supabase = createClient(
@@ -127,6 +128,7 @@ async function handleListBatches(req, res, user) {
 // ── ADMIN: estoque (lista + resumo por tipo/status) ─────────
 async function handleListStock(req, res, user) {
   if (!isAdmin(user)) return res.status(403).json({ error: "Acesso restrito ao admin" });
+  // linha-ok: estoque do admin, todas as linhas
   const { data, error } = await supabase
     .from("plates")
     .select("id, code, product_type, status, source, channel_name, total_taps, created_at, activated_at, batch_id, production_batches(batch_name)")
@@ -160,6 +162,15 @@ async function handleActivate(req, res, user) {
     .maybeSingle();
   if (plateErr) return res.status(500).json({ error: plateErr.message });
   if (!plate) return res.status(404).json({ error: "Código não encontrado" });
+  // Cartão Trybo tem ativação própria (trybo.co/ativar), que monta as redes
+  // sociais junto. Ativado por aqui ele nasceria sem destino e apareceria no
+  // painel errado. Ver _lib/linha.js.
+  if (plate.linha && plate.linha !== LINHA_STARTOUCH) {
+    return res.status(400).json({
+      error: "Esse é um cartão Trybo. Ele é ativado em trybo.co/ativar.",
+      ativar_em: `https://trybo.co/ativar?code=${encodeURIComponent(plate.code)}`
+    });
+  }
   if (plate.status === "disabled") return res.status(400).json({ error: "Esse dispositivo está desabilitado" });
 
   // Se já está ativa, valida se o business atual realmente pertence a alguém ainda existente.
@@ -202,23 +213,6 @@ async function handleActivate(req, res, user) {
     status: "active",
     activated_at: new Date().toISOString()
   };
-
-  // ── Cartão Trybo (22/09/2026) ──────────────────────────────
-  // Um cartão de redes sociais ativado precisa nascer servindo 'social', não
-  // 'google_direto': o google_direto mandaria o cliente da barbearia avaliar
-  // no Google, que é o produto errado. Nasce SEM destino nenhum — quem
-  // preenche é o onboarding, logo em seguida. Até lá a rota /t/ mostra
-  // "cartão ativo, sem destino", que é honesto, em vez de mandar a pessoa
-  // pra um lugar que o lojista não escolheu.
-  //
-  // A condição é sobre `linha`, que veio da ficha do produto na criação do
-  // lote — não de palpite sobre o formato do código.
-  if (plate.linha === "social") {
-    patch.served_mode = "social";
-    patch.served_reason = "padrao";
-    patch.served_destinations = [];
-    patch.served_at = new Date().toISOString();
-  }
 
   const { data: updated, error: updErr } = await supabase
     .from("plates")
@@ -345,6 +339,9 @@ async function handleMyPlates(req, res, user) {
     .from("plates")
     .select(BASE_COLS + RESET_COLS + SERVE_COLS)
     .in("business_id", bizIds)
+    // Só o produto da StarTouch. Cartão Trybo mora no painel da Trybo — ver
+    // _lib/linha.js pro porquê.
+    .eq("linha", LINHA_STARTOUCH)
     .order("activated_at", { ascending: false });
 
   // As colunas do marco zero chegaram depois (ALTER em schema-plate-taps.sql).
@@ -360,6 +357,7 @@ async function handleMyPlates(req, res, user) {
       .from("plates")
       .select(BASE_COLS + RESET_COLS)
       .in("business_id", bizIds)
+      .eq("linha", LINHA_STARTOUCH)
       .order("activated_at", { ascending: false }));
   }
   if (error) {
@@ -368,6 +366,7 @@ async function handleMyPlates(req, res, user) {
       .from("plates")
       .select(BASE_COLS)
       .in("business_id", bizIds)
+      .eq("linha", LINHA_STARTOUCH)
       .order("activated_at", { ascending: false }));
   }
 
@@ -408,11 +407,11 @@ async function handleResetCounter(req, res, user) {
 
   const { data: plate, error: plateErr } = await supabase
     .from("plates")
-    .select("id, business_id, total_taps")
+    .select("id, business_id, total_taps, linha")
     .eq("id", plate_id)
     .maybeSingle();
   if (plateErr) return res.status(500).json({ error: plateErr.message });
-  if (!plate) return res.status(404).json({ error: "Dispositivo não encontrado" });
+  if (!plate || plate.linha !== LINHA_STARTOUCH) return res.status(404).json({ error: "Dispositivo não encontrado" });
   if (!plate.business_id) return res.status(400).json({ error: "Esse dispositivo ainda não foi ativado" });
 
   // DONO: a rota roda com SERVICE_KEY e passa por cima do RLS, então a posse
@@ -475,11 +474,13 @@ async function handleUnlinkPlate(req, res, user) {
 
   const { data: plate, error: plateErr } = await supabase
     .from("plates")
-    .select("id, code, status, business_id, channel_name, product_type, total_taps")
+    .select("id, code, status, business_id, channel_name, product_type, total_taps, linha")
     .eq("id", plate_id)
     .maybeSingle();
   if (plateErr) return res.status(500).json({ error: plateErr.message });
-  if (!plate) return res.status(404).json({ error: "Dispositivo não encontrado" });
+  // Desvincular por aqui devolveria um cartão Trybo como "Google direto" —
+  // o estado de fábrica da StarTouch, não o dele.
+  if (!plate || plate.linha !== LINHA_STARTOUCH) return res.status(404).json({ error: "Dispositivo não encontrado" });
   if (!plate.business_id) return res.status(400).json({ error: "Esse dispositivo não está vinculado a nenhum negócio" });
 
   // DONO: SERVICE_KEY passa por cima do RLS, então a posse é conferida na mão.
@@ -503,6 +504,7 @@ async function handleUnlinkPlate(req, res, user) {
 
   // Estado de fábrica. `source`, `batch_id` e `product_type` ficam: são de
   // onde o dispositivo VEIO, não de quem ele era.
+  // linha-ok: um dispositivo só, já conferido como da StarTouch lá em cima
   const { error: updErr } = await supabase
     .from("plates")
     .update({
@@ -658,9 +660,10 @@ async function handleTapsHistory(req, res, user) {
   const fromIso = brDayStartIso(fromDay);
   const toIso = brDayStartIso(addDays(toDay, 1));   // exclusivo: pega o dia final inteiro
 
-  const { data: rows, error } = await supabase
+  // Toque de cartão Trybo fica de fora: ele aparece no painel da Trybo.
+  const { data: rows, error } = await logsSoStartouch(supabase
     .from("plate_taps")
-    .select("plate_id, tapped_at, medium")
+    .select("plate_id, tapped_at, medium"))
     .in("business_id", bizIds)
     .gte("tapped_at", fromIso)
     .lt("tapped_at", toIso)
@@ -702,9 +705,9 @@ async function handleTapsHistory(req, res, user) {
   const prevToDay = addDays(fromDay, -1);
   const prevFromDay = addDays(fromDay, -days);
   if (prevFromDay >= TAP_LOG_START) {
-    const { count, error: prevErr } = await supabase
+    const { count, error: prevErr } = await logsSoStartouch(supabase
       .from("plate_taps")
-      .select("id", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true }))
       .in("business_id", bizIds)
       .gte("tapped_at", brDayStartIso(prevFromDay))
       .lt("tapped_at", brDayStartIso(fromDay));
@@ -713,9 +716,9 @@ async function handleTapsHistory(req, res, user) {
 
   // Desde quando existe log pra ESTE cliente (1ª linha registrada, de qualquer época).
   let measuringSince = null;
-  const { data: firstRow } = await supabase
+  const { data: firstRow } = await logsSoStartouch(supabase
     .from("plate_taps")
-    .select("tapped_at")
+    .select("tapped_at"))
     .in("business_id", bizIds)
     .order("tapped_at", { ascending: true })
     .limit(1)
@@ -765,11 +768,11 @@ async function handleRenamePlate(req, res, user) {
 
   const { data: plate, error: plateErr } = await supabase
     .from("plates")
-    .select("id, business_id")
+    .select("id, business_id, linha")
     .eq("id", plate_id)
     .maybeSingle();
   if (plateErr) return res.status(500).json({ error: plateErr.message });
-  if (!plate) return res.status(404).json({ error: "Dispositivo não encontrado" });
+  if (!plate || plate.linha !== LINHA_STARTOUCH) return res.status(404).json({ error: "Dispositivo não encontrado" });
   if (!plate.business_id) return res.status(400).json({ error: "Esse dispositivo ainda não foi ativado" });
 
   // DONO: a placa precisa estar num negócio DESTE usuário. Sem essa checagem,

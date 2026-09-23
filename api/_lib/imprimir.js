@@ -21,6 +21,7 @@
 // reconstruível — apagar tudo e rodar de novo dá o mesmo resultado.
 // ============================================================
 import { resolvePlano, decidirServido } from "./plan.js";
+import { soStartouch } from "./linha.js";
 
 /**
  * Recalcula `served_*` dos dispositivos de UM negócio. Único escritor desses
@@ -39,8 +40,11 @@ export async function reimprimir(supabase, biz, email = null) {
   const resolucao = resolvePlano(biz, email || null);
 
   const [{ data: plates, error: e1 }, { data: exps, error: e2 }] = await Promise.all([
-    supabase.from("plates")
-      .select("id, experience_id, experience_enabled, served_mode, served_slug, served_reason")
+    // SÓ os dispositivos da StarTouch. Esta função decide entre Google e
+    // Menu; aplicada num cartão Trybo, regravaria nele um destino de outro
+    // produto (quem cuida do cartão Trybo é _lib/trybo.js → recalcularCartao).
+    soStartouch(supabase.from("plates")
+      .select("id, experience_id, experience_enabled, served_mode, served_slug, served_reason"))
       .eq("business_id", biz.id),
     supabase.from("experiences").select("id, slug, published, published_mode, archived_at").eq("business_id", biz.id)
   ]);

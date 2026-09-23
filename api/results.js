@@ -19,6 +19,7 @@
 // mesmo motivo do api/experiences.js.
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
+import { soStartouch, logsSoStartouch } from "./_lib/linha.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
@@ -103,8 +104,10 @@ export default async function handler(req, res) {
     // "ninguém tocou", e a tela precisa da diferença.
     let toques = [], toquesOk = true;
     {
-      const { data, error } = await supabase
-        .from("plate_taps").select("plate_id, tapped_at")
+      // Só a StarTouch: toque e clique de cartão Trybo moram no painel da
+      // Trybo (_lib/linha.js).
+      const { data, error } = await logsSoStartouch(supabase
+        .from("plate_taps").select("plate_id, tapped_at"))
         .eq("business_id", biz.id).gte("tapped_at", deIso).lt("tapped_at", ateIso)
         .limit(TETO_LINHAS);
       if (error) { toquesOk = false; console.error("[results] plate_taps indisponível:", error.message); }
@@ -114,9 +117,9 @@ export default async function handler(req, res) {
     // ── Eventos do menu (o que se paga) ──
     let eventos = [], eventosOk = true;
     {
-      const { data, error } = await supabase
+      const { data, error } = await logsSoStartouch(supabase
         .from("experience_events")
-        .select("experience_id, plate_id, kind, button_id, action, happened_at, medium")
+        .select("experience_id, plate_id, kind, button_id, action, happened_at, medium"))
         .eq("business_id", biz.id).gte("happened_at", deIso).lt("happened_at", ateIso)
         .limit(TETO_LINHAS);
       if (error) { eventosOk = false; console.error("[results] experience_events indisponível:", error.message); }
@@ -128,17 +131,17 @@ export default async function handler(req, res) {
     // comparar com uma época sem registro daria "caiu 100%", que é mentira.
     let toquesAnt = null, aberturasAnt = null;
     {
-      const { data: primeiro } = await supabase
-        .from("plate_taps").select("tapped_at").eq("business_id", biz.id)
+      const { data: primeiro } = await logsSoStartouch(supabase
+        .from("plate_taps").select("tapped_at")).eq("business_id", biz.id)
         .order("tapped_at", { ascending: true }).limit(1).maybeSingle();
       const comecoLog = primeiro?.tapped_at ? diaBr(primeiro.tapped_at) : null;
       if (comecoLog && antDe >= comecoLog) {
-        const { count } = await supabase.from("plate_taps")
-          .select("id", { count: "exact", head: true })
+        const { count } = await logsSoStartouch(supabase.from("plate_taps")
+          .select("id", { count: "exact", head: true }))
           .eq("business_id", biz.id).gte("tapped_at", inicioDoDia(antDe)).lt("tapped_at", inicioDoDia(antAte));
         toquesAnt = count || 0;
-        const { count: c2 } = await supabase.from("experience_events")
-          .select("id", { count: "exact", head: true })
+        const { count: c2 } = await logsSoStartouch(supabase.from("experience_events")
+          .select("id", { count: "exact", head: true }))
           .eq("business_id", biz.id).eq("kind", "open")
           .gte("happened_at", inicioDoDia(antDe)).lt("happened_at", inicioDoDia(antAte));
         aberturasAnt = c2 || 0;
@@ -150,7 +153,7 @@ export default async function handler(req, res) {
     // propósito: renomear um botão não pode reescrever o histórico dele. O
     // rótulo ATUAL é resolvido aqui, na hora de mostrar.
     const [{ data: plates }, { data: exps }] = await Promise.all([
-      supabase.from("plates").select("id, code, channel_name, product_type, served_mode").eq("business_id", biz.id),
+      soStartouch(supabase.from("plates").select("id, code, channel_name, product_type, served_mode")).eq("business_id", biz.id),
       supabase.from("experiences").select("id, name, published").eq("business_id", biz.id)
     ]);
     const nomeDoDispositivo = new Map((plates || []).map((p) => [p.id, p.channel_name || p.code]));

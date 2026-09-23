@@ -411,10 +411,21 @@ async function handlePainel(req, res, user) {
     : { data: [], error: null };
   if (dErr) return res.status(500).json({ error: "Não consegui ler os destinos: " + dErr.message });
 
+  // A conta também usa a StarTouch? Aí o painel explica que os cartões Trybo
+  // ficam SEPARADOS das placas de avaliação e oferece o caminho de volta —
+  // sem isso, quem entra com o login da StarTouch acha que caiu no lugar
+  // errado. Não traz nenhum dado da StarTouch pra cá: só o sim/não.
+  const { count: placasStartouch } = await supabase
+    .from("plates").select("id", { count: "exact", head: true })
+    .eq("business_id", negocio.id).eq("linha", "avaliacao");
+  const { data: bizGoogle } = await supabase
+    .from("businesses").select("place_id").eq("id", negocio.id).maybeSingle();
+
   return res.json({
     ok: true,
     dias,
     negocio: { nome: negocio.name },
+    tambem_startouch: (placasStartouch || 0) > 0 || !!bizGoogle?.place_id,
     desbloqueado: await temDesbloqueio(negocio.id),
     catalogo: await catalogo(),
     perfis: perfis || [],

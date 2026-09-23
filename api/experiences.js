@@ -35,6 +35,7 @@ import {
 } from "./_lib/menu.js";
 import { resolvePlano, podeUsarMenu } from "./_lib/plan.js";
 import { reimprimir } from "./_lib/imprimir.js";
+import { soStartouch, LINHA_STARTOUCH } from "./_lib/linha.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
@@ -134,8 +135,9 @@ async function listar(req, res, biz, user) {
     supabase.from("experiences")
       .select("id, name, slug, draft, published, published_mode, published_at, draft_updated_at, archived_at, created_at")
       .eq("business_id", biz.id).order("created_at", { ascending: true }),
-    supabase.from("plates")
-      .select("id, code, product_type, channel_name, status, experience_id, experience_enabled, served_mode, served_reason, total_taps, last_tapped_at")
+    // Cartão Trybo não recebe menu: ele tem destino próprio (as redes).
+    soStartouch(supabase.from("plates")
+      .select("id, code, product_type, channel_name, status, experience_id, experience_enabled, served_mode, served_reason, total_taps, last_tapped_at"))
       .eq("business_id", biz.id).eq("status", "active").order("activated_at", { ascending: false })
   ]);
   if (e1) return res.status(500).json({ error: e1.message });
@@ -257,6 +259,7 @@ async function publicar(req, res, biz, user) {
     // Quantos dispositivos passaram a abrir este menu agora — é o que a tela
     // usa pra confirmar o efeito, em vez de só dizer "publicado".
     dispositivos_com_este_menu: await (async () => {
+      // linha-ok: conta dispositivos servindo menu — cartão Trybo nunca serve 'menu'
       const { count } = await supabase.from("plates")
         .select("id", { count: "exact", head: true })
         .eq("business_id", biz.id).eq("experience_id", exp.id).eq("served_mode", "menu");
@@ -315,9 +318,10 @@ async function definirDispositivo(req, res, biz, user) {
   if (!UUID_RE.test(String(plate_id || ""))) return res.status(400).json({ error: "Dispositivo inválido." });
 
   const { data: plate, error: eP } = await supabase.from("plates")
-    .select("id, business_id, experience_id").eq("id", plate_id).eq("business_id", biz.id).maybeSingle();
+    .select("id, business_id, experience_id, linha").eq("id", plate_id).eq("business_id", biz.id).maybeSingle();
   if (eP) return res.status(500).json({ error: eP.message });
-  if (!plate) return res.status(404).json({ error: "Dispositivo não encontrado." });
+  // Ligar o menu num cartão Trybo tiraria dele o Instagram do lojista.
+  if (!plate || plate.linha !== LINHA_STARTOUCH) return res.status(404).json({ error: "Dispositivo não encontrado." });
 
   const patch = {};
   if (experience_id !== undefined) {

@@ -275,6 +275,7 @@
         '<div class="workspace"><span class="avatar">' + esc(nome.slice(0, 1).toUpperCase()) + "</span><div><strong>" + esc(nome) + "</strong><span>" + (d.desbloqueado ? "Destinos avançados" : "Plano gratuito") + "</span></div></div>" +
         '<nav class="side-nav" aria-label="Painel">' + lado("overview", "Visão geral", "grid") + lado("cards", "Meus cartões", "card") + "</nav>" +
         '<div class="sidebar-lower">' + upgrade +
+          (d.tambem_startouch ? '<a class="side-link" href="/app">' + icon("arrow") + " Painel StarTouch</a>" : "") +
           '<button class="side-link" data-sair>' + icon("logout") + " Sair</button>" +
           '<div class="sidebar-footer">Uma solução <strong>StarTouch</strong></div></div></aside>' +
       '<div class="dashboard-body"><header class="dash-top"><span class="breadcrumb">Meu painel <span>/</span> ' + titulo + "</span>" +
@@ -381,7 +382,13 @@
   }
 
   function vazio() {
-    return '<div class="panel empty"><h2>Seu primeiro cartão começa aqui.</h2><p>Digite o código que está no verso do cartão e escolha as suas redes.</p>' +
+    // Quem entrou com a conta da StarTouch e ainda não tem cartão Trybo: diz
+    // onde ele está e por que a tela está vazia, em vez de deixá-lo achar
+    // que as placas dele sumiram.
+    var st = estado.dados && estado.dados.tambem_startouch
+      ? '<p class="panel-note">Você entrou com a sua conta StarTouch. Os cartões Trybo ficam aqui, separados das suas placas de avaliação, que continuam no <a href="/app">painel StarTouch</a>.</p>'
+      : "";
+    return '<div class="panel empty"><h2>Seu primeiro cartão começa aqui.</h2><p>Digite o código que está no verso do cartão e escolha as suas redes.</p>' + st +
       '<button class="btn primary" data-ativar>' + icon("plus") + " Ativar um cartão</button></div>";
   }
 

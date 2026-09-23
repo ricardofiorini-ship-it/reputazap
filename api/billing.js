@@ -11,6 +11,7 @@ import { KIT_CATALOG } from "./_lib/catalogo-kit.js";
 import { dadosDoCliente, enderecoCompleto } from "./_lib/pedido-cliente.js";
 import { entradaDoScore } from "./_lib/visibilidade.js";
 import { cotaFrete } from "./_lib/frenet.js";
+import { soStartouch, logsSoStartouch } from "./_lib/linha.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -2626,9 +2627,9 @@ export default async function handler(req, res) {
       if (bizRow) {
         const desde = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
         const [cToques, rPlacas] = await Promise.all([
-          supabase.from("plate_taps").select("id", { count: "exact", head: true })
+          logsSoStartouch(supabase.from("plate_taps").select("id", { count: "exact", head: true }))
             .eq("business_id", bizRow.id).gte("tapped_at", desde),
-          supabase.from("plates").select("activated_at")
+          soStartouch(supabase.from("plates").select("activated_at"))
             .eq("business_id", bizRow.id).eq("status", "active"),
         ]);
         taps7d = cToques?.count || 0;

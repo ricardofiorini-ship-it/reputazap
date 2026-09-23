@@ -346,6 +346,7 @@ async function funilDoMenu(since, until) {
 
   const [exps, plates, negocios, internos] = await Promise.all([
     supabase.from("experiences").select("id, business_id, published, archived_at, created_at, published_at"),
+    // linha-ok: conta só menus; cartão Trybo nunca serve 'menu'
     supabase.from("plates").select("experience_id, served_mode").eq("served_mode", "menu"),
     supabase.from("businesses").select("id, user_id, plan, stripe_subscription_status, stripe_cancel_at_period_end, stripe_current_period_end"),
     idsInternos()
@@ -554,6 +555,7 @@ async function handleStats(req, res) {
   }, {});
 
   // Total de placas e por status
+  // linha-ok: painel do admin vê o estoque inteiro, das duas linhas
   const { data: platesData } = await supabase
     .from("plates")
     .select("status");
@@ -565,6 +567,7 @@ async function handleStats(req, res) {
 
   // Ativações últimas 7 dias
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  // linha-ok: painel do admin — ativações de todas as linhas
   const { count: activations7d } = await supabase
     .from("plates")
     .select("*", { count: "exact", head: true })
@@ -613,6 +616,7 @@ async function handleListClients(req, res) {
   (businesses || []).forEach(b => { bizByUser[b.user_id] = b; });
 
   // Pega todas as placas (incluindo last_tapped_at pra calcular ultimo toque)
+  // linha-ok: lista de clientes do admin mostra todos os dispositivos da conta
   const { data: plates } = await supabase
     .from("plates")
     .select("business_id, status, code, product_type, total_taps, last_tapped_at, activated_at, channel_name");
@@ -776,6 +780,7 @@ async function handleDeleteUser(req, res, admin) {
 
     // 2. Devolve placas pro estoque (mantém código + histórico de taps, perde vínculo)
     if (bizIds.length) {
+      // linha-ok: apagar conta devolve ao estoque TODO dispositivo dela, de qualquer linha
       const { data: returnedPlates, error: platesErr } = await supabase
         .from("plates")
         .update({

@@ -510,6 +510,12 @@ async function routeByStatus(){
       location.replace(`/r/${encodeURIComponent(CODE)}`);
       return;
     }
+    // Código Trybo digitado na ativação da StarTouch: a ativação dele é outra
+    // (monta as redes sociais junto). Manda pra lá já com o código.
+    if(d && d.status === "outra_linha"){
+      location.replace(`https://trybo.co/ativar?code=${encodeURIComponent(CODE)}`);
+      return;
+    }
     if(d && d.status === "disabled"){
       document.getElementById("errTitle").textContent = "Dispositivo desabilitado";
       document.getElementById("errMsg").textContent = "Esse dispositivo foi desabilitado e não está mais ativo.";

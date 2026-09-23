@@ -123,6 +123,7 @@ export async function generateBatchCodes(supabase, n, productType) {
   // Checa colisões com o banco numa query só. Se ESSA query falhar, não dá
   // pra assumir "sem colisão" (poderia tentar inserir duplicata e derrubar o
   // lote inteiro com erro críptico) — aborta cedo com mensagem clara.
+  // linha-ok: unicidade de código vale entre TODAS as linhas
   const { data: existing, error: collErr } = await supabase
     .from("plates")
     .select("code")
@@ -137,4 +138,16 @@ export async function generateBatchCodes(supabase, n, productType) {
     final.push(existingSet.has(c) ? await generateUniqueCode(supabase, productType) : c);
   }
   return final;
+}
+
+// Prefixos de código que pertencem a OUTRA linha que não a pedida — sai da
+// mesma ficha, então produto novo com prefixo novo entra aqui sozinho. Usado
+// por _lib/linha.js pra separar logs (plate_taps, experience_events), que
+// guardam o código mas não a linha. Prefixo compartilhado com a própria linha
+// (STAR- é de todos os produtos de avaliação) nunca entra.
+export function prefixosDeOutrasLinhas(linha) {
+  const daLinha = new Set(Object.values(PRODUCTS).filter((p) => p.linha === linha).map((p) => p.prefixo));
+  return [...new Set(Object.values(PRODUCTS)
+    .filter((p) => p.linha !== linha && !daLinha.has(p.prefixo))
+    .map((p) => p.prefixo))];
 }
