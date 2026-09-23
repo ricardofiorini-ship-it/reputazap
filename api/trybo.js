@@ -513,7 +513,14 @@ export default async function handler(req, res) {
 
   // Ação pública: quem acabou de receber o cartão ainda não tem conta.
   if (action === "checar-codigo") {
-    if (await limitou(req, res, { nome: "trybo-codigo", porIpHora: 40, globalDia: 2000 })) return;
+    // 120/hora e não 40: o freio aqui defende contra laço burro, não contra
+    // atacante determinado — com 33 milhões de combinações por letra, nenhum
+    // teto realista torna a sondagem viável, então apertar só atrapalha gente
+    // de verdade. E há gente de verdade em volume: o cliente do Mercado Livre
+    // compra um lote e distribui pra equipe, ativando vários cartões do mesmo
+    // wi-fi da loja, em sequência. Um teto de 40 transformaria isso em
+    // "sistema fora do ar" no pior momento possível — o primeiro contato.
+    if (await limitou(req, res, { nome: "trybo-codigo", porIpHora: 120, globalDia: 2000 })) return;
     try {
       return await handleCheckarCodigo(req, res);
     } catch (e) {
