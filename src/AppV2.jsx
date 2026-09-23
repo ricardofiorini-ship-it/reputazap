@@ -350,9 +350,11 @@ async function apiCall(path, opts = {}, _jaRenovou = false) {
       if (novo) return apiCall(path, opts, true)
     }
     let msg = `HTTP ${res.status}`
-    try { const j = await res.json(); if (j.error) msg = j.error } catch {}
+    let reason = null
+    try { const j = await res.json(); if (j.error) msg = j.error; reason = j.reason || null } catch {}
     const err = new Error(msg)
     err.status = res.status
+    err.reason = reason
     throw err
   }
   return res.json()
@@ -5104,6 +5106,8 @@ function ActivatePlateModal({ businessId, onClose }) {
   const [nick, setNick] = React.useState('')
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
+  // Código que o servidor recusou por já ser de outra conta — liga o botão do WhatsApp
+  const [codigoAlheio, setCodigoAlheio] = React.useState('')
   const [success, setSuccess] = React.useState(false)
 
   // Fecha com ESC
@@ -5118,7 +5122,7 @@ function ActivatePlateModal({ businessId, onClose }) {
     const cleanCode = code.trim().toUpperCase()
     if (!cleanCode) { setError('Digite o código do dispositivo.'); return }
     if (!businessId) { setError('Negócio não identificado. Recarregue a página.'); return }
-    setLoading(true); setError('')
+    setLoading(true); setError(''); setCodigoAlheio('')
     try {
       await apiCall('/api/plates?action=activate', {
         method: 'POST',
@@ -5133,6 +5137,7 @@ function ActivatePlateModal({ businessId, onClose }) {
       setTimeout(() => window.location.reload(), 900)
     } catch (err) {
       setError(err.message || 'Erro ao ativar. Verifique o código.')
+      if (err.reason === 'ativado_por_outro') setCodigoAlheio(cleanCode)
     } finally {
       setLoading(false)
     }
@@ -5208,7 +5213,21 @@ function ActivatePlateModal({ businessId, onClose }) {
               <div style={{
                 padding:'10px 12px', background:'#FEF2F2', border:'1px solid #FECACA',
                 borderRadius: 8, color: T.red, fontSize: 13, marginBottom: 14
-              }}>{error}</div>
+              }}>
+                {error}
+                {codigoAlheio && (
+                  <a
+                    href={`https://wa.me/${SUPPORT_WA_NUMBER}?text=${encodeURIComponent(`Oi! Tentei ativar o dispositivo ${codigoAlheio} e apareceu que ele já foi ativado por outro usuário. Pode me ajudar?`)}`}
+                    target="_blank" rel="noreferrer"
+                    style={{
+                      display:'block', marginTop: 10, padding:'10px 12px', borderRadius: 8,
+                      background:'#25D366', color:'#fff', fontWeight: 700, textAlign:'center',
+                      textDecoration:'none'
+                    }}>
+                    Falar com a StarTouch no WhatsApp
+                  </a>
+                )}
+              </div>
             )}
 
             <button type="submit" disabled={loading} style={{

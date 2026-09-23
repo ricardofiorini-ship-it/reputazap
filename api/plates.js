@@ -190,7 +190,15 @@ async function handleActivate(req, res, user) {
       return res.status(400).json({ error: "Esse dispositivo já está ativado no seu negócio" });
     }
     if (currentOwnerId && currentOwnerId !== user.id) {
-      return res.status(403).json({ error: "Esse dispositivo já foi ativado por outro usuário. Se você comprou recentemente, fale com a gente." });
+      // `reason` faz a tela oferecer o WhatsApp com o código já escrito. Quem
+      // chega aqui com um código alheio quase sempre tem na mão um cartão
+      // impresso em dobro pela gráfica (caso STAR-CXHFCP, 23/09) — e esta
+      // recusa não fica registrada em lugar nenhum, então a mensagem do
+      // cliente é o único jeito de ficarmos sabendo.
+      return res.status(403).json({
+        error: "Esse dispositivo já foi ativado por outro usuário. Se você comprou recentemente, fale com a gente.",
+        reason: "ativado_por_outro"
+      });
     }
     // Senão: dono original sumiu (placa órfã) → permite ativar
     console.log("[plates.activate] re-ativando placa orfã", { code: normalized, oldBizId: plate.business_id, newUserId: user.id });

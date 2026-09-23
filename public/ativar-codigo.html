@@ -402,6 +402,20 @@ async function handleGoogleCredential(response){
   }
 }
 
+// Código já ativado por outra conta: quase sempre é cartão impresso em dobro
+// pela gráfica (caso STAR-CXHFCP, 23/09). A recusa não fica registrada em
+// lugar nenhum, então o WhatsApp com o código já escrito é como ficamos sabendo.
+function oferecerWhatsSeAlheio(msgEl, d){
+  if(!d || d.reason !== "ativado_por_outro") return;
+  const texto = "Oi! Tentei ativar o dispositivo " + CODE + " e apareceu que ele já foi ativado por outro usuário. Pode me ajudar?";
+  const a = document.createElement("a");
+  a.href = "https://wa.me/5511976944026?text=" + encodeURIComponent(texto);
+  a.target = "_blank"; a.rel = "noopener";
+  a.textContent = "Falar com a StarTouch no WhatsApp";
+  a.style.cssText = "display:block;margin-top:10px;padding:10px 12px;border-radius:8px;background:#25D366;color:#fff;font-weight:700;text-align:center;text-decoration:none;";
+  msgEl.appendChild(a);
+}
+
 function show(id){
   ["screenLoading","screenError","screenInstavel","screenWelcome","screenNew","screenLogin","screenLink","screenDone"]
     .forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id));
@@ -736,7 +750,7 @@ async function submitNew(){
     const nickname = document.getElementById("nNickname").value.trim() || null;
     const rAct = await fetch("/api/plates?action=activate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({code:CODE,business_id:dBiz.business.id,channel_name:nickname})});
     const dAct = await rAct.json();
-    if(!rAct.ok){ msg.className="msg error"; msg.textContent=dAct.error||"Erro ao ativar o dispositivo."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
+    if(!rAct.ok){ msg.className="msg error"; msg.textContent=dAct.error||"Erro ao ativar o dispositivo."; oferecerWhatsSeAlheio(msg, dAct); btn.disabled=false; btn.textContent="✓ Ativar"; return; }
 
     show("screenDone");
   }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="✓ Ativar"; }
@@ -820,7 +834,7 @@ async function submitLink(){
   try{
     const r=await fetch("/api/plates?action=activate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({code:CODE,business_id,channel_name:nickname||null})});
     const d=await r.json();
-    if(!r.ok){ msg.className="msg error"; msg.textContent=d.error||"Erro ao ativar."; btn.disabled=false; btn.textContent="Ativar"; return; }
+    if(!r.ok){ msg.className="msg error"; msg.textContent=d.error||"Erro ao ativar."; oferecerWhatsSeAlheio(msg, d); btn.disabled=false; btn.textContent="Ativar"; return; }
     show("screenDone");
   }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Ativar"; }
 }
