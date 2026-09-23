@@ -79,6 +79,17 @@
       "permanent": false
     },
     {
+      "source": "/painel",
+      "has": [
+        {
+          "type": "host",
+          "value": "trybo.co"
+        }
+      ],
+      "destination": "https://startouch.com.br/painel-trybo",
+      "permanent": false
+    },
+    {
       "source": "/app-legacy",
       "destination": "/app",
       "permanent": false
@@ -245,14 +256,8 @@
       "destination": "/trybo/ativar.html"
     },
     {
-      "source": "/painel",
-      "has": [
-        {
-          "type": "host",
-          "value": "trybo.co"
-        }
-      ],
-      "destination": "/trybo/painel.html"
+      "source": "/painel-trybo",
+      "destination": "/trybo/meu-painel.html"
     },
     {
       "source": "/landing",

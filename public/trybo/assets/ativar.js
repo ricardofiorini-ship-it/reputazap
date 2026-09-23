@@ -291,7 +291,7 @@
       '<div class="mini-networks" style="justify-content:center;margin:0 0 20px">' + lista + "</div>" +
       sobra +
       '<a class="btn primary full" href="' + esc(r.url || "#") + '" target="_blank" rel="noopener">Fazer um toque de teste ' + icon("arrow") + "</a>" +
-      '<a class="link-button" href="https://' + HOST_CONTA + '/app">Ir para o meu painel</a>');
+      '<a class="link-button" href="https://' + HOST_CONTA + '/painel-trybo">Ir para o meu painel</a>');
   }
 
   function render() {
