@@ -303,15 +303,39 @@
   }
 
   // Chegou com o código na URL (veio do /t/CODIGO de um cartão em estoque,
-  // ou da troca de domínio do passo 1): já pula a digitação.
+  // ou da troca de domínio do passo 1): pula a digitação — mas NÃO pula a
+  // conferência.
+  //
+  // Pular as duas era o atalho óbvio e estava errado: um código torto na URL
+  // levaria a pessoa a criar conta e preencher as quatro redes pra só então
+  // ouvir "esse código não existe". O passo que ela não precisa repetir é o
+  // de DIGITAR; o de VALIDAR é o que protege o tempo dela.
   var q = new URLSearchParams(location.search);
   var vindo = (q.get("code") || "").trim().toUpperCase();
   var aviso = q.get("error");
   if (vindo) {
     estado.code = vindo;
-    estado.token = token();
-    estado.passo = estado.token ? "redes" : "conta";
-    render();
+    telaCodigo();            // mostra algo enquanto confere, em vez de tela branca
+    (async function () {
+      try {
+        var r = await api("/api/trybo?action=checar-codigo&code=" + encodeURIComponent(vindo));
+        if (r.situacao !== "pronto") {
+          var frases = {
+            nao_existe: "Não encontrei esse código. Confira o que está impresso no verso do cartão.",
+            outro_produto: "Esse código é de outro produto da casa, não de um cartão Trybo.",
+            bloqueado: "Esse cartão está bloqueado. Fale com a gente pelo suporte.",
+            ja_ativo: "Esse cartão já está ativado. Se ele é seu, entre no painel para configurá-lo."
+          };
+          return telaCodigo(frases[r.situacao] || "Não consegui conferir esse código.");
+        }
+        estado.code = r.code;
+        estado.token = token();
+        estado.passo = estado.token ? "redes" : "conta";
+        render();
+      } catch (e) {
+        telaCodigo(e.message);
+      }
+    })();
   } else if (aviso) {
     var frases = {
       invalida: "Não encontrei esse código. Confira o que está impresso no verso do cartão.",
