@@ -238,7 +238,11 @@
           "value": "trybo.co"
         }
       ],
-      "destination": "/trybo/ativacao.html"
+      "destination": "/trybo/ativar.html"
+    },
+    {
+      "source": "/ativar-trybo",
+      "destination": "/trybo/ativar.html"
     },
     {
       "source": "/painel",

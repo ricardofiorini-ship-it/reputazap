@@ -1,5 +1,7 @@
 // ============================================================
 // TRYBO — API do cartao de redes sociais (dispatcher por ?action=)
+//   checar-codigo    GET   PUBLICA -- o codigo existe e da pra ativar?
+//   ativar           POST  ativa o cartao, cria a conta se preciso, grava destinos
 //   cartao           GET   dados da tela de configuracao de um cartao
 //   salvar-destinos  POST  grava ate DOIS destinos e recalcula o cartao
 //   equipe           GET   atendentes + ranking de toques
@@ -12,6 +14,7 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { montarUrl, destinoExiste, recalcularCartao } from "./_lib/trybo.js";
+import { limitou } from "./_lib/rate-limit.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -290,15 +293,241 @@ async function handleVincularMembro(req, res, user) {
   return res.json({ ok: true, member_id: member_id || null });
 }
 
+// ── GET ?action=checar-codigo&code= ─────────────────────────
+// PÚBLICO, sem login. É o primeiro passo da ativação: quem acabou de receber
+// o cartão digita o código ANTES de ter conta.
+//
+// Só responde uma de quatro palavras. Nunca diz de quem é o cartão, nem o
+// nome da loja, nem nada que ele carregue — a resposta serve pra mostrar a
+// tela certa, não pra contar a vida de ninguém.
+//
+// Tem freio por IP porque é o único jeito de descobrir se um código existe
+// sem tê-lo na mão. Não é uma porta valiosa (são 33 milhões de combinações
+// por letra de produto, e código ativado não é reivindicável), mas laço
+// solto em rota pública é o tipo de coisa que a gente descobre pela conta.
+async function handleCheckarCodigo(req, res) {
+  const code = String(req.query.code || "").trim().toUpperCase();
+  if (!code) return res.status(400).json({ error: "Informe o código" });
+
+  const { data, error } = await supabase
+    .from("plates")
+    .select("code, status, linha")
+    .eq("code", code)
+    .maybeSingle();
+  if (error) {
+    console.error("[trybo.checar-codigo]", error);
+    return res.status(503).json({ error: "Não consegui consultar agora. Tente de novo em instantes." });
+  }
+
+  if (!data)                     return res.json({ ok: true, situacao: "nao_existe" });
+  if (data.linha !== "social")   return res.json({ ok: true, situacao: "outro_produto" });
+  if (data.status === "disabled")return res.json({ ok: true, situacao: "bloqueado" });
+  if (data.status === "active")  return res.json({ ok: true, situacao: "ja_ativo" });
+  return res.json({ ok: true, situacao: "pronto", code: data.code });
+}
+
+// ── POST ?action=ativar ─────────────────────────────────────
+// body: { code, nome, perfis: { instagram, tiktok, whatsapp, youtube }, apelido? }
+//
+// Faz a ativação inteira numa chamada só. Não é capricho: em quatro chamadas,
+// uma queda de sinal no meio deixaria o cartão ativado e sem destino, ou a
+// conta criada e o cartão preso. Aqui a ordem é escolhida pra que QUALQUER
+// parada no meio deixe um estado que a pessoa consegue consertar sozinha no
+// painel, e nunca um cartão que mente pro cliente dela.
+const REDES_DA_ARTE = ["instagram", "tiktok", "whatsapp", "youtube"];
+
+async function handleAtivar(req, res, user) {
+  const { code, nome, perfis, apelido } = req.body || {};
+  const normalizado = String(code || "").trim().toUpperCase();
+  if (!normalizado) return res.status(400).json({ error: "Informe o código do cartão" });
+
+  // ── 1. o cartão ──
+  const { data: plate, error: plateErr } = await supabase
+    .from("plates")
+    .select("id, code, status, linha, business_id")
+    .eq("code", normalizado)
+    .maybeSingle();
+  if (plateErr) return res.status(503).json({ error: "Não consegui consultar o cartão agora." });
+  if (!plate) return res.status(404).json({ error: "Código não encontrado. Confira o que está impresso no verso." });
+  if (plate.linha !== "social") {
+    return res.status(400).json({ error: "Esse código não é de um cartão Trybo." });
+  }
+  if (plate.status === "disabled") {
+    return res.status(400).json({ error: "Esse cartão está bloqueado. Fale com a gente." });
+  }
+  if (plate.status === "active") {
+    // Saber o código NÃO é ter permissão de reivindicá-lo: o código viaja na
+    // URL de quem encosta o celular, então qualquer cliente da loja poderia
+    // ter anotado. Cartão já ativo só volta a ser ativável se o dono o
+    // desvincular.
+    const { data: dono } = await supabase
+      .from("businesses").select("user_id").eq("id", plate.business_id).maybeSingle();
+    if (dono?.user_id === user.id) {
+      return res.status(400).json({ error: "Esse cartão já está ativado na sua conta." });
+    }
+    return res.status(403).json({ error: "Esse cartão já foi ativado por outra pessoa. Se você comprou recentemente, fale com a gente." });
+  }
+
+  // ── 2. a conta ──
+  // A Trybo não pede o Google: quem compra um cartão de redes sociais pode
+  // nem ter ficha lá, e pedir isso aqui seria cobrar uma coisa que não tem a
+  // ver com o que a pessoa comprou, no passo mais frágil do funil.
+  let negocio = await negocioDo(user);
+  if (!negocio) {
+    const nomeNegocio = String(nome || "").trim().slice(0, 80);
+    if (!nomeNegocio) return res.status(400).json({ error: "Diga o nome que o cliente vê" });
+
+    const meta = user.user_metadata || {};
+    await supabase.from("profiles").upsert(
+      { id: user.id, name: meta.name || nomeNegocio, phone: meta.phone || "" },
+      { onConflict: "id" }
+    );
+
+    const { data: criado, error: bizErr } = await supabase
+      .from("businesses")
+      .insert({ user_id: user.id, name: nomeNegocio, plan: "free" })
+      .select("id, name")
+      .single();
+    if (bizErr) {
+      console.error("[trybo.ativar] falha ao criar negócio:", bizErr);
+      // Mensagem específica pro caso que a gente sabe que pode acontecer:
+      // o SQL trybo-003 não foi rodado e a coluna do Google ainda é
+      // obrigatória. Erro genérico aqui viraria meia hora de investigação.
+      const pista = /place_id/.test(bizErr.message || "")
+        ? " (rode supabase/trybo-003-conta-sem-google.sql)"
+        : "";
+      return res.status(500).json({ error: "Não consegui criar sua conta" + pista });
+    }
+    negocio = criado;
+  }
+
+  // ── 3. ativa o cartão ──
+  // ANTES dos destinos, de propósito: se algo falhar depois, o cartão fica
+  // ativo e sem destino — e a rota /t/ mostra "cartão ativo, sem destino",
+  // que é honesto e o dono resolve no painel. Na ordem inversa, uma falha
+  // deixaria destinos gravados num cartão de ninguém.
+  const agora = new Date().toISOString();
+  const { error: ativErr } = await supabase
+    .from("plates")
+    .update({
+      business_id: negocio.id,
+      channel_name: String(apelido || nome || "").trim().slice(0, 60) || null,
+      status: "active",
+      activated_at: agora,
+      served_mode: "social",
+      served_reason: "padrao",
+      served_destinations: [],
+      served_at: agora
+    })
+    .eq("id", plate.id)
+    .eq("status", "in_stock");     // trava de corrida: só ativa se ainda estiver em estoque
+  if (ativErr) {
+    console.error("[trybo.ativar] falha ao ativar:", ativErr);
+    return res.status(500).json({ error: "Não consegui ativar o cartão. Tente de novo." });
+  }
+
+  // ── 4. os perfis da conta ──
+  // A conta guarda TODOS os perfis que a pessoa preencheu. O cartão mostra
+  // no máximo dois — são coisas diferentes, e é o que permite trocar o
+  // destino depois sem digitar o @ de novo.
+  const preenchidos = [];
+  for (const kind of REDES_DA_ARTE) {
+    const valor = String((perfis || {})[kind] || "").trim();
+    if (!valor) continue;
+    let url;
+    try {
+      url = montarUrl(kind, valor);
+    } catch (e) {
+      return res.status(400).json({ error: `${kind}: ${e.message}` });
+    }
+    preenchidos.push({ kind, valor, url });
+  }
+  if (preenchidos.length === 0) {
+    return res.status(400).json({ error: "Preencha pelo menos uma rede" });
+  }
+
+  for (const p of preenchidos) {
+    // Apaga-e-insere em vez de `upsert`: a unicidade de social_profiles é um
+    // índice por EXPRESSÃO (usa COALESCE no member_id, porque em Postgres
+    // NULL nunca é igual a NULL). O ON CONFLICT do upsert não alcança índice
+    // assim — ele pediria um constraint por lista de colunas, que não existe.
+    await supabase.from("social_profiles")
+      .delete()
+      .eq("business_id", negocio.id)
+      .is("member_id", null)
+      .eq("kind", p.kind);
+
+    const { error } = await supabase.from("social_profiles").insert({
+      business_id: negocio.id,
+      member_id: null,
+      kind: p.kind,
+      handle: p.valor.replace(/^@/, "").slice(0, 80),
+      url: p.url,
+      is_active: true
+    });
+    // Não derruba a ativação: o perfil da conta é conveniência pra depois.
+    // O que precisa estar certo é o destino DO CARTÃO, logo abaixo.
+    if (error) console.warn("[trybo.ativar] perfil não gravado:", p.kind, error.message);
+  }
+
+  // ── 5. os dois destinos do cartão ──
+  // Os dois primeiros preenchidos, na ordem impressa na arte. A pessoa troca
+  // depois no painel — perguntar "quais dois?" agora seria uma decisão a mais
+  // num momento em que ela só quer ver o cartão funcionando.
+  const doisPrimeiros = preenchidos.slice(0, 2).map((p, i) => ({
+    plate_id: plate.id, posicao: i + 1, kind: p.kind, url: p.url
+  }));
+  await supabase.from("plate_destinations").delete().eq("plate_id", plate.id);
+  const { error: destErr } = await supabase.from("plate_destinations").insert(doisPrimeiros);
+  if (destErr) {
+    console.error("[trybo.ativar] destinos não gravados:", destErr);
+    return res.status(500).json({
+      error: "O cartão foi ativado, mas não consegui salvar os destinos. Abra o painel e configure."
+    });
+  }
+
+  let resultado;
+  try {
+    resultado = await recalcularCartao(supabase, plate.id);
+  } catch (e) {
+    console.error("[trybo.ativar] recálculo falhou:", e);
+    return res.status(500).json({
+      error: "O cartão foi ativado, mas não consegui publicar os destinos. Abra o painel e salve de novo."
+    });
+  }
+
+  return res.json({
+    ok: true,
+    code: plate.code,
+    url: `https://trybo.co/t/${encodeURIComponent(plate.code)}`,
+    negocio: negocio.name,
+    destinos: resultado.destinos,
+    sobraram: preenchidos.slice(2).map((p) => p.kind)
+  });
+}
+
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
+
+  const action = req.query.action;
+
+  // Ação pública: quem acabou de receber o cartão ainda não tem conta.
+  if (action === "checar-codigo") {
+    if (await limitou(req, res, { nome: "trybo-codigo", porIpHora: 40, globalDia: 2000 })) return;
+    try {
+      return await handleCheckarCodigo(req, res);
+    } catch (e) {
+      console.error("[trybo] erro:", e);
+      return res.status(500).json({ error: "Erro inesperado" });
+    }
+  }
 
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
 
-  const action = req.query.action;
   try {
     switch (action) {
+      case "ativar":          return await handleAtivar(req, res, auth.user);
       case "cartao":          return await handleCartao(req, res, auth.user);
       case "salvar-destinos": return await handleSalvarDestinos(req, res, auth.user);
       case "equipe":          return await handleEquipe(req, res, auth.user);
@@ -306,7 +535,7 @@ export default async function handler(req, res) {
       case "vincular-membro": return await handleVincularMembro(req, res, auth.user);
       default:
         return res.status(400).json({
-          error: "Unknown action. Use ?action=cartao|salvar-destinos|equipe|membro|vincular-membro"
+          error: "Unknown action. Use ?action=checar-codigo|ativar|cartao|salvar-destinos|equipe|membro|vincular-membro"
         });
     }
   } catch (e) {
