@@ -5184,7 +5184,7 @@ function ActivatePlateModal({ businessId, onClose }) {
             <input
               autoFocus
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => { setCode(e.target.value); setCodigoAlheio('') }}
               placeholder="STAR-XXXXX"
               style={{
                 width:'100%', padding:'11px 14px', fontSize: 15, fontFamily:'monospace',
@@ -5230,13 +5230,17 @@ function ActivatePlateModal({ businessId, onClose }) {
               </div>
             )}
 
-            <button type="submit" disabled={loading} style={{
-              width:'100%', background: loading ? T.textDim : T.blue, color:'#fff',
-              border:'none', borderRadius: 10, padding:'12px 18px',
-              fontSize: 14, fontWeight: 700, cursor: loading ? 'wait' : 'pointer'
-            }}>
-              {loading ? 'Ativando…' : 'Ativar dispositivo'}
-            </button>
+            {/* Código recusado por ser de outra conta: "Ativar" de novo daria o
+                mesmo erro — fica só o WhatsApp. Volta se o código for trocado. */}
+            {!codigoAlheio && (
+              <button type="submit" disabled={loading} style={{
+                width:'100%', background: loading ? T.textDim : T.blue, color:'#fff',
+                border:'none', borderRadius: 10, padding:'12px 18px',
+                fontSize: 14, fontWeight: 700, cursor: loading ? 'wait' : 'pointer'
+              }}>
+                {loading ? 'Ativando…' : 'Ativar dispositivo'}
+              </button>
+            )}
           </form>
         )}
       </Card>
