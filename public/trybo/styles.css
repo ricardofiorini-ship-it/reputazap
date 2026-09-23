@@ -24,3 +24,12 @@
 /* Keep the longer closing message readable at all viewport sizes. */
 .final-cta h2{font-size:clamp(2.35rem,4.4vw,4rem)}
 @media(max-width:800px){.final-cta h2{font-size:clamp(2rem,7.5vw,3.5rem)}}
+
+/* Entrar: quem ja ativou precisa de um caminho de volta visivel em QUALQUER tela.
+   O "Meu painel" do menu sumia no celular junto com o resto da nav. */
+.nav-actions{display:flex;align-items:center;gap:18px}
+.nav-login{font-size:.875rem;font-weight:600;color:#111;padding:10px 4px}
+.nav-login:hover{text-decoration:underline}
+.hero-login{margin-top:12px;font-size:.85rem;color:var(--muted)}
+.hero-login a{color:#111;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:800px){.nav-actions{gap:12px}.nav-login{font-size:.8rem;padding:10px 2px}}
