@@ -321,9 +321,20 @@ async function processar(code) {
 async function gravar(code, url, regravacao) {
   fase = "gravando";
   abortGravacao = new AbortController();
-  painel("azul", "Encoste o cartão atrás do celular", code,
-    `Vai gravar:<br><span style="font-size:12px;word-break:break-all">${esc(url)}</span>`,
+  // O celular só grava quando o chip CHEGA perto da antena. A antena fica nas
+  // costas, junto da câmera — então, enquanto a câmera lia o QR, o cartão já
+  // estava encostado, e um chip que já está lá não conta como chegada: a
+  // gravação fica esperando para sempre. Por isso o pedido é AFASTAR e
+  // encostar de novo (achado no 1º teste real, 24/09).
+  painel("azul", "Afaste o cartão e encoste de novo", code,
+    `Tire o cartão da frente da câmera e encoste de novo no <b>meio das costas</b> do celular, parado, até apitar.<br>` +
+    `<span style="font-size:12px;word-break:break-all;opacity:.8">Vai gravar: ${esc(url)}</span>`,
     `<button class="btn sec min" onclick="voltarALer()">Cancelar</button>`);
+  const esteAbort = abortGravacao;
+  setTimeout(() => {
+    if (fase !== "gravando" || abortGravacao !== esteAbort) return;
+    $("toast").textContent = "Ainda não gravou? Afaste uns 10 cm e encoste de novo, devagar, em outro ponto das costas (a antena varia por modelo).";
+  }, 5000);
   try {
     await ndef.write({ records: [{ recordType: "url", data: url }] }, { signal: abortGravacao.signal });
   } catch (e) {
