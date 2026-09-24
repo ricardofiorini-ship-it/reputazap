@@ -198,6 +198,10 @@ function voltarALer() {
   ligarLeituraNfc();
   $("toast").textContent = "";
   fase = "lendo";
+  // O cartão anterior pode ainda estar na frente da câmera quando ela voltar:
+  // a trava só se solta depois que o código dele SAIR de vista.
+  bloqueioVistoEm = Date.now();
+  ligarCamera().catch(() => {});
   painel("lendo", "Aponte a câmera pro QR do próximo cartão", "", detector ? "" : "A câmera não lê QR neste aparelho — digite o código abaixo.");
 }
 
@@ -231,11 +235,12 @@ $("btnComecar").onclick = async () => {
     // gravações seguintes não pedem de novo. De brinde, encostar um chip com
     // a tela parada mostra o que ele já tem gravado.
     ndef.onreading = (ev) => {
+      if (fase === "pronto") { $("toast").textContent = "O celular sentiu o chip — agora aperte Gravar e encoste de novo."; return; }
       if (fase !== "lendo") return;
       const rec = ev.message.records.find((r) => r.recordType === "url" || r.recordType === "text");
       let conteudo = "(chip vazio)";
       if (rec) { try { conteudo = new TextDecoder().decode(rec.data); } catch {} }
-      $("toast").textContent = "Chip encostado agora contém: " + conteudo;
+      $("toast").textContent = "✓ NFC funcionando — o chip encostado contém: " + conteudo;
     };
     await ligarLeituraNfc(true);
   } catch (e) {
@@ -251,11 +256,7 @@ $("btnComecar").onclick = async () => {
   if ("BarcodeDetector" in window) {
     try {
       detector = new BarcodeDetector({ formats: ["qr_code"] });
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-      $("video").srcObject = stream;
-      await $("video").play();
-      $("cam").style.display = "block";
-      loopCamera();
+      await ligarCamera();
     } catch (e) {
       detector = null;
       $("toast").textContent = "Câmera indisponível (" + e.message + "). Use o campo de código.";
@@ -264,9 +265,35 @@ $("btnComecar").onclick = async () => {
   voltarALer();
 };
 
+// A câmera fica ligada SÓ enquanto procura o QR. Achou o código, desliga — e
+// só volta no "próximo cartão". Suspeita do 2º teste real (24/09): com a
+// câmera aberta o celular não gravava; câmera e NFC disputando o aparelho é
+// hipótese barata de eliminar, e de quebra economiza bateria no lote.
+let stream = null, camAtiva = false;
+async function ligarCamera() {
+  if (!detector || camAtiva) return;
+  camAtiva = true;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+    $("video").srcObject = stream;
+    await $("video").play();
+    $("cam").style.display = "block";
+  } catch (e) {
+    camAtiva = false;
+    throw e;
+  }
+  loopCamera();
+}
+function desligarCamera() {
+  camAtiva = false;
+  if (stream) { stream.getTracks().forEach((t) => { try { t.stop(); } catch {} }); stream = null; }
+  $("video").srcObject = null;
+  $("cam").style.display = "none";
+}
+
 async function loopCamera() {
   const video = $("video");
-  while (detector) {
+  while (camAtiva) {
     try {
       if (video.readyState >= 2) {
         const achados = await detector.detect(video);
@@ -295,6 +322,7 @@ $("btnManual").onclick = () => {
 async function processar(code) {
   fase = "conferindo";
   bloqueio = code; bloqueioVistoEm = Date.now();
+  desligarCamera();
   $("toast").textContent = "";
   painel("azul", "Conferindo…", code);
 
