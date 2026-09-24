@@ -125,7 +125,8 @@ let fase = "parado";
 let ndef = null;
 let detector = null;
 let audio = null;
-let abortGravacao = null;
+// Gravação armada esperando o chip encostar (ver gravarAgora).
+let gravacaoPendente = null;
 // Depois de cada cartão, o MESMO QR ainda está na frente da câmera. Sem esta
 // trava ele seria lido de novo na hora e acusaria "repetido" o cartão que
 // acabou de ser gravado. Só vale ler outra vez depois que o código SAI da
@@ -199,7 +200,7 @@ function registrar(cor, code, msg) {
 // novo), a trava cai — senão, repetir o mesmo cartão depois de um erro deixava
 // a câmera cega pra ele (3º teste real, 24/09: "a câmera não lê").
 function voltarALer(manterTrava) {
-  if (abortGravacao) { try { abortGravacao.abort(); } catch {} abortGravacao = null; }
+  gravacaoPendente = null;
   ligarLeituraNfc();
   $("toast").textContent = "";
   fase = "lendo";
@@ -227,9 +228,6 @@ async function ligarLeituraNfc(inicial) {
     if (inicial) throw e;
   }
 }
-function pararLeituraNfc() {
-  if (scanAbort) { try { scanAbort.abort(); } catch {} scanAbort = null; }
-}
 
 // ── Começar (precisa de um toque: permissão de câmera e de NFC) ──
 $("btnComecar").onclick = async () => {
@@ -243,6 +241,12 @@ $("btnComecar").onclick = async () => {
     // gravações seguintes não pedem de novo. De brinde, encostar um chip com
     // a tela parada mostra o que ele já tem gravado.
     ndef.onreading = (ev) => {
+      if (fase === "gravando" && gravacaoPendente) {
+        const g = gravacaoPendente;
+        gravacaoPendente = null;
+        executarGravacao(g);
+        return;
+      }
       if (fase === "pronto") { $("toast").textContent = "O celular sentiu o chip — agora aperte Gravar e encoste de novo."; return; }
       if (fase !== "lendo") return;
       const rec = ev.message.records.find((r) => r.recordType === "url" || r.recordType === "text");
@@ -325,7 +329,7 @@ $("btnManual").onclick = () => {
   const code = extrairCodigo($("manualCode").value);
   if (!code) { $("toast").textContent = "Não reconheci um código no formato STAR-XXXXXX."; return; }
   $("manualCode").value = "";
-  if (abortGravacao) { try { abortGravacao.abort(); } catch {} abortGravacao = null; }
+  gravacaoPendente = null;
   processar(code);
 };
 
@@ -394,35 +398,41 @@ function gravar(code, url, regravacao) {
     `<button class="btn sec min" onclick="voltarALer()">Cancelar</button>`);
 }
 
-async function gravarAgora(code, url, regravacao) {
+// A gravação acontece DENTRO do evento de leitura — o padrão da documentação
+// do Chrome ("write a tag and ignore reads"). A 1ª versão chamava write()
+// solto e desligava a leitura; no Android do Ricardo o chip era LIDO e nunca
+// gravado (4º teste real, 24/09). Aqui: a leitura fica sempre ligada, o botão
+// só ARMA a gravação, e quando o chip encosta o evento de leitura dispara o
+// write() com o chip ali presente.
+function gravarAgora(code, url, regravacao) {
   fase = "gravando";
-  abortGravacao = new AbortController();
-  const esteAbort = abortGravacao;
-  // A leitura de fundo (que mostra o conteúdo do chip com a tela parada) é
-  // desligada durante a gravação, pra não disputar o chip com ela.
-  pararLeituraNfc();
+  const pendente = { code, url, regravacao };
+  gravacaoPendente = pendente;
+  ligarLeituraNfc();
   painel("azul", "Encoste o cartão agora", code,
     "No meio das costas do celular, parado, até apitar.",
     `<button class="btn sec min" onclick="voltarALer()">Cancelar</button>`);
   setTimeout(() => {
-    if (fase !== "gravando" || abortGravacao !== esteAbort) return;
-    $("toast").textContent = "Ainda não gravou? Afaste uns 10 cm e encoste de novo, devagar, em outro ponto das costas (a antena varia por modelo).";
+    if (gravacaoPendente !== pendente) return;
+    $("toast").textContent = "O celular ainda não sentiu o chip. Afaste uns 10 cm e encoste de novo, devagar, em outro ponto das costas (a antena varia por modelo).";
   }, 5000);
+}
+
+async function executarGravacao(g) {
+  const { code, url, regravacao } = g;
+  $("toast").textContent = "Chip encostado — gravando, não mexa…";
   try {
-    await ndef.write({ records: [{ recordType: "url", data: url }] }, { signal: esteAbort.signal });
+    await ndef.write({ records: [{ recordType: "url", data: url }] });
   } catch (e) {
-    if (e.name === "AbortError") return;
     fase = "resultado";
     som("erro");
     registrar("amarelo", code, "chip falhou");
+    $("toast").textContent = "";
     painel("amarelo", "O chip não gravou", code,
       `<b>${esc(e.name)}</b>: ${esc(e.message)}<br>O código NÃO foi carimbado.` + dicaDoErro(e),
       `<button class="btn" onclick='gravarAgora(${JSON.stringify(code)}, ${JSON.stringify(url)}, ${regravacao})'>Tentar de novo</button><button class="btn sec" onclick="voltarALer()">Pular</button>`);
-    ligarLeituraNfc();
     return;
   }
-  abortGravacao = null;
-  ligarLeituraNfc();
   $("toast").textContent = "";
   if (regravacao) {
     fase = "resultado";
