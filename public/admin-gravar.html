@@ -101,6 +101,8 @@
       <div><b id="nRuim">0</b>separados</div>
     </div>
     <div class="lista" id="lista"><div class="vazio">Nenhum cartão nesta sessão ainda.</div></div>
+    <p style="font-size:12px;color:#5F6368;margin:16px 0 4px;font-weight:600">Diário do NFC (se der problema, mande um print disto)</p>
+    <pre id="diario" style="font-size:11px;background:#fff;border:1px solid #DADCE0;border-radius:10px;padding:10px;white-space:pre-wrap;word-break:break-all;min-height:40px;color:#3C4043"></pre>
   </div>
 </div>
 
@@ -201,7 +203,7 @@ function registrar(cor, code, msg) {
 // novo), a trava cai — senão, repetir o mesmo cartão depois de um erro deixava
 // a câmera cega pra ele (3º teste real, 24/09: "a câmera não lê").
 function voltarALer(manterTrava) {
-  gravacaoPendente = null;
+  cancelarGravacao();
   ligarLeituraNfc();
   $("toast").textContent = "";
   fase = "lendo";
@@ -226,8 +228,10 @@ async function ligarLeituraNfc(inicial) {
   scanAbort = new AbortController();
   try {
     await ndef.scan({ signal: scanAbort.signal });
+    diario("leitura NFC ligada");
   } catch (e) {
     scanAbort = null;
+    diario(`leitura NFC falhou: ${e.name} ${e.message}`);
     if (inicial) throw e;
   }
 }
@@ -243,14 +247,15 @@ $("btnComecar").onclick = async () => {
     // scan() aqui só pra pedir a permissão de NFC com o toque do usuário;
     // gravações seguintes não pedem de novo. De brinde, encostar um chip com
     // a tela parada mostra o que ele já tem gravado.
+    ndef.onreadingerror = (ev) => {
+      if (fase === "gravando") return chipSentido("readingerror", ev);
+      diario("readingerror (chip sem formatação ou mal encostado)");
+      if (fase === "lendo") $("toast").textContent = "O celular sentiu um chip, mas não conseguiu ler (pode estar sem formatação). Isso é normal em chip novo.";
+    };
     ndef.onreading = (ev) => {
-      if (fase === "gravando" && gravacaoPendente) {
-        const g = gravacaoPendente;
-        gravacaoPendente = null;
-        executarGravacao(g);
-        return;
-      }
+      if (fase === "gravando") return chipSentido("reading", ev);
       if (fase === "pronto") { $("toast").textContent = "O celular sentiu o chip — agora aperte Gravar e encoste de novo."; return; }
+      diario(`reading fora da gravação (fase=${fase}) serial=${ev.serialNumber || "?"}`);
       if (fase !== "lendo") return;
       // Não é aqui que se grava: nesta tela o chip só é LIDO. A gravação vem
       // depois de ler o QR e apertar Gravar. Dizer isso na hora evita a
@@ -376,7 +381,7 @@ $("btnManual").onclick = () => {
   const code = extrairCodigo($("manualCode").value);
   if (!code) { $("toast").textContent = "Não reconheci um código no formato STAR-XXXXXX."; return; }
   $("manualCode").value = "";
-  gravacaoPendente = null;
+  cancelarGravacao();
   processar(code);
 };
 
@@ -445,50 +450,98 @@ function gravar(code, url, regravacao) {
     `<button class="btn sec min" onclick="voltarALer()">Cancelar</button>`);
 }
 
-// A gravação acontece DENTRO do evento de leitura — o padrão da documentação
-// do Chrome ("write a tag and ignore reads"). A 1ª versão chamava write()
-// solto e desligava a leitura; no Android do Ricardo o chip era LIDO e nunca
-// gravado (4º teste real, 24/09). Aqui: a leitura fica sempre ligada, o botão
-// só ARMA a gravação, e quando o chip encosta o evento de leitura dispara o
-// write() com o chip ali presente.
+// GRAVAÇÃO — duas tentativas combinadas, e um diário visível.
+// Histórico (24/09, testes reais no Android do Ricardo): write() solto com a
+// leitura desligada não gravou; write() só dentro do evento de leitura também
+// não. Chip de fábrica pode vir SEM formatação NDEF, e aí o Chrome não dispara
+// "reading" — dispara "readingerror", que as versões anteriores ignoravam.
+// Agora: o botão dispara um write() direto (com a leitura ligada, como manda
+// a documentação); se o chip for sentido — por "reading" OU "readingerror" —
+// e a gravação ainda não tiver saído, ela é refeita ali, com o chip presente.
+// Tudo o que acontece vai pro diário na tela, pra um print dizer a causa.
+function diario(msg) {
+  const el = $("diario");
+  if (!el) return;
+  const t = new Date().toLocaleTimeString("pt-BR");
+  const linhas = [`${t}  ${msg}`].concat(el.textContent ? el.textContent.split("\n") : []);
+  el.textContent = linhas.slice(0, 15).join("\n");
+}
+
+function cancelarGravacao() {
+  const g = gravacaoPendente;
+  gravacaoPendente = null;
+  if (g && g.abort) { try { g.abort.abort(); } catch {} }
+}
+
 function gravarAgora(code, url, regravacao) {
+  cancelarGravacao();
   fase = "gravando";
-  const pendente = { code, url, regravacao };
-  gravacaoPendente = pendente;
+  const g = { code, url, regravacao, emCurso: false, abort: null, tentativas: 0 };
+  gravacaoPendente = g;
   ligarLeituraNfc();
+  diario(`armado ${code}`);
   painel("azul", "Passo 3: encoste o cartão agora", code,
     "No meio das costas do celular, parado, até apitar.",
     `<button class="btn sec min" onclick="voltarALer()">Cancelar</button>`);
   setTimeout(() => {
-    if (gravacaoPendente !== pendente) return;
-    $("toast").textContent = "O celular ainda não sentiu o chip. Afaste uns 10 cm e encoste de novo, devagar, em outro ponto das costas (a antena varia por modelo).";
-  }, 5000);
+    if (gravacaoPendente !== g) return;
+    $("toast").textContent = "Ainda não gravou. Afaste uns 10 cm e encoste de novo, devagar, em outro ponto das costas (a antena varia por modelo).";
+  }, 6000);
+  tentarGravar(g, "botão");
 }
 
-async function executarGravacao(g) {
-  const { code, url, regravacao } = g;
-  $("toast").textContent = "Chip encostado — gravando, não mexa…";
+// Chamado quando o chip é sentido durante a gravação.
+function chipSentido(tipo, ev) {
+  const g = gravacaoPendente;
+  diario(`${tipo} serial=${(ev && ev.serialNumber) || "?"}` + (ev && ev.message ? ` registros=${ev.message.records.length}` : ""));
+  if (!g) return;
+  $("toast").textContent = "Chip sentido — gravando, não mexa…";
+  if (g.emCurso && g.abort) {
+    // O write() do botão ficou esperando mesmo com o chip ali: refaz agora.
+    diario("refazendo write com o chip presente");
+    try { g.abort.abort(); } catch {}
+    g.emCurso = false;
+  }
+  tentarGravar(g, tipo);
+}
+
+async function tentarGravar(g, origem) {
+  if (g.emCurso || gravacaoPendente !== g) return;
+  g.emCurso = true;
+  g.tentativas++;
+  const ctrl = new AbortController();
+  g.abort = ctrl;
+  const n = g.tentativas;
+  diario(`write #${n} (${origem})`);
   try {
-    await ndef.write({ records: [{ recordType: "url", data: url }] });
+    await ndef.write({ records: [{ recordType: "url", data: g.url }] }, { signal: ctrl.signal, overwrite: true });
   } catch (e) {
+    diario(`write #${n} falhou: ${e.name} ${e.message}`);
+    if (g.abort === ctrl) g.emCurso = false;
+    // AbortError = nós mesmos cancelamos (refazer ou Cancelar). Não é falha.
+    if (e.name === "AbortError" || gravacaoPendente !== g) return;
+    gravacaoPendente = null;
     fase = "resultado";
     som("erro");
-    registrar("amarelo", code, "chip falhou");
+    registrar("amarelo", g.code, "chip falhou");
     $("toast").textContent = "";
-    painel("amarelo", "O chip não gravou", code,
+    painel("amarelo", "O chip não gravou", g.code,
       `<b>${esc(e.name)}</b>: ${esc(e.message)}<br>O código NÃO foi carimbado.` + dicaDoErro(e),
-      `<button class="btn" onclick='gravarAgora(${JSON.stringify(code)}, ${JSON.stringify(url)}, ${regravacao})'>Tentar de novo</button><button class="btn sec" onclick="voltarALer()">Pular</button>`);
+      `<button class="btn" onclick='gravarAgora(${JSON.stringify(g.code)}, ${JSON.stringify(g.url)}, ${g.regravacao})'>Tentar de novo</button><button class="btn sec" onclick="voltarALer()">Pular</button>`);
     return;
   }
+  diario(`write #${n} OK`);
+  if (gravacaoPendente !== g) return;
+  gravacaoPendente = null;
   $("toast").textContent = "";
-  if (regravacao) {
+  if (g.regravacao) {
     fase = "resultado";
     som("ok");
-    registrar("verde", code, "regravado");
-    painel("verde", "Regravado", code, "O carimbo original foi mantido.", `<button class="btn" onclick="voltarALer(true)">Próximo cartão</button>`);
+    registrar("verde", g.code, "regravado");
+    painel("verde", "Regravado", g.code, "O carimbo original foi mantido.", `<button class="btn" onclick="voltarALer(true)">Próximo cartão</button>`);
     return;
   }
-  return carimbar(code, url);
+  return carimbar(g.code, g.url);
 }
 
 // Traduz os erros que o Chrome devolve pro que fazer a respeito.
