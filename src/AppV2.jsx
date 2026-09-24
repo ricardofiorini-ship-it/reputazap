@@ -687,6 +687,11 @@ function useIsMobile(bp = 768) {
 // Admin emails — devem casar com api/competitors.js ADMIN_EMAIL
 const ADMIN_EMAILS = ['ricardo.fiorini@gmail.com']
 const isAdminUser = (user) => !!user && ADMIN_EMAILS.includes((user.email || '').toLowerCase())
+// Quem tem o Menu Inteligente = quem assina o Pro (o Menu é o que o Pro vende).
+// Admin já chega aqui como 'pro' pelo getPlan. Uma regra só, usada pela
+// navegação e pela tela — decisão com dois lados aplicada em um só já custou
+// caro aqui (ver project_lancamento_pro).
+const temMenu = (plan) => plan === 'pro'
 
 // ── Medição do funil do convidado (anônimo) ──────────────────
 // Dispara o evento no GA4 E grava no nosso banco (/api/track), pra alimentar o
@@ -793,7 +798,10 @@ const TABS = [
   // escolhidas. Vem logo depois dele de propósito: configurar e medir são o
   // mesmo assunto, e separá-los em lugares distantes foi o que fez esta tela
   // viver num painel que o cliente não abria.
-  { id: 'resultados',   icon: 'trendup', label: 'Resultados', soLogado: true },
+  // `soMenu` (24/09): Resultados mede o MENU — quantos abriram, quais ações
+  // escolheram. Pra quem não assinou, a tela seria números que não se aplicam
+  // a ele. Some da navegação e o link direto volta pro painel.
+  { id: 'resultados',   icon: 'trendup', label: 'Resultados', soLogado: true, soMenu: true },
   { id: 'loja',         icon: 'bag', label: 'Loja',         pro: false }
 ]
 
@@ -986,7 +994,7 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout, guest = false 
     // { label:'Relatórios',  icon:'chart', tabId:'relatorios', pro: true  },
     // Resultados fica AQUI e não na barra de baixo: ela já tem cinco itens, que
     // é o teto antes de os rótulos virarem reticências num celular estreito.
-    { label:'Resultados',  icon:'chart', tabId:'resultados', soLogado: true },
+    { label:'Resultados',  icon:'chart', tabId:'resultados', soLogado: true, soMenu: true },
     { label:'Loja',        icon:'cart', tabId:'loja'                   },
     { label:'Configurações', icon:'settings', tabId:'config', hash:'negocio' },
     { label:'Minha conta', icon:'user', tabId:'config', hash:'conta' },
@@ -1048,7 +1056,7 @@ function MoreSheet({ open, onClose, onPick, plan, user, onLogout, guest = false 
 
         {/* Lista */}
         <div style={{ padding:'0 8px' }}>
-          {items.filter(it => !(guest && it.soLogado)).map((it, i) => {
+          {items.filter(it => !(guest && it.soLogado) && !(it.soMenu && !temMenu(plan))).map((it, i) => {
             const isLocked = false   // tudo free: sem selo PRO na lista
             // Item com link externo (ex: Central de ajuda → /ajuda em nova aba)
             const isExternal = !!it.external
@@ -1181,7 +1189,7 @@ function TopTabs({ active, onChange, plan, isMobile, guest }) {
             /* Hide webkit scrollbar */
             div[style*="overflowX: auto"]::-webkit-scrollbar{display:none}
           `}</style>
-        {TABS.filter(t => !(guest && (t.link || t.soLogado))).map(tab => {
+        {TABS.filter(t => !(guest && (t.link || t.soLogado)) && !(t.soMenu && !temMenu(plan))).map(tab => {
           const isActive = active === tab.id
           const isLocked = false   // tudo free: sem selo PRO na navegação
           return (
@@ -3025,7 +3033,7 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
             outro lugar. */}
         {!isMobile && onTabChange ? (
           <nav style={{ display:'flex', alignItems:'center', gap: 2, minWidth: 0, overflowX:'auto', scrollbarWidth:'none' }}>
-            {TABS.filter(t => !(guest && (t.link || t.soLogado))).map(tab => {
+            {TABS.filter(t => !(guest && (t.link || t.soLogado)) && !(t.soMenu && !temMenu(plan))).map(tab => {
               const ativa = activeTab === tab.id
               return (
                 <a key={tab.id} href={tab.link || '#'}
@@ -8149,6 +8157,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   // Admin (email hardcoded) tbm vê tudo como Pro automaticamente.
   const plan = getPlan(demoMode ? null : real.biz, demoMode, user)
 
+  // Link direto (?tab=resultados, aba lembrada) de quem não tem o Menu: volta
+  // pro painel em vez de abrir uma tela em branco. Espera o negócio carregar —
+  // antes disso o plano ainda não é o de verdade.
+  React.useEffect(() => {
+    if (tab === 'resultados' && !real.loading && !temMenu(plan)) setTab('painel')
+  }, [tab, plan, real.loading])
+
   // Compõe dados: real sobrescreve mock; mock preenche lacunas
   const d = buildData(real, user, demoMode)
 
@@ -8397,7 +8412,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
 
       {/* Aba: RESULTADOS — também vinda do V3, importada. Ela busca os próprios
           dados (só recebe `preview`), então não precisa de nada daqui. */}
-      {tab === 'resultados' && !isGuest && (
+      {tab === 'resultados' && !isGuest && temMenu(plan) && (
         <div className="v3 v3-solo">
           <main className="v3-main"><ResultadosMenu/></main>
         </div>
