@@ -193,15 +193,23 @@ function registrar(cor, code, msg) {
   $("nRuim").textContent = sessao.filter((s) => s.cor === "vermelho").length;
 }
 
-function voltarALer() {
+// `manterTrava` só no avanço automático depois do VERDE: ali o cartão recém
+// gravado ainda está na frente da câmera e não pode ser relido como
+// "repetido". Quando é VOCÊ que aperta um botão (Cancelar, Próximo, Tentar de
+// novo), a trava cai — senão, repetir o mesmo cartão depois de um erro deixava
+// a câmera cega pra ele (3º teste real, 24/09: "a câmera não lê").
+function voltarALer(manterTrava) {
   if (abortGravacao) { try { abortGravacao.abort(); } catch {} abortGravacao = null; }
   ligarLeituraNfc();
   $("toast").textContent = "";
   fase = "lendo";
   // O cartão anterior pode ainda estar na frente da câmera quando ela voltar:
   // a trava só se solta depois que o código dele SAIR de vista.
-  bloqueioVistoEm = Date.now();
-  ligarCamera().catch(() => {});
+  if (manterTrava === true) bloqueioVistoEm = Date.now();
+  else bloqueio = null;
+  ligarCamera().catch((e) => {
+    $("toast").textContent = "A câmera não voltou (" + (e.name || "") + " " + (e.message || "") + "). Recarregue a página ou digite o código abaixo.";
+  });
   painel("lendo", "Aponte a câmera pro QR do próximo cartão", "", detector ? "" : "A câmera não lê QR neste aparelho — digite o código abaixo.");
 }
 
@@ -300,7 +308,10 @@ async function loopCamera() {
         const code = achados.map((a) => extrairCodigo(a.rawValue)).find(Boolean) || null;
         const agora = Date.now();
         if (bloqueio) {
-          if (code === bloqueio) bloqueioVistoEm = agora;
+          if (code === bloqueio) {
+            bloqueioVistoEm = agora;
+            if (fase === "lendo") $("toast").textContent = "Esse é o cartão que você acabou de gravar — troque pelo próximo.";
+          }
           else if (agora - bloqueioVistoEm > 1200) bloqueio = null;
         }
         if (code && fase === "lendo" && code !== bloqueio) processar(code);
@@ -335,7 +346,7 @@ async function processar(code) {
     return;
   }
 
-  const proximo = `<button class="btn" onclick="voltarALer()">Próximo cartão</button>`;
+  const proximo = `<button class="btn" onclick="voltarALer(true)">Próximo cartão</button>`;
   const regravar = r.url
     ? `<button class="btn sec min" onclick='gravar(${JSON.stringify(code)}, ${JSON.stringify(r.url)}, true)'>É este mesmo cartão — regravar</button>`
     : "";
@@ -417,7 +428,7 @@ async function gravarAgora(code, url, regravacao) {
     fase = "resultado";
     som("ok");
     registrar("verde", code, "regravado");
-    painel("verde", "Regravado", code, "O carimbo original foi mantido.", `<button class="btn" onclick="voltarALer()">Próximo cartão</button>`);
+    painel("verde", "Regravado", code, "O carimbo original foi mantido.", `<button class="btn" onclick="voltarALer(true)">Próximo cartão</button>`);
     return;
   }
   return carimbar(code, url);
@@ -440,13 +451,13 @@ async function carimbar(code, url) {
       som("erro");
       registrar("vermelho", code, "repetido");
       painel("vermelho", "CÓDIGO REPETIDO — separe este cartão", code,
-        "Outro cartão com este código foi carimbado no meio da gravação.", `<button class="btn" onclick="voltarALer()">Próximo cartão</button>`);
+        "Outro cartão com este código foi carimbado no meio da gravação.", `<button class="btn" onclick="voltarALer(true)">Próximo cartão</button>`);
       return;
     }
     som("ok");
     registrar("verde", code, "gravado");
     painel("verde", "Gravado ✓", code, "Pode ir pro envelope. Aponte pro próximo QR.");
-    setTimeout(() => { if (fase === "resultado") voltarALer(); }, 1400);
+    setTimeout(() => { if (fase === "resultado") voltarALer(true); }, 1400);
   } catch (e) {
     // Chip gravado sem carimbo = exatamente o buraco por onde o duplicado
     // passa calado. Não segue sozinho: exige carimbar de novo.
