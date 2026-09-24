@@ -296,6 +296,10 @@
       "destination": "/admin-estoque.html"
     },
     {
+      "source": "/admin/gravar",
+      "destination": "/admin-gravar.html"
+    },
+    {
       "source": "/admin/clientes",
       "destination": "/admin-clientes.html"
     },

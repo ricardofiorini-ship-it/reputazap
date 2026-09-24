@@ -1,6 +1,6 @@
 // ============================================================
 // StarTouch — API de placas (dispatcher por ?action=)
-// Actions admin: create-batch | list-batches | list-stock
+// Actions admin: create-batch | list-batches | list-stock | gravar-conferir | gravar-carimbar
 // Actions cliente: activate (ETAPA 7) | my-businesses | my-plates | rename-plate | unlink-plate
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
@@ -806,6 +806,97 @@ async function handleRenamePlate(req, res, user) {
   return res.json({ ok: true, plate: updated });
 }
 
+// ── ADMIN: gravação do chip com carimbo (/admin/gravar) ─────
+// Existe por causa do STAR-CXHFCP (23/09/2026): a gráfica imprimiu o mesmo
+// código duas vezes e ninguém percebeu até o cliente reclamar. As duas cópias
+// passam pela mão do admin no MESMO lote, antes de qualquer cliente tocar —
+// então a pergunta que pega o duplicado não é "já foi lido?", é "já foi
+// GRAVADO?". Cada código recebe o carimbo uma vez; se aparecer de novo, a tela
+// fica vermelha antes de o cartão ir pro envelope.
+//
+// Dois passos de propósito: `gravar-conferir` ANTES de gravar (diz se pode e
+// devolve a URL) e `gravar-carimbar` DEPOIS que o chip confirmou a gravação.
+// Carimbar antes deixaria um código "gravado" cujo chip falhou.
+const COLUNAS_GRAVACAO_FALTANDO =
+  "O banco ainda não tem as colunas de gravação. Rode supabase/schema-gravacao-nfc.sql no Supabase — sem elas a gravação não deixa rastro e o duplicado passa calado.";
+
+function colunaFaltando(err) {
+  return err && (err.code === "42703" || /nfc_gravado_em|nfc_repeticoes/.test(err.message || ""));
+}
+
+// A URL do chip vem da MESMA ficha que gera o CSV (tapBaseForProduct), nunca
+// montada na tela: chip gravado errado não tem conserto (incidente 08/06).
+function urlDoChip(plate) {
+  let base;
+  try {
+    base = tapBaseForProduct(plate.product_type);
+  } catch {
+    // Tipo antigo sem ficha (adesivo_nfc, descontinuado): STAR- é sempre avaliação.
+    if (!plate.code.startsWith("STAR-")) return null;
+    base = tapBaseForProduct("cartao_nfc");
+  }
+  return `${base.rotaBase}${plate.code}?utm_source=${base.utmSource}&utm_medium=nfc`;
+}
+
+async function handleGravarConferir(req, res, user) {
+  if (!isAdmin(user)) return res.status(403).json({ error: "Acesso restrito ao admin" });
+  const code = String(req.body?.code || req.query.code || "").trim().toUpperCase();
+  if (!code) return res.status(400).json({ error: "code obrigatório" });
+
+  // linha-ok: gravação do admin, todas as linhas (StarTouch e Trybo)
+  const { data: plate, error } = await supabase
+    .from("plates")
+    .select("id, code, product_type, status, linha, nfc_gravado_em, nfc_repeticoes")
+    .eq("code", code)
+    .maybeSingle();
+  if (colunaFaltando(error)) return res.status(500).json({ error: COLUNAS_GRAVACAO_FALTANDO });
+  if (error) return res.status(500).json({ error: error.message });
+  if (!plate) return res.json({ ok: true, veredito: "nao_existe", code });
+
+  const url = urlDoChip(plate);
+  if (!url) return res.json({ ok: true, veredito: "sem_url", code, product_type: plate.product_type });
+
+  const base = { ok: true, code: plate.code, product_type: plate.product_type, status: plate.status, url };
+
+  if (plate.nfc_gravado_em) {
+    // Registra a reaparição: é a prova de que houve cópia, mesmo se a tela
+    // for fechada sem ninguém anotar nada.
+    const repeticoes = (plate.nfc_repeticoes || 0) + 1;
+    // linha-ok: um dispositivo só, pelo id
+    const { error: updErr } = await supabase
+      .from("plates")
+      .update({ nfc_repeticoes: repeticoes, nfc_ultima_repeticao: new Date().toISOString() })
+      .eq("id", plate.id);
+    if (updErr) console.warn("[plates.gravar] não registrou a repetição", { code, err: updErr.message });
+    return res.json({ ...base, veredito: "ja_gravado", gravado_em: plate.nfc_gravado_em, repeticoes });
+  }
+  if (plate.status === "active") return res.json({ ...base, veredito: "ja_ativado" });
+  if (plate.status === "disabled") return res.json({ ...base, veredito: "desabilitado" });
+  return res.json({ ...base, veredito: "pode_gravar" });
+}
+
+async function handleGravarCarimbar(req, res, user) {
+  if (!isAdmin(user)) return res.status(403).json({ error: "Acesso restrito ao admin" });
+  if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
+  const code = String(req.body?.code || "").trim().toUpperCase();
+  if (!code) return res.status(400).json({ error: "code obrigatório" });
+
+  // Condicional (só se ainda sem carimbo): duas cópias gravadas em dois
+  // celulares ao mesmo tempo não conseguem as duas o carimbo "primeira vez".
+  // linha-ok: gravação do admin, todas as linhas
+  const agora = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("plates")
+    .update({ nfc_gravado_em: agora })
+    .eq("code", code)
+    .is("nfc_gravado_em", null)
+    .select("code, nfc_gravado_em");
+  if (colunaFaltando(error)) return res.status(500).json({ error: COLUNAS_GRAVACAO_FALTANDO });
+  if (error) return res.status(500).json({ error: error.message });
+  if (!data || !data.length) return res.json({ ok: true, carimbado: false, motivo: "ja_carimbado" });
+  return res.json({ ok: true, carimbado: true, gravado_em: agora });
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -828,8 +919,10 @@ export default async function handler(req, res) {
       case "taps-history":   return await handleTapsHistory(req, res, auth.user);
       case "reset-counter":  return await handleResetCounter(req, res, auth.user);
       case "unlink-plate":   return await handleUnlinkPlate(req, res, auth.user);
+      case "gravar-conferir": return await handleGravarConferir(req, res, auth.user);
+      case "gravar-carimbar": return await handleGravarCarimbar(req, res, auth.user);
       default:
-        return res.status(400).json({ error: "Unknown action. Use ?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates|rename-plate|taps-history|reset-counter|unlink-plate" });
+        return res.status(400).json({ error: "Unknown action. Use ?action=create-batch|list-batches|list-stock|activate|my-businesses|my-plates|rename-plate|taps-history|reset-counter|unlink-plate|gravar-conferir|gravar-carimbar" });
     }
   } catch (err) {
     console.error("[plates] erro não tratado:", err);

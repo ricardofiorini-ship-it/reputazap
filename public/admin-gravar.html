@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin · Gravar chips — StarTouch</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/startouch-vars.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<!--
+  GRAVAÇÃO DE CHIP COM CARIMBO (24/09/2026)
+
+  Por que existe: o STAR-CXHFCP saiu da gráfica impresso em DUAS vias
+  (23/09) e o cliente recebeu um cartão que abria o negócio de outra pessoa.
+  As duas cópias passam por esta tela no mesmo lote — então quem pega o
+  duplicado é o carimbo de "já gravado", não a leitura do cliente.
+
+  Fluxo por cartão: câmera lê o QR impresso → servidor diz se o código pode
+  ser gravado e devolve a URL (a mesma ficha que gera o CSV) → o próprio
+  celular grava o chip → só DEPOIS do chip confirmar, o código é carimbado.
+
+  Precisa de Chrome no Android (Web NFC). iPhone não grava NFC pelo navegador.
+-->
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:#F8F9FA;color:#202124;min-height:100vh;padding:16px 16px 48px;}
+  .wrap{max-width:560px;margin:0 auto;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+  .topbar img{height:30px;width:auto;}
+  .topbar nav{display:flex;gap:4px;flex-wrap:wrap;}
+  .topbar nav a{font-size:13px;font-weight:600;color:#5F6368;text-decoration:none;padding:8px 10px;border-radius:8px;}
+  .topbar nav a.active{background:#1A73E8;color:#fff;}
+  h1{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;}
+  .sub{font-size:13.5px;color:#5F6368;margin-bottom:16px;line-height:1.5;}
+  .gate{background:#FEF7E0;border:1px solid #FDD663;border-radius:10px;padding:12px 14px;font-size:13.5px;color:#7A5900;margin-bottom:16px;font-weight:500;line-height:1.5;display:none;}
+  .gate a{color:#1A73E8;font-weight:700;}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:16px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;background:#1A73E8;color:#fff;}
+  .btn.sec{background:#fff;color:#1A73E8;border:1.5px solid #DADCE0;}
+  .btn.min{padding:10px;font-size:13.5px;font-weight:600;}
+  .btn + .btn{margin-top:8px;}
+  .cam{position:relative;width:100%;aspect-ratio:4/3;background:#202124;border-radius:14px;overflow:hidden;margin-bottom:12px;display:none;}
+  .cam video{width:100%;height:100%;object-fit:cover;}
+  .cam .mira{position:absolute;inset:18% 22%;border:3px solid rgba(255,255,255,.85);border-radius:12px;}
+  .estado{border-radius:14px;padding:20px 18px;margin-bottom:12px;text-align:center;display:none;}
+  .estado .titulo{font-size:20px;font-weight:800;margin-bottom:6px;letter-spacing:-0.01em;}
+  .estado .code{font-family:monospace;font-size:22px;font-weight:700;margin-bottom:6px;}
+  .estado .det{font-size:13.5px;line-height:1.5;}
+  .estado .acoes{margin-top:14px;}
+  .e-lendo{background:#fff;border:1.5px solid #DADCE0;}
+  .e-azul{background:#E8F0FE;border:2px solid #1A73E8;color:#174EA6;}
+  .e-verde{background:#E6F4EA;border:2px solid #34A853;color:#137333;}
+  .e-vermelho{background:#FCE8E6;border:3px solid #D93025;color:#A50E0E;}
+  .e-amarelo{background:#FEF7E0;border:2px solid #F9AB00;color:#7A5900;}
+  .manual{display:flex;gap:8px;margin-bottom:16px;}
+  .manual input{flex:1;min-width:0;border:1.5px solid #DADCE0;border-radius:10px;padding:12px;font-size:15px;font-family:monospace;text-transform:uppercase;outline:none;}
+  .manual button{border:0;border-radius:10px;padding:0 16px;font-weight:700;font-family:inherit;background:#E8F0FE;color:#1A73E8;font-size:14px;}
+  .placar{display:flex;gap:8px;margin-bottom:10px;}
+  .placar div{flex:1;background:#fff;border:1px solid #DADCE0;border-radius:10px;padding:10px;text-align:center;font-size:12px;color:#5F6368;}
+  .placar b{display:block;font-size:22px;color:#202124;font-variant-numeric:tabular-nums;}
+  .lista{background:#fff;border:1px solid #DADCE0;border-radius:12px;overflow:hidden;}
+  .lista .linha{display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid #F1F3F4;font-size:13px;}
+  .lista .linha:first-child{border-top:0;}
+  .lista .dot{width:10px;height:10px;border-radius:50%;flex:none;}
+  .lista .c{font-family:monospace;font-weight:700;}
+  .lista .m{color:#5F6368;margin-left:auto;text-align:right;}
+  .vazio{padding:14px;color:#5F6368;font-size:13px;text-align:center;}
+  .toast{font-size:12.5px;color:#5F6368;margin:-4px 0 12px;min-height:16px;word-break:break-all;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <img src="/startouch-logo-dark.png" alt="StarTouch"/>
+    <nav>
+      <a href="/admin/producao">Produção</a>
+      <a href="/admin/estoque">Estoque</a>
+      <a href="/admin/gravar" class="active">Gravar</a>
+    </nav>
+  </div>
+
+  <h1>Gravar chips</h1>
+  <p class="sub">Aponte a câmera pro QR impresso e encoste o cartão atrás do celular. A tela grava o chip e avisa em <b style="color:#D93025">vermelho</b> se o código já passou por aqui — sinal de cartão impresso em dobro.</p>
+
+  <div class="gate" id="gate"></div>
+
+  <div id="inicio">
+    <button class="btn" id="btnComecar">Começar a gravar</button>
+  </div>
+
+  <div id="trabalho" style="display:none">
+    <div class="cam" id="cam"><video id="video" playsinline muted></video><div class="mira"></div></div>
+    <div class="toast" id="toast"></div>
+    <div class="estado" id="estado"></div>
+    <div class="manual">
+      <input id="manualCode" placeholder="Ou digite o código (STAR-…)" autocomplete="off" autocapitalize="characters"/>
+      <button id="btnManual">Conferir</button>
+    </div>
+    <div class="placar">
+      <div><b id="nOk">0</b>gravados</div>
+      <div><b id="nRuim">0</b>separados</div>
+    </div>
+    <div class="lista" id="lista"><div class="vazio">Nenhum cartão nesta sessão ainda.</div></div>
+  </div>
+</div>
+
+<script>
+const token = (() => { try { return localStorage.getItem("rz_token"); } catch { return null; } })();
+const $ = (id) => document.getElementById(id);
+
+function mostrarGate(html) { $("gate").innerHTML = html; $("gate").style.display = "block"; }
+
+if (!token) {
+  mostrarGate('Você precisa estar logado como admin. <a href="/app?login=1">Entrar →</a>');
+  $("btnComecar").disabled = true;
+}
+if (!("NDEFReader" in window)) {
+  mostrarGate("Este navegador não grava NFC. Abra esta página no <b>Chrome do Android</b>, com o NFC do celular ligado. (iPhone não grava NFC pelo navegador.)");
+  $("btnComecar").disabled = true;
+}
+
+// ── Estado ────────────────────────────────────────────────
+// fase: parado | lendo | conferindo | gravando | resultado
+let fase = "parado";
+let ndef = null;
+let detector = null;
+let audio = null;
+let abortGravacao = null;
+// Depois de cada cartão, o MESMO QR ainda está na frente da câmera. Sem esta
+// trava ele seria lido de novo na hora e acusaria "repetido" o cartão que
+// acabou de ser gravado. Só vale ler outra vez depois que o código SAI da
+// câmera — assim a cópia de verdade (outro cartão, mesmo código) é pega.
+let bloqueio = null, bloqueioVistoEm = 0;
+const sessao = [];
+
+function api(action, body) {
+  return fetch(`/api/plates?action=${action}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+    body: JSON.stringify(body)
+  }).then(async (r) => {
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401 || r.status === 403) throw new Error("Sessão de admin expirada. Entre de novo em /app?login=1.");
+    if (!r.ok) throw new Error(j.error || `Erro ${r.status}`);
+    return j;
+  });
+}
+
+function extrairCodigo(texto) {
+  const m = String(texto || "").toUpperCase().match(/\b([A-Z]{2,5}-[A-Z0-9]{5,6})(?![A-Z0-9])/);
+  return m ? m[1] : null;
+}
+
+function fmtData(iso) {
+  try { return new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); }
+  catch { return iso; }
+}
+
+function som(tipo) {
+  try { if (navigator.vibrate) navigator.vibrate(tipo === "ok" ? 80 : [250, 100, 250, 100, 400]); } catch {}
+  if (!audio) return;
+  try {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = tipo === "ok" ? "sine" : "square";
+    o.frequency.value = tipo === "ok" ? 1320 : 220;
+    g.gain.value = 0.15;
+    o.connect(g); g.connect(audio.destination);
+    o.start(); o.stop(audio.currentTime + (tipo === "ok" ? 0.12 : 0.6));
+  } catch {}
+}
+
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function painel(cor, titulo, code, det, acoes) {
+  const el = $("estado");
+  el.className = "estado e-" + cor;
+  el.innerHTML =
+    `<div class="titulo">${titulo}</div>` +
+    (code ? `<div class="code">${esc(code)}</div>` : "") +
+    (det ? `<div class="det">${det}</div>` : "") +
+    (acoes ? `<div class="acoes">${acoes}</div>` : "");
+  el.style.display = "block";
+}
+
+function registrar(cor, code, msg) {
+  sessao.unshift({ cor, code, msg, t: new Date() });
+  const cores = { verde: "#34A853", vermelho: "#D93025", amarelo: "#F9AB00" };
+  $("lista").innerHTML = sessao.slice(0, 30).map((s) =>
+    `<div class="linha"><span class="dot" style="background:${cores[s.cor]}"></span>` +
+    `<span class="c">${esc(s.code)}</span><span class="m">${esc(s.msg)}<br>${s.t.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span></div>`
+  ).join("");
+  $("nOk").textContent = sessao.filter((s) => s.cor === "verde").length;
+  $("nRuim").textContent = sessao.filter((s) => s.cor === "vermelho").length;
+}
+
+function voltarALer() {
+  if (abortGravacao) { try { abortGravacao.abort(); } catch {} abortGravacao = null; }
+  fase = "lendo";
+  painel("lendo", "Aponte a câmera pro QR do próximo cartão", "", detector ? "" : "A câmera não lê QR neste aparelho — digite o código abaixo.");
+}
+
+// ── Começar (precisa de um toque: permissão de câmera e de NFC) ──
+$("btnComecar").onclick = async () => {
+  $("btnComecar").disabled = true;
+  try {
+    audio = new (window.AudioContext || window.webkitAudioContext)();
+  } catch {}
+  try {
+    ndef = new NDEFReader();
+    // scan() aqui só pra pedir a permissão de NFC com o toque do usuário;
+    // gravações seguintes não pedem de novo. De brinde, encostar um chip com
+    // a tela parada mostra o que ele já tem gravado.
+    await ndef.scan();
+    ndef.onreading = (ev) => {
+      if (fase !== "lendo") return;
+      const rec = ev.message.records.find((r) => r.recordType === "url" || r.recordType === "text");
+      let conteudo = "(chip vazio)";
+      if (rec) { try { conteudo = new TextDecoder().decode(rec.data); } catch {} }
+      $("toast").textContent = "Chip encostado agora contém: " + conteudo;
+    };
+  } catch (e) {
+    mostrarGate("Não consegui ligar o NFC: " + esc(e.message) + ". Confira se o NFC do celular está ligado e recarregue a página.");
+    $("btnComecar").disabled = false;
+    return;
+  }
+
+  $("inicio").style.display = "none";
+  $("trabalho").style.display = "block";
+  try { if (navigator.wakeLock) await navigator.wakeLock.request("screen"); } catch {}
+
+  if ("BarcodeDetector" in window) {
+    try {
+      detector = new BarcodeDetector({ formats: ["qr_code"] });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+      $("video").srcObject = stream;
+      await $("video").play();
+      $("cam").style.display = "block";
+      loopCamera();
+    } catch (e) {
+      detector = null;
+      $("toast").textContent = "Câmera indisponível (" + e.message + "). Use o campo de código.";
+    }
+  }
+  voltarALer();
+};
+
+async function loopCamera() {
+  const video = $("video");
+  while (detector) {
+    try {
+      if (video.readyState >= 2) {
+        const achados = await detector.detect(video);
+        const code = achados.map((a) => extrairCodigo(a.rawValue)).find(Boolean) || null;
+        const agora = Date.now();
+        if (bloqueio) {
+          if (code === bloqueio) bloqueioVistoEm = agora;
+          else if (agora - bloqueioVistoEm > 1200) bloqueio = null;
+        }
+        if (code && fase === "lendo" && code !== bloqueio) processar(code);
+      }
+    } catch {}
+    await new Promise((r) => setTimeout(r, 200));
+  }
+}
+
+$("btnManual").onclick = () => {
+  const code = extrairCodigo($("manualCode").value);
+  if (!code) { $("toast").textContent = "Não reconheci um código no formato STAR-XXXXXX."; return; }
+  $("manualCode").value = "";
+  if (abortGravacao) { try { abortGravacao.abort(); } catch {} abortGravacao = null; }
+  processar(code);
+};
+
+// ── Um cartão ─────────────────────────────────────────────
+async function processar(code) {
+  fase = "conferindo";
+  bloqueio = code; bloqueioVistoEm = Date.now();
+  $("toast").textContent = "";
+  painel("azul", "Conferindo…", code);
+
+  let r;
+  try { r = await api("gravar-conferir", { code }); }
+  catch (e) {
+    fase = "resultado";
+    som("erro");
+    painel("amarelo", "Não consegui conferir", code, esc(e.message), `<button class="btn" onclick="voltarALer()">Tentar de novo</button>`);
+    return;
+  }
+
+  const proximo = `<button class="btn" onclick="voltarALer()">Próximo cartão</button>`;
+  const regravar = r.url
+    ? `<button class="btn sec min" onclick='gravar(${JSON.stringify(code)}, ${JSON.stringify(r.url)}, true)'>É este mesmo cartão — regravar</button>`
+    : "";
+
+  if (r.veredito === "pode_gravar") return gravar(code, r.url, false);
+
+  fase = "resultado";
+  som("erro");
+  if (r.veredito === "ja_gravado") {
+    registrar("vermelho", code, "repetido");
+    painel("vermelho", "CÓDIGO REPETIDO — separe este cartão", code,
+      `Já foi gravado em <b>${fmtData(r.gravado_em)}</b>. Esta é a ${r.repeticoes + 1}ª vez que este código aparece.<br>Se for o MESMO cartão (ex.: gravação falhou), use regravar.`,
+      proximo + regravar);
+  } else if (r.veredito === "ja_ativado") {
+    registrar("vermelho", code, "já ativado");
+    painel("vermelho", "JÁ ATIVADO POR UM CLIENTE — separe", code,
+      "Este código está em uso num negócio. Um cartão novo com ele é cópia.",
+      proximo + regravar);
+  } else if (r.veredito === "nao_existe") {
+    registrar("vermelho", code, "não existe");
+    painel("vermelho", "Código não existe no sistema", code, "Não grave. Confira se o lote foi criado em /admin/producao.", proximo);
+  } else if (r.veredito === "desabilitado") {
+    registrar("vermelho", code, "desabilitado");
+    painel("vermelho", "Código desabilitado", code, "Não grave este cartão.", proximo);
+  } else {
+    registrar("vermelho", code, "sem URL");
+    painel("vermelho", "Sem URL pra este produto", code, "O servidor não sabe o destino deste tipo (" + esc(r.product_type) + "). Não grave — chip gravado errado não tem conserto.", proximo);
+  }
+}
+
+async function gravar(code, url, regravacao) {
+  fase = "gravando";
+  abortGravacao = new AbortController();
+  painel("azul", "Encoste o cartão atrás do celular", code,
+    `Vai gravar:<br><span style="font-size:12px;word-break:break-all">${esc(url)}</span>`,
+    `<button class="btn sec min" onclick="voltarALer()">Cancelar</button>`);
+  try {
+    await ndef.write({ records: [{ recordType: "url", data: url }] }, { signal: abortGravacao.signal });
+  } catch (e) {
+    if (e.name === "AbortError") return;
+    fase = "resultado";
+    som("erro");
+    registrar("amarelo", code, "chip falhou");
+    painel("amarelo", "O chip não gravou", code, esc(e.message) + "<br>O código NÃO foi carimbado.",
+      `<button class="btn" onclick='gravar(${JSON.stringify(code)}, ${JSON.stringify(url)}, ${regravacao})'>Tentar de novo</button><button class="btn sec" onclick="voltarALer()">Pular</button>`);
+    return;
+  }
+  abortGravacao = null;
+  if (regravacao) {
+    fase = "resultado";
+    som("ok");
+    registrar("verde", code, "regravado");
+    painel("verde", "Regravado", code, "O carimbo original foi mantido.", `<button class="btn" onclick="voltarALer()">Próximo cartão</button>`);
+    return;
+  }
+  return carimbar(code, url);
+}
+
+async function carimbar(code, url) {
+  fase = "resultado";
+  try {
+    const c = await api("gravar-carimbar", { code });
+    if (!c.carimbado) {
+      som("erro");
+      registrar("vermelho", code, "repetido");
+      painel("vermelho", "CÓDIGO REPETIDO — separe este cartão", code,
+        "Outro cartão com este código foi carimbado no meio da gravação.", `<button class="btn" onclick="voltarALer()">Próximo cartão</button>`);
+      return;
+    }
+    som("ok");
+    registrar("verde", code, "gravado");
+    painel("verde", "Gravado ✓", code, "Pode ir pro envelope. Aponte pro próximo QR.");
+    setTimeout(() => { if (fase === "resultado") voltarALer(); }, 1400);
+  } catch (e) {
+    // Chip gravado sem carimbo = exatamente o buraco por onde o duplicado
+    // passa calado. Não segue sozinho: exige carimbar de novo.
+    som("erro");
+    registrar("amarelo", code, "sem carimbo");
+    painel("amarelo", "Chip gravado, mas NÃO carimbado", code, esc(e.message),
+      `<button class="btn" onclick='carimbar(${JSON.stringify(code)}, ${JSON.stringify(url)})'>Carimbar de novo</button>`);
+  }
+}
+</script>
+</body>
+</html>
