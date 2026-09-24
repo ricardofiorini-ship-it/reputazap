@@ -104,6 +104,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 const token = (() => { try { return localStorage.getItem("rz_token"); } catch { return null; } })();
 const $ = (id) => document.getElementById(id);
@@ -211,7 +212,9 @@ function voltarALer(manterTrava) {
   ligarCamera().catch((e) => {
     $("toast").textContent = "A câmera não voltou (" + (e.name || "") + " " + (e.message || "") + "). Recarregue a página ou digite o código abaixo.";
   });
-  painel("lendo", "Aponte a câmera pro QR do próximo cartão", "", detector ? "" : "A câmera não lê QR neste aparelho — digite o código abaixo.");
+  painel("lendo", "Passo 1: mostre o QR do cartão pra câmera", "", detector
+    ? "Segure a uns 15 cm, com o QR inteiro dentro do quadrado. <b>Não encoste o cartão ainda.</b>"
+    : "A câmera não lê QR neste aparelho — digite o código abaixo.");
 }
 
 // Leitura de fundo: com a tela parada, encostar um chip mostra o que ele já
@@ -249,10 +252,13 @@ $("btnComecar").onclick = async () => {
       }
       if (fase === "pronto") { $("toast").textContent = "O celular sentiu o chip — agora aperte Gravar e encoste de novo."; return; }
       if (fase !== "lendo") return;
+      // Não é aqui que se grava: nesta tela o chip só é LIDO. A gravação vem
+      // depois de ler o QR e apertar Gravar. Dizer isso na hora evita a
+      // leitura de que "o app lê em vez de gravar" (5º teste real, 24/09).
       const rec = ev.message.records.find((r) => r.recordType === "url" || r.recordType === "text");
       let conteudo = "(chip vazio)";
       if (rec) { try { conteudo = new TextDecoder().decode(rec.data); } catch {} }
-      $("toast").textContent = "✓ NFC funcionando — o chip encostado contém: " + conteudo;
+      $("toast").innerHTML = "<b>Ainda não é hora de encostar.</b> Primeiro mostre o <b>QR</b> do cartão pra câmera (ou digite o código). Depois aperte <b>Gravar</b> e aí sim encoste.<br><span style='opacity:.7'>O chip encostado tem hoje: " + esc(conteudo) + "</span>";
     };
     await ligarLeituraNfc(true);
   } catch (e) {
@@ -265,9 +271,9 @@ $("btnComecar").onclick = async () => {
   $("trabalho").style.display = "block";
   try { if (navigator.wakeLock) await navigator.wakeLock.request("screen"); } catch {}
 
-  if ("BarcodeDetector" in window) {
+  detector = await criarLeitorQr();
+  if (detector) {
     try {
-      detector = new BarcodeDetector({ formats: ["qr_code"] });
       await ligarCamera();
     } catch (e) {
       detector = null;
@@ -282,11 +288,51 @@ $("btnComecar").onclick = async () => {
 // câmera aberta o celular não gravava; câmera e NFC disputando o aparelho é
 // hipótese barata de eliminar, e de quebra economiza bateria no lote.
 let stream = null, camAtiva = false;
+
+// Leitor de QR com DOIS motores: o nativo do Chrome (BarcodeDetector), quando
+// existe, e o jsQR, que roda em qualquer celular. No 5º teste real (24/09) a
+// câmera abria e não lia o QR — o nativo depende do Google Play Services e
+// falha calado em alguns aparelhos. O jsQR confere quadro a quadro na imagem.
+async function criarLeitorQr() {
+  let nativo = null;
+  if ("BarcodeDetector" in window) {
+    try {
+      const fmts = await BarcodeDetector.getSupportedFormats();
+      if (fmts.includes("qr_code")) nativo = new BarcodeDetector({ formats: ["qr_code"] });
+    } catch {}
+  }
+  if (!nativo && !window.jsQR) return null;
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  return {
+    async detect(video) {
+      if (nativo) {
+        try {
+          const r = await nativo.detect(video);
+          if (r.length) return r.map((x) => x.rawValue);
+        } catch {}
+      }
+      if (window.jsQR && video.videoWidth) {
+        const fator = Math.min(1, 900 / Math.max(video.videoWidth, video.videoHeight));
+        const w = Math.round(video.videoWidth * fator), h = Math.round(video.videoHeight * fator);
+        canvas.width = w; canvas.height = h;
+        ctx.drawImage(video, 0, 0, w, h);
+        const r = window.jsQR(ctx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: "attemptBoth" });
+        if (r && r.data) return [r.data];
+      }
+      return [];
+    }
+  };
+}
 async function ligarCamera() {
   if (!detector || camAtiva) return;
   camAtiva = true;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false
+    });
+    // Foco contínuo: o QR do cartão é pequeno e fica perto da lente.
+    try { await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ focusMode: "continuous" }] }); } catch {}
     $("video").srcObject = stream;
     await $("video").play();
     $("cam").style.display = "block";
@@ -309,7 +355,8 @@ async function loopCamera() {
     try {
       if (video.readyState >= 2) {
         const achados = await detector.detect(video);
-        const code = achados.map((a) => extrairCodigo(a.rawValue)).find(Boolean) || null;
+        const code = achados.map((t) => extrairCodigo(t)).find(Boolean) || null;
+        if (!code && achados.length && fase === "lendo") $("toast").textContent = "Li um QR, mas não é de cartão StarTouch: " + achados[0];
         const agora = Date.now();
         if (bloqueio) {
           if (code === bloqueio) {
@@ -391,7 +438,7 @@ async function processar(code) {
 function gravar(code, url, regravacao) {
   fase = "pronto";
   $("toast").textContent = "";
-  painel("azul", regravacao ? "Pronto pra regravar" : "Código livre — pronto pra gravar", code,
+  painel("azul", regravacao ? "Passo 2: pronto pra regravar" : "Passo 2: código livre — aperte Gravar", code,
     `Tire o cartão de perto do celular, aperte <b>Gravar</b> e só então encoste o cartão no meio das costas do celular.<br>` +
     `<span style="font-size:12px;word-break:break-all;opacity:.8">Vai gravar: ${esc(url)}</span>`,
     `<button class="btn" onclick='gravarAgora(${JSON.stringify(code)}, ${JSON.stringify(url)}, ${regravacao})'>Gravar</button>` +
@@ -409,7 +456,7 @@ function gravarAgora(code, url, regravacao) {
   const pendente = { code, url, regravacao };
   gravacaoPendente = pendente;
   ligarLeituraNfc();
-  painel("azul", "Encoste o cartão agora", code,
+  painel("azul", "Passo 3: encoste o cartão agora", code,
     "No meio das costas do celular, parado, até apitar.",
     `<button class="btn sec min" onclick="voltarALer()">Cancelar</button>`);
   setTimeout(() => {
