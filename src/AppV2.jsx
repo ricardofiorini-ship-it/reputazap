@@ -792,7 +792,9 @@ const TABS = [
   // O `link` SAIU em 21/09: a aba abre a tela AQUI, não manda pro outro painel.
   // `soLogado` porque o visitante não tem conta nem dispositivo — pra ele a
   // aba seria uma porta pra uma tela que pede as duas coisas.
-  { id: 'menu',         icon: 'sparkles', label: 'Menu Inteligente', soLogado: true },
+  // Sem `soLogado` desde 24/09: o visitante também vê a aba, mas ela abre a
+  // VITRINE (GuestMenuVitrine), não o editor — que pede conta e dispositivo.
+  { id: 'menu',         icon: 'sparkles', label: 'Menu Inteligente' },
   // O PAR DO MENU (21/09): "Resultados" responde se o Menu e os dispositivos
   // estão dando retorno — toques, quantos abriram o menu, quais ações foram
   // escolhidas. Vem logo depois dele de propósito: configurar e medir são o
@@ -812,7 +814,7 @@ const TABS = [
 const MOBILE_PRIMARY_TABS = [
   { id: 'painel',       icon: 'home', label: 'Painel'       },
   { id: 'avaliacoes',   icon: 'star', label: 'Avaliações'   },
-  { id: 'menu',         icon: 'sparkles', label: 'Menu', soLogado: true },
+  { id: 'menu',         icon: 'sparkles', label: 'Menu' },
   { id: 'loja',         icon: 'bag', label: 'Loja'         },
   { id: 'more',         icon: 'menu',  label: 'Mais'         }
 ]
@@ -3812,7 +3814,7 @@ function BalaoMarca({ tipo, texto, lado, topo }) {
 // custo sem contrapartida. Quando o resto do V3 for absorvido, some o motivo
 // que sobrou pra alguém querer isto de volta.
 
-function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu }) {
+function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = null }) {
   const ehPro = plan === 'pro'
   const nome = (bizName || 'Seu negócio').trim()
 
@@ -3842,7 +3844,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu }) {
             background: T.blue, color: '#fff', borderRadius: 9, padding: '11px 18px',
             fontSize: 13.5, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', flex: '0 0 auto'
           }}>
-            {ehPro ? 'Configurar menu →' : 'Conhecer o Menu Inteligente →'}
+            {ctaLabel ? ctaLabel + ' →' : (ehPro ? 'Configurar menu →' : 'Conhecer o Menu Inteligente →')}
           </button>
         </div>
       </Section>
@@ -3900,7 +3902,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu }) {
             padding: '13px 24px', fontSize: 14.5, fontWeight: 800, textDecoration: 'none',
             boxShadow: '0 6px 16px rgba(4,26,66,.22)'
           }}>
-            {ehPro ? 'Configurar meu menu' : 'Criar meu menu — 7 dias grátis'}
+            {ctaLabel || (ehPro ? 'Configurar meu menu' : 'Criar meu menu — 7 dias grátis')}
             <ArrowRight size={17}/>
           </button>
 
@@ -6586,6 +6588,59 @@ function GuestSearch({ isMobile }) {
 }
 
 // Tela de bloqueio pra recursos que exigem conta (settings, etc.) no modo convidado.
+// ── VITRINE DO MENU PRO VISITANTE (24/09/2026) ──
+// A aba Menu Inteligente era escondida do visitante porque a tela de verdade
+// é o EDITOR, que pede conta e dispositivo. Esconder, porém, apagava a oferta
+// inteira da vista de quem ainda está decidindo. Agora a aba abre isto: o
+// mesmo banner do painel (com o nome do negócio dele no telefone) + como
+// funciona + convite pro cadastro. Sem preço, pela decisão de 08/09: quem
+// cobra é a caixa do "Publicar"; aqui só "7 dias grátis", que já diz que é pago.
+function GuestMenuVitrine({ url, bizName, isMobile }) {
+  const irCadastro = (de) => { trackFunnel('guest_signup_click', { from: de }); window.location.href = url }
+  const passos = [
+    { Ico: User,   t: 'Crie sua conta grátis', d: 'Seu negócio já está aqui — é só salvar. Leva um minuto.' },
+    { Ico: Pencil, t: 'Monte o seu menu', d: 'Escolha os botões: WhatsApp, Instagram, cardápio, agendamento. A avaliação no Google fica sempre em primeiro.' },
+    { Ico: Hand,   t: 'Seu cliente encosta o celular', d: 'O dispositivo StarTouch abre o seu menu na hora. Montar é grátis; pra publicar, 7 dias grátis.' }
+  ]
+  return (
+    <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 96px' : '32px 32px 96px' }}>
+      <MenuInteligenteSlot plan="free" bizName={bizName} isMobile={isMobile}
+        onAbrirMenu={() => irCadastro('menu_vitrine_banner')} ctaLabel="Criar minha conta grátis"/>
+
+      <Section>
+        <div style={{ background:T.surface, border:`1px solid ${T.border}`, borderRadius:16, boxShadow:T.shadow, padding: isMobile ? 20 : 28 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em', color: T.blueDk, marginBottom: 6 }}>COMO FUNCIONA</div>
+          <div style={{ fontSize: isMobile ? 18 : 21, fontWeight: 800, color: T.text, letterSpacing: '-0.02em', marginBottom: 18 }}>
+            Três passos até o seu cliente ver o menu
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? 14 : 18 }}>
+            {passos.map(({ Ico, t, d }, i) => (
+              <div key={t} style={{ display:'flex', gap: 12, alignItems:'flex-start', background: T.bg, borderRadius: 12, padding: 16 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: T.blueSoft, color: T.blue, display:'grid', placeItems:'center', flex:'0 0 auto' }}>
+                  <Ico size={18}/>
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 3 }}>{i + 1}. {t}</div>
+                  <div style={{ fontSize: 13, color: T.textMid, lineHeight: 1.5 }}>{d}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: 14, flexWrap:'wrap', marginTop: 20, paddingTop: 18, borderTop:`1px solid ${T.border}` }}>
+            <div style={{ fontSize: 13, color: T.textMid, lineHeight: 1.5, flex:'1 1 280px' }}>
+              Funciona com qualquer dispositivo StarTouch — cartão, placa ou pulseira. Ainda não tem o seu? Ele está na Loja.
+            </div>
+            <button type="button" onClick={() => irCadastro('menu_vitrine_passos')} style={{ border:'none', cursor:'pointer', fontFamily:'inherit',
+              background: T.blue, color:'#fff', borderRadius: 10, padding:'12px 22px', fontSize: 14.5, fontWeight: 700, whiteSpace:'nowrap' }}>
+              Criar minha conta grátis →
+            </button>
+          </div>
+        </div>
+      </Section>
+    </main>
+  )
+}
+
 function GuestGate({ url, feature, isMobile }) {
   return (
     <main style={{ maxWidth: 520, margin: isMobile?'40px auto':'60px auto', padding:'0 24px', textAlign:'center' }}>
@@ -8408,6 +8463,9 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
           onde no outro painel fica a barra lateral. */}
       {tab === 'menu' && !isGuest && (
         <MenuInteligenteTab/>
+      )}
+      {tab === 'menu' && isGuest && (
+        <GuestMenuVitrine url={guestSignupUrl} bizName={headerBizName} isMobile={isMobile}/>
       )}
 
       {/* Aba: RESULTADOS — também vinda do V3, importada. Ela busca os próprios
