@@ -5974,8 +5974,9 @@ ${corte}
                         por dia. Os repetidos ficam à vista em vez de sumir — número
                         alto aqui é o sinal de alguém tocando o próprio cartão. */}
                     {(p.toques_repetidos || 0) > 0 && (
-                      <div style={{ fontSize: 11, color: T.textDim, marginTop: 1 }}>
-                        + {p.toques_repetidos} {p.toques_repetidos === 1 ? 'toque repetido' : 'toques repetidos'} não contados (mesmo celular no mesmo dia)
+                      <div style={{ display:'inline-flex', alignItems:'center', gap:6, marginTop: 5, padding:'3px 9px', borderRadius: 999, background: T.amberSoft, border:'1px solid #F2DCB8', color:'#8A4B00', fontSize: 12, fontWeight: 500, lineHeight: 1.35 }}>
+                        <span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: '50%', background: T.amber, flex: 'none' }} />
+                        <span><b style={{ fontWeight: 700 }}>+ {p.toques_repetidos} {p.toques_repetidos === 1 ? 'toque repetido' : 'toques repetidos'}</b> não {p.toques_repetidos === 1 ? 'contado' : 'contados'} · mesmo celular no mesmo dia</span>
                       </div>
                     )}
                     {/* Marco zero: só na visão "Sempre". Em recorte por data o

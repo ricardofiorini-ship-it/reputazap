@@ -338,8 +338,8 @@ export default function Dispositivos({ dados }) {
                             por dia. O que ficou de fora aparece, não some — muita
                             repetição é o sinal de alguém tocando o próprio cartão. */}
                         {(d.toques_repetidos || 0) > 0 && (
-                          <div className="sm" style={{ marginTop: 2 }} title="Toques do mesmo celular no mesmo dia — não entram na contagem">
-                            +{d.toques_repetidos.toLocaleString('pt-BR')} repetidos
+                          <div style={{ marginTop: 4 }} title="Toques do mesmo celular no mesmo dia — não entram na contagem">
+                            <span className="chip a" style={{ fontWeight: 700 }}>+{d.toques_repetidos.toLocaleString('pt-BR')} repetidos</span>
                           </div>
                         )}
                       </td>
