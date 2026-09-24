@@ -5970,6 +5970,14 @@ ${corte}
                           dispositivo com 0 na semana ainda tem um último toque real. */}
                       {productLabel}{p.last_tapped_at && (p.total_taps || 0) > 0 ? ' · último toque ' + relativeDate(p.last_tapped_at) : ''}
                     </div>
+                    {/* Trava de 24/09: o mesmo celular no mesmo cartão conta uma vez
+                        por dia. Os repetidos ficam à vista em vez de sumir — número
+                        alto aqui é o sinal de alguém tocando o próprio cartão. */}
+                    {(p.toques_repetidos || 0) > 0 && (
+                      <div style={{ fontSize: 11, color: T.textDim, marginTop: 1 }}>
+                        + {p.toques_repetidos} {p.toques_repetidos === 1 ? 'toque repetido' : 'toques repetidos'} não contados (mesmo celular no mesmo dia)
+                      </div>
+                    )}
                     {/* Marco zero: só na visão "Sempre". Em recorte por data o
                         número é literal — o que aconteceu naqueles dias, ponto. */}
                     {!period && (() => {

@@ -422,6 +422,10 @@
       "schedule": "0 4 * * *"
     },
     {
+      "path": "/api/cron/retention-horaria",
+      "schedule": "7 * * * *"
+    },
+    {
       "path": "/api/cron/plan-sweep",
       "schedule": "0 5 * * *"
     }

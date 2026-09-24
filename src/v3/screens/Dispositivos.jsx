@@ -332,7 +332,17 @@ export default function Dispositivos({ dados }) {
                         )}
                       </td>
                       <td className="num">{toques?.available ? (porPlaca[d.id] || 0) : '—'}</td>
-                      <td className="num">{(d.total_taps || 0).toLocaleString('pt-BR')}</td>
+                      <td className="num">
+                        {(d.total_taps || 0).toLocaleString('pt-BR')}
+                        {/* Trava de 24/09: o mesmo celular no mesmo cartão conta 1x
+                            por dia. O que ficou de fora aparece, não some — muita
+                            repetição é o sinal de alguém tocando o próprio cartão. */}
+                        {(d.toques_repetidos || 0) > 0 && (
+                          <div className="sm" style={{ marginTop: 2 }} title="Toques do mesmo celular no mesmo dia — não entram na contagem">
+                            +{d.toques_repetidos.toLocaleString('pt-BR')} repetidos
+                          </div>
+                        )}
+                      </td>
                       <td>
                         {d.status !== 'active'
                           ? <Chip tipo="n">não ativo</Chip>

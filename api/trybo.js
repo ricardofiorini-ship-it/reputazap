@@ -354,6 +354,16 @@ async function handlePainel(req, res, user) {
   if (cErr) return res.status(500).json({ error: "Não consegui ler seus cartões: " + cErr.message });
 
   const lista = cartoes || [];
+
+  // Toques repetidos (trava de 24/09) — à parte e tolerante: coluna nova não
+  // derruba o painel. linha-ok: ids já filtrados pela linha social acima
+  const repetidosPorCartao = new Map();
+  if (lista.length) {
+    const { data: reps, error: repErr } = await supabase
+      .from("plates").select("id, toques_repetidos").in("id", lista.map((c) => c.id));
+    if (repErr) console.warn("[trybo] toques_repetidos indisponível:", repErr.message || repErr);
+    for (const r of reps || []) repetidosPorCartao.set(r.id, r.toques_repetidos || 0);
+  }
   const ids = lista.map((c) => c.id);
 
   // Janela alinhada ao dia brasileiro: "7 dias" = hoje e os 6 anteriores,
@@ -435,6 +445,7 @@ async function handlePainel(req, res, user) {
       apelido: c.channel_name,
       toques_periodo: toquesPorCartao.get(c.id) || 0,
       toques_total: c.total_taps || 0,
+      toques_repetidos: repetidosPorCartao.get(c.id) || 0,
       ultimo_toque: c.last_tapped_at,
       ativado_em: c.activated_at,
       substituido: !!c.replaced_by,

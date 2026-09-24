@@ -19,11 +19,14 @@
 //   - nao carrega fonte externa, script de terceiro, GA4 nem Pixel.
 //     Quem atravessa esta pagina e o cliente do lojista: nao tem relacao
 //     com a gente e nao teve onde consentir. Mesma regra da /avaliar.
-//   - nao grava IP nem User-Agent, nem em hash. As colunas existem
-//     (plate_taps.ip_hash/ua_hash) e ficam VAZIAS ate a Politica de
-//     Privacidade ser revisada. Consequencia assumida: sem dedupe de 60s.
+//   - nao grava IP nem User-Agent em plate_taps, nem em hash. As colunas
+//     plate_taps.ip_hash/ua_hash seguem VAZIAS de proposito: a Politica (§4.4)
+//     promete que o registro de toques nao tem identificador. A trava contra
+//     toque repetido mora em outra tabela (tap_guard), com prazo de 24h —
+//     ver _lib/toque-repetido.js.
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
+import { toqueRepetido, marcarRepetido } from "../_lib/toque-repetido.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -123,6 +126,14 @@ function safeUrl(u) {
 async function registrarToque(plate, req, { bot }) {
   const tappedAt = new Date().toISOString();
   const ua = req.headers["user-agent"];
+
+  // Mesmo aparelho, mesmo cartão, mesmo dia = repetido: fica fora da
+  // contagem e de plate_taps (é o que o painel da equipe soma). É o caso que
+  // motivou a trava na Trybo: o profissional encostando o próprio celular.
+  if (!bot && await toqueRepetido(supabase, req, plate.code)) {
+    await marcarRepetido(supabase, plate.id);
+    return;
+  }
 
   if (!bot) {
     try {

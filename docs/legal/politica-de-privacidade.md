@@ -1,6 +1,6 @@
 # Política de Privacidade — StarTouch
 
-**Versão 1.6 — vigente a partir de 23 de setembro de 2026**
+**Versão 1.7 — vigente a partir de 24 de setembro de 2026**
 
 ---
 
@@ -41,7 +41,7 @@ Isso cria três grupos distintos de pessoas, tratados de formas muito diferentes
 | Quem | O que coletamos |
 |---|---|
 | **O lojista** — quem compra o dispositivo e usa o painel | Dados de cadastro, contato, pedido e uso da plataforma |
-| **O consumidor final** — quem encosta o celular no dispositivo | **Nenhum dado pessoal no registro do toque.** Registramos apenas contagem e formato. Nos cartões Trybo, um código temporário, eliminado em até 24 horas, impede que o mesmo aparelho seja contado várias vezes seguidas (seção 4.4) |
+| **O consumidor final** — quem encosta o celular no dispositivo | **Nenhum dado pessoal no registro do toque.** Registramos apenas contagem e formato. Um código temporário, eliminado em até 24 horas, impede que o mesmo aparelho seja contado mais de uma vez no mesmo dia (seção 4.4) |
 | **O visitante do site** — quem navega em startouch.com.br ou trybo.co | Dados de navegação, sujeitos ao seu consentimento |
 
 A seção 4 detalha o segundo grupo, porque é o ponto onde a maioria das soluções concorrentes coleta e nós deliberadamente não coletamos.
@@ -110,7 +110,7 @@ Quando alguém aproxima o celular de um dispositivo StarTouch ou lê o QR Code, 
 - domínio de origem, quando houver;
 - nos cartões Trybo, também o sistema do aparelho (iOS, Android ou outro) e qual das redes foi aberta.
 
-**Não vinculamos endereço IP ao toque. Não registramos identificador de aparelho. Não registramos nome, telefone, e-mail ou qualquer forma de contato.** Não há formulário, não há cadastro e não há instalação de aplicativo. A única exceção, restrita aos cartões Trybo, temporária e mantida fora do registro de toques, está descrita na seção 4.4.
+**Não vinculamos endereço IP ao toque. Não registramos identificador de aparelho. Não registramos nome, telefone, e-mail ou qualquer forma de contato.** Não há formulário, não há cadastro e não há instalação de aplicativo. A única exceção, temporária e mantida fora do registro de toques, está descrita na seção 4.4.
 
 Uma ressalva, em nome da precisão: a página intermediária consulta nossos servidores para exibir o nome do estabelecimento, e essa consulta passa pelo mecanismo de proteção contra uso automatizado abusivo descrito na seção 6.3, que registra temporariamente o endereço IP de origem. Esse registro existe exclusivamente para segurança do serviço, tem prazo curto de retenção, não é cruzado com o registro de toques e não permite reconstruir quem acionou qual dispositivo.
 
@@ -126,11 +126,11 @@ Ao chegar à página de avaliação, o consumidor passa a interagir com o Google
 
 Da mesma forma, quando um cartão Trybo abre o Instagram, o TikTok, o WhatsApp ou outra plataforma, o que o consumidor faz ali — seguir, curtir, mandar mensagem — acontece naquela plataforma, sob a política de privacidade dela. A Trybo não recebe essa informação: sabemos que a rede foi aberta, não se a pessoa passou a seguir o perfil.
 
-### 4.4 Proteção contra contagem artificial (cartões Trybo)
+### 4.4 Proteção contra contagem artificial
 
-**Por que existe.** No cartão Trybo, o número de toques é o próprio resultado que o lojista acompanha, inclusive separado por profissional da equipe. Isso cria um incentivo que não existe na StarTouch: encostar o próprio celular no próprio cartão para aumentar a contagem. Sem uma proteção, o número deixaria de ser confiável para o lojista e injusto para quem trabalha certo.
+**Por que existe.** O número de toques é o resultado que o lojista acompanha em cada dispositivo StarTouch e em cada cartão Trybo — muitas vezes separado por profissional da equipe, a quem o lojista entrega um cartão ou uma pulseira. Isso cria um incentivo para encostar o próprio celular no próprio dispositivo e aumentar a contagem. Sem uma proteção, o número deixaria de ser confiável para o lojista e injusto para quem trabalha certo.
 
-**Como funciona.** No momento do toque, calculamos um código a partir do endereço IP e das informações que o navegador envia sobre si mesmo, combinados com o cartão tocado e com uma chave secreta que **muda todos os dias e é descartada**. Esse código serve a uma única pergunta: *"este mesmo aparelho encostou neste mesmo cartão há menos de um minuto?"* Se sim, o toque é registrado como repetido e não entra na contagem.
+**Como funciona.** No momento do toque, calculamos um código a partir do endereço IP e das informações que o navegador envia sobre si mesmo, combinados com o dispositivo tocado e com uma chave secreta que **muda todos os dias e é descartada**. Esse código serve a uma única pergunta: *"este mesmo aparelho já encostou neste mesmo dispositivo hoje?"* Se sim, o toque é registrado como repetido e não entra na contagem. O consumidor é encaminhado ao Google ou à rede social exatamente do mesmo jeito — a proteção muda a contagem, nunca o caminho.
 
 **O que isso significa para você, consumidor:**
 
@@ -143,7 +143,7 @@ Da mesma forma, quando um cartão Trybo abre o Instagram, o TikTok, o WhatsApp o
 Mesmo com essas proteções, tratamos esse código como dado pessoal pseudonimizado, e por isso ele está declarado aqui.
 *Base legal:* legítimo interesse (Art. 7º, IX, e Art. 10, II) — prevenção de fraude na contagem, em benefício do lojista e dos profissionais da equipe. É a mesma finalidade de proteção contra uso abusivo já descrita na seção 6.3, aplicada com menos dados (um código em vez do endereço IP) e por menos tempo (24 horas em vez de 30 dias).
 
-Essa proteção **não se aplica aos dispositivos StarTouch** de avaliação, cujo registro de toques segue exatamente como descrito na seção 4.1.
+Ao lojista, mostramos apenas **quantos** toques foram considerados repetidos em cada dispositivo — nunca de qual aparelho vieram, informação que nós mesmos não temos. O registro de toques da seção 4.1 segue sem nenhum identificador: o toque repetido nem chega a ele.
 
 ---
 
@@ -256,7 +256,7 @@ Nenhum sistema é imune a incidentes. Caso ocorra incidente de segurança com ri
 | Leads que não se tornaram clientes | 24 meses a partir do cadastro |
 | Histórico de visibilidade do estabelecimento no Google | 24 meses |
 | Registro de toques nos dispositivos | Indefinidamente — não contém dado pessoal |
-| Código contra contagem artificial nos cartões Trybo (seção 4.4) | Até 24 horas |
+| Código contra contagem artificial (seção 4.4) | Até 24 horas. A chave diária que o gera é descartada logo após a meia-noite (horário de Brasília) |
 | Perfis de redes sociais e equipe cadastrados pelo lojista na Trybo | Enquanto a conta existir, ou até o lojista removê-los |
 | Contagem agregada de visitas e de escolhas no aviso de cookies (seção 6.5) | Indefinidamente — são contadores, não contêm dado pessoal |
 | Cache de avaliações do Google | Até 30 dias, limite estabelecido pelos termos da API do Google. Na prática, o conteúdo é renovado a cada poucas horas e o registro é eliminado por rotina automática de expurgo |
@@ -316,6 +316,7 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 | 1.4 | 12/09/2026 | O processamento de pagamentos dos dispositivos passa do Mercado Pago para a Stripe, que já processava a assinatura. **Não há dado novo coletado**: são os mesmos campos, com a mesma finalidade e o mesmo prazo de guarda, tratados por outro operador. O Mercado Pago permanece na seção 7 porque segue guardando os dados dos pedidos feitos até esta data |
 | 1.5 | 15/09/2026 | Inclusão da linha "Histórico de visibilidade do estabelecimento no Google" na seção 9, com prazo de 24 meses. A medição de como o estabelecimento aparece nas buscas do Google passa a ser guardada ao longo do tempo, para responder se a visibilidade melhorou ou piorou. O registro contém o identificador público da ficha do estabelecimento no Google, o termo de busca medido e números de posicionamento — **não contém dado de pessoa natural**. O prazo é declarado por precaução, já que a ficha de um empresário individual pode coincidir com o nome de uma pessoa. Alteração meramente declaratória: não reduz direitos nem amplia finalidades |
 | 1.6 | 23/09/2026 | Inclusão da marca **Trybo** e do site trybo.co, operados pela mesma controladora, nas seções 1, 2, 3.1, 4, 6 e 9. A parte que descreve o que a Trybo já faz — perfis de redes sociais, equipe do estabelecimento, sistema do aparelho e rede aberta no toque — é declaratória e entra em vigor imediatamente. A **seção 4.4** (código temporário contra contagem artificial nos cartões Trybo) aplica aos cartões Trybo a finalidade de proteção contra uso abusivo já declarada na seção 6.3, com menos dados e prazo menor; não amplia finalidades nem reduz direitos. Não se aplica aos dispositivos StarTouch |
+| 1.7 | 24/09/2026 | A **seção 4.4** (código temporário contra contagem artificial) passa a valer também para os **dispositivos StarTouch**, e a pergunta que o código responde passa de "o mesmo aparelho tocou há menos de um minuto?" para "o mesmo aparelho já tocou neste dispositivo hoje?". **Não há dado novo**: são os mesmos elementos, com a mesma finalidade (prevenção de fraude na contagem, já declarada nas seções 4.4 e 6.3), a mesma chave diária descartada e o mesmo prazo de até 24 horas. O registro de toques da seção 4.1 continua sem identificador. Não reduz direitos nem amplia finalidades |
 | 1.3 | 07/09/2026 | Mudança de controladora: a ZAYOR BRASIL LTDA (CNPJ 68.972.361/0001-33) sucede a GT6 Brasil Comércio Varejista de Produtos Diversos Ltda, inclusive quanto aos dados já coletados (seção 1.1); atualização do endereço para o da nova sede. **Não é alteração meramente declaratória** como as duas anteriores — muda quem responde pelo tratamento —, mas não reduz direitos, não amplia finalidades e não altera nenhuma operação de tratamento |
 
 ---

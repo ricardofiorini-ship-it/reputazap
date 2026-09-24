@@ -17,6 +17,7 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { sendRawEmail } from "../_lib/email-sender.js";
+import { diaBR } from "../_lib/toque-repetido.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -41,7 +42,16 @@ const ALVOS = [
   // identificador público de ficha do Google, e o resto são números), mas a
   // ficha de um MEI pode ser o nome de uma pessoa: o prazo é declarado por
   // precaução, não por obrigação estrita.
-  { tabela: "visibility_scans", coluna: "scanned_at", prazo: "24 months", schema: "supabase/schema-visibilidade-historico.sql" }
+  { tabela: "visibility_scans", coluna: "scanned_at", prazo: "24 months", schema: "supabase/schema-visibilidade-historico.sql" },
+  // ── GRUPO HORÁRIO (api/cron/retention-horaria.js, de hora em hora) ──
+  // Trava contra toque repetido (24/09/2026, Política §4.4 v1.7). A Política
+  // promete "até 24 horas"; com o cron diário, código gravado logo depois da
+  // execução viveria quase 48h. De hora em hora com corte de 23h, o mais
+  // velho que sobra tem 24h.
+  { tabela: "tap_guard", coluna: "criado_em", prazo: "23 hours", schema: "supabase/schema-toque-repetido.sql", grupo: "horario" },
+  // O sal de ontem sai logo depois da meia-noite de Brasília: sem ele, nem
+  // nós conseguimos refazer o código — é o que sustenta o "nem para nós".
+  { tabela: "tap_salt", coluna: "dia", prazo: "dia anterior", limite: () => diaBR(), schema: "supabase/schema-toque-repetido.sql", grupo: "horario" }
 ];
 
 // Aviso ao Encarregado. Nunca derruba o expurgo: e-mail que falha vira log,
@@ -65,7 +75,8 @@ function checkAuth(req) {
 function corte(prazo) {
   const [n, unidade] = prazo.split(" ");
   const d = new Date();
-  if (unidade.startsWith("day")) d.setUTCDate(d.getUTCDate() - Number(n));
+  if (unidade.startsWith("hour")) d.setTime(d.getTime() - Number(n) * 3600000);
+  else if (unidade.startsWith("day")) d.setUTCDate(d.getUTCDate() - Number(n));
   else if (unidade.startsWith("month")) d.setUTCMonth(d.getUTCMonth() - Number(n));
   else throw new Error(`unidade de prazo desconhecida: ${prazo}`);
   return d.toISOString();
@@ -90,13 +101,15 @@ export default async function handler(req, res) {
   if (!checkAuth(req)) return res.status(404).end();
 
   const dry = req.query.dry === "1";
+  // `grupo` vem do retention-horaria.js. Sem ele, é a rodada diária de sempre.
+  const grupo = req.query.grupo === "horario" ? "horario" : "diario";
   const t0 = Date.now();
   const resultado = [];
   let provaOk = true;
 
-  for (const alvo of ALVOS) {
+  for (const alvo of ALVOS.filter((a) => (a.grupo || "diario") === grupo)) {
     const ini = Date.now();
-    const limite = corte(alvo.prazo);
+    const limite = alvo.limite ? alvo.limite() : corte(alvo.prazo);
     let linhas = 0;
     let erro = null;
 
@@ -154,7 +167,7 @@ export default async function handler(req, res) {
   // perder, o prazo passa em silêncio, que é o modo de falha nº1 daqui.
   // Marcado no banco (aviso_d3_em / aviso_d0_em) pra não repetir todo dia.
   var avisos = { d3: 0, d0: 0, erro: null };
-  if (!dry) {
+  if (!dry && grupo === "diario") {
     try {
       const { data: abertos, error } = await supabase
         .from("titular_requests")

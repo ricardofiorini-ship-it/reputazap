@@ -391,6 +391,18 @@ async function handleMyPlates(req, res, user) {
       .from("experiences").select("id, name, archived_at").in("id", expIds);
     porExp = new Map((exps || []).map((e) => [e.id, e]));
   }
+  // Toques repetidos (trava de 24/09): consulta À PARTE e tolerante, pelo
+  // mesmo motivo da queda em degraus acima — coluna nova não pode derrubar a
+  // lista. Sem ela, a tela só não mostra a linha dos repetidos.
+  if (plates.length) {
+    // linha-ok: ids já filtrados pela linha StarTouch na consulta acima
+    const { data: reps, error: repErr } = await supabase
+      .from("plates").select("id, toques_repetidos").in("id", plates.map((p) => p.id));
+    if (repErr) console.warn("[plates] toques_repetidos indisponível:", repErr.message || repErr);
+    const porId = new Map((reps || []).map((r) => [r.id, r.toques_repetidos || 0]));
+    for (const p of plates) p.toques_repetidos = porId.get(p.id) || 0;
+  }
+
   for (const p of plates) {
     const e = p.experience_id ? porExp.get(p.experience_id) : null;
     p.experience_name = e?.name || null;
@@ -544,6 +556,16 @@ async function handleUnlinkPlate(req, res, user) {
     return res.status(500).json({
       error: "Não deu pra desvincular agora. Se o problema persistir, o banco ainda não tem as colunas de desvinculação (rodar supabase/schema-plate-unlink.sql)."
     });
+  }
+
+  // Os repetidos também são do dono antigo. Update à parte e tolerante: a
+  // coluna chegou depois (schema-toque-repetido.sql) e não pode derrubar a
+  // desvinculação, que já aconteceu.
+  // linha-ok: um dispositivo só, já conferido como da StarTouch lá em cima
+  {
+    const { error: repErr } = await supabase
+      .from("plates").update({ toques_repetidos: 0, ultimo_repetido_em: null }).eq("id", plate.id);
+    if (repErr) console.warn("[plates] desvincular: não zerou toques_repetidos:", repErr.message || repErr);
   }
 
   // AVISO AO DONO — é a metade de segurança do recurso, não cortesia.

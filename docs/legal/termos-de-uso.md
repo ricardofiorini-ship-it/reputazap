@@ -1,6 +1,6 @@
 # Termos de Uso — StarTouch
 
-**Versão 1.4 — vigente a partir de 18 de setembro de 2026**
+**Versão 1.5 — vigente a partir de 24 de setembro de 2026**
 
 ---
 
@@ -154,7 +154,7 @@ Você concorda em não:
 
 O tratamento de dados pessoais está descrito na **Política de Privacidade**, parte integrante destes Termos.
 
-Registro relevante ao seu negócio: no fluxo atual, a StarTouch **não coleta dados pessoais do consumidor final** que aciona o dispositivo. O acionamento gera apenas um registro de contagem, sem identificador de aparelho, sem qualquer forma de contato e sem vínculo com o endereço IP de quem acionou. O consumidor é conduzido diretamente à página do Google. Registros temporários de IP existem apenas como proteção contra uso automatizado abusivo dos nossos endereços públicos, na forma detalhada na Política de Privacidade.
+Registro relevante ao seu negócio: no fluxo atual, a StarTouch **não coleta dados pessoais do consumidor final** que aciona o dispositivo. O acionamento gera apenas um registro de contagem, sem identificador de aparelho, sem qualquer forma de contato e sem vínculo com o endereço IP de quem acionou. O consumidor é conduzido diretamente à página do Google. Registros temporários de IP existem apenas como proteção contra uso automatizado abusivo dos nossos endereços públicos, na forma detalhada na Política de Privacidade. Pelo mesmo motivo, o mesmo aparelho conta **uma vez por dia** em cada dispositivo: toques repetidos aparecem no painel como repetidos e não entram na contagem, por meio de um código temporário eliminado em até 24 horas (Política de Privacidade, seção 4.4). A contagem de toques mede o uso do dispositivo; ela **não é contagem de avaliações publicadas** no Google, que a StarTouch não tem como atribuir a um dispositivo ou profissional.
 
 Caso venhamos a disponibilizar, no futuro, funcionalidade que envolva coleta de dados pessoais do consumidor final, ela será opcional, dependerá de sua ativação expressa e será acompanhada de instrumento contratual específico que definirá os papéis de cada parte na forma da LGPD.
 
@@ -214,6 +214,7 @@ Fica eleito o foro da comarca de São Paulo/SP para dirimir controvérsias, ress
 | 1.1 | 02/09/2026 | Ajustes de redação |
 | 1.2 | 07/09/2026 | Mudança de controladora (GT6 → ZAYOR) e processamento da assinatura pela Stripe |
 | 1.4 | 18/09/2026 | O frete das compras pelo site passa a ser **calculado por CEP, peso e dimensões**, e exibido antes da confirmação do pagamento — no lugar do frete gratuito incondicional. Fica **gratuito acima de R$ 149,00 em produtos**. A mudança **não retroage**: pedidos feitos até 18/09/2026 mantêm o frete gratuito que vigorava. No mesmo ato, o direito de arrependimento passa a dizer expressamente que a devolução **inclui o frete pago**, como já determina o Art. 49 do Código de Defesa do Consumidor |
+| 1.5 | 24/09/2026 | Proteção contra contagem artificial: o mesmo aparelho passa a contar uma vez por dia em cada dispositivo, e o texto deixa expresso que a contagem de toques não é contagem de avaliações. Não reduz direitos nem cria obrigação nova para o cliente |
 | 1.3 | 14/09/2026 | O item 5.2 passa a **garantir que o plano gratuito é vitalício**: sem mensalidade, sem prazo, e sem possibilidade de o que já foi entregue virar pago depois. Substitui a cláusula anterior, que permitia rever quais recursos ficavam no plano gratuito mediante aviso de 30 dias — **a mudança amplia direitos do cliente e não reduz nenhum**. No mesmo ato, o item 5.1 passa a descrever o aviso de avaliação negativa como ele de fato funciona (semanal, com as notas 1 e 2 dos últimos 7 dias), corrigindo uma descrição que prometia aviso no momento da publicação |
 
 ---

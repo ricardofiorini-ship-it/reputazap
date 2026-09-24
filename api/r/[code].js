@@ -15,6 +15,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sendInBackground } from "../_lib/email-sender.js";
 import { firstReviewEmail } from "../_lib/email-templates.js";
 import { codigoDeOutraLinha } from "../_lib/linha.js";
+import { toqueRepetido, marcarRepetido } from "../_lib/toque-repetido.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -227,10 +228,17 @@ export default async function handler(req, res) {
       return res.redirect(302, withUtm(`/ativar-codigo?code=${encodeURIComponent(plate.code)}`, utm));
     }
 
+    // Mesmo aparelho, mesmo cartão, mesmo dia = REPETIDO: não soma na
+    // contagem nem entra em plate_taps; vira +1 em toques_repetidos, que o
+    // dono vê no painel. O cliente segue pro Google do mesmo jeito — a trava
+    // mexe no PLACAR, nunca no caminho. Ver _lib/toque-repetido.js.
+    const repetido = await toqueRepetido(supabase, req, plate.code);
+    if (repetido) await marcarRepetido(supabase, plate.id);
+
     // Incrementa contador de taps (await rápido pra garantir gravação)
-    const wasFirstTap = (plate.total_taps || 0) === 0;
+    const wasFirstTap = !repetido && (plate.total_taps || 0) === 0;
     const tappedAt = new Date().toISOString();
-    try {
+    if (!repetido) try {
       await supabase
         .from("plates")
         .update({ total_taps: (plate.total_taps || 0) + 1, last_tapped_at: tappedAt })
@@ -244,7 +252,9 @@ export default async function handler(req, res) {
     // Precisa ser await (serverless corta promise órfã), mas NUNCA pode
     // derrubar o redirect: se a tabela não existir ou o banco tropeçar,
     // o cliente segue pro Google e a gente só perde a linha do log.
-    try {
+    // Repetido fica FORA: assim todo painel que conta linhas de plate_taps
+    // (semana, 30 dias, resumo semanal) já conta só os toques que valem.
+    if (!repetido) try {
       const { error: tapErr } = await supabase.from("plate_taps").insert({
         plate_id: plate.id,
         business_id: plate.business_id,
