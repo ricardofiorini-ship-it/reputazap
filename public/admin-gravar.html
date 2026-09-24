@@ -195,8 +195,28 @@ function registrar(cor, code, msg) {
 
 function voltarALer() {
   if (abortGravacao) { try { abortGravacao.abort(); } catch {} abortGravacao = null; }
+  ligarLeituraNfc();
+  $("toast").textContent = "";
   fase = "lendo";
   painel("lendo", "Aponte a câmera pro QR do próximo cartão", "", detector ? "" : "A câmera não lê QR neste aparelho — digite o código abaixo.");
+}
+
+// Leitura de fundo: com a tela parada, encostar um chip mostra o que ele já
+// tem gravado. `inicial` = primeira chamada, que pede a permissão de NFC e
+// precisa propagar o erro pra tela avisar.
+let scanAbort = null;
+async function ligarLeituraNfc(inicial) {
+  if (!ndef || scanAbort) return;
+  scanAbort = new AbortController();
+  try {
+    await ndef.scan({ signal: scanAbort.signal });
+  } catch (e) {
+    scanAbort = null;
+    if (inicial) throw e;
+  }
+}
+function pararLeituraNfc() {
+  if (scanAbort) { try { scanAbort.abort(); } catch {} scanAbort = null; }
 }
 
 // ── Começar (precisa de um toque: permissão de câmera e de NFC) ──
@@ -210,7 +230,6 @@ $("btnComecar").onclick = async () => {
     // scan() aqui só pra pedir a permissão de NFC com o toque do usuário;
     // gravações seguintes não pedem de novo. De brinde, encostar um chip com
     // a tela parada mostra o que ele já tem gravado.
-    await ndef.scan();
     ndef.onreading = (ev) => {
       if (fase !== "lendo") return;
       const rec = ev.message.records.find((r) => r.recordType === "url" || r.recordType === "text");
@@ -218,8 +237,9 @@ $("btnComecar").onclick = async () => {
       if (rec) { try { conteudo = new TextDecoder().decode(rec.data); } catch {} }
       $("toast").textContent = "Chip encostado agora contém: " + conteudo;
     };
+    await ligarLeituraNfc(true);
   } catch (e) {
-    mostrarGate("Não consegui ligar o NFC: " + esc(e.message) + ". Confira se o NFC do celular está ligado e recarregue a página.");
+    mostrarGate("Não consegui ligar o NFC — <b>" + esc(e.name) + "</b>: " + esc(e.message) + dicaDoErro(e) + "<br><br>Depois de ajustar, recarregue a página.");
     $("btnComecar").disabled = false;
     return;
   }
@@ -318,35 +338,53 @@ async function processar(code) {
   }
 }
 
-async function gravar(code, url, regravacao) {
+// Dois tempos, como no app de gravação: o QR só PREPARA; quem dispara a
+// gravação é o botão. Motivos (1º teste real, 24/09 — lia o QR e não gravava):
+//  1. O Chrome pode exigir um toque na tela pra liberar o NFC; um botão
+//     garante esse toque em toda gravação.
+//  2. A antena fica nas costas, junto da câmera: enquanto a câmera lia o QR,
+//     o cartão já estava encostado, e chip que já está lá não conta como
+//     chegada. Com o botão, o cartão só é encostado DEPOIS de apertar.
+function gravar(code, url, regravacao) {
+  fase = "pronto";
+  $("toast").textContent = "";
+  painel("azul", regravacao ? "Pronto pra regravar" : "Código livre — pronto pra gravar", code,
+    `Tire o cartão de perto do celular, aperte <b>Gravar</b> e só então encoste o cartão no meio das costas do celular.<br>` +
+    `<span style="font-size:12px;word-break:break-all;opacity:.8">Vai gravar: ${esc(url)}</span>`,
+    `<button class="btn" onclick='gravarAgora(${JSON.stringify(code)}, ${JSON.stringify(url)}, ${regravacao})'>Gravar</button>` +
+    `<button class="btn sec min" onclick="voltarALer()">Cancelar</button>`);
+}
+
+async function gravarAgora(code, url, regravacao) {
   fase = "gravando";
   abortGravacao = new AbortController();
-  // O celular só grava quando o chip CHEGA perto da antena. A antena fica nas
-  // costas, junto da câmera — então, enquanto a câmera lia o QR, o cartão já
-  // estava encostado, e um chip que já está lá não conta como chegada: a
-  // gravação fica esperando para sempre. Por isso o pedido é AFASTAR e
-  // encostar de novo (achado no 1º teste real, 24/09).
-  painel("azul", "Afaste o cartão e encoste de novo", code,
-    `Tire o cartão da frente da câmera e encoste de novo no <b>meio das costas</b> do celular, parado, até apitar.<br>` +
-    `<span style="font-size:12px;word-break:break-all;opacity:.8">Vai gravar: ${esc(url)}</span>`,
-    `<button class="btn sec min" onclick="voltarALer()">Cancelar</button>`);
   const esteAbort = abortGravacao;
+  // A leitura de fundo (que mostra o conteúdo do chip com a tela parada) é
+  // desligada durante a gravação, pra não disputar o chip com ela.
+  pararLeituraNfc();
+  painel("azul", "Encoste o cartão agora", code,
+    "No meio das costas do celular, parado, até apitar.",
+    `<button class="btn sec min" onclick="voltarALer()">Cancelar</button>`);
   setTimeout(() => {
     if (fase !== "gravando" || abortGravacao !== esteAbort) return;
     $("toast").textContent = "Ainda não gravou? Afaste uns 10 cm e encoste de novo, devagar, em outro ponto das costas (a antena varia por modelo).";
   }, 5000);
   try {
-    await ndef.write({ records: [{ recordType: "url", data: url }] }, { signal: abortGravacao.signal });
+    await ndef.write({ records: [{ recordType: "url", data: url }] }, { signal: esteAbort.signal });
   } catch (e) {
     if (e.name === "AbortError") return;
     fase = "resultado";
     som("erro");
     registrar("amarelo", code, "chip falhou");
-    painel("amarelo", "O chip não gravou", code, esc(e.message) + "<br>O código NÃO foi carimbado.",
-      `<button class="btn" onclick='gravar(${JSON.stringify(code)}, ${JSON.stringify(url)}, ${regravacao})'>Tentar de novo</button><button class="btn sec" onclick="voltarALer()">Pular</button>`);
+    painel("amarelo", "O chip não gravou", code,
+      `<b>${esc(e.name)}</b>: ${esc(e.message)}<br>O código NÃO foi carimbado.` + dicaDoErro(e),
+      `<button class="btn" onclick='gravarAgora(${JSON.stringify(code)}, ${JSON.stringify(url)}, ${regravacao})'>Tentar de novo</button><button class="btn sec" onclick="voltarALer()">Pular</button>`);
+    ligarLeituraNfc();
     return;
   }
   abortGravacao = null;
+  ligarLeituraNfc();
+  $("toast").textContent = "";
   if (regravacao) {
     fase = "resultado";
     som("ok");
@@ -355,6 +393,15 @@ async function gravar(code, url, regravacao) {
     return;
   }
   return carimbar(code, url);
+}
+
+// Traduz os erros que o Chrome devolve pro que fazer a respeito.
+function dicaDoErro(e) {
+  if (e.name === "NotAllowedError") return "<br><br>O celular não deu permissão de NFC a esta página. No Chrome: cadeado ao lado do endereço → Permissões → <b>Dispositivos NFC → Permitir</b>. E confira se o NFC está ligado nas configurações do Android.";
+  if (e.name === "NotReadableError") return "<br><br>O NFC do celular está desligado ou ocupado. Ligue em Configurações → Conexões → NFC e feche o app de gravação se estiver aberto.";
+  if (e.name === "NetworkError") return "<br><br>O cartão saiu de perto no meio da gravação. Encoste de novo e segure parado.";
+  if (e.name === "NotSupportedError") return "<br><br>Este chip não aceita gravação (pode estar travado contra escrita).";
+  return "";
 }
 
 async function carimbar(code, url) {
