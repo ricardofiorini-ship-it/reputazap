@@ -80,7 +80,7 @@
   </div>
 
   <h1>Gravar chips</h1>
-  <p class="sub">Aponte a câmera pro QR impresso e encoste o cartão atrás do celular. A tela grava o chip e avisa em <b style="color:#D93025">vermelho</b> se o código já passou por aqui — sinal de cartão impresso em dobro.</p>
+  <p class="sub">Leia o QR impresso, grave o chip no seu app e encoste o cartão aqui pra conferir. A tela confere se o chip bate com o QR e avisa em <b style="color:#D93025">vermelho</b> se o código já passou por aqui — sinal de cartão impresso em dobro.</p>
 
   <div class="gate" id="gate"></div>
 
@@ -239,7 +239,15 @@ async function ligarLeituraNfc(inicial) {
 // Se outro app (ou o próprio Android) tomar o chip, a página perde o foco por
 // um instante e o Chrome cancela a gravação. Registrar isso no diário é o que
 // separa "outro app roubou o chip" de "o chip recusou".
-document.addEventListener("visibilitychange", () => diario("página " + (document.hidden ? "ESCONDIDA" : "visível")));
+document.addEventListener("visibilitychange", () => {
+  diario("página " + (document.hidden ? "ESCONDIDA" : "visível"));
+  // Volta do app de gravação: religa a leitura do zero, pra não depender de o
+  // Chrome retomar sozinho a leitura que ele suspendeu ao esconder a página.
+  if (!document.hidden && ndef) {
+    if (scanAbort) { try { scanAbort.abort(); } catch {} scanAbort = null; }
+    ligarLeituraNfc();
+  }
+});
 window.addEventListener("blur", () => diario("página perdeu o foco"));
 window.addEventListener("focus", () => diario("página ganhou o foco"));
 
@@ -256,12 +264,13 @@ $("btnComecar").onclick = async () => {
     // a tela parada mostra o que ele já tem gravado.
     ndef.onreadingerror = (ev) => {
       if (fase === "gravando") return chipSentido("readingerror", ev);
+      if (fase === "aguardando_chip") return conferirChip(ev, true);
       diario("readingerror (chip sem formatação ou mal encostado)");
       if (fase === "lendo") $("toast").textContent = "O celular sentiu um chip, mas não conseguiu ler (pode estar sem formatação). Isso é normal em chip novo.";
     };
     ndef.onreading = (ev) => {
       if (fase === "gravando") return chipSentido("reading", ev);
-      if (fase === "pronto") { $("toast").textContent = "O celular sentiu o chip — agora aperte Gravar e encoste de novo."; return; }
+      if (fase === "aguardando_chip") return conferirChip(ev, false);
       diario(`reading fora da gravação (fase=${fase}) serial=${ev.serialNumber || "?"}`);
       if (fase !== "lendo") return;
       // Não é aqui que se grava: nesta tela o chip só é LIDO. A gravação vem
@@ -447,14 +456,88 @@ async function processar(code) {
 //  2. A antena fica nas costas, junto da câmera: enquanto a câmera lia o QR,
 //     o cartão já estava encostado, e chip que já está lá não conta como
 //     chegada. Com o botão, o cartão só é encostado DEPOIS de apertar.
+// PASSO 2 — grava no app de sempre, confere aqui (decidido 24/09).
+// Seis testes reais no Samsung do Ricardo: gravar PELO CHROME não funcionou —
+// no instante em que o chip encosta, outro programa do Android toma a tela e o
+// Chrome cancela a gravação (diário: "página ESCONDIDA" → "push operation is
+// cancelled"). LER pelo Chrome, por outro lado, funcionou em todos os testes.
+// Então a tela usa só o que se provou: o app grava, a página LÊ o chip e
+// confere se o endereço bate com o QR antes de carimbar. Pega o duplicado e,
+// de brinde, o chip gravado com endereço errado (incidente de 08/06).
+// O caminho de gravar pelo Chrome continua no botão secundário.
+let aConferir = null;
 function gravar(code, url, regravacao) {
-  fase = "pronto";
+  fase = "aguardando_chip";
+  aConferir = { code, url, regravacao };
   $("toast").textContent = "";
-  painel("azul", regravacao ? "Passo 2: pronto pra regravar" : "Passo 2: código livre — aperte Gravar", code,
-    `Tire o cartão de perto do celular, aperte <b>Gravar</b> e só então encoste o cartão no meio das costas do celular.<br>` +
-    `<span style="font-size:12px;word-break:break-all;opacity:.8">Vai gravar: ${esc(url)}</span>`,
-    `<button class="btn" onclick='gravarAgora(${JSON.stringify(code)}, ${JSON.stringify(url)}, ${regravacao})'>Gravar</button>` +
+  painel("azul", regravacao ? "Passo 2: regrave no seu app" : "Passo 2: código livre — grave no seu app", code,
+    `1. Toque em <b>Copiar endereço</b>.<br>2. Grave no chip com o seu app de gravação (registro de URL, colar).<br>3. Volte aqui e <b>encoste o cartão</b> — a página confere e carimba.<br>` +
+    `<span style="font-size:12px;word-break:break-all;opacity:.8">${esc(url)}</span>`,
+    `<button class="btn" onclick='copiarEndereco(${JSON.stringify(url)})'>Copiar endereço</button>` +
+    `<button class="btn sec min" onclick='gravarAgora(${JSON.stringify(code)}, ${JSON.stringify(url)}, ${regravacao})'>Tentar gravar pelo Chrome</button>` +
     `<button class="btn sec min" onclick="voltarALer()">Cancelar</button>`);
+}
+
+async function copiarEndereco(url) {
+  try {
+    await navigator.clipboard.writeText(url);
+    $("toast").innerHTML = "<b>Endereço copiado.</b> Grave com o seu app e volte aqui pra encostar o cartão.";
+  } catch {
+    $("toast").textContent = "Não consegui copiar sozinho — segure o dedo sobre o endereço acima e copie.";
+  }
+}
+
+// Chip encostado enquanto esperamos a conferência.
+function conferirChip(ev, erroLeitura) {
+  const c = aConferir;
+  if (!c) return;
+  if (erroLeitura) {
+    diario("conferência: chip sem formatação");
+    $("toast").innerHTML = "<b>Este chip ainda está vazio.</b> Grave com o seu app e encoste de novo.";
+    return;
+  }
+  const rec = ev.message.records.find((r) => r.recordType === "url" || r.recordType === "absolute-url" || r.recordType === "text");
+  let conteudo = "";
+  if (rec) { try { conteudo = new TextDecoder().decode(rec.data); } catch {} }
+  diario(`conferência: chip contém ${conteudo || "(vazio)"}`);
+  if (!conteudo) {
+    $("toast").innerHTML = "<b>Este chip ainda está vazio.</b> Grave com o seu app e encoste de novo.";
+    return;
+  }
+  const codigoNoChip = extrairCodigo(conteudo);
+  const destino = c.url.split("?")[0].toLowerCase();
+  const chipSemParam = conteudo.split("?")[0].toLowerCase().replace(/^http:/, "https:").replace("://www.", "://");
+  if (codigoNoChip !== c.code) {
+    aConferir = null;
+    fase = "resultado";
+    som("erro");
+    registrar("vermelho", c.code, "chip com outro código");
+    painel("vermelho", "CHIP E QR NÃO BATEM — separe", c.code,
+      `O QR diz <b>${esc(c.code)}</b>, mas o chip tem <b>${esc(codigoNoChip || conteudo)}</b>. O código NÃO foi carimbado.`,
+      `<button class="btn" onclick='gravar(${JSON.stringify(c.code)}, ${JSON.stringify(c.url)}, ${c.regravacao})'>Regravar e conferir de novo</button><button class="btn sec" onclick="voltarALer()">Pular</button>`);
+    return;
+  }
+  if (chipSemParam !== destino) {
+    // Código certo, endereço errado — foi exatamente o incidente de 08/06
+    // (/ativar-codigo em vez de /r/). Não carimba.
+    aConferir = null;
+    fase = "resultado";
+    som("erro");
+    registrar("amarelo", c.code, "endereço errado");
+    painel("amarelo", "Código certo, endereço ERRADO", c.code,
+      `O chip tem:<br><span style="font-size:12px;word-break:break-all">${esc(conteudo)}</span><br>Deveria ser:<br><span style="font-size:12px;word-break:break-all">${esc(c.url)}</span>`,
+      `<button class="btn" onclick='gravar(${JSON.stringify(c.code)}, ${JSON.stringify(c.url)}, ${c.regravacao})'>Regravar e conferir de novo</button><button class="btn sec" onclick="voltarALer()">Pular</button>`);
+    return;
+  }
+  aConferir = null;
+  if (c.regravacao) {
+    fase = "resultado";
+    som("ok");
+    registrar("verde", c.code, "regravado");
+    painel("verde", "Regravado e conferido", c.code, "O carimbo original foi mantido.", `<button class="btn" onclick="voltarALer(true)">Próximo cartão</button>`);
+    return;
+  }
+  carimbar(c.code, c.url);
 }
 
 // GRAVAÇÃO — duas tentativas combinadas, e um diário visível.
@@ -475,6 +558,7 @@ function diario(msg) {
 }
 
 function cancelarGravacao() {
+  aConferir = null;
   const g = gravacaoPendente;
   gravacaoPendente = null;
   if (g && g.abort) { try { g.abort.abort(); } catch {} }
