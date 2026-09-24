@@ -236,6 +236,13 @@ async function ligarLeituraNfc(inicial) {
   }
 }
 
+// Se outro app (ou o próprio Android) tomar o chip, a página perde o foco por
+// um instante e o Chrome cancela a gravação. Registrar isso no diário é o que
+// separa "outro app roubou o chip" de "o chip recusou".
+document.addEventListener("visibilitychange", () => diario("página " + (document.hidden ? "ESCONDIDA" : "visível")));
+window.addEventListener("blur", () => diario("página perdeu o foco"));
+window.addEventListener("focus", () => diario("página ganhou o foco"));
+
 // ── Começar (precisa de um toque: permissão de câmera e de NFC) ──
 $("btnComecar").onclick = async () => {
   $("btnComecar").disabled = true;
@@ -516,9 +523,17 @@ async function tentarGravar(g, origem) {
   try {
     await ndef.write({ records: [{ recordType: "url", data: g.url }] }, { signal: ctrl.signal, overwrite: true });
   } catch (e) {
-    diario(`write #${n} falhou: ${e.name} ${e.message}`);
+    diario(`write #${n} falhou: ${e.name} ${e.message}` + (document.hasFocus() ? "" : " [página sem foco]"));
     if (g.abort === ctrl) g.emCurso = false;
-    // AbortError = nós mesmos cancelamos (refazer ou Cancelar). Não é falha.
+    if (e.name === "AbortError" && !ctrl.signal.aborted && gravacaoPendente === g && g.tentativas < 30) {
+      // Cancelado pelo SISTEMA, não por nós (1º print do diário, 24/09:
+      // "The push operation is cancelled" 2s depois de armar, sem ninguém
+      // apertar nada). A gravação continua armada: rearma e espera o chip.
+      diario("cancelado pelo sistema — rearmando");
+      setTimeout(() => tentarGravar(g, "rearme"), 400);
+      return;
+    }
+    // AbortError com o nosso sinal = nós mesmos cancelamos (refazer ou Cancelar).
     if (e.name === "AbortError" || gravacaoPendente !== g) return;
     gravacaoPendente = null;
     fase = "resultado";
