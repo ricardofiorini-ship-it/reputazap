@@ -130,6 +130,8 @@ Fluxo end-to-end funcionando:
    - Pra kit: POST `/api/billing?action=checkout-kit` cria Preference → Checkout Pro → webhook loga pagamento (kit é manualmente despachado pelo admin via painel MP)
    - Cancelar assinatura: POST `/api/billing?action=portal` cancela via API MP (sem portal nativo como Stripe tem)
 
+**Negócio com endereço oculto ("atende na região do cliente") — 25/09/2026.** Eletricista, encanador, diarista: a API ANTIGA do Places não enxerga esses negócios — o `textsearch` nunca os devolve e o `place/details` responde **NOT_FOUND** pro place_id deles, que é válido. Caso: "Elite Soluções Elétricas" (POA) não se achava no cadastro. Ponte em `api/_lib/places-area-servico.js`: o `searchbiz` roda a API nova em paralelo (`includePureServiceAreaBusinesses`) e junta só os de área de serviço; `bizinfo` e `reviews` caem na API nova quando a antiga dá NOT_FOUND. A `/avaliar` nunca dependeu disso (monta o link só com o place_id). **Não funciona pra eles, e não tem como:** ranking por grade, concorrentes e tudo que precisa de ponto no mapa. Os outros ~10 `place/details` do sistema (crons, `competitors.js`, `radar`, `m/[slug]`) seguem cegos a esse tipo de negócio.
+
 ## Sistema de Placas (códigos únicos pré-produzidos)
 
 Modelo "TrustHero adapted" — **FLUXO ÚNICO de ativação independente de canal**. Toda placa (site, ML, loja, parceiro) segue o mesmo fluxo; o canal é só metadado (`source`). Não existe caminho de código por canal.

@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { comCachePlaces, freshAutorizado, TTL } from "./_lib/places-cache.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
+import { detalhesPelaApiNova, urlFotoApiNova } from "./_lib/places-area-servico.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -35,6 +36,11 @@ export default async function handler(req, res) {
             {}, 6000
           );
           const j = await r.json();
+          // NOT_FOUND num place_id válido = negócio de área de serviço (endereço
+          // oculto), que a API antiga não enxerga. Ver _lib/places-area-servico.js.
+          if (!j.result && j.status === "NOT_FOUND") {
+            return await detalhesPelaApiNova(place_id, API_KEY);
+          }
           return j.result || null;   // sem result: não cacheia o "não achei"
         }
       }),
@@ -51,6 +57,8 @@ export default async function handler(req, res) {
     const ref = result.photos?.[0]?.photo_reference;
     if (ref) {
       photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=200&photo_reference=${encodeURIComponent(ref)}&key=${API_KEY}`;
+    } else if (result.photo_name) {
+      photoUrl = urlFotoApiNova(result.photo_name, API_KEY);
     }
 
     // Categoria: pega o primeiro tipo "específico" do Google (filtra genéricos)
@@ -68,6 +76,9 @@ export default async function handler(req, res) {
       category,
       types: result.types || [],
       plan: bizRes.data?.plan || "free",
+      // Endereço oculto no Google: sem ponto no mapa, o painel não tem como
+      // medir posição/vizinhança pra este negócio.
+      areaDeServico: !!result.area_de_servico,
       // Diagnóstico de custo: dá pra ver na resposta se veio do cache e de quando.
       cached: google.cached,
       measuredAt: google.measuredAt

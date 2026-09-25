@@ -1,6 +1,7 @@
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { comCachePlaces, freshAutorizado, TTL } from "./_lib/places-cache.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
+import { detalhesPelaApiNova } from "./_lib/places-area-servico.js";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -32,6 +33,12 @@ export default async function handler(req, res) {
           {}, 6000
         );
         const detailData = await detailRes.json();
+        // Área de serviço (endereço oculto): a API antiga dá NOT_FOUND. Ver
+        // _lib/places-area-servico.js.
+        if (!detailData.result && detailData.status === "NOT_FOUND") {
+          const novo = await detalhesPelaApiNova(place_id, API_KEY, { comAvaliacoes: true });
+          if (novo) return novo;
+        }
         if (!detailData.result) {
           console.error("[reviews] Resposta do Google sem 'result':", detailData);
           return null;   // não cacheia falha

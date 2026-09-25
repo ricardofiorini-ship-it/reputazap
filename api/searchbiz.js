@@ -1,6 +1,7 @@
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
 import { comCachePlaces, chaveDe, TTL } from "./_lib/places-cache.js";
+import { buscarAreaDeServico } from "./_lib/places-area-servico.js";
 
 // Haversine — distância em metros entre dois pontos lat/lng
 function haversine(a, b) {
@@ -94,7 +95,10 @@ export default async function handler(req, res) {
   // ultimas 24h continuaria recebendo o endereco — o conserto no ar e o bug na
   // tela ao mesmo tempo, que e o jeito mais rapido de dar o caso por resolvido
   // sem ele estar.
-  const chaveCache = `searchbiz:v2:${chaveDe(q)}|${chaveDe(nameQuery)}|${cepDigits}`;
+  // v3 em 25/09/2026: negocio de area de servico (endereco oculto) passou a
+  // aparecer. Sem virar a versao, quem ja buscou o nome nas ultimas 24h seguiria
+  // recebendo a lista sem ele.
+  const chaveCache = `searchbiz:v3:${chaveDe(q)}|${chaveDe(nameQuery)}|${cepDigits}`;
 
   try {
     const { data } = await comCachePlaces({
@@ -126,7 +130,17 @@ async function buscar({ q, nameQuery, cepDigits, API_KEY }) {
   let tsUrl =
     `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&language=pt-BR&region=br&key=${API_KEY}`;
   if (origin) tsUrl += `&location=${origin.lat},${origin.lng}&radius=25000`;
-  const textRes = await fetchWithTimeout(tsUrl, {}, 8000);
+  //    Em paralelo, a API nova so pelos negocios de AREA DE SERVICO (endereco
+  //    oculto — eletricista, encanador...), que o textsearch antigo nunca
+  //    devolve. Ver _lib/places-area-servico.js. Falha dela nao derruba a busca,
+  //    mas grita: foi calada que essa lacuna ficou meses sem ninguem ver.
+  const [textRes, areaServico] = await Promise.all([
+    fetchWithTimeout(tsUrl, {}, 8000),
+    buscarAreaDeServico(q, API_KEY).catch((e) => {
+      console.warn("[searchbiz] busca de area de servico (API nova) falhou:", e.message);
+      return [];
+    })
+  ]);
   const tData = await textRes.json();
   let raw = tData.results || [];
 
@@ -154,6 +168,17 @@ async function buscar({ q, nameQuery, cepDigits, API_KEY }) {
     console.warn(`[searchbiz] ${antes - raw.length} resultado(s) descartado(s) por nao ser estabelecimento (q="${q}")`);
   }
 
+  // 3c. Junta os de area de servico. Nao passam pela trava de Brasil (nao tem
+  //     ponto no mapa; o regionCode BR ja restringe) e so entram se o NOME bate
+  //     ao menos pela metade — a API nova completa a lista com qualquer
+  //     eletricista da cidade, e isso seria ruido no autocomplete.
+  const jaTem = new Set(raw.map((p) => p.place_id));
+  for (const p of areaServico) {
+    if (jaTem.has(p.place_id)) continue;
+    if (nameMatch(p.name, nameQuery).coverage < 0.5) continue;
+    raw.push(p);
+  }
+
   if (!raw.length) return null;   // nada achado: nao grava no cache
 
   // 4. Com CEP valido, descarta o que esta ABSURDAMENTE longe (> 150km). Um
@@ -166,7 +191,8 @@ async function buscar({ q, nameQuery, cepDigits, API_KEY }) {
     return { p, _cov: nm.coverage, _extra: nm.extra, _dist: origin ? haversine(origin, p.geometry?.location) : null };
   });
   if (origin) {
-    const near = scored.filter((s) => s._dist <= MAX_DIST_M);
+    // Area de servico nao tem ponto: nao da pra dizer que esta longe, entao fica.
+    const near = scored.filter((s) => s._dist <= MAX_DIST_M || s.p.area_de_servico);
     if (near.length) scored = near;
   }
 
@@ -184,7 +210,7 @@ async function buscar({ q, nameQuery, cepDigits, API_KEY }) {
   const results = scored.slice(0, limit).map(({ p, _dist }) => ({
     place_id: p.place_id,
     name: p.name,
-    address: p.formatted_address || p.vicinity || "",
+    address: p.formatted_address || p.vicinity || (p.area_de_servico ? "Atende na região do cliente" : ""),
     rating: p.rating || 0,
     total: p.user_ratings_total || 0,
     ...(typeof _dist === "number" && isFinite(_dist)
