@@ -9,11 +9,14 @@
 <script src="/consent.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Dispositivos NFC para avaliações no Google | StarTouch</title>
-<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="/startouch-vars.css"/>
+<meta name="theme-color" content="#1A73E8"/>
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin/>
+<link rel="preload" as="style" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
+<noscript><link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap"/></noscript>
+<link rel="preload" as="image" href="/img/kit/cartao-2-800.webp" fetchpriority="high"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <link rel="apple-touch-icon" href="/startouch-logo.png"/>
-<meta name="description" content="Dispositivos NFC para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Escolha seus dispositivos — frete grátis acima de R$ 149."/>
+<meta name="description" content="Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 12 meses de garantia, frete grátis acima de R$ 149."/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="StarTouch"/>
 <meta property="og:locale" content="pt_BR"/>
@@ -26,181 +29,207 @@
 <meta name="twitter:title" content="Dispositivos NFC para mais avaliações no Google"/>
 <meta name="twitter:description" content="Escolha os produtos NFC para coletar mais avaliações no Google."/>
 <meta name="twitter:image" content="https://startouch.com.br/og-image.png"/>
+<!-- LOJA REDESENHADA EM 27/09/2026 (direcao de design do Ricardo, mock de
+     referencia). Regra que veio junto e vale pra sempre aqui: NADA de numero
+     inventado. O mock trazia "10.000 negocios", notas 4,9 (2.341) e
+     depoimentos com nome -- nada disso existe como dado nosso, entao nada
+     disso entrou. Prova social volta quando houver fonte real. -->
 <style>
+  :root{
+    --azul:#1A73E8; --azul-esc:#1557B0; --azul-soft:#E8F0FE;
+    --tinta:#0f172a; --texto:#334155; --mudo:#64748b; --borda:#e5e7eb; --fundo:#f8fafc;
+  }
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:#f9fafb radial-gradient(circle at 50% 0%, rgba(0,196,154,0.06), transparent 35%) no-repeat;font-family:'Inter','General Sans',sans-serif;color:#0f172a;min-height:100vh;padding:32px 20px 140px;}
-  @media(min-width:880px){body{padding:40px 32px 60px;}}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+  html{-webkit-text-size-adjust:100%;}
+  body{background:#fff;font-family:'General Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--tinta);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  a{color:var(--azul);}
+  img{display:block;max-width:100%;}
+  button{font-family:inherit;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .pop{animation:pop .25s ease;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 16px;}
+  @media(min-width:768px){.wrap{padding:0 24px;}}
 
-  .logo{display:flex;align-items:center;justify-content:center;margin-bottom:32px;text-decoration:none;}
-  .logo img{display:block;height:72px;width:auto;}
-  @media(min-width:768px){.logo img{height:81px;}}
+  /* Header */
+  .hdr{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--borda);}
+  .hdr-in{display:flex;align-items:center;justify-content:space-between;height:60px;gap:12px;}
+  .hdr-logo img{height:30px;width:auto;}
+  .hdr-acts{display:flex;align-items:center;gap:6px;}
+  .hdr-link{font-size:14px;font-weight:600;color:var(--texto);text-decoration:none;padding:8px 10px;border-radius:10px;}
+  .hdr-link:hover{background:var(--fundo);}
+  .cart-btn{position:relative;width:44px;height:44px;border:none;background:transparent;border-radius:12px;cursor:pointer;color:var(--tinta);display:flex;align-items:center;justify-content:center;}
+  .cart-btn:hover{background:var(--fundo);}
+  .cart-count{position:absolute;top:4px;right:2px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:var(--azul);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .cart-count[hidden]{display:none;}
 
-  .kit-wrap{max-width:1100px;margin:0 auto;animation:fadeUp 0.4s ease;}
+  /* Faixa de confianca curta */
+  .strip{border-bottom:1px solid var(--borda);background:#fff;}
+  .strip-in{display:flex;gap:22px;overflow-x:auto;scrollbar-width:none;padding:11px 0;}
+  .strip-in::-webkit-scrollbar{display:none;}
+  .strip-it{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--texto);white-space:nowrap;flex-shrink:0;}
+  .strip-it svg{color:var(--azul);flex-shrink:0;}
+  @media(min-width:900px){.strip-in{justify-content:space-between;}}
 
-  .kit-head{text-align:center;margin-bottom:36px;}
-  .kit-head h1{font-family:'Inter','General Sans',sans-serif;font-size:clamp(26px,4.5vw,38px);font-weight:700;line-height:1.15;letter-spacing:-0.02em;margin-bottom:10px;color:#0f172a;}
-  .kit-head .kit-sub{font-size:16px;color:#6b7280;line-height:1.55;max-width:560px;margin:0 auto 18px;}
-  .kit-head .kit-sub strong{color:#0f172a;font-weight:600;}
-  .kit-info{display:inline-flex;gap:18px;flex-wrap:wrap;justify-content:center;font-size:13px;color:#475569;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:8px 18px;}
-  .kit-info span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
-  @media(max-width:520px){.kit-info{border-radius:14px;padding:12px 16px;flex-direction:column;gap:8px;align-items:flex-start;}}
+  /* Titulo */
+  .intro{padding:26px 0 18px;}
+  .intro h1{font-size:clamp(26px,5vw,36px);font-weight:700;letter-spacing:-.02em;line-height:1.12;}
+  .intro p{font-size:15.5px;color:var(--mudo);margin-top:6px;}
 
-  .kit-layout{display:grid;grid-template-columns:1fr;gap:24px;}
-  @media(min-width:960px){.kit-layout{grid-template-columns:1fr 340px;gap:32px;align-items:flex-start;}}
-
-  .products-grid{display:grid;grid-template-columns:1fr;gap:16px;}
-  @media(min-width:560px){.products-grid{grid-template-columns:1fr 1fr;}}
-
-  .product-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:18px;padding:18px;display:flex;flex-direction:column;transition:border-color .15s,transform .15s,box-shadow .15s;}
-  .product-card.selected{border-color:#1A73E8;box-shadow:0 8px 24px -8px rgba(0,196,154,0.25);}
-  .product-image{position:relative;background:linear-gradient(135deg,#f5f7f9,#eef2f6);border-radius:14px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:16px;margin-bottom:14px;overflow:hidden;}
-  .product-image img{max-width:100%;max-height:100%;object-fit:contain;display:block;filter:drop-shadow(0 4px 12px rgba(60,64,67,0.12));}
-  /* Produto menor aparece menor. A classe `small` ja era escrita no HTML e
-     nao tinha regra nenhuma no CSS: a placa de 10x15 e a de 21x15 saiam do
-     mesmo tamanho, na tela em que a diferenca entre as duas E a decisao. */
-  .product-image.small img{max-width:68%;max-height:68%;}
-  /* O tamanho, na foto, onde o olho bate primeiro. Sem isto, a unica pista
-     ficava perdida no meio da lista de especificacoes. */
-  .product-size{
-    position:absolute;top:10px;left:10px;z-index:2;
-    background:rgba(15,23,42,.82);color:#fff;
-    font-size:11px;font-weight:700;letter-spacing:.02em;
-    padding:4px 9px;border-radius:999px;
-    backdrop-filter:saturate(140%) blur(2px);
+  /* Card principal (Cartao) */
+  .hero-card{display:grid;grid-template-columns:1fr;gap:18px;border:1.5px solid #cfe0fb;border-radius:22px;padding:14px;background:#fff;box-shadow:0 10px 30px -18px rgba(26,115,232,.45);animation:fadeUp .35s ease;}
+  @media(min-width:820px){.hero-card{grid-template-columns:1.05fr 1fr;gap:34px;padding:18px 30px 18px 18px;align-items:center;}}
+  /* min-width:0 nos filhos do grid: sem isso a fileira de miniaturas impoe a
+     propria largura (6 x 58px) e empurra o card pra fora da tela no celular.
+     Achado em 27/09 num iPhone de 375px -- a 500px nao aparecia. */
+  .hero-card>*,.card>*,.grid>*{min-width:0;}
+  .gal{position:relative;}
+  .gal-main{position:relative;background:#f1f5f9;border-radius:16px;aspect-ratio:1/1;overflow:hidden;}
+  .gal-main img{width:100%;height:100%;object-fit:cover;}
+  .badge{position:absolute;top:12px;left:12px;z-index:2;display:inline-flex;align-items:center;gap:6px;background:var(--azul);color:#fff;font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px;box-shadow:0 4px 12px -2px rgba(26,115,232,.5);}
+  .size-tag{position:absolute;bottom:12px;left:12px;z-index:2;background:rgba(15,23,42,.78);color:#fff;font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:999px;}
+  /* Setas + contador: a pessoa precisa VER que a foto muda. Tambem desliza com o dedo. */
+  .gal-seta{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.94);color:var(--tinta);box-shadow:0 2px 10px rgba(15,23,42,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .gal-seta:hover{background:#fff;}
+  .gal-seta.esq{left:8px;} .gal-seta.dir{right:8px;}
+  .gal-cont{position:absolute;bottom:12px;right:12px;z-index:2;background:rgba(15,23,42,.72);color:#fff;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;}
+  .card-img .gal-seta{width:30px;height:30px;}
+  .card-img .gal-seta.esq{left:5px;} .card-img .gal-seta.dir{right:5px;}
+  .card-img .gal-cont{bottom:8px;right:8px;font-size:10.5px;padding:2px 7px;}
+  /* Celular: setas menores e mais transparentes -- na foto pequena da placa
+     (118px) as de 30px cobriam o produto. */
+  @media(max-width:759px){
+    .gal-seta{width:28px;height:28px;background:rgba(255,255,255,.82);}
+    .gal-seta svg{width:14px;height:14px;}
+    .gal-seta.esq{left:6px;} .gal-seta.dir{right:6px;}
+    .card-img .gal-seta{width:20px;height:20px;}
+    .card-img .gal-seta svg{width:11px;height:11px;}
+    .card-img .gal-seta.esq{left:3px;} .card-img .gal-seta.dir{right:3px;}
+    .card-img .gal-cont{font-size:9.5px;padding:1px 6px;bottom:5px;right:5px;}
   }
-  .product-badge-soldout{
-    position:absolute;top:14px;right:14px;
-    background:#0f172a;color:#fff;
-    font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;
-    padding:6px 12px;border-radius:6px;
-    box-shadow:0 4px 14px -2px rgba(15,23,42,0.40);
-    transform:rotate(4deg);
-    z-index:2;
-  }
-  .product-card.sold-out{opacity:0.78;}
-  .product-card.sold-out .product-image{position:relative;}
-  .product-card.sold-out .product-image img{filter:grayscale(0.35) drop-shadow(0 4px 12px rgba(60,64,67,0.10));}
-  .product-card.sold-out:hover{transform:none;border-color:#e5e7eb;box-shadow:none;}
-  .product-card.sold-out .product-price{color:#94a3b8;}
-  .product-name{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:4px;}
-  .product-desc{font-size:13px;color:#6b7280;line-height:1.5;margin-bottom:12px;}
-  /* Miniaturas estilo e-commerce (clicar troca a foto principal) */
-  .product-thumbs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;}
-  .product-thumb{width:44px;height:44px;border-radius:8px;overflow:hidden;padding:0;cursor:pointer;border:1.5px solid #e5e7eb;background:#fff;transition:border-color .15s;}
-  .product-thumb.is-active,.product-thumb:hover{border-color:#1A73E8;}
-  .product-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-  /* Especificações técnicas (checklist) */
-  .product-specs{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:7px;}
-  .product-specs li{font-size:12.5px;color:#475569;display:flex;gap:8px;align-items:flex-start;line-height:1.45;}
-  .product-specs li .ps-check{color:#10B981;font-weight:800;flex-shrink:0;}
-  .product-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;}
-  .product-price{font-size:18px;font-weight:700;color:#0f172a;letter-spacing:-0.01em;}
-  .product-price small{display:block;font-size:11px;color:#9ca3af;font-weight:500;letter-spacing:0;margin-top:1px;}
+  .thumbs.sm{margin-top:0;gap:6px;}
+  .thumbs.sm .thumb{width:44px;height:44px;border-radius:8px;}
+  .card .thumbs{grid-column:1/-1;grid-row:2;}
+  @media(min-width:760px){.card .thumbs{grid-column:auto;grid-row:auto;}}
+  .gal-main,.card-img{touch-action:pan-y;user-select:none;}
+  .hc-list li.forte{font-weight:600;color:var(--tinta);}
+  .hc-list li.forte svg{color:#137333;}
+  .card-perk{font-size:12px;color:#137333;font-weight:600;margin:-4px 0 10px;}
+  .thumbs{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+  .thumbs::-webkit-scrollbar{display:none;}
+  .thumb{width:58px;height:58px;flex-shrink:0;border-radius:10px;overflow:hidden;border:2px solid transparent;background:#f1f5f9;cursor:pointer;padding:0;}
+  .thumb img{width:100%;height:100%;object-fit:cover;}
+  .thumb.on{border-color:var(--azul);}
+  .hc-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .badge.badge-in{position:static;box-shadow:none;}
+  .hc-kicker{display:inline-block;font-size:12px;font-weight:600;color:var(--azul);background:var(--azul-soft);padding:4px 10px;border-radius:999px;}
+  .hc-name{font-size:clamp(22px,4vw,30px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin:10px 0 8px;}
+  .hc-desc{font-size:15.5px;color:var(--texto);line-height:1.55;}
+  .hc-price{font-size:34px;font-weight:700;letter-spacing:-.02em;margin:16px 0 2px;}
+  .hc-price small{font-size:14px;font-weight:500;color:var(--mudo);letter-spacing:0;}
+  .hc-list{list-style:none;margin:14px 0 18px;display:flex;flex-direction:column;gap:9px;}
+  .hc-list li{display:flex;gap:10px;align-items:center;font-size:14.5px;color:var(--texto);}
+  .hc-list svg{color:var(--azul);flex-shrink:0;}
+  .btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;border:none;border-radius:12px;font-weight:700;cursor:pointer;text-decoration:none;transition:background .15s,transform .1s;}
+  .btn-pri{background:var(--azul);color:#fff;font-size:16.5px;padding:15px 18px;}
+  .btn-pri:hover{background:var(--azul-esc);}
+  .btn-pri:active{transform:scale(.99);}
+  .btn-sm{font-size:14.5px;padding:11px 14px;}
+  .btn-sec{background:var(--azul-soft);color:var(--azul);}
+  .btn-sec:hover{background:#dbe7fd;}
+  .hc-note{font-size:12.5px;color:var(--mudo);text-align:center;margin-top:10px;}
 
-  .qty{display:inline-flex;align-items:center;background:#f5f7f9;border:1px solid #e5e7eb;border-radius:999px;padding:3px;}
-  .qty-btn{width:30px;height:30px;border:none;background:transparent;color:#0f172a;font-size:18px;font-weight:700;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s;padding:0;line-height:1;}
-  .qty-btn:hover:not(:disabled){background:#fff;}
-  .qty-btn:disabled{opacity:.35;cursor:not-allowed;}
-  .qty-val{min-width:28px;text-align:center;font-size:14px;font-weight:700;color:#0f172a;}
+  /* Demais produtos */
+  .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px;}
+  @media(min-width:760px){.grid{grid-template-columns:repeat(3,1fr);gap:16px;}}
+  .card{display:grid;grid-template-columns:118px 1fr;gap:14px;border:1px solid var(--borda);border-radius:18px;padding:12px;background:#fff;}
+  @media(min-width:760px){.card{grid-template-columns:1fr;gap:12px;padding:12px 12px 16px;}}
+  .card-img{position:relative;background:#f1f5f9;border-radius:12px;overflow:hidden;aspect-ratio:1/1;align-self:start;}
+  .card-img img{width:100%;height:100%;object-fit:cover;}
+  .card-img .size-tag{bottom:8px;left:8px;font-size:10.5px;padding:3px 8px;}
+  .card-tag{display:inline-block;font-size:11.5px;font-weight:600;color:var(--mudo);background:var(--fundo);border:1px solid var(--borda);padding:2px 9px;border-radius:999px;}
+  .card-name{font-size:17px;font-weight:700;margin:6px 0 3px;letter-spacing:-.01em;}
+  .card-desc{font-size:13.5px;color:var(--mudo);line-height:1.45;}
+  .card-price{font-size:22px;font-weight:700;margin:10px 0 10px;letter-spacing:-.01em;}
+  .card-body{display:flex;flex-direction:column;min-width:0;}
+  .card-body .btn{margin-top:auto;}
+  .card.esgotado .card-img img{filter:grayscale(.5);opacity:.75;}
+  .card.esgotado .card-price{color:var(--mudo);font-size:17px;}
 
-  .cart-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:18px;padding:22px;box-shadow:0 8px 24px -12px rgba(15,23,42,0.08);}
-  @media(min-width:960px){.cart-card{position:sticky;top:24px;}}
-  .cart-title{font-size:14px;font-weight:700;color:#0f172a;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;}
-  .cart-lines{margin-bottom:14px;min-height:60px;}
-  .cart-empty{font-size:13px;color:#9ca3af;text-align:center;padding:18px 0;}
-  .cart-line{display:flex;justify-content:space-between;align-items:flex-start;font-size:14px;padding:10px 0;border-bottom:1px solid #f1f5f9;gap:10px;}
-  .cart-line:last-child{border-bottom:none;}
-  .cart-line-name{color:#334155;font-weight:500;flex:1;line-height:1.4;}
-  .cart-line-qty{color:#94a3b8;font-size:12px;display:block;margin-top:2px;}
-  .cart-line-amount{color:#0f172a;font-weight:600;white-space:nowrap;}
-  .cart-divider{height:1px;background:#e5e7eb;margin:6px 0 14px;}
-  .cart-summary{display:flex;justify-content:space-between;font-size:13px;color:#6b7280;margin-bottom:6px;}
-  .cart-total{display:flex;justify-content:space-between;align-items:center;font-size:18px;color:#0f172a;margin-bottom:16px;}
-  .cart-total strong{font-size:22px;font-weight:700;letter-spacing:-0.01em;}
-  .btn-checkout{width:100%;padding:14px;background:#1A73E8;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'Inter','General Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,transform .1s;}
-  .btn-checkout:hover:not(:disabled){background:#174EA6;transform:translateY(-1px);}
-  .btn-checkout:disabled{opacity:.45;cursor:not-allowed;transform:none;}
-  .cart-secure{text-align:center;font-size:11.5px;color:#94a3b8;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:5px;}
+  /* Barra de confianca */
+  .trust{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--borda);border:1px solid var(--borda);border-radius:16px;overflow:hidden;margin:22px 0 0;}
+  @media(min-width:760px){.trust{grid-template-columns:repeat(4,1fr);}}
+  .trust-it{background:var(--fundo);display:flex;align-items:center;gap:11px;padding:15px 14px;font-size:13.5px;color:var(--texto);line-height:1.3;}
+  .trust-it svg{color:var(--azul);flex-shrink:0;}
+  .trust-it strong{display:block;color:var(--tinta);font-weight:600;}
 
-  /* Guia de escolha. Fica ANTES dos cards de proposito: a duvida vem antes
-     da vitrine, e depois que a pessoa ja esta comparando preco e tarde. */
-  .guia{
-    background:#fff;border:1px solid #e8ecf1;border-radius:16px;
-    padding:20px;margin-bottom:22px;
-  }
-  .guia-titulo{
-    font-family:'Inter','General Sans',sans-serif;
-    font-size:15px;font-weight:700;color:#0f172a;
-    margin:0 0 14px;letter-spacing:-0.01em;
-  }
-  .guia-grid{display:grid;grid-template-columns:1fr;gap:14px;}
-  .guia-item p{font-size:13.5px;color:#475569;line-height:1.55;margin:5px 0 0;}
-  .guia-item strong{color:#0f172a;font-weight:600;}
-  .guia-tag{
-    display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.02em;
-    color:#1e40af;background:#eff6ff;border-radius:999px;padding:3px 10px;
-  }
-  .guia-dica{
-    font-size:13px;color:#475569;line-height:1.6;
-    margin:16px 0 0;padding-top:14px;border-top:1px solid #eef2f6;
-  }
-  .guia-dica strong{color:#0f172a;font-weight:600;}
-  @media(min-width:760px){
-    .guia{padding:24px 26px;}
-    .guia-grid{grid-template-columns:repeat(3,1fr);gap:22px;}
-  }
+  /* Marketplaces */
+  .mkt{margin:34px 0 0;}
+  .mkt h2{font-size:19px;font-weight:700;letter-spacing:-.01em;}
+  .mkt p{font-size:13.5px;color:var(--mudo);margin:4px 0 12px;}
+  .mkt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  @media(min-width:760px){.mkt-grid{grid-template-columns:repeat(4,1fr);}}
+  .mkt-a{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--borda);border-radius:12px;padding:13px 10px;font-size:14px;font-weight:600;color:var(--texto);text-decoration:none;background:#fff;}
+  .mkt-a:hover{border-color:var(--azul);color:var(--azul);}
+  .mkt-a svg{color:var(--mudo);}
 
-  /* Trust signals (entre cards e barra mobile/footer) */
-  .trust-signals{
-    margin-top:40px;
-    background:#F5F7F9;
-    border:1px solid #e5e7eb;
-    border-radius:18px;
-    padding:32px 24px;
-    display:grid;
-    grid-template-columns:repeat(2, 1fr);
-    gap:24px 16px;
-  }
-  @media(min-width:768px){
-    .trust-signals{grid-template-columns:repeat(4, 1fr);padding:32px;gap:20px;}
-  }
-  .trust-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;}
-  .trust-icon{font-size:28px;line-height:1;}
-  .trust-label{font-size:13px;font-weight:600;color:#334155;line-height:1.4;max-width:160px;}
+  .revenda{font-size:13.5px;color:var(--mudo);text-align:center;margin:30px 0 0;}
+  .revenda a{font-weight:600;}
+  .foot{margin:34px 0 0;padding:22px 0 120px;border-top:1px solid var(--borda);text-align:center;font-size:12px;color:var(--mudo);line-height:1.7;}
+  .foot a{color:var(--mudo);}
 
-  .mkt{max-width:760px;margin:28px auto 0;padding:22px 20px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;text-align:center;}
-  .mkt-title{font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;}
-  .mkt-sub{font-size:13px;color:#64748b;margin:0 0 14px;line-height:1.5;}
-  .mkt-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
-  .mkt-pill{display:inline-block;padding:9px 16px;border:1px solid #d1d5db;border-radius:999px;font-size:13.5px;font-weight:600;color:#334155;text-decoration:none;background:#fff;}
-  .mkt-pill:hover{border-color:#1A73E8;color:#1A73E8;}
-
-  /* Sticky bottom bar (mobile) */
-  .cart-mobile{display:none;}
-  @media(max-width:959px){
-    .cart-card{display:none;}
-    .cart-mobile{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e7eb;padding:14px 18px;box-shadow:0 -8px 24px -8px rgba(15,23,42,0.10);z-index:50;gap:14px;align-items:center;}
-    .cart-mobile-info{flex:1;min-width:0;}
-    .cart-mobile-label{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.06em;}
-    .cart-mobile-total{font-size:20px;font-weight:700;color:#0f172a;letter-spacing:-0.01em;}
-    .cart-mobile-items{font-size:12px;color:#6b7280;}
-    .btn-checkout-mobile{padding:13px 20px;background:#1A73E8;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:'Inter','General Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;}
-    .btn-checkout-mobile:disabled{opacity:.45;cursor:not-allowed;background:#94a3b8;}
-  }
-
-  .pop{animation:pop 0.25s ease;}
-
-  /* Aviso "volte pra ativar" */
-  .activate-note{margin-top:12px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:12px 14px;font-size:12.5px;color:#1e3a5f;line-height:1.5;display:flex;gap:8px;align-items:flex-start;}
-  .activate-note strong{font-weight:700;}
-
-  /* Banner de sucesso pós-pagamento */
-  .success-banner{max-width:1100px;margin:0 auto 22px;background:#ECFDF5;border:1.5px solid #A7F3D0;border-radius:16px;padding:20px 22px;display:flex;gap:14px;align-items:flex-start;}
+  /* Banner pos-pagamento */
+  .success-banner{margin:16px 0 0;background:#ECFDF5;border:1.5px solid #A7F3D0;border-radius:16px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start;}
   .success-banner .sb-icon{font-size:26px;line-height:1;}
   .success-banner h2{font-size:17px;font-weight:700;color:#065F46;margin-bottom:4px;}
   .success-banner p{font-size:13.5px;color:#047857;line-height:1.55;}
+  #successBanner.aguardando{background:#FFF8E1;border-color:#FDE68A;color:#7A5A00;}
+  #successBanner.aguardando .sb-icon::after{content:"⏳";}
+  #successBanner.aguardando .sb-icon{font-size:0;}
+
+  /* Carrinho (gaveta): so existe quando alguem compra */
+  .drawer-bg{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .2s;}
+  .drawer{position:fixed;z-index:160;background:#fff;display:flex;flex-direction:column;transition:transform .25s ease;
+          left:0;right:0;bottom:0;max-height:88vh;border-radius:20px 20px 0 0;transform:translateY(105%);box-shadow:0 -12px 40px rgba(15,23,42,.18);}
+  @media(min-width:760px){.drawer{left:auto;top:0;bottom:0;width:400px;max-height:none;border-radius:0;transform:translateX(105%);}}
+  body.drawer-open .drawer-bg{opacity:1;pointer-events:auto;}
+  body.drawer-open .drawer{transform:none;}
+  .dr-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;border-bottom:1px solid var(--borda);}
+  .dr-head h2{font-size:18px;font-weight:700;}
+  .dr-x{width:36px;height:36px;border:none;border-radius:50%;background:var(--fundo);font-size:20px;color:var(--texto);cursor:pointer;}
+  .dr-lines{flex:1;overflow-y:auto;padding:6px 20px;}
+  .dr-line{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #f1f5f9;}
+  .dr-line img{width:56px;height:56px;border-radius:10px;object-fit:cover;background:#f1f5f9;}
+  .dr-nm{font-size:14.5px;font-weight:600;line-height:1.3;}
+  .dr-un{font-size:12.5px;color:var(--mudo);margin-top:2px;}
+  .dr-amt{font-size:14.5px;font-weight:700;text-align:right;}
+  .qty{display:inline-flex;align-items:center;border:1px solid var(--borda);border-radius:999px;margin-top:7px;}
+  .qty button{width:30px;height:30px;border:none;background:transparent;font-size:17px;font-weight:700;cursor:pointer;color:var(--tinta);border-radius:50%;}
+  .qty button:hover{background:var(--fundo);}
+  .qty span{min-width:24px;text-align:center;font-size:14px;font-weight:700;}
+  .dr-empty{font-size:14px;color:var(--mudo);text-align:center;padding:36px 0;}
+  .dr-foot{padding:14px 20px calc(16px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--borda);}
+  .dr-frete{font-size:13px;color:var(--mudo);margin-bottom:10px;}
+  .dr-frete.ok{color:#137333;font-weight:600;}
+  .dr-bar{height:5px;border-radius:999px;background:#eef2f6;margin:6px 0 0;overflow:hidden;}
+  .dr-bar i{display:block;height:100%;background:var(--azul);border-radius:999px;transition:width .3s;}
+  .dr-tot{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;margin-bottom:12px;}
+  .dr-tot strong{font-size:22px;letter-spacing:-.01em;}
+  .dr-cont{display:block;width:100%;background:none;border:none;color:var(--azul);font-weight:600;font-size:14px;padding:12px 0 2px;cursor:pointer;}
+  .dr-sec{font-size:11.5px;color:var(--mudo);text-align:center;margin-top:6px;}
+
+  /* Barra fixa no celular */
+  .sticky{position:fixed;left:0;right:0;bottom:0;z-index:70;background:#fff;border-top:1px solid var(--borda);box-shadow:0 -8px 24px -10px rgba(15,23,42,.15);
+          display:flex;align-items:center;gap:12px;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));transform:translateY(110%);transition:transform .25s ease;}
+  .sticky.on{transform:none;}
+  .sticky img{width:46px;height:46px;border-radius:10px;object-fit:cover;background:#f1f5f9;flex-shrink:0;}
+  .st-info{flex:1;min-width:0;}
+  .st-nm{font-size:13px;color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .st-pr{font-size:18px;font-weight:700;letter-spacing:-.01em;}
+  .sticky .btn{width:auto;flex-shrink:0;padding:12px 16px;font-size:14.5px;}
+  @media(min-width:900px){.sticky{display:none;}}
+  body.sticky-on #st-wa-fab{bottom:calc(82px + env(safe-area-inset-bottom,0px)) !important;}
+  body.drawer-open #st-wa-fab, body.modal-open #st-wa-fab{display:none !important;}
 
   /* Modal de checkout guest */
   .checkout-modal{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(15,23,42,0.55);backdrop-filter:blur(2px);padding:0;}
@@ -244,127 +273,167 @@
 </head>
 <body>
 
-<div style="max-width:1100px;margin:0 auto 10px;">
-  <a href="/app" onclick="event.preventDefault(); if (window.history.length > 1) { history.back(); } else { window.location.href='/app'; }"
-     style="display:inline-flex;align-items:center;gap:7px;color:#1A73E8;font-weight:600;font-size:14px;text-decoration:none;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:9px 16px;">
-    ← Voltar ao Painel
-  </a>
-</div>
+<header class="hdr">
+  <div class="wrap hdr-in">
+    <a class="hdr-logo" href="/" aria-label="StarTouch — início"><img src="/img/startouch-logo-dark-280.webp" alt="StarTouch" width="84" height="30"/></a>
+    <div class="hdr-acts">
+      <a class="hdr-link" id="hdrPainel" href="/app" hidden>Meu painel</a>
+      <button class="cart-btn" id="cartBtn" type="button" aria-label="Abrir carrinho">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.6l2.4 11.2a1.8 1.8 0 0 0 1.8 1.4h8.4a1.8 1.8 0 0 0 1.8-1.4L21 7H6"/></svg>
+        <span class="cart-count" id="cartCount" hidden>0</span>
+      </button>
+    </div>
+  </div>
+</header>
 
-<a class="logo" href="/landing" aria-label="StarTouch — voltar pro início">
-  <img src="/startouch-logo-dark.png" alt="StarTouch"/>
-</a>
-
-<style>
-  /* Boleto emitido nao e venda fechada: o banner perde o verde e o ✅ vira
-     relogio. Cor de sucesso num pedido nao pago e a mesma mentira do texto. */
-  #successBanner.aguardando { background: #FFF8E1; border-color: #FDE68A; color: #7A5A00; }
-  #successBanner.aguardando .sb-icon::after { content: "⏳"; }
-  #successBanner.aguardando .sb-icon { font-size: 0; }
-</style>
-<div class="success-banner" id="successBanner" style="display:none;">
-  <span class="sb-icon" aria-hidden="true">✅</span>
-  <div>
-    <h2 id="sbTitulo">Pedido registrado</h2>
-    <p id="sbTexto">Estamos confirmando o pagamento. Você recebe um e-mail assim que der tudo certo.</p>
+<div class="strip">
+  <div class="wrap strip-in">
+    <span class="strip-it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>Pagamento seguro via Stripe</span>
+    <span class="strip-it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>Entrega para todo o Brasil</span>
+    <span class="strip-it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>Funciona em iPhone e Android</span>
+    <span class="strip-it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Suporte humano em português</span>
   </div>
 </div>
 
-<div class="kit-wrap">
-  <header class="kit-head">
-    <h1>Escolha onde o cliente vai avaliar</h1>
-    <p class="kit-sub">Cada dispositivo é um lugar a mais onde alguém pode avaliar <strong id="bizName">seu negócio</strong> no Google em segundos, sem instalar nada.</p>
-    <div class="kit-info">
-      <span>🚚 Frete grátis acima de R$ 149</span>
-      <span>⭐ Painel StarTouch incluso e vitalício</span>
-    </div>
-  </header>
+<main class="wrap">
 
-  <section class="guia" aria-label="Qual escolher">
-    <h2 class="guia-titulo">Qual escolher?</h2>
-    <div class="guia-grid">
-      <div class="guia-item">
-        <span class="guia-tag">Placa G · 21 × 15 cm</span>
-        <p>Para o <strong>balcão, a recepção, o caixa</strong> — onde o cliente já para e espera. É a maior, lê de longe e ninguém precisa pegar na mão.</p>
-      </div>
-      <div class="guia-item">
-        <span class="guia-tag">Placa M · 10 × 15 cm</span>
-        <p>A mesma placa em <strong>mesas, bancadas e cantos apertados</strong>, onde a G não cabe. Mesmo alcance, menos espaço ocupado.</p>
-      </div>
-      <div class="guia-item">
-        <span class="guia-tag">Cartão · 8,5 × 5,4 cm</span>
-        <p><strong>Um para cada pessoa que atende.</strong> Vai no bolso e sai junto com o atendimento — é o único que acompanha o cliente em vez de esperar por ele.</p>
-      </div>
+  <div class="success-banner" id="successBanner" style="display:none;">
+    <span class="sb-icon" aria-hidden="true">✅</span>
+    <div>
+      <h2 id="sbTitulo">Pedido registrado</h2>
+      <p id="sbTexto">Estamos confirmando o pagamento. Você recebe um e-mail assim que der tudo certo.</p>
     </div>
-    <p class="guia-dica">Se for começar por algo: <strong>uma placa onde o cliente espera</strong> e <strong>um cartão para cada atendente</strong>. Dá pra acrescentar depois — cada dispositivo tem código próprio e entra no mesmo painel.</p>
-  </section>
-
-  <div class="kit-layout">
-    <div class="products-grid" id="productsGrid">
-      <!-- cards renderizados via JS -->
-    </div>
-
-    <aside class="cart-card" aria-label="Carrinho">
-      <div class="cart-title">Seu kit</div>
-      <div class="cart-lines" id="cartLines">
-        <p class="cart-empty">Nenhum item selecionado.<br/>Escolha os equipamentos ao lado.</p>
-      </div>
-      <div class="cart-divider"></div>
-      <div class="cart-summary"><span>Frete</span><span style="color:#1A73E8;font-weight:600">Grátis acima de R$ 149</span></div>
-      <div class="cart-total"><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div>
-      <button class="btn-checkout" id="checkoutBtn" type="button" disabled>Finalizar compra →</button>
-      <p class="cart-secure">🔒 Pagamento seguro via Stripe</p>
-      <div class="activate-note">
-        <span aria-hidden="true">📦</span>
-        <span>Assim que receber seus dispositivos, você <strong>volta aqui pra ativar</strong> — leva 2 minutos. Não precisa criar conta agora.</span>
-      </div>
-    </aside>
   </div>
 
-  <section class="trust-signals" aria-label="Garantias">
-    <div class="trust-item">
-      <span class="trust-icon">⚡</span>
-      <span class="trust-label">Entrega em 5-10 dias úteis</span>
-    </div>
-    <div class="trust-item">
-      <span class="trust-icon">🛡</span>
-      <span class="trust-label">12 meses de garantia</span>
-    </div>
-    <div class="trust-item">
-      <span class="trust-icon">📱</span>
-      <span class="trust-label">Ative em minutos</span>
-    </div>
-    <div class="trust-item">
-      <span class="trust-icon">🇧🇷</span>
-      <span class="trust-label">Suporte humano em português</span>
-    </div>
+  <section class="intro">
+    <h1>Escolha seu dispositivo</h1>
+    <p>Colete avaliações no Google de forma simples e profissional.</p>
   </section>
 
-  <!-- Marketplaces (27/09/2026): opcao SECUNDARIA, abaixo do carrinho, pra
-       quem confia mais no marketplace do que num site que acabou de conhecer.
-       O clique e contado pelo consent.js (data-saida). A venda la nao e
+  <!-- Produto principal. O Cartao e o mais vendido e o mais barato: ganha a
+       largura toda e a galeria; os outros vem abaixo, menores. -->
+  <article class="hero-card" id="heroCard">
+    <div class="gal">
+      <div class="gal-main" data-gal="cartao-2,cartao-1,cartao-3,cartao-4,cartao-5,cartao-6">
+        
+        <img id="heroImg" src="/img/kit/cartao-2-800.webp" alt="Mão segurando o Cartão NFC para Avaliação no Google da StarTouch" width="800" height="800" fetchpriority="high"/>
+      </div>
+      <div class="thumbs"></div>
+    </div>
+    <div>
+      <div class="hc-top"><span class="badge badge-in"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>Mais vendido</span><span class="hc-kicker">Cartão NFC · 8,5 × 5,4 cm</span></div>
+      <h2 class="hc-name">Cartão NFC para Avaliação no Google</h2>
+      <p class="hc-desc">Ideal para cada atendente. Prático, discreto e fácil de usar no momento certo.</p>
+      <div class="hc-price">R$ 29,90 <small>/ unidade</small></div>
+      <ul class="hc-list">
+        <li class="forte"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m5.7 5.7 12.6 12.6"/></svg>Sem mensalidade: você paga uma vez só</li>
+        <li class="forte"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Painel grátis e vitalício para acompanhar suas avaliações</li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Um para cada atendente, no bolso ou na carteira</li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Funciona com NFC e QR Code</li>
+      </ul>
+      <button class="btn btn-pri" type="button" data-comprar="cartao-nfc">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.6l2.4 11.2a1.8 1.8 0 0 0 1.8 1.4h8.4a1.8 1.8 0 0 0 1.8-1.4L21 7H6"/></svg>
+        Comprar agora
+      </button>
+      <p class="hc-note">PVC fosco premium, tamanho de cartão de crédito · <a href="/cartao-avaliacao-google-nfc">como funciona</a></p>
+    </div>
+  </article>
+
+  <div class="grid">
+    <article class="card">
+      <div class="card-img" data-gal="placa-m-2,placa-m-3,placa-m-4"><img src="/img/kit/placa-m-2-800.webp" alt="Placa de Balcão M com NFC e QR Code" width="800" height="1200" loading="lazy"/><span class="size-tag">10 × 15 cm</span></div>
+      <div class="thumbs sm"></div>
+      <div class="card-body">
+        <span class="card-tag" style="align-self:flex-start">Mesas e balcões</span>
+        <h3 class="card-name">Placa de Balcão M</h3>
+        <p class="card-desc">Compacta e elegante para mesas e balcões.</p>
+        <div class="card-price">R$ 49,90</div>
+        <p class="card-perk">Sem mensalidade · painel vitalício</p>
+        <button class="btn btn-pri btn-sm" type="button" data-comprar="placa-mesa">Comprar</button>
+      </div>
+    </article>
+    <article class="card">
+      <div class="card-img" data-gal="gadget-placa,placa-g-2,placa-g-3,placa-g-4,placa-g-5"><img src="/img/kit/gadget-placa-800.webp" alt="Placa de Balcão G com NFC e QR Code" width="800" height="1200" loading="lazy"/><span class="size-tag">21 × 15 cm</span></div>
+      <div class="thumbs sm"></div>
+      <div class="card-body">
+        <span class="card-tag" style="align-self:flex-start">Caixa e recepção</span>
+        <h3 class="card-name">Placa de Balcão G</h3>
+        <p class="card-desc">Mais visibilidade para recepção, caixa e pontos fixos.</p>
+        <div class="card-price">R$ 79,90</div>
+        <p class="card-perk">Sem mensalidade · painel vitalício</p>
+        <button class="btn btn-pri btn-sm" type="button" data-comprar="placa-balcao">Comprar</button>
+      </div>
+    </article>
+    <!-- Esgotada. "Avise-me" pelo WhatsApp, e nao por formulario: um cadastro
+         de e-mail aqui seria coleta de dado nova, que exige revisar a Politica
+         antes de ir ao ar (regra do CLAUDE.md). -->
+    <article class="card esgotado">
+      <div class="card-img"><img src="/img/kit/gadget-pulseira-800.webp" alt="Pulseira NFC StarTouch" width="768" height="375" loading="lazy" style="object-fit:contain;padding:10px"/></div>
+      <div class="card-body">
+        <span class="card-tag" style="align-self:flex-start">Equipe em movimento</span>
+        <h3 class="card-name">Pulseira NFC</h3>
+        <p class="card-desc">Ideal para atendimento em movimento.</p>
+        <div class="card-price">Esgotada</div>
+        <a class="btn btn-sec btn-sm" href="https://wa.me/5511976944026?text=Oi!%20Quero%20ser%20avisado%20quando%20a%20Pulseira%20NFC%20voltar%20ao%20estoque." target="_blank" rel="noopener">Avise-me quando chegar</a>
+      </div>
+    </article>
+  </div>
+
+  <section class="trust" aria-label="Garantias">
+    <div class="trust-it"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m5.7 5.7 12.6 12.6"/></svg><span><strong>Sem mensalidade</strong>paga uma vez só</span></div>
+    <div class="trust-it"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span><strong>Painel vitalício</strong>grátis, para sempre</span></div>
+    <div class="trust-it"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg><span><strong>12 meses</strong>de garantia</span></div>
+    <div class="trust-it"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg><span><strong>Frete grátis</strong>acima de R$ 149</span></div>
+  </section>
+
+  <!-- Marketplaces (27/09/2026): alternativa SECUNDARIA, depois da loja. O
+       clique e contado pelo consent.js (data-saida). A venda la nao e
        rastreavel pelo site -- ver CLAUDE.md, secao de marketplaces. -->
   <section class="mkt" aria-label="Comprar em marketplace">
-    <p class="mkt-title">Prefere comprar no seu marketplace de confiança?</p>
-    <p class="mkt-sub">O mesmo dispositivo, com o mesmo painel grátis. Frete, prazo e pagamento seguem as regras de cada loja.</p>
-    <div class="mkt-pills">
-      <a class="mkt-pill" href="https://www.mercadolivre.com.br/pagina/zayor" target="_blank" rel="noopener" data-saida="mercado-livre">Mercado Livre</a>
-      <a class="mkt-pill" href="https://shopee.com.br/shop/1931878123" target="_blank" rel="noopener" data-saida="shopee">Shopee</a>
-      <a class="mkt-pill" href="https://shop.tiktok.com/br/pdp/1737685599564367725" target="_blank" rel="noopener" data-saida="tiktok-shop">TikTok Shop</a>
-      <a class="mkt-pill" href="https://www.amazon.com.br/dp/B0HKWKZ48R" target="_blank" rel="noopener" data-saida="amazon">Amazon</a>
+    <h2>Compre também em</h2>
+    <p>O mesmo dispositivo e o mesmo painel grátis. Frete, prazo e pagamento seguem as regras de cada loja.</p>
+    <div class="mkt-grid">
+      <a class="mkt-a" href="https://www.mercadolivre.com.br/pagina/zayor" target="_blank" rel="noopener" data-saida="mercado-livre">Mercado Livre</a>
+      <a class="mkt-a" href="https://shopee.com.br/shop/1931878123" target="_blank" rel="noopener" data-saida="shopee">Shopee</a>
+      <a class="mkt-a" href="https://shop.tiktok.com/br/pdp/1737685599564367725" target="_blank" rel="noopener" data-saida="tiktok-shop">TikTok Shop</a>
+      <a class="mkt-a" href="https://www.amazon.com.br/dp/B0HKWKZ48R" target="_blank" rel="noopener" data-saida="amazon">Amazon</a>
     </div>
   </section>
 
-  <p style="text-align:center;font-size:13px;color:#64748b;margin:26px 0 0;">
-    Vai comprar em quantidade para revender?
-    <a href="/revenda" style="color:#2563EB;font-weight:600;">Conheça o programa de revenda</a>
-    — a partir de R$ 800, com preço de atacado.
-  </p>
+  <p class="revenda">Vai comprar em quantidade para revender? <a href="/revenda">Seja um distribuidor</a> — a partir de R$ 800, com preço de atacado.</p>
 
-  <footer style="max-width:1100px;margin:48px auto 100px;padding:24px 16px;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#6b7280;line-height:1.65;">
-    <p style="margin:0 0 4px;"><strong style="color:#374151;font-weight:600;">ZAYOR BRASIL LTDA</strong> · CNPJ 68.972.361/0001-33</p>
-    <p style="margin:0;">Rua João Cordeiro, 311 · Moinho Velho · São Paulo/SP · CEP 02960-000</p>
+  <footer class="foot">
+    <p><strong style="color:var(--texto);font-weight:600;">ZAYOR BRASIL LTDA</strong> · CNPJ 68.972.361/0001-33</p>
+    <p>Rua João Cordeiro, 311 · Moinho Velho · São Paulo/SP · CEP 02960-000</p>
+    <p><a href="/termos">Termos de uso</a> · <a href="/privacidade">Privacidade</a> · <a href="/ajuda">Central de ajuda</a></p>
   </footer>
+</main>
+
+<!-- Carrinho em gaveta: nasce fechado e so abre quando alguem compra -->
+<div class="drawer-bg" id="drawerBg"></div>
+<aside class="drawer" id="drawer" aria-label="Carrinho" aria-hidden="true">
+  <div class="dr-head">
+    <h2>Seu carrinho</h2>
+    <button class="dr-x" id="drawerX" type="button" aria-label="Fechar carrinho">×</button>
+  </div>
+  <div class="dr-lines" id="drLines"></div>
+  <div class="dr-foot">
+    <div class="dr-frete" id="drFrete"></div>
+    <div class="dr-tot"><span>Subtotal</span><strong id="drTotal">R$ 0,00</strong></div>
+    <button class="btn btn-pri" id="drCheckout" type="button">Finalizar compra</button>
+    <button class="dr-cont" id="drCont" type="button">Continuar comprando</button>
+    <p class="dr-sec">🔒 Pagamento seguro via Stripe · cartão, boleto, Apple Pay e Google Pay</p>
+  </div>
+</aside>
+
+<!-- Barra fixa no celular: aparece depois que o card do Cartao sai da tela -->
+<div class="sticky" id="sticky" aria-hidden="true">
+  <img id="stImg" src="/img/kit/cartao-2-160.webp" alt="" width="46" height="46"/>
+  <div class="st-info">
+    <div class="st-nm" id="stNome">Cartão NFC para Avaliação no Google</div>
+    <div class="st-pr" id="stPreco">R$ 29,90</div>
+  </div>
+  <button class="btn btn-pri" id="stBtn" type="button">Comprar agora</button>
 </div>
 
 <!-- Modal de checkout guest (compra sem login) -->
@@ -444,182 +513,199 @@
   </div>
 </div>
 
-<!-- Barra fixa mobile -->
-<div class="cart-mobile">
-  <div class="cart-mobile-info">
-    <div class="cart-mobile-label">Total</div>
-    <div class="cart-mobile-total" id="cartTotalMobile">R$ 0,00</div>
-    <div class="cart-mobile-items" id="cartItemsMobile">0 itens</div>
-  </div>
-  <button class="btn-checkout-mobile" id="checkoutBtnMobile" type="button" disabled>Finalizar →</button>
-</div>
-
 <script>
+// Catalogo. Os ids sao o contrato com o servidor (KIT_CATALOG no billing.js)
+// e com os links de fora (/kit?add=cartao-nfc) — nao renomear.
 const PRODUCTS = [
-  {
-    id: "placa-balcao", name: "Placa de Balcão G", price: 79.90, small: false,
-    size: "21 × 15 cm",
-    descTemplate: "PS preto de 2 mm com NFC + QR Code. O cliente toca o celular e avalia no Google em segundos.",
-    image: "/gadget-placa.png",
-    images: ["/gadget-placa.png", "/placa-g-2.png", "/placa-g-3.png", "/placa-g-4.png", "/placa-g-5.png"],
-    specs: ["PS preto 2 mm com base inclinada", "Fica de pé sozinha, sem suporte", "NFC + QR Code de fallback impresso", "Sem app — o cliente não instala nada"]
-  },
-  {
-    id: "placa-mesa", name: "Placa de Balcão M", price: 49.90, small: true,
-    size: "10 × 15 cm",
-    descTemplate: "A mesma placa NFC + QR Code, em versão compacta — pra balcões menores, mesas e recepções.",
-    image: "/placa-m-2.png",
-    images: ["/placa-m-2.png", "/placa-m-3.png", "/placa-m-4.png"],
-    specs: ["PS preto 2 mm com base inclinada", "Fica de pé sozinha, sem suporte", "Sem app — o cliente não instala nada", "NFC + QR Code de fallback"]
-  },
-  {
-    id: "cartao-nfc", name: "Cartão de Avaliação NFC", price: 29.90, small: true,
-    size: "8,5 × 5,4 cm",
-    descTemplate: "Do tamanho de um cartão de crédito. Ideal pra atendimento e um cartão por vendedor.",
-    image: "/cartao-1.png",
-    images: ["/cartao-1.png", "/cartao-2.png", "/cartao-3.png", "/cartao-4.png", "/cartao-5.png", "/cartao-6.png"],
-    specs: ["Cabe na carteira e no bolso do avental", "PVC fosco premium", "NFC + QR Code de fallback", "Sem app — o cliente não instala nada"]
-  },
-  {
-    id: "pulseira", name: "Pulseira NFC", price: 109.90, small: false, soldOut: true,
-    descTemplate: "Pro atendente usar no pulso — toca no celular do cliente após o atendimento.",
-    image: "/gadget-pulseira.png",
-    images: ["/gadget-pulseira.png"],
-    specs: ["Silicone resistente", "À prova d'água", "Ajuste universal"]
-  }
+  { id: "cartao-nfc",   name: "Cartão NFC para Avaliação no Google", price: 29.90, thumb: "/img/kit/cartao-2-160.webp", },
+  { id: "placa-mesa",   name: "Placa de Balcão M", price: 49.90, thumb: "/img/kit/placa-m-2-160.webp" },
+  { id: "placa-balcao", name: "Placa de Balcão G", price: 79.90, thumb: "/img/kit/gadget-placa-160.webp" },
+  { id: "pulseira",     name: "Pulseira NFC", price: 109.90, soldOut: true, thumb: "/img/kit/gadget-pulseira-160.webp" }
 ];
 
-// Retorna "do/da/pra Nome do Negócio" — fallback pra "do seu negócio" se vazio.
-// Heurística: última letra do primeiro token. 'a/á/ã' => da, 'o/ó/õ' => do, resto => pra.
-function bizPhrase(name) {
-  if (!name) return "do seu negócio";
-  const firstWord = (name.trim().split(/\s+/)[0] || "").replace(/[^A-Za-zÀ-ÿ]/g, "");
-  const last = firstWord.slice(-1).toLowerCase();
-  const article = "aáã".includes(last) ? "da" : "oóõ".includes(last) ? "do" : "pra";
-  return `${article} ${name}`;
-}
-
 const params = new URLSearchParams(window.location.search);
-const bizName = params.get("biz");
-const placeId = params.get("place_id");
-if (bizName) {
-  document.getElementById("bizName").textContent = bizName;
-}
-
+const bizName = params.get("biz");   // vai junto no checkout do cliente logado
 const cart = {}; // { productId: qty }
 
-function fmt(v) {
-  return "R$ " + v.toFixed(2).replace(".", ",");
+function fmt(v) { return "R$ " + v.toFixed(2).replace(".", ","); }
+function itemCount() { return Object.keys(cart).reduce((s, id) => s + cart[id], 0); }
+
+// Quem esta logado ganha o atalho de volta pro painel.
+try { if (localStorage.getItem("rz_token")) document.getElementById("hdrPainel").hidden = false; } catch (_) {}
+
+// ── Galerias (Cartao e placas) ───────────────────────────────────
+// Cada [data-gal] lista as fotos; a tela ganha setas, contador "1/6",
+// miniaturas (no .thumbs logo depois) e deslize com o dedo.
+const SETA = (d) => `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+document.querySelectorAll("[data-gal]").forEach((box) => {
+  const nomes = box.dataset.gal.split(",");
+  const img = box.querySelector("img");
+  const vizinho = box.nextElementSibling;
+  const thumbs = vizinho && vizinho.classList.contains("thumbs") ? vizinho : null;
+  if (nomes.length < 2) return;
+  let atual = 0;
+  box.insertAdjacentHTML("beforeend",
+    `<button class="gal-seta esq" type="button" aria-label="Foto anterior">${SETA("m15 18-6-6 6-6")}</button>` +
+    `<button class="gal-seta dir" type="button" aria-label="Próxima foto">${SETA("m9 18 6-6-6-6")}</button>` +
+    `<span class="gal-cont">1/${nomes.length}</span>`);
+  const cont = box.querySelector(".gal-cont");
+  if (thumbs) {
+    thumbs.innerHTML = nomes.map((n, i) =>
+      `<button class="thumb${i === 0 ? " on" : ""}" type="button" data-i="${i}" aria-label="Ver foto ${i + 1} de ${nomes.length}"><img src="/img/kit/${n}-160.webp" alt="" width="58" height="58" loading="lazy"/></button>`
+    ).join("");
+    thumbs.addEventListener("click", (e) => { const b = e.target.closest(".thumb"); if (b) ir(+b.dataset.i); });
+  }
+  function ir(i) {
+    atual = (i + nomes.length) % nomes.length;
+    img.src = `/img/kit/${nomes[atual]}-800.webp`;
+    cont.textContent = `${atual + 1}/${nomes.length}`;
+    if (thumbs) thumbs.querySelectorAll(".thumb").forEach((t, k) => t.classList.toggle("on", k === atual));
+  }
+  box.querySelector(".esq").addEventListener("click", () => ir(atual - 1));
+  box.querySelector(".dir").addEventListener("click", () => ir(atual + 1));
+  let x0 = null;
+  box.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+  box.addEventListener("touchend", (e) => {
+    if (x0 == null) return;
+    const dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 40) ir(atual + (dx < 0 ? 1 : -1));
+  });
+});
+
+// ── Carrinho em gaveta ───────────────────────────────────────────
+const drawer = document.getElementById("drawer");
+// O aviso de cookies fica na camada mais alta de proposito (LGPD: ninguem
+// pode esconde-lo). Enquanto ele esta na tela, o carrinho e a barra fixa
+// sobem pra cima dele no celular, senao o "Finalizar compra" some por baixo.
+function acimaDoAviso() {
+  const aviso = document.querySelector(".stc");
+  // (offsetParent nao serve: elemento fixo na tela sempre devolve null.)
+  const alt = aviso ? aviso.getBoundingClientRect().height : 0;
+  const h = (alt > 0 && getComputedStyle(aviso).display !== "none" && window.innerWidth < 760) ? Math.ceil(alt) : 0;
+  drawer.style.bottom = h ? h + "px" : "";
+  drawer.style.maxHeight = h ? `calc(88vh - ${h}px)` : "";
+  document.getElementById("sticky").style.bottom = h ? h + "px" : "";
 }
+new MutationObserver(acimaDoAviso).observe(document.body, { childList: true, subtree: false });
+window.addEventListener("resize", acimaDoAviso);
 
-function renderProducts() {
-  const grid = document.getElementById("productsGrid");
-  const biz = bizPhrase(bizName);
-  grid.innerHTML = PRODUCTS.map(p => {
-    const imgs = (p.images && p.images.length) ? p.images : [p.image];
-    const thumbs = imgs.length > 1 ? `
-      <div class="product-thumbs">
-        ${imgs.map((src, i) => `<button class="product-thumb${i === 0 ? ' is-active' : ''}" type="button" data-main="main-${p.id}" data-full="${src}" aria-label="Ver foto ${i + 1}"><img src="${src}" alt="" loading="lazy"/></button>`).join("")}
-      </div>` : "";
-    const specs = (p.specs && p.specs.length) ? `
-      <ul class="product-specs">
-        ${p.specs.map(s => `<li><span class="ps-check">✓</span><span>${s}</span></li>`).join("")}
-      </ul>` : "";
-    return `
-    <article class="product-card${p.soldOut ? ' sold-out' : ''}" id="card-${p.id}">
-      <div class="product-image${p.small ? ' small' : ''}">
-        ${p.size ? `<span class="product-size">${p.size}</span>` : ""}
-        <img id="main-${p.id}" src="${imgs[0]}" alt="${p.name}" loading="lazy"/>
-        ${p.soldOut ? '<span class="product-badge-soldout">ESGOTADO</span>' : ''}
-      </div>
-      ${thumbs}
-      <div class="product-name">${p.name}</div>
-      <div class="product-desc">${p.descTemplate.replace("{biz}", biz)}</div>
-      ${specs}
-      <div class="product-bottom">
-        <div class="product-price">${fmt(p.price)}<small>${p.id === "adesivo" ? "kit com 3" : "unidade"}</small></div>
-        <div class="qty">
-          <button class="qty-btn" type="button" data-action="dec" data-id="${p.id}" aria-label="Diminuir" ${p.soldOut ? 'disabled' : ''}>−</button>
-          <span class="qty-val" id="qty-${p.id}">0</span>
-          <button class="qty-btn" type="button" data-action="inc" data-id="${p.id}" aria-label="Aumentar" ${p.soldOut ? 'disabled' : ''}>+</button>
-        </div>
-      </div>
-    </article>
-  `;
-  }).join("");
+function openDrawer() {
+  acimaDoAviso();
+  renderCart();
+  document.body.classList.add("drawer-open");
+  drawer.setAttribute("aria-hidden", "false");
+}
+function closeDrawer() {
+  document.body.classList.remove("drawer-open");
+  drawer.setAttribute("aria-hidden", "true");
+}
+document.getElementById("drawerBg").addEventListener("click", closeDrawer);
+document.getElementById("drawerX").addEventListener("click", closeDrawer);
+document.getElementById("drCont").addEventListener("click", closeDrawer);
+document.getElementById("cartBtn").addEventListener("click", openDrawer);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.body.classList.contains("drawer-open")) closeDrawer(); });
 
-  // Miniaturas: clicar troca a foto principal do card
-  grid.querySelectorAll(".product-thumb").forEach(thumb => {
-    thumb.addEventListener("click", () => {
-      const main = document.getElementById(thumb.dataset.main);
-      if (main) main.src = thumb.dataset.full;
-      const card = thumb.closest(".product-card");
-      card.querySelectorAll(".product-thumb").forEach(t => t.classList.remove("is-active"));
-      thumb.classList.add("is-active");
-    });
-  });
+// "Comprar" poe 1 unidade e ja abre o carrinho: um clique, em vez do antigo
+// "+ e depois Finalizar compra".
+function comprar(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p || p.soldOut) return;
+  cart[id] = (cart[id] || 0) + 1;
+  if (typeof window.gtag === "function") {
+    window.gtag("event", "add_to_cart", { currency: "BRL", value: p.price, items: [{ item_id: p.id, item_name: p.name, price: p.price, quantity: 1 }] });
+  }
+  openDrawer();
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-comprar]");
+  if (b) comprar(b.dataset.comprar);
+});
 
-  grid.querySelectorAll(".qty-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      if (btn.disabled) return;
-      const id = btn.dataset.id;
-      const product = PRODUCTS.find(x => x.id === id);
-      if (product?.soldOut) return;
-      const action = btn.dataset.action;
-      const current = cart[id] || 0;
-      if (action === "inc") cart[id] = current + 1;
-      else if (action === "dec" && current > 0) cart[id] = current - 1;
-      if (cart[id] === 0) delete cart[id];
-      const qtyEl = document.getElementById(`qty-${id}`);
-      qtyEl.textContent = cart[id] || 0;
-      qtyEl.classList.remove("pop");
-      void qtyEl.offsetWidth;
-      qtyEl.classList.add("pop");
-      const card = document.getElementById(`card-${id}`);
-      card.classList.toggle("selected", !!cart[id]);
-      renderCart();
-    });
-  });
+function mudarQtd(id, delta) {
+  cart[id] = (cart[id] || 0) + delta;
+  if (cart[id] <= 0) delete cart[id];
+  renderCart();
 }
 
 function renderCart() {
-  const linesEl = document.getElementById("cartLines");
   const ids = Object.keys(cart);
-  let total = 0;
-  let itemCount = 0;
+  const lines = document.getElementById("drLines");
+  const total = cartTotalValue();
+  const n = itemCount();
 
-  if (ids.length === 0) {
-    linesEl.innerHTML = '<p class="cart-empty">Nenhum item selecionado.<br/>Escolha os equipamentos ao lado.</p>';
-  } else {
-    linesEl.innerHTML = ids.map(id => {
-      const p = PRODUCTS.find(x => x.id === id);
-      const qty = cart[id];
-      const subtotal = p.price * qty;
-      total += subtotal;
-      itemCount += qty;
-      return `
-        <div class="cart-line">
-          <div class="cart-line-name">${p.name}<span class="cart-line-qty">${qty}× ${fmt(p.price)}</span></div>
-          <div class="cart-line-amount">${fmt(subtotal)}</div>
-        </div>
-      `;
-    }).join("");
+  lines.innerHTML = ids.length === 0
+    ? '<p class="dr-empty">Seu carrinho está vazio.</p>'
+    : ids.map(id => {
+        const p = PRODUCTS.find(x => x.id === id);
+        return `<div class="dr-line">
+          <img src="${p.thumb}" alt="" width="56" height="56"/>
+          <div><div class="dr-nm">${p.name}</div><div class="dr-un">${fmt(p.price)} / un.</div>
+            <div class="qty"><button type="button" data-q="${id}" data-d="-1" aria-label="Diminuir">−</button><span>${cart[id]}</span><button type="button" data-q="${id}" data-d="1" aria-label="Aumentar">+</button></div></div>
+          <div class="dr-amt">${fmt(p.price * cart[id])}</div>
+        </div>`;
+      }).join("");
+
+  // Frete: o valor exato so sai com o CEP, no passo seguinte. Aqui a tela so
+  // nao pode prometer o que o servidor nao cumpre.
+  const fr = document.getElementById("drFrete");
+  if (n === 0) { fr.className = "dr-frete"; fr.textContent = ""; }
+  else if (total >= FRETE_GRATIS_ACIMA) { fr.className = "dr-frete ok"; fr.textContent = "🎉 Seu pedido tem frete grátis."; }
+  else {
+    fr.className = "dr-frete";
+    fr.innerHTML = `Faltam <strong>${fmt(FRETE_GRATIS_ACIMA - total)}</strong> para o frete grátis. Abaixo disso, o frete é calculado pelo CEP.` +
+      `<div class="dr-bar"><i style="width:${Math.min(100, Math.round(total / FRETE_GRATIS_ACIMA * 100))}%"></i></div>`;
   }
 
-  for (const id of Object.keys(cart)) total += 0; // noop guard
-  // recompute total cleanly
-  total = ids.reduce((sum, id) => sum + PRODUCTS.find(p => p.id === id).price * cart[id], 0);
-  itemCount = ids.reduce((sum, id) => sum + cart[id], 0);
+  document.getElementById("drTotal").textContent = fmt(total);
+  document.getElementById("drCheckout").disabled = n === 0;
+  document.getElementById("drCheckout").style.opacity = n === 0 ? ".45" : "";
 
-  document.getElementById("cartTotal").textContent = fmt(total);
-  document.getElementById("cartTotalMobile").textContent = fmt(total);
-  document.getElementById("cartItemsMobile").textContent = itemCount === 1 ? "1 item" : `${itemCount} itens`;
+  const c = document.getElementById("cartCount");
+  c.hidden = n === 0; c.textContent = n;
+  c.classList.remove("pop"); void c.offsetWidth; c.classList.add("pop");
+  atualizaSticky();
+}
+document.getElementById("drLines").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-q]");
+  if (b) mudarQtd(b.dataset.q, parseInt(b.dataset.d, 10));
+});
+document.getElementById("drCheckout").addEventListener("click", () => {
+  if (itemCount() === 0) return;
+  closeDrawer();
+  handleCheckout();
+});
 
-  const disabled = itemCount === 0;
-  document.getElementById("checkoutBtn").disabled = disabled;
-  document.getElementById("checkoutBtnMobile").disabled = disabled;
+// ── Barra fixa (celular) ─────────────────────────────────────────
+// Carrinho vazio: oferece o Cartao. Com itens: vira atalho pro carrinho.
+let heroFora = false;
+function atualizaSticky() {
+  const st = document.getElementById("sticky");
+  const n = itemCount();
+  const mostrar = heroFora || n > 0;
+  st.classList.toggle("on", mostrar);
+  st.setAttribute("aria-hidden", mostrar ? "false" : "true");
+  document.body.classList.toggle("sticky-on", mostrar && window.innerWidth < 900);
+  if (n > 0) {
+    document.getElementById("stNome").textContent = n === 1 ? "1 item no carrinho" : `${n} itens no carrinho`;
+    document.getElementById("stPreco").textContent = fmt(cartTotalValue());
+    document.getElementById("stBtn").textContent = "Ver carrinho";
+  } else {
+    document.getElementById("stNome").textContent = PRODUCTS[0].name;
+    document.getElementById("stPreco").textContent = fmt(PRODUCTS[0].price);
+    document.getElementById("stBtn").textContent = "Comprar agora";
+  }
+}
+document.getElementById("stBtn").addEventListener("click", () => {
+  if (itemCount() > 0) openDrawer(); else comprar("cartao-nfc");
+});
+if ("IntersectionObserver" in window) {
+  new IntersectionObserver(([en]) => { heroFora = !en.isIntersecting && en.boundingClientRect.top < 0; atualizaSticky(); })
+    .observe(document.getElementById("heroCard"));
 }
 
+// ── Checkout: daqui pra baixo e o MESMO de antes (modal de entrega, frete
+// pela Frenet, CPF/CNPJ, Stripe, aviso de boleto). O redesenho de 27/09 so
+// trocou a vitrine e o carrinho; nao mexer no fluxo de pagamento junto.
 // Lê o client_id (cookie _ga) e session_id (cookie _ga_<container>) do GA4 pra
 // mandar no checkout. O webhook usa isso pra amarrar a venda à sessão/campanha
 // de origem quando dispara o evento `purchase` server-side (medição confiável).
@@ -644,8 +730,6 @@ function handleCheckout() {
   openCheckoutModal();
 }
 
-document.getElementById("checkoutBtn").addEventListener("click", handleCheckout);
-document.getElementById("checkoutBtnMobile").addEventListener("click", handleCheckout);
 
 // ── Checkout (visitante e cliente logado usam o mesmo modal) ─────
 const modal = document.getElementById("checkoutModal");
@@ -992,8 +1076,12 @@ if (params.get("compra") === "sucesso") {
   }
 }
 
-// Pré-seleção via ?add=<id> (vindo da vitrine da landing). Seta o carrinho
-// ANTES do render e sincroniza o display DEPOIS (o render recria os cards).
+// Modal aberto: esconde a barra fixa e o WhatsApp, que cobririam o botao de pagar.
+new MutationObserver(() => document.body.classList.toggle("modal-open", !modal.hidden))
+  .observe(modal, { attributes: true, attributeFilter: ["hidden"] });
+
+// Pre-selecao via ?add=<id> (landing, pagina do cartao, anuncios). Quem chega
+// assim ja escolheu: entra com o item no carrinho e o carrinho aberto.
 const addParam = params.get("add");
 if (addParam) {
   for (const id of addParam.split(",")) {
@@ -1001,18 +1089,8 @@ if (addParam) {
     if (p && !p.soldOut) cart[id] = (cart[id] || 0) + 1;
   }
 }
-
-renderProducts();
-
-if (addParam) {
-  for (const id of Object.keys(cart)) {
-    const qtyEl = document.getElementById(`qty-${id}`);
-    if (qtyEl) qtyEl.textContent = cart[id];
-    document.getElementById(`card-${id}`)?.classList.add("selected");
-  }
-}
-
 renderCart();
+if (itemCount() > 0 && params.get("compra") !== "sucesso") openDrawer();
 </script>
 
 <!-- WhatsApp de suporte StarTouch — botão flutuante -->

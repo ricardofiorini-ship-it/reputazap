@@ -124,6 +124,11 @@
       "permanent": true
     },
     {
+      "source": "/kit-novo",
+      "destination": "/kit",
+      "permanent": true
+    },
+    {
       "source": "/ativar-placa.html",
       "destination": "/ativar-placa",
       "permanent": true
@@ -278,10 +283,6 @@
     {
       "source": "/kit",
       "destination": "/kit.html"
-    },
-    {
-      "source": "/kit-novo",
-      "destination": "/kit-novo.html"
     },
     {
       "source": "/ativar-placa",
