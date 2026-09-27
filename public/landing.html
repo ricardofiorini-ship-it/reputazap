@@ -771,6 +771,17 @@ input, textarea, button, select {
     display: block;
   }
   /* Badge "DEMO" pulsante — sinal de que e video, nao foto */
+  /* O VIDEO ENTRA DEPOIS DA PAGINA (28/09/2026). Como <video autoplay> ele era
+     o maior elemento do topo e o celular so o dava por pronto quando os 700 KB
+     do mp4 chegavam: 91% dos ~7s de LCP eram espera. Agora o topo abre com a
+     FOTO do primeiro quadro (8 KB) e o video so e pedido depois do "load" —
+     ele comeca no mesmo quadro, entao a troca nao aparece. */
+  .hero-video-poster {
+    position: absolute; inset: 0; z-index: 1;
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    transition: opacity .35s ease;
+  }
+  .hero-video.tocando .hero-video-poster { opacity: 0; }
   .hero-video-badge {
     position: absolute;
     top: 12px; left: 12px;
@@ -2608,7 +2619,22 @@ input, textarea, button, select {
     <div class="hero-image">
       <div class="hero-video">
         <span class="hero-video-badge" aria-hidden="true">Demo</span>
-        <video src="/demo-avaliacao-5x4.mp4" poster="/img/demo-poster.webp" autoplay loop muted playsinline preload="auto" aria-label="Demonstracao: cliente aproxima o celular do cartao StarTouch e avalia no Google em segundos"></video>
+        <img class="hero-video-poster" src="/img/demo-poster.webp" alt="" width="720" height="576" fetchpriority="high" aria-hidden="true"/>
+        <video id="heroVideo" data-src="/demo-avaliacao-5x4.mp4" loop muted playsinline preload="none" aria-label="Demonstracao: cliente aproxima o celular do cartao StarTouch e avalia no Google em segundos"></video>
+        <script>
+          (function () {
+            var v = document.getElementById('heroVideo');
+            if (!v) return;
+            function comeca() {
+              v.addEventListener('playing', function () { v.parentNode.classList.add('tocando'); }, { once: true });
+              v.src = v.getAttribute('data-src');
+              var p = v.play();
+              if (p && p.catch) p.catch(function () { /* autoplay negado: a foto fica, e esta tudo bem */ });
+            }
+            function depois() { (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(comeca); }
+            if (document.readyState === 'complete') depois(); else window.addEventListener('load', depois, { once: true });
+          })();
+        </script>
       </div>
     </div>
   </div>
