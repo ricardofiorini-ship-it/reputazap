@@ -170,6 +170,13 @@
   .trust-icon{font-size:28px;line-height:1;}
   .trust-label{font-size:13px;font-weight:600;color:#334155;line-height:1.4;max-width:160px;}
 
+  .mkt{max-width:760px;margin:28px auto 0;padding:22px 20px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;text-align:center;}
+  .mkt-title{font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;}
+  .mkt-sub{font-size:13px;color:#64748b;margin:0 0 14px;line-height:1.5;}
+  .mkt-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+  .mkt-pill{display:inline-block;padding:9px 16px;border:1px solid #d1d5db;border-radius:999px;font-size:13.5px;font-weight:600;color:#334155;text-decoration:none;background:#fff;}
+  .mkt-pill:hover{border-color:#1A73E8;color:#1A73E8;}
+
   /* Sticky bottom bar (mobile) */
   .cart-mobile{display:none;}
   @media(max-width:959px){
@@ -303,7 +310,7 @@
         <p class="cart-empty">Nenhum item selecionado.<br/>Escolha os equipamentos ao lado.</p>
       </div>
       <div class="cart-divider"></div>
-      <div class="cart-summary"><span>Frete</span><span style="color:#1A73E8;font-weight:600">Grátis</span></div>
+      <div class="cart-summary"><span>Frete</span><span style="color:#1A73E8;font-weight:600">Grátis acima de R$ 149</span></div>
       <div class="cart-total"><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div>
       <button class="btn-checkout" id="checkoutBtn" type="button" disabled>Finalizar compra →</button>
       <p class="cart-secure">🔒 Pagamento seguro via Stripe</p>
@@ -330,6 +337,21 @@
     <div class="trust-item">
       <span class="trust-icon">🇧🇷</span>
       <span class="trust-label">Suporte humano em português</span>
+    </div>
+  </section>
+
+  <!-- Marketplaces (27/09/2026): opcao SECUNDARIA, abaixo do carrinho, pra
+       quem confia mais no marketplace do que num site que acabou de conhecer.
+       O clique e contado pelo consent.js (data-saida). A venda la nao e
+       rastreavel pelo site -- ver CLAUDE.md, secao de marketplaces. -->
+  <section class="mkt" aria-label="Comprar em marketplace">
+    <p class="mkt-title">Prefere comprar no seu marketplace de confiança?</p>
+    <p class="mkt-sub">O mesmo dispositivo, com o mesmo painel grátis. Frete, prazo e pagamento seguem as regras de cada loja.</p>
+    <div class="mkt-pills">
+      <a class="mkt-pill" href="https://www.mercadolivre.com.br/pagina/zayor" target="_blank" rel="noopener" data-saida="mercado-livre">Mercado Livre</a>
+      <a class="mkt-pill" href="https://shopee.com.br/shop/1931878123" target="_blank" rel="noopener" data-saida="shopee">Shopee</a>
+      <a class="mkt-pill" href="https://shop.tiktok.com/br/pdp/1737685599564367725" target="_blank" rel="noopener" data-saida="tiktok-shop">TikTok Shop</a>
+      <a class="mkt-pill" href="https://www.amazon.com.br/dp/B0HKWKZ48R" target="_blank" rel="noopener" data-saida="amazon">Amazon</a>
     </div>
   </section>
 

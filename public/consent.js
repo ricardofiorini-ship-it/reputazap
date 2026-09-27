@@ -79,6 +79,34 @@
     }
   }
 
+  // SAIDA PRA MARKETPLACE (27/09/2026). O marketplace nao conta pra gente quem
+  // chegou do site — a venda acontece la, sem pixel nosso. O que da pra medir
+  // com certeza e a PORTA DE SAIDA: quantas vezes alguem clicou pra ir ao
+  // Mercado Livre, Shopee, TikTok ou Amazon, de qual pagina e de qual campanha.
+  // Vai pela catraca, com path "/saida/<marketplace>": mesma natureza do
+  // contador de visitas (dia + origem somados num balde, nada que
+  // individualize), entao cabe no que a Politica §6.5 ja declara. O evento do
+  // GA4 vai junto e segue o Consent Mode como qualquer outro.
+  // Uso: <a href="..." data-saida="mercado-livre">.
+  function contarSaida(nome) {
+    try {
+      var q = new URLSearchParams(location.search);
+      enviarCatraca({
+        path: "/saida/" + String(nome).toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 30),
+        source: q.get("utm_source") || location.pathname,
+        medium: q.get("utm_medium") || "",
+        campaign: q.get("utm_campaign") || ""
+      });
+      if (typeof window.gtag === "function") {
+        window.gtag("event", "marketplace_click", { marketplace: nome, pagina: location.pathname });
+      }
+    } catch (e) { /* idem */ }
+  }
+  document.addEventListener("click", function (ev) {
+    var el = ev.target && ev.target.closest ? ev.target.closest("[data-saida]") : null;
+    if (el) contarSaida(el.getAttribute("data-saida"));
+  }, true);
+
   function contarVisita() {
     try {
       var q = new URLSearchParams(location.search);
