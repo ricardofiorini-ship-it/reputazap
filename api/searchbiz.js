@@ -134,6 +134,12 @@ async function buscar({ q, nameQuery, cepDigits, API_KEY }) {
   //    oculto — eletricista, encanador...), que o textsearch antigo nunca
   //    devolve. Ver _lib/places-area-servico.js. Falha dela nao derruba a busca,
   //    mas grita: foi calada que essa lacuna ficou meses sem ninguem ver.
+  //    Roda em TODA busca, e nao so quando o textsearch falha em achar o nome:
+  //    testado em 27/09/2026, "Elite Solucoes Eletricas" traz HOMONIMOS de
+  //    outras cidades com o nome inteiro — com a chamada condicionada, a Elite
+  //    de Porto Alegre (o caso que originou isto) sumia da lista de novo. Sem
+  //    CEP nao ha como saber qual Elite a pessoa quer. O freio de custo ficou
+  //    no autocomplete (4 letras, 800ms), que corta as duas chamadas juntas.
   const [textRes, areaServico] = await Promise.all([
     fetchWithTimeout(tsUrl, {}, 8000),
     buscarAreaDeServico(q, API_KEY).catch((e) => {

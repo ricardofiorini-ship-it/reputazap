@@ -6288,11 +6288,14 @@ function GuestSearch({ isMobile }) {
   // é ancorar sem perguntar nada (cidade deduzida, ou o Places Autocomplete).
   //
   // O que segura o custo (cada busca é Geocoding + Text Search de verdade):
-  //   1. só a partir de 3 letras;
-  //   2. dispara na PAUSA, não na tecla (450ms);
+  //   1. só a partir de 4 letras;
+  //   2. dispara na PAUSA, não na tecla (800ms).
+  //      Eram 3 letras e 450ms até 27/09/2026: a busca virou o maior gasto no
+  //      Google (30 a 170 buscas pagas por dia, contra ZERO antes do autocomplete),
+  //      e a maior parte era palavra pela metade — "Pad", "Pada", "Padar".
   //   3. memória local — voltar a uma consulta já feita não chama o servidor;
   //   4. cache de 24h no `api/searchbiz`, que é o freio que vale dinheiro.
-  const MIN_LETRAS = 3
+  const MIN_LETRAS = 4
   // chave → results (vive só nesta tela). É um objeto simples, e NÃO um Map:
   // este arquivo importa o ícone `Map` do lucide-react lá no topo, então aqui
   // dentro `new Map()` constrói um componente React e estoura na hora
@@ -6351,7 +6354,7 @@ function GuestSearch({ isMobile }) {
   React.useEffect(() => {
     if (selectedBiz) return
     if (q.trim().length < MIN_LETRAS) { setResults(null); return }
-    const t = setTimeout(doSearch, 450)
+    const t = setTimeout(doSearch, 800)
     return () => clearTimeout(t)
   }, [q, selectedBiz])
 
