@@ -81,6 +81,10 @@
   /* Card principal (Cartao) */
   .hero-card{display:grid;grid-template-columns:1fr;gap:18px;border:1.5px solid #cfe0fb;border-radius:22px;padding:14px;background:#fff;box-shadow:0 10px 30px -18px rgba(26,115,232,.45);animation:fadeUp .35s ease;}
   @media(min-width:820px){.hero-card{grid-template-columns:1.05fr 1fr;gap:34px;padding:18px 30px 18px 18px;align-items:center;}}
+  /* min-width:0 nos filhos do grid: sem isso a fileira de miniaturas impoe a
+     propria largura (6 x 58px) e empurra o card pra fora da tela no celular.
+     Achado em 27/09 num iPhone de 375px -- a 500px nao aparecia. */
+  .hero-card>*,.card>*,.grid>*{min-width:0;}
   .gal{position:relative;}
   .gal-main{position:relative;background:#f1f5f9;border-radius:16px;aspect-ratio:1/1;overflow:hidden;}
   .gal-main img{width:100%;height:100%;object-fit:cover;}
