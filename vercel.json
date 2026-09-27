@@ -280,6 +280,10 @@
       "destination": "/kit.html"
     },
     {
+      "source": "/kit-novo",
+      "destination": "/kit-novo.html"
+    },
+    {
       "source": "/ativar-placa",
       "destination": "/ativar-placa.html"
     },
