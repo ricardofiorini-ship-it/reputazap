@@ -118,7 +118,28 @@
     <div class="icon-circle">⚠️</div>
     <h1 id="errTitle">Código inválido</h1>
     <p class="sub" id="errMsg">Esse código não foi encontrado ou está desabilitado. Confira o dispositivo ou peça um novo.</p>
-    <a class="btn btn-primary" href="/landing">Voltar pro início</a>
+    <a class="btn btn-primary" href="/ativar-codigo">Digitar outro código</a>
+    <a class="linklike" href="/landing" style="display:block;text-align:center;margin-top:12px;">Voltar pro início</a>
+  </div>
+
+  <!-- SEM CÓDIGO NA URL (28/09/2026). Quem clica em "Ativar dispositivo" no
+       site (vitrine do visitante, ajuda, painel) chega aqui SEM ?code=. Antes
+       isso caía na tela "Código inválido" mandando "digitar o código
+       manualmente" — sem campo nenhum pra digitar. Beco sem saída na porta de
+       entrada de quem acabou de receber o dispositivo. Agora pergunta o código
+       e recarrega com ?code=, que é exatamente o caminho de quem encosta o
+       celular: nenhum fluxo novo depois daqui. -->
+  <div class="card hidden" id="screenCodigo">
+    <div class="icon-circle">🔑</div>
+    <h1>Ativar seu dispositivo</h1>
+    <p class="sub">O jeito mais rápido é <strong>encostar o celular no dispositivo</strong> ou ler o QR Code dele. Se preferir, digite o código impresso nele:</p>
+    <form id="codigoForm" novalidate>
+      <input type="text" id="codigoInput" placeholder="STAR-XXXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;letter-spacing:.06em;font-weight:600;text-align:center;font-size:17px;"/>
+      <p id="codigoErro" style="display:none;color:#C5221F;font-size:13px;margin:-6px 0 12px;"></p>
+      <button class="btn btn-primary" type="submit">Continuar →</button>
+    </form>
+    <p style="font-size:12.5px;color:#5F6368;line-height:1.55;margin:16px 0 0;">O código começa com <strong>STAR-</strong> e fica impresso no dispositivo, perto do QR Code.</p>
+    <p style="font-size:12.5px;color:#5F6368;line-height:1.55;margin:10px 0 0;">Ainda não tem um dispositivo? <a href="/kit">Conheça os modelos</a></p>
   </div>
 
   <!-- INSTÁVEL (falha de conexão, NÃO código inválido) -->
@@ -420,7 +441,7 @@ function oferecerWhatsSeAlheio(msgEl, d, btnAtivar){
 }
 
 function show(id){
-  ["screenLoading","screenError","screenInstavel","screenWelcome","screenNew","screenLogin","screenLink","screenDone"]
+  ["screenLoading","screenError","screenCodigo","screenInstavel","screenWelcome","screenNew","screenLogin","screenLink","screenDone"]
     .forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id));
   window.scrollTo(0,0);
   // Renderiza botão Google nas telas que oferecem (assincrono — GSI carrega lazy)
@@ -504,8 +525,8 @@ if (DEMO) {
   document.getElementById("errMsg").textContent="Esse dispositivo foi desabilitado e não está mais ativo.";
   show("screenError");
 } else if (!CODE) {
-  document.getElementById("errMsg").textContent="Faltou o código do dispositivo. Toque novamente ou digite o código manualmente.";
-  show("screenError");
+  show("screenCodigo");
+  setTimeout(() => document.getElementById("codigoInput").focus(), 50);
 } else {
   document.getElementById("welcomeBadge").textContent = "✓ Código reconhecido: " + CODE;
   document.getElementById("linkBadge").textContent = "✓ Código: " + CODE;
@@ -515,6 +536,33 @@ if (DEMO) {
   // e deve ir pro Google avaliar, não pra reativação.
   routeByStatus();
 }
+
+// Normaliza o que a pessoa digita: caixa alta, sem espaço, e o hífen que
+// quase ninguém digita ("star c9k4t7", "STARC9K4T7" e "C9K4T7" viram
+// STAR-C9K4T7). Código Trybo (TRY-) passa igual: o routeByStatus o encaminha.
+function normalizaCodigo(v){
+  let c = String(v || "").toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  const m = c.match(/^(STAR|TRY)-?([A-Z0-9]{4,8})$/);
+  if (m) return m[1] + "-" + m[2];
+  if (/^[A-Z0-9]{5,6}$/.test(c)) return "STAR-" + c;
+  return c;
+}
+document.getElementById("codigoForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const c = normalizaCodigo(document.getElementById("codigoInput").value);
+  const erro = document.getElementById("codigoErro");
+  if (!/^(STAR|TRY)-[A-Z0-9]{4,8}$/.test(c)) {
+    erro.textContent = "Confira o código: ele começa com STAR- e tem 5 ou 6 letras e números depois.";
+    erro.style.display = "block";
+    return;
+  }
+  // Recarrega com ?code= mantendo o resto da URL (from, utm): a partir daqui
+  // é o mesmo caminho de quem encostou o celular.
+  const q = new URLSearchParams(location.search);
+  q.set("code", c);
+  q.delete("error");
+  location.href = "/ativar-codigo?" + q.toString();
+});
 
 async function routeByStatus(){
   show("screenLoading");
