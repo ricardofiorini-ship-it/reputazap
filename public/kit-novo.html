@@ -98,6 +98,17 @@
   .card-img .gal-seta{width:30px;height:30px;}
   .card-img .gal-seta.esq{left:5px;} .card-img .gal-seta.dir{right:5px;}
   .card-img .gal-cont{bottom:8px;right:8px;font-size:10.5px;padding:2px 7px;}
+  /* Celular: setas menores e mais transparentes -- na foto pequena da placa
+     (118px) as de 30px cobriam o produto. */
+  @media(max-width:759px){
+    .gal-seta{width:28px;height:28px;background:rgba(255,255,255,.82);}
+    .gal-seta svg{width:14px;height:14px;}
+    .gal-seta.esq{left:6px;} .gal-seta.dir{right:6px;}
+    .card-img .gal-seta{width:20px;height:20px;}
+    .card-img .gal-seta svg{width:11px;height:11px;}
+    .card-img .gal-seta.esq{left:3px;} .card-img .gal-seta.dir{right:3px;}
+    .card-img .gal-cont{font-size:9.5px;padding:1px 6px;bottom:5px;right:5px;}
+  }
   .thumbs.sm{margin-top:0;gap:6px;}
   .thumbs.sm .thumb{width:44px;height:44px;border-radius:8px;}
   .card .thumbs{grid-column:1/-1;grid-row:2;}
