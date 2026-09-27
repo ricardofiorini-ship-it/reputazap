@@ -16,8 +16,10 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <link rel="apple-touch-icon" href="/startouch-logo.png"/>
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin/>
-<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="/startouch-vars.css"/>
+<!-- Fonte fora do caminho critico: o texto aparece na fonte do sistema e troca quando a General Sans chega. -->
+<link rel="preload" as="style" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
+<noscript><link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap"/></noscript>
+<link rel="preload" as="image" href="/img/cartao-1-600.webp" fetchpriority="high"/>
 
 <meta property="og:type" content="website"/>
 <meta property="og:locale" content="pt_BR"/>
@@ -422,7 +424,7 @@
 <header class="nav">
   <div class="nav-inner">
     <a class="nav-logo" href="/" aria-label="Voltar pra página inicial">
-      <img src="/startouch-logo-dark.png" alt="StarTouch" width="140" height="28"/>
+      <img src="/img/startouch-logo-dark-280.webp" alt="StarTouch" width="78" height="28"/>
     </a>
     <a href="/kit?add=cartao-nfc" class="nav-cta">Comprar cartão</a>
   </div>
@@ -443,7 +445,7 @@
       <p class="hero-note">Frete grátis acima de R$ 149 · 12 meses de garantia</p>
     </div>
     <div class="hero-img">
-      <img src="/cartao-1.png" alt="Cartão de avaliação Google NFC da StarTouch, com QR Code impresso" width="1122" height="1402" fetchpriority="high"/>
+      <img src="/img/cartao-1-600.webp" alt="Cartão de avaliação Google NFC da StarTouch, com QR Code impresso" width="600" height="750" fetchpriority="high"/>
     </div>
   </div>
 </section>
@@ -527,7 +529,7 @@
     <p>Todos têm NFC e QR Code, funcionam do mesmo jeito e usam o mesmo painel grátis. Muda o formato.</p>
     <div class="products">
       <div class="product">
-        <div class="product-img"><img src="/cartao-2.png" alt="Cartão de Avaliação NFC StarTouch" width="1254" height="1254" loading="lazy"/></div>
+        <div class="product-img"><img src="/img/cartao-2-400.webp" alt="Cartão de Avaliação NFC StarTouch" width="400" height="400" loading="lazy"/></div>
         <div class="product-body">
           <h3>Cartão de Avaliação NFC</h3>
           <p class="spec">8,5 × 5,4 cm · PVC fosco premium. Cabe na carteira e no bolso do avental: um por atendente.</p>
@@ -536,7 +538,7 @@
         </div>
       </div>
       <div class="product">
-        <div class="product-img"><img src="/placa-m-2.png" alt="Placa de Balcão M com NFC e QR Code" width="800" height="1200" loading="lazy"/></div>
+        <div class="product-img"><img src="/img/placa-m-2-400.webp" alt="Placa de Balcão M com NFC e QR Code" width="400" height="600" loading="lazy"/></div>
         <div class="product-body">
           <h3>Placa de Balcão M</h3>
           <p class="spec">10 × 15 cm · PS preto 2 mm, com base inclinada. Para mesas, recepções e balcões menores.</p>
@@ -545,7 +547,7 @@
         </div>
       </div>
       <div class="product">
-        <div class="product-img"><img src="/gadget-placa.png" alt="Placa de Balcão G com NFC e QR Code" width="800" height="1200" loading="lazy"/></div>
+        <div class="product-img"><img src="/img/gadget-placa-400.webp" alt="Placa de Balcão G com NFC e QR Code" width="400" height="600" loading="lazy"/></div>
         <div class="product-body">
           <h3>Placa de Balcão G</h3>
           <p class="spec">21 × 15 cm · PS preto 2 mm, com base inclinada. Fica de pé sozinha no caixa.</p>
