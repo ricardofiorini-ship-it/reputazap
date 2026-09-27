@@ -1,6 +1,6 @@
 # Termos de Uso — StarTouch
 
-**Versão 1.5 — vigente a partir de 24 de setembro de 2026**
+**Versão 1.6 — vigente a partir de 26 de setembro de 2026**
 
 ---
 
@@ -52,7 +52,7 @@ Comunique-nos imediatamente qualquer uso não autorizado.
 
 Compras realizadas **até 18 de setembro de 2026** tiveram frete gratuito para todo o Brasil, independentemente do valor, e essa condição é mantida para os pedidos feitos até essa data.
 
-**Garantia.** Os dispositivos têm garantia de 30 dias contra defeito de fabricação, contados do recebimento, sem prejuízo dos prazos legais do Código de Defesa do Consumidor. A garantia não cobre danos por mau uso, queda, exposição a calor excessivo, perfuração do chip ou tentativa de reprogramação.
+**Garantia.** Os dispositivos têm garantia de 12 meses contra defeito de fabricação, contados do recebimento, sem prejuízo dos prazos legais do Código de Defesa do Consumidor. A garantia não cobre danos por mau uso, queda, exposição a calor excessivo, perfuração do chip ou tentativa de reprogramação.
 
 **Direito de arrependimento.** Nas compras realizadas pelo site, você pode desistir em até **7 dias corridos** do recebimento, conforme o Art. 49 do Código de Defesa do Consumidor, com devolução integral do valor pago — **incluindo o frete que você pagou na compra**. O produto deve ser devolvido em condições de revenda. Escreva para contato@startouch.com.br para iniciar o processo.
 
@@ -214,6 +214,7 @@ Fica eleito o foro da comarca de São Paulo/SP para dirimir controvérsias, ress
 | 1.1 | 02/09/2026 | Ajustes de redação |
 | 1.2 | 07/09/2026 | Mudança de controladora (GT6 → ZAYOR) e processamento da assinatura pela Stripe |
 | 1.4 | 18/09/2026 | O frete das compras pelo site passa a ser **calculado por CEP, peso e dimensões**, e exibido antes da confirmação do pagamento — no lugar do frete gratuito incondicional. Fica **gratuito acima de R$ 149,00 em produtos**. A mudança **não retroage**: pedidos feitos até 18/09/2026 mantêm o frete gratuito que vigorava. No mesmo ato, o direito de arrependimento passa a dizer expressamente que a devolução **inclui o frete pago**, como já determina o Art. 49 do Código de Defesa do Consumidor |
+| 1.6 | 26/09/2026 | A garantia dos dispositivos contra defeito de fabricação passa de **30 dias para 12 meses**, contados do recebimento. Vale também para os dispositivos já vendidos — **a mudança amplia direitos do cliente e não reduz nenhum** |
 | 1.5 | 24/09/2026 | Proteção contra contagem artificial: o mesmo aparelho passa a contar uma vez por dia em cada dispositivo, e o texto deixa expresso que a contagem de toques não é contagem de avaliações. Não reduz direitos nem cria obrigação nova para o cliente |
 | 1.3 | 14/09/2026 | O item 5.2 passa a **garantir que o plano gratuito é vitalício**: sem mensalidade, sem prazo, e sem possibilidade de o que já foi entregue virar pago depois. Substitui a cláusula anterior, que permitia rever quais recursos ficavam no plano gratuito mediante aviso de 30 dias — **a mudança amplia direitos do cliente e não reduz nenhum**. No mesmo ato, o item 5.1 passa a descrever o aviso de avaliação negativa como ele de fato funciona (semanal, com as notas 1 e 2 dos últimos 7 dias), corrigindo uma descrição que prometia aviso no momento da publicação |
 
