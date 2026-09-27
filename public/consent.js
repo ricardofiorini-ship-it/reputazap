@@ -178,26 +178,47 @@
 
   // ── Meta Pixel: stub + revoke ANTES do init ─────────────────
   // Sem Consent Mode aqui. O revoke enfileira os eventos; nada sai até o grant.
-  !function (f, b, e, v, n, t, s) {
+  // O stub nasce agora (a fila começa a valer já); o fbevents.js só é baixado
+  // depois do load — ver carregarTags() abaixo.
+  !function (f, n) {
     if (f.fbq) return; n = f.fbq = function () {
       n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
     };
     if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = "2.0"; n.queue = [];
-    t = b.createElement(e); t.async = !0; t.src = v;
-    s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
-  }(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+  }(window);
 
   fbq("consent", "revoke");
   fbq("init", PIXEL_ID);
   fbq("track", "PageView");
 
   // ── GA4 ─────────────────────────────────────────────────────
-  var s = document.createElement("script");
-  s.async = true;
-  s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA4_ID;
-  document.head.appendChild(s);
   gtag("js", new Date());
   gtag("config", GA4_ID);
+
+  // ── AS TAGS SÃO BAIXADAS DEPOIS DA PÁGINA (28/09/2026) ─────────
+  // O gtag.js e o fbevents.js custavam ~0,6s de processador no celular bem na
+  // abertura (Lighthouse), disputando com a própria página. Agora TUDO que é
+  // chamada — consent default, config, PageView, eventos da página — entra na
+  // fila na hora, como antes; só o DOWNLOAD dos dois programas espera o "load".
+  // Quando chegam, processam a fila inteira: quem fica na página é medido
+  // igual. O custo aceito (decisão do Ricardo, 28/09): quem sai antes do load
+  // não chega ao GA4 nem ao Pixel. A catraca própria (contarVisita) NÃO espera
+  // — ela é a régua que não depende de nada disto.
+  function carregarTags() {
+    var g = document.createElement("script");
+    g.async = true;
+    g.src = "https://www.googletagmanager.com/gtag/js?id=" + GA4_ID;
+    document.head.appendChild(g);
+    var f = document.createElement("script");
+    f.async = true;
+    f.src = "https://connect.facebook.net/en_US/fbevents.js";
+    document.head.appendChild(f);
+  }
+  function depoisDaPagina() {
+    (window.requestIdleCallback || function (fn) { setTimeout(fn, 200); })(carregarTags, { timeout: 2500 });
+  }
+  if (document.readyState === "complete") depoisDaPagina();
+  else window.addEventListener("load", depoisDaPagina, { once: true });
   } // fim do !SO_PREFS
 
   // ── Aplica a decisão ────────────────────────────────────────
