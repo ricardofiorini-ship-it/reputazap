@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin/>
 <link rel="preload" as="style" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
 <noscript><link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap"/></noscript>
-<link rel="preload" as="image" href="/img/kit/cartao-1-800.webp" fetchpriority="high"/>
+<link rel="preload" as="image" href="/img/kit/cartao-2-800.webp" fetchpriority="high"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <link rel="apple-touch-icon" href="/startouch-logo.png"/>
 <meta name="description" content="Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 12 meses de garantia, frete grátis acima de R$ 149."/>
@@ -86,11 +86,29 @@
   .gal-main img{width:100%;height:100%;object-fit:cover;}
   .badge{position:absolute;top:12px;left:12px;z-index:2;display:inline-flex;align-items:center;gap:6px;background:var(--azul);color:#fff;font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px;box-shadow:0 4px 12px -2px rgba(26,115,232,.5);}
   .size-tag{position:absolute;bottom:12px;left:12px;z-index:2;background:rgba(15,23,42,.78);color:#fff;font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:999px;}
+  /* Setas + contador: a pessoa precisa VER que a foto muda. Tambem desliza com o dedo. */
+  .gal-seta{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.94);color:var(--tinta);box-shadow:0 2px 10px rgba(15,23,42,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .gal-seta:hover{background:#fff;}
+  .gal-seta.esq{left:8px;} .gal-seta.dir{right:8px;}
+  .gal-cont{position:absolute;bottom:12px;right:12px;z-index:2;background:rgba(15,23,42,.72);color:#fff;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;}
+  .card-img .gal-seta{width:30px;height:30px;}
+  .card-img .gal-seta.esq{left:5px;} .card-img .gal-seta.dir{right:5px;}
+  .card-img .gal-cont{bottom:8px;right:8px;font-size:10.5px;padding:2px 7px;}
+  .thumbs.sm{margin-top:0;gap:6px;}
+  .thumbs.sm .thumb{width:44px;height:44px;border-radius:8px;}
+  .card .thumbs{grid-column:1/-1;grid-row:2;}
+  @media(min-width:760px){.card .thumbs{grid-column:auto;grid-row:auto;}}
+  .gal-main,.card-img{touch-action:pan-y;user-select:none;}
+  .hc-list li.forte{font-weight:600;color:var(--tinta);}
+  .hc-list li.forte svg{color:#137333;}
+  .card-perk{font-size:12px;color:#137333;font-weight:600;margin:-4px 0 10px;}
   .thumbs{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
   .thumbs::-webkit-scrollbar{display:none;}
   .thumb{width:58px;height:58px;flex-shrink:0;border-radius:10px;overflow:hidden;border:2px solid transparent;background:#f1f5f9;cursor:pointer;padding:0;}
   .thumb img{width:100%;height:100%;object-fit:cover;}
   .thumb.on{border-color:var(--azul);}
+  .hc-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .badge.badge-in{position:static;box-shadow:none;}
   .hc-kicker{display:inline-block;font-size:12px;font-weight:600;color:var(--azul);background:var(--azul-soft);padding:4px 10px;border-radius:999px;}
   .hc-name{font-size:clamp(22px,4vw,30px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin:10px 0 8px;}
   .hc-desc{font-size:15.5px;color:var(--texto);line-height:1.55;}
@@ -283,49 +301,53 @@
        largura toda e a galeria; os outros vem abaixo, menores. -->
   <article class="hero-card" id="heroCard">
     <div class="gal">
-      <div class="gal-main">
-        <span class="badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>Mais vendido</span>
-        <img id="heroImg" src="/img/kit/cartao-1-800.webp" alt="Cartão NFC para Avaliação no Google da StarTouch" width="800" height="1000" fetchpriority="high"/>
-        <span class="size-tag">8,5 × 5,4 cm</span>
+      <div class="gal-main" data-gal="cartao-2,cartao-1,cartao-3,cartao-4,cartao-5,cartao-6">
+        
+        <img id="heroImg" src="/img/kit/cartao-2-800.webp" alt="Mão segurando o Cartão NFC para Avaliação no Google da StarTouch" width="800" height="800" fetchpriority="high"/>
       </div>
-      <div class="thumbs" id="heroThumbs"></div>
+      <div class="thumbs"></div>
     </div>
     <div>
-      <span class="hc-kicker">Cartão NFC</span>
+      <div class="hc-top"><span class="badge badge-in"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>Mais vendido</span><span class="hc-kicker">Cartão NFC · 8,5 × 5,4 cm</span></div>
       <h2 class="hc-name">Cartão NFC para Avaliação no Google</h2>
       <p class="hc-desc">Ideal para cada atendente. Prático, discreto e fácil de usar no momento certo.</p>
       <div class="hc-price">R$ 29,90 <small>/ unidade</small></div>
       <ul class="hc-list">
+        <li class="forte"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m5.7 5.7 12.6 12.6"/></svg>Sem mensalidade: você paga uma vez só</li>
+        <li class="forte"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Painel grátis e vitalício para acompanhar suas avaliações</li>
         <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Um para cada atendente, no bolso ou na carteira</li>
         <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Funciona com NFC e QR Code</li>
-        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>PVC fosco premium, tamanho de cartão de crédito</li>
       </ul>
       <button class="btn btn-pri" type="button" data-comprar="cartao-nfc">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.6l2.4 11.2a1.8 1.8 0 0 0 1.8 1.4h8.4a1.8 1.8 0 0 0 1.8-1.4L21 7H6"/></svg>
         Comprar agora
       </button>
-      <p class="hc-note">Sem mensalidade · painel grátis · <a href="/cartao-avaliacao-google-nfc">como funciona</a></p>
+      <p class="hc-note">PVC fosco premium, tamanho de cartão de crédito · <a href="/cartao-avaliacao-google-nfc">como funciona</a></p>
     </div>
   </article>
 
   <div class="grid">
     <article class="card">
-      <div class="card-img"><img src="/img/kit/placa-m-2-800.webp" alt="Placa de Balcão M com NFC e QR Code" width="800" height="1200" loading="lazy"/><span class="size-tag">10 × 15 cm</span></div>
+      <div class="card-img" data-gal="placa-m-2,placa-m-3,placa-m-4"><img src="/img/kit/placa-m-2-800.webp" alt="Placa de Balcão M com NFC e QR Code" width="800" height="1200" loading="lazy"/><span class="size-tag">10 × 15 cm</span></div>
+      <div class="thumbs sm"></div>
       <div class="card-body">
         <span class="card-tag" style="align-self:flex-start">Mesas e balcões</span>
         <h3 class="card-name">Placa de Balcão M</h3>
         <p class="card-desc">Compacta e elegante para mesas e balcões.</p>
         <div class="card-price">R$ 49,90</div>
+        <p class="card-perk">Sem mensalidade · painel vitalício</p>
         <button class="btn btn-pri btn-sm" type="button" data-comprar="placa-mesa">Comprar</button>
       </div>
     </article>
     <article class="card">
-      <div class="card-img"><img src="/img/kit/gadget-placa-800.webp" alt="Placa de Balcão G com NFC e QR Code" width="800" height="1200" loading="lazy"/><span class="size-tag">21 × 15 cm</span></div>
+      <div class="card-img" data-gal="gadget-placa,placa-g-2,placa-g-3,placa-g-4,placa-g-5"><img src="/img/kit/gadget-placa-800.webp" alt="Placa de Balcão G com NFC e QR Code" width="800" height="1200" loading="lazy"/><span class="size-tag">21 × 15 cm</span></div>
+      <div class="thumbs sm"></div>
       <div class="card-body">
         <span class="card-tag" style="align-self:flex-start">Caixa e recepção</span>
         <h3 class="card-name">Placa de Balcão G</h3>
         <p class="card-desc">Mais visibilidade para recepção, caixa e pontos fixos.</p>
         <div class="card-price">R$ 79,90</div>
+        <p class="card-perk">Sem mensalidade · painel vitalício</p>
         <button class="btn btn-pri btn-sm" type="button" data-comprar="placa-balcao">Comprar</button>
       </div>
     </article>
@@ -345,8 +367,8 @@
   </div>
 
   <section class="trust" aria-label="Garantias">
-    <div class="trust-it"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m5.7 5.7 12.6 12.6"/></svg><span><strong>Sem mensalidade</strong>paga uma vez</span></div>
-    <div class="trust-it"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span><strong>Painel grátis</strong>para sempre</span></div>
+    <div class="trust-it"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m5.7 5.7 12.6 12.6"/></svg><span><strong>Sem mensalidade</strong>paga uma vez só</span></div>
+    <div class="trust-it"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span><strong>Painel vitalício</strong>grátis, para sempre</span></div>
     <div class="trust-it"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg><span><strong>12 meses</strong>de garantia</span></div>
     <div class="trust-it"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg><span><strong>Frete grátis</strong>acima de R$ 149</span></div>
   </section>
@@ -393,7 +415,7 @@
 
 <!-- Barra fixa no celular: aparece depois que o card do Cartao sai da tela -->
 <div class="sticky" id="sticky" aria-hidden="true">
-  <img id="stImg" src="/img/kit/cartao-1-160.webp" alt="" width="46" height="46"/>
+  <img id="stImg" src="/img/kit/cartao-2-160.webp" alt="" width="46" height="46"/>
   <div class="st-info">
     <div class="st-nm" id="stNome">Cartão NFC para Avaliação no Google</div>
     <div class="st-pr" id="stPreco">R$ 29,90</div>
@@ -482,8 +504,7 @@
 // Catalogo. Os ids sao o contrato com o servidor (KIT_CATALOG no billing.js)
 // e com os links de fora (/kit?add=cartao-nfc) — nao renomear.
 const PRODUCTS = [
-  { id: "cartao-nfc",   name: "Cartão NFC para Avaliação no Google", price: 29.90, thumb: "/img/kit/cartao-1-160.webp",
-    images: ["cartao-1","cartao-2","cartao-3","cartao-4","cartao-5","cartao-6"] },
+  { id: "cartao-nfc",   name: "Cartão NFC para Avaliação no Google", price: 29.90, thumb: "/img/kit/cartao-2-160.webp", },
   { id: "placa-mesa",   name: "Placa de Balcão M", price: 49.90, thumb: "/img/kit/placa-m-2-160.webp" },
   { id: "placa-balcao", name: "Placa de Balcão G", price: 79.90, thumb: "/img/kit/gadget-placa-160.webp" },
   { id: "pulseira",     name: "Pulseira NFC", price: 109.90, soldOut: true, thumb: "/img/kit/gadget-pulseira-160.webp" }
@@ -499,20 +520,44 @@ function itemCount() { return Object.keys(cart).reduce((s, id) => s + cart[id], 
 // Quem esta logado ganha o atalho de volta pro painel.
 try { if (localStorage.getItem("rz_token")) document.getElementById("hdrPainel").hidden = false; } catch (_) {}
 
-// ── Galeria do produto principal ─────────────────────────────────
-(function galeria() {
-  const box = document.getElementById("heroThumbs");
-  const main = document.getElementById("heroImg");
-  const imgs = PRODUCTS[0].images;
-  box.innerHTML = imgs.map((n, i) =>
-    `<button class="thumb${i === 0 ? " on" : ""}" type="button" data-n="${n}" aria-label="Ver foto ${i + 1} de ${imgs.length}"><img src="/img/kit/${n}-160.webp" alt="" width="58" height="58" loading="lazy"/></button>`
-  ).join("");
-  box.addEventListener("click", (e) => {
-    const b = e.target.closest(".thumb"); if (!b) return;
-    main.src = `/img/kit/${b.dataset.n}-800.webp`;
-    box.querySelectorAll(".thumb").forEach(t => t.classList.toggle("on", t === b));
+// ── Galerias (Cartao e placas) ───────────────────────────────────
+// Cada [data-gal] lista as fotos; a tela ganha setas, contador "1/6",
+// miniaturas (no .thumbs logo depois) e deslize com o dedo.
+const SETA = (d) => `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+document.querySelectorAll("[data-gal]").forEach((box) => {
+  const nomes = box.dataset.gal.split(",");
+  const img = box.querySelector("img");
+  const vizinho = box.nextElementSibling;
+  const thumbs = vizinho && vizinho.classList.contains("thumbs") ? vizinho : null;
+  if (nomes.length < 2) return;
+  let atual = 0;
+  box.insertAdjacentHTML("beforeend",
+    `<button class="gal-seta esq" type="button" aria-label="Foto anterior">${SETA("m15 18-6-6 6-6")}</button>` +
+    `<button class="gal-seta dir" type="button" aria-label="Próxima foto">${SETA("m9 18 6-6-6-6")}</button>` +
+    `<span class="gal-cont">1/${nomes.length}</span>`);
+  const cont = box.querySelector(".gal-cont");
+  if (thumbs) {
+    thumbs.innerHTML = nomes.map((n, i) =>
+      `<button class="thumb${i === 0 ? " on" : ""}" type="button" data-i="${i}" aria-label="Ver foto ${i + 1} de ${nomes.length}"><img src="/img/kit/${n}-160.webp" alt="" width="58" height="58" loading="lazy"/></button>`
+    ).join("");
+    thumbs.addEventListener("click", (e) => { const b = e.target.closest(".thumb"); if (b) ir(+b.dataset.i); });
+  }
+  function ir(i) {
+    atual = (i + nomes.length) % nomes.length;
+    img.src = `/img/kit/${nomes[atual]}-800.webp`;
+    cont.textContent = `${atual + 1}/${nomes.length}`;
+    if (thumbs) thumbs.querySelectorAll(".thumb").forEach((t, k) => t.classList.toggle("on", k === atual));
+  }
+  box.querySelector(".esq").addEventListener("click", () => ir(atual - 1));
+  box.querySelector(".dir").addEventListener("click", () => ir(atual + 1));
+  let x0 = null;
+  box.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+  box.addEventListener("touchend", (e) => {
+    if (x0 == null) return;
+    const dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 40) ir(atual + (dx < 0 ? 1 : -1));
   });
-})();
+});
 
 // ── Carrinho em gaveta ───────────────────────────────────────────
 const drawer = document.getElementById("drawer");
