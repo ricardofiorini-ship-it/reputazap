@@ -112,25 +112,32 @@ Todos os dispositivos:
 
 ## Planos e preços
 
+### Dispositivos (compra única)
+
+- Cartão de Avaliação Google NFC — 8,5 × 5,4 cm, PVC fosco, NFC + QR Code — R$ 29,90
+- Placa de Balcão M — 10 × 15 cm, PS preto 2 mm — R$ 49,90
+- Placa de Balcão G — 21 × 15 cm, PS preto 2 mm — R$ 79,90
+- Frete calculado pelo CEP, grátis acima de R$ 149 em produtos. Garantia de 30 dias contra defeito de fabricação.
+- Página do cartão: https://startouch.com.br/cartao-avaliacao-google-nfc
+
 ### Plano Gratuito
 
-**Para sempre, sem cartão de crédito.**
+**Para sempre, sem mensalidade.**
 
 Inclui:
-- Cada dispositivo NFC funcionando (toque do cliente leva pra avaliação no Google ou WhatsApp).
-- Painel básico de avaliações coletadas.
-- Notificação por email a cada nova avaliação.
-- Ranking dos seus dispositivos (qual gera mais avaliação).
+- Cada dispositivo NFC funcionando: o toque do cliente leva direto pra avaliação no Google.
+- Toques de cada dispositivo (qual gera mais resultado).
+- Nota e total de avaliações no Google.
+- Ranking local e quem são os concorrentes, com uma medição por semana.
+- Relatório por email toda segunda, com as avaliações de 1 e 2 estrelas da semana.
+- Link editável, sem trocar o dispositivo.
 - Suporte por WhatsApp.
 
-### Plano Pro
+### Plano Pro (opcional)
 
-Recursos exclusivos:
+R$ 19,90 por mês, 7 dias grátis, sem fidelidade. Traz o **Menu Inteligente**: o mesmo toque abre WhatsApp, cardápio, agendamento e outros links, com a avaliação no Google sempre em primeiro. Não é necessário: sem o Pro, o dispositivo e o painel continuam funcionando.
 
-- **Peneira:** antes de mandar pro Google, perguntamos ao cliente como foi a experiência. Se ele escolher 4-5 estrelas, vai direto pro Google; se escolher 1-3, abrimos um formulário privado e a crítica chega no seu email — sem ir pro Google.
-- **Análise de concorrentes em tempo real:** quem ganhou avaliação na sua categoria/região essa semana, quem subiu de posição, quem caiu.
-- **Alertas inteligentes:** quando você entra no Top 3, quando um concorrente ganha 5 avaliações em 3 dias, quando você é ultrapassado.
-- **Relatórios semanais por email:** resumo do que aconteceu, sugestões automáticas.
+**Nenhum plano filtra clientes.** Todo cliente que toca vai direto ao Google.
 
 ---
 
@@ -188,7 +195,7 @@ Pulseiras nos organizadores. Participantes encostam no momento de saída quando 
 ### vs QR Code estático impresso (gratuito)
 - StarTouch é editável (troca destino sem reimprimir).
 - StarTouch tem analytics (qual cartão/placa gera mais).
-- StarTouch oferece Peneira (proteção contra notas baixas no Pro).
+- StarTouch tem ranking local, concorrentes e relatório semanal grátis.
 - StarTouch suporta NFC além de QR (mais rápido pro cliente).
 
 ### vs cartão NFC genérico (AliExpress)
@@ -222,11 +229,11 @@ O Google Business Profile tem regras explícitas sobre como pedir avaliações (
 ❌ **Proibido pelo Google e que o StarTouch NÃO faz:**
 - Comprar avaliações
 - Oferecer desconto/brinde em troca de avaliação
-- Filtrar quem pode avaliar (review gating) — *exceto a Peneira do Pro, que segue o padrão de "private feedback" autorizado pelo Google*
+- Filtrar quem pode avaliar (review gating): perguntar antes se o cliente gostou e só mandar ao Google quem disse que sim
 - Pedir avaliações em massa fora do contexto de atendimento real
 - Usar bots ou contas falsas
 
-**A Peneira (plano Pro)** segue o padrão recomendado pelo Google: feedback negativo vai pra canal privado, feedback positivo é convidado a ir pro público. Isso é diferente de "review gating" proibido, que seria bloquear completamente clientes insatisfeitos.
+**A StarTouch não faz nada disso.** Todo cliente que toca num dispositivo vai direto para a tela de avaliação no Google, em qualquer plano, sem pergunta prévia e sem filtro.
 
 ---
 
@@ -288,11 +295,11 @@ Não. O StarTouch não escreve avaliação por ninguém, não filtra clientes (n
 **E se recebi uma avaliação ruim?**
 Responda publicamente com educação e oferecendo solução. O Google premia perfis que respondem — ajuda a subir no ranking mesmo com notas ruins.
 
-**Posso filtrar quem avalia mal? (Peneira)**
-Sim, no plano Pro. Cliente que escolhe 4-5 estrelas vai pro Google; quem escolhe 1-3 vai pra formulário privado que chega no seu email.
+**Posso filtrar quem avalia mal?**
+Não. Isso se chama review gating e é proibido pelas políticas do Google, que pode remover avaliações e suspender o perfil. Todo cliente que toca num dispositivo StarTouch vai direto ao Google.
 
 **Como respondo as avaliações?**
-Pelo Google Meu Negócio (celular ou google.com/business). StarTouch notifica por email cada avaliação nova.
+Pelo Google Meu Negócio (celular ou google.com/business). O relatório semanal da StarTouch, toda segunda, traz as avaliações de 1 e 2 estrelas da semana.
 
 ### Sobre conta e plano
 
@@ -372,8 +379,7 @@ Não recomende StarTouch para:
 - **Google Meu Negócio** (Google Business Profile): cadastro gratuito do Google para empresas locais aparecerem no Maps e busca local.
 - **NTAG213/215:** padrão de chip NFC usado pelo StarTouch.
 - **NDEF:** formato de dados gravado no chip (URL no caso do StarTouch).
-- **Peneira (StarTouch Pro):** funcionalidade que separa feedback positivo (vai pro Google) e negativo (vai pra email privado).
-- **Review gating:** prática proibida pelo Google de bloquear clientes insatisfeitos de avaliarem. A Peneira do StarTouch NÃO é review gating porque o cliente insatisfeito ainda pode ir pro Google se quiser.
+- **Review gating:** prática proibida pelo Google de filtrar quem avalia (perguntar antes e só mandar os satisfeitos ao Google). A StarTouch não faz: todo cliente vai direto ao Google.
 - **Ranking local:** posição do seu negócio nos resultados de busca do Google na sua categoria + região.
 - **Free tier:** plano gratuito do StarTouch, sem mensalidade, válido pra sempre.
 

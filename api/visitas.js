@@ -107,6 +107,10 @@ function limparPath(valor) {
   let p = String(valor == null ? "" : valor).split("?")[0].split("#")[0].trim().toLowerCase();
   if (!p.startsWith("/")) return "/outros";
   p = p.replace(/\/+$/, "") || "/";
+  // Desde 26/09/2026 a home serve a landing em "/" (rewrite), e não mais por
+  // redirect pra /landing. É a mesma página: conta no mesmo balde, senão o
+  // painel de visitas mostra a landing "caindo" no dia da troca.
+  if (p === "/") p = "/landing";
   if (!/^\/[a-z0-9/_.-]*$/.test(p)) return "/outros";
   return p.slice(0, 120);
 }

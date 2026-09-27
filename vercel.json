@@ -68,17 +68,6 @@
       "permanent": true
     },
     {
-      "source": "/",
-      "missing": [
-        {
-          "type": "host",
-          "value": "trybo.co"
-        }
-      ],
-      "destination": "/landing",
-      "permanent": false
-    },
-    {
       "source": "/painel",
       "has": [
         {
@@ -228,6 +217,11 @@
       "source": "/bem-vindo.html",
       "destination": "/bem-vindo",
       "permanent": true
+    },
+    {
+      "source": "/cartao-avaliacao-google-nfc.html",
+      "destination": "/cartao-avaliacao-google-nfc",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -260,8 +254,22 @@
       "destination": "/trybo/meu-painel.html"
     },
     {
+      "source": "/",
+      "missing": [
+        {
+          "type": "host",
+          "value": "trybo.co"
+        }
+      ],
+      "destination": "/landing.html"
+    },
+    {
       "source": "/landing",
       "destination": "/landing.html"
+    },
+    {
+      "source": "/cartao-avaliacao-google-nfc",
+      "destination": "/cartao-avaliacao-google-nfc.html"
     },
     {
       "source": "/ativar",
