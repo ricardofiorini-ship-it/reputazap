@@ -581,6 +581,17 @@ async function routeByStatus(){
       location.replace(`https://trybo.co/ativar?code=${encodeURIComponent(CODE)}`);
       return;
     }
+    // Codigo que NAO EXISTE (28/09/2026). Antes seguia pro cadastro com
+    // "Codigo reconhecido" e a pessoa so descobria o erro no fim, depois de
+    // criar conta e escolher a empresa. Com a digitacao manual, erro de
+    // digitacao ficou mais provavel. So entra aqui com ok:true -- falha de
+    // banco volta como transient e segue o caminho de antes.
+    if(d && d.ok && d.status === "not_found"){
+      document.getElementById("errTitle").textContent = "Código não encontrado";
+      document.getElementById("errMsg").textContent = "Não achamos o código " + CODE + ". Confira as letras e os números do dispositivo — é comum confundir 0 com O e 1 com I.";
+      show("screenError");
+      return;
+    }
     if(d && d.status === "disabled"){
       document.getElementById("errTitle").textContent = "Dispositivo desabilitado";
       document.getElementById("errMsg").textContent = "Esse dispositivo foi desabilitado e não está mais ativo.";
