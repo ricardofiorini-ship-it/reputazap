@@ -2640,7 +2640,7 @@ function BusinessSection({ biz, googleCategory, categoryOverride, showDebug }) {
         <div style={{ fontSize: 12.5, color: T.blueDk, lineHeight: 1.5, marginBottom: 10 }}>
           Os dados acima são puxados do Google Meu Negócio do <strong>place_id</strong> vinculado. Se você vinculou o negócio errado (ou mudou de loja), troque pra refazer a busca de concorrentes na região certa.
         </div>
-        <a href="/comece" style={{
+        <a href="/app?trocar=1" style={{
           display:'inline-block', background: T.blue, color:'#fff',
           borderRadius: 8, padding:'9px 16px', fontSize: 13, fontWeight: 700,
           textDecoration:'none'
@@ -7622,7 +7622,18 @@ function ErrorScreen({ message, onRetry }) {
 // Tela de onboarding OBRIGATÓRIO: busca + confirma + salva.
 // Substitui a antiga NoBusinessScreen que tinha so um botao pra /comece.
 // Bloqueia o /app ate o user cadastrar negocio — sem opcao de pular.
-function NoBusinessScreen({ user }) {
+//
+// MODO TROCA (01/10/2026): a mesma tela serve pra quem JA TEM negocio e quer
+// trocar (`troca` = { nome, placeId, dispositivos }). O botao "Trocar negocio
+// vinculado" das Configuracoes levava pra /comece, que so mostrava a loja atual
+// — clicava e nada acontecia (cliente reclamou no WhatsApp). A diferenca daqui
+// pro onboarding e a CONFIRMACAO: a conta tem um negocio so, entao trocar MOVE
+// os dispositivos junto. Pro dono que mudou de loja e o certo; pro revendedor
+// que quer cadastrar a loja do cliente seria levar os cartoes da loja A a pedir
+// avaliacao pra loja B. Por isso a confirmacao diz quantos vao junto e aponta
+// o caminho certo (desvincular + conta propria) antes de deixar trocar.
+function NoBusinessScreen({ user, troca = null }) {
+  const [escolhido, setEscolhido] = React.useState(null)
   const [name, setName] = React.useState("")
   const [activity, setActivity] = React.useState("")
   const [searching, setSearching] = React.useState(false)
@@ -7668,6 +7679,15 @@ function NoBusinessScreen({ user }) {
   }
 
   async function handleSelect(biz) {
+    if (troca && !escolhido) {
+      if (biz.place_id === troca.placeId) {
+        setError("Esse já é o negócio vinculado à sua conta. Escolha outro, ou volte ao painel.")
+        return
+      }
+      setError("")
+      setEscolhido(biz)
+      return
+    }
     setSaving(true)
     setError("")
     try {
@@ -7688,6 +7708,8 @@ function NoBusinessScreen({ user }) {
         setSaving(false)
         return
       }
+      // Na troca, sai do ?trocar=1 — recarregar ali reabriria a busca.
+      if (troca) { window.location.href = '/app'; return }
       // Sucesso: recarrega o app pra useRealData detectar o business novo
       window.location.reload()
     } catch {
@@ -7696,18 +7718,88 @@ function NoBusinessScreen({ user }) {
     }
   }
 
+  if (troca && escolhido) {
+    const n = troca.dispositivos || 0
+    return (
+      <main style={{ maxWidth: 620, margin:'40px auto 80px', padding:'0 20px' }}>
+        <Card style={{ padding: isCompact() ? 24 : 36 }}>
+          <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 700, color: T.text, margin:'0 0 16px', letterSpacing:'-0.02em' }}>
+            Confirmar a troca
+          </h2>
+          <div style={{ fontSize: 14, color: T.textMid, lineHeight: 1.6, marginBottom: 16 }}>
+            Sai: <strong style={{ color: T.text }}>{troca.nome || 'negócio atual'}</strong><br/>
+            Entra: <strong style={{ color: T.text }}>{escolhido.name}</strong>
+            <div style={{ fontSize: 12.5, color: T.textDim }}>{escolhido.address || ''}</div>
+          </div>
+
+          {n > 0 ? (
+            <div style={{
+              background:'#fffbeb', border:'1px solid #fde68a', borderRadius: 10,
+              padding:'12px 14px', fontSize: 13, color:'#92400e', lineHeight: 1.55, marginBottom: 16
+            }}>
+              <strong>{n === 1 ? 'Seu dispositivo vai junto.' : `Seus ${n} dispositivos vão junto.`}</strong>{' '}
+              A partir da troca, quem encostar o celular {n === 1 ? 'nele' : 'neles'} vai avaliar <strong>{escolhido.name}</strong> no Google.
+              <div style={{ marginTop: 8 }}>
+                <strong>A loja nova é de outra pessoa</strong> (um cliente seu, por exemplo)? Então não troque:
+                cada loja precisa da própria conta. Desvincule os dispositivos dela na aba Dispositivos
+                e o dono da loja nova ativa os mesmos códigos na conta dele.
+              </div>
+            </div>
+          ) : (
+            <p style={{ fontSize: 13, color: T.textMid, lineHeight: 1.55, margin:'0 0 16px' }}>
+              Seu painel passa a mostrar os dados de <strong>{escolhido.name}</strong>.
+            </p>
+          )}
+
+          {error && (
+            <div style={{
+              background:'#fef2f2', border:'1px solid #fecaca', borderRadius: 9,
+              padding:'10px 12px', fontSize: 12.5, color:'#dc2626', marginBottom: 12
+            }}>{error}</div>
+          )}
+
+          <div style={{ display:'flex', gap: 10, flexWrap:'wrap' }}>
+            <button onClick={() => handleSelect(escolhido)} disabled={saving} style={{
+              flex:'1 1 180px', background: saving ? T.textDim : T.blue, color:'#fff', border:'none',
+              borderRadius: 10, padding:'12px', fontSize: 14, fontWeight: 700, cursor: saving ? 'wait' : 'pointer'
+            }}>{saving ? 'Trocando…' : 'Confirmar troca'}</button>
+            <button onClick={() => { setEscolhido(null); setError('') }} disabled={saving} style={{
+              flex:'1 1 140px', background:'#fff', color: T.textMid, border:'1px solid '+T.border,
+              borderRadius: 10, padding:'12px', fontSize: 14, fontWeight: 600, cursor:'pointer'
+            }}>Voltar</button>
+          </div>
+        </Card>
+      </main>
+    )
+  }
+
   return (
     <main style={{ maxWidth: 620, margin:'40px auto 80px', padding:'0 20px' }}>
       <Card style={{ padding: isCompact() ? 24 : 36 }}>
         <div style={{ textAlign:'center', marginBottom: 12, color: T.primary, display:'flex', justifyContent:'center' }}><Store size={40}/></div>
-        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 24, fontWeight: 700, color: T.text, margin:'0 0 8px', letterSpacing:'-0.02em', textAlign:'center' }}>
-          Falta 1 passo pra começar
-        </h2>
-        <p style={{ fontSize: 14, color: T.textMid, margin:'0 0 24px', lineHeight: 1.6, textAlign:'center' }}>
-          Pra desbloquear seu painel, precisamos encontrar seu negócio no Google.
-          <br/>
-          <span style={{ fontSize: 12.5, color: T.textDim }}>Leva 1 minuto. Sem essa etapa, o sistema não tem como te ajudar.</span>
-        </p>
+        {troca ? (
+          <>
+            <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 24, fontWeight: 700, color: T.text, margin:'0 0 8px', letterSpacing:'-0.02em', textAlign:'center' }}>
+              Trocar o negócio da conta
+            </h2>
+            <p style={{ fontSize: 14, color: T.textMid, margin:'0 0 24px', lineHeight: 1.6, textAlign:'center' }}>
+              Hoje vinculado: <strong>{troca.nome || '—'}</strong>.
+              <br/>
+              <span style={{ fontSize: 12.5, color: T.textDim }}>Busque o negócio novo como ele aparece no Google. Nada muda até você confirmar.</span>
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 24, fontWeight: 700, color: T.text, margin:'0 0 8px', letterSpacing:'-0.02em', textAlign:'center' }}>
+              Falta 1 passo pra começar
+            </h2>
+            <p style={{ fontSize: 14, color: T.textMid, margin:'0 0 24px', lineHeight: 1.6, textAlign:'center' }}>
+              Pra desbloquear seu painel, precisamos encontrar seu negócio no Google.
+              <br/>
+              <span style={{ fontSize: 12.5, color: T.textDim }}>Leva 1 minuto. Sem essa etapa, o sistema não tem como te ajudar.</span>
+            </p>
+          </>
+        )}
 
         <div style={{ display:'flex', flexDirection:'column', gap: 14 }}>
           <div>
@@ -7772,7 +7864,7 @@ function NoBusinessScreen({ user }) {
         {results && results.length > 0 && (
           <div style={{ marginTop: 20 }}>
             <p style={{ fontSize: 12.5, fontWeight: 600, color: T.textMid, marginBottom: 8 }}>
-              Toque no seu negócio pra confirmar:
+              {troca ? 'Toque no negócio novo:' : 'Toque no seu negócio pra confirmar:'}
             </p>
             {results.slice(0, 8).map((r, i) => (
               <div
@@ -7805,8 +7897,14 @@ function NoBusinessScreen({ user }) {
           </div>
         )}
 
+        {troca && (
+          <div style={{ marginTop: 28, textAlign:'center', paddingTop: 16, borderTop:'1px solid '+T.border }}>
+            <a href="/app" style={{ color: T.textMid, fontSize: 13, fontWeight: 600 }}>Cancelar e voltar ao painel</a>
+          </div>
+        )}
+
         {/* Saída de emergência: logout */}
-        <div style={{ marginTop: 28, textAlign:'center', paddingTop: 16, borderTop:'1px solid '+T.border }}>
+        {!troca && <div style={{ marginTop: 28, textAlign:'center', paddingTop: 16, borderTop:'1px solid '+T.border }}>
           <p style={{ fontSize: 11.5, color: T.textDim, marginBottom: 6 }}>
             Não é seu negócio? <br/>
             <a href="/" style={{ color: T.textMid, fontSize: 12, fontWeight: 600 }}
@@ -7821,7 +7919,7 @@ function NoBusinessScreen({ user }) {
                }}
             >Sair da conta</a>
           </p>
-        </div>
+        </div>}
       </Card>
     </main>
   )
@@ -8390,6 +8488,19 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       <div style={{ background: T.bg, minHeight:'100vh' }}>
         <Header bizName={user?.email || 'StarTouch'} plan="free" isMobile={isMobile} user={user} onLogout={onLogout} demoMode={demoMode} />
         <ErrorScreen message={real.error} onRetry={() => window.location.reload()}/>
+      </div>
+    )
+  }
+  // Troca de negócio (botão das Configurações). Só pra quem já tem negócio e
+  // está logado — convidado e demo nunca chegam aqui.
+  const pedindoTroca = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('trocar') === '1'
+  if (!demoMode && user && real.hasBusiness && !real.loading && pedindoTroca) {
+    return (
+      <div style={{ background: T.bg, minHeight:'100vh' }}>
+        <Header bizName={real.biz?.name || 'StarTouch'} plan="free" isMobile={isMobile} user={user} onLogout={onLogout} demoMode={demoMode} />
+        <NoBusinessScreen user={user} troca={{
+          nome: real.biz?.name, placeId: real.biz?.place_id, dispositivos: (real.plates || []).length
+        }}/>
       </div>
     )
   }

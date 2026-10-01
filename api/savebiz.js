@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   const token = req.headers.authorization?.replace("Bearer ", "");
   if (!token) return res.status(401).json({ error: "Token obrigatório" });
 
-  const { place_id, name, address, rating, total, plan, manager_email, category_override } = req.body;
+  const { place_id, name, address, rating, total, manager_email, category_override } = req.body;
 
   try {
     const { data: userData, error: authError } = await supabase.auth.getUser(token);
@@ -73,19 +73,41 @@ export default async function handler(req, res) {
     }, { onConflict: "id" });
     if (profileError) console.error("[savebiz] aviso ao upsert profile:", profileError);
 
+    // O PLANO NUNCA VEM DO CORPO (01/10/2026). Antes era `plan: plan || "free"`
+    // num upsert: (a) qualquer conta podia mandar `plan: "pro"` e virar Pro sem
+    // pagar — `businesses.plan` é a verdade pro resolvePlano; (b) toda tela que
+    // manda `plan: "free"` (ativar, ativar-codigo, onboarding) REBAIXAVA um
+    // assinante Pro que passasse por ela. Quem escreve plano é o webhook.
+    // Negócio novo nasce free; negócio existente mantém o que tem.
+    const { data: atual } = await supabase
+      .from("businesses")
+      .select("id, place_id, name")
+      .eq("user_id", user_id)
+      .maybeSingle();
+
+    // TROCA DE NEGÓCIO: a conta já tinha um e agora aponta pra outro lugar do
+    // Google. A linha é a MESMA (businesses tem UNIQUE user_id), então os
+    // dispositivos vinculados vão junto — a tela de troca avisa isso antes.
+    const trocou = !!(atual && atual.place_id && atual.place_id !== place_id);
+
+    const cat = (category_override || "").trim();
     const insertPayload = {
       user_id,
       place_id,
       name,
       address,
       rating,
+      // Marco zero das "avaliações captadas". Na troca TEM que recomeçar: o
+      // total da loja antiga comparado com o da nova seria número inventado.
       total_reviews: total,
-      plan: plan || "free",
+      ...(!atual && { plan: "free" }),
       // Termo de busca informado no onboarding (ex: "loja de bicicletas").
-      // Só inclui se veio preenchido — não sobrescreve um override existente com vazio.
-      ...(((category_override || "").trim()) && { category_override: category_override.trim() })
+      // Fora da troca, só grava se veio preenchido — não apaga um override
+      // existente com vazio. Na troca o termo da loja antiga não serve (era
+      // "pizzaria", a nova é salão): zera e o painel volta pra categoria do Google.
+      ...(cat ? { category_override: cat } : trocou ? { category_override: null } : {})
     };
-    console.log("[savebiz] Tentando inserir:", insertPayload);
+    console.log("[savebiz] Tentando gravar:", { ...insertPayload, trocou });
 
     const { data, error } = await supabase
       .from("businesses")
@@ -124,7 +146,8 @@ export default async function handler(req, res) {
       metadata: { business_id: data.id, place_id, business_name: name }
     });
 
-    res.json({ ok: true, business: data });
+    if (trocou) console.log("[savebiz] TROCA DE NEGOCIO:", { business_id: data.id, de: atual.place_id, de_nome: atual.name, para: place_id });
+    res.json({ ok: true, business: data, trocou });
   } catch (err) {
     console.error("[savebiz] Erro inesperado:", err);
     res.status(500).json({ error: err.message });

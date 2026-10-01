@@ -247,7 +247,9 @@ function Negocio({ dados }) {
               Ver no Google Maps <ExternalLink size={12} style={{ verticalAlign: -1 }}/>
             </a>
           )}
-          <a className="v3-btn" href="/comece">Vincular outro negócio</a>
+          {/* Levava pra /comece, que só mostra a loja atual — botão morto. A troca
+              de verdade (busca + confirmação dos dispositivos) mora no /app. */}
+          <a className="v3-btn" href="/app?trocar=1">Vincular outro negócio</a>
         </div>
         <p className="v3-dica" style={{ marginTop: 8 }}>
           Vinculou o negócio errado, ou mudou de loja? Trocar aqui refaz a medição de posição
