@@ -2,6 +2,7 @@ import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
 import { comCachePlaces, chaveDe, TTL } from "./_lib/places-cache.js";
 import { buscarAreaDeServico } from "./_lib/places-area-servico.js";
+import { sugerirNegocios } from "./_lib/places-sugestao.js";
 
 // Haversine — distância em metros entre dois pontos lat/lng
 function haversine(a, b) {
@@ -80,6 +81,26 @@ export default async function handler(req, res) {
   if (await limitou(req, res, LIMITES.searchbiz)) return;
 
   const API_KEY = process.env.PLACES_API_KEY;
+
+  // `?modo=sugestao`: o autocomplete da tela do convidado. Uma chamada barata
+  // ao Autocomplete do Google em vez de Text Search duplo — ver
+  // _lib/places-sugestao.js (a busca virou o maior gasto do Cloud em setembro).
+  if (req.query.modo === "sugestao") {
+    try {
+      const { data } = await comCachePlaces({
+        key: `searchbiz:sug:v1:${chaveDe(q)}`,
+        ttlMs: TTL.SEARCHBIZ,
+        produce: async () => {
+          const l = await sugerirNegocios(q, API_KEY);
+          return l.length ? l : null;   // vazio nao vai pro cache
+        }
+      });
+      return res.json({ results: data || [] });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   const cepDigits = (cep || "").replace(/\D/g, "");
   // Nome pra ranquear por relevancia. Se o front nao mandar `name`, usa o `q`.
   const nameQuery = (name || q || "").trim();

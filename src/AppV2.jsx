@@ -6294,7 +6294,10 @@ function GuestSearch({ isMobile }) {
   //      Google (30 a 170 buscas pagas por dia, contra ZERO antes do autocomplete),
   //      e a maior parte era palavra pela metade — "Pad", "Pada", "Padar".
   //   3. memória local — voltar a uma consulta já feita não chama o servidor;
-  //   4. cache de 24h no `api/searchbiz`, que é o freio que vale dinheiro.
+  //   4. cache de 24h no `api/searchbiz`, que é o freio que vale dinheiro;
+  //   5. desde 01/10/2026 a pausa chama o Autocomplete do Google (modo=sugestao),
+  //      ~12x mais barato e uma chamada só. Mesmo com 1–4, setembro fechou em
+  //      R$572 de busca. A busca completa ficou atrás do "Não achou?".
   const MIN_LETRAS = 4
   // chave → results (vive só nesta tela). É um objeto simples, e NÃO um Map:
   // este arquivo importa o ícone `Map` do lucide-react lá no topo, então aqui
@@ -6327,7 +6330,9 @@ function GuestSearch({ isMobile }) {
     const meu = ++pedidoRef.current
     setLoading(true); setError('')
     try {
-      const params = new URLSearchParams({ q: fullQ, name })
+      // modo=sugestao: Autocomplete do Google (barato) em vez de Text Search
+      // duplo — desde 01/10/2026, ver api/_lib/places-sugestao.js.
+      const params = new URLSearchParams({ q: fullQ, name, modo: 'sugestao' })
       const r = await fetch(`/api/searchbiz?${params.toString()}`)
       const d = await r.json()
       // Chegou tarde: outra busca já saiu depois desta. Descarta, senão a lista
@@ -6348,6 +6353,38 @@ function GuestSearch({ isMobile }) {
       if (meu === pedidoRef.current) setLoading(false)
     }
   }
+
+  // A saída de quem não achou na sugestão: a busca COMPLETA (Text Search, até
+  // 20 resultados, com nota). É paga de verdade — por isso só no clique, nunca
+  // na pausa da digitação. Mesma memória local, com chave separada.
+  async function buscarCompleto() {
+    const name = q.trim()
+    if (name.length < MIN_LETRAS) return
+    const fullQ = [name, term.trim()].filter(Boolean).join(' ')
+    const chave = 'completa:' + fullQ
+    if (memoRef.current[chave]) { setResults(memoRef.current[chave]); return }
+    const meu = ++pedidoRef.current
+    setLoading(true); setError('')
+    try {
+      const r = await fetch(`/api/searchbiz?${new URLSearchParams({ q: fullQ, name }).toString()}`)
+      const d = await r.json()
+      if (meu !== pedidoRef.current) return
+      const lista = d.results || []
+      memoRef.current[chave] = lista
+      setResults(lista)
+    } catch {
+      if (meu !== pedidoRef.current) return
+      setError('Erro ao buscar. Tente de novo.')
+    } finally {
+      if (meu === pedidoRef.current) setLoading(false)
+    }
+  }
+  const linkCompleto = (
+    <button type="button" onClick={buscarCompleto} disabled={loading} style={{
+      background:'none', border:'none', padding:0, marginTop:12, cursor:'pointer',
+      fontSize:13, fontWeight:600, color:T.blue, fontFamily:'inherit'
+    }}>Não achou? Ver mais resultados</button>
+  )
 
   // O gatilho: parou de digitar → busca. Some assim que o negócio é escolhido,
   // pra não ficar buscando por trás do passo dos termos.
@@ -6555,6 +6592,7 @@ function GuestSearch({ isMobile }) {
                     <li>Escreva o <b>nome exato</b> como aparece no Google, sem apelido nem abreviação.</li>
                     <li>Se o negócio é novo, ele pode ainda <b>não estar no Google Maps</b>. Cadastre grátis em <a href="https://business.google.com" target="_blank" rel="noopener" style={{ color:'#B06000', fontWeight:700 }}>google.com/business</a> e volte aqui.</li>
                   </ul>
+                  {linkCompleto}
                 </div>
               )) : (
                 <>
@@ -6572,10 +6610,15 @@ function GuestSearch({ isMobile }) {
                       }}>
                         <span style={{ fontSize:14.5, fontWeight:700, color:T.text }}>{b.name}</span>
                         <span style={{ fontSize:12.5, color:T.textMid }}>{b.address || 'Endereço não informado no Google'}</span>
-                        <span style={{ fontSize:12, color:T.textDim }}>{typeof b.rating === 'number' ? b.rating.toFixed(1).replace('.', ',') : '—'} · {(b.total || 0).toLocaleString('pt-BR')} avaliações</span>
+                        {/* A sugestão (Autocomplete) não traz nota: sem ela, a
+                            linha some em vez de mostrar "— · 0 avaliações". */}
+                        {typeof b.rating === 'number' && (
+                          <span style={{ fontSize:12, color:T.textDim }}>{b.rating.toFixed(1).replace('.', ',')} · {(b.total || 0).toLocaleString('pt-BR')} avaliações</span>
+                        )}
                       </button>
                     ))}
                   </div>
+                  {linkCompleto}
                 </>
               )}
             </div>
