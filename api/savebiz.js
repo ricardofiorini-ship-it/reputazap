@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   const token = req.headers.authorization?.replace("Bearer ", "");
   if (!token) return res.status(401).json({ error: "Token obrigatório" });
 
-  const { place_id, name, address, rating, total, manager_email, category_override } = req.body;
+  const { place_id, name, address, rating, total, manager_email, category_override, nao_trocar } = req.body;
 
   try {
     const { data: userData, error: authError } = await supabase.auth.getUser(token);
@@ -89,6 +89,20 @@ export default async function handler(req, res) {
     // Google. A linha é a MESMA (businesses tem UNIQUE user_id), então os
     // dispositivos vinculados vão junto — a tela de troca avisa isso antes.
     const trocou = !!(atual && atual.place_id && atual.place_id !== place_id);
+
+    // TRAVA DE TROCA (04/10/2026). A ativação de dispositivo manda
+    // `nao_trocar: true`: ali, trocar o negócio é SEMPRE engano — quem já tem
+    // conta entrou por "Sou cliente novo" e escolheu outra empresa (revendedor,
+    // dono de duas lojas). Sem a trava, o negócio antigo era substituído calado
+    // e TODOS os dispositivos dele passavam a mandar avaliação pra empresa nova.
+    // A troca de verdade continua existindo, mas só pela tela do painel.
+    if (trocou && nao_trocar) {
+      return res.status(409).json({
+        error: "conta_tem_outro_negocio",
+        message: `Esta conta já está ligada a ${atual.name}.`,
+        business: { id: atual.id, name: atual.name, place_id: atual.place_id }
+      });
+    }
 
     const cat = (category_override || "").trim();
     const insertPayload = {

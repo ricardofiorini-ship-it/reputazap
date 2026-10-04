@@ -801,10 +801,24 @@ async function submitNew(){
     }
     // Se autenticado via Google, token já foi setado em handleGoogleCredential
 
-    // 2. salva negócio
+    // 2. salva negócio — com TRAVA DE TROCA (04/10/2026). Quem já tem conta e
+    // entrou por aqui não pode ter o negócio substituído: cada conta tem UM
+    // negócio e os dispositivos dele iriam junto pra empresa nova, calados.
+    // Se a conta já tem outra empresa, para e oferece ativar nela. O servidor
+    // também recusa (nao_trocar) — esta checagem é só pra explicar antes.
     btn.textContent="Salvando negócio…";
-    const rBiz = await fetch("/api/savebiz",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({place_id:selectedBiz.place_id,name:selectedBiz.name,address:selectedBiz.address,rating:selectedBiz.rating,total:selectedBiz.total,plan:"free"})});
+    const nicknameDigitado = document.getElementById("nNickname").value.trim();
+    try{
+      const rMine = await fetch("/api/plates?action=my-businesses",{headers:{"Authorization":`Bearer ${token}`}});
+      const atual = rMine.ok ? ((await rMine.json()).businesses||[])[0] : null;
+      if(atual && atual.place_id && atual.place_id !== selectedBiz.place_id){
+        mostrarConflitoDeNegocio(msg, btn, atual, nicknameDigitado);
+        return;
+      }
+    }catch{ /* sem a checagem, o servidor ainda barra a troca */ }
+    const rBiz = await fetch("/api/savebiz",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({place_id:selectedBiz.place_id,name:selectedBiz.name,address:selectedBiz.address,rating:selectedBiz.rating,total:selectedBiz.total,nao_trocar:true})});
     const dBiz = await rBiz.json();
+    if(rBiz.status===409 && dBiz.business){ mostrarConflitoDeNegocio(msg, btn, dBiz.business, nicknameDigitado); return; }
     if(!rBiz.ok||!dBiz.business){ msg.className="msg error"; msg.textContent=dBiz.error||"Erro ao salvar negócio."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
 
     // 3. ativa placa
@@ -816,6 +830,30 @@ async function submitNew(){
 
     show("screenDone");
   }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="✓ Ativar"; }
+}
+
+// A conta já tem OUTRO negócio: explica e oferece ativar o dispositivo nele.
+// Montado com textContent (nome vem do Google — não vai cru pro innerHTML).
+function mostrarConflitoDeNegocio(msg, btn, atual, nickname){
+  btn.disabled=false; btn.textContent="✓ Ativar";
+  msg.className="msg error";
+  msg.textContent="";
+  const p1=document.createElement("div");
+  p1.append("Este e-mail já tem conta StarTouch, ligada a ");
+  const b=document.createElement("b"); b.textContent=atual.name||"outra empresa"; p1.append(b, ".");
+  const p2=document.createElement("div");
+  p2.style.marginTop="6px";
+  p2.textContent="Cada conta cuida de uma empresa só. Pra ativar este dispositivo em "+(selectedBiz?.name||"outra empresa")+", volte e crie a conta com outro e-mail.";
+  const ir=document.createElement("button");
+  ir.type="button"; ir.className="btn btn-primary"; ir.style.marginTop="10px";
+  ir.textContent="Ativar em "+(atual.name||"minha empresa");
+  ir.onclick=()=>{
+    myBusinesses=[{id:atual.id, name:atual.name}];
+    renderLinkArea();
+    document.getElementById("linkNickname").value = nickname || "";
+    show("screenLink");
+  };
+  msg.append(p1, p2, ir);
 }
 
 // ── JÁ TENHO CONTA: login → vincular ──
