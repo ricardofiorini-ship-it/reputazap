@@ -128,13 +128,22 @@ async function handleListBatches(req, res, user) {
 // ── ADMIN: estoque (lista + resumo por tipo/status) ─────────
 async function handleListStock(req, res, user) {
   if (!isAdmin(user)) return res.status(403).json({ error: "Acesso restrito ao admin" });
-  // linha-ok: estoque do admin, todas as linhas
-  const { data, error } = await supabase
-    .from("plates")
-    .select("id, code, product_type, status, source, channel_name, total_taps, created_at, activated_at, batch_id, production_batches(batch_name)")
-    .order("created_at", { ascending: false })
-    .limit(2000);
-  if (error) return res.status(500).json({ error: error.message });
+  // Em PÁGINAS de 1000 (04/10/2026): o Supabase devolve no máximo 1000 linhas
+  // por consulta, calado — o `.limit(2000)` antigo trazia só os 1000 mais
+  // novos e o resumo de estoque contava só eles.
+  const data = [];
+  for (let de = 0; de < 20000; de += 1000) {
+    // linha-ok: estoque do admin, todas as linhas
+    const { data: pagina, error } = await supabase
+      .from("plates")
+      .select("id, code, product_type, status, source, channel_name, total_taps, created_at, activated_at, batch_id, production_batches(batch_name)")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true })
+      .range(de, de + 999);
+    if (error) return res.status(500).json({ error: error.message });
+    data.push(...(pagina || []));
+    if (!pagina || pagina.length < 1000) break;
+  }
 
   // Toques recebidos ANTES de ativar (04/10/2026, schema-toque-sem-ativar.sql).
   // Leitura separada de propósito: sem as colunas, o estoque continua abrindo.
