@@ -118,13 +118,26 @@ async function handleFunnel(req, res) {
     : new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
   const until = ate ? new Date(ate + "T23:59:59.999" + BR).toISOString() : null;
 
-  let q = supabase
-    .from("funnel_events")
-    .select("anon_id, step, meta, created_at")
-    .gte("created_at", since);
-  if (until) q = q.lte("created_at", until);
-  const { data, error } = await q.limit(100000);
-  if (error) return res.status(500).json({ error: error.message });
+  // EM PÁGINAS DE 1000 (04/10/2026). O Supabase devolve no máximo 1000 linhas
+  // por consulta e o `.limit(100000)` antigo não furava isso — calado. Em 30
+  // dias o funil passa de 1000 eventos, então TODA a tela era calculada sobre
+  // um pedaço do período (os eventos mais recentes ficavam de fora). Achado
+  // porque um passo novo, testado na hora, aparecia em "1 dia" e sumia em "30".
+  const data = [];
+  for (let de = 0; de < 200000; de += 1000) {
+    let q = supabase
+      .from("funnel_events")
+      .select("anon_id, step, meta, created_at")
+      .gte("created_at", since)
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(de, de + 999);
+    if (until) q = q.lte("created_at", until);
+    const { data: pagina, error } = await q;
+    if (error) return res.status(500).json({ error: error.message });
+    data.push(...(pagina || []));
+    if (!pagina || pagina.length < 1000) break;
+  }
 
   // Passos na ordem do funil + rótulo amigável.
   const STEPS = [

@@ -328,8 +328,8 @@ function blocoAtivacao(data){
   const aviso = (a.desde && inicio && inicio < a.desde)
     ? `<div class="nota-medicao">⚠ Estes passos só passaram a ser gravados em ${a.desde.slice(8,10)}/${a.desde.slice(5,7)}/${a.desde.slice(0,4)}. O período começa antes, então os números estão incompletos — é medição que faltava, não gente que não passou.</div>`
     : '';
-  const passos = (a.passos || []).map(p => {
-    const drop = p.dropFromPrev == null ? '<div class="drop none">— topo</div>'
+  const passos = (a.passos || []).map((p, i) => {
+    const drop = p.dropFromPrev == null ? `<div class="drop none">${i === 0 ? '— topo' : '—'}</div>`
       : (p.dropFromPrev > 0 ? `<div class="drop">↓ ${p.dropFromPrev}% pararam aqui</div>` : '<div class="drop none">sem queda</div>');
     return `<div class="step">
       <div class="row1"><span class="label">${esc(p.label)}</span><span class="count">${p.people}<small>${p.pctOfTop}% do topo</small></span></div>
