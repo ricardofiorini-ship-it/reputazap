@@ -677,10 +677,22 @@ async function handleListClients(req, res) {
   (businesses || []).forEach(b => { bizByUser[b.user_id] = b; });
 
   // Pega todas as placas (incluindo last_tapped_at pra calcular ultimo toque)
-  // linha-ok: lista de clientes do admin mostra todos os dispositivos da conta
-  const { data: plates } = await supabase
-    .from("plates")
-    .select("business_id, status, code, product_type, total_taps, last_tapped_at, activated_at, channel_name");
+  // EM PÁGINAS DE 1000 (04/10/2026): o Supabase corta cada consulta em 1000
+  // linhas, calado. Com 2 mil+ dispositivos, metade das contas aparecia "sem
+  // dispositivo" nesta lista. Só os vinculados interessam aqui.
+  const plates = [];
+  for (let de = 0; de < 50000; de += 1000) {
+    // linha-ok: lista de clientes do admin mostra todos os dispositivos da conta
+    const { data: pagina, error: pErr } = await supabase
+      .from("plates")
+      .select("business_id, status, code, product_type, total_taps, last_tapped_at, activated_at, channel_name")
+      .not("business_id", "is", null)
+      .order("code", { ascending: true })
+      .range(de, de + 999);
+    if (pErr) return res.status(500).json({ error: pErr.message });
+    plates.push(...(pagina || []));
+    if (!pagina || pagina.length < 1000) break;
+  }
   const platesByBiz = {};
   (plates || []).forEach(p => {
     if (!platesByBiz[p.business_id]) platesByBiz[p.business_id] = [];
