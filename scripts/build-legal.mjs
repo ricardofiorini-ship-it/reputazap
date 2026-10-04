@@ -36,8 +36,8 @@ const DOCS = [
     md: "termos-de-uso.md",
     out: "termos.html",
     path: "/termos",
-    title: "Termos de Uso — StarTouch",
-    desc: "As regras de uso dos dispositivos NFC e da plataforma StarTouch: o que está incluído, o que é contratado à parte, garantia, entrega e responsabilidades."
+    title: "Termos de Uso — StarTouch e Trybo",
+    desc: "As regras de uso dos dispositivos NFC StarTouch e dos cartões Trybo: o que está incluído, o que é contratado à parte, garantia, entrega e responsabilidades."
   }
 ];
 
