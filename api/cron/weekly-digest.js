@@ -158,9 +158,9 @@ export default async function handler(req, res) {
   const dozeDiasAtras = new Date(Date.now() - 12 * 24 * 3600 * 1000).toISOString().slice(0, 10);
 
   const rToques = await todasAsLinhas("toques", () =>
-    logsSoStartouch(supabase.from("plate_taps").select("business_id")).gte("tapped_at", seteDiasAtras));
+    logsSoStartouch(supabase.from("plate_taps").select("business_id, plate_id")).gte("tapped_at", seteDiasAtras));
   const rPlacas = await todasAsLinhas("dispositivos", () =>
-    soStartouch(supabase.from("plates").select("business_id, activated_at")).eq("status", "active"));
+    soStartouch(supabase.from("plates").select("id, code, channel_name, business_id, activated_at")).eq("status", "active"));
   const rSerie = await todasAsLinhas("série de avaliações", () =>
     supabase.from("review_history").select("business_id, on_date, reviews").gte("on_date", dozeDiasAtras));
 
@@ -179,6 +179,25 @@ export default async function handler(req, res) {
     tapsPorBiz.set(l.business_id, (tapsPorBiz.get(l.business_id) || 0) + 1);
   }
   const comDispositivo = new Set(rPlacas.linhas.map((l) => l.business_id).filter(Boolean));
+
+  // ── TOQUES POR PESSOA (04/10/2026) ───────────────────────────────────
+  // Medido em 04/10: 80% dos dispositivos têm apelido ("Garçom João", "Balcão")
+  // e só ~6% dos donos abrem o painel. O dono distribui cartão pra equipe e
+  // quer saber QUEM trouxe mais — e este e-mail é o único lugar onde ele vê.
+  // Entra TODO dispositivo ativo do negócio, inclusive os de zero toque:
+  // "Maria — 0" é a informação mais acionável da lista (cartão na gaveta).
+  const toquesPorPlaca = new Map();
+  for (const l of rToques.linhas) {
+    if (!l.plate_id) continue;
+    toquesPorPlaca.set(l.plate_id, (toquesPorPlaca.get(l.plate_id) || 0) + 1);
+  }
+  const porPessoaPorBiz = new Map();
+  for (const p of rPlacas.linhas) {
+    if (!p.business_id) continue;
+    const arr = porPessoaPorBiz.get(p.business_id) || [];
+    arr.push({ nome: (p.channel_name || "").trim() || null, codigo: p.code, toques: toquesPorPlaca.get(p.id) || 0 });
+    porPessoaPorBiz.set(p.business_id, arr);
+  }
 
   // Se a leitura falhou, o bloco NÃO SAI — em vez de sair dizendo "nenhum
   // toque registrado" pra quem teve toques. Número errado num boletim semanal
@@ -539,6 +558,7 @@ export default async function handler(req, res) {
         marcoZero,
         meta,
         taps7d: tapsPorBiz.get(biz.id) || 0,
+        porDispositivo: porPessoaPorBiz.get(biz.id) || [],
         temDispositivo: dadosDeDispositivoOk && comDispositivo.has(biz.id),
       });
 

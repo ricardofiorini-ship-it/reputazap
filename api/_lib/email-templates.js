@@ -1340,7 +1340,50 @@ export function metaDeConcorrencia(gridRow, meuTotal) {
   };
 }
 
-export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl, taps7d, temDispositivo, marcoZero, meta, novasAoMenos }) {
+// ── TOQUES POR PESSOA (04/10/2026) ─────────────────────────────────────
+// Ranking dos dispositivos do negócio na semana, pelo apelido que o dono deu.
+// Só aparece com 2+ dispositivos (com um só, repetiria o número de cima).
+// Zerados entram no fim: "Maria — 0" é o que o dono precisa ver pra agir.
+// Até 8 linhas; o resto vira "e mais N". Tabela pura (Outlook não tem flex).
+function blocoPorPessoa(lista) {
+  const itens = (lista || []).filter(Boolean);
+  if (itens.length < 2) return "";
+  const ord = [...itens].sort((a, b) => (b.toques - a.toques) || String(a.nome || a.codigo).localeCompare(String(b.nome || b.codigo), "pt-BR"));
+  const max = Math.max(1, ...ord.map((d) => d.toques));
+  const MOSTRA = 8;
+  const visiveis = ord.length > MOSTRA ? ord.slice(0, MOSTRA - 1) : ord;
+  const resto = ord.slice(visiveis.length);
+  const medalha = (i, t) => (t > 0 && i === 0 ? "🥇 " : t > 0 && i === 1 ? "🥈 " : t > 0 && i === 2 ? "🥉 " : "");
+  const linhas = visiveis.map((d, i) => {
+    const nome = d.nome ? escapeHtml(d.nome) : `<span style="color:#80868B;">Sem apelido (${escapeHtml(d.codigo || "")})</span>`;
+    const larg = d.toques > 0 ? Math.max(4, Math.round((d.toques / max) * 100)) : 0;
+    const cor = d.toques > 0 ? "#202124" : "#B7791F";
+    return `
+          <tr>
+            <td style="padding:7px 8px 7px 0;font-size:13.5px;color:#202124;border-top:1px solid #E9E3FA;">${medalha(i, d.toques)}${nome}</td>
+            <td width="90" style="width:90px;padding:7px 8px;border-top:1px solid #E9E3FA;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>
+                ${larg > 0 ? `<td width="${larg}%" style="height:8px;background:#7C5CE0;border-radius:4px;font-size:0;line-height:0;">&nbsp;</td>` : ""}
+                <td style="height:8px;font-size:0;line-height:0;">&nbsp;</td>
+              </tr></table>
+            </td>
+            <td width="40" style="width:40px;padding:7px 0;font-size:14px;font-weight:800;color:${cor};text-align:right;border-top:1px solid #E9E3FA;">${d.toques}</td>
+          </tr>`;
+  }).join("");
+  const zerados = ord.filter((d) => d.toques === 0).length;
+  const maisLinha = resto.length
+    ? `<tr><td colspan="3" style="padding:7px 0 0;font-size:12.5px;color:#5F6368;border-top:1px solid #E9E3FA;">e mais ${resto.length} ${resto.length === 1 ? "dispositivo" : "dispositivos"} (${resto.reduce((s, d) => s + d.toques, 0)} toques)</td></tr>`
+    : "";
+  const notaZero = zerados > 0
+    ? `<div style="font-size:12.5px;color:#8A5A00;line-height:1.5;margin-top:8px;">${zerados === 1 ? "1 dispositivo ficou" : `${zerados} dispositivos ficaram`} sem toque na semana — vale conferir se está com a pessoa e à vista do cliente.</div>`
+    : "";
+  return `
+          <div style="font-size:12px;font-weight:700;color:#6B46C1;text-transform:uppercase;letter-spacing:0.05em;margin:16px 0 4px;">Quem trouxe mais</div>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0">${linhas}${maisLinha}</table>
+          ${notaZero}`;
+}
+
+export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentReviews, tip, score, milestone, article, unsubUrl, taps7d, temDispositivo, marcoZero, meta, novasAoMenos, porDispositivo }) {
   const biz = escapeHtml(bizName || "seu negócio");
   const note = (typeof rating === "number" && rating > 0) ? rating.toFixed(1).replace(".", ",") : "—";
   const tot = Number(total) || 0;
@@ -1581,6 +1624,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
           <div style="font-size:12px;font-weight:700;color:#6B46C1;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px;">📲 Seus dispositivos esta semana</div>
           <div style="font-size:26px;font-weight:800;color:#202124;line-height:1;">${toques}<span style="font-size:15px;color:#5F6368;font-weight:700;"> ${toques === 1 ? "pessoa" : "pessoas"}</span></div>
           <div style="font-size:13.5px;color:#5F6368;line-height:1.55;margin-top:5px;">encostaram o celular no seu StarTouch e foram direto pra sua página no Google.</div>
+          ${blocoPorPessoa(porDispositivo)}
 
         </td></tr>
       </table>`
