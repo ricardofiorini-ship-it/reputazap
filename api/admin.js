@@ -1087,6 +1087,9 @@ const FAMILIAS = [
   { chave: "ia",      rotulo: "Pacote IA", prefixo: "ia_",    fisico: false },
   { chave: "plano",   rotulo: "Assinatura", prefixo: "plano_", fisico: false },
   { chave: "pro",     rotulo: "Assinatura", prefixo: "pro_",  fisico: false },
+  // Desbloqueio dos destinos avançados (04/10/2026): não tem caixa. Sem esta
+  // linha caía em "Outro", que é tratado como físico, e ganhava botão "Postado".
+  { chave: "trybo",   rotulo: "Trybo · destinos", prefixo: "trybo_", fisico: false },
 ];
 
 function familiaDoPedido(o) {

@@ -267,7 +267,8 @@
     var upgrade = d.desbloqueado
       ? '<div class="upgrade-box"><span>' + icon("check") + " Destinos avançados</span><strong>Liberados na sua conta.</strong></div>"
       : '<div class="upgrade-box"><span>' + icon("spark") + " Mais possibilidades</span><strong>Destinos avançados.</strong>" +
-        "<span>Link livre, LinkedIn, Spotify e mais, por R$ 49 uma vez.<br>A compra pelo painel chega em breve.</span></div>";
+        "<span>Link livre, LinkedIn, Spotify e mais, por R$ 49 uma vez. Sem mensalidade.</span>" +
+        '<button class="btn primary" data-comprar>Liberar por R$ 49</button></div>';
 
     app.innerHTML =
       '<a class="skip" href="#dashboard-main">Pular para o conteúdo</a>' +
@@ -293,6 +294,38 @@
     if (estado.view === "overview") { alvo.innerHTML = overview(); ligarOverview(); }
     else if (estado.view === "cards") { alvo.innerHTML = grade(); ligarGrade(); }
     else { alvo.innerHTML = editor(); ligarEditor(); }
+    app.querySelectorAll("[data-comprar]").forEach(function (b) { b.onclick = function () { comprar(b); }; });
+  }
+
+  // ── Destinos avançados: o checkout é o mesmo da StarTouch (Stripe) ──
+  function ocupadoBotao(b, sim) {
+    if (sim) { b.dataset.txt = b.textContent; b.textContent = "Abrindo o pagamento…"; b.disabled = true; }
+    else { b.textContent = b.dataset.txt || b.textContent; b.disabled = false; }
+  }
+  async function comprar(botao) {
+    ocupadoBotao(botao, true);
+    try {
+      var r = await api("/api/billing?action=checkout-trybo", { method: "POST", body: "{}" });
+      if (!r || !r.url) throw new Error("Não consegui abrir o pagamento. Tente de novo.");
+      location.href = r.url;
+    } catch (err) {
+      if (!tratar(err)) { ocupadoBotao(botao, false); toast(err.message); }
+    }
+  }
+
+  // Volta do Stripe. O webhook pode chegar alguns segundos DEPOIS do cliente:
+  // então o painel confere de novo por um tempo, em vez de mostrar "não
+  // liberado" pra quem acabou de pagar.
+  async function aguardarDesbloqueio() {
+    toast("Pagamento recebido. Liberando os destinos avançados…");
+    for (var i = 0; i < 10; i++) {
+      if (estado.dados && estado.dados.desbloqueado) { toast("Pronto: destinos avançados liberados em todos os seus cartões."); return; }
+      await new Promise(function (ok) { setTimeout(ok, 3000); });
+      try { estado.dados = await api("/api/trybo?action=painel&dias=" + estado.dias); shell(); } catch (e) { if (tratar(e)) return; }
+    }
+    if (!(estado.dados && estado.dados.desbloqueado)) {
+      toast("O pagamento está sendo confirmado. Se em alguns minutos não liberar, fale com a gente pelo contato@startouch.com.br.");
+    }
   }
 
   function cabecalho() {
@@ -558,6 +591,9 @@
           slot(1, cfg.find(function (d) { return d.posicao === 1; }), false) +
           slot(2, cfg.find(function (d) { return d.posicao === 2; }), true) +
           '<p class="field-hint">Com <strong>um</strong> destino, o celular abre direto nele — é o que mais converte. Com <strong>dois</strong>, o cliente escolhe.</p>' +
+          (estado.dados.desbloqueado ? "" :
+            '<div class="unlock-inline"><p><strong>Quer apontar para um post, o cardápio ou a agenda?</strong> Link livre, LinkedIn, Spotify e mais redes, em todos os seus cartões. R$ 49, uma vez.</p>' +
+            '<button type="button" class="btn secondary" data-comprar>Liberar por R$ 49</button></div>') +
           '<p class="form-error" hidden tabindex="-1" role="alert"></p>' +
           '<div class="form-footer"><a class="small-link" href="https://trybo.co/t/' + encodeURIComponent(c.code) + '" target="_blank" rel="noopener">Fazer um toque de teste</a>' +
           '<button class="btn primary" type="submit">Salvar ' + icon("check") + "</button></div>" +
@@ -617,5 +653,13 @@
 
   var q = new URLSearchParams(location.search);
   if (q.get("cartao")) { estado.editando = q.get("cartao").toUpperCase(); estado.view = "edit"; }
-  carregar();
+  var volta = q.get("desbloqueio");
+  if (volta) {
+    // Tira o parâmetro da barra: recarregar a página não deve repetir o aviso.
+    try { history.replaceState(null, "", location.pathname + (q.get("cartao") ? "?cartao=" + encodeURIComponent(q.get("cartao")) : "")); } catch (e) {}
+  }
+  carregar().then(function () {
+    if (volta === "sucesso") aguardarDesbloqueio();
+    else if (volta === "cancelado") toast("Pagamento cancelado. Nada foi cobrado.");
+  });
 })();

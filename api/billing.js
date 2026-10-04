@@ -12,6 +12,7 @@ import { dadosDoCliente, enderecoCompleto } from "./_lib/pedido-cliente.js";
 import { entradaDoScore } from "./_lib/visibilidade.js";
 import { cotaFrete } from "./_lib/frenet.js";
 import { soStartouch, logsSoStartouch } from "./_lib/linha.js";
+import { recalcularCartao } from "./_lib/trybo.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -1686,6 +1687,205 @@ async function handleCheckoutKitGuestStripe(req, res) {
   }
 }
 
+// ============================================================
+// TRYBO — DESBLOQUEIO DOS DESTINOS AVANÇADOS (04/10/2026)
+// ============================================================
+// O MESMO checkout e o MESMO webhook do hardware: compra unica no Stripe,
+// pedido `pending` em `orders`, e o webhook fecha. O que muda e a entrega —
+// em vez de despacho, uma linha em `business_entitlements` (feature
+// 'destinos', sem validade) e o recalculo dos cartoes da conta, que e o que
+// faz o cartao no balcao passar a servir o destino pago.
+//
+// Termos de Uso 1.7, item 15.5: R$ 49 uma vez, vale pra TODOS os cartoes da
+// conta (inclusive os ativados depois — por isso o direito mora no negocio,
+// nao no cartao), sem prazo. Mudou o preco aqui, muda la no mesmo commit.
+//
+// SO CARTAO (Apple Pay, Google Pay e Link entram por ele). Boleto fica de fora
+// de proposito: o desbloqueio e digital e o cliente esta no painel esperando
+// o destino liberar. No boleto ele pagaria e veria "nao liberado" por dias.
+const TRYBO_DESTINOS_CENTS = 4900;
+const TRYBO_DESTINOS_ITEM = {
+  id: "trybo_destinos",
+  name: "Trybo — Destinos avançados",
+  qty: 1,
+  unit_price: Number((TRYBO_DESTINOS_CENTS / 100).toFixed(2)),
+};
+
+async function handleCheckoutTrybo(req, res) {
+  const auth = await authUser(req);
+  if (auth.error) return res.status(auth.status).json({ error: auth.error });
+  try {
+    const { data: biz, error: bizErr } = await supabase
+      .from("businesses").select("id, name").eq("user_id", auth.user.id).maybeSingle();
+    if (bizErr) throw new Error("Não consegui ler sua conta: " + bizErr.message);
+    // Sem negocio nao ha onde pendurar o direito — e quem nao ativou cartao
+    // nenhum nao tem o que desbloquear.
+    if (!biz) return res.status(400).json({ error: "Ative um cartão Trybo antes de liberar os destinos avançados." });
+
+    const { data: jaTem, error: entErr } = await supabase
+      .rpc("has_entitlement", { p_business: biz.id, p_feature: "destinos" });
+    if (entErr) throw new Error("Não consegui checar o desbloqueio: " + entErr.message);
+    if (jaTem === true) return res.status(400).json({ error: "Os destinos avançados já estão liberados na sua conta." });
+
+    const stripe = getStripe();
+    const origin = req.headers.origin || `https://${req.headers.host}`;
+    const extRef = refDePedido(`trybo_${auth.user.id}`);
+    const meta = {
+      user_id: auth.user.id, business_id: biz.id, biz_name: biz.name || "",
+      order_type: "trybo_destinos", external_reference: extRef,
+    };
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [{
+        price_data: {
+          currency: "brl",
+          unit_amount: TRYBO_DESTINOS_CENTS,
+          product_data: {
+            name: TRYBO_DESTINOS_ITEM.name,
+            description: "Link livre e redes adicionais em todos os cartões Trybo da sua conta. Pagamento único, sem mensalidade.",
+          },
+        },
+        quantity: 1,
+      }],
+      customer_email: auth.user.email,
+      client_reference_id: auth.user.id,
+      metadata: meta,
+      payment_intent_data: { metadata: meta },
+      allow_promotion_codes: true,
+      locale: "pt-BR",
+      success_url: `${origin}/painel-trybo?desbloqueio=sucesso`,
+      cancel_url: `${origin}/painel-trybo?desbloqueio=cancelado`,
+    });
+
+    await gravar("orders", {
+      external_reference: extRef,
+      user_id: auth.user.id,
+      email: auth.user.email,
+      biz_name: biz.name || "",
+      items: [TRYBO_DESTINOS_ITEM],
+      total_cents: TRYBO_DESTINOS_CENTS,
+      status: "pending",
+    }, "stripe/checkout-trybo");
+
+    return res.json({ url: session.url });
+  } catch (err) {
+    console.error("[stripe/checkout-trybo] erro:", err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// Recalcula todos os cartoes Trybo do negocio. Sem isto o direito existe no
+// banco e o cartao no balcao continua servindo o destino de antes — o painel
+// diria "liberado" e o cliente que toca nao veria diferenca nenhuma.
+async function recalculaCartoesTrybo(businessId, onde) {
+  const { data: cartoes, error } = await supabase
+    .from("plates").select("id").eq("business_id", businessId).eq("linha", "social");
+  if (error) { console.error(`[${onde}] NÃO LI os cartões do negócio ${businessId}: ${error.message} — destinos NÃO recalculados`); return; }
+  for (const c of cartoes || []) {
+    try { await recalcularCartao(supabase, c.id); }
+    catch (e) { console.error(`[${onde}] cartão ${c.id} NÃO recalculado: ${e?.message || e}`); }
+  }
+}
+
+async function concluiDesbloqueioTrybo(session) {
+  const m = session?.metadata || {};
+  const extRef = m.external_reference || "";
+  const businessId = m.business_id;
+  if (!businessId) {
+    // Pago e sem negocio: dinheiro na conta, direito em lugar nenhum. Grita.
+    console.error(`[stripe/webhook] desbloqueio Trybo PAGO sem business_id (sessao ${session?.id}, ref=${extRef}) — liberar À MÃO em business_entitlements`);
+    return;
+  }
+
+  // O DIREITO PRIMEIRO, o pedido depois. Ao contrario: se a gravacao do direito
+  // falhasse depois do pedido virar 'paid', o reenvio do Stripe nao acharia mais
+  // pedido pendente e o cliente ficaria pago e sem nada. Assim, falhou → throw →
+  // 500 → o Stripe tenta de novo. O upsert e idempotente.
+  const { error: entErr } = await supabase.from("business_entitlements").upsert({
+    business_id: businessId, feature: "destinos", source: "compra_unica",
+    expires_at: null, granted_at: new Date().toISOString(),
+  }, { onConflict: "business_id,feature" });
+  if (entErr) throw new Error(`desbloqueio Trybo NÃO gravado (negócio ${businessId}): ${entErr.message}`);
+
+  await recalculaCartoesTrybo(businessId, "stripe/webhook/trybo");
+
+  const pagamentoId = String(session.payment_intent || session.id);
+  const up = await atualizarUm(
+    supabase.from("orders").update({ status: "paid", mp_payment_id: pagamentoId, paid_at: new Date().toISOString() })
+      .eq("external_reference", extRef).eq("status", "pending"),
+    "orders", "stripe/webhook/trybo"
+  );
+  const order = up.data;
+  console.log(`[stripe/webhook] desbloqueio Trybo ${pagamentoId} negocio=${businessId} -> direito gravado; pedido ${order ? "marcado como pago" : (up.ok ? "ja estava pago (evento repetido)" : "FALHOU ao atualizar")}`);
+  // Os avisos so na primeira vez — evento repetido nao reenvia e-mail.
+  if (!order) return;
+
+  const total = session.amount_total != null ? session.amount_total : TRYBO_DESTINOS_CENTS;
+  const to = order.email || session.customer_details?.email;
+  if (to) {
+    await sendTransactionalEmail({
+      userId: order.user_id || "guest",
+      emailType: "trybo_desbloqueio",
+      to,
+      subject: "Destinos avançados liberados — Trybo",
+      html:
+        `<h2 style="margin:0 0 6px;">Pagamento confirmado ✅</h2>` +
+        `<p style="font-size:13px;color:#68757F;margin:0 0 16px;">Pedido <code>${escapeHtmlLite(extRef)}</code> · ${fmtBRL(total)}</p>` +
+        `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">Os <strong>destinos avançados</strong> já estão liberados em todos os cartões Trybo da sua conta — link livre, LinkedIn, Spotify e as demais redes. É só escolher o destino no painel: <a href="https://startouch.com.br/painel-trybo">startouch.com.br/painel-trybo</a>.</p>` +
+        `<p style="font-size:14px;color:#68757F;line-height:1.6;">Pagamento único: não há mensalidade. Qualquer dúvida, é só responder este e-mail.</p>`,
+      dedupeByMetadata: { key: "ref", value: extRef },
+      metadata: { ref: extRef },
+    });
+  } else {
+    console.warn(`[stripe/webhook] desbloqueio Trybo ${extRef} pago sem e-mail do cliente — aviso pulado`);
+  }
+
+  await sendOrderEmail({
+    userId: order.user_id,
+    subject: `✨ Trybo — destinos avançados liberados — ${fmtBRL(total)}`,
+    html:
+      `<h2>✨ Venda Trybo — Destinos avançados</h2>` +
+      `<p><strong>Conta:</strong> ${escapeHtmlLite(order.biz_name || "—")} &lt;${escapeHtmlLite(to || "—")}&gt;</p>` +
+      `<p><strong>Total:</strong> ${fmtBRL(total)}</p>` +
+      `<p><strong>Pagamento (Stripe):</strong> ${escapeHtmlLite(pagamentoId)}</p>` +
+      `<p>Nada a despachar: o desbloqueio já foi gravado e os cartões da conta recalculados.</p>`,
+  });
+
+  await sendGa4Purchase({
+    clientId: m.ga_client_id, sessionId: m.ga_session_id,
+    transactionId: pagamentoId, valueCents: total,
+    items: [TRYBO_DESTINOS_ITEM], origem: "stripe",
+  });
+}
+
+// ESTORNO TOTAL tira o direito (Termos 1.7, item 15.5). O cartao nao quebra:
+// a funcao do banco devolve os destinos gratis, e se os dois eram pagos cai no
+// primeiro perfil gratis da conta. Estorno parcial nao mexe em nada.
+// Exige o evento `charge.refunded` marcado no webhook do painel do Stripe —
+// sem ele, estorno feito la nao chega aqui e o direito fica.
+async function estornoDesbloqueioTrybo(charge, stripe) {
+  if (!charge?.refunded) return;
+  let meta = charge.metadata || {};
+  if (meta.order_type !== "trybo_destinos" && charge.payment_intent) {
+    try {
+      const pi = typeof charge.payment_intent === "string"
+        ? await stripe.paymentIntents.retrieve(charge.payment_intent) : charge.payment_intent;
+      meta = pi?.metadata || {};
+    } catch (e) {
+      console.error(`[stripe/webhook] estorno ${charge.id}: não consegui ler o PaymentIntent (${e?.message}) — se for Trybo, o direito NÃO foi retirado`);
+      return;
+    }
+  }
+  if (meta.order_type !== "trybo_destinos" || !meta.business_id) return;
+  const { error } = await supabase.from("business_entitlements").delete()
+    .eq("business_id", meta.business_id).eq("feature", "destinos").eq("source", "compra_unica");
+  if (error) throw new Error(`estorno Trybo: direito NÃO retirado (negócio ${meta.business_id}): ${error.message}`);
+  await recalculaCartoesTrybo(meta.business_id, "stripe/webhook/trybo-estorno");
+  console.log(`[stripe/webhook] estorno total do desbloqueio Trybo (negocio=${meta.business_id}, ref=${meta.external_reference || "?"}) -> direito retirado, cartões recalculados`);
+}
+
 // A DATA DE RENOVAÇÃO, ONDE QUER QUE ELA ESTEJA.
 //
 // O Stripe mudou de lugar `current_period_end`: nas versões antigas da API ele
@@ -1999,6 +2199,10 @@ async function avisaClientePedidoPago({ order, extRef, totalCentavos }) {
 // e reenviado. E o mesmo mecanismo do webhook do Mercado Pago.
 async function concluiPedidoStripe(session) {
   const extRef = session?.metadata?.external_reference || session?.client_reference_id || "";
+  // Desbloqueio da Trybo: mesmo caminho de compra unica, outra entrega.
+  if (extRef.startsWith("trybo_") || session?.metadata?.order_type === "trybo_destinos") {
+    return concluiDesbloqueioTrybo(session);
+  }
   const ehRevenda = extRef.startsWith("revenda_");
   if (!extRef || !(extRef.startsWith("kit_") || ehRevenda)) {
     console.warn(`[stripe/webhook] pagamento unico sem referencia de pedido (sessao ${session?.id || "?"}, ref="${extRef}") — nao da pra casar com a tabela orders`);
@@ -2178,6 +2382,10 @@ async function handleWebhookStripe(req, res) {
       case "checkout.session.async_payment_failed": {
         const s = event.data.object;
         console.warn(`[stripe/webhook] pagamento assincrono FALHOU na sessao ${s.id} (ref=${s.metadata?.external_reference || "?"}) — o pedido segue pending, nao despachar`);
+        break;
+      }
+      case "charge.refunded": {
+        await estornoDesbloqueioTrybo(event.data.object, stripe);
         break;
       }
       case "customer.subscription.deleted":
@@ -2805,6 +3013,7 @@ export default async function handler(req, res) {
     if (action === "billing-portal") return await handlePortalStripe(req, res);
     if (action === "checkout-kit") return await handleCheckoutKitStripe(req, res);
     if (action === "checkout-kit-guest") return await handleCheckoutKitGuestStripe(req, res);
+    if (action === "checkout-trybo") return await handleCheckoutTrybo(req, res);
     // ── Funil do IA Radar, APOSENTADO em 07/09/2026 ──
     // Estes dois vendiam o Pacote Presença em IA (R$ 599) e os planos do
     // /radar/plano. As páginas que levavam até aqui foram redirecionadas pra
@@ -2818,7 +3027,7 @@ export default async function handler(req, res) {
       return res.status(410).json({ error: "Este produto foi descontinuado.", retired: true });
     }
     if (action === "onboarding") return await handleOnboarding(req, res);
-    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|checkout-kit-guest|checkout-ia|checkout-plano|onboarding|portal|billing-portal|webhook|debug" });
+    return res.status(400).json({ error: "Unknown action. Use ?action=checkout|checkout-kit|checkout-kit-guest|checkout-trybo|checkout-ia|checkout-plano|onboarding|portal|billing-portal|webhook|debug" });
   } catch (err) {
     console.error("[billing] erro nao tratado:", err);
     if (!res.headersSent) return res.status(500).json({ error: err?.message || "Erro interno" });
