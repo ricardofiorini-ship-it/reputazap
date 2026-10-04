@@ -58,6 +58,10 @@ function firstStr(v) {
   return String(s).slice(0, 120);
 }
 
+// ⚠ NÃO CONFIÁVEL (04/10/2026): muitos chips foram gravados com o endereço
+// do QR (gravação manual copiando o QR, lotes importados já vêm assim), então
+// "qr" aqui não significa leitura de câmera. Segue gravado em plate_taps só
+// por histórico; nenhuma tela nem análise deve separar toques por meio.
 // Meio físico do toque. A URL gravada no chip/QR traz utm_medium=nfc|qr;
 // placa antiga veio sem parâmetro nenhum e, como o toque é o caso comum,
 // entra como 'nfc' — mesma premissa já usada no redirect (buildPlateUtm).

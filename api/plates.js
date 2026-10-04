@@ -136,6 +136,22 @@ async function handleListStock(req, res, user) {
     .limit(2000);
   if (error) return res.status(500).json({ error: error.message });
 
+  // Toques recebidos ANTES de ativar (04/10/2026, schema-toque-sem-ativar.sql).
+  // Leitura separada de propósito: sem as colunas, o estoque continua abrindo.
+  // linha-ok: estoque do admin, só os tocados sem ativar
+  const { data: semAtivar, error: saErr } = await supabase
+    .from("plates")
+    .select("id, toques_sem_ativar, dias_com_toque_sem_ativar, ultimo_toque_sem_ativar")
+    .gt("toques_sem_ativar", 0);
+  if (saErr) console.warn("[plates] toques_sem_ativar indisponível:", saErr.message || saErr);
+  const porIdSA = new Map((semAtivar || []).map((r) => [r.id, r]));
+  for (const p of data || []) {
+    const r = porIdSA.get(p.id);
+    p.toques_sem_ativar = r?.toques_sem_ativar || 0;
+    p.dias_com_toque_sem_ativar = r?.dias_com_toque_sem_ativar || 0;
+    p.ultimo_toque_sem_ativar = r?.ultimo_toque_sem_ativar || null;
+  }
+
   const summary = {};
   for (const p of data || []) {
     if (!summary[p.product_type]) {

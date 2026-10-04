@@ -441,7 +441,10 @@ async function handleVisitas(req, res) {
   // Origem legível: "ig / paid_social". É o par que diz de onde veio.
   const canais = new Map();
   for (const r of linhas) {
-    const k = `${r.source} / ${r.medium}`;
+    // Toque em dispositivo vira UMA linha só (04/10/2026): o medium nfc/qr vem
+    // do endereço gravado no chip e está errado em boa parte dos cartões
+    // (chip gravado com o endereço do QR), e "placa" vale pra cartão também.
+    const k = r.source === "placa" ? "toque em dispositivo" : `${r.source} / ${r.medium}`;
     canais.set(k, (canais.get(k) || 0) + (r.hits || 0));
   }
 

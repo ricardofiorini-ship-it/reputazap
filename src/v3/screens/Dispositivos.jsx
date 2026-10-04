@@ -229,15 +229,10 @@ export default function Dispositivos({ dados }) {
             </div>
           </div>
           <Barras serie={toques.by_day || []} rotuloA={dataBr(toques.from_day)} rotuloB={dataBr(toques.to_day)}/>
-          {!!toques.by_medium && Object.keys(toques.by_medium).length > 0 && (
-            <div style={{ marginTop: 14, fontSize: 12, color: 'var(--dim)' }}>
-              Como chegaram:{' '}
-              {Object.entries(toques.by_medium)
-                .sort((a, b) => b[1] - a[1])
-                .map(([m, n]) => `${n} por ${m === 'nfc' ? 'aproximação' : m === 'qr' ? 'QR Code' : m}`)
-                .join(' · ')}
-            </div>
-          )}
+          {/* "Como chegaram" (aproximação × QR) saiu em 04/10/2026: o meio vem
+              do endereço GRAVADO no chip, e muitos chips levam o endereço do QR
+              (gravação manual copiando o QR, lotes importados). O número era
+              falso — não mostrar até a gravação ser confiável. */}
         </Panel>
       )}
 
