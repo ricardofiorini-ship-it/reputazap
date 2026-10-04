@@ -98,6 +98,50 @@ async function queryWithRetry(buildQuery, tries = 3) {
   return last;
 }
 
+// ── Toque em dispositivo AINDA NÃO ATIVADO (04/10/2026) ─────
+// ~3 mil aberturas de /ativar-codigo por mês vindas de toque. Contar POR
+// DISPOSITIVO separa "revendedor demonstrando o mesmo cartão" (poucos códigos,
+// muitos toques) de "cartão distribuído sem ativar" (muitos códigos, toques em
+// vários dias — avaliação perdida). Só contagem: nada de quem tocou.
+// Nunca atrasa nem desvia o caminho: falhou, o toque segue pra ativação igual.
+// Sem as colunas (supabase/schema-toque-sem-ativar.sql), avisa UMA vez.
+let _avisouSemAtivar = false;
+function diaBrasilia(d) {
+  return new Date(d).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+}
+async function contarToqueSemAtivar(plateId) {
+  try {
+    // linha-ok: um dispositivo só, pelo id
+    const { data, error } = await supabase
+      .from("plates")
+      .select("toques_sem_ativar, dias_com_toque_sem_ativar, primeiro_toque_sem_ativar, ultimo_toque_sem_ativar")
+      .eq("id", plateId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    const agora = new Date().toISOString();
+    const diaNovo = !data?.ultimo_toque_sem_ativar ||
+      diaBrasilia(data.ultimo_toque_sem_ativar) !== diaBrasilia(agora);
+    // linha-ok: um dispositivo só, pelo id
+    const { error: updErr } = await supabase
+      .from("plates")
+      .update({
+        toques_sem_ativar: (data?.toques_sem_ativar || 0) + 1,
+        dias_com_toque_sem_ativar: (data?.dias_com_toque_sem_ativar || 0) + (diaNovo ? 1 : 0),
+        primeiro_toque_sem_ativar: data?.primeiro_toque_sem_ativar || agora,
+        ultimo_toque_sem_ativar: agora,
+      })
+      .eq("id", plateId);
+    if (updErr) throw new Error(updErr.message);
+  } catch (e) {
+    if (_avisouSemAtivar) return;
+    _avisouSemAtivar = true;
+    console.warn(
+      "[r/code] CONTAGEM SEM ATIVAR DESLIGADA:", e?.message || e,
+      "— rode supabase/schema-toque-sem-ativar.sql. O toque segue pra ativação normalmente."
+    );
+  }
+}
+
 export default async function handler(req, res) {
   // NUNCA cachear: o destino da placa muda com o status (estoque→ativa).
   // Sem isso, o celular memoriza o redirect antigo (ex: tocou antes de ativar
@@ -201,6 +245,7 @@ export default async function handler(req, res) {
 
     // 3. Placa ainda não ativa (in_stock / assigned / sent) → onboarding
     if (plate.status !== "active") {
+      await contarToqueSemAtivar(plate.id);
       return res.redirect(302, withUtm(`/ativar-codigo?code=${encodeURIComponent(plate.code)}`, utm));
     }
 
