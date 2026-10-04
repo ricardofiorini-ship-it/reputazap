@@ -222,15 +222,16 @@
     <!-- ─── PASSO 2: busca de negócio ─── -->
     <div id="nStep2" class="hidden">
       <h1>Qual sua empresa?</h1>
-      <p class="sub">A gente busca no Google pra vincular seu dispositivo ao perfil certo. Escreva o nome <b>exatamente como está no Google</b> — uma palavra diferente e a busca traz negócios de outra cidade.</p>
+      <p class="sub">Comece a digitar o nome — as sugestões vêm do Google. Se tiver mais de uma unidade, confira o endereço embaixo do nome.</p>
       <div id="nBizConfirm" class="hidden"></div>
+      <!-- UM CAMPO SÓ (04/10/2026). Antes: nome "exato" + CEP + ramo, todos
+           obrigatórios — e o ramo nem era salvo. Agora é o mesmo autocomplete
+           do /app: sugestão enquanto digita (barata) e a busca completa só no
+           "Não achou?" (paga). -->
       <div id="nBizSearchWrap">
-        <input type="text" id="nBizSearch" placeholder="O nome exato, como está no Google"/>
-        <input type="text" id="nBizCep" placeholder="CEP do negócio (00000-000)" inputmode="numeric" maxlength="9" oninput="maskCep(this); lookupCep()" autocomplete="postal-code"/>
-        <p id="nCepFeedback" style="margin:-6px 0 8px;font-size:12px;color:#5F6368;line-height:1.4;"></p>
-        <input type="text" id="nBizActivity" placeholder="Ramo (ex: cafeteria, pizzaria, salão)"/>
-        <button class="btn btn-outline" style="margin-top:0" onclick="searchBiz('n')">Buscar no Google</button>
+        <input type="text" id="nBizSearch" placeholder="Ex: Padaria Bella Vista" autocomplete="off" oninput="agendarSugestao()"/>
         <div id="nResults" style="margin-top:10px;"></div>
+        <button type="button" class="linklike" id="nBuscaCompleta" style="margin-top:4px;display:none" onclick="buscaCompleta()">Não achou? <b>Ver mais resultados</b></button>
       </div>
       <div class="msg" id="nMsg2"></div>
       <div class="step-actions">
@@ -451,45 +452,9 @@ function show(id){
 
 // "Começar" na tela de boas-vindas → cadastro do passo 1
 function startNew(){
+  trackAtiv("ativ_start");
   show("screenNew");
   nGoToStep(1);
-}
-
-function maskCep(el){
-  let d=el.value.replace(/\D/g,"").slice(0,8);
-  if(d.length>5) d=d.slice(0,5)+"-"+d.slice(5);
-  el.value=d;
-}
-
-// ── ViaCEP: lookup automático ao terminar de digitar (mesmo padrão do /ativar) ──
-let cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
-async function lookupCep(){
-  const raw = document.getElementById("nBizCep").value.replace(/\D/g, "");
-  const fb = document.getElementById("nCepFeedback");
-  if(raw.length < 8){
-    fb.textContent = "";
-    fb.style.color = "#5F6368";
-    cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
-    return;
-  }
-  if(raw === cepCache.cep) return;
-  fb.textContent = "Buscando CEP…";
-  fb.style.color = "#5F6368";
-  try{
-    const r = await fetch(`https://viacep.com.br/ws/${raw}/json/`);
-    const d = await r.json();
-    if(d.erro){
-      fb.textContent = "⚠️ CEP não encontrado — confira os números";
-      fb.style.color = "#C5221F";
-      cepCache = { cep:'', city:'', uf:'', neighborhood:'' };
-      return;
-    }
-    cepCache = { cep: raw, city: d.localidade || "", uf: d.uf || "", neighborhood: d.bairro || "" };
-    fb.innerHTML = `<span style="color:#137333;font-weight:600;">📍 ${d.localidade}/${d.uf}${d.bairro ? " · " + d.bairro : ""}</span>`;
-  } catch {
-    fb.textContent = "Não conseguimos consultar o CEP. Você pode buscar mesmo assim.";
-    fb.style.color = "#5F6368";
-  }
 }
 
 function maskPhone(el){
@@ -499,6 +464,25 @@ function maskPhone(el){
   if(d.length<=6){el.value="("+d.slice(0,2)+") "+d.slice(2);return;}
   if(d.length<=10){el.value="("+d.slice(0,2)+") "+d.slice(2,6)+"-"+d.slice(6);return;}
   el.value="("+d.slice(0,2)+") "+d.slice(2,7)+"-"+d.slice(7);
+}
+
+// ── Medição dos passos da ativação (04/10/2026) ──
+// Mesma mecânica do funil do convidado (/api/track → funnel_events → painel
+// /admin/funil): um id aleatório do navegador (rz_anon, Política §"jornada no
+// site"), sem nome, e-mail nem código do dispositivo. Responde ONDE a pessoa
+// para — a pergunta que só o resultado final (conta sem dispositivo) não diz.
+// Best-effort: nunca atrasa nem quebra a ativação. Na prévia não conta.
+function trackAtiv(step, meta){
+  if (DEMO) return;
+  try{
+    let id = localStorage.getItem("rz_anon");
+    if(!id){ id = "a" + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem("rz_anon", id); }
+    fetch("/api/track", {
+      method: "POST", keepalive: true,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ step, anon_id: id, meta: meta || {} })
+    }).catch(()=>{});
+  }catch{}
 }
 
 // Estado inicial
@@ -601,73 +585,106 @@ async function routeByStatus(){
   }catch{ /* falha transitória na checagem → segue pra ativação normal */ }
   // Placa nova / não-ativa (ou checagem falhou) → fluxo de ativação normal.
   show("screenWelcome");
+  trackAtiv("ativ_view");
 }
 
-// ── Busca de negócio (Google Places) ──
-async function searchBiz(prefix){
-  const box = document.getElementById(prefix+"Results");
+// ── Busca de negócio: UM CAMPO, com sugestão enquanto digita (04/10/2026) ──
+// Mesmo desenho do /app: a pausa na digitação chama o Autocomplete do Google
+// (modo=sugestao — barato, 10 mil grátis/mês) e a busca completa (Text Search,
+// paga, com nota) só roda no clique de "Não achou?". Antes eram três campos
+// obrigatórios — nome exato, CEP e ramo — e o ramo nem era salvo.
+const MIN_LETRAS = 3;
+let _timerSug = null, _pedidoBusca = 0;
+const _memoBusca = {};
+const escHtml = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
-  // Modo prévia: devolve resultados fictícios pra você ver a tela de escolha.
+function agendarSugestao(){
+  clearTimeout(_timerSug);
+  const q = document.getElementById("nBizSearch").value.trim();
+  const box = document.getElementById("nResults");
+  const maisBtn = document.getElementById("nBuscaCompleta");
+  if(q.length < MIN_LETRAS){ box.innerHTML = ""; maisBtn.style.display = "none"; return; }
+  _timerSug = setTimeout(() => buscarNegocios(false), 600);
+}
+function buscaCompleta(){ buscarNegocios(true); }
+
+async function buscarNegocios(completa){
+  const box = document.getElementById("nResults");
+  const maisBtn = document.getElementById("nBuscaCompleta");
+  const q = document.getElementById("nBizSearch").value.trim();
+  if(q.length < MIN_LETRAS) return;
+
+  // Modo prévia: resultados fictícios, sem chamar o Google.
   if(DEMO){
-    const demoResults = [
-      {name:"Cafeteria do Centro", rating:4.6, total:128, distance_meters:240, address:"Rua das Flores, 100 — Centro", place_id:"demo1"},
-      {name:"Cafeteria do Centro (Filial)", rating:4.3, total:54, distance_meters:1800, address:"Av. Brasil, 900 — Jardim", place_id:"demo2"}
-    ];
-    box.innerHTML = demoResults.map((r,i)=>`
-      <div class="result-item" onclick='pickBiz(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
-        <div class="result-name">${r.name}${i===0 ? ' <span style="font-size:10px;font-weight:700;background:#E6F4EA;color:#137333;padding:2px 6px;border-radius:4px;margin-left:6px;letter-spacing:.04em;">MAIS PRÓXIMA</span>' : ''}</div>
-        <div class="result-addr">⭐ ${r.rating} · ${r.total} avaliações · 📍 ${(r.distance_meters/1000).toFixed(1)} km do CEP · ${r.address}</div>
-      </div>`).join("");
+    desenharResultados([
+      {name:"Cafeteria do Centro", address:"Rua das Flores, 100 — Centro, São Paulo - SP", place_id:"demo1", rating:null, total:null},
+      {name:"Cafeteria do Centro (Filial)", address:"Av. Brasil, 900 — Jardim, Campinas - SP", place_id:"demo2", rating:null, total:null}
+    ], completa);
     return;
   }
 
-  const q = document.getElementById(prefix+"BizSearch").value.trim();
-  const cep = document.getElementById(prefix+"BizCep").value.replace(/\D/g, "");
-  const activity = document.getElementById(prefix+"BizActivity").value.trim();
-
-  if(!q){ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Digite o nome do negócio.</p>'; return; }
-  if(cep.length<8){ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Informe o CEP (8 dígitos).</p>'; return; }
-  if(!activity){ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Diga o ramo de atuação.</p>'; return; }
-
-  // Garante lookup do CEP (se user submeteu antes do ViaCEP responder)
-  if(cepCache.cep !== cep){ await lookupCep(); }
-  const city = cepCache.city;
-  const uf = cepCache.uf;
-
-  box.innerHTML = '<p style="font-size:13px;color:#5F6368;">Buscando no Google Maps…</p>';
+  const chave = (completa ? "c:" : "s:") + q.toLowerCase();
+  if(_memoBusca[chave]){ desenharResultados(_memoBusca[chave], completa); return; }
+  const meu = ++_pedidoBusca;
+  box.innerHTML = '<p style="font-size:13px;color:#5F6368;">Buscando no Google…</p>';
   try{
-    const searchQ = [q, cep, city, uf].filter(Boolean).join(" ");
-    const res = await fetch(`/api/searchbiz?q=${encodeURIComponent(searchQ)}&cep=${encodeURIComponent(cep)}`);
+    const params = new URLSearchParams({ q, name: q });
+    if(!completa) params.set("modo", "sugestao");
+    const res = await fetch(`/api/searchbiz?${params.toString()}`);
     const data = await res.json();
-    if(!data.results?.length){
-      box.innerHTML = '<p style="font-size:13px;color:#5F6368;">Não encontramos sua empresa no Google. Confira o nome ou peça pro Google Meu Negócio cadastrar.</p>';
-      return;
-    }
-    const fmtDistance = (m) => {
-      if (m == null) return "";
-      if (m < 1000) return `${m} m`;
-      return `${(m/1000).toFixed(1)} km`;
-    };
-    const cards = data.results.map((r,i)=>`
-      <div class="result-item" onclick='pickBiz(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
-        <div class="result-name">${r.name}${i===0 && r.distance_meters!=null ? ' <span style="font-size:10px;font-weight:700;background:#E6F4EA;color:#137333;padding:2px 6px;border-radius:4px;margin-left:6px;letter-spacing:.04em;">MAIS PRÓXIMA</span>' : ''}</div>
-        <div class="result-addr">⭐ ${r.rating||"?"} · ${r.total||0} avaliações${r.distance_meters!=null ? ' · 📍 '+fmtDistance(r.distance_meters)+' do CEP' : ''} · ${r.address}</div>
-      </div>`).join("");
-    const disclaimer = `
-      <div style="margin-top:10px;padding:9px 11px;background:#FEFCE8;border:1px solid #FEF08A;border-radius:8px;font-size:11.5px;color:#854D0E;line-height:1.45;">
-        <span style="font-weight:700;">⚠️ Nome ou endereço diferente do real?</span>
-        Os dados vêm do <a href="https://business.google.com/br/business-profile/" target="_blank" rel="noopener" style="color:#854D0E;font-weight:600;text-decoration:underline;">Google Meu Negócio</a> do dono. Se estiver desatualizado, escolha mesmo assim e atualize depois — a correção propaga aqui em 1-2 dias.
-      </div>`;
-    box.innerHTML = cards + disclaimer;
-  }catch{ box.innerHTML='<p style="font-size:13px;color:#C5221F;">Erro na busca.</p>'; }
+    if(meu !== _pedidoBusca) return;   // chegou tarde: a pessoa já digitou outra coisa
+    const lista = data.results || [];
+    _memoBusca[chave] = lista;
+    desenharResultados(lista, completa);
+    if(!lista.length) trackAtiv("ativ_busca_vazia", { completa: !!completa });
+  }catch{
+    if(meu !== _pedidoBusca) return;
+    box.innerHTML = '<p style="font-size:13px;color:#C5221F;">Erro na busca. Tente de novo.</p>';
+  }
+  maisBtn.style.display = completa ? "none" : "block";
 }
+
+function desenharResultados(lista, completa){
+  const box = document.getElementById("nResults");
+  const maisBtn = document.getElementById("nBuscaCompleta");
+  maisBtn.style.display = completa ? "none" : "block";
+  if(!lista.length){
+    box.innerHTML = completa
+      ? '<p style="font-size:13px;color:#5F6368;line-height:1.5;">Não encontramos sua empresa no Google. Confira o nome — ou fale com a gente no WhatsApp (botão verde) que ativamos pra você.</p>'
+      : '<p style="font-size:13px;color:#5F6368;">Nenhuma sugestão ainda — continue digitando ou veja mais resultados.</p>';
+    return;
+  }
+  // Índice no atributo, não o objeto inteiro: nome e endereço vêm do Google e
+  // não podem ir crus pra dentro de um onclick.
+  window._resultadosBusca = lista;
+  box.innerHTML = lista.map((r,i)=>{
+    const nota = (r.rating != null) ? `⭐ ${escHtml(r.rating)} · ${escHtml(r.total||0)} avaliações · ` : "";
+    return `<div class="result-item" onclick="pickBiz(window._resultadosBusca[${i}])">
+      <div class="result-name">${escHtml(r.name)}</div>
+      <div class="result-addr">${nota}${escHtml(r.address || "")}</div>
+    </div>`;
+  }).join("");
+}
+
 function pickBiz(biz){
-  selectedBiz = biz;
+  selectedBiz = { ...biz };
   document.getElementById("nBizSearchWrap").classList.add("hidden");
   const c = document.getElementById("nBizConfirm");
   c.classList.remove("hidden");
   c.className = "biz-confirm";
-  c.innerHTML = `<span class="nm">${biz.name}</span><button onclick="resetBiz()">Trocar</button>`;
+  c.innerHTML = `<span class="nm">${escHtml(biz.name)}</span><button onclick="resetBiz()">Trocar</button>`;
+  // A sugestão não traz nota nem nº de avaliações — e o nº é o MARCO ZERO
+  // (businesses.total_reviews) das "avaliações captadas". Busca na escolha,
+  // sem segurar a tela: se falhar, segue sem (o savebiz aceita vazio).
+  if(!DEMO && biz.place_id && biz.total == null){
+    const alvo = biz.place_id;
+    fetch(`/api/bizinfo?place_id=${encodeURIComponent(alvo)}`).then(r=>r.json()).then(d=>{
+      if(!selectedBiz || selectedBiz.place_id !== alvo || !d || d.error) return;
+      selectedBiz.rating = d.rating ?? null;
+      selectedBiz.total = d.total ?? null;
+      if(!selectedBiz.address && d.address) selectedBiz.address = d.address;
+    }).catch(()=>{});
+  }
   // Habilita botão Continuar do passo 2
   const cont = document.getElementById("nStep2Continue");
   if (cont){ cont.disabled = false; cont.style.opacity = "1"; cont.style.cursor = "pointer"; }
@@ -677,6 +694,7 @@ function resetBiz(){
   document.getElementById("nBizConfirm").classList.add("hidden");
   document.getElementById("nBizSearchWrap").classList.remove("hidden");
   document.getElementById("nResults").innerHTML="";
+  document.getElementById("nBuscaCompleta").style.display="none";
   // Desabilita botão Continuar do passo 2
   const cont = document.getElementById("nStep2Continue");
   if (cont){ cont.disabled = true; cont.style.opacity = ".5"; cont.style.cursor = "not-allowed"; }
@@ -693,6 +711,7 @@ function nGoToStep(step){
       return;
     }
     document.getElementById("nMsg1").className = "msg";
+    trackAtiv("ativ_conta_ok", { via: googleAuthed ? "google" : "email" });
   } else if (step === 3){
     if (!selectedBiz){
       const msg = document.getElementById("nMsg2");
@@ -700,6 +719,7 @@ function nGoToStep(step){
       return;
     }
     document.getElementById("nMsg2").className = "msg";
+    trackAtiv("ativ_empresa_ok");
     // Repete o código sendo ativado no passo 3
     document.getElementById("nStep3Badge").textContent = "✓ Código sendo ativado: " + (CODE || "STAR-DEMO");
   }
@@ -780,10 +800,11 @@ async function submitNew(){
         // engano (ex: ativar um 2º/3º dispositivo). Tenta logar com a senha
         // digitada e segue o fluxo; se a senha não bater, orienta o login.
         const jaExiste = rReg.status === 409 || /already registered|already exists|já (cadastrad|registrad|existe)/i.test(dReg.error||"");
-        if(!jaExiste){ msg.className="msg error"; msg.textContent=dReg.error||"Erro ao criar conta."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
+        if(!jaExiste){ trackAtiv("ativ_erro", { etapa: "cadastro" }); msg.className="msg error"; msg.textContent=dReg.error||"Erro ao criar conta."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
         const rLog=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})});
         const dLog=await rLog.json();
         if(!rLog.ok||!dLog.token){
+          trackAtiv("ativ_erro", { etapa: "email_ja_tem_conta" });
           msg.className="msg error"; msg.innerHTML='Esse email já tem conta StarTouch. Volte e use <b>"Já tenho conta"</b> pra entrar (ou recuperar a senha) e vincular este dispositivo.'; btn.disabled=false; btn.textContent="✓ Ativar"; return;
         }
         token=dLog.token;
@@ -812,6 +833,7 @@ async function submitNew(){
       const rMine = await fetch("/api/plates?action=my-businesses",{headers:{"Authorization":`Bearer ${token}`}});
       const atual = rMine.ok ? ((await rMine.json()).businesses||[])[0] : null;
       if(atual && atual.place_id && atual.place_id !== selectedBiz.place_id){
+        trackAtiv("ativ_erro", { etapa: "conta_tem_outra_empresa" });
         mostrarConflitoDeNegocio(msg, btn, atual, nicknameDigitado);
         return;
       }
@@ -819,17 +841,18 @@ async function submitNew(){
     const rBiz = await fetch("/api/savebiz",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({place_id:selectedBiz.place_id,name:selectedBiz.name,address:selectedBiz.address,rating:selectedBiz.rating,total:selectedBiz.total,nao_trocar:true})});
     const dBiz = await rBiz.json();
     if(rBiz.status===409 && dBiz.business){ mostrarConflitoDeNegocio(msg, btn, dBiz.business, nicknameDigitado); return; }
-    if(!rBiz.ok||!dBiz.business){ msg.className="msg error"; msg.textContent=dBiz.error||"Erro ao salvar negócio."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
+    if(!rBiz.ok||!dBiz.business){ trackAtiv("ativ_erro", { etapa: "empresa" }); msg.className="msg error"; msg.textContent=dBiz.error||"Erro ao salvar negócio."; btn.disabled=false; btn.textContent="✓ Ativar"; return; }
 
     // 3. ativa placa
     btn.textContent="Ativando…";
     const nickname = document.getElementById("nNickname").value.trim() || null;
     const rAct = await fetch("/api/plates?action=activate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({code:CODE,business_id:dBiz.business.id,channel_name:nickname})});
     const dAct = await rAct.json();
-    if(!rAct.ok){ msg.className="msg error"; msg.textContent=dAct.error||"Erro ao ativar o dispositivo."; oferecerWhatsSeAlheio(msg, dAct, btn); btn.disabled=false; btn.textContent="✓ Ativar"; return; }
+    if(!rAct.ok){ trackAtiv("ativ_erro", { etapa: "ativar", motivo: dAct.reason || rAct.status }); msg.className="msg error"; msg.textContent=dAct.error||"Erro ao ativar o dispositivo."; oferecerWhatsSeAlheio(msg, dAct, btn); btn.disabled=false; btn.textContent="✓ Ativar"; return; }
 
+    trackAtiv("ativ_done", { via: "novo" });
     show("screenDone");
-  }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="✓ Ativar"; }
+  }catch{ trackAtiv("ativ_erro", { etapa: "conexao" }); msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="✓ Ativar"; }
 }
 
 // A conta já tem OUTRO negócio: explica e oferece ativar o dispositivo nele.
@@ -877,7 +900,7 @@ async function submitLogin(){
   try{
     const rLog=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password:pass})});
     const dLog=await rLog.json();
-    if(!rLog.ok||!dLog.token){ msg.className="msg error"; msg.textContent=dLog.error||"Email ou senha incorretos."; btn.disabled=false; btn.textContent="Entrar"; return; }
+    if(!rLog.ok||!dLog.token){ trackAtiv("ativ_erro", { etapa: "login" }); msg.className="msg error"; msg.textContent=dLog.error||"Email ou senha incorretos."; btn.disabled=false; btn.textContent="Entrar"; return; }
     token=dLog.token;
     salvarSessao(dLog);
     if(dLog.user) localStorage.setItem("rz_user",JSON.stringify(dLog.user));
@@ -888,6 +911,7 @@ async function submitLogin(){
 // "Já tenho conta": se já logado, pula direto pra vincular
 async function goToExisting(){
   if(DEMO){ show("screenLogin"); return; }
+  trackAtiv("ativ_login_click");
   if(token){
     try{
       const test=await fetch("/api/plates?action=my-businesses",{headers:{"Authorization":`Bearer ${token}`}});
@@ -934,9 +958,10 @@ async function submitLink(){
   try{
     const r=await fetch("/api/plates?action=activate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({code:CODE,business_id,channel_name:nickname||null})});
     const d=await r.json();
-    if(!r.ok){ msg.className="msg error"; msg.textContent=d.error||"Erro ao ativar."; oferecerWhatsSeAlheio(msg, d, btn); btn.disabled=false; btn.textContent="Ativar"; return; }
+    if(!r.ok){ trackAtiv("ativ_erro", { etapa: "ativar", motivo: d.reason || r.status }); msg.className="msg error"; msg.textContent=d.error||"Erro ao ativar."; oferecerWhatsSeAlheio(msg, d, btn); btn.disabled=false; btn.textContent="Ativar"; return; }
+    trackAtiv("ativ_done", { via: "conta" });
     show("screenDone");
-  }catch{ msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Ativar"; }
+  }catch{ trackAtiv("ativ_erro", { etapa: "conexao" }); msg.className="msg error"; msg.textContent="Erro de conexão."; btn.disabled=false; btn.textContent="Ativar"; }
 }
 
 // ── Indicação (tela de sucesso) ──

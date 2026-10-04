@@ -36,6 +36,16 @@ const STEPS = new Set([
   // funcionou ou não. `meta.from` diz de qual bloco da tela ele saiu.
   "guest_kit_click",
   "guest_ativar_click",
+  // A TELA DE ATIVAÇÃO (04/10/2026) — porta de quase todo cadastro. Só se via
+  // o resultado (conta sem dispositivo); estes passos dizem ONDE a pessoa para.
+  "ativ_view",          // abriu com código válido e não ativado
+  "ativ_start",         // "Começar" (cliente novo)
+  "ativ_login_click",   // "Já tenho conta"
+  "ativ_conta_ok",      // passou do passo 1 (meta.via: email | google)
+  "ativ_empresa_ok",    // escolheu a empresa (passo 2)
+  "ativ_done",          // dispositivo ativado (meta.via: novo | conta)
+  "ativ_busca_vazia",   // busca de empresa sem resultado (meta.completa)
+  "ativ_erro",          // meta.etapa: cadastro, login, empresa, ativar, ...
 ]);
 
 // Reutilizável pelo próprio backend (ex: /api/register loga signup_complete).

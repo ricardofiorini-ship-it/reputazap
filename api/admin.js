@@ -249,6 +249,51 @@ async function handleFunnel(req, res) {
     };
   });
 
+  // ── O FUNIL DA ATIVAÇÃO (04/10/2026) ───────────────────────
+  // Porta de quase todo cadastro (cartão do Mercado Livre, revenda). Até aqui
+  // só se via o resultado — conta criada sem dispositivo — e não ONDE a pessoa
+  // parou. Escada própria: o topo é quem abriu a tela com um código válido, o
+  // que inclui o cliente do lojista que tocou um cartão ainda não ativado
+  // (por isso a queda do 1º degrau não é só atrito — é também gente que
+  // nunca foi dona do cartão).
+  const ATIV_STEPS = [
+    { key: "ativ_view",       label: "Abriu a ativação (código válido)" },
+    { key: "ativ_start",      label: "Começou como cliente novo" },
+    { key: "ativ_conta_ok",   label: "Passou da conta (passo 1)" },
+    { key: "ativ_empresa_ok", label: "Escolheu a empresa (passo 2)" },
+  ];
+  const ativSets = {}; ATIV_STEPS.forEach(s => { ativSets[s.key] = new Set(); });
+  const ativDone = { novo: new Set(), conta: new Set() };
+  const ativLogin = new Set();
+  const ativErros = {}; const ativBuscaVazia = new Set();
+  let z = 0;
+  for (const r of (data || [])) {
+    const id = r.anon_id || `evt-a-${z++}`;
+    if (ativSets[r.step]) ativSets[r.step].add(id);
+    else if (r.step === "ativ_done") (ativDone[(r.meta && r.meta.via) === "conta" ? "conta" : "novo"]).add(id);
+    else if (r.step === "ativ_login_click") ativLogin.add(id);
+    else if (r.step === "ativ_busca_vazia") ativBuscaVazia.add(id);
+    else if (r.step === "ativ_erro") {
+      const et = (r.meta && r.meta.etapa) || "desconhecida";
+      (ativErros[et] = ativErros[et] || new Set()).add(id);
+    }
+  }
+  const ativTop = ativSets["ativ_view"].size;
+  let ativPrev = null;
+  const ativacao = {
+    desde: "2026-10-04",
+    passos: [...ATIV_STEPS.map(s => ({ key: s.key, label: s.label, people: ativSets[s.key].size })),
+             { key: "ativ_done_novo", label: "Ativou o dispositivo (cliente novo)", people: ativDone.novo.size }]
+      .map(p => {
+        const out = { ...p, pctOfTop: ativTop ? Math.round((p.people / ativTop) * 100) : 0,
+          dropFromPrev: ativPrev != null && ativPrev > 0 ? Math.round(((ativPrev - p.people) / ativPrev) * 100) : null };
+        ativPrev = p.people; return out;
+      }),
+    ja_tem_conta: { clicaram: ativLogin.size, ativaram: ativDone.conta.size },
+    busca_vazia: ativBuscaVazia.size,
+    erros: Object.entries(ativErros).map(([etapa, set]) => ({ etapa, people: set.size })).sort((a, b) => b.people - a.people),
+  };
+
   const top = sets[STEPS[0].key].size || 0;
   let prev = null;
   const funnel = STEPS.map(s => {
@@ -282,7 +327,7 @@ async function handleFunnel(req, res) {
 
   return res.json({
     days, de, ate, periodo: { de: since, ate: until },
-    total_events: (data || []).length, funnel, menu, vitrine,
+    total_events: (data || []).length, funnel, menu, vitrine, ativacao,
     // `vitrine_desde`: os dois passos só passaram a ser gravados em 20/09. Sem
     // esta data, um período que comece antes mostra zero e se lê como "ninguém
     // clicou", quando o certo é "ainda não media".

@@ -248,7 +248,8 @@ function render(data){
   const last = funnel.length ? funnel[funnel.length-1] : null;
 
   if(top === 0){
-    $("content").innerHTML = '<div class="state">Ainda sem dados neste período. Assim que a galera começar a usar, o funil aparece aqui.</div>';
+    // A ativação tem escada própria: sem visitante no período, ela ainda aparece.
+    $("content").innerHTML = '<div class="state">Funil do convidado sem dados neste período.</div>' + blocoAtivacao(data);
     return;
   }
 
@@ -302,7 +303,57 @@ function render(data){
     </div>`;
   }).join("");
 
-  $("content").innerHTML = headline + steps + blocoVitrine(data) + blocoMenu(data.menu);
+  $("content").innerHTML = headline + steps + blocoAtivacao(data) + blocoVitrine(data) + blocoMenu(data.menu);
+}
+
+// ── Funil da ativação (04/10/2026) ──
+// A tela /ativar-codigo é a porta de quase todo cadastro. O topo (abriu com
+// código válido) inclui o CLIENTE DO LOJISTA que tocou um cartão ainda não
+// ativado — então a queda do 1º degrau mistura atrito com gente que nunca foi
+// dona do cartão. Os degraus de baixo (conta → empresa → ativou) são atrito puro.
+const ETAPA_LABEL = {
+  cadastro: "Criar a conta (e-mail/senha)",
+  email_ja_tem_conta: "E-mail já tinha conta e a senha não bateu",
+  conta_tem_outra_empresa: "Conta já ligada a outra empresa (trava de troca)",
+  empresa: "Salvar a empresa",
+  ativar: "Ativar o dispositivo",
+  login: "Entrar (\"Já tenho conta\")",
+  conexao: "Falha de conexão",
+};
+function blocoAtivacao(data){
+  const a = data.ativacao;
+  if(!a) return "";
+  const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const inicio = (data.periodo && data.periodo.de) ? String(data.periodo.de).slice(0,10) : null;
+  const aviso = (a.desde && inicio && inicio < a.desde)
+    ? `<div class="nota-medicao">⚠ Estes passos só passaram a ser gravados em ${a.desde.slice(8,10)}/${a.desde.slice(5,7)}/${a.desde.slice(0,4)}. O período começa antes, então os números estão incompletos — é medição que faltava, não gente que não passou.</div>`
+    : '';
+  const passos = (a.passos || []).map(p => {
+    const drop = p.dropFromPrev == null ? '<div class="drop none">— topo</div>'
+      : (p.dropFromPrev > 0 ? `<div class="drop">↓ ${p.dropFromPrev}% pararam aqui</div>` : '<div class="drop none">sem queda</div>');
+    return `<div class="step">
+      <div class="row1"><span class="label">${esc(p.label)}</span><span class="count">${p.people}<small>${p.pctOfTop}% do topo</small></span></div>
+      <div class="track"><div class="fill" style="width:${Math.max(2, p.pctOfTop)}%"></div></div>
+      ${drop}
+    </div>`;
+  }).join('');
+  const jt = a.ja_tem_conta || {};
+  const erros = (a.erros || []).length
+    ? '<div style="font-size:12.5px;color:#334155;margin-top:8px"><b>Onde deu erro</b> (pessoas):<ul style="margin:6px 0 0 18px;padding:0">' +
+      a.erros.map(e => `<li>${esc(ETAPA_LABEL[e.etapa] || e.etapa)}: <b>${e.people}</b></li>`).join('') + '</ul></div>'
+    : '<div style="font-size:12.5px;color:#64748B;margin-top:8px">Nenhum erro registrado no período.</div>';
+  return `<h2 style="font-size:15px;font-weight:700;margin:26px 0 4px">Funil da ativação de dispositivo</h2>
+    <p style="font-size:12.5px;color:#64748B;margin:0 0 12px;line-height:1.5">
+      A tela <b>/ativar-codigo</b>, porta de quase todo cadastro. O topo inclui quem tocou um cartão ainda não ativado
+      <b>sem ser o dono</b> (cliente do lojista, demonstração de revendedor) — então a queda do primeiro degrau não é só atrito.
+      Do segundo degrau pra baixo, é.
+    </p>
+    ${aviso}${passos}
+    <div style="font-size:12.5px;color:#334155;margin-top:10px">
+      Pelo caminho <b>"Já tenho conta"</b>: ${jt.clicaram || 0} ${jt.clicaram === 1 ? 'pessoa clicou' : 'pessoas clicaram'}, ${jt.ativaram || 0} ${jt.ativaram === 1 ? 'ativou' : 'ativaram'}.
+      Busca de empresa sem resultado: <b>${a.busca_vazia || 0}</b> ${a.busca_vazia === 1 ? 'pessoa' : 'pessoas'}.
+    </div>
+    ${erros}`;
 }
 
 // ── Saídas da vitrine (21/09/2026) ──
