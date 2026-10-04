@@ -999,9 +999,12 @@ async function medirLentes({ placeId, keyword }) {
   if (!placeId) throw new Error("placeId obrigatório");
   if (!API_KEY) throw new Error("PLACES_API_KEY ausente no ambiente");
 
-  // 1. Detalhes do negócio (uma vez)
+  // 1. Detalhes do negócio (uma vez). SEM rating/user_ratings_total desde
+  // 03/10/2026: esses dois campos cobram a sobretaxa de nota (Atmosphere Data)
+  // e a nota do próprio negócio nunca saía daqui — o diagnostico?lenses só
+  // devolve me.name. Quem precisar da nota pede ao bizinfo/reviews (com cache).
   const detRes = await fetchWithTimeout(
-    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,user_ratings_total,geometry,types&language=pt-BR&key=${API_KEY}`,
+    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,geometry,types&language=pt-BR&key=${API_KEY}`,
     {}, 6000
   );
   const det = await detRes.json();
@@ -1011,8 +1014,6 @@ async function medirLentes({ placeId, keyword }) {
   const me = {
     place_id: placeId,
     name: meR.name,
-    rating: typeof meR.rating === "number" ? meR.rating : 0,
-    reviews: meR.user_ratings_total || 0,
     lat, lng
   };
 
@@ -1103,7 +1104,25 @@ export function applyNameLocking(top, paid) {
 // Custo: a nova SUBSTITUI a chamada antiga (não soma). Ambas caem no mesmo SKU
 // (Place Details Pro, US$17/1k, 5k grátis/mês) porque `displayName` já é Pro.
 // Se a nova falhar (API desligada, quota, timeout), cai pra antiga sozinha.
+//
+// CACHE de 30 dias (03/10/2026). Antes não tinha nenhum: rodava a cada escolha
+// de negócio pelo convidado e a CADA abertura da aba Posição do V3, mesmo com a
+// grade vinda do cache. Nome e categoria principal mudam em meses, não em dias.
+// (O expurgo diário apaga linhas de places_cache com mais de 30 dias — os dois
+// prazos casam de propósito.)
+const SEED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
 export async function fetchPlaceSeed(placeId) {
+  if (!placeId || !process.env.PLACES_API_KEY) return null;
+  const { data } = await comCachePlaces({
+    key: `seed:v1:${placeId}`,
+    ttlMs: SEED_TTL_MS,
+    produce: () => fetchPlaceSeedAoVivo(placeId),
+  });
+  return data ?? null;
+}
+
+async function fetchPlaceSeedAoVivo(placeId) {
   const key = process.env.PLACES_API_KEY;
   if (!placeId || !key) return null;
   try {

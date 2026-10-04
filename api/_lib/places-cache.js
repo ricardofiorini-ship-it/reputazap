@@ -133,8 +133,12 @@ export const TTL = {
   // cada pausa na digitação, então sem cache uma pessoa custa 4 buscas em vez
   // de 1. É o cache que torna o autocomplete pagável.
   SEARCHBIZ: 24 * 60 * 60 * 1000,
-  BIZINFO: 6 * 60 * 60 * 1000,   // nota, endereço, telefone, foto: mudam devagar
-  REVIEWS: 3 * 60 * 60 * 1000,   // avaliações recentes: janela mais curta
+  // 03/10/2026: 6h→24h e 3h→12h. As duas chamadas pagam a sobretaxa de nota
+  // (Atmosphere Data) e a do bizinfo também a de contato — juntas foram R$ 396
+  // dos R$ 572 de setembro. Endereço/telefone/foto mudam em semanas; avaliação
+  // nova aparecer em até 12h no painel é aceitável (o resumo é semanal).
+  BIZINFO: 24 * 60 * 60 * 1000,  // nota, endereço, telefone, foto: mudam devagar
+  REVIEWS: 12 * 60 * 60 * 1000,  // avaliações recentes: janela mais curta
   LENSES:  6 * 60 * 60 * 1000,   // posição/concorrentes: não muda de hora em hora
   // Cliente logado no plano grátis: UMA medição por semana (30/jul). Não é
   // política de custo, é limite de produto — o que se vende no Pro é medir

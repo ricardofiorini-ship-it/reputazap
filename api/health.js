@@ -92,7 +92,16 @@ export default async function handler(req, res) {
   }
 
   // Google Places API
-  if (process.env.PLACES_API_KEY) {
+  // Desde 03/10/2026 o teste AO VIVO do Google (uma consulta paga) só roda com
+  // o segredo dos diagnósticos — este endpoint é público e sem limite, e cada
+  // acesso anônimo virava uma chamada cobrada. Sem segredo, só confere a chave.
+  const segredo = process.env.DIAG_SECRET || process.env.CRON_SECRET || "";
+  const autorizado = !!segredo && (
+    req.query?.secret === segredo || (req.headers?.authorization || "") === `Bearer ${segredo}`
+  );
+  if (process.env.PLACES_API_KEY && !autorizado) {
+    services.push({ name: "Google Places API", ok: true, status: null, error: null, note: "chave presente; teste ao vivo só com ?secret=" });
+  } else if (process.env.PLACES_API_KEY) {
     // Geocoding de CEP conhecido (rápido, ~200ms)
     const r = await ping(
       `https://maps.googleapis.com/maps/api/geocode/json?address=01310-100&key=${process.env.PLACES_API_KEY}`
