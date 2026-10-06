@@ -26,7 +26,8 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { sendTransactionalEmail } from "../_lib/email-sender.js";
-import { tapsHistoryNewsEmail, revendaNewsEmail, proMenuEmail } from "../_lib/email-templates.js";
+import { tapsHistoryNewsEmail, revendaNewsEmail } from "../_lib/email-templates.js";
+import { proMenuEmail } from "../_lib/email-pro-menu.js";
 import { unsubUrl } from "../_lib/unsubscribe.js";
 import { soStartouch } from "../_lib/linha.js";
 
