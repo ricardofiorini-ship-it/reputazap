@@ -371,6 +371,14 @@ export default function Experiencia({ dados }) {
             </button>
             <span>Monte e visualize antes de publicar.</span>
           </div>
+          {/* Preço à vista desde 06/10/2026 — escondido, ninguém entendia que
+              era uma assinatura. Mesmos números da caixa do "Publicar". */}
+          {!estado.dados?.plano?.proAtivo && (
+            <p className="exp-hero-preco">
+              <strong>R$ 19,90/mês · 7 dias grátis</strong> · sem fidelidade, cancele quando quiser.
+              <br/>Monte de graça, publique e teste 7 dias — a cobrança só começa depois.
+            </p>
+          )}
         </header>
         <Demonstracao nome={negocioExibido?.name} acao={acao} setAcao={setAcao}/>
       </div>

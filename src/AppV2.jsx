@@ -3814,6 +3814,25 @@ function BalaoMarca({ tipo, texto, lado, topo }) {
 // custo sem contrapartida. Quando o resto do V3 for absorvido, some o motivo
 // que sobrou pra alguém querer isto de volta.
 
+// O que o banner precisa dizer pra alguém assinar: que é assinatura, quanto
+// custa e em que ordem as coisas acontecem. Os mesmos números da caixa do
+// "Publicar" (EditorMenu.jsx) — mudou o preço lá, muda aqui.
+function PrecoMenu({ claro = false }) {
+  const forte = claro ? '#fff' : T.text
+  const fraco = claro ? 'rgba(255,255,255,.85)' : T.textMid
+  return (
+    <div style={{ marginTop: 14 }}>
+      <div style={{ fontSize: 13.5, color: forte, lineHeight: 1.5 }}>
+        <strong>StarTouch Pro: R$ 19,90/mês</strong>
+        <span style={{ color: fraco }}> · 7 dias grátis · sem fidelidade, cancele quando quiser</span>
+      </div>
+      <div style={{ fontSize: 12, color: fraco, lineHeight: 1.5, marginTop: 4 }}>
+        1. Monte seu menu de graça &nbsp;→&nbsp; 2. Publique e teste 7 dias sem pagar &nbsp;→&nbsp; 3. Só depois começa a cobrança
+      </div>
+    </div>
+  )
+}
+
 function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = null }) {
   const ehPro = plan === 'pro'
   const nome = (bizName || 'Seu negócio').trim()
@@ -3839,6 +3858,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = 
                 ? 'Escolha o que seu cliente encontra ao encostar o celular — avaliação no Google, WhatsApp, cardápio, agendamento e mais.'
                 : 'Hoje seu dispositivo leva direto à avaliação no Google. Com o Pro, o mesmo toque abre um menu com vários caminhos — e a avaliação continua sendo a primeira opção.'}
             </div>
+            {!ehPro && <PrecoMenu/>}
           </div>
           <button type="button" onClick={onAbrirMenu} style={{ border:'none', cursor:'pointer', fontFamily:'inherit',
             background: T.blue, color: '#fff', borderRadius: 9, padding: '11px 18px',
@@ -3906,15 +3926,13 @@ function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = 
             <ArrowRight size={17}/>
           </button>
 
-          {/* O VALOR NÃO ENTRA AQUI (decisão do Ricardo, 08/09/2026).
-              O banner desperta interesse; quem cobra é a caixa que abre no
-              "Publicar", quando a pessoa já montou o menu e viu o nome do
-              próprio negócio dentro dele. Preço no topo do funil antecipa a
-              objeção pra antes do argumento.
-              Ninguém é pego de surpresa: "7 dias grátis" no botão já diz que
-              é pago, e o número está na /plano-pro, que é pública.
-              De quebra, separa a medição: o banner passa a medir INTERESSE e
-              a caixa, DISPOSIÇÃO A PAGAR — dois sinais em vez de um borrado. */}
+          {/* O PREÇO VOLTOU PRO BANNER (Ricardo, 06/10/2026). A decisão de
+              08/09 era esconder o valor até a caixa do "Publicar", pra preço
+              não chegar antes do argumento. Na prática ficou obscuro: o banner
+              não dizia que era assinatura, quanto custava nem como funcionava,
+              e em um mês vieram 4 assinaturas de fora. Quem não entende o que
+              está comprando não clica pra descobrir — vai embora. */}
+          {!ehPro && <PrecoMenu claro/>}
 
           {/* Os três ganhos, na mesma linha do original. Em telas estreitas
               eles quebram sozinhos em vez de espremer. */}
