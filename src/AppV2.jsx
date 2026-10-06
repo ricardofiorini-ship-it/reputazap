@@ -2688,6 +2688,65 @@ hora local:                ${new Date().toISOString()}`}
 // 12/09/2026 esta seção abre o portal de cobrança da Stripe, que já mostra os
 // três — reimplementar a fatura aqui seria manter uma segunda versão da
 // verdade, que foi exatamente o que deu errado com o MOCK.
+// ── CARTÃO RECUSADO (06/10/2026) ──
+// `past_due` = o teste acabou (ou a mensalidade venceu) e a cobrança falhou.
+// O Stripe tenta de novo por ~5 dias e então CANCELA sozinho — e o menu sai
+// dos dispositivos. Até aqui isso acontecia calado: o Flavio (01→06/10) e o
+// Paulo (03/10) perderam o Pro sem nenhuma tela dizer o motivo. Quem quis
+// pagar e teve o cartão recusado é o assinante mais barato de recuperar.
+// Aparece em TODAS as abas, logo abaixo do topo, porque o cliente não vai
+// procurar em "Plano e cobrança" um problema que ele não sabe que tem.
+function AvisoCartaoRecusado({ isMobile }) {
+  const [indo, setIndo] = React.useState(false)
+  const [erro, setErro] = React.useState('')
+  async function trocarCartao() {
+    setIndo(true); setErro('')
+    try {
+      const r = await apiCall('/api/billing?action=billing-portal', { method: 'POST', body: JSON.stringify({ retorno: 'app' }) })
+      if (!r?.url) throw new Error('Não recebi o endereço do portal')
+      window.location.href = r.url
+    } catch (e) {
+      setErro(e.message || 'Não consegui abrir o portal de cobrança')
+      setIndo(false)
+    }
+  }
+  return (
+    <div role="alert" style={{
+      maxWidth: 1200, margin: isMobile ? '12px 12px 0' : '16px auto 0',
+      background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 12,
+      padding: isMobile ? 14 : '14px 18px',
+      display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap'
+    }}>
+      <div style={{ flex: '1 1 320px', minWidth: 0 }}>
+        <div style={{ fontSize: 14.5, fontWeight: 800, color: '#991B1B' }}>
+          Não conseguimos cobrar seu cartão
+        </div>
+        <div style={{ fontSize: 13, color: '#7F1D1D', lineHeight: 1.55, marginTop: 3 }}>
+          A mensalidade do StarTouch Pro (R$ 19,90) foi recusada. Seu Menu Inteligente
+          continua no ar por alguns dias enquanto tentamos de novo — atualize o cartão
+          para ele não sair dos seus dispositivos.
+        </div>
+        {erro && (
+          <div style={{ fontSize: 12, color: T.red, marginTop: 6 }}>
+            {erro} — se persistir, <a href="/ajuda" style={{ color: T.red }}>fale com a gente</a>.
+          </div>
+        )}
+      </div>
+      <button type="button" onClick={trocarCartao} disabled={indo} style={{
+        border: 'none', cursor: indo ? 'default' : 'pointer', fontFamily: 'inherit',
+        background: '#DC2626', color: '#fff', borderRadius: 9, padding: '11px 18px',
+        fontSize: 13.5, fontWeight: 700, whiteSpace: 'nowrap', opacity: indo ? .65 : 1
+      }}>{indo ? 'Abrindo…' : 'Atualizar cartão →'}</button>
+    </div>
+  )
+}
+
+// O status cru do Stripe ("past_due", "trialing") aparecia na tela como veio.
+const STATUS_ASSINATURA = {
+  active: 'ativa', trialing: 'em teste grátis', past_due: 'com pagamento recusado',
+  canceled: 'cancelada', cancelled: 'cancelada', unpaid: 'não paga', incomplete: 'aguardando pagamento'
+}
+
 function BillingSection({ billing, plan }) {
   const ehPro = plan === 'pro'
 
@@ -2762,7 +2821,7 @@ function BillingSection({ billing, plan }) {
               </div>
             ) : ehPro && billing?.status ? (
               <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>
-                Assinatura {billing.status}
+                Assinatura {STATUS_ASSINATURA[billing.status] || billing.status}
               </div>
             ) : null}
           </div>
@@ -8602,6 +8661,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       />}
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl}
         activeTab={tab} onTabChange={navigateFromMore} />
+      {!isGuest && !demoMode && d?.billing?.status === 'past_due' && <AvisoCartaoRecusado isMobile={isMobile}/>}
       {/* A SEGUNDA BARRA (`TopTabs`) SAIU em 21/09: as abas subiram pra dentro
           do header, numa linha só. No celular ela nunca renderizou — lá quem
           navega é a `BottomTabBar`. */}

@@ -343,6 +343,10 @@ function Plano({ dados }) {
             <div style={{ fontSize: 12.5, opacity: .9, marginTop: 2 }}>
               Cancelada — ativa até {dataFim}
             </div>
+          ) : status === 'past_due' ? (
+            <div style={{ fontSize: 12.5, opacity: .9, marginTop: 2 }}>
+              Pagamento recusado — atualize o cartão
+            </div>
           ) : emTeste ? (
             <div style={{ fontSize: 12.5, opacity: .9, marginTop: 2 }}>
               Teste grátis — R$ 19,90/mês a partir de {dataCobranca}
@@ -358,6 +362,20 @@ function Plano({ dados }) {
 
       {/* O aviso do teste sai do card e ganha destaque proprio: e a informacao
           que mais gera contestacao de cartao quando ninguem avisa. */}
+      {/* Cartão recusado (06/10/2026): o Stripe tenta de novo por ~5 dias e
+          depois cancela sozinho. Sem este aviso o cliente perdia o menu calado. */}
+      {status === 'past_due' && !agendado && (
+        <div style={{
+          marginTop: 10, padding: '11px 13px', borderRadius: 9,
+          background: '#FEF2F2', border: '1px solid #FCA5A5',
+          fontSize: 12.5, color: '#7F1D1D', lineHeight: 1.5
+        }}>
+          <strong>Não conseguimos cobrar seu cartão.</strong> Seu Menu Inteligente continua no ar
+          por alguns dias enquanto tentamos de novo. Clique em <strong>Gerenciar pagamento</strong>, abaixo,
+          para atualizar o cartão e ele não sair dos seus dispositivos.
+        </div>
+      )}
+
       {emTeste && !agendado && (
         <div style={{
           marginTop: 10, padding: '11px 13px', borderRadius: 9,
