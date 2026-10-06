@@ -83,7 +83,14 @@ function firstName(user) {
 
 export default async function handler(req, res) {
   if (!checkAuth(req)) {
-    return res.status(401).json({ error: "Não autorizado: o secret da URL não bate com BROADCAST_SECRET nem com CRON_SECRET da Vercel." });
+    // Diagnóstico que não revela o segredo: só diz se a variável existe neste
+    // deploy e o TAMANHO do que chegou na URL (que é o que a própria pessoa
+    // digitou). Foi o que faltou em 06/10 pra achar por que não batia.
+    return res.status(401).json({
+      error: "Não autorizado: o secret da URL não bate com BROADCAST_SECRET nem com CRON_SECRET da Vercel.",
+      broadcast_secret_configurada: !!(process.env.BROADCAST_SECRET || "").trim(),
+      caracteres_recebidos_na_url: String(req.query.secret || "").trim().length,
+    });
   }
 
   const slug = String(req.query.campaign || "").trim();
