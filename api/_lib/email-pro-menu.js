@@ -139,7 +139,8 @@ export function proMenuEmail({ unsubUrl, dispositivos = 0 } = {}) {
         ${par('<strong style="color:#243147;">7 dias grátis pra testar.</strong><br>Sem fidelidade. Cancele quando quiser, no próprio painel.', "font-size:15px;")}
       </td>
       <td class="col col2" width="52%" valign="middle" style="font-family:${FONTE};font-size:14px;line-height:1.5;color:#243147;">
-        ✓ Menu Inteligente nos seus dispositivos StarTouch<br><br>
+        ✓ Menu Inteligente em até 5 dispositivos StarTouch<br><br>
+        ✓ R$ 1,90/mês por dispositivo extra, se precisar<br><br>
         ✓ Um menu diferente por dispositivo, se quiser<br><br>
         ✓ Link e QR Code do seu menu<br><br>
         ✓ Veja quais botões seus clientes mais tocam

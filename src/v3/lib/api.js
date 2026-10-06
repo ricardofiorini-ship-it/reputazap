@@ -152,7 +152,9 @@ export const api = {
     },
     criar:     (name)           => post('/api/experiences?action=create', { name }),
     salvar:    (id, draft)      => post('/api/experiences?action=save-draft', { id, draft }),
-    publicar:  (id)             => post('/api/experiences?action=publish', { id }),
+    // `extra` = { aceitaExtra: true } quando o cliente já confirmou o adicional
+    // de dispositivo (409 `precisaConfirmarExtra`, ver api/_lib/menu-extras.js).
+    publicar:  (id, extra = {}) => post('/api/experiences?action=publish', { id, ...extra }),
     descartar: (id)             => post('/api/experiences?action=discard', { id }),
     arquivar:  (id, undo)       => post('/api/experiences?action=archive', { id, undo: !!undo }),
     renomear:  (id, name)       => post('/api/experiences?action=rename', { id, name }),

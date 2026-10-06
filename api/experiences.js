@@ -36,6 +36,7 @@ import {
 import { resolvePlano, podeUsarMenu } from "./_lib/plan.js";
 import { reimprimir } from "./_lib/imprimir.js";
 import { soStartouch, LINHA_STARTOUCH } from "./_lib/linha.js";
+import { contarComMenu, exigeConfirmacao, sincronizarExtras, resumoDoLimite } from "./_lib/menu-extras.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
@@ -94,7 +95,7 @@ async function autenticar(req) {
 async function negocioDo(user) {
   const { data, error } = await supabase
     .from("businesses")
-    .select("id, name, place_id, plan, stripe_current_period_end, trial_ends_at")
+    .select("id, name, place_id, plan, stripe_current_period_end, trial_ends_at, stripe_subscription_id, stripe_cancel_at_period_end")
     .eq("user_id", user.id)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -144,9 +145,11 @@ async function listar(req, res, biz, user) {
   if (e2) return res.status(500).json({ error: e2.message });
 
   const resolucao = resolvePlano(biz, user.email);
+  // Quantos dispositivos o Pro cobre e quantos estão em uso (_lib/menu-extras).
+  const emUso = (plates || []).filter((p) => p.served_mode === "menu").length;
   return res.json({
     ok: true,
-    plano: resolucao,
+    plano: { ...resolucao, menu: resumoDoLimite(biz, user.email, emUso) },
     negocio: { id: biz.id, name: biz.name, place_id: biz.place_id },
     // `pendente` vem do servidor porque é ele quem monta o publicado. Se a
     // tela tentasse deduzir isso comparando rascunho com publicado, erraria
@@ -241,6 +244,13 @@ async function publicar(req, res, biz, user) {
     return res.status(400).json({ error: "Corrija as ações abaixo antes de publicar.", validacao: veredito });
   }
 
+  // Passaria de 5 dispositivos com o Menu? Pergunta antes de cobrar.
+  const projetado = await contarComMenu(supabase, biz.id, { publicar: exp.id });
+  const pergunta = exigeConfirmacao({
+    biz, email: user?.email, proAtivo: true, total: projetado, aceitaExtra: req.body?.aceitaExtra
+  });
+  if (pergunta) return res.status(409).json(pergunta);
+
   const published = montarPublicado(exp.draft);
   const { data, error } = await supabase.from("experiences").update({
     published,
@@ -251,6 +261,7 @@ async function publicar(req, res, biz, user) {
   if (error) return res.status(500).json({ error: error.message });
 
   const mudados = await reimprimir(supabase, biz, user?.email || null);
+  await sincronizarExtras(supabase, biz, user?.email || null);
   return res.json({
     ok: true,
     experience: { ...data, pendente: estaPendente(data.draft, data.published) },
@@ -293,6 +304,7 @@ async function arquivar(req, res, biz, user) {
   // Arquivar NÃO apaga: os dispositivos apenas voltam ao Google Direto, com
   // motivo `experiencia_removida`, e desarquivar traz tudo de volta.
   const mudados = await reimprimir(supabase, biz, user?.email || null);
+  await sincronizarExtras(supabase, biz, user?.email || null);
   return res.json({ ok: true, experience: data, dispositivos_atualizados: mudados });
 }
 
@@ -352,10 +364,26 @@ async function definirDispositivo(req, res, biz, user) {
   if (enabled !== undefined) patch.experience_enabled = enabled === true;
   if (!Object.keys(patch).length) return res.status(400).json({ error: "Nada a alterar." });
 
+  // Ligar aqui passaria de 5 dispositivos com o Menu? Pergunta antes de cobrar.
+  // Desligar nunca pergunta: só reduz.
+  if (patch.experience_enabled === true || (patch.experience_id && patch.experience_enabled !== false)) {
+    const projetado = await contarComMenu(supabase, biz.id, {
+      plateId: plate.id,
+      experienceId: patch.experience_id !== undefined ? patch.experience_id : undefined,
+      ligado: patch.experience_enabled !== undefined ? patch.experience_enabled : undefined,
+    });
+    const pergunta = exigeConfirmacao({
+      biz, email: user?.email, proAtivo: podeUsarMenu(resolvePlano(biz, user?.email || null)),
+      total: projetado, aceitaExtra: req.body?.aceitaExtra
+    });
+    if (pergunta) return res.status(409).json(pergunta);
+  }
+
   const { error } = await supabase.from("plates").update(patch).eq("id", plate.id);
   if (error) return res.status(500).json({ error: error.message });
 
   const mudados = await reimprimir(supabase, biz, user?.email || null);
+  await sincronizarExtras(supabase, biz, user?.email || null);
   const { data: atualizado } = await supabase.from("plates")
     .select("id, code, channel_name, product_type, experience_id, experience_enabled, served_mode, served_reason")
     .eq("id", plate.id).maybeSingle();

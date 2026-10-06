@@ -310,7 +310,7 @@ function CaixaAssinatura({ expId, ligados, onFechar }) {
 
         <div className="me-paywall-preco">
           <strong>7 dias grátis</strong>
-          <span>depois R$ 19,90 por mês · sem fidelidade, cancele quando quiser</span>
+          <span>depois R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade, cancele quando quiser</span>
         </div>
 
         {erro && <div className="me-paywall-erro"><AlertTriangle size={13}/> {erro}</div>}
@@ -535,7 +535,16 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
       if (plano && !plano.proAtivo) { setPaywall(true); return }
       if (ehPrevia) { setPublicou({ em: 0, quando: Date.now() }); return }
 
-      const r = await api.experiencias.publicar(exp.id)
+      let r
+      try {
+        r = await api.experiencias.publicar(exp.id)
+      } catch (e) {
+        // Passaria de 5 dispositivos com o Menu: o servidor pergunta antes de
+        // cobrar o adicional. Sem o "sim", nada é publicado nem cobrado.
+        if (!e.corpo?.precisaConfirmarExtra) throw e
+        if (!confirm(perguntaExtra(e.corpo))) return
+        r = await api.experiencias.publicar(exp.id, { aceitaExtra: true })
+      }
       setValidacao(r.validacao || null)
       setSujo(false)
       // Ação que dá certo em silêncio é indistinguível de ação que não
@@ -813,7 +822,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
             </div>
           </section>
 
-          <OndeEstaNoAr exp={exp} dados={dados} experiencias={experiencias} onAtualizar={onAtualizar}/>
+          <OndeEstaNoAr exp={exp} dados={dados} experiencias={experiencias} onAtualizar={onAtualizar} plano={plano}/>
           <LinkMagico exp={exp}/>
         </div>
 
@@ -906,7 +915,20 @@ function LinkMagico({ exp }) {
 // ── Onde este menu está no ar ───────────────────────────────
 // O interruptor mora aqui porque é aqui que a pergunta nasce ("esse menu está
 // valendo onde?"), e também em Dispositivos, que é onde a pessoa vai procurar.
-function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
+// A pergunta do adicional, igual nos três lugares que podem disparar ele
+// (publicar, ligar dispositivo, publicar sozinho na volta do pagamento).
+export function perguntaExtra(c) {
+  return `${c.error}
+
+O Pro inclui ${c.incluidos} dispositivos com o Menu. ` +
+    `Ao confirmar, ${c.extras === 1 ? 'o dispositivo extra é somado' : `os ${c.extras} extras são somados`} ` +
+    `à sua assinatura (R$ 1,90 por mês cada, proporcional aos dias). ` +
+    `Desligar o Menu de um dispositivo tira a cobrança.
+
+Confirmar?`
+}
+
+function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar, plano }) {
   const [ocupado, setOcupado] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   // Resposta imediata ao toque: o interruptor não pode esperar o servidor
@@ -947,14 +969,25 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
       ? { experience_id: exp.id, experience_enabled: true }
       : { experience_enabled: false } }))
     try {
-      await api.experiencias.dispositivo({
+      const pedido = {
         plate_id: d.id,
         experience_id: ligar ? exp.id : undefined,
         enabled: ligar,
         // O servidor recusa trocar de experiência sem gesto explícito. Com o
         // menu antigo excluído, o gesto já é este clique.
         mover: mover || (ligar && !!d.experience_id && d.experience_id !== exp.id)
-      })
+      }
+      try {
+        await api.experiencias.dispositivo(pedido)
+      } catch (e) {
+        // 6º dispositivo em diante: pergunta antes de cobrar o adicional.
+        if (!e.corpo?.precisaConfirmarExtra) throw e
+        if (!confirm(perguntaExtra(e.corpo))) {
+          setOtimista(o => { const c = { ...o }; delete c[d.id]; return c })
+          return
+        }
+        await api.experiencias.dispositivo({ ...pedido, aceitaExtra: true })
+      }
       onAtualizar?.(null)
       setOtimista(o => { const c = { ...o }; delete c[d.id]; return c })
     } catch (e) {
@@ -977,6 +1010,14 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar }) {
             : servindo.length
               ? `Este menu está ativo em ${servindo.length} ${servindo.length === 1 ? 'dispositivo' : 'dispositivos'}.`
               : `${ligados.length === 1 ? 'Um dispositivo ligado' : `${ligados.length} dispositivos ligados`}, esperando você publicar.`}
+          {/* Quanto do Pro está em uso — somando todos os menus da conta, que
+              é como o limite conta (api/_lib/menu-extras.js). */}
+          {plano?.proAtivo && plano?.menu && !plano.menu.ilimitado && (
+            <div style={{ marginTop: 4 }}>
+              {plano.menu.emUso} de {plano.menu.incluidos} dispositivos incluídos no Pro em uso
+              {plano.menu.extras > 0 ? ` · ${plano.menu.extras} ${plano.menu.extras === 1 ? 'extra' : 'extras'} a R$ 1,90/mês` : ''}
+            </div>
+          )}
         </div>
       </header>
       <div className="body">

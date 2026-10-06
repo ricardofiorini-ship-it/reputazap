@@ -1,6 +1,6 @@
 # Termos de Uso — StarTouch e Trybo
 
-**Versão 1.7 — vigente a partir de 4 de outubro de 2026**
+**Versão 1.8 — vigente a partir de 6 de outubro de 2026**
 
 ---
 
@@ -92,9 +92,12 @@ O **Menu Inteligente** é o recurso da assinatura StarTouch Pro: com ele, o toqu
 Condições vigentes, também exibidas na página do plano no momento da contratação:
 
 - **7 dias gratuitos** no início da assinatura;
-- **R$ 19,90 por mês** depois, **sem fidelidade**;
+- **R$ 19,90 por mês** depois, **sem fidelidade**, com o Menu Inteligente em **até 5 dispositivos**;
+- **R$ 1,90 por mês por dispositivo adicional** com o Menu Inteligente ligado, além dos 5 incluídos. O adicional só é cobrado depois que você confirma, no painel, no momento em que liga o 6º dispositivo (ou publica um menu que passaria de 5); desligar o Menu de um dispositivo reduz a cobrança na fatura seguinte, proporcionalmente. Dispositivos que levam direto à avaliação no Google não contam;
 - cancelamento a qualquer momento pelo painel, **com acesso mantido até o fim do período já pago**;
 - pagamento processado pela **Stripe**.
+
+Assinaturas contratadas **até 6 de outubro de 2026** mantêm o Menu Inteligente **sem limite de dispositivos e sem adicional** enquanto permanecerem ativas, na forma do item 5.2.
 
 A avaliação no Google permanece como primeira opção de todo menu, sempre.
 
@@ -294,6 +297,7 @@ Vale o item 12. Sem conta ativa, o cartão continua levando ao último destino c
 | 1.5 | 24/09/2026 | Proteção contra contagem artificial: o mesmo aparelho passa a contar uma vez por dia em cada dispositivo, e o texto deixa expresso que a contagem de toques não é contagem de avaliações. Não reduz direitos nem cria obrigação nova para o cliente |
 | 1.6 | 26/09/2026 | A garantia dos dispositivos contra defeito de fabricação passa de **30 dias para 12 meses**, contados do recebimento. Vale também para os dispositivos já vendidos — **a mudança amplia direitos do cliente e não reduz nenhum** |
 | 1.7 | 04/10/2026 | Inclusão da marca **Trybo**, operada pela mesma empresa, nas seções 1, 2, 6, 9 e 10 e na nova **seção 15**, com as condições próprias dos cartões Trybo: o que é grátis para sempre (as quatro redes impressas no cartão), os destinos avançados em pagamento único de R$ 49,00, a garantia de 12 meses também para o cartão comprado em marketplace, a responsabilidade pelo destino configurado e os cartões da equipe. Descreve o que a Trybo já faz e **não reduz direitos de nenhum cliente** da StarTouch ou da Trybo |
+| 1.8 | 06/10/2026 | O StarTouch Pro (item 5.3) passa a incluir o Menu Inteligente em **até 5 dispositivos**, com **R$ 1,90 por mês por dispositivo adicional**, cobrado só após confirmação no painel. **Não retroage:** assinaturas contratadas até 06/10/2026 mantêm o Menu sem limite e sem adicional enquanto ativas |
 
 ---
 

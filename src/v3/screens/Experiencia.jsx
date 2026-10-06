@@ -2,7 +2,7 @@ import React from 'react'
 import { Plus, Archive, Pencil, Trash2, ChevronRight, ExternalLink } from 'lucide-react'
 import { Head, Panel, Chip, Carregando, Erro, dataBr, desde } from '../ui.jsx'
 import { api } from '../lib/api.js'
-import EditorMenu, { CHAVE_MENU_PAGANDO } from './EditorMenu.jsx'
+import EditorMenu, { CHAVE_MENU_PAGANDO, perguntaExtra } from './EditorMenu.jsx'
 import { TIPOS } from '../../../api/_lib/menu.js'
 
 // Desenhos e rótulos seguem os contratos compartilhados do menu público.
@@ -197,7 +197,16 @@ export default function Experiencia({ dados }) {
       if (!exp || exp.archived_at) return
       if (exp.pendente === false) return   // já estava no ar; nada a fazer
       try {
-        const pub = await api.experiencias.publicar(id)
+        let pub
+        try {
+          pub = await api.experiencias.publicar(id)
+        } catch (e) {
+          // Menu ligado em mais de 5 dispositivos: pergunta antes de cobrar o
+          // adicional, também aqui na volta do pagamento.
+          if (!e.corpo?.precisaConfirmarExtra) throw e
+          if (!confirm(perguntaExtra(e.corpo))) throw new Error('Publicação cancelada: você não confirmou os dispositivos extras. Desligue o Menu de alguns dispositivos ou publique de novo.')
+          pub = await api.experiencias.publicar(id, { aceitaExtra: true })
+        }
         if (!vivo) return
         setPublicadoAposPagar({ ok: true, em: pub.dispositivos_com_este_menu || 0 })
         // Reabre o menu recém-publicado: a pessoa saiu de dentro dele e deve
@@ -375,7 +384,7 @@ export default function Experiencia({ dados }) {
               era uma assinatura. Mesmos números da caixa do "Publicar". */}
           {!estado.dados?.plano?.proAtivo && (
             <p className="exp-hero-preco">
-              <strong>R$ 19,90/mês · 7 dias grátis</strong> · sem fidelidade, cancele quando quiser.
+              <strong>R$ 19,90/mês · 7 dias grátis</strong> · até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade, cancele quando quiser.
               <br/>Monte de graça, publique e teste 7 dias — a cobrança só começa depois.
             </p>
           )}

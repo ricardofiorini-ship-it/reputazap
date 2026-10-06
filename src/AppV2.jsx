@@ -2722,7 +2722,7 @@ function AvisoCartaoRecusado({ isMobile }) {
           Sua mensalidade do StarTouch Pro está em aberto
         </div>
         <div style={{ fontSize: 13, color: '#7F1D1D', lineHeight: 1.55, marginTop: 3 }}>
-          Não recebemos o pagamento de R$ 19,90 — cartão recusado ou boleto não pago.
+          Não recebemos o pagamento da sua mensalidade — cartão recusado ou boleto não pago.
           Seu Menu Inteligente continua no ar por alguns dias: resolva o pagamento
           para ele não sair dos seus dispositivos.
         </div>
@@ -2846,6 +2846,7 @@ function BillingSection({ billing, plan }) {
           </div>
           <ul style={{ margin: '0 0 12px', paddingLeft: 18, fontSize: 13, color: T.textMid, lineHeight: 1.7 }}>
             <li><strong>Menu Inteligente</strong>: o toque abre avaliação no Google, WhatsApp, Instagram, cardápio ou agenda</li>
+            <li>Até 5 dispositivos com o Menu incluídos (R$ 1,90/mês por extra)</li>
             <li>Veja quais botões do menu seus clientes mais tocam</li>
             <li>Meça sua visibilidade no Google quando quiser (no grátis, 1x por semana)</li>
           </ul>
@@ -3910,7 +3911,7 @@ function PrecoMenu({ claro = false }) {
     <div style={{ marginTop: 14 }}>
       <div style={{ fontSize: 13.5, color: forte, lineHeight: 1.5 }}>
         <strong>StarTouch Pro: R$ 19,90/mês</strong>
-        <span style={{ color: fraco }}> · 7 dias grátis · sem fidelidade, cancele quando quiser</span>
+        <span style={{ color: fraco }}> · 7 dias grátis · até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade</span>
       </div>
       <div style={{ fontSize: 12, color: fraco, lineHeight: 1.5, marginTop: 4 }}>
         1. Monte seu menu de graça &nbsp;→&nbsp; 2. Publique e teste 7 dias sem pagar &nbsp;→&nbsp; 3. Só depois começa a cobrança
