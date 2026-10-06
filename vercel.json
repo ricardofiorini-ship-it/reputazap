@@ -415,6 +415,9 @@
     },
     "api/cron/weekly-digest.js": {
       "maxDuration": 300
+    },
+    "api/cron/broadcast.js": {
+      "maxDuration": 800
     }
   },
   "crons": [
