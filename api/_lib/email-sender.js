@@ -55,6 +55,9 @@ const UNIQUE_TYPES = new Set([
  */
 export async function sendTransactionalEmail({
   userId, emailType, to, subject, html, metadata = {},
+  // text: versão em texto puro (opcional). Leitor de e-mail sem HTML e alguns
+  // filtros de spam olham pra ela; a campanha pro-menu traz uma aprovada.
+  text,
   // dedupeByMetadata: se passado, faz idempotência por user_id + email_type + metadata[key]=value
   // (em vez de só user_id + email_type). Útil pra eventos por dispositivo (plate_id), etc.
   dedupeByMetadata,
@@ -127,6 +130,7 @@ export async function sendTransactionalEmail({
         to: [to],
         subject,
         html,
+        ...(text ? { text } : {}),
         ...(replyTo || REPLY_TO ? { reply_to: replyTo || REPLY_TO } : {}),
         ...(bcc && (Array.isArray(bcc) ? bcc.length : bcc) ? { bcc: Array.isArray(bcc) ? bcc : [bcc] } : {}),
         ...(headers && Object.keys(headers).length ? { headers } : {})

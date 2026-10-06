@@ -181,7 +181,7 @@ export default async function handler(req, res) {
 
       const r = await sendTransactionalEmail({
         userId, emailType: "broadcast", to,
-        subject: tmpl.subject, html: tmpl.html,
+        subject: tmpl.subject, html: tmpl.html, text: tmpl.text,
         metadata: { campaign: slug },
         // Teste pra um endereço não pode gravar dedupe da campanha: senão o
         // disparo real depois pularia esse usuário achando que já mandou.

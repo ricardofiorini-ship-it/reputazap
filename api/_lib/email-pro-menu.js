@@ -1,169 +1,42 @@
 // ============================================================
-// StarTouch Pro / Menu Inteligente — e-mail de LANÇAMENTO
+// StarTouch — e-mail de LANÇAMENTO do Menu Inteligente (campanha "pro-menu")
 // ============================================================
-// Campanha "pro-menu" do api/cron/broadcast.js: vai só pra quem ainda não
-// assinou (06/10/2026).
+// VERSÃO FINAL APROVADA PELO RICARDO (06/10/2026). O HTML e o texto abaixo são
+// cópia EXATA de startouch-menu-inteligente.html e email-texto.txt do pacote
+// startouch-email-final.zip — embutidos com JSON.stringify, sem reformatar.
+// Regra dele: não redesenhar, não reescrever. Qualquer mudança visual ou de
+// texto precisa de aprovação dele antes.
 //
-// O layout segue a direção de arte que o Ricardo trouxe (hero com celular,
-// 3 benefícios, bloco dos dispositivos, exemplos de uso, caixa de preço), com
-// TRÊS regras que o arquivo de referência não seguia:
-//   1. Só imagem NOSSA, hospedada em startouch.com.br. O Gmail bloqueia imagem
-//      embutida (data:), e a referência trazia logo e foto de produto que não
-//      são os nossos. Os produtos de verdade são os PRETOS de public/img/kit.
-//   2. A tela do celular (public/email/menu-celular.jpg) saiu do MESMO código
-//      que monta o menu real (api/m/[slug].js), só com botões que o editor
-//      oferece. A referência prometia "Promoções", que não existe como botão.
-//   3. Estilo embutido em cada elemento: <style> no <head> some em vários
-//      clientes de e-mail. O <style> daqui só empilha as colunas no celular —
-//      se ele sumir, o e-mail fica em duas colunas, mas inteiro.
+// Só duas coisas são trocadas no envio:
+//   {{ASSET_BASE_URL}}  → ${ASSET_BASE_URL} (public/email/menu-inteligente/, mesmos nomes)
+//   {{UNSUBSCRIBE_URL}} → o descadastro individual de cada destinatário
 //
-// `dispositivos` (ativos StarTouch do usuário) muda UMA frase.
-// Mora fora do email-templates.js de propósito: aquele arquivo é importado
-// pelo billing.js, e uma quebra num e-mail de campanha não pode derrubar o
-// pagamento (já aconteceu em 17/jul).
+// Para trocar a peça: gere de novo a partir do pacote novo, não edite à mão.
+// Mora fora do email-templates.js de propósito: aquele é importado pelo
+// billing.js, e uma quebra aqui não pode derrubar pagamento (17/jul).
 // ============================================================
 
-const BASE = "https://startouch.com.br";
-const LINK = `${BASE}/app?login=1&tab=menu&utm_source=email&utm_medium=broadcast&utm_campaign=pro-menu`;
-const AZ = "#1A73E8", TX = "#0C1524", MU = "#5C667A", FONTE = "Arial,Helvetica,sans-serif";
+export const ASSET_BASE_URL = "https://startouch.com.br/email/menu-inteligente";
+export const ASSUNTO = "Seu STARTOUCH agora faz muito mais";
 
-const botao = (txt) => `<table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr><td style="border-radius:12px;background:${AZ};">
-      <a href="${LINK}" target="_blank" style="display:inline-block;padding:16px 26px;font-family:${FONTE};font-size:16px;font-weight:800;color:#ffffff;text-decoration:none;border-radius:12px;white-space:nowrap;">${txt}</a>
-    </td></tr></table>`;
+const HTML = "<!doctype html><html lang=\"pt-BR\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"x-apple-disable-message-reformatting\"><meta name=\"format-detection\" content=\"telephone=no,date=no,address=no,email=no\"><title>Seu STARTOUCH agora faz muito mais</title><!--[if mso]><style>table{border-collapse:collapse}td,a,p,h1,h2{font-family:Arial,sans-serif!important}</style><![endif]--><style>body{margin:0;padding:0}table{border-spacing:0}img{display:block;border:0}@media screen and (max-width:620px){.outer{padding:0!important}.pad{padding-left:10px!important;padding-right:10px!important}.inner{padding:22px 16px!important}.col{display:block!important;width:100%!important;box-sizing:border-box!important}.hero-copy{padding:26px 22px 12px!important}.hero-image{padding:0 18px 12px!important}.title{font-size:34px!important;line-height:38px!important}.menu-cell{display:block!important;width:100%!important;box-sizing:border-box!important}.product{display:block!important;width:100%!important;padding:0 0 22px!important;box-sizing:border-box!important}.product img{width:100%!important;max-width:300px!important;margin:auto}.statcopy{padding:0 0 16px!important}.pricecopy{padding:0 0 20px!important}.closecopy{padding:0 0 18px!important}}</style></head><body style=\"background:#f1f5fa;font-family:Arial,Helvetica,sans-serif\"><div style=\"display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;mso-hide:all\">WhatsApp, Instagram, Google, cardápio e muito mais no dispositivo que você já tem.</div><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#f1f5fa\"><tr><td class=\"outer\" align=\"center\" style=\"padding:24px 12px\"><!--[if mso]><table role=\"presentation\" width=\"720\" align=\"center\"><tr><td><![endif]--><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:720px;background:#ffffff;border-radius:20px\"><tr><td style=\"padding:16px 28px;border-bottom:1px solid #eef3fb\"><table role=\"presentation\" width=\"100%\"><tr><td><img src=\"{{ASSET_BASE_URL}}/startouch-logo.png\" width=\"168\" height=\"60\" alt=\"StarTouch\" style=\"width:168px;height:60px\"></td><td align=\"right\" style=\"font-size:10px;letter-spacing:.5px;font-weight:bold;color:#086aff\">NOVIDADE</td></tr></table></td></tr><tr><td><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"><tr><td class=\"col hero-copy\" width=\"57%\" valign=\"middle\" style=\"padding:28px 10px 28px 30px\"><h1 class=\"title\" style=\"margin:0 0 18px;color:#071e50;font-size:36px;line-height:40px;letter-spacing:-1px\">Seu STARTOUCH<br><span style=\"color:#086aff\">agora faz muito mais.</span></h1><p style=\"margin:0 0 13px;font-size:15px;line-height:22px;color:#435b80;\">O cartão, placa ou pulseira que você já usa pode abrir um <strong>Menu Inteligente</strong> com os principais caminhos para o seu negócio.</p><p style=\"margin:0 0 13px;font-size:15px;line-height:22px;color:#435b80;\">Você não precisa trocar nem comprar outro dispositivo.</p><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"100%\"><tr><td bgcolor=\"#086aff\" align=\"center\" style=\"border-radius:10px;mso-padding-alt:16px 12px\"><a href=\"https://startouch.com.br/app?login=1&amp;tab=menu&amp;utm_source=email&amp;utm_medium=broadcast&amp;utm_campaign=pro-menu\" style=\"display:block;padding:16px 12px;border:1px solid #086aff;border-radius:10px;font-size:13px;line-height:20px;font-weight:bold;text-decoration:none;color:#ffffff\">CRIAR MEU MENU INTELIGENTE GRÁTIS &nbsp;→</a></td></tr></table><p style=\"margin:0 0 13px;font-size:15px;line-height:22px;color:#435b80;font-size:11px;margin-top:9px;\">Leva poucos minutos · Teste grátis por 7 dias</p></td><td class=\"col hero-image\" width=\"43%\" bgcolor=\"#ffffff\" align=\"center\" style=\"padding:0;border-radius:0 0 15px 15px\"><img src=\"{{ASSET_BASE_URL}}/hero-menu-mock.png\" width=\"275\" alt=\"Mock ilustrativo do Menu Inteligente STARTOUCH, com Google, WhatsApp, Instagram, cardápio, localização e contato\" style=\"width:100%;max-width:275px;height:auto;border-radius:0 0 15px 15px\"></td></tr></table></td></tr><tr><td class=\"pad\" style=\"padding:7px 24px\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" bgcolor=\"#f0f6ff\" style=\"border-radius:16px\"><tr><td class=\"inner\" style=\"padding:25px 24px\"><h2 style=\"margin:0 0 18px;font-size:24px;line-height:29px;letter-spacing:-.6px;color:#071e50\"><span style=\"color:#086aff\">Um toque.</span> O cliente escolhe o que precisa.</h2><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"><tr><td class=\"menu-cell\" width=\"33.33%\" style=\"padding:5px\"><table role=\"presentation\" width=\"100%\" bgcolor=\"#ffffff\" style=\"border-radius:9px;border:1px solid #e5edfa\"><tr><td style=\"padding:12px 9px;font-size:12px;line-height:18px;color:#071e50\"><img src=\"{{ASSET_BASE_URL}}/icone-google.png\" width=\"26\" height=\"26\" alt=\"\" style=\"display:inline-block;width:26px;height:26px;vertical-align:middle;border:0\"> &nbsp;Avaliar no Google<span style=\"color:#5894fa\"> &nbsp;›</span></td></tr></table></td><td class=\"menu-cell\" width=\"33.33%\" style=\"padding:5px\"><table role=\"presentation\" width=\"100%\" bgcolor=\"#ffffff\" style=\"border-radius:9px;border:1px solid #e5edfa\"><tr><td style=\"padding:12px 9px;font-size:12px;line-height:18px;color:#071e50\"><img src=\"{{ASSET_BASE_URL}}/icone-whatsapp.png\" width=\"26\" height=\"26\" alt=\"\" style=\"display:inline-block;width:26px;height:26px;vertical-align:middle;border:0\"> &nbsp;WhatsApp<span style=\"color:#5894fa\"> &nbsp;›</span></td></tr></table></td><td class=\"menu-cell\" width=\"33.33%\" style=\"padding:5px\"><table role=\"presentation\" width=\"100%\" bgcolor=\"#ffffff\" style=\"border-radius:9px;border:1px solid #e5edfa\"><tr><td style=\"padding:12px 9px;font-size:12px;line-height:18px;color:#071e50\"><img src=\"{{ASSET_BASE_URL}}/icone-localizacao.png\" width=\"26\" height=\"26\" alt=\"\" style=\"display:inline-block;width:26px;height:26px;vertical-align:middle;border:0\"> &nbsp;Como chegar<span style=\"color:#5894fa\"> &nbsp;›</span></td></tr></table></td></tr><tr><td class=\"menu-cell\" width=\"33.33%\" style=\"padding:5px\"><table role=\"presentation\" width=\"100%\" bgcolor=\"#ffffff\" style=\"border-radius:9px;border:1px solid #e5edfa\"><tr><td style=\"padding:12px 9px;font-size:12px;line-height:18px;color:#071e50\"><img src=\"{{ASSET_BASE_URL}}/icone-instagram.png\" width=\"26\" height=\"26\" alt=\"\" style=\"display:inline-block;width:26px;height:26px;vertical-align:middle;border:0\"> &nbsp;Instagram<span style=\"color:#5894fa\"> &nbsp;›</span></td></tr></table></td><td class=\"menu-cell\" width=\"33.33%\" style=\"padding:5px\"><table role=\"presentation\" width=\"100%\" bgcolor=\"#ffffff\" style=\"border-radius:9px;border:1px solid #e5edfa\"><tr><td style=\"padding:12px 9px;font-size:12px;line-height:18px;color:#071e50\"><img src=\"{{ASSET_BASE_URL}}/icone-cardapio.png\" width=\"26\" height=\"26\" alt=\"\" style=\"display:inline-block;width:26px;height:26px;vertical-align:middle;border:0\"> &nbsp;Cardápio<span style=\"color:#5894fa\"> &nbsp;›</span></td></tr></table></td><td class=\"menu-cell\" width=\"33.33%\" style=\"padding:5px\"><table role=\"presentation\" width=\"100%\" bgcolor=\"#ffffff\" style=\"border-radius:9px;border:1px solid #e5edfa\"><tr><td style=\"padding:12px 9px;font-size:12px;line-height:18px;color:#071e50\"><img src=\"{{ASSET_BASE_URL}}/icone-contato.png\" width=\"26\" height=\"26\" alt=\"\" style=\"display:inline-block;width:26px;height:26px;vertical-align:middle;border:0\"> &nbsp;Salvar contato<span style=\"color:#5894fa\"> &nbsp;›</span></td></tr></table></td></tr><tr><td class=\"menu-cell\" width=\"33.33%\" style=\"padding:5px\"><table role=\"presentation\" width=\"100%\" bgcolor=\"#ffffff\" style=\"border-radius:9px;border:1px solid #e5edfa\"><tr><td style=\"padding:12px 9px;font-size:12px;line-height:26px;color:#071e50\"><span style=\"display:inline-block;width:26px;color:#086aff;font-size:23px;line-height:26px;vertical-align:middle;font-weight:bold\">▦</span> &nbsp;Agendamento<span style=\"color:#5894fa\"> &nbsp;›</span></td></tr></table></td><td class=\"menu-cell\" width=\"33.33%\" style=\"padding:5px\"><table role=\"presentation\" width=\"100%\" bgcolor=\"#ffffff\" style=\"border-radius:9px;border:1px solid #e5edfa\"><tr><td style=\"padding:12px 9px;font-size:12px;line-height:26px;color:#071e50\"><span style=\"display:inline-block;width:26px;color:#086aff;font-size:23px;line-height:26px;vertical-align:middle;font-weight:bold\">☎</span> &nbsp;Telefone<span style=\"color:#5894fa\"> &nbsp;›</span></td></tr></table></td><td class=\"menu-cell\" width=\"33.33%\" style=\"padding:5px\"><table role=\"presentation\" width=\"100%\" bgcolor=\"#ffffff\" style=\"border-radius:9px;border:1px solid #e5edfa\"><tr><td style=\"padding:12px 9px;font-size:12px;line-height:26px;color:#071e50\"><span style=\"display:inline-block;width:26px;color:#086aff;font-size:23px;line-height:26px;vertical-align:middle;font-weight:bold\">↗</span> &nbsp;Outros links<span style=\"color:#5894fa\"> &nbsp;›</span></td></tr></table></td></tr></table><table role=\"presentation\" align=\"center\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin:16px auto 0\"><tr><td bgcolor=\"#086aff\" style=\"padding:11px 23px;border-radius:24px;font-size:16px;line-height:20px;font-weight:bold;color:#ffffff\">✦ &nbsp; E muito mais!</td></tr></table><p style=\"margin:14px 0 0;font-size:12px;line-height:20px;color:#435b80;text-align:center\">Você escolhe quais botões aparecem e em qual ordem.</p></td></tr></table></td></tr><tr><td class=\"pad\" style=\"padding:7px 24px\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" bgcolor=\"#ffffff\" style=\"border-radius:16px\"><tr><td class=\"inner\" style=\"padding:25px 24px\"><h2 style=\"margin:0 0 18px;font-size:24px;line-height:29px;letter-spacing:-.6px;color:#071e50\">O mesmo STARTOUCH. <span style=\"color:#086aff\">Uma experiência totalmente nova.</span></h2><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"><tr><td class=\"product\" width=\"33.33%\" valign=\"top\" style=\"padding:0 6px\"><img src=\"{{ASSET_BASE_URL}}/placa.png\" width=\"184\" alt=\"Produto real STARTOUCH: placa\" style=\"width:100%;height:auto;border-radius:12px\"><p style=\"margin:10px 0 3px;font-size:16px;font-weight:bold;color:#071e50\">Balcão</p><p style=\"margin:0;font-size:11px;line-height:17px;color:#435b80\">Avaliação · WhatsApp · Instagram</p></td><td class=\"product\" width=\"33.33%\" valign=\"top\" style=\"padding:0 6px\"><img src=\"{{ASSET_BASE_URL}}/cartao.png\" width=\"184\" alt=\"Produto real STARTOUCH: cartao\" style=\"width:100%;height:auto;border-radius:12px\"><p style=\"margin:10px 0 3px;font-size:16px;font-weight:bold;color:#071e50\">Mesa</p><p style=\"margin:0;font-size:11px;line-height:17px;color:#435b80\">Cardápio · Avaliação · Promoções</p></td><td class=\"product\" width=\"33.33%\" valign=\"top\" style=\"padding:0 6px\"><img src=\"{{ASSET_BASE_URL}}/pulseira.png\" width=\"184\" alt=\"Produto real STARTOUCH: pulseira\" style=\"width:100%;height:auto;border-radius:12px\"><p style=\"margin:10px 0 3px;font-size:16px;font-weight:bold;color:#071e50\">Equipe</p><p style=\"margin:0;font-size:11px;line-height:17px;color:#435b80\">Avaliação · WhatsApp · Salvar contato</p></td></tr></table><table role=\"presentation\" width=\"100%\" bgcolor=\"#f0f6ff\" style=\"margin-top:16px;border-radius:10px\"><tr><td style=\"padding:14px\"><p style=\"margin:0 0 13px;font-size:15px;line-height:22px;color:#435b80;font-size:12px;line-height:19px;margin:0;\"><strong>Seus dispositivos continuam funcionando normalmente.</strong><br>Agora você decide se cada um leva ao Google ou abre um Menu Inteligente.</p></td></tr></table></td></tr></table></td></tr><tr><td class=\"pad\" style=\"padding:7px 24px\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" bgcolor=\"#f0f6ff\" style=\"border-radius:16px\"><tr><td class=\"inner\" style=\"padding:25px 24px\"><table role=\"presentation\" width=\"100%\"><tr><td class=\"col statcopy\" width=\"48%\" valign=\"middle\" style=\"padding-right:20px\"><h2 style=\"margin:0 0 18px;font-size:24px;line-height:29px;letter-spacing:-.6px;color:#071e50\">Entenda melhor o que <span style=\"color:#086aff\">seus clientes procuram.</span></h2><p style=\"margin:0 0 13px;font-size:15px;line-height:22px;color:#435b80;\">Veja quais botões recebem mais cliques e descubra o que as pessoas querem fazer depois de tocar na STARTOUCH.</p></td><td class=\"col\" width=\"52%\"><table role=\"presentation\" width=\"100%\" bgcolor=\"#ffffff\" style=\"border:1px solid #e5edfa;border-radius:12px\"><tr><td style=\"padding:16px\"><p style=\"margin:0 0 14px;font-size:12px;font-weight:bold;color:#071e50\">Cliques nos botões</p><table role=\"presentation\" width=\"100%\"><tr><td width=\"47%\" style=\"padding:5px 0;font-size:11px;color:#435b80\">WhatsApp</td><td><table role=\"presentation\" width=\"100%\" bgcolor=\"#edf3fc\"><tr><td width=\"100%\" bgcolor=\"#086aff\" height=\"6\" style=\"font-size:1px;line-height:6px\">&nbsp;</td><td></td></tr></table></td></tr><tr><td width=\"47%\" style=\"padding:5px 0;font-size:11px;color:#435b80\">Avaliar no Google</td><td><table role=\"presentation\" width=\"100%\" bgcolor=\"#edf3fc\"><tr><td width=\"78%\" bgcolor=\"#086aff\" height=\"6\" style=\"font-size:1px;line-height:6px\">&nbsp;</td><td></td></tr></table></td></tr><tr><td width=\"47%\" style=\"padding:5px 0;font-size:11px;color:#435b80\">Instagram</td><td><table role=\"presentation\" width=\"100%\" bgcolor=\"#edf3fc\"><tr><td width=\"56%\" bgcolor=\"#086aff\" height=\"6\" style=\"font-size:1px;line-height:6px\">&nbsp;</td><td></td></tr></table></td></tr><tr><td width=\"47%\" style=\"padding:5px 0;font-size:11px;color:#435b80\">Cardápio</td><td><table role=\"presentation\" width=\"100%\" bgcolor=\"#edf3fc\"><tr><td width=\"43%\" bgcolor=\"#086aff\" height=\"6\" style=\"font-size:1px;line-height:6px\">&nbsp;</td><td></td></tr></table></td></tr><tr><td width=\"47%\" style=\"padding:5px 0;font-size:11px;color:#435b80\">Como chegar</td><td><table role=\"presentation\" width=\"100%\" bgcolor=\"#edf3fc\"><tr><td width=\"29%\" bgcolor=\"#086aff\" height=\"6\" style=\"font-size:1px;line-height:6px\">&nbsp;</td><td></td></tr></table></td></tr><tr><td width=\"47%\" style=\"padding:5px 0;font-size:11px;color:#435b80\">Salvar contato</td><td><table role=\"presentation\" width=\"100%\" bgcolor=\"#edf3fc\"><tr><td width=\"20%\" bgcolor=\"#086aff\" height=\"6\" style=\"font-size:1px;line-height:6px\">&nbsp;</td><td></td></tr></table></td></tr></table><p style=\"margin:12px 0 0;font-size:10px;line-height:15px;color:#7386a2\">Exemplo ilustrativo de cliques</p></td></tr></table></td></tr></table></td></tr></table></td></tr><tr><td class=\"pad\" style=\"padding:7px 24px\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" bgcolor=\"#ffffff\" style=\"border-radius:16px\"><tr><td class=\"inner\" style=\"padding:25px 24px\"><table role=\"presentation\" width=\"100%\"><tr><td class=\"col pricecopy\" width=\"55%\" valign=\"middle\" style=\"padding-right:15px\"><p style=\"margin:0 0 7px;font-size:14px;font-weight:bold;color:#071e50\">STARTOUCH <span style=\"color:#086aff\">PRO</span></p><p style=\"margin:0 0 10px;font-size:43px;line-height:48px;font-weight:bold;color:#071e50;letter-spacing:-1px\">7 dias grátis</p><p style=\"margin:0 0 13px;font-size:15px;line-height:22px;color:#435b80;font-size:13px;line-height:20px;\">Depois, R$ 19,90/mês para até 5 dispositivos.<br>Sem fidelidade. Cancele quando quiser.</p><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"100%\"><tr><td bgcolor=\"#086aff\" align=\"center\" style=\"border-radius:10px;mso-padding-alt:16px 12px\"><a href=\"https://startouch.com.br/app?login=1&amp;tab=menu&amp;utm_source=email&amp;utm_medium=broadcast&amp;utm_campaign=pro-menu\" style=\"display:block;padding:16px 12px;border:1px solid #086aff;border-radius:10px;font-size:13px;line-height:20px;font-weight:bold;text-decoration:none;color:#ffffff\">COMEÇAR MEUS 7 DIAS GRÁTIS &nbsp;→</a></td></tr></table></td><td class=\"col\" width=\"45%\" align=\"center\"><img src=\"{{ASSET_BASE_URL}}/startouch-produtos.png\" width=\"270\" alt=\"Os quatro modelos reais STARTOUCH\" style=\"width:100%;max-width:310px;height:auto\"></td></tr></table><table role=\"presentation\" width=\"100%\" bgcolor=\"#edf4fc\" style=\"margin-top:18px;border-radius:10px\"><tr><td style=\"padding:14px\"><p style=\"margin:0 0 13px;font-size:15px;line-height:22px;color:#435b80;font-size:12px;line-height:19px;margin:0;\"><strong>Prefere continuar como está? Sem problema.</strong><br>O Google Direto e os recursos gratuitos continuam disponíveis normalmente.</p></td></tr></table></td></tr></table></td></tr><tr><td class=\"pad\" style=\"padding:7px 24px\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" bgcolor=\"#08265b\" style=\"border-radius:16px\"><tr><td class=\"inner\" style=\"padding:25px 24px\"><table role=\"presentation\" width=\"100%\"><tr><td class=\"col closecopy\" width=\"58%\" valign=\"middle\" style=\"padding-right:18px\"><p style=\"margin:0;font-size:25px;line-height:29px;font-weight:bold;color:#ffffff\">Agora faça cada toque<br>valer ainda mais.</p></td><td class=\"col\" width=\"42%\" valign=\"middle\"><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"100%\"><tr><td bgcolor=\"#ffffff\" align=\"center\" style=\"border-radius:10px;mso-padding-alt:16px 12px\"><a href=\"https://startouch.com.br/app?login=1&amp;tab=menu&amp;utm_source=email&amp;utm_medium=broadcast&amp;utm_campaign=pro-menu\" style=\"display:block;padding:16px 12px;border:1px solid #ffffff;border-radius:10px;font-size:13px;line-height:20px;font-weight:bold;text-decoration:none;color:#071e50\">CRIAR MEU MENU INTELIGENTE</a></td></tr></table></td></tr></table></td></tr></table></td></tr><tr><td align=\"center\" style=\"padding:20px 24px;font-size:11px;line-height:18px;color:#71829a\">Equipe STARTOUCH<br>Você recebeu este e-mail porque criou uma conta na STARTOUCH.<br><a href=\"{{UNSUBSCRIBE_URL}}\" style=\"color:#71829a;text-decoration:underline\">Não quero receber estes e-mails</a><br><a href=\"https://startouch.com.br\" style=\"color:#71829a;text-decoration:none\">startouch.com.br</a></td></tr></table><!--[if mso]></td></tr></table><![endif]--></td></tr></table></body></html>";
 
-const beneficio = (icone, titulo, texto) => `<td class="feat" width="33%" valign="top" style="padding:14px 10px;text-align:center;font-family:${FONTE};">
-      <div style="width:46px;height:46px;line-height:46px;border-radius:23px;background:#EEF5FF;color:${AZ};font-size:20px;font-weight:800;margin:0 auto 10px;">${icone}</div>
-      <div style="font-size:15px;font-weight:800;color:${TX};line-height:1.25;margin-bottom:5px;">${titulo}</div>
-      <div style="font-size:13px;line-height:1.45;color:#6A7487;">${texto}</div></td>`;
+const TEXTO = "Seu STARTOUCH agora faz muito mais.\r\n\r\nO cartão, placa ou pulseira que você já usa pode abrir um Menu Inteligente com os principais caminhos para o seu negócio.\r\nVocê não precisa trocar nem comprar outro dispositivo.\r\n\r\nCRIAR MEU MENU INTELIGENTE GRÁTIS:\r\nhttps://startouch.com.br/app?login=1&tab=menu&utm_source=email&utm_medium=broadcast&utm_campaign=pro-menu\r\nLeva poucos minutos · Teste grátis por 7 dias\r\n\r\nUm toque. O cliente escolhe o que precisa.\r\nAvaliação no Google, WhatsApp, como chegar, Instagram, cardápio, salvar contato, agendamento, telefone e outros links. E muito mais — tudo em uma única tela.\r\nVocê escolhe quais botões aparecem e em qual ordem.\r\n\r\nO mesmo STARTOUCH. Uma experiência totalmente nova.\r\nSeus dispositivos continuam funcionando normalmente. Agora você decide se cada um leva diretamente ao Google ou abre um Menu Inteligente.\r\nBalcão: Avaliação · WhatsApp · Instagram\r\nMesa: Cardápio · Avaliação · Promoções\r\nEquipe: Avaliação · WhatsApp · Salvar contato\r\n\r\nDescubra o que seus clientes procuram.\r\nVeja quais botões recebem mais cliques e entenda melhor o que seus clientes querem fazer depois de tocar na STARTOUCH.\r\n\r\nSTARTOUCH PRO — Experimente antes de decidir.\r\n7 dias grátis. Depois, R$ 19,90/mês para até 5 dispositivos.\r\nSem fidelidade. Cancele quando quiser pelo próprio painel.\r\n\r\nCOMEÇAR MEUS 7 DIAS GRÁTIS:\r\nhttps://startouch.com.br/app?login=1&tab=menu&utm_source=email&utm_medium=broadcast&utm_campaign=pro-menu\r\n\r\nPrefere continuar como está? Sem problema.\r\nO Google Direto e os recursos gratuitos da sua conta continuam disponíveis normalmente.\r\n\r\nSeu STARTOUCH já está nas mãos dos seus clientes.\r\nAgora faça cada toque valer ainda mais.\r\nEquipe STARTOUCH\r\n\r\nVocê recebeu este e-mail porque criou uma conta na STARTOUCH.\r\nNão quero receber estes e-mails: {{UNSUBSCRIBE_URL}}\r\nhttps://startouch.com.br\r\n";
 
-const uso = (titulo, texto) => `<td class="uso" width="33%" valign="top" style="padding:4px;">
-      <div style="background:#ffffff;border:1px solid #E6EBF2;border-radius:14px;padding:16px 14px;font-family:${FONTE};">
-        <div style="font-size:15px;font-weight:800;color:${TX};margin-bottom:5px;">${titulo}</div>
-        <div style="font-size:13px;line-height:1.45;color:#6A7487;">${texto}</div></div></td>`;
-
-const par = (txt, extra = "") =>
-  `<p style="margin:0;font-family:${FONTE};font-size:16px;line-height:1.55;color:${MU};${extra}">${txt}</p>`;
-
-export function proMenuEmail({ unsubUrl, dispositivos = 0 } = {}) {
-  const fraseDispositivo = dispositivos > 0
-    ? `Você continua usando ${dispositivos === 1 ? "seu dispositivo" : `seus ${dispositivos} dispositivos`} normalmente. O Menu Inteligente funciona ${dispositivos === 1 ? "nele" : "neles"} sem trocar nada — é só montar o menu e ligar.`
-    : "O Menu Inteligente funciona na placa, no cartão e na pulseira StarTouch — e também por link e QR Code, pra pôr na bio do Instagram ou no balcão.";
-  // Quem não tem dispositivo não pode ler "seu StarTouch não mudou" nem "seu
-  // dispositivo já está nas mãos dos seus clientes": seria falar de algo que
-  // ele não tem.
-  const temDisp = dispositivos > 0;
-  const tituloBloco = temDisp
-    ? `Seu StarTouch não mudou.<br><span style="color:${AZ};">Ficou mais inteligente.</span>`
-    : `Placa, cartão ou pulseira.<br><span style="color:${AZ};">Todos abrem o seu menu.</span>`;
-  const fecho = temDisp
-    ? "Seu dispositivo já está nas mãos dos seus clientes.<br><strong>Agora faça cada toque valer ainda mais.</strong>"
-    : "Seu cliente já está com o celular na mão.<br><strong>Agora faça cada toque valer ainda mais.</strong>";
-
-  const html = `<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="x-apple-disable-message-reformatting"><title>Menu Inteligente StarTouch</title>
-<style>
-@media screen and (max-width:620px){
-  .pad{padding-left:22px!important;padding-right:22px!important}
-  .h1{font-size:33px!important}
-  .col,.feat,.uso{display:block!important;width:100%!important;box-sizing:border-box!important}
-  .col{padding-right:0!important}
-  .col2{padding-top:24px!important}
-  .uso{padding:4px 0!important}
+function preencher(modelo, unsubUrl, escaparHtml) {
+  const unsub = String(unsubUrl || "https://startouch.com.br");
+  return modelo
+    .split("{{ASSET_BASE_URL}}").join(ASSET_BASE_URL)
+    .split("{{UNSUBSCRIBE_URL}}").join(escaparHtml ? unsub.replace(/&/g, "&amp;") : unsub);
 }
-</style></head>
-<body style="margin:0;padding:0;background:#F4F7FB;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Agora o mesmo toque abre Google, WhatsApp, Instagram, cardápio e agenda — tudo numa tela só.</div>
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#F4F7FB;"><tr><td align="center" style="padding:24px 10px;">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:640px;background:#ffffff;border-radius:22px;overflow:hidden;">
 
-  <tr><td class="pad" style="padding:22px 36px;border-bottom:1px solid #EDF1F6;">
-    <img src="${BASE}/startouch-logo-dark.png" alt="StarTouch" width="150" style="display:block;width:150px;height:auto;border:0;">
-  </td></tr>
-
-  <tr><td class="pad" style="padding:34px 36px 36px;background:#F5F9FF;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
-      <td class="col" width="55%" valign="middle" style="padding-right:18px;font-family:${FONTE};">
-        <div style="font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:800;color:${AZ};">Novidade StarTouch</div>
-        <div class="h1" style="margin:12px 0 0;font-size:40px;line-height:1.05;letter-spacing:-1.5px;font-weight:800;color:${TX};">Um toque.<br><span style="color:${AZ};">Muito mais possibilidades.</span></div>
-        <div style="height:18px;"></div>
-        ${par("Chegou o Menu Inteligente.", "font-size:18px;color:#243147;font-weight:700;")}
-        <div style="height:10px;"></div>
-        ${par("Agora o mesmo cartão, placa ou pulseira abre uma tela com o nome do seu negócio e os botões que você escolher: avaliação no Google, WhatsApp, Instagram, cardápio, agenda, como chegar e muito mais.")}
-        <div style="height:22px;"></div>
-        ${botao("Ativar meu Menu Inteligente →")}
-        <div style="height:10px;"></div>
-        <div style="font-family:${FONTE};font-size:12px;line-height:1.45;color:#7D8798;">Monte grátis e teste 7 dias antes de pagar.</div>
-      </td>
-      <td class="col col2" width="45%" valign="middle" align="center">
-        <a href="${LINK}" target="_blank"><img src="${BASE}/email/menu-celular.jpg" alt="Celular mostrando o Menu Inteligente: Avaliar no Google, Fale no WhatsApp, Agendar horário, Instagram, Tabela de serviços e Como chegar" width="240" style="display:block;width:240px;max-width:100%;height:auto;border:0;margin:0 auto;"></a>
-      </td>
-    </tr></table>
-  </td></tr>
-
-  <tr><td class="pad" style="padding:24px 26px;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
-      ${beneficio("★", "Mais caminhos pro cliente", "Avaliação, atendimento e redes sociais no mesmo toque.")}
-      ${beneficio("▣", "Um menu por dispositivo", "A placa do balcão e o cartão de cada vendedor podem abrir menus diferentes.")}
-      ${beneficio("↗", "Vai além do NFC", "Seu menu também tem link e QR Code pra compartilhar.")}
-    </tr></table>
-  </td></tr>
-
-  <tr><td class="pad" style="padding:6px 36px 34px;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#F7F9FC;border-radius:18px;">
-    <tr><td style="padding:26px 26px 10px;font-family:${FONTE};">
-      <div style="font-size:27px;line-height:1.12;letter-spacing:-0.6px;font-weight:800;color:${TX};">${tituloBloco}</div>
-      <div style="height:12px;"></div>
-      ${par(fraseDispositivo)}
-    </td></tr>
-    <tr><td style="padding:12px 18px 20px;">
-      <img src="${BASE}/email/produtos.jpg" alt="Placa de balcão, cartão e pulseira StarTouch" width="548" style="display:block;width:100%;max-width:548px;height:auto;border:0;border-radius:14px;">
-    </td></tr></table>
-  </td></tr>
-
-  <tr><td class="pad" style="padding:0 32px 32px;font-family:${FONTE};">
-    <div style="font-size:27px;line-height:1.1;letter-spacing:-0.6px;font-weight:800;color:${TX};padding:0 4px 14px;">Exemplos de uso</div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
-      ${uso("No balcão", "Avaliação · WhatsApp · Instagram")}
-      ${uso("Na mesa", "Cardápio · Avaliação · Instagram")}
-      ${uso("Com sua equipe", "Avaliação · WhatsApp · Salvar contato")}
-    </tr></table>
-  </td></tr>
-
-  <tr><td class="pad" style="padding:32px 36px 34px;background:#EEF5FF;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
-      <td class="col" width="48%" valign="middle" style="padding-right:18px;font-family:${FONTE};">
-        <div style="font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:800;color:${AZ};">StarTouch Pro</div>
-        <div style="margin-top:12px;font-size:42px;line-height:1;letter-spacing:-1px;font-weight:900;color:${AZ};">R$ 19,90<span style="font-size:20px;">/mês</span></div>
-        <div style="height:10px;"></div>
-        ${par('<strong style="color:#243147;">7 dias grátis pra testar.</strong><br>Sem fidelidade. Cancele quando quiser, no próprio painel.', "font-size:15px;")}
-      </td>
-      <td class="col col2" width="52%" valign="middle" style="font-family:${FONTE};font-size:14px;line-height:1.5;color:#243147;">
-        ✓ Menu Inteligente em até 5 dispositivos StarTouch<br><br>
-        ✓ R$ 1,90/mês por dispositivo extra, se precisar<br><br>
-        ✓ Um menu diferente por dispositivo, se quiser<br><br>
-        ✓ Link e QR Code do seu menu<br><br>
-        ✓ Veja quais botões seus clientes mais tocam
-      </td>
-    </tr></table>
-    <div style="height:22px;"></div>
-    ${botao("Começar meus 7 dias grátis →")}
-  </td></tr>
-
-  <tr><td class="pad" style="padding:26px 36px 28px;text-align:center;">
-    ${par(fecho, "font-size:14px;color:#243147;")}
-    <div style="height:14px;"></div>
-    <div style="font-family:${FONTE};font-size:12.5px;line-height:1.5;color:#7D8798;">Tudo o que você já usa no painel — ranking, toques, alertas e resumo semanal — continua grátis.<br>Dúvidas? É só responder este e-mail. · Equipe StarTouch</div>
-  </td></tr>
-
-</table>
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:640px;"><tr><td style="padding:18px 20px 6px;text-align:center;font-family:${FONTE};font-size:11px;line-height:1.6;color:#A8B0BB;">
-  Você está recebendo isso porque criou uma conta no StarTouch.<br>
-  ${unsubUrl ? `Não quer mais receber nossos emails? <a href="${unsubUrl}" style="color:#A8B0BB;text-decoration:underline;">Descadastrar</a>.<br>` : ""}
-  StarTouch · <a href="${BASE}" style="color:#A8B0BB;text-decoration:none;">startouch.com.br</a>
-</td></tr></table>
-</td></tr></table>
-</body></html>`;
-
-  return { subject: "Chegou o Menu Inteligente: um toque, muito mais possibilidades", html };
+// Mesma assinatura da versão anterior, pro broadcast não mudar. `dispositivos`
+// é aceito e ignorado: a peça aprovada não tem trecho variável.
+export function proMenuEmail({ unsubUrl } = {}) {
+  const html = preencher(HTML, unsubUrl, true);
+  const text = preencher(TEXTO, unsubUrl, false);
+  // Envio sem as variáveis preenchidas é proibido pelo LEIA-ME: se alguma
+  // sobrar, falha alto em vez de mandar link quebrado pra 500 pessoas.
+  if (html.includes("{{") || text.includes("{{")) throw new Error("pro-menu: variável não preenchida no e-mail");
+  return { subject: ASSUNTO, html, text };
 }
