@@ -1584,8 +1584,9 @@ async function handleCheckoutKitStripe(req, res) {
       // gravar `orders.shipping` do mesmo jeito.
       customer_email: auth.user.email,
       client_reference_id: auth.user.id,
-      // Só cartão desde 06/10/2026: boleto abolido em todas as vendas.
-      payment_method_types: ["card"],
+      // Cartão + PIX desde 06/10/2026: boleto abolido em todas as vendas, PIX
+      // ligado no Stripe no mesmo dia (confirma na hora, sem recorrência).
+      payment_method_types: ["card", "pix"],
       payment_method_options: { card: { installments: { enabled: true } } },
       metadata: {
         user_id: auth.user.id, biz_name, order_type: "kit",
@@ -1661,8 +1662,9 @@ async function handleCheckoutKitGuestStripe(req, res) {
       // Nao e id de usuario (nao existe conta ainda) — e a referencia do
       // pedido, que e o que o webhook precisa achar de volta.
       client_reference_id: extRef,
-      // Só cartão desde 06/10/2026: boleto abolido em todas as vendas.
-      payment_method_types: ["card"],
+      // Cartão + PIX desde 06/10/2026: boleto abolido em todas as vendas, PIX
+      // ligado no Stripe no mesmo dia (confirma na hora, sem recorrência).
+      payment_method_types: ["card", "pix"],
       payment_method_options: { card: { installments: { enabled: true } } },
       metadata: {
         order_type: "kit", tipo: "kit_guest",
@@ -1747,7 +1749,7 @@ async function handleCheckoutTrybo(req, res) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card"],
+      payment_method_types: ["card", "pix"],
       line_items: [{
         price_data: {
           currency: "brl",
