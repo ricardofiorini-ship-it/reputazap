@@ -345,7 +345,7 @@ function Plano({ dados }) {
             </div>
           ) : status === 'past_due' ? (
             <div style={{ fontSize: 12.5, opacity: .9, marginTop: 2 }}>
-              Pagamento recusado — atualize o cartão
+              Mensalidade em aberto — resolva o pagamento
             </div>
           ) : emTeste ? (
             <div style={{ fontSize: 12.5, opacity: .9, marginTop: 2 }}>
@@ -370,9 +370,9 @@ function Plano({ dados }) {
           background: '#FEF2F2', border: '1px solid #FCA5A5',
           fontSize: 12.5, color: '#7F1D1D', lineHeight: 1.5
         }}>
-          <strong>Não conseguimos cobrar seu cartão.</strong> Seu Menu Inteligente continua no ar
-          por alguns dias enquanto tentamos de novo. Clique em <strong>Gerenciar pagamento</strong>, abaixo,
-          para atualizar o cartão e ele não sair dos seus dispositivos.
+          <strong>Sua mensalidade está em aberto</strong> (cartão recusado ou boleto não pago). Seu Menu
+          Inteligente continua no ar por alguns dias. Clique em <strong>Gerenciar pagamento</strong>, abaixo,
+          para pagar ou trocar a forma de pagamento — e ele não sair dos seus dispositivos.
         </div>
       )}
 

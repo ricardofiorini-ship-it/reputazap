@@ -805,32 +805,50 @@ function rodapeCancelar() {
     </p>`;
 }
 
-export function assinaturaRecusadaEmail({ userName, valorCentavos }) {
+// `meio`: 'card' | 'boleto' | null. O Paulo (03/10) assinou no BOLETO: o teste
+// acabou, o boleto da 1ª mensalidade foi emitido e não pago. Dizer a ele que
+// "o cartão foi recusado" seria falar de um cartão que não existe.
+// `linkFatura`: a página da fatura no Stripe (hosted_invoice_url). Diferente
+// do portal, ela NÃO vence — é o caminho mais curto pra pagar.
+export function assinaturaRecusadaEmail({ userName, valorCentavos, meio = null, linkFatura = null }) {
   const name = escapeHtml(userName?.split(" ")[0] || "tudo bem?");
+  const boleto = meio === "boleto";
+  const cartao = meio === "card";
   return {
-    subject: "Não conseguimos cobrar seu cartão — StarTouch Pro",
+    subject: cartao
+      ? "Não conseguimos cobrar seu cartão — StarTouch Pro"
+      : "Sua mensalidade do StarTouch Pro está em aberto",
     html: shell({
-      title: "PAGAMENTO RECUSADO",
+      title: cartao ? "PAGAMENTO RECUSADO" : "MENSALIDADE EM ABERTO",
       headerColor: "#B91C1C",
       body: `
         <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
-          ${name}, a cobrança do seu StarTouch Pro foi recusada
+          ${cartao
+            ? `${name}, a cobrança do seu StarTouch Pro foi recusada`
+            : `${name}, não recebemos o pagamento do seu StarTouch Pro`}
         </h1>
         <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
-          Tentamos cobrar a mensalidade de <strong style="color:#202124;">${reais(valorCentavos)}</strong>
-          e o cartão não aprovou. Acontece — cartão vencido, limite ou bloqueio do banco.
+          ${cartao
+            ? `Tentamos cobrar a mensalidade de <strong style="color:#202124;">${reais(valorCentavos)}</strong> e o cartão não aprovou. Acontece — cartão vencido, limite ou bloqueio do banco.`
+            : boleto
+              ? `Seu teste grátis terminou e o boleto da mensalidade de <strong style="color:#202124;">${reais(valorCentavos)}</strong> ainda não foi pago.`
+              : `A mensalidade de <strong style="color:#202124;">${reais(valorCentavos)}</strong> ainda não foi paga.`}
         </p>
         <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:16px 18px;margin:14px 0;">
           <p style="font-size:14px;color:#7F1D1D;line-height:1.6;margin:0;">
-            Seu <strong>Menu Inteligente continua no ar por alguns dias</strong> enquanto tentamos de novo.
-            Se a cobrança não passar, a assinatura é encerrada e seus dispositivos voltam a levar
+            Seu <strong>Menu Inteligente continua no ar por alguns dias</strong>.
+            Se o pagamento não entrar, a assinatura é encerrada e seus dispositivos voltam a levar
             direto ao Google. Seu menu fica guardado.
           </p>
         </div>
-        ${cta(LINK_PLANO, "Atualizar meu cartão →", "#DC2626")}
+        ${linkFatura
+          ? cta(linkFatura, cartao ? "Pagar com outro cartão →" : "Pagar a mensalidade →", "#DC2626")
+          : cta(LINK_PLANO, cartao ? "Atualizar meu cartão →" : "Resolver o pagamento →", "#DC2626")}
         <p style="font-size:12.5px;color:#5F6368;line-height:1.6;margin:6px 0 0;">
-          No painel, clique em <strong>Abrir portal de cobrança</strong> e troque o cartão.
-          Leva um minuto.
+          ${linkFatura ? "O link abre a fatura no Stripe, nosso processador de pagamentos. " : ""}Para trocar
+          a forma de pagamento das próximas mensalidades, entre em
+          <a href="${LINK_PLANO}" style="color:#1A73E8;font-weight:600;">Plano e cobrança</a>
+          no seu painel e clique em <strong>Abrir portal de cobrança</strong>.
         </p>
         ${rodapeCancelar()}
       `
@@ -913,7 +931,7 @@ export function assinaturaEncerradaEmail({ userName, porFaltaDePagamento = false
         </h1>
         <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
           ${porFaltaDePagamento
-            ? "Tentamos cobrar a mensalidade algumas vezes e o cartão não aprovou, então a assinatura foi encerrada. Não há nada pendente nem dívida."
+            ? "A mensalidade não foi paga dentro do prazo, então a assinatura foi encerrada. Não há nada pendente nem dívida."
             : "Sua assinatura chegou ao fim. Não haverá novas cobranças."}
         </p>
         <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin:14px 0;">

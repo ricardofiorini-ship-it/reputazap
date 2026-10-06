@@ -2351,6 +2351,17 @@ async function avisaAssinante(event) {
       extra = { porFaltaDePagamento: motivo === "payment_failed" || (!motivo && !sub.cancel_at_period_end) };
     } else if (sub.status === "past_due" && antes.status && antes.status !== "past_due") {
       tipo = "sub_payment_failed";
+      // Cartão ou boleto, e o link da fatura. Cada um com seu try: sem eles o
+      // e-mail sai igual, só mais genérico — nunca deixa de sair.
+      const stripe = getStripe();
+      try {
+        const pmId = typeof sub.default_payment_method === "string" ? sub.default_payment_method : sub.default_payment_method?.id;
+        if (pmId) extra.meio = (await stripe.paymentMethods.retrieve(pmId))?.type || null;
+      } catch (e) { console.warn(`[stripe/aviso] meio de pagamento de ${sub.id}: ${e?.message}`); }
+      try {
+        const invId = typeof sub.latest_invoice === "string" ? sub.latest_invoice : sub.latest_invoice?.id;
+        if (invId) extra.linkFatura = (await stripe.invoices.retrieve(invId))?.hosted_invoice_url || null;
+      } catch (e) { console.warn(`[stripe/aviso] fatura de ${sub.id}: ${e?.message}`); }
     } else if (sub.status === "active" && (
       ["trialing", "past_due", "incomplete"].includes(antes.status) ||
       // Renovação mensal: o período anda e o status não muda. Nas versões de
@@ -2378,7 +2389,7 @@ async function avisaAssinante(event) {
     const userName = meta.name || meta.full_name || "";
 
     const tpl =
-      tipo === "sub_payment_failed" ? assinaturaRecusadaEmail({ userName, valorCentavos }) :
+      tipo === "sub_payment_failed" ? assinaturaRecusadaEmail({ userName, valorCentavos, ...extra }) :
       tipo === "sub_charged"        ? assinaturaCobradaEmail({ userName, valorCentavos, ...extra }) :
       tipo === "sub_trial_ending"   ? testeTerminandoEmail({ userName, valorCentavos, ...extra }) :
                                       assinaturaEncerradaEmail({ userName, ...extra });

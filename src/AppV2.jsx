@@ -2719,11 +2719,11 @@ function AvisoCartaoRecusado({ isMobile }) {
     }}>
       <div style={{ flex: '1 1 320px', minWidth: 0 }}>
         <div style={{ fontSize: 14.5, fontWeight: 800, color: '#991B1B' }}>
-          Não conseguimos cobrar seu cartão
+          Sua mensalidade do StarTouch Pro está em aberto
         </div>
         <div style={{ fontSize: 13, color: '#7F1D1D', lineHeight: 1.55, marginTop: 3 }}>
-          A mensalidade do StarTouch Pro (R$ 19,90) foi recusada. Seu Menu Inteligente
-          continua no ar por alguns dias enquanto tentamos de novo — atualize o cartão
+          Não recebemos o pagamento de R$ 19,90 — cartão recusado ou boleto não pago.
+          Seu Menu Inteligente continua no ar por alguns dias: resolva o pagamento
           para ele não sair dos seus dispositivos.
         </div>
         {erro && (
@@ -2736,7 +2736,7 @@ function AvisoCartaoRecusado({ isMobile }) {
         border: 'none', cursor: indo ? 'default' : 'pointer', fontFamily: 'inherit',
         background: '#DC2626', color: '#fff', borderRadius: 9, padding: '11px 18px',
         fontSize: 13.5, fontWeight: 700, whiteSpace: 'nowrap', opacity: indo ? .65 : 1
-      }}>{indo ? 'Abrindo…' : 'Atualizar cartão →'}</button>
+      }}>{indo ? 'Abrindo…' : 'Resolver pagamento →'}</button>
     </div>
   )
 }
