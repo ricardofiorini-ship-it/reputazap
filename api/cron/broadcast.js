@@ -191,7 +191,10 @@ export default async function handler(req, res) {
           "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
         },
       });
-      if (r?.sent) { s.sent++; s.recipients.push({ to }); }
+      // No teste (?to=) devolve o id do Resend e o remetente: em 06/10 o
+      // Resend aceitou (sent:1) e o e-mail não apareceu no painel que o Ricardo
+      // olhava — o id é o que diz em qual conta/equipe ele de fato está.
+      if (r?.sent) { s.sent++; s.recipients.push(forceTo ? { to, resend_id: r.resend_id || null, from: process.env.RESEND_FROM || "(padrão onboarding@resend.dev)" } : { to }); }
       else if (r?.skipped) s.skipped_dedupe++;
       else if (r?.error) s.errors.push({ user_id: userId, error: r.error });
 
