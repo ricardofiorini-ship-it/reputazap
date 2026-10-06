@@ -26,8 +26,9 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { sendTransactionalEmail } from "../_lib/email-sender.js";
-import { tapsHistoryNewsEmail, revendaNewsEmail } from "../_lib/email-templates.js";
+import { tapsHistoryNewsEmail, revendaNewsEmail, proMenuEmail } from "../_lib/email-templates.js";
 import { unsubUrl } from "../_lib/unsubscribe.js";
+import { soStartouch } from "../_lib/linha.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -43,12 +44,26 @@ const CAMPAIGNS = {
     label: "Programa de revenda aberto",
     build: ({ userName, unsub }) => revendaNewsEmail({ userName, unsubUrl: unsub }),
   },
+  // 06/10/2026. Só pra quem NÃO assinou: quem tem negócio em `plan='pro'`
+  // ou já passou pelo checkout da assinatura (`stripe_customer_id`) fica de
+  // fora — assinante não precisa de convite, e quem já testou e saiu (Flavio,
+  // 06/10) leria "conheça" de algo que ele conhece.
+  "pro-menu": {
+    label: "StarTouch Pro: Menu Inteligente (quem ainda não assinou)",
+    soNaoAssinantes: true,
+    precisaDispositivos: true,
+    build: ({ userName, unsub, dispositivos }) => proMenuEmail({ userName, unsubUrl: unsub, dispositivos }),
+  },
 };
 
 function checkAuth(req) {
   if (req.headers["x-vercel-cron"] === "1") return true;
   if (!CRON_SECRET) return false;
-  return (req.headers.authorization || "") === `Bearer ${CRON_SECRET}`;
+  if ((req.headers.authorization || "") === `Bearer ${CRON_SECRET}`) return true;
+  // ?secret= pelo navegador, igual ao plan-sweep e ao db-health: o Ricardo
+  // ensaia e testa a campanha sem terminal. O envio real continua exigindo
+  // confirm=1, então abrir o link não dispara nada.
+  return req.query.secret === CRON_SECRET;
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -84,9 +99,43 @@ export default async function handler(req, res) {
     recipients: [], errors: [],
   };
 
-  const { data: businesses, error: bizErr } = await supabase.from("businesses").select("user_id");
+  const { data: businesses, error: bizErr } = await supabase
+    .from("businesses").select("id, user_id, plan, stripe_customer_id");
   if (bizErr) return res.status(500).json({ ...s, error: bizErr.message });
-  const userIds = [...new Set((businesses || []).map((b) => b.user_id).filter(Boolean))];
+  let userIds = [...new Set((businesses || []).map((b) => b.user_id).filter(Boolean))];
+
+  if (campaign.soNaoAssinantes) {
+    const assinantes = new Set((businesses || [])
+      .filter((b) => b.plan === "pro" || b.stripe_customer_id)
+      .map((b) => b.user_id));
+    s.skipped_assinantes = userIds.filter((id) => assinantes.has(id)).length;
+    userIds = userIds.filter((id) => !assinantes.has(id));
+  }
+
+  // Dispositivos ATIVOS por usuário — em páginas de 1000, porque o Supabase
+  // corta cada consulta em 1000 linhas calado (já enganou estoque, funil e a
+  // lista de clientes). Com 2 mil+ dispositivos, sem paginar metade da base
+  // receberia a versão "você ainda não tem dispositivo".
+  const dispPorUser = new Map();
+  if (campaign.precisaDispositivos) {
+    const userDoBiz = new Map((businesses || []).map((b) => [b.id, b.user_id]));
+    for (let de = 0; de < 100000; de += 1000) {
+      // Só StarTouch: cartão Trybo não abre o Menu Inteligente, e contá-lo
+      // faria o e-mail prometer o menu num dispositivo que não o serve.
+      const { data: pag, error: pErr } = await soStartouch(supabase
+        .from("plates").select("business_id"))
+        .eq("status", "active").not("business_id", "is", null)
+        .order("code", { ascending: true }).range(de, de + 999);
+      if (pErr) return res.status(500).json({ ...s, error: "dispositivos: " + pErr.message });
+      for (const p of pag || []) {
+        const u = userDoBiz.get(p.business_id);
+        if (u) dispPorUser.set(u, (dispPorUser.get(u) || 0) + 1);
+      }
+      if (!pag || pag.length < 1000) break;
+    }
+    s.com_dispositivo = userIds.filter((id) => dispPorUser.get(id) > 0).length;
+    s.sem_dispositivo = userIds.length - s.com_dispositivo;
+  }
 
   // perPage 1000: hoje a base cabe folgado. Se um dia passar disso, aqui
   // precisa paginar — e o número de `users` abaixo denuncia o teto.
@@ -111,7 +160,7 @@ export default async function handler(req, res) {
       if (!to) { s.skipped_no_email++; continue; }
 
       const unsub = unsubUrl(userId);
-      const tmpl = campaign.build({ userName: firstName(user), unsub });
+      const tmpl = campaign.build({ userName: firstName(user), unsub, dispositivos: dispPorUser.get(userId) || 0 });
 
       if (dry) { s.recipients.push({ to }); continue; }
 
