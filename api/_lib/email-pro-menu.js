@@ -24,7 +24,7 @@
 // ============================================================
 
 const BASE = "https://startouch.com.br";
-const LINK = `${BASE}/app?tab=menu&utm_source=email&utm_medium=broadcast&utm_campaign=pro-menu`;
+const LINK = `${BASE}/app?login=1&tab=menu&utm_source=email&utm_medium=broadcast&utm_campaign=pro-menu`;
 const AZ = "#1A73E8", TX = "#0C1524", MU = "#5C667A", FONTE = "Arial,Helvetica,sans-serif";
 
 const botao = (txt) => `<table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr><td style="border-radius:12px;background:${AZ};">
@@ -48,6 +48,16 @@ export function proMenuEmail({ unsubUrl, dispositivos = 0 } = {}) {
   const fraseDispositivo = dispositivos > 0
     ? `Você continua usando ${dispositivos === 1 ? "seu dispositivo" : `seus ${dispositivos} dispositivos`} normalmente. O Menu Inteligente funciona ${dispositivos === 1 ? "nele" : "neles"} sem trocar nada — é só montar o menu e ligar.`
     : "O Menu Inteligente funciona na placa, no cartão e na pulseira StarTouch — e também por link e QR Code, pra pôr na bio do Instagram ou no balcão.";
+  // Quem não tem dispositivo não pode ler "seu StarTouch não mudou" nem "seu
+  // dispositivo já está nas mãos dos seus clientes": seria falar de algo que
+  // ele não tem.
+  const temDisp = dispositivos > 0;
+  const tituloBloco = temDisp
+    ? `Seu StarTouch não mudou.<br><span style="color:${AZ};">Ficou mais inteligente.</span>`
+    : `Placa, cartão ou pulseira.<br><span style="color:${AZ};">Todos abrem o seu menu.</span>`;
+  const fecho = temDisp
+    ? "Seu dispositivo já está nas mãos dos seus clientes.<br><strong>Agora faça cada toque valer ainda mais.</strong>"
+    : "Seu cliente já está com o celular na mão.<br><strong>Agora faça cada toque valer ainda mais.</strong>";
 
   const html = `<!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -102,7 +112,7 @@ export function proMenuEmail({ unsubUrl, dispositivos = 0 } = {}) {
   <tr><td class="pad" style="padding:6px 36px 34px;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#F7F9FC;border-radius:18px;">
     <tr><td style="padding:26px 26px 10px;font-family:${FONTE};">
-      <div style="font-size:27px;line-height:1.12;letter-spacing:-0.6px;font-weight:800;color:${TX};">Seu StarTouch não mudou.<br><span style="color:${AZ};">Ficou mais inteligente.</span></div>
+      <div style="font-size:27px;line-height:1.12;letter-spacing:-0.6px;font-weight:800;color:${TX};">${tituloBloco}</div>
       <div style="height:12px;"></div>
       ${par(fraseDispositivo)}
     </td></tr>
@@ -140,7 +150,7 @@ export function proMenuEmail({ unsubUrl, dispositivos = 0 } = {}) {
   </td></tr>
 
   <tr><td class="pad" style="padding:26px 36px 28px;text-align:center;">
-    ${par('Seu dispositivo já está nas mãos dos seus clientes.<br><strong>Agora faça cada toque valer ainda mais.</strong>', "font-size:14px;color:#243147;")}
+    ${par(fecho, "font-size:14px;color:#243147;")}
     <div style="height:14px;"></div>
     <div style="font-family:${FONTE};font-size:12.5px;line-height:1.5;color:#7D8798;">Tudo o que você já usa no painel — ranking, toques, alertas e resumo semanal — continua grátis.<br>Dúvidas? É só responder este e-mail. · Equipe StarTouch</div>
   </td></tr>

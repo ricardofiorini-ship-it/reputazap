@@ -432,7 +432,7 @@ export function businessLinkedEmail({ userName, bizName }) {
           </ul>
         </div>
 
-        ${cta("https://startouch.com.br/app?tab=concorrentes", "Ver minha posição no ranking →", "#137333")}
+        ${cta("https://startouch.com.br/app?login=1&tab=concorrentes", "Ver minha posição no ranking →", "#137333")}
 
         <p style="font-size:13px;color:#5F6368;line-height:1.55;margin:20px 0 0;">
           <strong>Próximo passo:</strong> ative seu primeiro dispositivo NFC pra começar a capturar avaliações. Já tem um? Tem o código atrás (começa com <code style="background:#F1F3F4;padding:2px 6px;border-radius:4px;font-size:12px;">STAR-</code>).
@@ -488,7 +488,7 @@ export function firstDeviceEmail({ userName, bizName, code, channelName }) {
           </p>
         </div>
 
-        ${cta("https://startouch.com.br/app#pontos-de-captacao", "Ver meus dispositivos →")}
+        ${cta("https://startouch.com.br/app?login=1#pontos-de-captacao", "Ver meus dispositivos →")}
       `
     })
   };
@@ -705,7 +705,7 @@ export function additionalDeviceEmail({ userName, bizName, code, channelName, to
           </div>
         </div>
 
-        ${cta("https://startouch.com.br/app#pontos-de-captacao", "Ver todos os dispositivos →")}
+        ${cta("https://startouch.com.br/app?login=1#pontos-de-captacao", "Ver todos os dispositivos →")}
       `
     })
   };
@@ -765,7 +765,7 @@ export function deviceUnlinkedEmail({ userName, bizName, code, channelName, prod
           de que o dispositivo era seu e conseguimos devolvê-lo.
         </p>
 
-        ${cta("https://startouch.com.br/app#pontos-de-captacao", "Ver meus dispositivos →")}
+        ${cta("https://startouch.com.br/app?login=1#pontos-de-captacao", "Ver meus dispositivos →")}
       `
     })
   };
@@ -783,7 +783,7 @@ export function deviceUnlinkedEmail({ userName, bizName, code, channelName, prod
 // O link vai pro painel (/app#plano), e não pro portal do Stripe direto: o
 // endereço do portal é de uso único e vence em minutos — não sobrevive à caixa
 // de entrada.
-const LINK_PLANO = "https://startouch.com.br/app#plano";
+const LINK_PLANO = "https://startouch.com.br/app?login=1#plano";
 
 function reais(centavos) {
   if (centavos == null) return "R$ 19,90";
@@ -941,7 +941,7 @@ export function assinaturaEncerradaEmail({ userName, porFaltaDePagamento = false
             <li>Para voltar, é só assinar de novo no painel: o menu volta ao ar na hora.</li>
           </ul>
         </div>
-        ${cta("https://startouch.com.br/app?tab=menu", "Reativar meu Menu →")}
+        ${cta("https://startouch.com.br/app?login=1&tab=menu", "Reativar meu Menu →")}
         <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:16px 0 0;">
           Se foi engano ou o cartão já está resolvido, responda este e-mail que a gente ajuda.
         </p>
@@ -1052,7 +1052,7 @@ export function weeklyReportEmail({ bizName, ratingNow, ratingDelta, reviewsDelt
           ${row("Avaliações na semana", `${reviewsDelta > 0 ? "+" : ""}${r(reviewsDelta)}`, arrow(reviewsDelta, true))}
         </table>
 
-        ${cta("https://startouch.com.br/app?tab=concorrentes", "Ver detalhes no painel →", headerColor)}
+        ${cta("https://startouch.com.br/app?login=1&tab=concorrentes", "Ver detalhes no painel →", headerColor)}
       `
     })
   };
