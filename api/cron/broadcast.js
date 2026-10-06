@@ -52,6 +52,9 @@ const CAMPAIGNS = {
   "pro-menu": {
     label: "StarTouch Pro: Menu Inteligente (quem ainda não assinou)",
     soNaoAssinantes: true,
+    // 06/10: o texto fala de "o cartão, placa ou pulseira que você já usa" —
+    // quem não tem dispositivo nenhum fica de fora (decisão do Ricardo).
+    soComDispositivo: true,
     precisaDispositivos: true,
     build: ({ userName, unsub, dispositivos }) => proMenuEmail({ userName, unsubUrl: unsub, dispositivos }),
   },
@@ -150,6 +153,10 @@ export default async function handler(req, res) {
     }
     s.com_dispositivo = userIds.filter((id) => dispPorUser.get(id) > 0).length;
     s.sem_dispositivo = userIds.length - s.com_dispositivo;
+    if (campaign.soComDispositivo) {
+      s.skipped_sem_dispositivo = s.sem_dispositivo;
+      userIds = userIds.filter((id) => dispPorUser.get(id) > 0);
+    }
   }
 
   // perPage 1000: hoje a base cabe folgado. Se um dia passar disso, aqui
@@ -170,9 +177,15 @@ export default async function handler(req, res) {
     const dono = [...userById.values()].find((u) => (u.email || "").toLowerCase() === forceTo.toLowerCase());
     if (dono) list = [dono.id];
   }
-  if (Number.isFinite(limit) && limit > 0) list = list.slice(0, limit);
+  // `limit` = quantos ENVIOS NOVOS nesta rodada (lotes diários no plano grátis
+  // do Resend, 100/dia). Antes cortava a lista no começo: como quem já recebeu
+  // é pulado pelo dedupe, repetir o link reenviava os mesmos 90 "pulados" e não
+  // avançava nunca. Agora percorre a lista toda e para ao atingir N envios.
+  const maxEnvios = Number.isFinite(limit) && limit > 0 ? limit : Infinity;
+  s.restantes = 0;
 
   for (const userId of list) {
+    if (s.sent >= maxEnvios) { s.restantes++; continue; }
     s.users++;
     try {
       const prefs = prefsById.get(userId);
@@ -206,7 +219,9 @@ export default async function handler(req, res) {
       else if (r?.error) s.errors.push({ user_id: userId, error: r.error });
 
       // Resend tem limite por segundo; o digest usa a mesma folga.
-      if (!forceTo) await sleep(250);
+      // Resend aceita 2 pedidos/segundo por padrão; 600ms deixa folga com a
+      // latência e evita 429 no meio do lote.
+      if (!forceTo) await sleep(600);
     } catch (e) {
       s.errors.push({ user_id: userId, error: e.message || String(e) });
     }
