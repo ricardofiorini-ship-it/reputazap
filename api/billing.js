@@ -5,6 +5,7 @@ import { MercadoPagoConfig, PreApproval, Preference, Payment } from "mercadopago
 import crypto from "crypto";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
 import { pedidoRecebidoEmail, pedidoConfirmadoEmail } from "./_lib/email-templates.js";
+import { assinaturaRecusadaEmail, assinaturaCobradaEmail, testeTerminandoEmail, assinaturaEncerradaEmail } from "./_lib/email-templates.js";
 import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia } from "./_lib/email-templates.js";
 import { resolvePlano } from "./_lib/plan.js";
 import { KIT_CATALOG } from "./_lib/catalogo-kit.js";
@@ -1987,7 +1988,9 @@ async function handlePortalStripe(req, res) {
     const origin = req.headers.origin || `https://${req.headers.host}`;
     // De onde veio, pra onde volta. Lista fechada: URL vinda do cliente aqui
     // seria redirecionamento aberto assinado pela nossa marca.
-    const RETORNOS_PORTAL = { app: "/app?aba=config", v3: "/painel-f7dsaz3c/config" };
+    // `/app#plano` e não `?aba=config`: o painel não lê `aba` (lê `tab` e o
+    // hash), e a volta do portal caía no Painel em vez de Plano e cobrança.
+    const RETORNOS_PORTAL = { app: "/app#plano", v3: "/painel-f7dsaz3c/config" };
     const { retorno } = parseJson(await getRawBody(req));
     const session = await stripe.billingPortal.sessions.create({
       customer: biz.stripe_customer_id,
@@ -2312,6 +2315,83 @@ async function concluiPedidoStripe(session) {
   });
 }
 
+// ── E-MAILS DA ASSINATURA (06/10/2026) ──
+// Cobrança feita, cobrança recusada, teste terminando e assinatura encerrada.
+// Até aqui tudo isso acontecia calado: o Flavio teve o cartão recusado em
+// 01/10, perdeu o Pro em 06/10 e nada nosso avisou nenhuma das duas coisas.
+//
+// Lê tudo de `customer.subscription.updated`, que o endpoint JÁ escuta, em vez
+// de pedir `invoice.*` novos: o `previous_attributes` diz o que mudou, e o que
+// mudou é exatamente o que separa os casos. De quebra, a recusa sai UMA vez
+// (na entrada em past_due) e não a cada retentativa, como o invoice.payment_failed.
+//
+// Idempotente pelo id do evento: o Stripe reentrega webhook, e reentrega não
+// pode virar segundo e-mail de cobrança. Falha aqui NUNCA derruba o webhook —
+// o plano já foi gravado antes, e um 500 faria o Stripe repetir o evento.
+async function avisaAssinante(event) {
+  try {
+    const sub = event.data.object;
+    const antes = event.data.previous_attributes || {};
+    const valorCentavos = sub?.items?.data?.[0]?.price?.unit_amount ?? sub?.plan?.amount ?? null;
+
+    let tipo = null;
+    let extra = {};
+    if (event.type === "customer.subscription.trial_will_end") {
+      tipo = "sub_trial_ending";
+      extra = { fimDoTeste: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null };
+    } else if (event.type === "customer.subscription.deleted") {
+      tipo = "sub_ended";
+      const motivo = sub?.cancellation_details?.reason || null;
+      // Sem `cancellation_details` (versão de API antiga), o sinal é o
+      // `cancel_at_period_end`: o nosso botão de cancelar sempre agenda pro fim
+      // do período, então quem chega aqui SEM ele foi encerrado pelo Stripe.
+      extra = { porFaltaDePagamento: motivo === "payment_failed" || (!motivo && !sub.cancel_at_period_end) };
+    } else if (sub.status === "past_due" && antes.status && antes.status !== "past_due") {
+      tipo = "sub_payment_failed";
+    } else if (sub.status === "active" && (
+      ["trialing", "past_due", "incomplete"].includes(antes.status) ||
+      // Renovação mensal: o período anda e o status não muda. Nas versões de
+      // API novas o período mora nos itens — por isso `items` também conta.
+      (!antes.status && ("current_period_end" in antes || "items" in antes) && !("cancel_at_period_end" in antes))
+    )) {
+      tipo = "sub_charged";
+      extra = { primeira: antes.status === "trialing", proximaCobranca: fimDoPeriodo(sub) };
+    }
+    if (!tipo) return;
+
+    const { data: biz } = await supabase.from("businesses")
+      .select("user_id").eq("stripe_customer_id", sub.customer).maybeSingle();
+    if (!biz?.user_id) {
+      console.warn(`[stripe/aviso] ${tipo}: nenhum negócio com stripe_customer_id=${sub.customer} — e-mail não enviado`);
+      return;
+    }
+    const { data: u } = await supabase.auth.admin.getUserById(biz.user_id);
+    const email = u?.user?.email;
+    if (!email) {
+      console.warn(`[stripe/aviso] ${tipo}: usuário ${biz.user_id} sem e-mail — não enviado`);
+      return;
+    }
+    const meta = u.user.user_metadata || {};
+    const userName = meta.name || meta.full_name || "";
+
+    const tpl =
+      tipo === "sub_payment_failed" ? assinaturaRecusadaEmail({ userName, valorCentavos }) :
+      tipo === "sub_charged"        ? assinaturaCobradaEmail({ userName, valorCentavos, ...extra }) :
+      tipo === "sub_trial_ending"   ? testeTerminandoEmail({ userName, valorCentavos, ...extra }) :
+                                      assinaturaEncerradaEmail({ userName, ...extra });
+
+    const r = await sendTransactionalEmail({
+      userId: biz.user_id, emailType: tipo, to: email,
+      subject: tpl.subject, html: tpl.html,
+      metadata: { stripe_event: event.id, subscription: sub.id },
+      dedupeByMetadata: { key: "stripe_event", value: event.id }
+    });
+    console.log(`[stripe/aviso] ${tipo} → user ${biz.user_id}: ${r?.sent ? "enviado" : (r?.reason || r?.error || "não enviado")}`);
+  } catch (e) {
+    console.error(`[stripe/aviso] falhou (${event?.type} ${event?.id}): ${e?.message}`);
+  }
+}
+
 async function handleWebhookStripe(req, res) {
   if (!process.env.STRIPE_WEBHOOK_SECRET) return res.status(500).json({ error: "STRIPE_WEBHOOK_SECRET não configurada" });
   let event;
@@ -2398,6 +2478,13 @@ async function handleWebhookStripe(req, res) {
           stripe_current_period_end: shouldBePro ? periodEnd : null, stripe_cancel_at_period_end: shouldBePro ? !!sub.cancel_at_period_end : false,
           stripe_subscription_status: shouldBePro ? sub.status : null
         }).eq("stripe_customer_id", sub.customer);
+        await avisaAssinante(event);
+        break;
+      }
+      // 3 dias antes do fim do teste. Precisa estar marcado no endpoint do
+      // painel do Stripe — sem isso este ramo nunca roda (e não quebra nada).
+      case "customer.subscription.trial_will_end": {
+        await avisaAssinante(event);
         break;
       }
       default: break;

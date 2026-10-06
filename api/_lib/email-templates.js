@@ -772,6 +772,167 @@ export function deviceUnlinkedEmail({ userName, bizName, code, channelName, prod
 }
 
 // ─────────────────────────────────────────────────────────────
+// 7b. ASSINATURA PRO — os avisos de cobrança (06/10/2026)
+// ─────────────────────────────────────────────────────────────
+// Até aqui a cobrança acontecia calada: o teste acabava, o cartão era cobrado
+// (ou recusado) e o cliente só descobria pela fatura do banco — ou nunca, no
+// caso da recusa, quando o Menu sumia dos dispositivos sem explicação.
+// Todos levam o mesmo caminho pra cancelar, em voz alta: "sem fidelidade" só
+// é verdade se a pessoa souber onde é a porta.
+//
+// O link vai pro painel (/app#plano), e não pro portal do Stripe direto: o
+// endereço do portal é de uso único e vence em minutos — não sobrevive à caixa
+// de entrada.
+const LINK_PLANO = "https://startouch.com.br/app#plano";
+
+function reais(centavos) {
+  if (centavos == null) return "R$ 19,90";
+  return "R$ " + (centavos / 100).toFixed(2).replace(".", ",");
+}
+
+function dataPt(iso) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
+}
+
+function rodapeCancelar() {
+  return `
+    <p style="font-size:12.5px;color:#5F6368;line-height:1.6;margin:22px 0 0;padding-top:14px;border-top:1px solid #e5e7eb;">
+      <strong>Sem fidelidade.</strong> Para cancelar, é só entrar em
+      <a href="${LINK_PLANO}" style="color:#1A73E8;font-weight:600;">Plano e cobrança</a> no seu painel,
+      a qualquer momento. Você continua com o Pro até o fim do período já pago.
+      Dúvida? Responda este e-mail.
+    </p>`;
+}
+
+export function assinaturaRecusadaEmail({ userName, valorCentavos }) {
+  const name = escapeHtml(userName?.split(" ")[0] || "tudo bem?");
+  return {
+    subject: "Não conseguimos cobrar seu cartão — StarTouch Pro",
+    html: shell({
+      title: "PAGAMENTO RECUSADO",
+      headerColor: "#B91C1C",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
+          ${name}, a cobrança do seu StarTouch Pro foi recusada
+        </h1>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          Tentamos cobrar a mensalidade de <strong style="color:#202124;">${reais(valorCentavos)}</strong>
+          e o cartão não aprovou. Acontece — cartão vencido, limite ou bloqueio do banco.
+        </p>
+        <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:16px 18px;margin:14px 0;">
+          <p style="font-size:14px;color:#7F1D1D;line-height:1.6;margin:0;">
+            Seu <strong>Menu Inteligente continua no ar por alguns dias</strong> enquanto tentamos de novo.
+            Se a cobrança não passar, a assinatura é encerrada e seus dispositivos voltam a levar
+            direto ao Google. Seu menu fica guardado.
+          </p>
+        </div>
+        ${cta(LINK_PLANO, "Atualizar meu cartão →", "#DC2626")}
+        <p style="font-size:12.5px;color:#5F6368;line-height:1.6;margin:6px 0 0;">
+          No painel, clique em <strong>Abrir portal de cobrança</strong> e troque o cartão.
+          Leva um minuto.
+        </p>
+        ${rodapeCancelar()}
+      `
+    })
+  };
+}
+
+export function assinaturaCobradaEmail({ userName, valorCentavos, proximaCobranca, primeira = false }) {
+  const name = escapeHtml(userName?.split(" ")[0] || "tudo bem?");
+  const proxima = dataPt(proximaCobranca);
+  return {
+    subject: primeira
+      ? "Seu teste terminou e o StarTouch Pro está ativo"
+      : "Assinatura renovada — StarTouch Pro",
+    html: shell({
+      title: primeira ? "PRO ATIVO" : "ASSINATURA RENOVADA",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
+          ${primeira ? `${name}, seu StarTouch Pro está ativo` : `${name}, sua assinatura foi renovada`}
+        </h1>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          ${primeira
+            ? "Seus 7 dias grátis terminaram e a primeira mensalidade foi cobrada. Seu Menu Inteligente segue no ar."
+            : "A mensalidade deste mês foi cobrada. Seu Menu Inteligente segue no ar."}
+        </p>
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin:14px 0;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:14px;color:#202124;">
+            <tr><td style="padding:4px 0;color:#5F6368;">Valor cobrado</td><td align="right" style="padding:4px 0;font-weight:700;">${reais(valorCentavos)}</td></tr>
+            ${proxima ? `<tr><td style="padding:4px 0;color:#5F6368;">Próxima cobrança</td><td align="right" style="padding:4px 0;font-weight:700;">${proxima}</td></tr>` : ""}
+          </table>
+        </div>
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:0;">
+          O recibo fica no seu painel, em <strong>Plano e cobrança → Abrir portal de cobrança</strong>.
+        </p>
+        ${rodapeCancelar()}
+      `
+    })
+  };
+}
+
+export function testeTerminandoEmail({ userName, valorCentavos, fimDoTeste }) {
+  const name = escapeHtml(userName?.split(" ")[0] || "tudo bem?");
+  const fim = dataPt(fimDoTeste) || "em poucos dias";
+  return {
+    subject: `Seu teste grátis do StarTouch Pro termina em ${fim}`,
+    html: shell({
+      title: "TESTE GRÁTIS TERMINANDO",
+      headerColor: "#B45309",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
+          ${name}, seu teste grátis termina em ${fim}
+        </h1>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          Nesse dia entra a primeira mensalidade de <strong style="color:#202124;">${reais(valorCentavos)}</strong>
+          no cartão que você cadastrou, e o Menu Inteligente segue funcionando sem você fazer nada.
+        </p>
+        <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:16px 18px;margin:14px 0;">
+          <p style="font-size:14px;color:#92400E;line-height:1.6;margin:0;">
+            <strong>Não quer continuar?</strong> Cancele antes de ${fim} e não é cobrado nada.
+            Seus dispositivos voltam a levar direto ao Google e seu menu fica guardado.
+          </p>
+        </div>
+        ${cta(LINK_PLANO, "Ver minha assinatura →")}
+        ${rodapeCancelar()}
+      `
+    })
+  };
+}
+
+export function assinaturaEncerradaEmail({ userName, porFaltaDePagamento = false }) {
+  const name = escapeHtml(userName?.split(" ")[0] || "tudo bem?");
+  return {
+    subject: "Sua assinatura do StarTouch Pro foi encerrada",
+    html: shell({
+      title: "ASSINATURA ENCERRADA",
+      headerColor: "#5F6368",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
+          ${name}, seu StarTouch Pro foi encerrado
+        </h1>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          ${porFaltaDePagamento
+            ? "Tentamos cobrar a mensalidade algumas vezes e o cartão não aprovou, então a assinatura foi encerrada. Não há nada pendente nem dívida."
+            : "Sua assinatura chegou ao fim. Não haverá novas cobranças."}
+        </p>
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin:14px 0;">
+          <ul style="font-size:13.5px;color:#5F6368;line-height:1.7;margin:0;padding-left:20px;">
+            <li>Seus dispositivos voltaram a levar <strong>direto à avaliação no Google</strong> — continuam funcionando.</li>
+            <li>Seu Menu Inteligente <strong>ficou guardado</strong>, do jeito que você deixou.</li>
+            <li>Para voltar, é só assinar de novo no painel: o menu volta ao ar na hora.</li>
+          </ul>
+        </div>
+        ${cta("https://startouch.com.br/app?tab=menu", "Reativar meu Menu →")}
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:16px 0 0;">
+          Se foi engano ou o cartão já está resolvido, responda este e-mail que a gente ajuda.
+        </p>
+      `
+    })
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
 // 8. ALERTA: AVALIAÇÃO NEGATIVA NOVA (Pro)
 // ─────────────────────────────────────────────────────────────
 export function negativeReviewEmail({ bizName, author, rating, text, placeId }) {
