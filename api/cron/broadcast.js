@@ -163,6 +163,13 @@ export default async function handler(req, res) {
   const prefsById = new Map((prefsRows || []).map((p) => [p.user_id, p]));
 
   let list = userIds;
+  // Teste (?to=) com o e-mail de uma conta existente: monta com OS DADOS DELA.
+  // Antes usava o primeiro cliente da lista — e o link "Descadastrar" do teste
+  // descadastrava esse cliente se alguém clicasse (06/10/2026).
+  if (forceTo) {
+    const dono = [...userById.values()].find((u) => (u.email || "").toLowerCase() === forceTo.toLowerCase());
+    if (dono) list = [dono.id];
+  }
   if (Number.isFinite(limit) && limit > 0) list = list.slice(0, limit);
 
   for (const userId of list) {
