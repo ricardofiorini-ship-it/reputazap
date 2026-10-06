@@ -57,14 +57,21 @@ const CAMPAIGNS = {
   },
 };
 
+// BROADCAST_SECRET (06/10/2026): segredo só deste disparo, escolhido pelo
+// Ricardo com letras e números. O CRON_SECRET da Vercel não servia no
+// navegador — marcado como Sensitive não dá pra ver, e caractere como + & #
+// estraga na URL. O CRON_SECRET segue aceito.
 function checkAuth(req) {
   if (req.headers["x-vercel-cron"] === "1") return true;
-  if (!CRON_SECRET) return false;
-  if ((req.headers.authorization || "") === `Bearer ${CRON_SECRET}`) return true;
+  const validos = [process.env.BROADCAST_SECRET, CRON_SECRET]
+    .map((v) => (v || "").trim()).filter(Boolean);
+  if (!validos.length) return false;
+  const bearer = (req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
   // ?secret= pelo navegador, igual ao plan-sweep e ao db-health: o Ricardo
   // ensaia e testa a campanha sem terminal. O envio real continua exigindo
   // confirm=1, então abrir o link não dispara nada.
-  return req.query.secret === CRON_SECRET;
+  const naUrl = String(req.query.secret || "").trim();
+  return validos.includes(bearer) || validos.includes(naUrl);
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -76,7 +83,7 @@ function firstName(user) {
 
 export default async function handler(req, res) {
   if (!checkAuth(req)) {
-    return res.status(401).json({ error: "Não autorizado. Use Bearer ${CRON_SECRET}." });
+    return res.status(401).json({ error: "Não autorizado: o secret da URL não bate com BROADCAST_SECRET nem com CRON_SECRET da Vercel." });
   }
 
   const slug = String(req.query.campaign || "").trim();
