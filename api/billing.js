@@ -2370,6 +2370,23 @@ async function avisaAssinante(event) {
     )) {
       tipo = "sub_charged";
       extra = { primeira: antes.status === "trialing", proximaCobranca: fimDoPeriodo(sub) };
+      // "ACTIVE" NÃO É "PAGO" NO BOLETO. O Paulo (03/10) foi de trialing pra
+      // active às 19:09 só porque o boleto foi EMITIDO — e virou past_due uma
+      // hora depois, sem ninguém pagar nada. Sem esta conferência ele teria
+      // recebido "a primeira mensalidade foi cobrada". Quem diz se pagou é a
+      // fatura; na dúvida (falha ao consultar), não manda.
+      try {
+        const invId = typeof sub.latest_invoice === "string" ? sub.latest_invoice : sub.latest_invoice?.id;
+        const inv = invId ? await getStripe().invoices.retrieve(invId) : null;
+        if (inv?.status !== "paid") {
+          console.log(`[stripe/aviso] ${sub.id} ficou active com a fatura ${invId || "?"} em ${inv?.status || "?"} — "cobrança feita" não enviado`);
+          return;
+        }
+        if (inv.amount_paid != null) extra.valorPago = inv.amount_paid;
+      } catch (e) {
+        console.warn(`[stripe/aviso] não consegui conferir a fatura de ${sub.id}: ${e?.message} — "cobrança feita" não enviado`);
+        return;
+      }
     }
     if (!tipo) return;
 
@@ -2390,7 +2407,7 @@ async function avisaAssinante(event) {
 
     const tpl =
       tipo === "sub_payment_failed" ? assinaturaRecusadaEmail({ userName, valorCentavos, ...extra }) :
-      tipo === "sub_charged"        ? assinaturaCobradaEmail({ userName, valorCentavos, ...extra }) :
+      tipo === "sub_charged"        ? assinaturaCobradaEmail({ userName, ...extra, valorCentavos: extra.valorPago ?? valorCentavos }) :
       tipo === "sub_trial_ending"   ? testeTerminandoEmail({ userName, valorCentavos, ...extra }) :
                                       assinaturaEncerradaEmail({ userName, ...extra });
 
