@@ -2813,8 +2813,13 @@ function BillingSection({ billing, plan }) {
               SEU PLANO ATUAL
             </div>
             <div style={{ fontFamily:"'Inter', sans-serif", fontSize: 22, fontWeight: 800, letterSpacing:'-0.02em' }}>
-              {ehPro ? 'Plano Pro' : 'Plano Free'}
+              {ehPro ? 'StarTouch Pro' : 'StarTouch Free'}
             </div>
+            {!ehPro && (
+              <div style={{ fontSize: 13, color: T.textMid, marginTop: 2 }}>
+                Painel, ranking, toques e alertas — grátis, sem prazo.
+              </div>
+            )}
             {agendado ? (
               <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2 }}>
                 Cancelada — ativa até {dataFim}
@@ -2825,14 +2830,36 @@ function BillingSection({ billing, plan }) {
               </div>
             ) : null}
           </div>
-          {!ehPro && (
-            <span style={{
-              background: T.greenSoft, color:'#137333', borderRadius: 9,
-              padding:'10px 18px', fontSize: 13.5, fontWeight: 700
-            }}>Todos os recursos liberados</span>
-          )}
+          {/* "Todos os recursos liberados" SAIU (06/10/2026): era falso desde
+              08/09, quando o Menu Inteligente passou a ser pago — e ficava na
+              mesma tela que o banner vendendo o Menu. Quem lia isto e depois
+              via o preço concluía que tinha caído numa pegadinha. */}
         </div>
       </div>
+
+      {!ehPro && (
+        <div style={{
+          marginTop: 14, padding: 16, background: T.blueSoft, borderRadius: 10, border:'1px solid #BFDBFE'
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: T.text, marginBottom: 6 }}>
+            StarTouch Pro — R$ 19,90/mês
+          </div>
+          <ul style={{ margin: '0 0 12px', paddingLeft: 18, fontSize: 13, color: T.textMid, lineHeight: 1.7 }}>
+            <li><strong>Menu Inteligente</strong>: o toque abre avaliação no Google, WhatsApp, Instagram, cardápio ou agenda</li>
+            <li>Veja quais botões do menu seus clientes mais tocam</li>
+            <li>Meça sua visibilidade no Google quando quiser (no grátis, 1x por semana)</li>
+          </ul>
+          <div style={{ display:'flex', alignItems:'center', gap: 12, flexWrap:'wrap' }}>
+            <a href="/app?tab=menu" style={{
+              background: T.blue, color:'#fff', borderRadius: 8, padding:'9px 16px',
+              fontSize: 13, fontWeight: 700, textDecoration:'none'
+            }}>Montar meu menu grátis →</a>
+            <span style={{ fontSize: 12, color: T.textMid }}>
+              7 dias grátis ao publicar · sem fidelidade · <a href="/plano-pro" style={{ color: T.blue }}>detalhes</a>
+            </span>
+          </div>
+        </div>
+      )}
 
       {ehPro && (
         <>
@@ -3956,7 +3983,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = 
             padding: '5px 12px', fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em',
             marginBottom: 12
           }}>
-            <Sparkles size={12}/> NOVIDADE
+            <Sparkles size={12}/> {ehPro ? 'SEU PLANO PRO' : 'STARTOUCH PRO'}
           </div>
 
           <div style={{
@@ -3964,7 +3991,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = 
             fontSize: isMobile ? 21 : 26, fontWeight: 800, lineHeight: 1.16,
             letterSpacing: '-0.025em', marginBottom: 10
           }}>
-            Chegou o Menu Inteligente.<br/>
+            {ehPro ? 'Seu Menu Inteligente.' : 'Menu Inteligente.'}<br/>
             <span style={{ color: '#8EC5FF' }}>Transforme o toque em mais oportunidades.</span>
           </div>
 

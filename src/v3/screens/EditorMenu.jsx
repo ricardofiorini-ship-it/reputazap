@@ -300,7 +300,11 @@ function CaixaAssinatura({ expId, ligados, onFechar }) {
         <ul className="me-paywall-lista">
           <li><Check size={14}/> {ligados === 1 ? 'Seu botão' : `Seus ${ligados} botões`} no lugar da avaliação avulsa</li>
           <li><Check size={14}/> Troque o menu quando quiser, sem trocar o dispositivo</li>
-          <li><Check size={14}/> Relatórios de uso por dispositivo</li>
+          {/* Era "Relatórios de uso por dispositivo" — mas toques por
+              dispositivo são grátis (e a /plano-pro diz isso). O que o Pro
+              acrescenta é saber qual botão do menu foi escolhido. */}
+          <li><Check size={14}/> Veja quais botões do menu seus clientes mais tocam</li>
+          <li><Check size={14}/> Meça sua visibilidade no Google quando quiser</li>
           <li><Check size={14}/> A avaliação no Google continua no topo, sempre</li>
         </ul>
 
