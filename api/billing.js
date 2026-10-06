@@ -1329,6 +1329,11 @@ async function handleCheckoutStripe(req, res) {
 
     const sessionPayload = {
       mode: "subscription",
+      // SÓ CARTÃO (06/10/2026, decisão do Ricardo). Os meios vinham do painel
+      // do Stripe, e o boleto entrava junto: numa mensalidade isso é um boleto
+      // por mês pra pessoa lembrar de pagar — o Paulo esqueceu o primeiro.
+      // Apple Pay e Google Pay seguem, porque pro Stripe eles SÃO cartão.
+      payment_method_types: ["card"],
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
       subscription_data: {
         trial_period_days: TRIAL_DIAS_PRO,
@@ -1579,6 +1584,8 @@ async function handleCheckoutKitStripe(req, res) {
       // gravar `orders.shipping` do mesmo jeito.
       customer_email: auth.user.email,
       client_reference_id: auth.user.id,
+      // Só cartão desde 06/10/2026: boleto abolido em todas as vendas.
+      payment_method_types: ["card"],
       payment_method_options: { card: { installments: { enabled: true } } },
       metadata: {
         user_id: auth.user.id, biz_name, order_type: "kit",
@@ -1654,6 +1661,8 @@ async function handleCheckoutKitGuestStripe(req, res) {
       // Nao e id de usuario (nao existe conta ainda) — e a referencia do
       // pedido, que e o que o webhook precisa achar de volta.
       client_reference_id: extRef,
+      // Só cartão desde 06/10/2026: boleto abolido em todas as vendas.
+      payment_method_types: ["card"],
       payment_method_options: { card: { installments: { enabled: true } } },
       metadata: {
         order_type: "kit", tipo: "kit_guest",

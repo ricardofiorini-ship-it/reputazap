@@ -291,6 +291,9 @@ export default async function handler(req, res) {
             } : undefined,
           },
         }],
+        // Só cartão desde 06/10/2026 (decisão do Ricardo): boleto abolido em
+        // todas as vendas, revenda inclusive.
+        payment_method_types: ["card"],
         payment_method_options: { card: { installments: { enabled: true } } },
         metadata: {
           external_reference: ref, tipo: "revenda",
