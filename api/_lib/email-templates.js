@@ -164,80 +164,88 @@ export function tapsHistoryNewsEmail({ userName, unsubUrl }) {
 
 
 /**
- * StarTouch Pro / Menu Inteligente — campanha pra quem ainda não assinou
- * (06/10/2026). Vai pelo api/cron/broadcast.js, campanha "pro-menu".
+ * StarTouch Pro / Menu Inteligente — campanha de LANÇAMENTO pra quem ainda não
+ * assinou (06/10/2026). Vai pelo api/cron/broadcast.js, campanha "pro-menu".
  *
- * `dispositivos` (contagem de ativos do usuário) muda UMA frase: quem já tem
- * dispositivo lê que é aquele mesmo que passa a abrir o menu, sem trocar nada;
- * quem não tem lê que o menu também vive num link e num QR Code. Prometer "o
- * seu dispositivo" a quem não tem nenhum seria falar de algo que não existe.
+ * Tom comercial de propósito (pedido do Ricardo): é anúncio de produto, não
+ * dica. A imagem do topo é /email/menu-inteligente.jpg — a tela do celular foi
+ * gerada pelo MESMO código que monta o menu de verdade (api/m/[slug].js), com
+ * botões que o editor oferece. Vitrine não promete o que a loja não tem.
  *
- * Sem número inventado (nada de "o botão mais tocado é…"): a gente ainda não
- * tem base de menus suficiente pra afirmar isso. Os exemplos por segmento são
- * sugestão de montagem, e estão escritos como sugestão.
+ * `dispositivos` (ativos StarTouch do usuário) muda UMA frase: quem tem lê que
+ * o dispositivo dele passa a abrir o menu; quem não tem lê que o menu vive
+ * também num link e num QR Code.
  */
 export function proMenuEmail({ userName, unsubUrl, dispositivos = 0 }) {
   const name = escapeHtml(userName?.split(" ")[0] || "tudo bem");
   const link = "https://startouch.com.br/app?tab=menu&utm_source=email&utm_medium=broadcast&utm_campaign=pro-menu";
+  const img = "https://startouch.com.br/email/menu-inteligente.jpg";
   const fraseDispositivo = dispositivos > 0
-    ? `Não precisa trocar nada: ${dispositivos === 1 ? "o dispositivo que você já tem passa" : `os ${dispositivos} dispositivos que você já tem passam`} a abrir o menu. Se um dia desligar, ${dispositivos === 1 ? "ele volta" : "eles voltam"} a levar direto pra avaliação.`
-    : "O menu também ganha um link e um QR Code próprios — dá pra pôr na bio do Instagram, no balcão ou no cardápio, mesmo antes de ter um dispositivo StarTouch.";
+    ? `<strong style="color:#202124;">Funciona ${dispositivos === 1 ? "no dispositivo que você já tem" : `nos ${dispositivos} dispositivos que você já tem`}.</strong> Não precisa comprar nada novo nem trocar nada: é só montar o menu e ligar.`
+    : `<strong style="color:#202124;">Funciona também sem dispositivo:</strong> o menu ganha um link e um QR Code próprios, pra pôr na bio do Instagram, no balcão ou na vitrine.`;
+  const beneficio = (titulo, texto) => `
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 12px;"><tr>
+          <td style="padding:2px 0 2px 14px;border-left:3px solid #1A73E8;">
+            <div style="font-size:15.5px;font-weight:700;color:#202124;line-height:1.35;">${titulo}</div>
+            <div style="font-size:14px;color:#5F6368;line-height:1.5;margin-top:2px;">${texto}</div>
+          </td>
+        </tr></table>`;
   return {
-    subject: "O cliente avaliou. E o seu WhatsApp, ele salvou?",
+    subject: "Chegou o Menu Inteligente: um toque, muitos caminhos",
     html: shell({
-      title: "STARTOUCH PRO",
+      title: "LANÇAMENTO · STARTOUCH PRO",
       unsubUrl,
       unsubLabel: "receber nossos emails",
       body: `
-        <h1 style="margin:0 0 12px;font-size:23px;color:#202124;line-height:1.3;">
-          Olá, ${name}.
+        <!-- pré-cabeçalho: a linha cinza que aparece ao lado do assunto na caixa de entrada -->
+        <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Além de avaliar no Google, seu cliente agora chega no seu WhatsApp, na sua agenda e no seu Instagram — com o mesmo toque.</div>
+
+        <a href="${link}" target="_blank" style="text-decoration:none;">
+          <img src="${img}" width="512" alt="Celular mostrando o Menu Inteligente: Avaliar no Google, Fale no WhatsApp, Agendar horário, Instagram, Tabela de serviços e Como chegar"
+               style="display:block;width:100%;max-width:512px;height:auto;border:0;border-radius:14px;margin:0 0 22px;">
+        </a>
+
+        <h1 style="margin:0 0 10px;font-size:26px;color:#202124;line-height:1.2;letter-spacing:-0.02em;">
+          Chegou o Menu Inteligente.
         </h1>
-        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
-          A cena se repete em quase todo negócio que usa StarTouch: o cliente encosta o celular,
-          deixa a avaliação no Google e vai embora. Gostou do atendimento, estava com o celular
-          na mão — e saiu sem o seu WhatsApp, sem seguir seu Instagram, sem saber como marcar a próxima vez.
+        <p style="font-size:16px;color:#1A73E8;font-weight:700;line-height:1.45;margin:0 0 14px;">
+          Agora, um toque no seu dispositivo StarTouch faz muito mais do que pedir avaliação.
         </p>
-        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
-          O <strong style="color:#202124;">Menu Inteligente</strong> aproveita esse toque. Em vez de ir direto
-          pra avaliação, o celular abre uma tela com o nome do seu negócio e os botões que você escolher:
-        </p>
-
-        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin:14px 0;">
-          <ul style="font-size:14px;color:#202124;line-height:1.8;margin:0;padding-left:20px;">
-            <li><strong>Avaliar no Google</strong> — sempre o primeiro, sempre em destaque</li>
-            <li><strong>WhatsApp</strong> já com a mensagem que você escreveu</li>
-            <li><strong>Instagram</strong>, site, cardápio ou catálogo</li>
-            <li><strong>Agenda</strong> — Calendly, Doctoralia ou o sistema que você já usa</li>
-          </ul>
-        </div>
-
-        <p style="font-size:14.5px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
-          Cada negócio monta do seu jeito. Num salão, faz sentido o agendamento logo abaixo da avaliação.
-          Numa oficina, o WhatsApp pra pedir orçamento. Numa clínica, a agenda. Num pet shop, o Instagram com as fotos dos bichos.
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 18px;">
+          ${name}, até hoje o toque levava o cliente direto pra avaliação no Google — e a conversa acabava ali.
+          Com o Menu Inteligente, o celular dele abre uma tela com o nome do seu negócio e os caminhos que
+          você escolher. Ele avalia, chama no WhatsApp, marca horário, segue no Instagram. <strong style="color:#202124;">Tudo no mesmo toque.</strong>
         </p>
 
-        <p style="font-size:14.5px;color:#5F6368;line-height:1.6;margin:0 0 6px;"><strong style="color:#202124;">Como funciona</strong></p>
-        <ol style="font-size:14.5px;color:#5F6368;line-height:1.7;margin:0 0 14px;padding-left:20px;">
-          <li>Você monta o menu de graça no painel e vê como fica no celular.</li>
-          <li>Publica e usa <strong style="color:#202124;">7 dias sem pagar</strong>.</li>
-          <li>Depois, <strong style="color:#202124;">R$ 19,90 por mês</strong>. Sem fidelidade — cancela no próprio painel.</li>
-        </ol>
+        ${beneficio("Mais avaliações no Google", "O botão de avaliar fica sempre em primeiro lugar, em destaque. O que já funciona continua funcionando.")}
+        ${beneficio("Mais conversas no WhatsApp", "O cliente cai direto na sua conversa, já com a mensagem que você escreveu.")}
+        ${beneficio("Mais agendamentos", "Leva pra sua agenda — Calendly, Doctoralia ou o sistema que você já usa.")}
+        ${beneficio("Mais seguidores", "Instagram, site, cardápio, catálogo, como chegar, salvar seu contato: você monta o menu do seu jeito.")}
+        ${beneficio("Muda quando quiser", "Trocou a promoção, o cardápio ou o número? Atualize no painel em segundos, sem mexer no dispositivo.")}
 
-        <p style="font-size:14.5px;color:#5F6368;line-height:1.6;margin:0 0 4px;">
+        <p style="font-size:14.5px;color:#5F6368;line-height:1.6;margin:8px 0 18px;">
           ${fraseDispositivo}
         </p>
 
-        ${cta(link, "Montar meu menu grátis →")}
+        <div style="background:#F1F6FE;border:1px solid #CFE0FB;border-radius:14px;padding:18px 20px;margin:0 0 6px;text-align:center;">
+          <div style="font-size:12px;font-weight:700;letter-spacing:.08em;color:#1A73E8;margin-bottom:6px;">STARTOUCH PRO</div>
+          <div style="font-size:30px;font-weight:800;color:#202124;line-height:1;">R$ 19,90<span style="font-size:15px;font-weight:600;color:#5F6368;">/mês</span></div>
+          <div style="font-size:14px;color:#202124;font-weight:700;margin-top:8px;">7 dias grátis pra testar</div>
+          <div style="font-size:13px;color:#5F6368;margin-top:4px;">Sem fidelidade · cancele quando quiser, no próprio painel</div>
+        </div>
 
-        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:18px 0 0;">
-          Tudo o que você já usa no painel — ranking, toques, alertas, resumo semanal — continua grátis.
-          O Pro só acrescenta o menu (e a medição de visibilidade na hora que você quiser).
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center">
+          ${cta(link, "Quero meu Menu Inteligente →")}
+        </td></tr></table>
+        <p style="font-size:12.5px;color:#5F6368;line-height:1.6;margin:4px 0 0;text-align:center;">
+          Monte grátis e veja como fica antes de assinar. A cobrança só começa depois dos 7 dias.
         </p>
-        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:14px 0 0;">
-          Ficou alguma dúvida? Responda este e-mail — quem responde é gente.
+
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:22px 0 0;">
+          E fica tranquilo: tudo o que você já usa no painel — ranking, toques, alertas e resumo semanal — continua grátis.
         </p>
-        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:14px 0 0;">
-          Equipe StarTouch
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:12px 0 0;">
+          Dúvidas? É só responder este e-mail.<br/>Equipe StarTouch
         </p>
       `
     })
