@@ -2337,6 +2337,9 @@ async function avisaAssinante(event) {
     let tipo = null;
     let extra = {};
     if (event.type === "customer.subscription.trial_will_end") {
+      // O Stripe também dispara isto quando o teste é ENCERRADO antes da hora
+      // (já cobrou ou vai cobrar agora). Aí "seu teste termina em…" seria falso.
+      if (sub.status !== "trialing" || !sub.trial_end || sub.trial_end * 1000 <= Date.now()) return;
       tipo = "sub_trial_ending";
       extra = { fimDoTeste: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null };
     } else if (event.type === "customer.subscription.deleted") {
