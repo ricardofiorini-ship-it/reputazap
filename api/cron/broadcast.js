@@ -221,7 +221,10 @@ export default async function handler(req, res) {
       // Resend tem limite por segundo; o digest usa a mesma folga.
       // Resend aceita 2 pedidos/segundo por padrão; 600ms deixa folga com a
       // latência e evita 429 no meio do lote.
-      if (!forceTo) await sleep(600);
+      // Só espera quando chamou o Resend (07/10/2026): o pulado por dedupe não
+      // toca o Resend, e esperar por ele fazia cada lote demorar mais que o
+      // anterior — o 4º de 250 passaria dos 800s e morreria no meio.
+      if (!forceTo && !r?.skipped) await sleep(600);
     } catch (e) {
       s.errors.push({ user_id: userId, error: e.message || String(e) });
     }
