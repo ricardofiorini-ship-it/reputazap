@@ -231,7 +231,7 @@
   <div class="form-group" id="searchTermGroup">
     <label>O que seus clientes digitam no Google pra te achar?</label>
     <input type="text" id="searchTerm" placeholder="Ex: loja de bicicletas" autocomplete="off"/>
-    <span style="font-size:12px;color:#9AA0A6;display:block;margin-top:4px;">É esse termo que usamos pra calcular seu ranking — confira se está certo.</span>
+    <span style="font-size:12px;color:#9AA0A6;display:block;margin-top:4px;">É o termo que usamos pra calcular seu ranking — já preenchemos com o tipo do seu negócio, troque se quiser. Pode deixar em branco.</span>
   </div>
   <h2 id="screen1Title">Crie sua conta</h2>
   <p class="sub" id="screen1Sub">Cadastre-se para ver sua presença no Google e seus concorrentes</p>
@@ -798,6 +798,7 @@ function selectBusiness(biz){
     // Web flow: após selecionar negócio, mostra o cadastro (screen1).
     // Após cadastro, o goToStep2() redireciona pra /kit (vitrine).
     document.getElementById("bizSummaryName").textContent = biz.name;
+    preencheTermo(biz.place_id);
     document.getElementById("bizSummary").style.display = "flex";
     document.getElementById("screen1Back").style.display = "flex";
     document.getElementById("screen1Title").textContent = "Quase lá — crie sua conta";
@@ -806,6 +807,24 @@ function selectBusiness(biz){
     return;
   }
   setTimeout(()=>goToStep3(),700);
+}
+
+// O CAMPO "O que seus clientes digitam" VINHA VAZIO (07/10/2026, achado do
+// Ricardo): com o negócio já escolhido logo acima, a tela parecia perguntar de
+// novo quem ele é. Agora chega preenchido com o tipo do negócio no Google
+// ("padaria"), e o dono só corrige se quiser. Nunca sobrescreve o que ele já
+// digitou nem o termo que veio do diagnóstico. Sem tipo conhecido, fica vazio —
+// e vazio continua valendo: o ranking usa a categoria do Google.
+async function preencheTermo(placeId, termo){
+  const el = document.getElementById("searchTerm");
+  if (!el || el.value.trim()) return;
+  if (!termo && placeId) {
+    try {
+      const r = await fetch(`/api/bizinfo?place_id=${encodeURIComponent(placeId)}`);
+      termo = (await r.json())?.term || "";
+    } catch { termo = ""; }
+  }
+  if (termo && !el.value.trim()) el.value = termo;
 }
 
 // Veio do /diagnostico com place_id: vai DIRETO pro cadastro (screen1), sem
@@ -831,6 +850,7 @@ async function prefillFromPlaceId(placeId){
       total: d.total || 0
     };
     document.getElementById("bizSummaryName").textContent = d.name;
+    preencheTermo(null, d.term);
   } catch {
     // Fallback: nao carregou -> manda pra busca manual
     goToStep(2);

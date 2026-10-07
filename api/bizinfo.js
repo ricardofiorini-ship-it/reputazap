@@ -3,6 +3,7 @@ import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { comCachePlaces, freshAutorizado, TTL } from "./_lib/places-cache.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
 import { detalhesPelaApiNova, urlFotoApiNova } from "./_lib/places-area-servico.js";
+import { termoDosTipos } from "./_lib/competitors.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -74,6 +75,8 @@ export default async function handler(req, res) {
       phone: result.formatted_phone_number || result.international_phone_number || null,
       gmapsUrl: result.url || null,
       category,
+      // Mesmo tipo, em português ("padaria"), pro cadastro já vir preenchido.
+      term: termoDosTipos(result.types),
       types: result.types || [],
       plan: bizRes.data?.plan || "free",
       // Endereço oculto no Google: sem ponto no mapa, o painel não tem como

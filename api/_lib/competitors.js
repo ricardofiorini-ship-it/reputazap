@@ -84,6 +84,12 @@ export function typeToTerm(rawType) {
 function typeToTermStrict(rawType) {
   return (rawType && TYPE_TO_TERM[rawType]) || "";
 }
+// O termo em português pra PRÉ-PREENCHER o cadastro (07/10/2026). Estrita de
+// propósito: campo vazio é melhor que "point of interest" na cara do dono.
+export function termoDosTipos(types) {
+  for (const t of types || []) { const x = typeToTermStrict(t); if (x) return x; }
+  return "";
+}
 
 /**
  * Categoria do IA RADAR — a "arena" em que o negócio é examinado.
