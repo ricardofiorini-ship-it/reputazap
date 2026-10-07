@@ -294,6 +294,19 @@ function Plano({ dados }) {
   const [indoPortal, setIndoPortal] = React.useState(false)
   const [aviso, setAviso] = React.useState('')
 
+  // Teste sem cartão (07/10/2026): pergunta ao Stripe se o cartão já está lá.
+  // `null` = ainda não sabe ou falhou — aí fica o texto neutro, nunca um
+  // "sem cartão" chutado. Mesma regra do /app (BillingSection).
+  const [temCartao, setTemCartao] = React.useState(null)
+  React.useEffect(() => {
+    if (!emTeste) return
+    let vivo = true
+    post('/api/billing?action=cartao', {})
+      .then(r => { if (vivo && r?.emTeste) setTemCartao(r.temCartao) })
+      .catch(() => {})
+    return () => { vivo = false }
+  }, [emTeste])
+
   // Portal do Stripe: trocar cartao, ver e baixar faturas. Cartao vencido e a
   // maior causa de assinante perdido sem querer, e aqui o proprio cliente
   // resolve — sem abrir chamado, sem esperar a gente.
@@ -382,8 +395,23 @@ function Plano({ dados }) {
           background: 'var(--amber-soft, #FFFBEB)', border: '1px solid #FDE68A',
           fontSize: 12.5, color: '#92400E', lineHeight: 1.5
         }}>
-          Seus <strong>7 dias grátis</strong> terminam em <strong>{dataCobranca}</strong>. Nesse dia
-          entra a primeira cobrança de R$ 19,90. Se cancelar antes, não é cobrado nada.
+          {temCartao === false ? (
+            <>
+              Seus <strong>7 dias grátis</strong> terminam em <strong>{dataCobranca}</strong>. Pra o Menu
+              continuar depois disso, <strong>cadastre um cartão</strong> em "Gerenciar pagamento" (R$ 19,90/mês).
+              Sem cartão, nada é cobrado e seus dispositivos voltam a levar direto ao Google.
+            </>
+          ) : temCartao === true ? (
+            <>
+              Seus <strong>7 dias grátis</strong> terminam em <strong>{dataCobranca}</strong>. Cartão cadastrado:
+              nesse dia entra a primeira cobrança de R$ 19,90. Se cancelar antes, não é cobrado nada.
+            </>
+          ) : (
+            <>
+              Seus <strong>7 dias grátis</strong> terminam em <strong>{dataCobranca}</strong>. Pra continuar
+              depois disso, o Menu precisa de um cartão cadastrado (R$ 19,90/mês).
+            </>
+          )}
         </div>
       )}
 

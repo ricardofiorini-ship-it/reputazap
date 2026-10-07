@@ -191,7 +191,7 @@ async function carrega(){
   contagem = d.contagem || {};
   const c = contagem;
   document.getElementById("resumo").textContent =
-    `${c.teste||0} em teste · ${c.pagando||0} pagando (${c.teste_que_virou||0} vieram do teste) · ${c.saiu||0} canceladas`
+    `${c.teste||0} em teste (${c.teste_com_cartao||0} com cartão) · ${c.pagando||0} pagando (${c.teste_que_virou||0} vieram do teste) · ${c.saiu||0} canceladas`
     + (d.truncado ? " · mostrando só as mais recentes" : "");
   desenhaFiltros(); desenhaLista();
 }
@@ -213,7 +213,9 @@ function cartao(a){
   if(a.grupo === "teste"){
     quando = a.cancela_no_fim
       ? `Teste até ${dia(a.teste_fim)} (${faltam(a.teste_fim)}) · <strong>já cancelou</strong>: não vai ser cobrado`
-      : `Teste até ${dia(a.teste_fim)} (${faltam(a.teste_fim)}) · 1ª cobrança nesse dia`;
+      : a.tem_cartao
+      ? `Teste até ${dia(a.teste_fim)} (${faltam(a.teste_fim)}) · 💳 cartão cadastrado: 1ª cobrança nesse dia`
+      : `Teste até ${dia(a.teste_fim)} (${faltam(a.teste_fim)}) · <strong>sem cartão</strong>: se não cadastrar, encerra nesse dia`;
   } else if(a.grupo === "pagando"){
     quando = `Próxima cobrança ${dia(a.proxima_cobranca)}${a.teve_teste?" · veio do teste":" · assinou direto"}`
       + (a.cancela_no_fim ? " · <strong>cancelou</strong>, sai nessa data" : "");

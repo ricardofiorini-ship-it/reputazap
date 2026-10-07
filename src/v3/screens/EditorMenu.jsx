@@ -309,8 +309,8 @@ function CaixaAssinatura({ expId, ligados, onFechar }) {
         </ul>
 
         <div className="me-paywall-preco">
-          <strong>7 dias grátis</strong>
-          <span>depois R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade, cancele quando quiser</span>
+          <strong>7 dias grátis, sem cartão</strong>
+          <span>gostou? cadastre o cartão pra continuar por R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade. Sem cartão, o menu sai do ar no 8º dia e nada é cobrado</span>
         </div>
 
         {erro && <div className="me-paywall-erro"><AlertTriangle size={13}/> {erro}</div>}

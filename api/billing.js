@@ -1273,11 +1273,55 @@ function getStripe() {
 // ser construída à mão. O hardware seguiu no Mercado Pago por mais cinco dias
 // (lá o PIX converte) e migrou em 12/09/2026 — ver a seção HARDWARE — STRIPE.
 //
-// TESTE GRÁTIS: 7 dias. Este número precisa ser IGUAL ao configurado no link
-// de pagamento do Stripe. Dois trials com prazos diferentes é o cliente vendo
-// uma data no checkout e outra no painel. (Não confundir com `TRIAL_DIAS` do
-// _lib/plan.js, que é o trial PRÓPRIO, sem cartão — esse não está em uso.)
+// TESTE GRÁTIS: 7 dias, SEM CARTÃO (07/10/2026, decisão do Ricardo). O
+// checkout do Stripe só pede nome e e-mail; o cartão é cadastrado depois, pelo
+// portal, a qualquer momento do teste. Quem chega ao fim sem cartão tem a
+// assinatura ENCERRADA pelo próprio Stripe (`missing_payment_method: cancel`)
+// → webhook `customer.subscription.deleted` → plano free → o menu volta pro
+// Google na hora (api/m/[slug].js barra o menu de quem não é Pro). Ninguém é
+// cobrado sem ter posto o cartão, e nada fica dependendo de cron.
+//
+// Por isso o link de pagamento do painel (STRIPE_PRO_PAYMENT_LINK) deixou de
+// ser o caminho: a regra do cartão mora na configuração dele, onde o código
+// não alcança nem confere. O link passou a servir só pra descobrir o PREÇO,
+// quando STRIPE_PRICE_ID não está setado (ver `precoDoPro`).
+// (Não confundir com `TRIAL_DIAS` do _lib/plan.js, trial próprio que não está
+// em uso.)
 const TRIAL_DIAS_PRO = 7;
+
+// O preço do Pro. STRIPE_PRICE_ID manda; sem ele, lê o preço do link de
+// pagamento que já vendia o Pro — o mesmo R$ 19,90 que o cliente via antes.
+// Guardado por instância: o preço não muda entre um clique e outro.
+let _precoPro = null;
+async function precoDoPro(stripe) {
+  if (process.env.STRIPE_PRICE_ID) return process.env.STRIPE_PRICE_ID;
+  if (_precoPro) return _precoPro;
+  const link = (process.env.STRIPE_PRO_PAYMENT_LINK || "").split("?")[0];
+  if (!link) throw new Error("Configure STRIPE_PRICE_ID (ou STRIPE_PRO_PAYMENT_LINK) na Vercel");
+  for await (const pl of stripe.paymentLinks.list({ limit: 100 })) {
+    if ((pl.url || "").split("?")[0] !== link) continue;
+    const itens = await stripe.paymentLinks.listLineItems(pl.id, { limit: 5 });
+    const id = itens.data?.[0]?.price?.id;
+    if (id) { _precoPro = id; return id; }
+  }
+  throw new Error("Não achei o preço do Pro: o link STRIPE_PRO_PAYMENT_LINK não está no Stripe. Configure STRIPE_PRICE_ID.");
+}
+
+// Teste grátis é UM por cliente. Com cartão isso se regulava sozinho; sem
+// cartão, cancelar e voltar viraria Pro de graça pra sempre. Quem já teve
+// qualquer assinatura neste cliente do Stripe volta pagando, com cartão.
+// Falha ao consultar = trata como quem já teve (não dá teste): na dúvida, o
+// cliente paga com cartão, que é o fluxo que já funcionava antes.
+async function jaTeveAssinatura(stripe, customerId) {
+  if (!customerId) return false;
+  try {
+    const r = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 1 });
+    return (r.data || []).length > 0;
+  } catch (e) {
+    console.warn(`[stripe/checkout] não consegui ver o histórico de ${customerId}: ${e?.message} — sem teste grátis`);
+    return true;
+  }
+}
 
 // Destinos permitidos na volta do checkout. Lista fechada de propósito: aceitar
 // URL vinda do cliente aqui seria um redirecionamento aberto assinado pela
@@ -1304,28 +1348,11 @@ async function handleCheckoutStripe(req, res) {
       return res.status(400).json({ error: "Plano Pro já está ativo" });
     }
 
-    // ── Caminho 1 (preferencial): link de pagamento criado no painel do Stripe ──
-    // `client_reference_id` é o que amarra o pagamento à conta. SEM ELE o
-    // dinheiro entra e o webhook desiste em silêncio (`if (!userId) break`) —
-    // o cliente paga e não recebe nada. É o elo que não pode faltar.
-    if (process.env.STRIPE_PRO_PAYMENT_LINK) {
-      const base = process.env.STRIPE_PRO_PAYMENT_LINK;
-      const sep = base.includes("?") ? "&" : "?";
-      const url = `${base}${sep}client_reference_id=${encodeURIComponent(auth.user.id)}` +
-                  `&prefilled_email=${encodeURIComponent(auth.user.email || "")}`;
-      return res.json({ url });
-    }
-
-    // ── Caminho 2 (fallback): cria a sessão pela API ──
-    // Dá mais controle (destino da volta, idioma, cupom), mas exige o preço
-    // cadastrado como STRIPE_PRICE_ID.
-    if (!process.env.STRIPE_PRICE_ID) {
-      return res.status(500).json({ error: "Configure STRIPE_PRO_PAYMENT_LINK ou STRIPE_PRICE_ID" });
-    }
-
     const stripe = getStripe();
     const origin = req.headers.origin || `https://${req.headers.host}`;
     const destino = RETORNOS_PRO[req.body?.retorno] || RETORNOS_PRO.app;
+    const price = await precoDoPro(stripe);
+    const comTeste = !(await jaTeveAssinatura(stripe, biz?.stripe_customer_id));
 
     const sessionPayload = {
       mode: "subscription",
@@ -1334,11 +1361,21 @@ async function handleCheckoutStripe(req, res) {
       // por mês pra pessoa lembrar de pagar — o Paulo esqueceu o primeiro.
       // Apple Pay e Google Pay seguem, porque pro Stripe eles SÃO cartão.
       payment_method_types: ["card"],
-      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+      line_items: [{ price, quantity: 1 }],
       subscription_data: {
-        trial_period_days: TRIAL_DIAS_PRO,
-        metadata: { user_id: auth.user.id, biz_name: biz?.name || "" }
+        metadata: { user_id: auth.user.id, biz_name: biz?.name || "" },
+        ...(comTeste ? {
+          trial_period_days: TRIAL_DIAS_PRO,
+          // Sem cartão no fim do teste: o Stripe ENCERRA (não pausa, não
+          // cobra). Encerrar é o que já tem caminho pronto até o dispositivo.
+          trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
+        } : {}),
       },
+      // No teste, o Stripe só pede cartão "se precisar" — e com 7 dias de
+      // R$ 0 ele não precisa. Sem teste (quem volta), cobra na hora: cartão.
+      ...(comTeste ? { payment_method_collection: "if_required" } : {}),
+      // `client_reference_id` é o que amarra o pagamento à conta. SEM ELE o
+      // webhook não sabe de quem é a assinatura e o Pro não liga.
       client_reference_id: auth.user.id,
       metadata: { user_id: auth.user.id },
       allow_promotion_codes: true,
@@ -2014,6 +2051,30 @@ async function handlePortalStripe(req, res) {
   }
 }
 
+// "JÁ CADASTREI O CARTÃO?" — a pergunta do painel durante o teste sem cartão
+// (07/10/2026). Lida AO VIVO no Stripe, não no banco: o cartão é cadastrado no
+// portal do Stripe, e nenhum evento que escutamos avisa quando isso acontece.
+// Só consulta quem está em teste; os outros nem chegam a perguntar.
+async function handleCartaoStripe(req, res) {
+  const auth = await authUser(req);
+  if (auth.error) return res.status(auth.status).json({ error: auth.error });
+  try {
+    const { data: biz } = await supabase.from("businesses")
+      .select("stripe_subscription_id").eq("user_id", auth.user.id).maybeSingle();
+    if (!biz?.stripe_subscription_id) return res.json({ emTeste: false, temCartao: null });
+    const stripe = getStripe();
+    const sub = await stripe.subscriptions.retrieve(biz.stripe_subscription_id, { expand: ["customer"] });
+    return res.json({
+      emTeste: sub.status === "trialing",
+      temCartao: await temCartao(stripe, sub),
+      fimDoTeste: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
+    });
+  } catch (err) {
+    console.error("[stripe/cartao] erro:", err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
 // O ENDERECO, ONDE QUER QUE ELE ESTEJA.
 //
 // Mesmo cuidado do `fimDoPeriodo` logo acima, e pelo mesmo motivo: o Stripe
@@ -2346,6 +2407,30 @@ async function concluiPedidoStripe(session) {
 //
 // Dedupe pelo id do evento do Stripe: webhook reentregue não vira segundo
 // aviso. Falha aqui NUNCA derruba o webhook (o plano já foi gravado antes).
+// TEM CARTÃO? (07/10/2026, teste sem cartão). O Stripe olha os dois lugares
+// no fim do teste: o cartão da assinatura e o cartão padrão do cliente — o
+// portal grava no segundo. Conferir só um diria "sem cartão" pra quem
+// cadastrou pelo portal. Falha ao consultar = null ("não sei"), nunca false:
+// dizer "sem cartão" a quem tem assusta e manda cadastrar de novo.
+async function temCartao(stripe, sub) {
+  try {
+    if (sub?.default_payment_method || sub?.default_source) return true;
+    const custId = typeof sub?.customer === "string" ? sub.customer : sub?.customer?.id;
+    if (!custId) return null;
+    const c = typeof sub?.customer === "object" && sub.customer.invoice_settings
+      ? sub.customer : await stripe.customers.retrieve(custId);
+    if (c?.deleted) return null;
+    if (c?.invoice_settings?.default_payment_method || c?.default_source) return true;
+    // Cartão salvo mas não marcado como padrão: o Stripe não usaria, mas
+    // existe. Conta como "tem" — o aviso é pra quem não pôs cartão nenhum.
+    const pms = await stripe.paymentMethods.list({ customer: custId, type: "card", limit: 1 });
+    return (pms.data || []).length > 0;
+  } catch (e) {
+    console.warn(`[stripe/cartao] não consegui conferir o cartão de ${sub?.id}: ${e?.message}`);
+    return null;
+  }
+}
+
 const AVISO_ADMIN = {
   teste:    { emoji: "🧪", titulo: "Novo teste grátis de 7 dias do Pro" },
   assinou:  { emoji: "🔁", titulo: "Nova assinatura do Pro (sem teste)" },
@@ -2353,7 +2438,7 @@ const AVISO_ADMIN = {
   semConta: { emoji: "⚠️", titulo: "Assinatura SEM conta ligada — o Pro não foi ativado, ligar à mão" },
 };
 
-async function avisaAdminAssinatura({ tipo, eventId, userId, customerId, sub, valorCentavos, emailStripe }) {
+async function avisaAdminAssinatura({ tipo, eventId, userId, customerId, sub, valorCentavos, emailStripe, cartao }) {
   try {
     const to = process.env.ADMIN_NOTIFICATIONS_EMAIL;
     if (!to) { console.warn(`[stripe/admin] ADMIN_NOTIFICATIONS_EMAIL não setado — aviso "${tipo}" pulado`); return; }
@@ -2380,7 +2465,9 @@ async function avisaAdminAssinatura({ tipo, eventId, userId, customerId, sub, va
       `<p><strong>Cliente:</strong> ${escapeHtmlLite(nome)} &lt;${escapeHtmlLite(email)}&gt;</p>`,
       `<p><strong>Telefone:</strong> ${escapeHtmlLite(fone)}</p>`,
       valor != null ? `<p><strong>Mensalidade:</strong> ${fmtBRL(valor)}</p>` : "",
-      tipo === "teste" && fimTeste ? `<p><strong>Teste termina em:</strong> ${fimTeste} — a 1ª cobrança é nesse dia, se ele não cancelar.</p>` : "",
+      tipo === "teste" && fimTeste ? (cartao
+        ? `<p><strong>Teste termina em:</strong> ${fimTeste} — já pôs o cartão: a 1ª cobrança é nesse dia, se não cancelar.</p>`
+        : `<p><strong>Teste termina em:</strong> ${fimTeste} — <strong>sem cartão</strong>: se não cadastrar até lá, a assinatura se encerra e o menu volta pro Google.</p>`) : "",
       customerId ? `<p><a href="https://dashboard.stripe.com/customers/${encodeURIComponent(customerId)}">Abrir no Stripe</a></p>` : "",
     ].join("");
 
@@ -2410,14 +2497,28 @@ async function avisaAssinante(event) {
       // (já cobrou ou vai cobrar agora). Aí "seu teste termina em…" seria falso.
       if (sub.status !== "trialing" || !sub.trial_end || sub.trial_end * 1000 <= Date.now()) return;
       tipo = "sub_trial_ending";
-      extra = { fimDoTeste: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null };
+      extra = {
+        fimDoTeste: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
+        // Sem cartão o e-mail não pode dizer "vamos cobrar no seu cartão": ele
+        // tem que dizer "cadastre, senão o menu sai do ar". `null` (não deu
+        // pra conferir) fica com o texto de quem tem — o caso antigo.
+        semCartao: (await temCartao(getStripe(), sub)) === false,
+      };
     } else if (event.type === "customer.subscription.deleted") {
       tipo = "sub_ended";
       const motivo = sub?.cancellation_details?.reason || null;
       // Sem `cancellation_details` (versão de API antiga), o sinal é o
       // `cancel_at_period_end`: o nosso botão de cancelar sempre agenda pro fim
       // do período, então quem chega aqui SEM ele foi encerrado pelo Stripe.
-      extra = { porFaltaDePagamento: motivo === "payment_failed" || (!motivo && !sub.cancel_at_period_end) };
+      // TESTE QUE ACABOU SEM CARTÃO (07/10/2026): o Stripe encerra no minuto
+      // do fim do teste. Não é "falta de pagamento" — ninguém deixou de pagar
+      // nada — e o e-mail precisa dizer como voltar (pôr o cartão e assinar).
+      // Quem cancelou pelo nosso botão chega com `cancel_at_period_end`.
+      const fimTesteSemCartao = !!sub.trial_end && !sub.cancel_at_period_end &&
+        Math.abs((sub.ended_at || sub.canceled_at || 0) - sub.trial_end) < 6 * 3600;
+      extra = fimTesteSemCartao
+        ? { fimDoTesteSemCartao: true }
+        : { porFaltaDePagamento: motivo === "payment_failed" || (!motivo && !sub.cancel_at_period_end) };
     } else if (sub.status === "past_due" && antes.status && antes.status !== "past_due") {
       tipo = "sub_payment_failed";
       // Cartão ou boleto, e o link da fatura. Cada um com seu try: sem eles o
@@ -2573,6 +2674,7 @@ async function handleWebhookStripe(req, res) {
           tipo: status === "trialing" ? "teste" : "assinou",
           eventId: event.id, userId, customerId: session.customer, sub: subObj,
           valorCentavos: status === "trialing" ? null : session.amount_total,
+          cartao: status === "trialing" && subObj ? await temCartao(stripe, subObj) : null,
         });
         break;
       }
@@ -3222,6 +3324,7 @@ export default async function handler(req, res) {
     if (action === "checkout") return await handleCheckoutStripe(req, res);
     if (action === "portal")   return await handleCancelStripe(req, res);
     if (action === "billing-portal") return await handlePortalStripe(req, res);
+    if (action === "cartao") return await handleCartaoStripe(req, res);
     if (action === "checkout-kit") return await handleCheckoutKitStripe(req, res);
     if (action === "checkout-kit-guest") return await handleCheckoutKitGuestStripe(req, res);
     if (action === "checkout-trybo") return await handleCheckoutTrybo(req, res);

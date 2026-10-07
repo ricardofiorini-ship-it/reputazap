@@ -1389,6 +1389,10 @@ async function handleAssinaturas(req, res) {
       criada_em: iso(s.created),
       teste_fim: iso(s.trial_end),
       teve_teste: !!s.trial_end,
+      // Teste sem cartão (07/10): quem chega ao fim sem cartão é encerrado.
+      // Mesmos dois lugares que o Stripe olha (assinatura e padrão do cliente).
+      tem_cartao: !!(s.default_payment_method || s.default_source ||
+        cust?.invoice_settings?.default_payment_method || cust?.default_source),
       cancela_no_fim: !!s.cancel_at_period_end,
       cancelada_em: iso(s.canceled_at),
       proxima_cobranca: s.status === "trialing" ? iso(s.trial_end) : iso(item?.current_period_end ?? s.current_period_end),
@@ -1396,9 +1400,10 @@ async function handleAssinaturas(req, res) {
     };
   });
 
-  const contagem = { teste: 0, pagando: 0, atrasado: 0, saiu: 0, sem_conta: 0, teste_que_virou: 0 };
+  const contagem = { teste: 0, pagando: 0, atrasado: 0, saiu: 0, sem_conta: 0, teste_que_virou: 0, teste_com_cartao: 0 };
   for (const l of linhas) {
     contagem[l.grupo]++;
+    if (l.grupo === "teste" && l.tem_cartao) contagem.teste_com_cartao++;
     if (l.sem_conta && l.grupo !== "saiu") contagem.sem_conta++;
     if (l.teve_teste && l.grupo === "pagando") contagem.teste_que_virou++;
   }

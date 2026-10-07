@@ -2769,6 +2769,24 @@ function BillingSection({ billing, plan }) {
   const [abrindoPortal, setAbrindoPortal] = React.useState(false)
   const [erroPortal, setErroPortal]       = React.useState('')
 
+  // TESTE SEM CARTÃO (07/10/2026). Durante os 7 dias a tela precisa dizer se o
+  // cartão já está lá: sem ele, no 8º dia o menu sai do ar. O cartão é posto no
+  // portal do Stripe e nada no banco registra isso — por isso pergunta ao vivo,
+  // e só pra quem está em teste. Falha = não mostra nada (nunca "sem cartão"
+  // chutado pra quem pode ter).
+  const emTeste = ehPro && billing?.status === 'trialing'
+  const [cartao, setCartao] = React.useState(null)
+  React.useEffect(() => {
+    if (!emTeste) return
+    let vivo = true
+    apiCall('/api/billing?action=cartao', { method: 'POST' })
+      .then(r => { if (vivo && r?.emTeste) setCartao(r) })
+      .catch(() => {})
+    return () => { vivo = false }
+  }, [emTeste])
+  const fimTeste = cartao?.fimDoTeste
+    ? new Date(cartao.fimDoTeste).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : null
+
   async function abrirPortal() {
     setAbrindoPortal(true); setErroPortal('')
     try {
@@ -2856,9 +2874,39 @@ function BillingSection({ billing, plan }) {
               fontSize: 13, fontWeight: 700, textDecoration:'none'
             }}>Montar meu menu grátis →</a>
             <span style={{ fontSize: 12, color: T.textMid }}>
-              7 dias grátis ao publicar · sem fidelidade · <a href="/plano-pro" style={{ color: T.blue }}>detalhes</a>
+              7 dias grátis ao publicar, sem cartão · sem fidelidade · <a href="/plano-pro" style={{ color: T.blue }}>detalhes</a>
             </span>
           </div>
+        </div>
+      )}
+
+      {emTeste && !agendado && cartao && fimTeste && (
+        <div style={{
+          marginBottom: 14, padding: 14, borderRadius: 10,
+          background: cartao.temCartao ? '#F0FDF4' : '#FFFBEB',
+          border: '1px solid ' + (cartao.temCartao ? '#BBF7D0' : '#FDE68A')
+        }}>
+          {cartao.temCartao ? (
+            <div style={{ fontSize: 12.5, color: '#166534', lineHeight: 1.55 }}>
+              <strong>Cartão cadastrado.</strong> Seus 7 dias grátis terminam em <strong>{fimTeste}</strong>;
+              nesse dia entra a primeira mensalidade de R$ 19,90. Se cancelar antes, nada é cobrado.
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#92400E', marginBottom: 4 }}>
+                Seu teste grátis termina em {fimTeste}
+              </div>
+              <div style={{ fontSize: 12.5, color: '#92400E', lineHeight: 1.55, marginBottom: 10 }}>
+                Pra o Menu continuar no ar depois disso, cadastre um cartão (R$ 19,90/mês, sem fidelidade).
+                Sem cartão, nada é cobrado: seus dispositivos voltam a levar direto ao Google e seu menu fica guardado.
+              </div>
+              <button onClick={abrirPortal} disabled={abrindoPortal} style={{
+                background: '#B45309', color:'#fff', border:'none', borderRadius: 8,
+                padding:'9px 16px', fontSize: 13, fontWeight: 700,
+                cursor: abrindoPortal ? 'default' : 'pointer', opacity: abrindoPortal ? .65 : 1
+              }}>{abrindoPortal ? 'Abrindo…' : 'Cadastrar cartão'}</button>
+            </>
+          )}
         </div>
       )}
 
@@ -3911,10 +3959,10 @@ function PrecoMenu({ claro = false }) {
     <div style={{ marginTop: 14 }}>
       <div style={{ fontSize: 13.5, color: forte, lineHeight: 1.5 }}>
         <strong>StarTouch Pro: R$ 19,90/mês</strong>
-        <span style={{ color: fraco }}> · 7 dias grátis · até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade</span>
+        <span style={{ color: fraco }}> · 7 dias grátis, sem cartão · até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade</span>
       </div>
       <div style={{ fontSize: 12, color: fraco, lineHeight: 1.5, marginTop: 4 }}>
-        1. Monte seu menu de graça &nbsp;→&nbsp; 2. Publique e teste 7 dias sem pagar &nbsp;→&nbsp; 3. Só depois começa a cobrança
+        1. Monte seu menu de graça &nbsp;→&nbsp; 2. Publique e teste 7 dias, sem cartão &nbsp;→&nbsp; 3. Gostou? Cadastre o cartão pra continuar
       </div>
     </div>
   )
@@ -6751,7 +6799,7 @@ function GuestMenuVitrine({ url, bizName, isMobile }) {
   const passos = [
     { Ico: User,   t: 'Crie sua conta grátis', d: 'Seu negócio já está aqui — é só salvar. Leva um minuto.' },
     { Ico: Pencil, t: 'Monte o seu menu', d: 'Escolha os botões: WhatsApp, Instagram, cardápio, agendamento. A avaliação no Google fica sempre em primeiro.' },
-    { Ico: Hand,   t: 'Seu cliente encosta o celular', d: 'O dispositivo StarTouch abre o seu menu na hora. Montar é grátis; pra publicar, 7 dias grátis.' }
+    { Ico: Hand,   t: 'Seu cliente encosta o celular', d: 'O dispositivo StarTouch abre o seu menu na hora. Montar é grátis; pra publicar, 7 dias grátis, sem cartão.' }
   ]
   return (
     <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 96px' : '32px 32px 96px' }}>

@@ -384,8 +384,8 @@ export default function Experiencia({ dados }) {
               era uma assinatura. Mesmos números da caixa do "Publicar". */}
           {!estado.dados?.plano?.proAtivo && (
             <p className="exp-hero-preco">
-              <strong>R$ 19,90/mês · 7 dias grátis</strong> · até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade, cancele quando quiser.
-              <br/>Monte de graça, publique e teste 7 dias — a cobrança só começa depois.
+              <strong>R$ 19,90/mês · 7 dias grátis, sem cartão</strong> · até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade, cancele quando quiser.
+              <br/>Monte de graça, publique e teste 7 dias sem cartão — só é cobrado se você cadastrar o cartão pra continuar.
             </p>
           )}
         </header>

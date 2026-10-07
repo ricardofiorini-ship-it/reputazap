@@ -889,9 +889,35 @@ export function assinaturaCobradaEmail({ userName, valorCentavos, proximaCobranc
   };
 }
 
-export function testeTerminandoEmail({ userName, valorCentavos, fimDoTeste }) {
+export function testeTerminandoEmail({ userName, valorCentavos, fimDoTeste, semCartao = false }) {
   const name = escapeHtml(userName?.split(" ")[0] || "tudo bem?");
   const fim = dataPt(fimDoTeste) || "em poucos dias";
+  // TESTE SEM CARTÃO (07/10/2026): aqui não há cobrança a anunciar — há um
+  // prazo. O e-mail diz o que acontece se ele não fizer nada (o menu sai do
+  // ar, nada é cobrado) e onde pôr o cartão pra continuar.
+  if (semCartao) return {
+    subject: `Seu teste grátis do Menu termina em ${fim} — cadastre o cartão pra continuar`,
+    html: shell({
+      title: "TESTE GRÁTIS TERMINANDO",
+      headerColor: "#B45309",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
+          ${name}, seu teste grátis termina em ${fim}
+        </h1>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
+          Pra o Menu Inteligente continuar no ar depois disso, cadastre um cartão no painel.
+          A mensalidade é de <strong style="color:#202124;">${reais(valorCentavos)}</strong>, sem fidelidade.
+        </p>
+        <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:16px 18px;margin:14px 0;">
+          <p style="font-size:14px;color:#92400E;line-height:1.6;margin:0;">
+            <strong>Se não cadastrar, nada é cobrado.</strong> Em ${fim} seus dispositivos voltam a levar
+            direto à avaliação no Google e seu menu fica guardado, pronto pra voltar quando quiser.
+          </p>
+        </div>
+        ${cta(LINK_PLANO, "Cadastrar meu cartão →")}
+      `
+    })
+  };
   return {
     subject: `Seu teste grátis do StarTouch Pro termina em ${fim}`,
     html: shell({
@@ -918,19 +944,23 @@ export function testeTerminandoEmail({ userName, valorCentavos, fimDoTeste }) {
   };
 }
 
-export function assinaturaEncerradaEmail({ userName, porFaltaDePagamento = false }) {
+export function assinaturaEncerradaEmail({ userName, porFaltaDePagamento = false, fimDoTesteSemCartao = false }) {
   const name = escapeHtml(userName?.split(" ")[0] || "tudo bem?");
   return {
-    subject: "Sua assinatura do StarTouch Pro foi encerrada",
+    subject: fimDoTesteSemCartao
+      ? "Seu teste grátis do Menu terminou — seu menu ficou guardado"
+      : "Sua assinatura do StarTouch Pro foi encerrada",
     html: shell({
-      title: "ASSINATURA ENCERRADA",
+      title: fimDoTesteSemCartao ? "TESTE ENCERRADO" : "ASSINATURA ENCERRADA",
       headerColor: "#5F6368",
       body: `
         <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
           ${name}, seu StarTouch Pro foi encerrado
         </h1>
         <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
-          ${porFaltaDePagamento
+          ${fimDoTesteSemCartao
+            ? "Seus 7 dias grátis terminaram sem cartão cadastrado, então o teste foi encerrado. Nada foi cobrado."
+            : porFaltaDePagamento
             ? "A mensalidade não foi paga dentro do prazo, então a assinatura foi encerrada. Não há nada pendente nem dívida."
             : "Sua assinatura chegou ao fim. Não haverá novas cobranças."}
         </p>
