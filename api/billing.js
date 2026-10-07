@@ -2339,6 +2339,64 @@ async function concluiPedidoStripe(session) {
 // Idempotente pelo id do evento: o Stripe reentrega webhook, e reentrega não
 // pode virar segundo e-mail de cobrança. Falha aqui NUNCA derruba o webhook —
 // o plano já foi gravado antes, e um 500 faria o Stripe repetir o evento.
+// ── AVISO AO ADMIN: teste de 7 dias, assinatura direta, teste que virou pago
+// (07/10/2026, pedido do Ricardo). Até aqui o cliente recebia e-mail em cada
+// passo da assinatura e o dono do negócio não recebia nenhum — sabia de quem
+// testou o Menu só abrindo o Stripe.
+//
+// Dedupe pelo id do evento do Stripe: webhook reentregue não vira segundo
+// aviso. Falha aqui NUNCA derruba o webhook (o plano já foi gravado antes).
+const AVISO_ADMIN = {
+  teste:    { emoji: "🧪", titulo: "Novo teste grátis de 7 dias do Pro" },
+  assinou:  { emoji: "🔁", titulo: "Nova assinatura do Pro (sem teste)" },
+  converteu: { emoji: "💰", titulo: "Teste virou assinatura paga" },
+  semConta: { emoji: "⚠️", titulo: "Assinatura SEM conta ligada — o Pro não foi ativado, ligar à mão" },
+};
+
+async function avisaAdminAssinatura({ tipo, eventId, userId, customerId, sub, valorCentavos, emailStripe }) {
+  try {
+    const to = process.env.ADMIN_NOTIFICATIONS_EMAIL;
+    if (!to) { console.warn(`[stripe/admin] ADMIN_NOTIFICATIONS_EMAIL não setado — aviso "${tipo}" pulado`); return; }
+    const cfg = AVISO_ADMIN[tipo];
+
+    // Quem é: pelo usuário se veio do checkout, senão pelo cliente do Stripe.
+    let q = supabase.from("businesses").select("user_id, name");
+    q = userId ? q.eq("user_id", userId) : q.eq("stripe_customer_id", customerId);
+    const { data: biz } = await q.limit(1).maybeSingle();
+    const uid = userId || biz?.user_id || null;
+    let nome = "—", email = emailStripe || "—", fone = "—";
+    if (uid) {
+      const { data: u } = await supabase.auth.admin.getUserById(uid);
+      const meta = u?.user?.user_metadata || {};
+      nome = meta.name || meta.full_name || "—";
+      email = u?.user?.email || "—";
+      fone = meta.phone || "—";
+    }
+
+    const valor = valorCentavos ?? sub?.items?.data?.[0]?.price?.unit_amount ?? null;
+    const fimTeste = sub?.trial_end ? new Date(sub.trial_end * 1000).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) : null;
+    const linhas = [
+      `<p><strong>Negócio:</strong> ${escapeHtmlLite(biz?.name || "—")}</p>`,
+      `<p><strong>Cliente:</strong> ${escapeHtmlLite(nome)} &lt;${escapeHtmlLite(email)}&gt;</p>`,
+      `<p><strong>Telefone:</strong> ${escapeHtmlLite(fone)}</p>`,
+      valor != null ? `<p><strong>Mensalidade:</strong> ${fmtBRL(valor)}</p>` : "",
+      tipo === "teste" && fimTeste ? `<p><strong>Teste termina em:</strong> ${fimTeste} — a 1ª cobrança é nesse dia, se ele não cancelar.</p>` : "",
+      customerId ? `<p><a href="https://dashboard.stripe.com/customers/${encodeURIComponent(customerId)}">Abrir no Stripe</a></p>` : "",
+    ].join("");
+
+    const r = await sendTransactionalEmail({
+      userId: uid || "admin", emailType: "admin_pro_" + tipo, to,
+      subject: `${cfg.emoji} ${cfg.titulo} — ${biz?.name || nome}`,
+      html: `<h2>${cfg.emoji} ${cfg.titulo}</h2>${linhas}`,
+      metadata: { stripe_event: eventId },
+      dedupeByMetadata: eventId ? { key: "stripe_event", value: eventId } : undefined,
+    });
+    console.log(`[stripe/admin] ${tipo} (${biz?.name || uid || customerId}): ${r?.sent ? "enviado" : (r?.reason || r?.error || "não enviado")}`);
+  } catch (e) {
+    console.error(`[stripe/admin] aviso "${tipo}" falhou (${eventId}): ${e?.message}`);
+  }
+}
+
 async function avisaAssinante(event) {
   try {
     const sub = event.data.object;
@@ -2429,6 +2487,14 @@ async function avisaAssinante(event) {
       dedupeByMetadata: { key: "stripe_event", value: event.id }
     });
     console.log(`[stripe/aviso] ${tipo} → user ${biz.user_id}: ${r?.sent ? "enviado" : (r?.reason || r?.error || "não enviado")}`);
+    // 1ª cobrança depois do teste: aqui já passou pela conferência da fatura
+    // paga (o caso do boleto do Paulo), então "virou pago" é verdade.
+    if (tipo === "sub_charged" && extra.primeira) {
+      await avisaAdminAssinatura({
+        tipo: "converteu", eventId: event.id, userId: biz.user_id, customerId: sub.customer, sub,
+        valorCentavos: extra.valorPago ?? valorCentavos,
+      });
+    }
   } catch (e) {
     console.error(`[stripe/aviso] falhou (${event?.type} ${event?.id}): ${e?.message}`);
   }
@@ -2479,11 +2545,19 @@ async function handleWebhookStripe(req, res) {
         }
 
         const userId = session.client_reference_id || session.metadata?.user_id;
-        if (!userId) break;
-        let periodEnd = null, cancelAtEnd = false, status = null;
+        if (!userId) {
+          // Assinatura que não sabemos de quem é: o plano NÃO foi ligado em
+          // conta nenhuma. Antes saía calado; agora grita no log e chega ao
+          // admin, que liga à mão pelo link do Stripe.
+          console.error(`[stripe/webhook] assinatura ${session.subscription} SEM client_reference_id — Pro não ligado em nenhuma conta`);
+          await avisaAdminAssinatura({ tipo: "semConta", eventId: event.id, customerId: session.customer, valorCentavos: session.amount_total, emailStripe: session.customer_details?.email });
+          break;
+        }
+        let periodEnd = null, cancelAtEnd = false, status = null, subObj = null;
         if (session.subscription) {
           try {
             const sub = await stripe.subscriptions.retrieve(session.subscription);
+            subObj = sub;
             periodEnd = fimDoPeriodo(sub);
             cancelAtEnd = !!sub.cancel_at_period_end; status = sub.status;
           } catch (e) { console.error(e); }
@@ -2492,6 +2566,14 @@ async function handleWebhookStripe(req, res) {
           plan: "pro", stripe_customer_id: session.customer, stripe_subscription_id: session.subscription,
           stripe_current_period_end: periodEnd, stripe_cancel_at_period_end: cancelAtEnd, stripe_subscription_status: status
         }).eq("user_id", userId);
+        // Teste de 7 dias ou assinatura direta. Status desconhecido (falhou a
+        // consulta acima) cai em "assinou" — melhor um aviso impreciso que
+        // nenhum, e o link do Stripe no e-mail mostra a verdade.
+        await avisaAdminAssinatura({
+          tipo: status === "trialing" ? "teste" : "assinou",
+          eventId: event.id, userId, customerId: session.customer, sub: subObj,
+          valorCentavos: status === "trialing" ? null : session.amount_total,
+        });
         break;
       }
       // O boleto compensa aqui, dias depois da sessao. Sem este ramo, toda
