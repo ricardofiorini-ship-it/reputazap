@@ -143,7 +143,10 @@ export async function sendTransactionalEmail({
       return { error: data?.message || "Resend falhou" };
     }
 
-    // Registra envio (não bloqueia se falhar)
+    // Registra envio (não bloqueia se falhar). `logged` volta pro caller: no
+    // broadcast, envio sem registro = duplicado garantido na próxima rodada,
+    // então ele para o lote (07/10/2026).
+    let logged = true;
     try {
       // O ERRO VEM NO RETORNO, NAO POR EXCECAO. O supabase-js devolve
       // `{ data, error }` — nao lanca. Sem ler o `error`, o `catch` abaixo
@@ -158,14 +161,16 @@ export async function sendTransactionalEmail({
         metadata: metadata || {}
       });
       if (insErr) {
+        logged = false;
         console.error(`[email-sender] ${emailType} ENVIADO mas NAO registrado em email_log: ${insErr.message}`);
       }
     } catch (logErr) {
+      logged = false;
       console.error("[email-sender] erro ao gravar log:", logErr);
       // Não rejeita — email já foi enviado
     }
 
-    return { sent: true, resend_id: data.id };
+    return { sent: true, resend_id: data.id, logged };
   } catch (err) {
     console.error("[email-sender] erro inesperado:", err);
     return { error: err.message };

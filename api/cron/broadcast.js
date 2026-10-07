@@ -169,6 +169,31 @@ export default async function handler(req, res) {
     .in("user_id", userIds);
   const prefsById = new Map((prefsRows || []).map((p) => [p.user_id, p]));
 
+  // QUEM JÁ RECEBEU, lido ANTES de enviar qualquer coisa (07/10/2026).
+  // O dedupe dentro do email-sender, sozinho, falha ABERTO: se a consulta
+  // dele dá erro (soluço do banco), `existing` vem vazio e o e-mail sai de
+  // novo. Aqui falha FECHADO — não deu pra ler o histórico, não dispara.
+  // Também guarda os ENDEREÇOS: duas contas com o mesmo e-mail recebem um só.
+  const jaRecebeu = new Set();
+  const enderecosJa = new Set();
+  for (let de = 0; de < 100000; de += 1000) {
+    const { data: pag, error: lErr } = await supabase
+      .from("email_log").select("user_id, to_email")
+      .eq("email_type", "broadcast").eq("metadata->>campaign", slug)
+      .order("id", { ascending: true }).range(de, de + 999);
+    if (lErr) {
+      return res.status(500).json({ ...s, error: "Não consegui ler quem já recebeu — nada foi enviado. Tente de novo em 1 minuto. (" + lErr.message + ")" });
+    }
+    for (const r of pag || []) {
+      if (r.user_id) jaRecebeu.add(r.user_id);
+      if (r.to_email) enderecosJa.add(String(r.to_email).trim().toLowerCase());
+    }
+    if (!pag || pag.length < 1000) break;
+  }
+  s.ja_receberam = jaRecebeu.size;
+  s.skipped_endereco_repetido = 0;
+  s.envio_sem_registro = 0;
+
   let list = userIds;
   // Teste (?to=) com o e-mail de uma conta existente: monta com OS DADOS DELA.
   // Antes usava o primeiro cliente da lista — e o link "Descadastrar" do teste
@@ -185,6 +210,9 @@ export default async function handler(req, res) {
   s.restantes = 0;
 
   for (const userId of list) {
+    // Já recebeu: pula sem gastar tempo nem chamada ao Resend. O teste (?to=)
+    // não passa por aqui — ele pode repetir quantas vezes quiser.
+    if (!forceTo && jaRecebeu.has(userId)) { s.skipped_dedupe++; continue; }
     if (s.sent >= maxEnvios) { s.restantes++; continue; }
     s.users++;
     try {
@@ -193,11 +221,15 @@ export default async function handler(req, res) {
       const user = userById.get(userId);
       const to = forceTo || (prefs?.email_to || "").trim() || user?.email;
       if (!to) { s.skipped_no_email++; continue; }
+      const toKey = to.trim().toLowerCase();
+      if (!forceTo && enderecosJa.has(toKey)) { s.skipped_endereco_repetido++; continue; }
 
       const unsub = unsubUrl(userId);
       const tmpl = campaign.build({ userName: firstName(user), unsub, dispositivos: dispPorUser.get(userId) || 0 });
 
-      if (dry) { s.recipients.push({ to }); continue; }
+      // No ensaio também marca o endereço: assim o `a_enviar` do ensaio já
+      // desconta as contas com e-mail repetido, igual ao disparo real.
+      if (dry) { enderecosJa.add(toKey); s.recipients.push({ to }); continue; }
 
       const r = await sendTransactionalEmail({
         userId, emailType: "broadcast", to,
@@ -214,6 +246,18 @@ export default async function handler(req, res) {
       // No teste (?to=) devolve o id do Resend e o remetente: em 06/10 o
       // Resend aceitou (sent:1) e o e-mail não apareceu no painel que o Ricardo
       // olhava — o id é o que diz em qual conta/equipe ele de fato está.
+      if (r?.sent) {
+        enderecosJa.add(toKey);
+        // Saiu mas não ficou anotado: a próxima rodada mandaria de novo pra
+        // essa pessoa. Para o lote AQUI e diz quem foi, em vez de seguir
+        // empilhando duplicados futuros.
+        if (!forceTo && r.logged === false) {
+          s.sent++;
+          s.envio_sem_registro++;
+          s.errors.push({ user_id: userId, to, error: "ENVIADO mas não registrado — lote parado pra não duplicar. Avise antes de rodar de novo." });
+          break;
+        }
+      }
       if (r?.sent) { s.sent++; s.recipients.push(forceTo ? { to, resend_id: r.resend_id || null, from: process.env.RESEND_FROM || "(padrão onboarding@resend.dev)" } : { to }); }
       else if (r?.skipped) s.skipped_dedupe++;
       else if (r?.error) s.errors.push({ user_id: userId, error: r.error });
@@ -231,6 +275,8 @@ export default async function handler(req, res) {
     if (forceTo) break;   // teste manda uma vez só
   }
 
+  // No ensaio, o número que importa antes de apertar o botão.
+  if (dry) s.a_enviar = s.recipients.length;
   s.took_ms = Date.now() - t0;
   console.log("[cron/broadcast] concluído:", JSON.stringify({ ...s, recipients: s.recipients.length }));
   return res.status(200).json(s);
