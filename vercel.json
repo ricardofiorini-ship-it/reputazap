@@ -333,6 +333,10 @@
       "destination": "/admin-pedidos.html"
     },
     {
+      "source": "/admin/assinaturas",
+      "destination": "/admin-assinaturas.html"
+    },
+    {
       "source": "/admin/ranking-grade",
       "destination": "/admin-ranking-grade.html"
     },

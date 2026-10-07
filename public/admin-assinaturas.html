@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<script src="/consent.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Assinaturas — StarTouch Admin</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;background:#f6f7f9;color:#111820;line-height:1.55;padding:28px 16px 80px}
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+  .sub{font-size:14px;color:#68757F;margin-bottom:22px}
+  .card{background:#fff;border:1px solid #e3e8ed;border-radius:12px;padding:18px 20px;margin-bottom:14px}
+  #login{max-width:380px;margin:60px auto}
+  #login input{width:100%;padding:12px 14px;border:1px solid #dce2e8;border-radius:9px;font-size:15px;margin-bottom:10px;font-family:inherit}
+  .btn{background:#1A5FB4;color:#fff;border:none;border-radius:9px;padding:12px 18px;font-size:14.5px;font-weight:600;cursor:pointer;font-family:inherit}
+  .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .chip{background:#fff;border:1px solid #dce2e8;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;color:#3D4A57;cursor:pointer;font-family:inherit}
+  .chip.on{background:#1A5FB4;border-color:#1A5FB4;color:#fff}
+  .top{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .quem{flex:1 1 220px;min-width:0}
+  .nome{font-size:16px;font-weight:700}
+  .meta{font-size:12.5px;color:#68757F;word-break:break-word}
+  .valor{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+  .badge{display:inline-block;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .b-teste{background:#EAF1FA;color:#1A5FB4}
+  .b-pagando{background:#E4F2EC;color:#15654A}
+  .b-atrasado{background:#FFF8E1;color:#8A5A00}
+  .b-saiu{background:#F1F5F9;color:#475569}
+  .linha{font-size:13px;color:#3D4A57;margin-top:10px;padding-top:10px;border-top:1px solid #eef1f4}
+  .alerta{color:#B42318;font-size:13px;margin-top:6px;font-weight:600}
+  .erro{color:#9B2226;font-size:13px;margin-top:8px}
+  .vazio{text-align:center;color:#68757F;padding:40px 0}
+  a{color:#1A5FB4}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="login" class="card" style="display:none">
+    <h1 style="font-size:20px">Admin — Assinaturas</h1>
+    <p class="sub">Entre com a conta de administrador.</p>
+    <input id="email" type="email" placeholder="E-mail" autocomplete="username"/>
+    <input id="senha" type="password" placeholder="Senha" autocomplete="current-password"/>
+    <button class="btn" style="width:100%" onclick="entrar()">Entrar</button>
+    <p id="loginErro" class="erro"></p>
+  </div>
+
+  <div id="app" style="display:none">
+    <h1>Assinaturas do Pro</h1>
+    <p class="sub" id="resumo">Carregando…</p>
+    <div class="filtros" id="filtros"></div>
+    <div id="lista"></div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// SESSÃO QUE NÃO CAI — mesma regra de `src/lib/sessao.js`
+// ============================================================
+// O token do Supabase vence em 1 HORA. Esta tela nasceu sem renovação: bastava
+// abrir a aba uma hora depois pra levar 401, e o código de baixo APAGAVA o
+// token e mostrava o login. Do lado de quem usa isso é "entrei e ele me
+// deslogou" — e pior, derrubava junto a sessão do /app, porque `rz_token` é a
+// MESMA chave das duas telas.
+//
+// Está copiado aqui, e não importado, porque `src/lib/` é empacotado pelo vite
+// e esta página é HTML estático servido direto. Se a regra mudar lá, muda aqui.
+const K_TOKEN = "rz_token", K_REFRESH = "rz_refresh", K_EXP = "rz_token_exp";
+const MARGEM_S = 60;  // renova ANTES de vencer; sem margem, chamada iniciada no
+                      // último segundo chega vencida no servidor.
+
+const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const gravar = (k,v) => { try { v==null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch {} };
+
+function salvarSessao(d){
+  if(!d) return;
+  if(d.token) gravar(K_TOKEN, d.token);
+  if(d.refresh_token) gravar(K_REFRESH, d.refresh_token);
+  if(d.expires_at) gravar(K_EXP, String(d.expires_at));
+}
+function limparSessao(){ gravar(K_TOKEN,null); gravar(K_REFRESH,null); gravar(K_EXP,null); }
+
+// Uma renovação por vez: o token de renovação é ROTATIVO, então dois pedidos
+// simultâneos com o mesmo token fariam o segundo falhar e derrubar a sessão.
+let renovando = null;
+async function renovar(){
+  const refresh = ler(K_REFRESH);
+  if(!refresh) return null;
+  if(renovando) return renovando;
+  renovando = (async () => {
+    try{
+      const r = await fetch("/api/login",{ method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ action:"refresh", refresh_token: refresh }) });
+      const d = await r.json().catch(()=>null);
+      if(!r.ok || !d?.token){ limparSessao(); return null; }
+      salvarSessao(d); return d.token;
+    }catch{
+      // Falha de REDE não é sessão inválida. Apagar aqui deslogaria quem só
+      // passou por um túnel.
+      return null;
+    }finally{ renovando = null; }
+  })();
+  return renovando;
+}
+
+async function TK(){
+  const t = ler(K_TOKEN);
+  if(!t) return null;
+  const exp = parseInt(ler(K_EXP) || "0", 10);
+  if(!exp) return t;  // sessão antiga, sem validade guardada: o 401 resolve
+  if(exp - MARGEM_S > Math.floor(Date.now()/1000)) return t;
+  return (await renovar()) || t;
+}
+
+// Envia com o token de agora; se levar 401, renova UMA vez e repete. Uma só —
+// repetir em laço transforma sessão morta em martelada no servidor.
+async function comSessao(url, opcoes = {}){
+  const monta = t => ({ ...opcoes, headers: { ...(opcoes.headers||{}), Authorization: "Bearer "+t } });
+  let t = await TK();
+  if(!t) return { semSessao: true };
+  let r = await fetch(url, monta(t));
+  if(r.status === 401){
+    const novo = await renovar();
+    if(!novo) return { semSessao: true };
+    r = await fetch(url, monta(novo));
+  }
+  return { resposta: r };
+}
+
+
+async function entrar(){
+  const email = document.getElementById("email").value.trim();
+  const senha = document.getElementById("senha").value;
+  const er = document.getElementById("loginErro"); er.textContent = "";
+  try{
+    const r = await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email,password:senha})});
+    const d = await r.json();
+    if(!r.ok || !d.token){ er.textContent = d.error || "Não consegui entrar."; return; }
+    // O PAR INTEIRO, não só o token de acesso. Guardar só o token era o que
+    // fazia a sessão morrer em 1h sem ter como renovar.
+    salvarSessao(d);
+    inicia();
+  }catch{ er.textContent = "Falha de conexão."; }
+}
+
+// Lido direto do Stripe a cada abertura (api/admin.js → handleAssinaturas),
+// por isso mostra também quem começou o teste ANTES do aviso por e-mail existir.
+let todas = [], contagem = {}, filtro = "teste";
+
+const brl = c => (Number(c||0)/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const dia = s => s ? new Date(s).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}) : "—";
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ROTULO = { teste:"Em teste", pagando:"Pagando", atrasado:"Pagamento pendente", saiu:"Cancelada" };
+
+function faltam(iso){
+  if(!iso) return "";
+  const d = Math.ceil((new Date(iso) - Date.now())/86400000);
+  return d <= 0 ? "termina hoje" : d === 1 ? "falta 1 dia" : `faltam ${d} dias`;
+}
+
+function desenhaFiltros(){
+  const n = k => contagem[k] == null ? "" : ` (${contagem[k]})`;
+  const ops = [["teste","Em teste"],["pagando","Pagando"],["atrasado","Pagamento pendente"],["saiu","Canceladas"],["","Todas"]];
+  document.getElementById("filtros").innerHTML = ops.map(([v,l]) =>
+    `<button class="chip ${filtro===v?"on":""}" onclick="setFiltro('${v}')">${l}${v?n(v):` (${todas.length})`}</button>`).join("");
+}
+function setFiltro(v){ filtro = v; desenhaFiltros(); desenhaLista(); }
+
+async function carrega(){
+  const { resposta: r, semSessao } = await comSessao("/api/admin?action=assinaturas");
+  if(semSessao){ limparSessao(); inicia(); return; }
+  if(r.status === 403){
+    document.getElementById("resumo").textContent = "Sem acesso";
+    document.getElementById("lista").innerHTML = `<div class="card vazio">Esta conta não é de administrador.</div>`;
+    return;
+  }
+  const d = await r.json().catch(()=>({}));
+  // Erro aparece inteiro: um 500 virando lista vazia diria "ninguém testou".
+  if(!r.ok){
+    document.getElementById("resumo").textContent = "Erro ao carregar";
+    document.getElementById("lista").innerHTML = `<div class="card vazio">${esc(d.error || ("O servidor respondeu "+r.status+"."))}</div>`;
+    return;
+  }
+  todas = d.assinaturas || [];
+  contagem = d.contagem || {};
+  const c = contagem;
+  document.getElementById("resumo").textContent =
+    `${c.teste||0} em teste · ${c.pagando||0} pagando (${c.teste_que_virou||0} vieram do teste) · ${c.saiu||0} canceladas`
+    + (d.truncado ? " · mostrando só as mais recentes" : "");
+  desenhaFiltros(); desenhaLista();
+}
+
+function desenhaLista(){
+  const ls = todas.filter(a => !filtro || a.grupo === filtro);
+  const semConta = todas.filter(a => a.sem_conta && a.grupo !== "saiu");
+  const aviso = semConta.length
+    ? `<div class="card alerta">⚠️ ${semConta.length} assinatura(s) sem conta ligada no StarTouch: o cliente paga e o Pro não foi ativado. Abra no Stripe e ligue à mão.</div>` : "";
+  const vazio = todas.length
+    ? `Nenhuma assinatura nesta aba. Há ${todas.length} no total — veja em "Todas".`
+    : "Nenhuma assinatura no Stripe ainda.";
+  document.getElementById("lista").innerHTML = aviso +
+    (ls.length ? ls.map(cartao).join("") : `<div class="card vazio">${esc(vazio)}</div>`);
+}
+
+function cartao(a){
+  let quando = "";
+  if(a.grupo === "teste"){
+    quando = a.cancela_no_fim
+      ? `Teste até ${dia(a.teste_fim)} (${faltam(a.teste_fim)}) · <strong>já cancelou</strong>: não vai ser cobrado`
+      : `Teste até ${dia(a.teste_fim)} (${faltam(a.teste_fim)}) · 1ª cobrança nesse dia`;
+  } else if(a.grupo === "pagando"){
+    quando = `Próxima cobrança ${dia(a.proxima_cobranca)}${a.teve_teste?" · veio do teste":" · assinou direto"}`
+      + (a.cancela_no_fim ? " · <strong>cancelou</strong>, sai nessa data" : "");
+  } else if(a.grupo === "atrasado"){
+    quando = `Cobrança não paga (status ${esc(a.status)})`;
+  } else {
+    quando = `Cancelada em ${dia(a.cancelada_em)}${a.teve_teste?" · tinha começado com teste":""}`;
+  }
+  return `<div class="card">
+    <div class="top">
+      <div class="quem">
+        <div class="nome">${esc(a.negocio || a.nome || a.email || "—")}</div>
+        <div class="meta">${esc(a.nome||"")}${a.email?" · "+esc(a.email):""}${a.telefone?" · "+esc(a.telefone):""}</div>
+        <div class="meta">Começou em ${dia(a.criada_em)}</div>
+      </div>
+      <div>
+        <div class="valor">${a.mensal_centavos!=null?brl(a.mensal_centavos)+"/mês":""}</div>
+        <div style="text-align:right"><span class="badge b-${esc(a.grupo)}">${esc(ROTULO[a.grupo]||a.status)}</span></div>
+      </div>
+    </div>
+    <div class="linha">${quando} · <a href="${esc(a.stripe_url)}" target="_blank" rel="noopener">Abrir no Stripe</a></div>
+    ${a.sem_conta && a.grupo!=="saiu" ? `<div class="alerta">⚠️ Sem conta ligada no StarTouch — o Pro não foi ativado pra ninguém.</div>` : ""}
+  </div>`;
+}
+
+function inicia(){
+  if(!ler(K_TOKEN)){ document.getElementById("login").style.display="block";
+             document.getElementById("app").style.display="none"; return; }
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+  carrega();
+}
+inicia();
+</script>
+</body>
+</html>

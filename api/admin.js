@@ -23,6 +23,7 @@ import { dadosDoCliente, enderecoCompleto, textoDaEtiqueta }
   from "./_lib/pedido-cliente.js";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
 import { pedidoAtualizadoEmail } from "./_lib/email-templates.js";
+import Stripe from "stripe";
 
 // Lista de emails autorizados como admin (hardcoded)
 const ADMIN_EMAILS = new Set([
@@ -87,7 +88,8 @@ export default async function handler(req, res) {
     if (action === "grid")         return await handleGrid(req, res);
     if (action === "pedidos")      return await handlePedidos(req, res);
     if (action === "pedido-status") return await handlePedidoStatus(req, res, admin);
-    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects, funnel, visitas, grid-suggest, grid, pedidos ou pedido-status" });
+    if (action === "assinaturas")  return await handleAssinaturas(req, res);
+    return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects, funnel, visitas, grid-suggest, grid, pedidos, pedido-status ou assinaturas" });
   } catch (err) {
     console.error("[admin] erro:", err);
     return res.status(500).json({ error: err.message });
@@ -1311,4 +1313,95 @@ async function avisaClienteDoPedido({ pedido, destino, rastreio, admin }) {
   if (r?.error) return { enviado: false, erro: r.error };
   if (r?.skipped) return { enviado: false, motivo: r.reason };
   return { enviado: true, para: to };
+}
+
+// ── ASSINATURAS: quem está em teste do Pro, quem paga, quem saiu (07/10/2026) ──
+// Pergunta DIRETO ao Stripe, não ao banco. O aviso por e-mail ao admin só
+// existe desde 07/10 10h30 e não olha pra trás; e `businesses.plan` não
+// distingue teste de pagante. O Stripe é a única fonte que sabe as duas coisas
+// — inclusive a assinatura que chegou sem conta ligada (o Pro não foi ativado
+// em ninguém), que no banco simplesmente não aparece.
+let _stripeAdmin;
+async function handleAssinaturas(req, res) {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return res.status(503).json({ error: "STRIPE_SECRET_KEY não configurada na Vercel." });
+  }
+  if (!_stripeAdmin) _stripeAdmin = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const stripe = _stripeAdmin;
+
+  // Teto folgado e AVISADO: hoje são poucas dezenas; se um dia passar, a tela
+  // diz que cortou em vez de esconder calada (lição do limite de 1000 linhas).
+  const TETO = 300;
+  const subs = [];
+  for await (const s of stripe.subscriptions.list({ status: "all", limit: 100, expand: ["data.customer"] })) {
+    subs.push(s);
+    if (subs.length >= TETO) break;
+  }
+
+  // Quem é quem no nosso banco: pela assinatura e, na falta, pelo cliente.
+  const subIds = subs.map((s) => s.id);
+  const custIds = [...new Set(subs.map((s) => (typeof s.customer === "string" ? s.customer : s.customer?.id)).filter(Boolean))];
+  const bizRows = [];
+  for (const [col, ids] of [["stripe_subscription_id", subIds], ["stripe_customer_id", custIds]]) {
+    for (let i = 0; i < ids.length; i += 100) {
+      const { data, error } = await supabase.from("businesses")
+        .select("user_id, name, plan, stripe_subscription_id, stripe_customer_id")
+        .in(col, ids.slice(i, i + 100));
+      if (error) return res.status(500).json({ error: "Banco: " + error.message });
+      bizRows.push(...(data || []));
+    }
+  }
+  const porSub = new Map(), porCust = new Map();
+  for (const b of bizRows) {
+    if (b.stripe_subscription_id) porSub.set(b.stripe_subscription_id, b);
+    if (b.stripe_customer_id && !porCust.has(b.stripe_customer_id)) porCust.set(b.stripe_customer_id, b);
+  }
+
+  // Nome e telefone moram no cadastro (auth), não no negócio.
+  const uids = [...new Set(bizRows.map((b) => b.user_id).filter(Boolean))];
+  const usuarios = new Map();
+  await Promise.allSettled(uids.map(async (uid) => {
+    const { data } = await supabase.auth.admin.getUserById(uid);
+    if (data?.user) usuarios.set(uid, data.user);
+  }));
+
+  const iso = (t) => (t ? new Date(t * 1000).toISOString() : null);
+  const GRUPO = { trialing: "teste", active: "pagando", past_due: "atrasado", unpaid: "atrasado", incomplete: "atrasado" };
+
+  const linhas = subs.map((s) => {
+    const cust = typeof s.customer === "object" ? s.customer : null;
+    const custId = cust?.id || s.customer;
+    const biz = porSub.get(s.id) || porCust.get(custId) || null;
+    const u = biz?.user_id ? usuarios.get(biz.user_id) : null;
+    const meta = u?.user_metadata || {};
+    const item = s.items?.data?.[0];
+    return {
+      id: s.id,
+      status: s.status,
+      grupo: GRUPO[s.status] || "saiu",
+      negocio: biz?.name || null,
+      plano_no_banco: biz?.plan || null,
+      sem_conta: !biz,
+      nome: meta.name || meta.full_name || cust?.name || null,
+      email: u?.email || cust?.email || null,
+      telefone: meta.phone || cust?.phone || null,
+      mensal_centavos: s.items?.data?.reduce((t, it) => t + (it.price?.unit_amount || 0) * (it.quantity || 1), 0) ?? null,
+      criada_em: iso(s.created),
+      teste_fim: iso(s.trial_end),
+      teve_teste: !!s.trial_end,
+      cancela_no_fim: !!s.cancel_at_period_end,
+      cancelada_em: iso(s.canceled_at),
+      proxima_cobranca: s.status === "trialing" ? iso(s.trial_end) : iso(item?.current_period_end ?? s.current_period_end),
+      stripe_url: `https://dashboard.stripe.com/subscriptions/${s.id}`,
+    };
+  });
+
+  const contagem = { teste: 0, pagando: 0, atrasado: 0, saiu: 0, sem_conta: 0, teste_que_virou: 0 };
+  for (const l of linhas) {
+    contagem[l.grupo]++;
+    if (l.sem_conta && l.grupo !== "saiu") contagem.sem_conta++;
+    if (l.teve_teste && l.grupo === "pagando") contagem.teste_que_virou++;
+  }
+
+  return res.status(200).json({ assinaturas: linhas, contagem, truncado: subs.length >= TETO });
 }
