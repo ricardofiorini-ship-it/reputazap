@@ -58,8 +58,8 @@
 
   // ---------- seletor ----------
   var GLOBE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
-  function mountSwitch() {
-    if (document.querySelector(".st-lang")) return;
+  var box = null;
+  function buildSwitch() {
     var css = document.createElement("style");
     css.textContent =
       ".st-lang{display:inline-flex;align-items:center;gap:4px;position:relative;color:#3c4043;font:500 13px/1 Inter,system-ui,sans-serif;border:1px solid #dadce0;border-radius:999px;padding:6px 8px 6px 10px;background:#fff;cursor:pointer}" +
@@ -67,9 +67,10 @@
       ".st-lang select{appearance:none;-webkit-appearance:none;border:0;background:transparent;font:inherit;color:inherit;cursor:pointer;padding:0 2px;outline:none}" +
       ".st-lang:focus-within{outline:2px solid #1a73e8;outline-offset:2px}" +
       ".st-lang--float{position:fixed;left:12px;bottom:12px;z-index:9990;box-shadow:0 2px 8px rgba(0,0,0,.15)}" +
+      "@media (max-width:767px){[data-i18n-switch] .st-lang{padding:5px 6px 5px 8px;font-size:12px}[data-i18n-switch] .st-lang svg{display:none}}" +
       "@media print{.st-lang{display:none}}";
     document.head.appendChild(css);
-    var box = document.createElement("label");
+    box = document.createElement("label");
     box.className = "st-lang";
     box.setAttribute("data-i18n-skip", "");
     var opts = "";
@@ -79,12 +80,29 @@
     }
     box.innerHTML = GLOBE + '<select aria-label="Idioma / Language / Idioma / 语言">' + opts + "</select>";
     box.querySelector("select").addEventListener("change", function (e) { window.stSetLang(e.target.value); });
-    // Primeiro lugar visível (a página pode ter um no cabeçalho e outro no
-    // rodapé, escondidos por tamanho de tela). Nenhum visível = flutua.
+  }
+  // Primeiro lugar visível (a página pode ter um no cabeçalho e outro no
+  // rodapé, escondidos por tamanho de tela). Nenhum visível = flutua.
+  // Roda de novo a cada mudança da página: no painel React o cabeçalho só
+  // nasce depois do login, e o seletor tem que se mudar pra lá quando ele nascer.
+  function placeSwitch() {
+    if (!document.body) return;
+    if (!box) buildSwitch();
     var slots = document.querySelectorAll("[data-i18n-switch]"), slot = null;
     for (var s = 0; s < slots.length; s++) if (getComputedStyle(slots[s]).display !== "none") { slot = slots[s]; break; }
-    if (slot) slot.appendChild(box);
-    else { box.className += " st-lang--float"; document.body.appendChild(box); }
+    var target = slot || document.body;
+    if (box.parentNode === target) return;
+    box.className = slot ? "st-lang" : "st-lang st-lang--float";
+    target.appendChild(box);
+  }
+  var placing = false;
+  function mountSwitch() {
+    placeSwitch();
+    new MutationObserver(function () {
+      if (placing) return;
+      placing = true;
+      requestAnimationFrame(function () { placing = false; placeSwitch(); });
+    }).observe(document.body, { childList: true, subtree: true });
   }
 
   if (lang === "pt" || !page) {
@@ -109,11 +127,12 @@
   var SKIP = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, TEXTAREA: 1, CODE: 1, PRE: 1 };
   var ATTRS = ["placeholder", "title", "aria-label", "alt"];
   var missing = {};
+  var made = {}; // o que nós mesmos escrevemos — não é "texto sem tradução"
 
   function norm(s) { return String(s).replace(/\s+/g, " ").trim(); }
   function look(raw) {
     var k = norm(raw);
-    if (!k || !/[A-Za-zÀ-ÿ]/.test(k)) return null;
+    if (!k || !/[A-Za-zÀ-ÿ]/.test(k) || made[k]) return null;
     if (Object.prototype.hasOwnProperty.call(T, k)) return T[k];
     for (var i = 0; i < P.length; i++) if (P[i][0].test(k)) return k.replace(P[i][0], P[i][1]);
     if (debug) missing[k] = 1;
@@ -130,6 +149,7 @@
     var t = look(v);
     if (t == null || t === norm(v)) return;
     var lead = v.match(/^\s*/)[0], tail = v.match(/\s*$/)[0];
+    made[norm(t)] = 1;
     node.nodeValue = lead + t + tail;
   }
   function doAttrs(el) {
@@ -210,7 +230,9 @@
     .then(function (j) {
       T = j.t || {};
       H = j.h && Object.keys(j.h).length ? j.h : null;
-      P = (j.p || []).map(function (x) { return [new RegExp(x[0]), x[1]]; });
+      // px = regras extras mais precisas (singular/plural), testadas ANTES das
+      // geradas pelo extrator. O build não confere px: regra velha só não casa.
+      P = (j.px || []).concat(j.p || []).map(function (x) { return [new RegExp(x[0]), x[1]]; });
     })
     .catch(function (e) {
       // Sem dicionário a página segue em português — mas grita, não cala.

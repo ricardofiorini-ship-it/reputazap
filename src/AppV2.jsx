@@ -3203,6 +3203,8 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
       </div>
 
       <div ref={ref} style={{ display:'flex', alignItems:'center', gap: 10, flexShrink: 0, position:'relative' }}>
+        {/* Seletor de idioma — o /i18n.js monta aqui dentro (ver o cabeçalho dele). */}
+        <span data-i18n-switch="" style={{ display:'inline-flex' }}/>
         {plan === 'pro' && (
           <span style={{
             fontSize: 11, fontWeight: 800, letterSpacing: '0.06em',
