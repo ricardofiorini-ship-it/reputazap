@@ -235,6 +235,10 @@ export default async function handler(req, res) {
         userId, emailType: "broadcast", to,
         subject: tmpl.subject, html: tmpl.html, text: tmpl.text,
         metadata: { campaign: slug },
+        // Campanha sai SEMPRE em português: a peça é aprovada pelo Ricardo
+        // palavra por palavra (ver email-pro-menu.js) — tradução automática
+        // seria texto que ninguém aprovou. Ver _lib/email-i18n.js.
+        lang: "pt",
         // Teste pra um endereço não pode gravar dedupe da campanha: senão o
         // disparo real depois pularia esse usuário achando que já mandou.
         dedupeByMetadata: forceTo ? undefined : { key: "campaign", value: slug },

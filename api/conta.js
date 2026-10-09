@@ -9,6 +9,7 @@
 //   GET  (sem action)   → nome, e-mail e telefone reais
 //   POST ?action=perfil → salva nome e telefone
 //   POST ?action=senha  → troca a senha de quem está logado
+//   POST ?action=idioma → língua dos e-mails ({ lang: pt|en|es|zh }; ver _lib/idioma.js)
 //
 // ── Por que a senha atual é EXIGIDA pra trocar a senha ──
 // O token já prova quem é. Mesmo assim pedimos a senha atual, porque as duas
@@ -28,6 +29,7 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { limitou } from "./_lib/rate-limit.js";
+import { gravarIdioma, idiomaValido } from "./_lib/idioma.js";
 
 const admin = createClient(
   process.env.SUPABASE_URL,
@@ -57,6 +59,12 @@ export default async function handler(req, res) {
     if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
     if (action === "perfil") return await salvarPerfil(req, res, user);
     if (action === "senha") return await trocarSenha(req, res, user);
+    if (action === "idioma") {
+      const lang = idiomaValido(req.body?.lang);
+      if (!lang) return res.status(400).json({ error: "Idioma inválido" });
+      const ok = await gravarIdioma(user.id, lang);
+      return ok ? res.json({ ok: true, lang }) : res.status(500).json({ error: "Não foi possível salvar o idioma." });
+    }
     return res.status(400).json({ error: "Ação desconhecida" });
   } catch (err) {
     console.error("[conta] erro inesperado:", err);

@@ -1954,7 +1954,9 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
         ${devicesBlock}
         ${menuBanner}
         ${reviewsBlock}
-        ${articleBlock}
+        <!-- Artigo e dica só existem em português: entre so-pt eles SAEM da
+             versão traduzida do e-mail (ver _lib/email-i18n.js). -->
+        <!--so-pt-->${articleBlock}
 
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#EAF2FE;border:1px solid #cfe0fb;border-radius:12px;margin:18px 0 4px;">
           <tr><td style="padding:14px 16px;">
@@ -1962,7 +1964,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
             <div style="font-size:14px;color:#202124;font-weight:700;margin-bottom:3px;">${escapeHtml(t.t)}</div>
             <div style="font-size:13px;color:#5F6368;line-height:1.55;">${escapeHtml(t.d)}</div>
           </td></tr>
-        </table>
+        </table><!--/so-pt-->
 
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F0FBF4;border:1px solid #BBF0CD;border-radius:12px;margin:14px 0 4px;">
           <tr><td style="padding:16px;">

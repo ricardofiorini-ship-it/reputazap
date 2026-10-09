@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sendInBackground } from "./_lib/email-sender.js";
 import { welcomeEmail, adminNewClientEmail } from "./_lib/email-templates.js";
 import { logFunnel } from "./track.js";
+import { idiomaDoPedido } from "./_lib/idioma.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -11,7 +12,7 @@ const supabase = createClient(
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-St-Lang");
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
@@ -27,6 +28,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Nome, e-mail e senha são obrigatórios" });
   }
   const telefone = (typeof phone === "string" && phone.trim()) ? phone.trim() : null;
+  const lang = idiomaDoPedido(req);
 
   try {
     // Cria conta e já retorna a sessão
@@ -34,7 +36,9 @@ export default async function handler(req, res) {
       email,
       password,
       options: {
-        data: { name, phone: telefone }
+        // lang: a língua que a pessoa escolheu no site (ver _lib/idioma.js).
+        // Só grava quando veio — sem ela a conta é português.
+        data: { name, phone: telefone, ...(lang ? { lang } : {}) }
       }
     });
 
@@ -99,7 +103,8 @@ export default async function handler(req, res) {
       to: email,
       subject: tmpl.subject,
       html: tmpl.html,
-      metadata: { source: "register" }
+      metadata: { source: "register" },
+      lang: lang || "pt"
     }));
 
     // 2) Notificação admin (pra Ricardo) — 1x por novo cliente

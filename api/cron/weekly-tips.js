@@ -79,6 +79,9 @@ async function dispatchToAll({ tip, period, artUrl, dry, forceTo, limit }) {
         userId, emailType: "weekly_tip", to,
         subject: tmpl.subject, html: tmpl.html,
         metadata: { period, tip: tip.headline },
+        // A dica (e o artigo que ela vira) só existe em português: traduzir
+        // a moldura e deixar o conteúdo em português seria pior. Ver _lib/email-i18n.js.
+        lang: "pt",
         dedupeByMetadata: { key: "period", value: period },
         headers: {
           "List-Unsubscribe": `<${unsub}>`,

@@ -25,7 +25,7 @@
 // ============================================================
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseHTML } from "linkedom";
 import { parse as parseJs } from "@babel/parser";
 import { dirname, resolve, relative } from "node:path";
@@ -318,6 +318,57 @@ function auditApp(c, dict) {
   return { orphan, missing };
 }
 
+// ============================================================
+// E-MAILS. Os modelos (api/_lib/email-templates.js etc.) são montados com
+// dados de teste por scripts/email-fixtures.mjs: texto de valor vem como
+// ⟦nome⟧ e vira lacuna (.+?); número vira lacuna ([\d.,]+). O recorte é o
+// MESMO do envio (fatiar, de api/_lib/email-i18n.js) — o que a sonda vê é o
+// que o tradutor do servidor vê. Dicionário em api/_lib/email-i18n-dict.js.
+// Ramo novo de modelo sem fixture não é visto: ao criar e-mail ou ramo,
+// acrescente o caso nas fixtures.
+// ============================================================
+const SENT = /⟦[^⟧]*⟧/g;
+const MESES = "janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro";
+const MESES_RX = new RegExp(`(?<![\\p{L}])(${MESES})(?![\\p{L}])`, "gu");
+const NUM = /\d+(?:[.,:/]\d+)*/g;
+function emailKey(seg, t, p, where) {
+  let k = norm(seg);
+  if (!k || !LETTER.test(k.replace(SENT, ""))) return;
+  // Mês por extenso ("9 de outubro") também é valor: vira lacuna, e o
+  // email-i18n.js troca o nome do mês na língua de destino.
+  const marcado = k.replace(SENT, "\u0000").replace(NUM, "\u0001").replace(MESES_RX, "\u0002");
+  if (!LETTER.test(marcado.replace(/[\u0000\u0001\u0002]/g, ""))) return;
+  if (!/[\u0000\u0001\u0002]/.test(marcado)) { if (!t.has(k)) t.set(k, where); return; }
+  const rx = "^" + marcado.split(/([\u0000\u0001\u0002])/).map((x) =>
+    x === "\u0000" ? "(.+?)" : x === "\u0001" ? "([\\d.,:/]+)" : x === "\u0002" ? `(${MESES})`
+      : x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("") + "$";
+  if (!p.has(rx)) p.set(rx, where);
+}
+async function emailCandidates() {
+  const { fatiar } = await import(pathToFileURL(join(ROOT, "api", "_lib", "email-i18n.js")).href);
+  const fx = (await import(pathToFileURL(join(ROOT, "scripts", "email-fixtures.mjs")).href)).default;
+  const t = new Map(), p = new Map();
+  for (const f of fx) {
+    let r = await f.render();
+    if (typeof r === "string") r = { html: r };
+    const where = f.name;
+    if (r.subject) emailKey(r.subject, t, p, where);
+    if (r.text) for (const l of String(r.text).split("\n")) emailKey(l, t, p, where);
+    const partes = fatiar(String(r.html || "").replace(/<!--so-pt-->[\s\S]*?<!--\/so-pt-->/g, ""));
+    let dentro = false;
+    partes.forEach((x, i) => {
+      if (i % 2 === 1) {
+        const m = x.match(/^<\s*(\/)?\s*(style|script)\b/i);
+        if (m) dentro = !m[1];
+        else for (const a of x.matchAll(/\b(alt|title)="([^"]*)"/g)) emailKey(a[2], t, p, where);
+        return;
+      }
+      if (!dentro) emailKey(x, t, p, where);
+    });
+  }
+  return { t, p };
+}
+
 function selfTest() {
   // Controle do extrator React: o que TEM que achar, e só isso.
   const code = 'const x = <div title="Abrir menu" className="a b">Olá {n} mundo<b>{`Faltam ${d} dias`}</b>{ok ? "Salvo!" : "Erro ao salvar"}</div>; if (s === "Pendente") gtag("event", "Clique Aqui"); const o = { label: "Plano Pro", cls: "btn-x" };';
@@ -325,6 +376,12 @@ function selfTest() {
   const want = ["Abrir menu", "Olá", "mundo", "Salvo!", "Erro ao salvar", "Plano Pro"];
   const jsxOk = want.every((k) => jc.t.has(k)) && jc.t.size === want.length && jc.p.size === 1 && jc.p.has("^Faltam (.+?) dias$");
   if (!jsxOk) { console.error("[i18n] SONDA CEGA (React): extrator do JSX fora do esperado.", [...jc.t.keys()], [...jc.p.keys()]); process.exit(1); }
+  // Controle dos e-mails: frase fixa vira `t`; com valor ou número, regex; valor puro, nada.
+  const et = new Map(), ep = new Map();
+  ["Ver no painel →", "Olá, ⟦nome⟧!", "Você ganhou 12 avaliações", "⟦negocio⟧", "12/10/2026"].forEach((x) => emailKey(x, et, ep, "teste"));
+  const emOk = et.size === 1 && et.has("Ver no painel →") && ep.size === 2 &&
+    ep.has("^Olá, (.+?)!$") && ep.has("^Você ganhou ([\\d.,:/]+) avaliações$");
+  if (!emOk) { console.error("[i18n] SONDA CEGA (e-mails): recorte fora do esperado.", [...et.keys()], [...ep.keys()]); process.exit(1); }
   const page = `<html><head><title>Olá mundo</title></head><body><p>Compre <b>agora</b> mesmo</p><button>Enviar pedido</button><span>Texto novo aqui</span></body></html>`;
   const bad = audit(page, { t: { "Olá mundo": "Hello world", "Enviar pedido": "Send order", "Frase que sumiu": "Gone" }, h: { "Compre agora mesmo": "Buy <b>now</b>" } });
   const good = audit(page, { t: { "Olá mundo": "Hello world", "Enviar pedido": "Send order", "Texto novo aqui": "New text" }, h: { "Compre agora mesmo": "Buy <b>now</b>" } });
@@ -340,7 +397,16 @@ function selfTest() {
 
 const [, , cmd, arg] = process.argv;
 
-if (cmd === "extract" && APPS[arg]) {
+if (cmd === "extract" && arg === "emails") {
+  // E-mails: só o que ainda não está no dicionário em inglês.
+  const c = await emailCandidates();
+  const have = (await import(pathToFileURL(join(ROOT, "api", "_lib", "email-i18n-dict.js")).href)).default.en || {};
+  const known = new Set([...Object.keys(have.t || {}), ...(have.p || []).map((x) => x[0]), ...(have.ignore || [])]);
+  const out = { t: {}, p: {} };
+  for (const [k, w] of c.t) if (!known.has(k)) out.t[k] = w;
+  for (const [k, w] of c.p) if (!known.has(k)) out.p[k] = w;
+  console.log(JSON.stringify(out, null, 2));
+} else if (cmd === "extract" && APPS[arg]) {
   // Painel React: { t: {texto: "arquivo:linha"}, p: {regex: "arquivo:linha"} }
   // só com o que ainda não está no dicionário em inglês.
   const c = appCandidates(arg);
@@ -389,6 +455,21 @@ if (cmd === "extract" && APPS[arg]) {
       console.error(`\n[i18n] ${f}: ${orphan.length} chave(s) órfã(s), ${missing.length} texto(s) sem tradução`);
       orphan.slice(0, 10).forEach((k) => console.error(`   órfã:  ${k.slice(0, 110)}`));
       missing.slice(0, 10).forEach((k) => console.error(`   falta: ${k.slice(0, 110)}`));
+    }
+  }
+  // E-mails (dicionário em api/_lib/email-i18n-dict.js).
+  if (existsSync(join(ROOT, "scripts", "email-fixtures.mjs"))) {
+    const DICT = (await import(pathToFileURL(join(ROOT, "api", "_lib", "email-i18n-dict.js")).href)).default;
+    const c = await emailCandidates();
+    for (const l of ["en", "es", "zh"]) {
+      const { orphan, missing } = auditApp(c, DICT[l] || {});
+      n++;
+      if (orphan.length || missing.length) {
+        fail++;
+        console.error(`\n[i18n] e-mails (${l}): ${orphan.length} chave(s) órfã(s), ${missing.length} texto(s) sem tradução`);
+        orphan.slice(0, 10).forEach((k) => console.error(`   órfã:  ${k.slice(0, 110)}`));
+        missing.slice(0, 10).forEach((k) => console.error(`   falta: ${k.slice(0, 110)}`));
+      }
     }
   }
   if (fail) {

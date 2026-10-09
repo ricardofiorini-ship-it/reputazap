@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { sendInBackground } from "./_lib/email-sender.js";
 import { welcomeEmail, adminNewClientEmail } from "./_lib/email-templates.js";
+import { idiomaDoPedido, idiomaValido, gravarIdioma } from "./_lib/idioma.js";
 import { logFunnel } from "./track.js";
 
 const supabase = createClient(
@@ -51,7 +52,7 @@ async function findUserByEmail(email) {
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-St-Lang");
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
@@ -142,6 +143,11 @@ export default async function handler(req, res) {
     if (action === "google" || id_token) {
       const name = meta.full_name || meta.name || (data.user.email || "").split("@")[0] || "";
       const emailPromises = [];
+      // Língua escolhida no site (ver _lib/idioma.js): grava na conta pra os
+      // e-mails seguintes, e o boas-vindas já sai nela.
+      const langPedido = idiomaDoPedido(req);
+      if (langPedido && langPedido !== meta.lang) await gravarIdioma(data.user.id, langPedido);
+      const lang = langPedido || idiomaValido(meta.lang) || "pt";
 
       const tmpl = welcomeEmail({ userName: name });
       emailPromises.push(sendInBackground({
@@ -150,7 +156,8 @@ export default async function handler(req, res) {
         to: data.user.email,
         subject: tmpl.subject,
         html: tmpl.html,
-        metadata: { source: "login_google" }
+        metadata: { source: "login_google" },
+        lang
       }));
 
       const adminTo = process.env.ADMIN_NOTIFICATIONS_EMAIL;

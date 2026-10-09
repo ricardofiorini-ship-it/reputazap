@@ -9,6 +9,8 @@
 // ============================================================
 
 import { createClient } from "@supabase/supabase-js";
+import { idiomaDoUsuario, idiomaValido } from "./idioma.js";
+import { traduzEmail } from "./email-i18n.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -66,7 +68,10 @@ export async function sendTransactionalEmail({
   // bcc: cópia oculta (ex: cópia pro admin revisar a copy). String ou array.
   bcc,
   // replyTo: sobrescreve o destino padrão das respostas (REPLY_TO).
-  replyTo
+  replyTo,
+  // lang: língua do e-mail (pt|en|es|zh). Sem ela, vale a da conta — ver
+  // _lib/idioma.js. Aviso ao admin (admin_*) sempre em português.
+  lang
 }) {
   if (!userId || !emailType || !to) {
     // `to` fora do log (PII). O booleano diz o que precisa pra depurar.
@@ -116,6 +121,22 @@ export async function sendTransactionalEmail({
   if (!apiKey) {
     console.warn("[email-sender] RESEND_API_KEY ausente — pulando envio:", emailType);
     return { skipped: true, reason: "RESEND_API_KEY ausente" };
+  }
+
+  // Língua do cliente (_lib/email-i18n.js). Falha aqui nunca derruba o envio:
+  // no pior caso o e-mail sai em português, como sempre saiu.
+  let idioma = idiomaValido(lang);
+  if (!idioma && userIdLog !== UUID_SEM_DONO && !String(emailType).startsWith("admin")) {
+    idioma = await idiomaDoUsuario(userIdLog);
+  }
+  idioma = idioma || "pt";
+  if (idioma !== "pt") {
+    try {
+      ({ subject, html, text } = traduzEmail({ subject, html, text }, idioma));
+    } catch (e) {
+      console.error(`[email-sender] tradução ${idioma} falhou em ${emailType} — vai em português:`, e?.message);
+    }
+    metadata = { ...(metadata || {}), lang: idioma };
   }
 
   try {

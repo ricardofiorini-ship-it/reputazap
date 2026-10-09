@@ -56,7 +56,55 @@
     location.replace(u.toString());
   };
 
+  // ---------- a língua chega ao servidor (e-mails) ----------
+  // Ver api/_lib/idioma.js. Duas pontas:
+  // 1) toda chamada /api/ desta página leva o cabeçalho X-St-Lang — o cadastro
+  //    lê e grava na conta nova, e o boas-vindas já sai na língua certa;
+  // 2) com a conta aberta (rz_token), a escolha EXPLÍCITA é gravada na conta
+  //    uma vez por conta+língua. Sem escolha explícita, não grava nada: conta
+  //    sem `lang` já é português.
+  if (lang !== "pt" && window.fetch) {
+    var origFetch = window.fetch;
+    window.fetch = function (input, init) {
+      try {
+        var url = typeof input === "string" ? input : (input && input.url) || "";
+        var u = new URL(url, location.href);
+        if (u.origin === location.origin && u.pathname.indexOf("/api/") === 0) {
+          init = init || {};
+          var h = new Headers(init.headers || (typeof input !== "string" && input.headers) || {});
+          if (!h.has("X-St-Lang")) h.set("X-St-Lang", lang);
+          init.headers = h;
+        }
+      } catch (e) {}
+      return origFetch.call(this, input, init);
+    };
+  }
+  var syncTentado = {};
+  function syncConta() {
+    if (!getStored()) return;
+    var tok = null;
+    try { tok = localStorage.getItem("rz_token"); } catch (e) {}
+    if (!tok) return;
+    var sub = "";
+    try { sub = JSON.parse(atob(tok.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).sub || ""; } catch (e) { return; }
+    var chave = sub + ":" + lang;
+    var feito = null;
+    try { feito = localStorage.getItem("st_lang_conta"); } catch (e) {}
+    if (feito === chave || syncTentado[chave]) return;
+    syncTentado[chave] = 1;
+    (window.fetch || function () {})("/api/conta?action=idioma", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok },
+      body: JSON.stringify({ lang: lang }),
+      keepalive: true
+    }).then(function (r) {
+      if (r && r.ok) { try { localStorage.setItem("st_lang_conta", chave); } catch (e) {} }
+      else console.warn("[i18n] não gravou o idioma na conta:", r && r.status);
+    }, function (e) { console.warn("[i18n] não gravou o idioma na conta:", e && e.message); });
+  }
+
   // ---------- seletor ----------
+  var semSeletor = me && me.hasAttribute("data-no-switch");
   var GLOBE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
   var box = null;
   function buildSwitch() {
@@ -86,7 +134,8 @@
   // Roda de novo a cada mudança da página: no painel React o cabeçalho só
   // nasce depois do login, e o seletor tem que se mudar pra lá quando ele nascer.
   function placeSwitch() {
-    if (!document.body) return;
+    syncConta(); // o login no painel acontece sem recarregar: confere a cada mudança
+    if (!document.body || semSeletor) return;
     if (!box) buildSwitch();
     var slots = document.querySelectorAll("[data-i18n-switch]"), slot = null;
     for (var s = 0; s < slots.length; s++) if (getComputedStyle(slots[s]).display !== "none") { slot = slots[s]; break; }
