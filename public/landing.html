@@ -7,6 +7,8 @@
      `consent default denied` ANTES de qualquer tag subir. Nao trocar
      por tag direta -- a ordem e o que faz o consentimento valer. -->
 <script src="/consent.js"></script>
+<!-- Versões EN/ES/中文: ver o cabeçalho do /i18n.js. Mudou um texto daqui? O build cobra a tradução. -->
+<script src="/i18n.js" data-page="landing"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Mais avaliações no Google com NFC | StarTouch</title>
 <meta name="description" content="Transforme cada cliente em avaliação no Google. Com as placas NFC StarTouch, o cliente aproxima o celular e avalia em segundos — sem app e 100% dentro das regras do Google."/>
@@ -523,6 +525,17 @@ input, textarea, button, select {
     box-shadow: var(--st-shadow-sm);
   }
   .header-login svg { width: 14px; height: 14px; flex-shrink: 0; }
+  /* Seletor de idioma (09/10/2026): no cabecalho so do tablet pra cima. No
+     celular o cabecalho ja esta no limite (ver abaixo) -- testado: o seletor
+     ali empurra o CTA pra fora da tela, inclusive em portugues. No celular ele
+     mora no rodape (.footer-lang). */
+  .header-lang { display: none; }
+  .footer-lang { display: block; margin-top: 16px; }
+  @media (min-width: 768px) {
+    .header-lang { display: inline-flex; margin-left: auto; }
+    .header-lang + .header-login { margin-left: 0; }
+    .footer-lang { display: none; }
+  }
   .header-cta {
     background: var(--st-blue-primary);
     color: #FFFFFF;
@@ -2554,6 +2567,7 @@ input, textarea, button, select {
     <nav class="header-nav" aria-label="Navegação principal" style="display:none">
       <!-- Menus 'Produtos' e 'Funcionalidades' removidos a pedido (header mais limpo). -->
     </nav>
+    <span class="header-lang" data-i18n-switch></span>
     <a class="header-login" href="/app?login=1" aria-label="Já tem conta StarTouch? Entre no seu painel">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
@@ -4158,6 +4172,7 @@ input, textarea, button, select {
         </a>
         <p class="footer-tagline-strong">Conecte. Avalie. Cresça.</p>
         <p class="footer-tagline">Transformamos a experiência dos seus clientes em crescimento real para o seu negócio.</p>
+        <div class="footer-lang" data-i18n-switch></div>
         <div class="footer-socials">
           <a class="footer-social" href="https://instagram.com/startouch_br" target="_blank" rel="noopener" aria-label="Instagram da StarTouch">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
