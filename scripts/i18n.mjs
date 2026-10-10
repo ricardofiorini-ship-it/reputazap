@@ -37,6 +37,10 @@ const DICTS = join(PUB, "i18n");
 const SKIP = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA", "CODE", "PRE", "TEMPLATE", "SVG"]);
 const INLINE = new Set(["B", "STRONG", "EM", "I", "A", "SPAN", "BR", "SMALL", "U", "MARK", "SUP", "SUB", "S"]);
 const ATTRS = ["placeholder", "title", "aria-label", "alt"];
+// Página em subpasta: o dicionário `artigos__slug.en.json` (o nome de arquivo
+// não leva "/") é da página public/artigos/slug.html — e o data-page dela
+// no HTML é o mesmo `artigos__slug`.
+const pagina = (id) => join(PUB, `${id.replace(/__/g, "/")}.html`);
 const norm = (s) => String(s).replace(/\s+/g, " ").trim();
 const hasWord = (s) => /[A-Za-zÀ-ÿ]/.test(s);
 
@@ -418,7 +422,7 @@ if (cmd === "extract" && arg === "emails") {
   for (const [k, w] of c.p) if (!known.has(k)) out.p[k] = w;
   console.log(JSON.stringify(out, null, 2));
 } else if (cmd === "extract") {
-  const html = readFileSync(join(PUB, `${arg}.html`), "utf8");
+  const html = readFileSync(pagina(arg), "utf8");
   const c = candidates(html);
   let have = { t: {}, h: {} };
   const en = join(DICTS, `${arg}.en.json`);
@@ -444,7 +448,7 @@ if (cmd === "extract" && arg === "emails") {
       appCache[m[1]] ??= appCandidates(m[1]);
       res = auditApp(appCache[m[1]], dict);
     } else {
-      const pagePath = join(PUB, `${m[1]}.html`);
+      const pagePath = pagina(m[1]);
       if (!existsSync(pagePath)) { console.error(`[i18n] ${f}: página public/${m[1]}.html não existe`); fail++; continue; }
       res = audit(readFileSync(pagePath, "utf8"), dict);
     }

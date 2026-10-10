@@ -1,0 +1,60 @@
+{
+  "t": {
+    "Solicitação de titular de dados — StarTouch": "Data subject request — StarTouch",
+    "Exerça seus direitos previstos no Art. 18 da LGPD: confirmação, acesso, correção, eliminação, portabilidade ou revogação de consentimento.": "Exercise your rights under Art. 18 of the LGPD (Brazil's General Data Protection Law): confirmation, access, correction, deletion, portability or withdrawal of consent.",
+    "StarTouch — início": "StarTouch — home",
+    "StarTouch": "StarTouch",
+    "voce@exemplo.com": "you@example.com",
+    "Ver minha presença grátis": "See my presence for free",
+    "Solicitação de titular de dados": "Data subject request",
+    "A LGPD garante a você o direito de saber, corrigir e eliminar seus dados pessoais. Preencha abaixo e responderemos em até 15 dias, conforme o Art. 18.": "The LGPD (Brazil's General Data Protection Law) guarantees your right to know, correct and delete your personal data. Fill in the form below and we will respond within 15 days, in accordance with Art. 18.",
+    "O que você quer solicitar": "What would you like to request",
+    "Selecione…": "Select…",
+    "Confirmar se vocês tratam dados meus": "Confirm whether you process my data",
+    "Acessar os dados que vocês têm sobre mim": "Access the data you hold about me",
+    "Corrigir dados incompletos ou desatualizados": "Correct incomplete or outdated data",
+    "Eliminar meus dados": "Delete my data",
+    "Portabilidade dos dados": "Data portability",
+    "Revogar meu consentimento": "Withdraw my consent",
+    "Seu e-mail": "Your email",
+    "Use o mesmo e-mail relacionado aos dados. Podemos pedir informações adicionais para confirmar sua identidade antes de executar qualquer alteração.": "Use the same email associated with the data. We may ask for additional information to confirm your identity before making any change.",
+    "Ex.: sou autor de uma avaliação no Google e quero que a cópia em cache seja eliminada.": "E.g.: I wrote a Google review and want the cached copy deleted.",
+    "Enviar solicitação": "Submit request",
+    "Enviando…": "Sending…",
+    "Como funciona": "How it works",
+    "Nada é alterado automaticamente: toda eliminação passa por conferência humana.": "Nothing is changed automatically: every deletion is reviewed by a person.",
+    "Escolha o tipo de solicitação.": "Choose the type of request.",
+    "Informe um e-mail válido.": "Enter a valid email address.",
+    "Não foi possível enviar. Tente de novo.": "Couldn't submit. Please try again.",
+    "Solicitação registrada.": "Request registered.",
+    "Erro de conexão. Tente de novo.": "Connection error. Please try again."
+  },
+  "h": {
+    "Política de Privacidade · Solicitação": "<a href=\"/privacidade\">Privacy Policy</a> · Request",
+    "Seu nome (opcional)": "Your name <span style=\"font-weight:400;color:#5F6368;\">(optional)</span>",
+    "Detalhes (opcional)": "Details <span style=\"font-weight:400;color:#5F6368;\">(optional)</span>",
+    "Você recebe um protocolo por e-mail assim que a solicitação é registrada.": "You receive a <strong>protocol number by email</strong> as soon as the request is registered.",
+    "O prazo de 15 dias começa a correr da data da solicitação.": "The <strong>15-day</strong> deadline starts running from the date of the request.",
+    "Prefere escrever? privacidade@startouch.com.br — Encarregado: Ricardo Fiorini.": "Prefer to write? <a href=\"mailto:privacidade@startouch.com.br\">privacidade@startouch.com.br</a> — Data Protection Officer: Ricardo Fiorini.",
+    "© StarTouch — Início · Privacidade · Termos · Preferências de cookies": "© StarTouch — <a href=\"/\">Home</a> · <a href=\"/privacidade\">Privacy</a> · <a href=\"/termos\">Terms</a> · <a href=\"#\" onclick=\"window.stConsent&&window.stConsent.abrir();return false;\">Cookie preferences</a>"
+  },
+  "p": [],
+  "px": [
+    [
+      "^Solicitação registrada\\. Se houver dados associados a este e-mail, responderemos em até 15 dias, conforme o Art\\. 18 da LGPD\\.$",
+      "Request registered. If there is data associated with this e-mail, we will reply within 15 days, as required by Art. 18 of the LGPD (Brazil's General Data Protection Law)."
+    ],
+    [
+      "^Informe um e-mail válido\\.$",
+      "Please enter a valid e-mail."
+    ],
+    [
+      "^Escolha o tipo de solicitação\\.$",
+      "Choose the type of request."
+    ],
+    [
+      "^Não foi possível registrar agora\\. Tente de novo ou escreva para privacidade@startouch\\.com\\.br\\.$",
+      "We couldn't register it right now. Try again or write to privacidade@startouch.com.br."
+    ]
+  ]
+}

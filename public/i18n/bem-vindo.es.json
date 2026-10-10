@@ -1,0 +1,41 @@
+{
+  "t": {
+    "Bem-vindo à StarTouch": "Bienvenido a StarTouch",
+    "StarTouch": "StarTouch",
+    "Assinatura confirmada": "Suscripción confirmada",
+    "Bem-vindo à StarTouch!": "¡Bienvenido a StarTouch!",
+    "Sua assinatura do": "Tu suscripción al",
+    "sua assinatura": "tu plan",
+    "está confirmada. Responda 1 minuto pra já montarmos a primeira leva de trabalho da": "está confirmada. Responde en 1 minuto para que armemos el primer paquete de trabajo de",
+    "está confirmada. Responda 1 minuto pra já montarmos sua primeira leva de trabalho.": "está confirmada. Responde en 1 minuto para que armemos tu primer paquete de trabajo.",
+    "Qual seu maior objetivo agora?": "¿Cuál es tu principal objetivo ahora?",
+    "Mais clientes": "Más clientes",
+    "Dominar minha região": "Dominar mi zona",
+    "Lançar um serviço": "Lanzar un servicio",
+    "Outro": "Otro",
+    "Seu site e redes sociais": "Tu sitio web y redes sociales",
+    "ex: seusite.com.br · @seuinstagram": "ej.: tusitio.com.br · @tuinstagram",
+    "Algo urgente pra gente priorizar?": "¿Algo urgente que debamos priorizar?",
+    "(opcional)": "(opcional)",
+    "ex: tenho um evento mês que vem e quero aparecer mais": "ej.: tengo un evento el mes que viene y quiero aparecer más",
+    "Enviar e agendar meu início →": "Enviar y agendar mi inicio →",
+    "Enviando…": "Enviando…",
+    "Seu especialista vai te chamar no": "Tu especialista te escribirá por",
+    "WhatsApp em até 1 dia útil": "WhatsApp en un plazo de 1 día hábil",
+    "pra alinhar e pedir os acessos (ficha do Google etc.). Enquanto isso, já começamos pela sua ficha do Google.": "para alinear y pedir los accesos (Perfil de Empresa de Google, etc.). Mientras tanto, ya empezamos por tu Perfil de Empresa de Google.",
+    "Recebemos suas informações. Seu especialista StarTouch vai te chamar no": "Recibimos tu información. Tu especialista de StarTouch te escribirá por",
+    "pra alinhar e começar o trabalho.": "para alinear y empezar el trabajo.",
+    "Falar agora com a gente": "Hablar con nosotros ahora"
+  },
+  "h": {},
+  "p": [
+    [
+      "^Plano (Start|Business|Gold)$",
+      "Plan $1"
+    ],
+    [
+      "^Tudo certo(, .+)?!$",
+      "¡Todo listo$1!"
+    ]
+  ]
+}

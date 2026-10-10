@@ -1,0 +1,65 @@
+{
+ "t": {
+  "Ativar novo dispositivo — StarTouch": "Activar nuevo dispositivo — StarTouch",
+  "StarTouch — voltar pro início": "StarTouch — volver al inicio",
+  "StarTouch": "StarTouch",
+  "Ativando dispositivo para": "Activando dispositivo para",
+  "Carregando seus dados…": "Cargando tus datos…",
+  "Verificando seu negócio cadastrado.": "Verificando tu negocio registrado.",
+  "Tudo certo!": "¡Todo listo!",
+  "Seu Android com Chrome suporta gravação NFC.": "Tu Android con Chrome puede grabar NFC.",
+  "Vamos ativar seus dispositivos aqui mesmo.": "Vamos a activar tus dispositivos aquí mismo.",
+  "Começar gravação →": "Empezar a grabar →",
+  "iPhone detectado": "iPhone detectado",
+  "Entendi, continuar →": "Entendido, continuar →",
+  "Acesse pelo celular": "Abre esto en tu celular",
+  "A gravação do NFC precisa ser feita pelo celular Android com o Chrome. Escaneie o QR code abaixo:": "La grabación del NFC se tiene que hacer desde un celular Android con Chrome. Escanea el código QR de abajo:",
+  "startouch.com.br/ativar-placa": "startouch.com.br/ativar-placa",
+  "← Voltar": "← Volver",
+  "Grave o dispositivo": "Graba el dispositivo",
+  "Aproxime o dispositivo novo na traseira do celular.": "Acerca el dispositivo nuevo a la parte trasera del celular.",
+  "📱 Android": "📱 Android",
+  "🍎 iPhone": "🍎 iPhone",
+  "Clique no botão abaixo": "Toca el botón de abajo",
+  "Vamos gravar o link específico do seu negócio.": "Vamos a grabar el enlace específico de tu negocio.",
+  "Aproxime o dispositivo": "Acerca el dispositivo",
+  "Encoste na parte traseira do celular quando o sistema pedir.": "Apóyalo en la parte trasera del celular cuando el sistema lo pida.",
+  "📡 Gravar dispositivo agora": "📡 Grabar dispositivo ahora",
+  "Baixe o NFC Tools": "Descarga NFC Tools",
+  "📱 Baixar — App Store": "📱 Descargar — App Store",
+  "No app: Write → Add record → URL": "En la app: Write → Add record → URL",
+  "Cole este link:": "Pega este enlace:",
+  "Toque em Write e aproxime o dispositivo": "Toca Write y acerca el dispositivo",
+  "Quando aparecer \"Done!\", o dispositivo está pronto.": "Cuando aparezca \"Done!\", el dispositivo está listo.",
+  "📋 Copiar link": "📋 Copiar enlace",
+  "Já gravei esse dispositivo": "Ya grabé este dispositivo",
+  "Tudo certo. Posicione o dispositivo no negócio.": "Todo listo. Coloca el dispositivo en tu negocio.",
+  "Gravar outro dispositivo": "Grabar otro dispositivo",
+  "Concluir e voltar ao dashboard": "Terminar y volver al panel",
+  "Voltando ao dashboard…": "Volviendo al panel…",
+  "Você precisa cadastrar um negócio antes de ativar um dispositivo.": "Necesitas registrar un negocio antes de activar un dispositivo.",
+  "⚠️ Use o Chrome no Android para gravar o dispositivo.": "⚠️ Usa Chrome en Android para grabar el dispositivo.",
+  "Aproxime o dispositivo…": "Acerca el dispositivo…",
+  "Aguardando dispositivo…": "Esperando el dispositivo…",
+  "✅ Gravado com sucesso!": "✅ ¡Grabado con éxito!",
+  "✅ Dispositivo gravado!": "✅ ¡Dispositivo grabado!",
+  "📡 Tentar novamente": "📡 Intentar de nuevo",
+  "✅ Link copiado! Cole no NFC Tools.": "✅ ¡Enlace copiado! Pégalo en NFC Tools."
+ },
+ "h": {
+  "O iPhone não grava NFC pelo navegador. Você vai precisar do app NFC Tools (gratuito) pra gravar.": "El iPhone no graba NFC desde el navegador. Vas a necesitar la app <strong style=\"color:#0f172a\">NFC Tools</strong> (gratuita) para grabarlo.",
+  "Dispositivo #1": "Dispositivo #<span id=\"tagCounter\">1</span>",
+  "Dispositivo #1 gravado": "Dispositivo #<span id=\"successCount\">1</span> grabado",
+  "1 dispositivo(s) ativado(s)": "<span id=\"doneCount\">1</span> dispositivo(s) activado(s)"
+ },
+ "p": [
+  [
+   "^Erro: tente novamente$",
+   "Error: inténtalo de nuevo"
+  ],
+  [
+   "^Erro: (.*)$",
+   "Error: $1"
+  ]
+ ]
+}

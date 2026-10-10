@@ -1,0 +1,25 @@
+{
+  "t": {
+    "Nova senha — StarTouch": "新密码 — StarTouch",
+    "StarTouch — voltar pro início": "StarTouch — 返回首页",
+    "StarTouch": "StarTouch",
+    "Validando link...": "正在验证链接...",
+    "Nova senha": "新密码",
+    "Defina uma senha segura para acessar sua conta.": "设置一个安全的密码来登录你的账户。",
+    "Confirmar nova senha": "确认新密码",
+    "Atualizar senha": "更新密码",
+    "Atualizando...": "正在更新...",
+    "Senha atualizada!": "密码已更新！",
+    "Vá pro login com a nova senha.": "请使用新密码登录。",
+    "Ir para o login →": "前往登录 →",
+    "Link inválido": "链接无效",
+    "Esse link expirou ou já foi usado. Peça um novo.": "此链接已过期或已被使用，请重新申请。",
+    "Voltar pro login →": "返回登录 →",
+    "A senha precisa ter pelo menos 6 caracteres.": "密码至少需要 6 个字符。",
+    "As senhas não conferem.": "两次输入的密码不一致。",
+    "Erro ao atualizar senha. Tente novamente.": "密码更新失败，请重试。",
+    "Erro de conexão. Tente novamente.": "网络连接错误，请重试。"
+  },
+  "h": {},
+  "p": []
+}

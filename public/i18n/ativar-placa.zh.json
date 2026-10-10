@@ -1,0 +1,65 @@
+{
+ "t": {
+  "Ativar novo dispositivo — StarTouch": "激活新设备 — StarTouch",
+  "StarTouch — voltar pro início": "StarTouch——返回首页",
+  "StarTouch": "StarTouch",
+  "Ativando dispositivo para": "正在为以下店铺激活设备",
+  "Carregando seus dados…": "正在加载你的信息…",
+  "Verificando seu negócio cadastrado.": "正在核对你登记的店铺。",
+  "Tudo certo!": "一切就绪！",
+  "Seu Android com Chrome suporta gravação NFC.": "你的安卓手机配合 Chrome 支持写入 NFC。",
+  "Vamos ativar seus dispositivos aqui mesmo.": "我们直接在这里激活你的设备。",
+  "Começar gravação →": "开始写入 →",
+  "iPhone detectado": "检测到 iPhone",
+  "Entendi, continuar →": "知道了，继续 →",
+  "Acesse pelo celular": "请用手机打开",
+  "A gravação do NFC precisa ser feita pelo celular Android com o Chrome. Escaneie o QR code abaixo:": "NFC 写入需要用安卓手机上的 Chrome 完成。请扫描下方二维码：",
+  "startouch.com.br/ativar-placa": "startouch.com.br/ativar-placa",
+  "← Voltar": "← 返回",
+  "Grave o dispositivo": "写入设备",
+  "Aproxime o dispositivo novo na traseira do celular.": "将新设备靠近手机背面。",
+  "📱 Android": "📱 Android",
+  "🍎 iPhone": "🍎 iPhone",
+  "Clique no botão abaixo": "点击下方按钮",
+  "Vamos gravar o link específico do seu negócio.": "我们会写入你店铺的专属链接。",
+  "Aproxime o dispositivo": "靠近设备",
+  "Encoste na parte traseira do celular quando o sistema pedir.": "系统提示时，将其贴在手机背面。",
+  "📡 Gravar dispositivo agora": "📡 立即写入设备",
+  "Baixe o NFC Tools": "下载 NFC Tools",
+  "📱 Baixar — App Store": "📱 下载 — App Store",
+  "No app: Write → Add record → URL": "在应用中：Write → Add record → URL",
+  "Cole este link:": "粘贴此链接：",
+  "Toque em Write e aproxime o dispositivo": "点击 Write 并靠近设备",
+  "Quando aparecer \"Done!\", o dispositivo está pronto.": "出现“Done!”时，设备就准备好了。",
+  "📋 Copiar link": "📋 复制链接",
+  "Já gravei esse dispositivo": "我已写入此设备",
+  "Tudo certo. Posicione o dispositivo no negócio.": "一切就绪。将设备放置到店内。",
+  "Gravar outro dispositivo": "写入另一个设备",
+  "Concluir e voltar ao dashboard": "完成并返回控制面板",
+  "Voltando ao dashboard…": "正在返回控制面板…",
+  "Você precisa cadastrar um negócio antes de ativar um dispositivo.": "激活设备前，你需要先登记一家店铺。",
+  "⚠️ Use o Chrome no Android para gravar o dispositivo.": "⚠️ 请在安卓手机上使用 Chrome 写入设备。",
+  "Aproxime o dispositivo…": "请靠近设备…",
+  "Aguardando dispositivo…": "等待设备…",
+  "✅ Gravado com sucesso!": "✅ 写入成功！",
+  "✅ Dispositivo gravado!": "✅ 设备已写入！",
+  "📡 Tentar novamente": "📡 重试",
+  "✅ Link copiado! Cole no NFC Tools.": "✅ 链接已复制！请粘贴到 NFC Tools。"
+ },
+ "h": {
+  "O iPhone não grava NFC pelo navegador. Você vai precisar do app NFC Tools (gratuito) pra gravar.": "iPhone 无法通过浏览器写入 NFC。你需要使用 <strong style=\"color:#0f172a\">NFC Tools</strong> 应用（免费）来写入。",
+  "Dispositivo #1": "设备 #<span id=\"tagCounter\">1</span>",
+  "Dispositivo #1 gravado": "设备 #<span id=\"successCount\">1</span> 已写入",
+  "1 dispositivo(s) ativado(s)": "已激活 <span id=\"doneCount\">1</span> 个设备"
+ },
+ "p": [
+  [
+   "^Erro: tente novamente$",
+   "错误：请重试"
+  ],
+  [
+   "^Erro: (.*)$",
+   "错误：$1"
+  ]
+ ]
+}

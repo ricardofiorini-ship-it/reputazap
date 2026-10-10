@@ -1,0 +1,41 @@
+{
+  "t": {
+    "Bem-vindo à StarTouch": "Welcome to StarTouch",
+    "StarTouch": "StarTouch",
+    "Assinatura confirmada": "Subscription confirmed",
+    "Bem-vindo à StarTouch!": "Welcome to StarTouch!",
+    "Sua assinatura do": "Your subscription to the",
+    "sua assinatura": "your plan",
+    "está confirmada. Responda 1 minuto pra já montarmos a primeira leva de trabalho da": "is confirmed. Take 1 minute to answer a few questions so we can put together the first batch of work for",
+    "está confirmada. Responda 1 minuto pra já montarmos sua primeira leva de trabalho.": "is confirmed. Take 1 minute to answer a few questions so we can put together your first batch of work.",
+    "Qual seu maior objetivo agora?": "What's your main goal right now?",
+    "Mais clientes": "More customers",
+    "Dominar minha região": "Dominate my area",
+    "Lançar um serviço": "Launch a service",
+    "Outro": "Other",
+    "Seu site e redes sociais": "Your website and social media",
+    "ex: seusite.com.br · @seuinstagram": "e.g. yoursite.com.br · @yourinstagram",
+    "Algo urgente pra gente priorizar?": "Anything urgent we should prioritize?",
+    "(opcional)": "(optional)",
+    "ex: tenho um evento mês que vem e quero aparecer mais": "e.g. I have an event next month and want to show up more",
+    "Enviar e agendar meu início →": "Send and schedule my start →",
+    "Enviando…": "Sending…",
+    "Seu especialista vai te chamar no": "Your specialist will reach out on",
+    "WhatsApp em até 1 dia útil": "WhatsApp within 1 business day",
+    "pra alinhar e pedir os acessos (ficha do Google etc.). Enquanto isso, já começamos pela sua ficha do Google.": "to get aligned and request access (your Google Business Profile, etc.). Meanwhile, we're already getting started on your Google Business Profile.",
+    "Recebemos suas informações. Seu especialista StarTouch vai te chamar no": "We've received your information. Your StarTouch specialist will reach out on",
+    "pra alinhar e começar o trabalho.": "to get aligned and start the work.",
+    "Falar agora com a gente": "Talk to us now"
+  },
+  "h": {},
+  "p": [
+    [
+      "^Plano (Start|Business|Gold)$",
+      "$1 plan"
+    ],
+    [
+      "^Tudo certo(, .+)?!$",
+      "All set$1!"
+    ]
+  ]
+}

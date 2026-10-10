@@ -1,0 +1,41 @@
+{
+  "t": {
+    "Bem-vindo à StarTouch": "欢迎来到 StarTouch",
+    "StarTouch": "StarTouch",
+    "Assinatura confirmada": "订阅已确认",
+    "Bem-vindo à StarTouch!": "欢迎来到 StarTouch！",
+    "Sua assinatura do": "你的",
+    "sua assinatura": "套餐",
+    "está confirmada. Responda 1 minuto pra já montarmos a primeira leva de trabalho da": "订阅已确认。花 1 分钟回答几个问题，我们就开始准备第一批工作，服务对象：",
+    "está confirmada. Responda 1 minuto pra já montarmos sua primeira leva de trabalho.": "订阅已确认。花 1 分钟回答几个问题，我们就开始为你准备第一批工作。",
+    "Qual seu maior objetivo agora?": "你现在最大的目标是什么？",
+    "Mais clientes": "吸引更多顾客",
+    "Dominar minha região": "称霸我的区域",
+    "Lançar um serviço": "推出新服务",
+    "Outro": "其他",
+    "Seu site e redes sociais": "你的网站和社交媒体",
+    "ex: seusite.com.br · @seuinstagram": "例如：yoursite.com.br · @你的instagram",
+    "Algo urgente pra gente priorizar?": "有什么需要我们优先处理的紧急事项吗？",
+    "(opcional)": "（选填）",
+    "ex: tenho um evento mês que vem e quero aparecer mais": "例如：下个月有活动，想提高曝光",
+    "Enviar e agendar meu início →": "提交并预约启动 →",
+    "Enviando…": "正在提交…",
+    "Seu especialista vai te chamar no": "你的专属顾问会在",
+    "WhatsApp em até 1 dia útil": "1 个工作日内通过 WhatsApp",
+    "pra alinhar e pedir os acessos (ficha do Google etc.). Enquanto isso, já começamos pela sua ficha do Google.": "联系你，沟通需求并申请相关权限（Google 商家资料等）。在此期间，我们会先从你的 Google 商家资料着手。",
+    "Recebemos suas informações. Seu especialista StarTouch vai te chamar no": "我们已收到你的信息。你的 StarTouch 专属顾问会在",
+    "pra alinhar e começar o trabalho.": "联系你，沟通需求并开始工作。",
+    "Falar agora com a gente": "立即联系我们"
+  },
+  "h": {},
+  "p": [
+    [
+      "^Plano (Start|Business|Gold)$",
+      "$1 套餐"
+    ],
+    [
+      "^Tudo certo(, .+)?!$",
+      "一切就绪$1！"
+    ]
+  ]
+}

@@ -1,0 +1,122 @@
+{
+ "t": {
+  "Diagnóstico — StarTouch": "Diagnóstico — StarTouch",
+  "Veja a presença do seu negócio no Google, quem está na sua frente na sua categoria e quanto falta pra subir. Grátis.": "Mira la presencia de tu negocio en Google, quién está delante de ti en tu categoría y cuánto te falta para subir. Gratis.",
+  "StarTouch": "StarTouch",
+  "Ex: Pizzaria do João": "Ej.: Pizzería de Juan",
+  "Ex: São Paulo ou 04567-000": "Ej.: São Paulo o 04567-000",
+  "Ex: loja de bicicletas": "Ej.: tienda de bicicletas",
+  "Ex: produtos de limpeza": "Ej.: productos de limpieza",
+  "Falar no WhatsApp": "Hablar por WhatsApp",
+  "Começar grátis": "Empieza gratis",
+  "Onde seu negócio está no Google?": "¿Dónde está tu negocio en Google?",
+  "Veja onde você aparece no ranking da sua categoria, quem está na sua frente e quanto falta pra subir — de graça, em segundos.": "Mira en qué lugar apareces en el ranking de tu categoría, quién está delante de ti y cuánto te falta para subir — gratis, en segundos.",
+  "Nome do negócio": "Nombre del negocio",
+  "🔍 Ver meu diagnóstico": "🔍 Ver mi diagnóstico",
+  "Analisando seu negócio…": "Analizando tu negocio…",
+  "Buscando sua posição e seus concorrentes no Google.": "Buscando tu posición y tus competidores en Google.",
+  "📍 Raio:": "📍 Radio:",
+  "1 km": "1 km",
+  "3 km": "3 km",
+  "Nota no Google": "Calificación en Google",
+  "Avaliações": "Reseñas",
+  "Ranking de quem busca": "Ranking de quienes buscan",
+  "É assim que seus clientes te procuram?": "¿Así es como te buscan tus clientes?",
+  "Se não, ajuste o termo:": "Si no, ajusta el término:",
+  "Recalcular": "Recalcular",
+  "🎯 Como subir": "🎯 Cómo subir",
+  "Quero subir no ranking — criar conta grátis": "Quiero subir en el ranking — crear cuenta gratis",
+  "Grátis pra sempre no plano free. Ative uma placa e comece a coletar avaliações.": "Gratis para siempre en el plan free. Activa una placa y empieza a reunir reseñas.",
+  "Diagnosticar outro negócio": "Diagnosticar otro negocio",
+  "Não encontramos seu negócio": "No encontramos tu negocio",
+  "Confira o nome ou tente adicionar a cidade.": "Revisa el nombre o intenta agregar la ciudad.",
+  "Ver diagnóstico": "Ver diagnóstico",
+  "← Buscar de novo": "← Buscar de nuevo",
+  "Você já viu 3 diagnósticos hoje": "Ya viste 3 diagnósticos hoy",
+  "Crie sua conta grátis pra continuar analisando negócios. Leva 1 minuto e é de graça pra sempre no plano free.": "Crea tu cuenta gratis para seguir analizando negocios. Toma 1 minuto y es gratis para siempre en el plan free.",
+  "Criar conta grátis →": "Crear cuenta gratis →",
+  "← Voltar": "← Volver",
+  "Buscando…": "Buscando…",
+  "Nada encontrado. Tente o nome completo ou adicione a cidade.": "No se encontró nada. Prueba con el nombre completo o agrega la ciudad.",
+  "👇 Toque no seu negócio pra ver o diagnóstico": "👇 Toca tu negocio para ver el diagnóstico",
+  "Erro ao buscar. Tente de novo.": "Error al buscar. Inténtalo de nuevo.",
+  "Não conseguimos analisar": "No pudimos analizar",
+  "Tente novamente em instantes ou busque outro negócio.": "Inténtalo de nuevo en unos instantes o busca otro negocio.",
+  "Não achamos concorrentes pra esse termo": "No encontramos competidores para este término",
+  "Erro ao gerar diagnóstico": "Error al generar el diagnóstico",
+  "Tente novamente em instantes.": "Inténtalo de nuevo en unos instantes.",
+  "Seu negócio": "Tu negocio",
+  "categoria geral": "categoría general",
+  "🎯 Você está invisível pra esse termo": "🎯 Eres invisible para este término",
+  "Quando alguém busca": "Cuando alguien busca",
+  ", você não aparece — e quem aparece está levando esses clientes (75% visitam um negócio em 24h). Coletar avaliações é o primeiro passo pra entrar no mapa.": ", no apareces — y quien aparece se está llevando esos clientes (el 75% visita un negocio en 24 h). Reunir reseñas es el primer paso para entrar en el mapa.",
+  "🏆 Você lidera!": "🏆 ¡Vas a la cabeza!",
+  "Você é o nº 1 quando buscam": "Eres el n.º 1 cuando buscan",
+  ". É a melhor posição pra capturar quem decide na hora — quem para de coletar avaliações acaba ultrapassado.": ". Es la mejor posición para captar a quien decide en el momento — quien deja de reunir reseñas termina siendo superado.",
+  "🎯 Como subir uma posição": "🎯 Cómo subir una posición",
+  "Há": "Hay",
+  "na sua frente quando buscam": "delante de ti cuando buscan",
+  ". A primeira acima tem ~": ". La primera por encima tiene ~",
+  "a mais — e cada posição que sobe captura mais clientes (75% visitam em 24h).": "más — y cada posición que subes capta más clientes (el 75% visita en 24 h).",
+  "VOCÊ": "TÚ",
+  "Você": "Tú",
+  "Empresa concorrente": "Empresa competidora"
+ },
+ "h": {
+  "Diagnóstico gratuito": "<span class=\"badge-dot\"></span>Diagnóstico gratuito",
+  "Cidade ou CEP (opcional, ajuda a achar a unidade certa)": "Ciudad o CEP (código postal) <span style=\"font-weight:400;color:#9AA0A6;\">(opcional, ayuda a encontrar la sucursal correcta)</span>",
+  "Seu diagnóstico": "<span class=\"badge-dot\"></span>Tu diagnóstico",
+  "📍 46% das buscas no Google são locais · 75% de quem busca \"perto de mim\" visita um negócio em 24h": "📍 El <strong>46%</strong> de las búsquedas en Google son locales · el <strong>75%</strong> de quienes buscan \"cerca de mí\" visita un negocio en <strong>24 h</strong>",
+  "Ranking da sua categoria · 🔒 nomes ocultos": "Ranking de tu categoría <span style=\"font-weight:400;color:#9AA0A6;text-transform:none;letter-spacing:0;\">· 🔒 nombres ocultos</span>"
+ },
+ "p": [
+  [
+   "^⭐ (\\S+) · (\\d+) avaliações$",
+   "⭐ $1 · $2 reseñas"
+  ],
+  [
+   "^Achamos (.+), mas não encontramos concorrentes em a categoria detectada\\. Diga o que seu cliente digita pra te achar no Google e tente de novo:$",
+   "Encontramos $1, pero no hallamos competidores en la categoría detectada. Dinos qué escribe tu cliente para encontrarte en Google e inténtalo de nuevo:"
+  ],
+  [
+   "^Achamos (.+), mas não encontramos concorrentes em (.+)\\. Diga o que seu cliente digita pra te achar no Google e tente de novo:$",
+   "Encontramos $1, pero no hallamos competidores en $2. Dinos qué escribe tu cliente para encontrarte en Google e inténtalo de nuevo:"
+  ],
+  [
+   "^de (\\d+) quando buscam \"(.+) perto de mim\"$",
+   "de $1 cuando buscan \"$2 cerca de mí\""
+  ],
+  [
+   "^Você não aparece quando buscam \"(.+) perto de mim\" por aqui$",
+   "No apareces cuando buscan \"$1 cerca de mí\" por aquí"
+  ],
+  [
+   "^\"(.+) perto de mim\"$",
+   "\"$1 cerca de mí\""
+  ],
+  [
+   "^1 empresa$",
+   "1 empresa"
+  ],
+  [
+   "^(\\d+) empresas$",
+   "$1 empresas"
+  ],
+  [
+   "^1 avaliação$",
+   "1 reseña"
+  ],
+  [
+   "^(\\d+) avaliações$",
+   "$1 reseñas"
+  ],
+  [
+   "^na sua frente\\. Coletar mais avaliações ajuda a subir e capturar quem busca \"(.+) perto de mim\"\\.$",
+   "delante de ti. Reunir más reseñas te ayuda a subir y captar a quien busca \"$1 cerca de mí\"."
+  ],
+  [
+   "^fora do top (\\d+)$",
+   "fuera del top $1"
+  ]
+ ]
+}

@@ -1,0 +1,60 @@
+{
+  "t": {
+    "Solicitação de titular de dados — StarTouch": "Solicitud del titular de datos — StarTouch",
+    "Exerça seus direitos previstos no Art. 18 da LGPD: confirmação, acesso, correção, eliminação, portabilidade ou revogação de consentimento.": "Ejerce tus derechos previstos en el Art. 18 de la LGPD (Ley General de Protección de Datos de Brasil): confirmación, acceso, corrección, eliminación, portabilidad o revocación del consentimiento.",
+    "StarTouch — início": "StarTouch — inicio",
+    "StarTouch": "StarTouch",
+    "voce@exemplo.com": "tu@ejemplo.com",
+    "Ver minha presença grátis": "Ver mi presencia gratis",
+    "Solicitação de titular de dados": "Solicitud del titular de datos",
+    "A LGPD garante a você o direito de saber, corrigir e eliminar seus dados pessoais. Preencha abaixo e responderemos em até 15 dias, conforme o Art. 18.": "La LGPD (Ley General de Protección de Datos de Brasil) te garantiza el derecho a conocer, corregir y eliminar tus datos personales. Completa el formulario y responderemos en un plazo de hasta 15 días, conforme al Art. 18.",
+    "O que você quer solicitar": "Qué quieres solicitar",
+    "Selecione…": "Selecciona…",
+    "Confirmar se vocês tratam dados meus": "Confirmar si ustedes tratan mis datos",
+    "Acessar os dados que vocês têm sobre mim": "Acceder a los datos que tienen sobre mí",
+    "Corrigir dados incompletos ou desatualizados": "Corregir datos incompletos o desactualizados",
+    "Eliminar meus dados": "Eliminar mis datos",
+    "Portabilidade dos dados": "Portabilidad de los datos",
+    "Revogar meu consentimento": "Revocar mi consentimiento",
+    "Seu e-mail": "Tu email",
+    "Use o mesmo e-mail relacionado aos dados. Podemos pedir informações adicionais para confirmar sua identidade antes de executar qualquer alteração.": "Usa el mismo email relacionado con los datos. Podemos pedirte información adicional para confirmar tu identidad antes de realizar cualquier cambio.",
+    "Ex.: sou autor de uma avaliação no Google e quero que a cópia em cache seja eliminada.": "Ej.: soy autor de una reseña en Google y quiero que se elimine la copia en caché.",
+    "Enviar solicitação": "Enviar solicitud",
+    "Enviando…": "Enviando…",
+    "Como funciona": "Cómo funciona",
+    "Nada é alterado automaticamente: toda eliminação passa por conferência humana.": "Nada se modifica automáticamente: toda eliminación pasa por una revisión humana.",
+    "Escolha o tipo de solicitação.": "Elige el tipo de solicitud.",
+    "Informe um e-mail válido.": "Ingresa un email válido.",
+    "Não foi possível enviar. Tente de novo.": "No se pudo enviar. Inténtalo de nuevo.",
+    "Solicitação registrada.": "Solicitud registrada.",
+    "Erro de conexão. Tente de novo.": "Error de conexión. Inténtalo de nuevo."
+  },
+  "h": {
+    "Política de Privacidade · Solicitação": "<a href=\"/privacidade\">Política de Privacidad</a> · Solicitud",
+    "Seu nome (opcional)": "Tu nombre <span style=\"font-weight:400;color:#5F6368;\">(opcional)</span>",
+    "Detalhes (opcional)": "Detalles <span style=\"font-weight:400;color:#5F6368;\">(opcional)</span>",
+    "Você recebe um protocolo por e-mail assim que a solicitação é registrada.": "Recibes un <strong>número de protocolo por email</strong> en cuanto se registra la solicitud.",
+    "O prazo de 15 dias começa a correr da data da solicitação.": "El plazo de <strong>15 días</strong> empieza a contar desde la fecha de la solicitud.",
+    "Prefere escrever? privacidade@startouch.com.br — Encarregado: Ricardo Fiorini.": "¿Prefieres escribir? <a href=\"mailto:privacidade@startouch.com.br\">privacidade@startouch.com.br</a> — Encargado de protección de datos: Ricardo Fiorini.",
+    "© StarTouch — Início · Privacidade · Termos · Preferências de cookies": "© StarTouch — <a href=\"/\">Inicio</a> · <a href=\"/privacidade\">Privacidad</a> · <a href=\"/termos\">Términos</a> · <a href=\"#\" onclick=\"window.stConsent&&window.stConsent.abrir();return false;\">Preferencias de cookies</a>"
+  },
+  "p": [],
+  "px": [
+    [
+      "^Solicitação registrada\\. Se houver dados associados a este e-mail, responderemos em até 15 dias, conforme o Art\\. 18 da LGPD\\.$",
+      "Solicitud registrada. Si hay datos asociados a este correo electrónico, responderemos en un plazo de hasta 15 días, conforme al Art. 18 de la LGPD (Ley General de Protección de Datos de Brasil)."
+    ],
+    [
+      "^Informe um e-mail válido\\.$",
+      "Ingresa un correo electrónico válido."
+    ],
+    [
+      "^Escolha o tipo de solicitação\\.$",
+      "Elige el tipo de solicitud."
+    ],
+    [
+      "^Não foi possível registrar agora\\. Tente de novo ou escreva para privacidade@startouch\\.com\\.br\\.$",
+      "No fue posible registrarla ahora. Inténtalo de nuevo o escribe a privacidade@startouch.com.br."
+    ]
+  ]
+}

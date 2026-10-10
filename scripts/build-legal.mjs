@@ -147,6 +147,11 @@ function pagina(doc, md) {
      só permite reabrir as preferências de cookies (revogação prometida no
      §6.1 da Política). Sem o atributo, ele carregaria GA4 e Pixel aqui. -->
 <script src="/consent.js" data-prefs-only></script>
+<!-- Versões EN/ES/中文 (ver /i18n.js). Tradução é cortesia: o aviso
+     .st-so-traducao diz que vale o texto em português, e só aparece fora dele.
+     Mudou o .md? O build cobra a tradução (scripts/i18n.mjs). -->
+<script src="/i18n.js" data-page="${doc.out.replace(/\.html$/, "")}"></script>
+<style>html[lang="pt-BR"] .st-so-traducao{display:none}</style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>${escAttr(doc.title)}</title>
 <meta name="description" content="${escAttr(doc.desc)}"/>
@@ -168,6 +173,7 @@ function pagina(doc, md) {
     <a class="art-logo" href="/" aria-label="StarTouch — início">
       <img src="/startouch-logo-dark.png" alt="StarTouch"/>
     </a>
+    <span data-i18n-switch style="margin-left:auto;margin-right:10px"></span>
     <a class="art-header-cta" href="/app?from=web">Ver minha presença grátis</a>
   </div>
 </header>
@@ -177,6 +183,7 @@ function pagina(doc, md) {
 
   <h1 class="art-h1">${esc(h1)}</h1>
   ${datado ? `<p class="art-meta">Versão ${esc(versao)} — vigente a partir de ${esc(vigencia)}</p>` : ""}
+  <p class="art-meta st-so-traducao"><strong>Tradução oferecida por conveniência. O documento válido é o original em português; em caso de divergência, prevalece o texto em português.</strong></p>
 
   <div class="art-prose">
       ${mdToHtml(md.replace(/^#\s+.*$/m, "").replace(/^\*\*Vers(?:ã|a)o\s+[\d.]+.*$/m, ""))}

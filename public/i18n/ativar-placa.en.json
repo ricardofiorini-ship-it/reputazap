@@ -1,0 +1,65 @@
+{
+ "t": {
+  "Ativar novo dispositivo — StarTouch": "Activate a new device — StarTouch",
+  "StarTouch — voltar pro início": "StarTouch — back to home",
+  "StarTouch": "StarTouch",
+  "Ativando dispositivo para": "Activating device for",
+  "Carregando seus dados…": "Loading your details…",
+  "Verificando seu negócio cadastrado.": "Checking your registered business.",
+  "Tudo certo!": "All set!",
+  "Seu Android com Chrome suporta gravação NFC.": "Your Android with Chrome can write NFC.",
+  "Vamos ativar seus dispositivos aqui mesmo.": "Let's activate your devices right here.",
+  "Começar gravação →": "Start writing →",
+  "iPhone detectado": "iPhone detected",
+  "Entendi, continuar →": "Got it, continue →",
+  "Acesse pelo celular": "Open this on your phone",
+  "A gravação do NFC precisa ser feita pelo celular Android com o Chrome. Escaneie o QR code abaixo:": "NFC writing has to be done on an Android phone with Chrome. Scan the QR code below:",
+  "startouch.com.br/ativar-placa": "startouch.com.br/ativar-placa",
+  "← Voltar": "← Back",
+  "Grave o dispositivo": "Write the device",
+  "Aproxime o dispositivo novo na traseira do celular.": "Hold the new device against the back of your phone.",
+  "📱 Android": "📱 Android",
+  "🍎 iPhone": "🍎 iPhone",
+  "Clique no botão abaixo": "Tap the button below",
+  "Vamos gravar o link específico do seu negócio.": "We'll write your business's own link.",
+  "Aproxime o dispositivo": "Hold the device close",
+  "Encoste na parte traseira do celular quando o sistema pedir.": "Touch it to the back of the phone when the system asks.",
+  "📡 Gravar dispositivo agora": "📡 Write device now",
+  "Baixe o NFC Tools": "Download NFC Tools",
+  "📱 Baixar — App Store": "📱 Download — App Store",
+  "No app: Write → Add record → URL": "In the app: Write → Add record → URL",
+  "Cole este link:": "Paste this link:",
+  "Toque em Write e aproxime o dispositivo": "Tap Write and hold the device close",
+  "Quando aparecer \"Done!\", o dispositivo está pronto.": "When \"Done!\" appears, the device is ready.",
+  "📋 Copiar link": "📋 Copy link",
+  "Já gravei esse dispositivo": "I've written this device",
+  "Tudo certo. Posicione o dispositivo no negócio.": "All set. Place the device in your business.",
+  "Gravar outro dispositivo": "Write another device",
+  "Concluir e voltar ao dashboard": "Finish and return to the dashboard",
+  "Voltando ao dashboard…": "Returning to the dashboard…",
+  "Você precisa cadastrar um negócio antes de ativar um dispositivo.": "You need to register a business before activating a device.",
+  "⚠️ Use o Chrome no Android para gravar o dispositivo.": "⚠️ Use Chrome on Android to write the device.",
+  "Aproxime o dispositivo…": "Hold the device close…",
+  "Aguardando dispositivo…": "Waiting for device…",
+  "✅ Gravado com sucesso!": "✅ Written successfully!",
+  "✅ Dispositivo gravado!": "✅ Device written!",
+  "📡 Tentar novamente": "📡 Try again",
+  "✅ Link copiado! Cole no NFC Tools.": "✅ Link copied! Paste it into NFC Tools."
+ },
+ "h": {
+  "O iPhone não grava NFC pelo navegador. Você vai precisar do app NFC Tools (gratuito) pra gravar.": "iPhone can't write NFC from the browser. You'll need the free <strong style=\"color:#0f172a\">NFC Tools</strong> app to write it.",
+  "Dispositivo #1": "Device #<span id=\"tagCounter\">1</span>",
+  "Dispositivo #1 gravado": "Device #<span id=\"successCount\">1</span> written",
+  "1 dispositivo(s) ativado(s)": "<span id=\"doneCount\">1</span> device(s) activated"
+ },
+ "p": [
+  [
+   "^Erro: tente novamente$",
+   "Error: try again"
+  ],
+  [
+   "^Erro: (.*)$",
+   "Error: $1"
+  ]
+ ]
+}

@@ -1,0 +1,360 @@
+{
+  "t": {
+    "Programa de Revenda — StarTouch": "Programa de Reventa — StarTouch",
+    "Revenda StarTouch: dispositivos NFC com painel de reputação vitalício incluso, sem mensalidade obrigatória para o cliente final. Pedido mínimo R$ 2.000, NF-e, produção em 10 dias úteis.": "Revende StarTouch: dispositivos NFC con panel de reputación de por vida incluido, sin mensualidad obligatoria para el cliente final. Pedido mínimo R$ 2.000, factura NF-e, producción en 10 días hábiles.",
+    "StarTouch": "StarTouch",
+    "A linha StarTouch em PS preto: Placa de Balcão G, Placa de Balcão M, Cartão de Avaliação NFC e Pulseira NFC, todos com QR Code e chip NFC": "La línea StarTouch en PS negro: Placa de Mostrador G, Placa de Mostrador M, Tarjeta de Reseñas NFC y Pulsera NFC, todos con código QR y chip NFC",
+    "O painel StarTouch aberto num notebook e num celular, mostrando a nota do Google, o total de avaliações e a lista de dispositivos com os toques de cada ponto de contato": "El panel de StarTouch abierto en una laptop y un celular, mostrando la calificación de Google, el total de reseñas y la lista de dispositivos con los toques de cada punto de contacto",
+    "Cartão de Avaliação NFC StarTouch, unidade": "Tarjeta de Reseñas NFC StarTouch, unidad",
+    "Placa de Balcão G StarTouch em PS preto": "Placa de Mostrador G StarTouch en PS negro",
+    "Placa de Balcão M StarTouch em PS preto": "Placa de Mostrador M StarTouch en PS negro",
+    "Números, ou ISENTO": "Solo números, o ISENTO (exento)",
+    "Rua, avenida…": "Calle, avenida…",
+    "Sala, bloco…": "Oficina, bloque…",
+    "SP": "SP",
+    "Quantidade de cartões": "Cantidad de tarjetas",
+    "Quantidade de placas G": "Cantidad de placas G",
+    "Quantidade de placas M": "Cantidad de placas M",
+    "← Ir para o site": "← Ir al sitio",
+    "Preços": "Precios",
+    "Como funciona": "Cómo funciona",
+    "Dúvidas": "Preguntas",
+    "Fazer pedido": "Hacer pedido",
+    "Programa de Revenda StarTouch": "Programa de Reventa StarTouch",
+    "Quero revender StarTouch": "Quiero revender StarTouch",
+    "Ver preços": "Ver precios",
+    "A solução": "La solución",
+    "Uma solução feita para continuar gerando valor.": "Una solución hecha para seguir generando valor.",
+    "A StarTouch combina dispositivos físicos e tecnologia para ajudar negócios a se conectarem melhor com seus clientes e acompanharem seus resultados.": "StarTouch combina dispositivos físicos y tecnología para ayudar a los negocios a conectar mejor con sus clientes y seguir sus resultados.",
+    "Imagem ilustrativa do painel. Os números da tela são exemplo, não resultado prometido.": "Imagen ilustrativa del panel. Los números de la pantalla son un ejemplo, no un resultado prometido.",
+    "Os dois lados": "Los dos lados",
+    "Seu cliente ganha. Você ganha.": "Tu cliente gana. Tú ganas.",
+    "Uma boa parceria funciona assim: você amplia seu portfólio e sua margem; seu cliente recebe uma solução completa, simples de usar e pronta para gerar valor desde o primeiro dia.": "Una buena alianza funciona así: tú amplías tu portafolio y tu margen; tu cliente recibe una solución completa, fácil de usar y lista para generar valor desde el primer día.",
+    "Para você": "Para ti",
+    "Margem para crescer": "Margen para crecer",
+    "Condições de revenda claras e preço de atacado por unidade. Você sabe quanto paga e define sua própria estratégia comercial.": "Condiciones de reventa claras y precio mayorista por unidad. Sabes cuánto pagas y defines tu propia estrategia comercial.",
+    "Mais valor em cada venda": "Más valor en cada venta",
+    "Você adiciona ao seu portfólio uma solução que vai além do produto físico e entrega uma experiência completa para o cliente.": "Sumas a tu portafolio una solución que va más allá del producto físico y entrega una experiencia completa al cliente.",
+    "Venda com confiança": "Vende con confianza",
+    "Você oferece uma solução pronta, com uma experiência simples para o cliente e respaldo da StarTouch em toda a jornada.": "Ofreces una solución lista, con una experiencia sencilla para el cliente y el respaldo de StarTouch en todo el camino.",
+    "Para o seu cliente": "Para tu cliente",
+    "Tecnologia incluída": "Tecnología incluida",
+    "O dispositivo já chega pronto para ser ativado e conectado à experiência StarTouch.": "El dispositivo llega listo para activarse y conectarse a la experiencia StarTouch.",
+    "Sem mensalidade obrigatória": "Sin mensualidad obligatoria",
+    "Os recursos gratuitos continuam disponíveis sem assinatura, de forma vitalícia. O plano pago é opcional.": "Las funciones gratuitas siguen disponibles sin suscripción, de por vida. El plan de pago es opcional.",
+    "Ativação simples": "Activación sencilla",
+    "Seu cliente ativa o dispositivo em poucos minutos e começa a usar, sem instalação complicada ou configuração técnica.": "Tu cliente activa el dispositivo en pocos minutos y empieza a usarlo, sin instalaciones complicadas ni configuración técnica.",
+    "Tabela de revenda": "Tabla de reventa",
+    "Preço simples. Margem clara.": "Precio simple. Margen claro.",
+    "Preço fixo por unidade, sem faixa por volume. O que muda é apenas o pedido mínimo.": "Precio fijo por unidad, sin escalas por volumen. Lo único que cambia es el pedido mínimo.",
+    "Produto": "Producto",
+    "Varejo": "Precio al público",
+    "Você paga": "Tú pagas",
+    "Cartão de Avaliação NFC": "Tarjeta de Reseñas NFC",
+    "Tamanho carteira, ideal para atendimento, equipe e balcão.": "Tamaño billetera, ideal para atención, equipo y mostrador.",
+    "R$ 29,90": "R$ 29,90",
+    "R$ 13,90": "R$ 13,90",
+    "Placa de Balcão G": "Placa de Mostrador G",
+    "PS preto 2 mm, 21 × 15 cm.": "PS negro 2 mm, 21 × 15 cm.",
+    "R$ 79,90": "R$ 79,90",
+    "R$ 32,90": "R$ 32,90",
+    "Placa de Balcão M": "Placa de Mostrador M",
+    "PS preto 2 mm, 10 × 15 cm.": "PS negro 2 mm, 10 × 15 cm.",
+    "R$ 49,90": "R$ 49,90",
+    "R$ 22,90": "R$ 22,90",
+    "Pulseira NFC": "Pulsera NFC",
+    "Temporariamente indisponível.": "Temporalmente no disponible.",
+    "Esgotada": "Agotada",
+    "Pedido mínimo: R$ 2.000 + frete.": "Pedido mínimo: R$ 2.000 + envío.",
+    "O que vai junto": "Qué incluye",
+    "O dispositivo é só o começo.": "El dispositivo es solo el comienzo.",
+    "Ao ativar a StarTouch, seu cliente passa a contar com recursos que ajudam a acompanhar sua reputação, entender sua presença no Google e medir os resultados dos seus dispositivos — sem mensalidade obrigatória.": "Al activar StarTouch, tu cliente cuenta con funciones que lo ayudan a seguir su reputación, entender su presencia en Google y medir los resultados de sus dispositivos — sin mensualidad obligatoria.",
+    "Avaliações do Google": "Reseñas de Google",
+    "Nota, quantidade de avaliações e evolução do negócio reunidas em um só lugar.": "Calificación, cantidad de reseñas y evolución del negocio reunidas en un solo lugar.",
+    "Presença nas buscas da região": "Presencia en las búsquedas de la zona",
+    "Uma visão clara de como o negócio aparece no Google e como está em relação aos concorrentes.": "Una visión clara de cómo aparece el negocio en Google y cómo está frente a sus competidores.",
+    "Desempenho de cada dispositivo": "Desempeño de cada dispositivo",
+    "O cliente pode identificar cada cartão ou placa e acompanhar quais estão gerando mais interações.": "El cliente puede identificar cada tarjeta o placa y ver cuáles generan más interacciones.",
+    "Resumo semanal": "Resumen semanal",
+    "Toda semana, o cliente recebe por e-mail os principais movimentos da sua presença no Google.": "Cada semana, el cliente recibe por correo los principales movimientos de su presencia en Google.",
+    "Atenção ao que importa": "Atención a lo que importa",
+    "Avaliações que merecem atenção ficam em destaque para facilitar o acompanhamento do negócio.": "Las reseñas que merecen atención quedan destacadas para facilitar el seguimiento del negocio.",
+    "Link e QR Code próprios": "Enlace y código QR propios",
+    "Cada dispositivo também pode ser acessado por link ou QR Code, facilitando o compartilhamento com clientes.": "Cada dispositivo también puede abrirse por enlace o código QR, lo que facilita compartirlo con los clientes.",
+    "Mais valor para vender.": "Más valor para vender.",
+    "Mais liberdade para o cliente.": "Más libertad para el cliente.",
+    "A StarTouch foi pensada para entregar uma experiência que continua gerando valor depois da venda. Para você, isso significa mais argumentos comerciais e maior valor percebido. Para o seu cliente, significa começar sem ficar preso a uma assinatura.": "StarTouch fue pensada para entregar una experiencia que sigue generando valor después de la venta. Para ti, eso significa más argumentos comerciales y mayor valor percibido. Para tu cliente, significa empezar sin quedar atado a una suscripción.",
+    "Os recursos gratuitos permanecem disponíveis sem mensalidade obrigatória. E, se ele quiser ir além, pode contratar recursos adicionais da StarTouch quando fizer sentido para o negócio.": "Las funciones gratuitas siguen disponibles sin mensualidad obligatoria. Y, si quiere ir más allá, puede contratar funciones adicionales de StarTouch cuando tenga sentido para el negocio.",
+    "Operação simples": "Operación sencilla",
+    "Você cuida da venda. A StarTouch cuida da tecnologia.": "Tú te encargas de la venta. StarTouch se encarga de la tecnología.",
+    "PASSO 01": "PASO 01",
+    "Você fecha o pedido": "Cierras el pedido",
+    "Escolhe as quantidades, o frete é calculado pelo seu CEP e você paga na hora. NF-e em todo pedido.": "Eliges las cantidades, el envío se calcula con tu CEP (código postal) y pagas al momento. Factura NF-e en todo pedido.",
+    "PASSO 02": "PASO 02",
+    "Produzimos em até 10 dias úteis": "Producimos en hasta 10 días hábiles",
+    "Cada unidade sai com identificação única gravada no chip e vinculada ao QR Code.": "Cada unidad sale con una identificación única grabada en el chip y vinculada al código QR.",
+    "PASSO 03": "PASO 03",
+    "Você recebe e revende": "Recibes y revendes",
+    "Os dispositivos chegam prontos para ativação. Sem configuração da sua parte.": "Los dispositivos llegan listos para activar. Sin configuración de tu parte.",
+    "PASSO 04": "PASO 04",
+    "Seu cliente ativa": "Tu cliente activa",
+    "Ele encosta o celular, cria a conta e passa a administrar o próprio painel.": "Acerca el celular, crea su cuenta y empieza a administrar su propio panel.",
+    "Condições": "Condiciones",
+    "Sem letras miúdas.": "Sin letra pequeña.",
+    "Somente pessoa jurídica": "Solo personas jurídicas",
+    "É necessário CNPJ ativo para comprar no atacado.": "Se requiere un CNPJ (registro de empresa brasileño) activo para comprar al por mayor.",
+    "NF-e em todo pedido": "Factura NF-e en todo pedido",
+    "Emitimos nota fiscal para o CNPJ informado.": "Emitimos la factura al CNPJ informado.",
+    "Produção em até 10 dias úteis": "Producción en hasta 10 días hábiles",
+    "Prazo contado da confirmação do pagamento, mais o transporte.": "Plazo contado desde la confirmación del pago, más el transporte.",
+    "Fazer um pedido": "Hacer un pedido",
+    "Pronto para começar?": "¿Listo para empezar?",
+    "Razão social": "Razón social",
+    "CNPJ": "CNPJ",
+    "Inscrição Estadual": "Inscripción Estatal (IE)",
+    "Seu nome": "Tu nombre",
+    "E-mail": "Correo electrónico",
+    "WhatsApp": "WhatsApp",
+    "Número": "Número",
+    "Endereço": "Dirección",
+    "Bairro": "Barrio",
+    "Cidade": "Ciudad",
+    "Estado (UF)": "Estado (UF)",
+    "Quantidades": "Cantidades",
+    "R$ 13,90 por unidade": "R$ 13,90 por unidad",
+    "R$ 32,90 por unidade": "R$ 32,90 por unidad",
+    "R$ 22,90 por unidade": "R$ 22,90 por unidad",
+    "Observações (opcional)": "Observaciones (opcional)",
+    "Seu pedido": "Tu pedido",
+    "O cálculo é atualizado automaticamente.": "El cálculo se actualiza automáticamente.",
+    "Nenhum item ainda.": "Aún no hay artículos.",
+    "Total": "Total",
+    "R$ 0,00": "R$ 0,00",
+    "Faltam R$ 2.000,00 para atingir o pedido mínimo.": "Faltan R$ 2.000,00 para alcanzar el pedido mínimo.",
+    "Ir para o pagamento": "Ir al pago",
+    "O frete é calculado pelo CEP e some no total antes do pagamento. Nota fiscal em todo pedido.": "El envío se calcula con el CEP y se suma al total antes del pago. Factura en todo pedido.",
+    "Perguntas frequentes": "Preguntas frecuentes",
+    "Dúvidas antes de começar?": "¿Dudas antes de empezar?",
+    "Preciso pagar alguma coisa para revender?": "¿Tengo que pagar algo para revender?",
+    "Não. Não há taxa de adesão, mensalidade nem exclusividade. Você compra os dispositivos e revende pelo preço que quiser.": "No. No hay cuota de adhesión, mensualidad ni exclusividad. Compras los dispositivos y los revendes al precio que quieras.",
+    "O sistema é mesmo vitalício?": "¿El sistema es realmente de por vida?",
+    "Quem dá suporte ao cliente final?": "¿Quién da soporte al cliente final?",
+    "A ativação é feita pelo próprio cliente e o suporte da plataforma é da StarTouch. Você cuida da venda; a plataforma cuida do resto.": "La activación la hace el propio cliente y el soporte de la plataforma lo da StarTouch (en portugués). Tú te encargas de la venta; la plataforma se encarga del resto.",
+    "Como funciona o frete?": "¿Cómo funciona el envío?",
+    "Qual o prazo total até eu receber?": "¿Cuál es el plazo total hasta recibir?",
+    "Pronto para crescer com a StarTouch?": "¿Listo para crecer con StarTouch?",
+    "Montar meu pedido": "Armar mi pedido",
+    "StarTouch · Revenda exclusiva para pessoa jurídica": "StarTouch · Reventa exclusiva para personas jurídicas",
+    "Termos": "Términos",
+    "Privacidade": "Privacidad",
+    "Pedido mínimo atingido.": "Pedido mínimo alcanzado.",
+    "Você paga produtos + frete agora. A NF-e sai em nome do CNPJ informado.": "Pagas productos + envío ahora. La factura NF-e se emite a nombre del CNPJ informado.",
+    "Enviar solicitação": "Enviar solicitud",
+    "Esse pedido precisa de frete fechado na mão. Envie a solicitação e respondemos com o valor em até um dia útil.": "Este pedido necesita una cotización de envío manual. Envía la solicitud y te respondemos con el valor en hasta un día hábil.",
+    "Informe o CEP de entrega para calcular o frete.": "Ingresa el CEP de entrega para calcular el envío.",
+    "buscando…": "buscando…",
+    "não encontrado": "no encontrado",
+    "Frete e prazo": "Envío y plazo",
+    "prazo sob consulta": "plazo a consultar",
+    "Calculando o frete…": "Calculando el envío…",
+    "Abrindo o pagamento…": "Abriendo el pago…",
+    "Enviando…": "Enviando…",
+    "Não consegui enviar agora.": "No pude enviar ahora.",
+    "Pedido recebido. Respondemos com o frete, o prazo e a nota fiscal em até um dia útil, no e-mail e no WhatsApp informados.": "Pedido recibido. Te respondemos con el envío, el plazo y la factura en hasta un día hábil, al correo y al WhatsApp informados.",
+    "Pedido enviado": "Pedido enviado",
+    "Pedido registrado. Estamos confirmando o pagamento — você recebe um e-mail assim que der tudo certo.": "Pedido registrado. Estamos confirmando el pago — recibirás un correo en cuanto todo esté listo.",
+    "Pagamento confirmado. A nota fiscal e o código de rastreio chegam no e-mail informado — a produção leva 10 dias úteis e o prazo da transportadora começa depois da postagem.": "Pago confirmado. La factura y el código de seguimiento llegarán al correo informado — la producción tarda 10 días hábiles y el plazo de la transportadora empieza después del despacho.",
+    "Boleto gerado — o pedido só entra em produção quando o pagamento compensar (1 a 3 dias úteis). O boleto foi enviado para o e-mail informado; guarde o link, é a única forma de concluir a compra.": "Boleto generado — el pedido solo entra en producción cuando el pago se acredite (1 a 3 días hábiles). El boleto fue enviado al correo informado; guarda el enlace, es la única forma de completar la compra.",
+    "Pagamento não concluído. Seu pedido continua aqui — é só calcular o frete e tentar de novo.": "Pago no completado. Tu pedido sigue aquí — solo calcula el envío e intenta de nuevo."
+  },
+  "h": {
+    "Você já tem os clientes.Nós temos a tecnologia.Vamos crescer juntos.": "Tú ya tienes los clientes.<br>Nosotros tenemos la tecnología.<br><span class=\"hlBlue\">Crezcamos juntos.</span>",
+    "Revenda soluções StarTouch e leve aos seus clientes muito mais do que dispositivos NFC. Você oferece uma tecnologia que ajuda negócios a conquistar mais avaliações, acompanhar sua presença no Google, entender seus concorrentes e medir resultados — sem mensalidade obrigatória.": "Revende soluciones StarTouch y lleva a tus clientes mucho más que dispositivos NFC. Ofreces una tecnología que ayuda a los negocios a conseguir más reseñas, seguir su presencia en Google, entender a sus competidores y medir resultados — <strong>sin mensualidad obligatoria</strong>.",
+    "Exclusivo para pessoa jurídica · Pedido mínimo de R$ 2.000 + frete": "Exclusivo para <strong>personas jurídicas</strong> · Pedido mínimo de <strong>R$ 2.000</strong> + envío",
+    "Para quem revende, isso significa mais valor percebido, mais argumentos de venda e uma solução pronta para oferecer à sua carteira de clientes.": "Para quien revende, esto significa <strong>más valor percibido, más argumentos de venta</strong> y una solución lista para ofrecer a su cartera de clientes.",
+    "Vitalício é vitalício. Seu cliente paga uma vez pelo dispositivo e nunca mais paga para usar o painel* — sem mensalidade, sem prazo, sem “primeiro ano grátis”. É uma promessa que você pode fazer sem medo.": "<strong>De por vida es de por vida.</strong> Tu cliente paga una vez por el dispositivo y nunca más paga\n        por usar el panel<sup>*</sup> — sin mensualidad, sin plazo, sin “primer año gratis”.\n        <strong>Es una promesa que puedes hacer sin miedo.</strong>",
+    "* Exceto o StarTouch Pro, assinatura opcional com recursos adicionais. Nada do que já vem incluso depende dela.": "* Excepto <strong>StarTouch Pro</strong>, suscripción opcional con funciones adicionales.\n        Nada de lo que ya viene incluido depende de ella.",
+    "Monte seu pedido, informe o CEP e veja o frete na hora. Tudo é finalizado pelo site, com pagamento online e NF-e para o seu CNPJ.": "Arma tu pedido, ingresa el CEP (código postal) y ve el envío al instante. <strong>Todo se finaliza en el sitio</strong>, con pago en línea y factura NF-e para tu CNPJ.",
+    "Se a empresa for isenta, escreva ISENTO. É o que permite emitir a NF-e.": "Si la empresa está exenta, escribe <b>ISENTO</b>. Es lo que permite emitir la factura NF-e.",
+    "CEP de entrega": "CEP de entrega (código postal) <span id=\"cepStatus\" class=\"cepStatus\"></span>",
+    "Complemento (opcional)": "Complemento <span class=\"opc\">(opcional)</span>",
+    "Sim, e não é uma questão de confiança: é como o produto foi feito. O dispositivo aponta para um endereço nosso que redireciona igual para todo mundo, com plano ou sem plano — nunca houve verificação de pagamento nesse caminho, então não existe o que desligar por falta dele. Não é teste de 30 dias nem promoção de primeiro ano. Existe um plano pago opcional, o Menu Inteligente, que o cliente contrata só se quiser; se nunca contratar, o dispositivo e o painel continuam funcionando do mesmo jeito. E não é só uma intenção nossa: está escrito no item 5.2 dos Termos de uso. O que já é seu continua seu — se algum recurso hoje gratuito passar para o plano pago um dia, a mudança vale só para dispositivos comprados depois dela. Quem já tem o seu não perde nada.": "Sí, y no es una cuestión de confianza: es cómo se hizo el producto. El dispositivo apunta a una dirección nuestra que <strong>redirige igual para todos, con plan o sin plan</strong> — nunca hubo verificación de pago en ese camino, así que no hay nada que apagar por falta de pago. No es una prueba de 30 días ni una promoción del primer año. Existe un plan de pago opcional, el Menú Inteligente, que el cliente contrata solo si quiere; si nunca lo contrata, el dispositivo y el panel siguen funcionando igual. <br><br>Y no es solo una intención nuestra: está escrito en el <a href=\"/termos\" target=\"_blank\" rel=\"noopener\">punto 5.2 de los Términos de uso</a>. <strong>Lo que ya es tuyo sigue siendo tuyo</strong> — si alguna función hoy gratuita pasara algún día al plan de pago, el cambio vale solo para los dispositivos comprados después. Quien ya tiene el suyo no pierde nada.",
+    "É calculado na hora da compra, pelo peso real do pedido e pelo CEP de entrega, com as transportadoras que atendem a sua região. Você escolhe o serviço e vê o valor somado ao total antes de pagar.": "Se calcula al momento de la compra, según el peso real del pedido y el CEP de entrega, con las transportadoras que atienden tu región. Eliges el servicio y ves el valor sumado al total <strong>antes</strong> de pagar.",
+    "São até 10 dias úteis de produção, contados da confirmação do pagamento, mais o prazo da transportadora. O prazo que aparece junto de cada opção de frete já soma os dois — é o tempo até chegar na sua porta, não só o do transporte.": "Son hasta 10 días hábiles de producción, contados desde la confirmación del pago, más el plazo de la transportadora. El plazo que aparece junto a cada opción de envío <strong>ya suma los dos</strong> — es el tiempo hasta que llega a tu puerta, no solo el del transporte.",
+    "Monte seu primeiro pedido e leve aos seus clientes uma solução que combina produto físico e tecnologia, com recursos permanentes e sem mensalidade obrigatória.": "Arma tu primer pedido y lleva a tus clientes una solución que combina producto físico y tecnología, con <strong>funciones permanentes</strong> y sin mensualidad obligatoria."
+  },
+  "p": [
+    [
+      "^Cartão NFC × (\\d+)$",
+      "Tarjeta NFC × $1"
+    ],
+    [
+      "^Placa G × (\\d+)$",
+      "Placa G × $1"
+    ],
+    [
+      "^Placa M × (\\d+)$",
+      "Placa M × $1"
+    ],
+    [
+      "^Frete — (.+)$",
+      "Envío — $1"
+    ],
+    [
+      "^Faltam (R\\$\\s?[\\d.,]+) para atingir o pedido mínimo de (R\\$\\s?[\\d.,]+)\\.$",
+      "Faltan $1 para alcanzar el pedido mínimo de $2."
+    ],
+    [
+      "^(.+) · (\\d+) dias úteis, já com a produção$",
+      "$1 · $2 días hábiles, ya con la producción"
+    ],
+    [
+      "^(.+) · prazo sob consulta$",
+      "$1 · plazo a consultar"
+    ],
+    [
+      "^Não consegui calcular o frete agora\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "No pude calcular el envío ahora. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Não consegui calcular o frete agora\\.$",
+      "No pude calcular el envío ahora."
+    ],
+    [
+      "^Não consegui calcular o frete agora\\. Tente de novo em instantes\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "No pude calcular el envío ahora. Intenta de nuevo en unos instantes. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Não consegui calcular o frete agora\\. Tente de novo em instantes\\.$",
+      "No pude calcular el envío ahora. Intenta de nuevo en unos instantes."
+    ],
+    [
+      "^O cálculo de frete está indisponível no momento\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "El cálculo de envío no está disponible en este momento. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^O cálculo de frete está indisponível no momento\\.$",
+      "El cálculo de envío no está disponible en este momento."
+    ],
+    [
+      "^Informe um CEP válido, com 8 dígitos\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Ingresa un CEP válido, de 8 dígitos. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Informe um CEP válido, com 8 dígitos\\.$",
+      "Ingresa un CEP válido, de 8 dígitos."
+    ],
+    [
+      "^Nenhuma transportadora atende esse CEP\\. Confira o número ou fale com a gente\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Ninguna transportadora atiende ese CEP. Revisa el número o contáctanos. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Nenhuma transportadora atende esse CEP\\. Confira o número ou fale com a gente\\.$",
+      "Ninguna transportadora atiende ese CEP. Revisa el número o contáctanos."
+    ],
+    [
+      "^Não consegui calcular o frete deste item\\. Fale com a gente\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "No pude calcular el envío de este artículo. Contáctanos. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Não consegui calcular o frete deste item\\. Fale com a gente\\.$",
+      "No pude calcular el envío de este artículo. Contáctanos."
+    ],
+    [
+      "^Confira o CEP informado\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Revisa el CEP informado. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Confira o CEP informado\\.$",
+      "Revisa el CEP informado."
+    ],
+    [
+      "^Faltou preencher um dos campos obrigatórios\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Falta completar uno de los campos obligatorios. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Faltou preencher um dos campos obrigatórios\\.$",
+      "Falta completar uno de los campos obligatorios."
+    ],
+    [
+      "^Confira o e-mail informado\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Revisa el correo informado. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Confira o e-mail informado\\.$",
+      "Revisa el correo informado."
+    ],
+    [
+      "^Esse CNPJ não confere\\. A revenda é somente para pessoa jurídica\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Ese CNPJ no es válido. La reventa es solo para personas jurídicas. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Esse CNPJ não confere\\. A revenda é somente para pessoa jurídica\\.$",
+      "Ese CNPJ no es válido. La reventa es solo para personas jurídicas."
+    ],
+    [
+      "^Informe a Inscrição Estadual \\(só os números\\) ou escreva ISENTO, se a empresa não tiver\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Ingresa la Inscripción Estatal (solo números) o escribe ISENTO si la empresa no tiene. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Informe a Inscrição Estadual \\(só os números\\) ou escreva ISENTO, se a empresa não tiver\\.$",
+      "Ingresa la Inscripción Estatal (solo números) o escribe ISENTO si la empresa no tiene."
+    ],
+    [
+      "^Preencha o endereço de entrega completo: rua, número, bairro e cidade\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Completa la dirección de entrega: calle, número, barrio y ciudad. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Preencha o endereço de entrega completo: rua, número, bairro e cidade\\.$",
+      "Completa la dirección de entrega: calle, número, barrio y ciudad."
+    ],
+    [
+      "^Informe o estado com duas letras \\(ex\\.: SP\\)\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Ingresa el estado con dos letras (ej.: SP). Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Informe o estado com duas letras \\(ex\\.: SP\\)\\.$",
+      "Ingresa el estado con dos letras (ej.: SP)."
+    ],
+    [
+      "^Escolha ao menos um produto\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Elige al menos un producto. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Escolha ao menos um produto\\.$",
+      "Elige al menos un producto."
+    ],
+    [
+      "^O frete que você escolheu não está mais disponível\\. Calcule de novo, por favor\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "El envío que elegiste ya no está disponible. Calcula de nuevo, por favor. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^O frete que você escolheu não está mais disponível\\. Calcule de novo, por favor\\.$",
+      "El envío que elegiste ya no está disponible. Calcula de nuevo, por favor."
+    ],
+    [
+      "^Não consegui abrir o pagamento agora\\. Tente de novo em instantes\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "No pude abrir el pago ahora. Intenta de nuevo en unos instantes. Aún puedes enviar la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Não consegui abrir o pagamento agora\\. Tente de novo em instantes\\.$",
+      "No pude abrir el pago ahora. Intenta de nuevo en unos instantes."
+    ],
+    [
+      "^Esse pedido passa de (\\d+) kg e vai em mais de uma caixa — o frete precisa ser fechado na mão\\. Envie a solicitação que respondemos com o valor\\.$",
+      "Este pedido supera los $1 kg y va en más de una caja — el envío debe cotizarse manualmente. Envía la solicitud y te respondemos con el valor."
+    ],
+    [
+      "^Esse pedido passa de (\\d+) kg\\. Envie a solicitação e fechamos o frete na mão\\.$",
+      "Este pedido supera los $1 kg. Envía la solicitud y cotizamos el envío manualmente."
+    ],
+    [
+      "^O pedido mínimo é (R\\$\\s?[\\d.,]+) sem o frete\\. Faltam (R\\$\\s?[\\d.,]+)\\.$",
+      "El pedido mínimo es $1 sin el envío. Faltan $2."
+    ],
+    [
+      "^(.+) Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "$1 Aún puedes enviar la solicitud y te respondemos con el valor."
+    ]
+  ]
+}

@@ -1,0 +1,122 @@
+{
+ "t": {
+  "Diagnóstico — StarTouch": "Free check-up — StarTouch",
+  "Veja a presença do seu negócio no Google, quem está na sua frente na sua categoria e quanto falta pra subir. Grátis.": "See how your business shows up on Google, who's ahead of you in your category and how far you are from moving up. Free.",
+  "StarTouch": "StarTouch",
+  "Ex: Pizzaria do João": "E.g.: John's Pizzeria",
+  "Ex: São Paulo ou 04567-000": "E.g.: São Paulo or 04567-000",
+  "Ex: loja de bicicletas": "E.g.: bike shop",
+  "Ex: produtos de limpeza": "E.g.: cleaning supplies",
+  "Falar no WhatsApp": "Chat on WhatsApp",
+  "Começar grátis": "Start free",
+  "Onde seu negócio está no Google?": "Where does your business stand on Google?",
+  "Veja onde você aparece no ranking da sua categoria, quem está na sua frente e quanto falta pra subir — de graça, em segundos.": "See where you rank in your category, who's ahead of you and how far you are from moving up — free, in seconds.",
+  "Nome do negócio": "Business name",
+  "🔍 Ver meu diagnóstico": "🔍 See my check-up",
+  "Analisando seu negócio…": "Analyzing your business…",
+  "Buscando sua posição e seus concorrentes no Google.": "Looking up your position and your competitors on Google.",
+  "📍 Raio:": "📍 Radius:",
+  "1 km": "1 km",
+  "3 km": "3 km",
+  "Nota no Google": "Google rating",
+  "Avaliações": "Reviews",
+  "Ranking de quem busca": "Ranking for people searching",
+  "É assim que seus clientes te procuram?": "Is this how your customers search for you?",
+  "Se não, ajuste o termo:": "If not, adjust the term:",
+  "Recalcular": "Recalculate",
+  "🎯 Como subir": "🎯 How to move up",
+  "Quero subir no ranking — criar conta grátis": "I want to move up — create a free account",
+  "Grátis pra sempre no plano free. Ative uma placa e comece a coletar avaliações.": "Free forever on the free plan. Activate a device and start collecting reviews.",
+  "Diagnosticar outro negócio": "Check another business",
+  "Não encontramos seu negócio": "We couldn't find your business",
+  "Confira o nome ou tente adicionar a cidade.": "Check the name or try adding the city.",
+  "Ver diagnóstico": "See check-up",
+  "← Buscar de novo": "← Search again",
+  "Você já viu 3 diagnósticos hoje": "You've already seen 3 check-ups today",
+  "Crie sua conta grátis pra continuar analisando negócios. Leva 1 minuto e é de graça pra sempre no plano free.": "Create your free account to keep analyzing businesses. It takes 1 minute and it's free forever on the free plan.",
+  "Criar conta grátis →": "Create free account →",
+  "← Voltar": "← Back",
+  "Buscando…": "Searching…",
+  "Nada encontrado. Tente o nome completo ou adicione a cidade.": "Nothing found. Try the full name or add the city.",
+  "👇 Toque no seu negócio pra ver o diagnóstico": "👇 Tap your business to see the check-up",
+  "Erro ao buscar. Tente de novo.": "Search failed. Try again.",
+  "Não conseguimos analisar": "We couldn't run the analysis",
+  "Tente novamente em instantes ou busque outro negócio.": "Try again in a moment or search for another business.",
+  "Não achamos concorrentes pra esse termo": "We found no competitors for this term",
+  "Erro ao gerar diagnóstico": "Error generating the check-up",
+  "Tente novamente em instantes.": "Try again in a moment.",
+  "Seu negócio": "Your business",
+  "categoria geral": "general category",
+  "🎯 Você está invisível pra esse termo": "🎯 You're invisible for this term",
+  "Quando alguém busca": "When someone searches",
+  ", você não aparece — e quem aparece está levando esses clientes (75% visitam um negócio em 24h). Coletar avaliações é o primeiro passo pra entrar no mapa.": ", you don't show up — and whoever does is taking those customers (75% visit a business within 24h). Collecting reviews is the first step to getting on the map.",
+  "🏆 Você lidera!": "🏆 You're in the lead!",
+  "Você é o nº 1 quando buscam": "You're #1 when people search",
+  ". É a melhor posição pra capturar quem decide na hora — quem para de coletar avaliações acaba ultrapassado.": ". It's the best spot to win people who decide on the spot — businesses that stop collecting reviews end up overtaken.",
+  "🎯 Como subir uma posição": "🎯 How to move up one spot",
+  "Há": "There are",
+  "na sua frente quando buscam": "ahead of you when people search",
+  ". A primeira acima tem ~": ". The one right above you has ~",
+  "a mais — e cada posição que sobe captura mais clientes (75% visitam em 24h).": "more — and every spot you climb wins more customers (75% visit within 24h).",
+  "VOCÊ": "YOU",
+  "Você": "You",
+  "Empresa concorrente": "Competing business"
+ },
+ "h": {
+  "Diagnóstico gratuito": "<span class=\"badge-dot\"></span>Free check-up",
+  "Cidade ou CEP (opcional, ajuda a achar a unidade certa)": "City or CEP (postal code) <span style=\"font-weight:400;color:#9AA0A6;\">(optional, helps find the right location)</span>",
+  "Seu diagnóstico": "<span class=\"badge-dot\"></span>Your check-up",
+  "📍 46% das buscas no Google são locais · 75% de quem busca \"perto de mim\" visita um negócio em 24h": "📍 <strong>46%</strong> of Google searches are local · <strong>75%</strong> of people who search \"near me\" visit a business within <strong>24h</strong>",
+  "Ranking da sua categoria · 🔒 nomes ocultos": "Your category ranking <span style=\"font-weight:400;color:#9AA0A6;text-transform:none;letter-spacing:0;\">· 🔒 names hidden</span>"
+ },
+ "p": [
+  [
+   "^⭐ (\\S+) · (\\d+) avaliações$",
+   "⭐ $1 · $2 reviews"
+  ],
+  [
+   "^Achamos (.+), mas não encontramos concorrentes em a categoria detectada\\. Diga o que seu cliente digita pra te achar no Google e tente de novo:$",
+   "We found $1, but no competitors in the detected category. Tell us what your customers type to find you on Google and try again:"
+  ],
+  [
+   "^Achamos (.+), mas não encontramos concorrentes em (.+)\\. Diga o que seu cliente digita pra te achar no Google e tente de novo:$",
+   "We found $1, but no competitors for $2. Tell us what your customers type to find you on Google and try again:"
+  ],
+  [
+   "^de (\\d+) quando buscam \"(.+) perto de mim\"$",
+   "of $1 when people search \"$2 near me\""
+  ],
+  [
+   "^Você não aparece quando buscam \"(.+) perto de mim\" por aqui$",
+   "You don't show up when people around here search \"$1 near me\""
+  ],
+  [
+   "^\"(.+) perto de mim\"$",
+   "\"$1 near me\""
+  ],
+  [
+   "^1 empresa$",
+   "1 business"
+  ],
+  [
+   "^(\\d+) empresas$",
+   "$1 businesses"
+  ],
+  [
+   "^1 avaliação$",
+   "1 review"
+  ],
+  [
+   "^(\\d+) avaliações$",
+   "$1 reviews"
+  ],
+  [
+   "^na sua frente\\. Coletar mais avaliações ajuda a subir e capturar quem busca \"(.+) perto de mim\"\\.$",
+   "ahead of you. Collecting more reviews helps you climb and win people searching \"$1 near me\"."
+  ],
+  [
+   "^fora do top (\\d+)$",
+   "outside the top $1"
+  ]
+ ]
+}

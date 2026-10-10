@@ -1,0 +1,25 @@
+{
+  "t": {
+    "Nova senha — StarTouch": "New password — StarTouch",
+    "StarTouch — voltar pro início": "StarTouch — back to home",
+    "StarTouch": "StarTouch",
+    "Validando link...": "Validating link...",
+    "Nova senha": "New password",
+    "Defina uma senha segura para acessar sua conta.": "Set a secure password to access your account.",
+    "Confirmar nova senha": "Confirm new password",
+    "Atualizar senha": "Update password",
+    "Atualizando...": "Updating...",
+    "Senha atualizada!": "Password updated!",
+    "Vá pro login com a nova senha.": "Log in with your new password.",
+    "Ir para o login →": "Go to login →",
+    "Link inválido": "Invalid link",
+    "Esse link expirou ou já foi usado. Peça um novo.": "This link has expired or has already been used. Request a new one.",
+    "Voltar pro login →": "Back to login →",
+    "A senha precisa ter pelo menos 6 caracteres.": "Your password must be at least 6 characters long.",
+    "As senhas não conferem.": "Passwords don't match.",
+    "Erro ao atualizar senha. Tente novamente.": "Couldn't update your password. Please try again.",
+    "Erro de conexão. Tente novamente.": "Connection error. Please try again."
+  },
+  "h": {},
+  "p": []
+}

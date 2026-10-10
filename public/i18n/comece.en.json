@@ -1,0 +1,53 @@
+{
+  "t": {
+    "Seu link já está pronto — StarTouch": "Your link is ready — StarTouch",
+    "StarTouch — voltar pro início": "StarTouch — back to home",
+    "StarTouch": "StarTouch",
+    "StarTouch · WhatsApp (11) 97694-4026": "StarTouch · WhatsApp (11) 97694-4026",
+    "Falar com StarTouch no WhatsApp (11) 97694-4026": "Talk to StarTouch on WhatsApp (11) 97694-4026",
+    "Carregando seu negócio…": "Loading your business…",
+    "Seu link já está pronto": "Your link is ready",
+    "Seu sistema de avaliação já está ativo. Você pode começar a receber avaliações agora mesmo.": "Your review system is already live. You can start getting reviews right now.",
+    "Seu negócio": "Your business",
+    "Ativo": "Active",
+    "Link de avaliação": "Review link",
+    "Copiar meu link": "Copy my link",
+    "Baixar QR Code": "Download QR code",
+    "Ver simulação": "See preview",
+    "Seu dispositivo já está ativo": "Your device is already active",
+    "Comece compartilhando este link no WhatsApp, redes sociais ou no balcão da loja.": "Start by sharing this link on WhatsApp, social media or at your store counter.",
+    "Ir para o painel →": "Go to dashboard →",
+    "Link copiado!": "Link copied!",
+    "✓ Link copiado": "✓ Link copied",
+    "QR Code aberto em nova aba": "QR code opened in a new tab"
+  },
+  "h": {
+    "Ele leva ao mesmo lugar que o link acima. A diferença: os toques no dispositivo aparecem no seu painel, e o link acima não conta toque — ele é para divulgar no WhatsApp, nas redes e no site.": "It goes to the <strong>same place</strong> as the link above. The difference:\n        taps on the device show up in your dashboard, while the link above doesn't count taps —\n        it's meant for sharing on WhatsApp, social media and your website."
+  },
+  "p": [
+    [
+      "^Seu cartão NFC já está ativo$",
+      "Your NFC card is active"
+    ],
+    [
+      "^Seu placa de balcão já está ativo$",
+      "Your counter stand is active"
+    ],
+    [
+      "^Seu placa de mesa já está ativo$",
+      "Your table stand is active"
+    ],
+    [
+      "^Seu pulseira NFC já está ativo$",
+      "Your NFC wristband is active"
+    ],
+    [
+      "^Seu adesivo NFC já está ativo$",
+      "Your NFC sticker is active"
+    ],
+    [
+      "^Seus (d+) dispositivos já estão ativos$",
+      "Your $1 devices are active"
+    ]
+  ]
+}

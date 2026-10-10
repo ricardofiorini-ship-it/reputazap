@@ -1,0 +1,53 @@
+{
+  "t": {
+    "Seu link já está pronto — StarTouch": "Tu enlace ya está listo — StarTouch",
+    "StarTouch — voltar pro início": "StarTouch — volver al inicio",
+    "StarTouch": "StarTouch",
+    "StarTouch · WhatsApp (11) 97694-4026": "StarTouch · WhatsApp (11) 97694-4026",
+    "Falar com StarTouch no WhatsApp (11) 97694-4026": "Hablar con StarTouch por WhatsApp (11) 97694-4026",
+    "Carregando seu negócio…": "Cargando tu negocio…",
+    "Seu link já está pronto": "Tu enlace ya está listo",
+    "Seu sistema de avaliação já está ativo. Você pode começar a receber avaliações agora mesmo.": "Tu sistema de reseñas ya está activo. Puedes empezar a recibir reseñas ahora mismo.",
+    "Seu negócio": "Tu negocio",
+    "Ativo": "Activo",
+    "Link de avaliação": "Enlace de reseñas",
+    "Copiar meu link": "Copiar mi enlace",
+    "Baixar QR Code": "Descargar código QR",
+    "Ver simulação": "Ver simulación",
+    "Seu dispositivo já está ativo": "Tu dispositivo ya está activo",
+    "Comece compartilhando este link no WhatsApp, redes sociais ou no balcão da loja.": "Empieza compartiendo este enlace en WhatsApp, redes sociales o en el mostrador de tu tienda.",
+    "Ir para o painel →": "Ir al panel →",
+    "Link copiado!": "¡Enlace copiado!",
+    "✓ Link copiado": "✓ Enlace copiado",
+    "QR Code aberto em nova aba": "Código QR abierto en una pestaña nueva"
+  },
+  "h": {
+    "Ele leva ao mesmo lugar que o link acima. A diferença: os toques no dispositivo aparecem no seu painel, e o link acima não conta toque — ele é para divulgar no WhatsApp, nas redes e no site.": "Lleva al <strong>mismo lugar</strong> que el enlace de arriba. La diferencia:\n        los toques en el dispositivo aparecen en tu panel, y el enlace de arriba no cuenta toques —\n        sirve para compartir en WhatsApp, en redes y en tu sitio web."
+  },
+  "p": [
+    [
+      "^Seu cartão NFC já está ativo$",
+      "Tu tarjeta NFC ya está activa"
+    ],
+    [
+      "^Seu placa de balcão já está ativo$",
+      "Tu placa de mostrador ya está activa"
+    ],
+    [
+      "^Seu placa de mesa já está ativo$",
+      "Tu placa de mesa ya está activa"
+    ],
+    [
+      "^Seu pulseira NFC já está ativo$",
+      "Tu pulsera NFC ya está activa"
+    ],
+    [
+      "^Seu adesivo NFC já está ativo$",
+      "Tu adhesivo NFC ya está activo"
+    ],
+    [
+      "^Seus (d+) dispositivos já estão ativos$",
+      "Tus $1 dispositivos ya están activos"
+    ]
+  ]
+}

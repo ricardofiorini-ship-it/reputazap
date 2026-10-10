@@ -87,6 +87,9 @@ function articleHtml(tip, i) {
      intervalo, entao nada foi ao ar rastreando sem aceite -- mas o
      proximo teria. O check-tracking.mjs agora barra o build se voltar. -->
 <script src="/consent.js"></script>
+<!-- Versões EN/ES/中文: ver o cabeçalho do /i18n.js. Artigo novo fica em
+     português até ganhar o dicionário public/i18n/artigos__<slug>.<lingua>.json. -->
+<script src="/i18n.js" data-page="artigos__${tip.slug}"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>${esc(tip.seoTitle)} | StarTouch</title>
 <meta name="description" content="${escAttr(tip.metaDescription)}"/>
@@ -121,6 +124,7 @@ ${JSON.stringify(ld, null, 2)}
     <a class="art-logo" href="/" aria-label="StarTouch — início">
       <img src="/startouch-logo-dark.png" alt="StarTouch"/>
     </a>
+    <span data-i18n-switch style="margin-left:auto;margin-right:10px"></span>
     <a class="art-header-cta" href="/app?from=web">Ver minha presença grátis</a>
   </div>
 </header>

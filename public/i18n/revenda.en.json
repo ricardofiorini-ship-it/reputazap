@@ -1,0 +1,360 @@
+{
+  "t": {
+    "Programa de Revenda — StarTouch": "Reseller Program — StarTouch",
+    "Revenda StarTouch: dispositivos NFC com painel de reputação vitalício incluso, sem mensalidade obrigatória para o cliente final. Pedido mínimo R$ 2.000, NF-e, produção em 10 dias úteis.": "Resell StarTouch: NFC devices with a lifetime reputation dashboard included, no mandatory monthly fee for the end customer. Minimum order R$ 2.000, NF-e invoice, production in 10 business days.",
+    "StarTouch": "StarTouch",
+    "A linha StarTouch em PS preto: Placa de Balcão G, Placa de Balcão M, Cartão de Avaliação NFC e Pulseira NFC, todos com QR Code e chip NFC": "The StarTouch line in black PS: Counter Stand L, Counter Stand M, NFC Review Card and NFC Wristband, all with a QR Code and NFC chip",
+    "O painel StarTouch aberto num notebook e num celular, mostrando a nota do Google, o total de avaliações e a lista de dispositivos com os toques de cada ponto de contato": "The StarTouch dashboard open on a laptop and a phone, showing the Google rating, the total number of reviews and the list of devices with the taps at each touchpoint",
+    "Cartão de Avaliação NFC StarTouch, unidade": "StarTouch NFC Review Card, single unit",
+    "Placa de Balcão G StarTouch em PS preto": "StarTouch Counter Stand L in black PS",
+    "Placa de Balcão M StarTouch em PS preto": "StarTouch Counter Stand M in black PS",
+    "Números, ou ISENTO": "Numbers only, or ISENTO (exempt)",
+    "Rua, avenida…": "Street, avenue…",
+    "Sala, bloco…": "Suite, building…",
+    "SP": "SP",
+    "Quantidade de cartões": "Number of cards",
+    "Quantidade de placas G": "Number of L stands",
+    "Quantidade de placas M": "Number of M stands",
+    "← Ir para o site": "← Go to the website",
+    "Preços": "Pricing",
+    "Como funciona": "How it works",
+    "Dúvidas": "FAQ",
+    "Fazer pedido": "Place an order",
+    "Programa de Revenda StarTouch": "StarTouch Reseller Program",
+    "Quero revender StarTouch": "I want to resell StarTouch",
+    "Ver preços": "See pricing",
+    "A solução": "The solution",
+    "Uma solução feita para continuar gerando valor.": "A solution built to keep creating value.",
+    "A StarTouch combina dispositivos físicos e tecnologia para ajudar negócios a se conectarem melhor com seus clientes e acompanharem seus resultados.": "StarTouch combines physical devices and technology to help businesses connect better with their customers and track their results.",
+    "Imagem ilustrativa do painel. Os números da tela são exemplo, não resultado prometido.": "Illustrative image of the dashboard. The numbers on screen are an example, not a promised result.",
+    "Os dois lados": "Both sides",
+    "Seu cliente ganha. Você ganha.": "Your customer wins. You win.",
+    "Uma boa parceria funciona assim: você amplia seu portfólio e sua margem; seu cliente recebe uma solução completa, simples de usar e pronta para gerar valor desde o primeiro dia.": "A good partnership works like this: you expand your portfolio and your margin; your customer gets a complete solution that's easy to use and ready to create value from day one.",
+    "Para você": "For you",
+    "Margem para crescer": "Room to grow your margin",
+    "Condições de revenda claras e preço de atacado por unidade. Você sabe quanto paga e define sua própria estratégia comercial.": "Clear reseller terms and a wholesale price per unit. You know exactly what you pay and set your own sales strategy.",
+    "Mais valor em cada venda": "More value in every sale",
+    "Você adiciona ao seu portfólio uma solução que vai além do produto físico e entrega uma experiência completa para o cliente.": "You add to your portfolio a solution that goes beyond the physical product and delivers a complete experience to the customer.",
+    "Venda com confiança": "Sell with confidence",
+    "Você oferece uma solução pronta, com uma experiência simples para o cliente e respaldo da StarTouch em toda a jornada.": "You offer a ready-made solution, with a simple experience for the customer and StarTouch's backing every step of the way.",
+    "Para o seu cliente": "For your customer",
+    "Tecnologia incluída": "Technology included",
+    "O dispositivo já chega pronto para ser ativado e conectado à experiência StarTouch.": "The device arrives ready to be activated and connected to the StarTouch experience.",
+    "Sem mensalidade obrigatória": "No mandatory monthly fee",
+    "Os recursos gratuitos continuam disponíveis sem assinatura, de forma vitalícia. O plano pago é opcional.": "The free features stay available for life, with no subscription. The paid plan is optional.",
+    "Ativação simples": "Simple activation",
+    "Seu cliente ativa o dispositivo em poucos minutos e começa a usar, sem instalação complicada ou configuração técnica.": "Your customer activates the device in a few minutes and starts using it, with no complicated installation or technical setup.",
+    "Tabela de revenda": "Reseller price list",
+    "Preço simples. Margem clara.": "Simple pricing. Clear margin.",
+    "Preço fixo por unidade, sem faixa por volume. O que muda é apenas o pedido mínimo.": "Fixed price per unit, no volume tiers. The only thing that applies is the minimum order.",
+    "Produto": "Product",
+    "Varejo": "Retail",
+    "Você paga": "You pay",
+    "Cartão de Avaliação NFC": "NFC Review Card",
+    "Tamanho carteira, ideal para atendimento, equipe e balcão.": "Wallet-sized, ideal for service staff, teams and the counter.",
+    "R$ 29,90": "R$ 29,90",
+    "R$ 13,90": "R$ 13,90",
+    "Placa de Balcão G": "Counter Stand L",
+    "PS preto 2 mm, 21 × 15 cm.": "Black PS 2 mm, 21 × 15 cm.",
+    "R$ 79,90": "R$ 79,90",
+    "R$ 32,90": "R$ 32,90",
+    "Placa de Balcão M": "Counter Stand M",
+    "PS preto 2 mm, 10 × 15 cm.": "Black PS 2 mm, 10 × 15 cm.",
+    "R$ 49,90": "R$ 49,90",
+    "R$ 22,90": "R$ 22,90",
+    "Pulseira NFC": "NFC Wristband",
+    "Temporariamente indisponível.": "Temporarily unavailable.",
+    "Esgotada": "Sold out",
+    "Pedido mínimo: R$ 2.000 + frete.": "Minimum order: R$ 2.000 + shipping.",
+    "O que vai junto": "What comes with it",
+    "O dispositivo é só o começo.": "The device is just the beginning.",
+    "Ao ativar a StarTouch, seu cliente passa a contar com recursos que ajudam a acompanhar sua reputação, entender sua presença no Google e medir os resultados dos seus dispositivos — sem mensalidade obrigatória.": "When they activate StarTouch, your customer gets features that help them track their reputation, understand their presence on Google and measure the results of their devices — with no mandatory monthly fee.",
+    "Avaliações do Google": "Google reviews",
+    "Nota, quantidade de avaliações e evolução do negócio reunidas em um só lugar.": "Rating, number of reviews and the business's progress, all in one place.",
+    "Presença nas buscas da região": "Presence in local searches",
+    "Uma visão clara de como o negócio aparece no Google e como está em relação aos concorrentes.": "A clear view of how the business shows up on Google and how it compares with competitors.",
+    "Desempenho de cada dispositivo": "Performance of each device",
+    "O cliente pode identificar cada cartão ou placa e acompanhar quais estão gerando mais interações.": "The customer can label each card or stand and see which ones generate the most interactions.",
+    "Resumo semanal": "Weekly summary",
+    "Toda semana, o cliente recebe por e-mail os principais movimentos da sua presença no Google.": "Every week, the customer gets an email with the main changes in their Google presence.",
+    "Atenção ao que importa": "Focus on what matters",
+    "Avaliações que merecem atenção ficam em destaque para facilitar o acompanhamento do negócio.": "Reviews that need attention are highlighted, making it easier to keep an eye on the business.",
+    "Link e QR Code próprios": "Your own link and QR Code",
+    "Cada dispositivo também pode ser acessado por link ou QR Code, facilitando o compartilhamento com clientes.": "Each device can also be reached by link or QR Code, making it easy to share with customers.",
+    "Mais valor para vender.": "More value to sell.",
+    "Mais liberdade para o cliente.": "More freedom for the customer.",
+    "A StarTouch foi pensada para entregar uma experiência que continua gerando valor depois da venda. Para você, isso significa mais argumentos comerciais e maior valor percebido. Para o seu cliente, significa começar sem ficar preso a uma assinatura.": "StarTouch was designed to deliver an experience that keeps creating value after the sale. For you, that means more selling points and higher perceived value. For your customer, it means getting started without being locked into a subscription.",
+    "Os recursos gratuitos permanecem disponíveis sem mensalidade obrigatória. E, se ele quiser ir além, pode contratar recursos adicionais da StarTouch quando fizer sentido para o negócio.": "The free features remain available with no mandatory monthly fee. And if they want to go further, they can sign up for additional StarTouch features whenever it makes sense for the business.",
+    "Operação simples": "Simple operation",
+    "Você cuida da venda. A StarTouch cuida da tecnologia.": "You handle the sale. StarTouch handles the technology.",
+    "PASSO 01": "STEP 01",
+    "Você fecha o pedido": "You place the order",
+    "Escolhe as quantidades, o frete é calculado pelo seu CEP e você paga na hora. NF-e em todo pedido.": "Choose the quantities, shipping is calculated from your CEP (postal code) and you pay right away. NF-e invoice on every order.",
+    "PASSO 02": "STEP 02",
+    "Produzimos em até 10 dias úteis": "We produce within 10 business days",
+    "Cada unidade sai com identificação única gravada no chip e vinculada ao QR Code.": "Each unit ships with a unique ID written to the chip and linked to the QR Code.",
+    "PASSO 03": "STEP 03",
+    "Você recebe e revende": "You receive and resell",
+    "Os dispositivos chegam prontos para ativação. Sem configuração da sua parte.": "The devices arrive ready to activate. No setup needed on your end.",
+    "PASSO 04": "STEP 04",
+    "Seu cliente ativa": "Your customer activates",
+    "Ele encosta o celular, cria a conta e passa a administrar o próprio painel.": "They tap their phone, create an account and start managing their own dashboard.",
+    "Condições": "Terms",
+    "Sem letras miúdas.": "No fine print.",
+    "Somente pessoa jurídica": "Businesses only",
+    "É necessário CNPJ ativo para comprar no atacado.": "An active CNPJ (Brazilian company tax ID) is required to buy wholesale.",
+    "NF-e em todo pedido": "NF-e invoice on every order",
+    "Emitimos nota fiscal para o CNPJ informado.": "We issue the invoice to the CNPJ you provide.",
+    "Produção em até 10 dias úteis": "Production within 10 business days",
+    "Prazo contado da confirmação do pagamento, mais o transporte.": "Counted from payment confirmation, plus transit time.",
+    "Fazer um pedido": "Place an order",
+    "Pronto para começar?": "Ready to get started?",
+    "Razão social": "Legal company name",
+    "CNPJ": "CNPJ",
+    "Inscrição Estadual": "State Registration (IE)",
+    "Seu nome": "Your name",
+    "E-mail": "Email",
+    "WhatsApp": "WhatsApp",
+    "Número": "Number",
+    "Endereço": "Address",
+    "Bairro": "Neighborhood",
+    "Cidade": "City",
+    "Estado (UF)": "State (UF)",
+    "Quantidades": "Quantities",
+    "R$ 13,90 por unidade": "R$ 13,90 per unit",
+    "R$ 32,90 por unidade": "R$ 32,90 per unit",
+    "R$ 22,90 por unidade": "R$ 22,90 per unit",
+    "Observações (opcional)": "Notes (optional)",
+    "Seu pedido": "Your order",
+    "O cálculo é atualizado automaticamente.": "The total updates automatically.",
+    "Nenhum item ainda.": "No items yet.",
+    "Total": "Total",
+    "R$ 0,00": "R$ 0,00",
+    "Faltam R$ 2.000,00 para atingir o pedido mínimo.": "R$ 2.000,00 to go to reach the minimum order.",
+    "Ir para o pagamento": "Go to payment",
+    "O frete é calculado pelo CEP e some no total antes do pagamento. Nota fiscal em todo pedido.": "Shipping is calculated from the CEP and added to the total before payment. Invoice on every order.",
+    "Perguntas frequentes": "Frequently asked questions",
+    "Dúvidas antes de começar?": "Questions before you start?",
+    "Preciso pagar alguma coisa para revender?": "Do I have to pay anything to become a reseller?",
+    "Não. Não há taxa de adesão, mensalidade nem exclusividade. Você compra os dispositivos e revende pelo preço que quiser.": "No. There's no sign-up fee, no monthly fee and no exclusivity. You buy the devices and resell them at whatever price you want.",
+    "O sistema é mesmo vitalício?": "Is the system really for life?",
+    "Quem dá suporte ao cliente final?": "Who supports the end customer?",
+    "A ativação é feita pelo próprio cliente e o suporte da plataforma é da StarTouch. Você cuida da venda; a plataforma cuida do resto.": "The customer activates the device on their own, and platform support is provided by StarTouch (in Portuguese). You handle the sale; the platform handles the rest.",
+    "Como funciona o frete?": "How does shipping work?",
+    "Qual o prazo total até eu receber?": "How long until I receive my order?",
+    "Pronto para crescer com a StarTouch?": "Ready to grow with StarTouch?",
+    "Montar meu pedido": "Build my order",
+    "StarTouch · Revenda exclusiva para pessoa jurídica": "StarTouch · Reselling for businesses only",
+    "Termos": "Terms",
+    "Privacidade": "Privacy",
+    "Pedido mínimo atingido.": "Minimum order reached.",
+    "Você paga produtos + frete agora. A NF-e sai em nome do CNPJ informado.": "You pay for products + shipping now. The NF-e invoice is issued to the CNPJ you provided.",
+    "Enviar solicitação": "Send request",
+    "Esse pedido precisa de frete fechado na mão. Envie a solicitação e respondemos com o valor em até um dia útil.": "This order needs a manual shipping quote. Send the request and we'll reply with the price within one business day.",
+    "Informe o CEP de entrega para calcular o frete.": "Enter the delivery CEP to calculate shipping.",
+    "buscando…": "searching…",
+    "não encontrado": "not found",
+    "Frete e prazo": "Shipping and delivery time",
+    "prazo sob consulta": "delivery time on request",
+    "Calculando o frete…": "Calculating shipping…",
+    "Abrindo o pagamento…": "Opening payment…",
+    "Enviando…": "Sending…",
+    "Não consegui enviar agora.": "Couldn't send right now.",
+    "Pedido recebido. Respondemos com o frete, o prazo e a nota fiscal em até um dia útil, no e-mail e no WhatsApp informados.": "Order received. We'll reply with the shipping cost, delivery time and invoice within one business day, by the email and WhatsApp you provided.",
+    "Pedido enviado": "Order sent",
+    "Pedido registrado. Estamos confirmando o pagamento — você recebe um e-mail assim que der tudo certo.": "Order registered. We're confirming your payment — you'll get an email as soon as everything goes through.",
+    "Pagamento confirmado. A nota fiscal e o código de rastreio chegam no e-mail informado — a produção leva 10 dias úteis e o prazo da transportadora começa depois da postagem.": "Payment confirmed. The invoice and tracking code will arrive at the email you provided — production takes 10 business days and the carrier's delivery time starts after dispatch.",
+    "Boleto gerado — o pedido só entra em produção quando o pagamento compensar (1 a 3 dias úteis). O boleto foi enviado para o e-mail informado; guarde o link, é a única forma de concluir a compra.": "Boleto issued — the order only goes into production once the payment clears (1 to 3 business days). The boleto was sent to the email you provided; keep the link, it's the only way to complete the purchase.",
+    "Pagamento não concluído. Seu pedido continua aqui — é só calcular o frete e tentar de novo.": "Payment not completed. Your order is still here — just calculate shipping and try again."
+  },
+  "h": {
+    "Você já tem os clientes.Nós temos a tecnologia.Vamos crescer juntos.": "You already have the customers.<br>We have the technology.<br><span class=\"hlBlue\">Let's grow together.</span>",
+    "Revenda soluções StarTouch e leve aos seus clientes muito mais do que dispositivos NFC. Você oferece uma tecnologia que ajuda negócios a conquistar mais avaliações, acompanhar sua presença no Google, entender seus concorrentes e medir resultados — sem mensalidade obrigatória.": "Resell StarTouch solutions and give your customers much more than NFC devices. You offer technology that helps businesses win more reviews, track their presence on Google, understand their competitors and measure results — <strong>with no mandatory monthly fee</strong>.",
+    "Exclusivo para pessoa jurídica · Pedido mínimo de R$ 2.000 + frete": "For <strong>registered businesses</strong> only · Minimum order of <strong>R$ 2.000</strong> + shipping",
+    "Para quem revende, isso significa mais valor percebido, mais argumentos de venda e uma solução pronta para oferecer à sua carteira de clientes.": "For resellers, that means <strong>more perceived value, more selling points</strong> and a ready-made solution to offer your customer base.",
+    "Vitalício é vitalício. Seu cliente paga uma vez pelo dispositivo e nunca mais paga para usar o painel* — sem mensalidade, sem prazo, sem “primeiro ano grátis”. É uma promessa que você pode fazer sem medo.": "<strong>Lifetime means lifetime.</strong> Your customer pays once for the device and never pays again\n        to use the dashboard<sup>*</sup> — no monthly fee, no expiry, no “first year free”.\n        <strong>It's a promise you can make without worry.</strong>",
+    "* Exceto o StarTouch Pro, assinatura opcional com recursos adicionais. Nada do que já vem incluso depende dela.": "* Except <strong>StarTouch Pro</strong>, an optional subscription with additional features.\n        Nothing that's already included depends on it.",
+    "Monte seu pedido, informe o CEP e veja o frete na hora. Tudo é finalizado pelo site, com pagamento online e NF-e para o seu CNPJ.": "Build your order, enter your CEP (postal code) and see shipping instantly. <strong>Everything is completed on the website</strong>, with online payment and an NF-e invoice for your CNPJ.",
+    "Se a empresa for isenta, escreva ISENTO. É o que permite emitir a NF-e.": "If the company is exempt, write <b>ISENTO</b>. This is what lets us issue the NF-e invoice.",
+    "CEP de entrega": "Delivery CEP (postal code) <span id=\"cepStatus\" class=\"cepStatus\"></span>",
+    "Complemento (opcional)": "Address line 2 <span class=\"opc\">(optional)</span>",
+    "Sim, e não é uma questão de confiança: é como o produto foi feito. O dispositivo aponta para um endereço nosso que redireciona igual para todo mundo, com plano ou sem plano — nunca houve verificação de pagamento nesse caminho, então não existe o que desligar por falta dele. Não é teste de 30 dias nem promoção de primeiro ano. Existe um plano pago opcional, o Menu Inteligente, que o cliente contrata só se quiser; se nunca contratar, o dispositivo e o painel continuam funcionando do mesmo jeito. E não é só uma intenção nossa: está escrito no item 5.2 dos Termos de uso. O que já é seu continua seu — se algum recurso hoje gratuito passar para o plano pago um dia, a mudança vale só para dispositivos comprados depois dela. Quem já tem o seu não perde nada.": "Yes, and it's not a matter of trust: it's how the product was built. The device points to an address of ours that <strong>redirects the same way for everyone, with or without a plan</strong> — there has never been a payment check on that path, so there's nothing to switch off for lack of one. It's not a 30-day trial or a first-year promotion. There is an optional paid plan, the Smart Menu, which the customer signs up for only if they want to; if they never do, the device and the dashboard keep working exactly the same. <br><br>And it's not just our intention: it's written in <a href=\"/termos\" target=\"_blank\" rel=\"noopener\">section 5.2 of the Terms of Use</a>. <strong>What's already yours stays yours</strong> — if a feature that's free today ever moves to the paid plan, the change applies only to devices bought after it. Anyone who already has theirs loses nothing.",
+    "É calculado na hora da compra, pelo peso real do pedido e pelo CEP de entrega, com as transportadoras que atendem a sua região. Você escolhe o serviço e vê o valor somado ao total antes de pagar.": "It's calculated at checkout, based on the order's actual weight and the delivery CEP, with the carriers that serve your region. You choose the service and see the price added to the total <strong>before</strong> you pay.",
+    "São até 10 dias úteis de produção, contados da confirmação do pagamento, mais o prazo da transportadora. O prazo que aparece junto de cada opção de frete já soma os dois — é o tempo até chegar na sua porta, não só o do transporte.": "Up to 10 business days of production, counted from payment confirmation, plus the carrier's transit time. The time shown next to each shipping option <strong>already adds both</strong> — it's the time until it reaches your door, not just transit.",
+    "Monte seu primeiro pedido e leve aos seus clientes uma solução que combina produto físico e tecnologia, com recursos permanentes e sem mensalidade obrigatória.": "Build your first order and bring your customers a solution that combines a physical product and technology, with <strong>permanent features</strong> and no mandatory monthly fee."
+  },
+  "p": [
+    [
+      "^Cartão NFC × (\\d+)$",
+      "NFC Card × $1"
+    ],
+    [
+      "^Placa G × (\\d+)$",
+      "Stand L × $1"
+    ],
+    [
+      "^Placa M × (\\d+)$",
+      "Stand M × $1"
+    ],
+    [
+      "^Frete — (.+)$",
+      "Shipping — $1"
+    ],
+    [
+      "^Faltam (R\\$\\s?[\\d.,]+) para atingir o pedido mínimo de (R\\$\\s?[\\d.,]+)\\.$",
+      "$1 to go to reach the minimum order of $2."
+    ],
+    [
+      "^(.+) · (\\d+) dias úteis, já com a produção$",
+      "$1 · $2 business days, including production"
+    ],
+    [
+      "^(.+) · prazo sob consulta$",
+      "$1 · delivery time on request"
+    ],
+    [
+      "^Não consegui calcular o frete agora\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Couldn't calculate shipping right now. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Não consegui calcular o frete agora\\.$",
+      "Couldn't calculate shipping right now."
+    ],
+    [
+      "^Não consegui calcular o frete agora\\. Tente de novo em instantes\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Couldn't calculate shipping right now. Please try again in a moment. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Não consegui calcular o frete agora\\. Tente de novo em instantes\\.$",
+      "Couldn't calculate shipping right now. Please try again in a moment."
+    ],
+    [
+      "^O cálculo de frete está indisponível no momento\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Shipping calculation is unavailable right now. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^O cálculo de frete está indisponível no momento\\.$",
+      "Shipping calculation is unavailable right now."
+    ],
+    [
+      "^Informe um CEP válido, com 8 dígitos\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Enter a valid 8-digit CEP. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Informe um CEP válido, com 8 dígitos\\.$",
+      "Enter a valid 8-digit CEP."
+    ],
+    [
+      "^Nenhuma transportadora atende esse CEP\\. Confira o número ou fale com a gente\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "No carrier serves this CEP. Check the number or get in touch with us. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Nenhuma transportadora atende esse CEP\\. Confira o número ou fale com a gente\\.$",
+      "No carrier serves this CEP. Check the number or get in touch with us."
+    ],
+    [
+      "^Não consegui calcular o frete deste item\\. Fale com a gente\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Couldn't calculate shipping for this item. Please get in touch. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Não consegui calcular o frete deste item\\. Fale com a gente\\.$",
+      "Couldn't calculate shipping for this item. Please get in touch."
+    ],
+    [
+      "^Confira o CEP informado\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Check the CEP you entered. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Confira o CEP informado\\.$",
+      "Check the CEP you entered."
+    ],
+    [
+      "^Faltou preencher um dos campos obrigatórios\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "One of the required fields is missing. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Faltou preencher um dos campos obrigatórios\\.$",
+      "One of the required fields is missing."
+    ],
+    [
+      "^Confira o e-mail informado\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Check the email you entered. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Confira o e-mail informado\\.$",
+      "Check the email you entered."
+    ],
+    [
+      "^Esse CNPJ não confere\\. A revenda é somente para pessoa jurídica\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "This CNPJ doesn't check out. Reselling is for businesses only. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Esse CNPJ não confere\\. A revenda é somente para pessoa jurídica\\.$",
+      "This CNPJ doesn't check out. Reselling is for businesses only."
+    ],
+    [
+      "^Informe a Inscrição Estadual \\(só os números\\) ou escreva ISENTO, se a empresa não tiver\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Enter the State Registration (numbers only) or write ISENTO if the company doesn't have one. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Informe a Inscrição Estadual \\(só os números\\) ou escreva ISENTO, se a empresa não tiver\\.$",
+      "Enter the State Registration (numbers only) or write ISENTO if the company doesn't have one."
+    ],
+    [
+      "^Preencha o endereço de entrega completo: rua, número, bairro e cidade\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Fill in the full delivery address: street, number, neighborhood and city. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Preencha o endereço de entrega completo: rua, número, bairro e cidade\\.$",
+      "Fill in the full delivery address: street, number, neighborhood and city."
+    ],
+    [
+      "^Informe o estado com duas letras \\(ex\\.: SP\\)\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Enter the state as two letters (e.g. SP). You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Informe o estado com duas letras \\(ex\\.: SP\\)\\.$",
+      "Enter the state as two letters (e.g. SP)."
+    ],
+    [
+      "^Escolha ao menos um produto\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Choose at least one product. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Escolha ao menos um produto\\.$",
+      "Choose at least one product."
+    ],
+    [
+      "^O frete que você escolheu não está mais disponível\\. Calcule de novo, por favor\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "The shipping option you chose is no longer available. Please calculate again. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^O frete que você escolheu não está mais disponível\\. Calcule de novo, por favor\\.$",
+      "The shipping option you chose is no longer available. Please calculate again."
+    ],
+    [
+      "^Não consegui abrir o pagamento agora\\. Tente de novo em instantes\\. Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "Couldn't open payment right now. Please try again in a moment. You can still send the request and we'll reply with the price."
+    ],
+    [
+      "^Não consegui abrir o pagamento agora\\. Tente de novo em instantes\\.$",
+      "Couldn't open payment right now. Please try again in a moment."
+    ],
+    [
+      "^Esse pedido passa de (\\d+) kg e vai em mais de uma caixa — o frete precisa ser fechado na mão\\. Envie a solicitação que respondemos com o valor\\.$",
+      "This order is over $1 kg and ships in more than one box — shipping has to be quoted manually. Send the request and we'll reply with the price."
+    ],
+    [
+      "^Esse pedido passa de (\\d+) kg\\. Envie a solicitação e fechamos o frete na mão\\.$",
+      "This order is over $1 kg. Send the request and we'll quote shipping manually."
+    ],
+    [
+      "^O pedido mínimo é (R\\$\\s?[\\d.,]+) sem o frete\\. Faltam (R\\$\\s?[\\d.,]+)\\.$",
+      "The minimum order is $1 excluding shipping. $2 to go."
+    ],
+    [
+      "^(.+) Você ainda pode enviar a solicitação e a gente responde com o valor\\.$",
+      "$1 You can still send the request and we'll reply with the price."
+    ]
+  ]
+}

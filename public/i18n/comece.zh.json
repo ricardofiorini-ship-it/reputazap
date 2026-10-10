@@ -1,0 +1,53 @@
+{
+  "t": {
+    "Seu link já está pronto — StarTouch": "你的链接已准备好 — StarTouch",
+    "StarTouch — voltar pro início": "StarTouch — 返回首页",
+    "StarTouch": "StarTouch",
+    "StarTouch · WhatsApp (11) 97694-4026": "StarTouch · WhatsApp (11) 97694-4026",
+    "Falar com StarTouch no WhatsApp (11) 97694-4026": "通过 WhatsApp (11) 97694-4026 联系 StarTouch",
+    "Carregando seu negócio…": "正在加载你的店铺…",
+    "Seu link já está pronto": "你的链接已准备好",
+    "Seu sistema de avaliação já está ativo. Você pode começar a receber avaliações agora mesmo.": "你的评价系统已上线，现在就可以开始收集评价。",
+    "Seu negócio": "你的店铺",
+    "Ativo": "已激活",
+    "Link de avaliação": "评价链接",
+    "Copiar meu link": "复制我的链接",
+    "Baixar QR Code": "下载二维码",
+    "Ver simulação": "查看预览",
+    "Seu dispositivo já está ativo": "你的设备已激活",
+    "Comece compartilhando este link no WhatsApp, redes sociais ou no balcão da loja.": "先把这个链接分享到 WhatsApp、社交媒体，或放在店铺柜台上。",
+    "Ir para o painel →": "进入控制面板 →",
+    "Link copiado!": "链接已复制！",
+    "✓ Link copiado": "✓ 链接已复制",
+    "QR Code aberto em nova aba": "二维码已在新标签页打开"
+  },
+  "h": {
+    "Ele leva ao mesmo lugar que o link acima. A diferença: os toques no dispositivo aparecem no seu painel, e o link acima não conta toque — ele é para divulgar no WhatsApp, nas redes e no site.": "它和上面的链接通往<strong>同一个地方</strong>。区别在于：\n        设备上的每次触碰都会显示在你的控制面板中，而上面的链接不计算触碰次数——\n        它用于在 WhatsApp、社交媒体和网站上分享。"
+  },
+  "p": [
+    [
+      "^Seu cartão NFC já está ativo$",
+      "你的NFC 卡片已激活"
+    ],
+    [
+      "^Seu placa de balcão já está ativo$",
+      "你的柜台立牌已激活"
+    ],
+    [
+      "^Seu placa de mesa já está ativo$",
+      "你的桌面立牌已激活"
+    ],
+    [
+      "^Seu pulseira NFC já está ativo$",
+      "你的NFC 手环已激活"
+    ],
+    [
+      "^Seu adesivo NFC já está ativo$",
+      "你的NFC 贴纸已激活"
+    ],
+    [
+      "^Seus (d+) dispositivos já estão ativos$",
+      "你的 $1 个设备已激活"
+    ]
+  ]
+}

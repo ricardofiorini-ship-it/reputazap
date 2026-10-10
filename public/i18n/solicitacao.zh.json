@@ -1,0 +1,60 @@
+{
+  "t": {
+    "Solicitação de titular de dados — StarTouch": "数据主体请求 — StarTouch",
+    "Exerça seus direitos previstos no Art. 18 da LGPD: confirmação, acesso, correção, eliminação, portabilidade ou revogação de consentimento.": "行使 LGPD（巴西《通用数据保护法》）第 18 条规定的权利：确认、访问、更正、删除、可携带或撤回同意。",
+    "StarTouch — início": "StarTouch — 首页",
+    "StarTouch": "StarTouch",
+    "voce@exemplo.com": "you@example.com",
+    "Ver minha presença grátis": "免费查看我的线上曝光",
+    "Solicitação de titular de dados": "数据主体请求",
+    "A LGPD garante a você o direito de saber, corrigir e eliminar seus dados pessoais. Preencha abaixo e responderemos em até 15 dias, conforme o Art. 18.": "LGPD（巴西《通用数据保护法》）保障你了解、更正和删除个人数据的权利。请填写以下表格，我们将根据第 18 条在 15 天内答复。",
+    "O que você quer solicitar": "你想提出什么请求",
+    "Selecione…": "请选择…",
+    "Confirmar se vocês tratam dados meus": "确认你们是否处理我的数据",
+    "Acessar os dados que vocês têm sobre mim": "访问你们持有的关于我的数据",
+    "Corrigir dados incompletos ou desatualizados": "更正不完整或过时的数据",
+    "Eliminar meus dados": "删除我的数据",
+    "Portabilidade dos dados": "数据可携带",
+    "Revogar meu consentimento": "撤回我的同意",
+    "Seu e-mail": "你的邮箱",
+    "Use o mesmo e-mail relacionado aos dados. Podemos pedir informações adicionais para confirmar sua identidade antes de executar qualquer alteração.": "请使用与数据相关的同一邮箱。在执行任何更改之前，我们可能会要求你提供额外信息以确认身份。",
+    "Ex.: sou autor de uma avaliação no Google e quero que a cópia em cache seja eliminada.": "例如：我在 Google 上写过一条评价，希望删除其缓存副本。",
+    "Enviar solicitação": "提交请求",
+    "Enviando…": "正在提交…",
+    "Como funciona": "处理流程",
+    "Nada é alterado automaticamente: toda eliminação passa por conferência humana.": "不会自动更改任何内容：每项删除均经人工核查。",
+    "Escolha o tipo de solicitação.": "请选择请求类型。",
+    "Informe um e-mail válido.": "请输入有效的邮箱地址。",
+    "Não foi possível enviar. Tente de novo.": "提交失败，请重试。",
+    "Solicitação registrada.": "请求已登记。",
+    "Erro de conexão. Tente de novo.": "网络连接错误，请重试。"
+  },
+  "h": {
+    "Política de Privacidade · Solicitação": "<a href=\"/privacidade\">隐私政策</a> · 请求",
+    "Seu nome (opcional)": "你的姓名 <span style=\"font-weight:400;color:#5F6368;\">（选填）</span>",
+    "Detalhes (opcional)": "详细说明 <span style=\"font-weight:400;color:#5F6368;\">（选填）</span>",
+    "Você recebe um protocolo por e-mail assim que a solicitação é registrada.": "请求一经登记，你将<strong>通过邮件收到受理编号</strong>。",
+    "O prazo de 15 dias começa a correr da data da solicitação.": "<strong>15 天</strong>的期限自提出请求之日起计算。",
+    "Prefere escrever? privacidade@startouch.com.br — Encarregado: Ricardo Fiorini.": "更愿意写信？<a href=\"mailto:privacidade@startouch.com.br\">privacidade@startouch.com.br</a> — 数据保护负责人：Ricardo Fiorini。",
+    "© StarTouch — Início · Privacidade · Termos · Preferências de cookies": "© StarTouch — <a href=\"/\">首页</a> · <a href=\"/privacidade\">隐私</a> · <a href=\"/termos\">条款</a> · <a href=\"#\" onclick=\"window.stConsent&&window.stConsent.abrir();return false;\">Cookie 偏好设置</a>"
+  },
+  "p": [],
+  "px": [
+    [
+      "^Solicitação registrada\\. Se houver dados associados a este e-mail, responderemos em até 15 dias, conforme o Art\\. 18 da LGPD\\.$",
+      "请求已登记。如果有与此电子邮箱相关的数据，我们将依据 LGPD（巴西《通用数据保护法》）第 18 条，在 15 天内回复。"
+    ],
+    [
+      "^Informe um e-mail válido\\.$",
+      "请输入有效的电子邮箱。"
+    ],
+    [
+      "^Escolha o tipo de solicitação\\.$",
+      "请选择请求类型。"
+    ],
+    [
+      "^Não foi possível registrar agora\\. Tente de novo ou escreva para privacidade@startouch\\.com\\.br\\.$",
+      "暂时无法登记。请重试，或发送邮件至 privacidade@startouch.com.br。"
+    ]
+  ]
+}

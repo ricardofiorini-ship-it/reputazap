@@ -1,0 +1,122 @@
+{
+ "t": {
+  "Diagnóstico — StarTouch": "诊断 — StarTouch",
+  "Veja a presença do seu negócio no Google, quem está na sua frente na sua categoria e quanto falta pra subir. Grátis.": "查看你的店铺在 Google 上的曝光、同类别中谁排在你前面，以及离上升还差多少。免费。",
+  "StarTouch": "StarTouch",
+  "Ex: Pizzaria do João": "例如：老王披萨店",
+  "Ex: São Paulo ou 04567-000": "例如：São Paulo 或 04567-000",
+  "Ex: loja de bicicletas": "例如：自行车店",
+  "Ex: produtos de limpeza": "例如：清洁用品",
+  "Falar no WhatsApp": "通过 WhatsApp 联系",
+  "Começar grátis": "免费开始",
+  "Onde seu negócio está no Google?": "你的店铺在 Google 上排第几？",
+  "Veja onde você aparece no ranking da sua categoria, quem está na sua frente e quanto falta pra subir — de graça, em segundos.": "查看你在同类别中的排名、谁排在你前面，以及离上升还差多少——免费，几秒出结果。",
+  "Nome do negócio": "店铺名称",
+  "🔍 Ver meu diagnóstico": "🔍 查看我的诊断",
+  "Analisando seu negócio…": "正在分析你的店铺…",
+  "Buscando sua posição e seus concorrentes no Google.": "正在 Google 上查找你的排名和竞争对手。",
+  "📍 Raio:": "📍 范围：",
+  "1 km": "1 km",
+  "3 km": "3 km",
+  "Nota no Google": "Google 评分",
+  "Avaliações": "评价",
+  "Ranking de quem busca": "搜索词排名：",
+  "É assim que seus clientes te procuram?": "顾客是这样搜索你的吗？",
+  "Se não, ajuste o termo:": "如果不是，请调整搜索词：",
+  "Recalcular": "重新计算",
+  "🎯 Como subir": "🎯 如何提升排名",
+  "Quero subir no ranking — criar conta grátis": "我要提升排名——免费创建账户",
+  "Grátis pra sempre no plano free. Ative uma placa e comece a coletar avaliações.": "免费版永久免费。激活一个设备，开始收集评价。",
+  "Diagnosticar outro negócio": "诊断其他店铺",
+  "Não encontramos seu negócio": "没有找到你的店铺",
+  "Confira o nome ou tente adicionar a cidade.": "请检查名称，或尝试加上城市。",
+  "Ver diagnóstico": "查看诊断",
+  "← Buscar de novo": "← 重新搜索",
+  "Você já viu 3 diagnósticos hoje": "你今天已查看 3 次诊断",
+  "Crie sua conta grátis pra continuar analisando negócios. Leva 1 minuto e é de graça pra sempre no plano free.": "免费创建账户即可继续分析店铺。只需 1 分钟，免费版永久免费。",
+  "Criar conta grátis →": "免费创建账户 →",
+  "← Voltar": "← 返回",
+  "Buscando…": "正在搜索…",
+  "Nada encontrado. Tente o nome completo ou adicione a cidade.": "没有结果。请尝试完整名称，或加上城市。",
+  "👇 Toque no seu negócio pra ver o diagnóstico": "👇 点击你的店铺查看诊断",
+  "Erro ao buscar. Tente de novo.": "搜索出错，请重试。",
+  "Não conseguimos analisar": "无法完成分析",
+  "Tente novamente em instantes ou busque outro negócio.": "请稍后再试，或搜索其他店铺。",
+  "Não achamos concorrentes pra esse termo": "该搜索词下没有找到竞争对手",
+  "Erro ao gerar diagnóstico": "生成诊断出错",
+  "Tente novamente em instantes.": "请稍后再试。",
+  "Seu negócio": "你的店铺",
+  "categoria geral": "通用类别",
+  "🎯 Você está invisível pra esse termo": "🎯 在这个搜索词下你是隐形的",
+  "Quando alguém busca": "当有人搜索",
+  ", você não aparece — e quem aparece está levando esses clientes (75% visitam um negócio em 24h). Coletar avaliações é o primeiro passo pra entrar no mapa.": "时，你不会出现——出现的商家正在拿走这些顾客（75% 的人会在 24 小时内到店）。收集评价是登上地图的第一步。",
+  "🏆 Você lidera!": "🏆 你排名第一！",
+  "Você é o nº 1 quando buscam": "你排名第一，搜索词：",
+  ". É a melhor posição pra capturar quem decide na hora — quem para de coletar avaliações acaba ultrapassado.": "。这是抓住即时决策顾客的最佳位置——停止收集评价的商家终将被超越。",
+  "🎯 Como subir uma posição": "🎯 如何上升一个名次",
+  "Há": "有",
+  "na sua frente quando buscam": "排在你前面，搜索词：",
+  ". A primeira acima tem ~": "。排在你上一位的店铺多了约",
+  "a mais — e cada posição que sobe captura mais clientes (75% visitam em 24h).": "——每上升一个名次，就能抓住更多顾客（75% 的人会在 24 小时内到店）。",
+  "VOCÊ": "你",
+  "Você": "你",
+  "Empresa concorrente": "竞争店铺"
+ },
+ "h": {
+  "Diagnóstico gratuito": "<span class=\"badge-dot\"></span>免费诊断",
+  "Cidade ou CEP (opcional, ajuda a achar a unidade certa)": "城市或 CEP（邮政编码）<span style=\"font-weight:400;color:#9AA0A6;\">（选填，有助于找到正确的门店）</span>",
+  "Seu diagnóstico": "<span class=\"badge-dot\"></span>你的诊断",
+  "📍 46% das buscas no Google são locais · 75% de quem busca \"perto de mim\" visita um negócio em 24h": "📍 <strong>46%</strong> 的 Google 搜索是本地搜索 · 搜索“附近”的人中有 <strong>75%</strong> 会在 <strong>24 小时</strong>内到店",
+  "Ranking da sua categoria · 🔒 nomes ocultos": "同类别排名 <span style=\"font-weight:400;color:#9AA0A6;text-transform:none;letter-spacing:0;\">· 🔒 名称已隐藏</span>"
+ },
+ "p": [
+  [
+   "^⭐ (\\S+) · (\\d+) avaliações$",
+   "⭐ $1 · $2 条评价"
+  ],
+  [
+   "^Achamos (.+), mas não encontramos concorrentes em a categoria detectada\\. Diga o que seu cliente digita pra te achar no Google e tente de novo:$",
+   "我们找到了 $1，但在识别出的类别中没有找到竞争对手。请告诉我们顾客在 Google 上搜什么来找你，然后再试一次："
+  ],
+  [
+   "^Achamos (.+), mas não encontramos concorrentes em (.+)\\. Diga o que seu cliente digita pra te achar no Google e tente de novo:$",
+   "我们找到了 $1，但在 $2 下没有找到竞争对手。请告诉我们顾客在 Google 上搜什么来找你，然后再试一次："
+  ],
+  [
+   "^de (\\d+) quando buscam \"(.+) perto de mim\"$",
+   "共 $1 家，搜索“附近的$2”时"
+  ],
+  [
+   "^Você não aparece quando buscam \"(.+) perto de mim\" por aqui$",
+   "附近有人搜索“附近的$1”时，你不会出现"
+  ],
+  [
+   "^\"(.+) perto de mim\"$",
+   "“附近的$1”"
+  ],
+  [
+   "^1 empresa$",
+   "1 家店铺"
+  ],
+  [
+   "^(\\d+) empresas$",
+   "$1 家店铺"
+  ],
+  [
+   "^1 avaliação$",
+   "1 条评价"
+  ],
+  [
+   "^(\\d+) avaliações$",
+   "$1 条评价"
+  ],
+  [
+   "^na sua frente\\. Coletar mais avaliações ajuda a subir e capturar quem busca \"(.+) perto de mim\"\\.$",
+   "排在你前面。收集更多评价能帮你提升排名，抓住搜索“附近的$1”的顾客。"
+  ],
+  [
+   "^fora do top (\\d+)$",
+   "未进前 $1 名"
+  ]
+ ]
+}
