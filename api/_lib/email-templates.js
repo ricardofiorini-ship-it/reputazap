@@ -734,7 +734,7 @@ export function deviceUnlinkedEmail({ userName, bizName, code, channelName, prod
       headerColor: "#B91C1C",
       body: `
         <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
-          ${name}, seu ${escapeHtml(produto.toLowerCase())} voltou pra configuração de fábrica
+          ${name}, ${/^(placa|pulseira)/i.test(produto) ? "sua" : "seu"} ${escapeHtml(produto.toLowerCase())} voltou pra configuração de fábrica
         </h1>
         <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 16px;">
           Ele saiu de <strong>${biz}</strong> e não aparece mais no seu painel.
@@ -891,18 +891,23 @@ export function assinaturaCobradaEmail({ userName, valorCentavos, proximaCobranc
 
 export function testeTerminandoEmail({ userName, valorCentavos, fimDoTeste, semCartao = false }) {
   const name = escapeHtml(userName?.split(" ")[0] || "tudo bem?");
-  const fim = dataPt(fimDoTeste) || "em poucos dias";
+  // Sem data, a frase não pode virar "termina em em poucos dias" (era assim
+  // até 10/10/2026): a preposição anda junto com a data.
+  const data = dataPt(fimDoTeste);
+  const fim = data ? `em ${data}` : "em poucos dias";          // "termina em 12/10/2026"
+  const Fim = data ? `Em ${data}` : "Em poucos dias";          // começo de frase
+  const antesDoFim = data ? `antes de ${data}` : "nos próximos dias";
   // TESTE SEM CARTÃO (07/10/2026): aqui não há cobrança a anunciar — há um
   // prazo. O e-mail diz o que acontece se ele não fizer nada (o menu sai do
   // ar, nada é cobrado) e onde pôr o cartão pra continuar.
   if (semCartao) return {
-    subject: `Seu teste grátis do Menu termina em ${fim} — cadastre o cartão pra continuar`,
+    subject: `Seu teste grátis do Menu termina ${fim} — cadastre o cartão pra continuar`,
     html: shell({
       title: "TESTE GRÁTIS TERMINANDO",
       headerColor: "#B45309",
       body: `
         <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
-          ${name}, seu teste grátis termina em ${fim}
+          ${name}, seu teste grátis termina ${fim}
         </h1>
         <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
           Pra o Menu Inteligente continuar no ar depois disso, cadastre um cartão no painel.
@@ -910,7 +915,7 @@ export function testeTerminandoEmail({ userName, valorCentavos, fimDoTeste, semC
         </p>
         <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:16px 18px;margin:14px 0;">
           <p style="font-size:14px;color:#92400E;line-height:1.6;margin:0;">
-            <strong>Se não cadastrar, nada é cobrado.</strong> Em ${fim} seus dispositivos voltam a levar
+            <strong>Se não cadastrar, nada é cobrado.</strong> ${Fim} seus dispositivos voltam a levar
             direto à avaliação no Google e seu menu fica guardado, pronto pra voltar quando quiser.
           </p>
         </div>
@@ -919,13 +924,13 @@ export function testeTerminandoEmail({ userName, valorCentavos, fimDoTeste, semC
     })
   };
   return {
-    subject: `Seu teste grátis do StarTouch Pro termina em ${fim}`,
+    subject: `Seu teste grátis do StarTouch Pro termina ${fim}`,
     html: shell({
       title: "TESTE GRÁTIS TERMINANDO",
       headerColor: "#B45309",
       body: `
         <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
-          ${name}, seu teste grátis termina em ${fim}
+          ${name}, seu teste grátis termina ${fim}
         </h1>
         <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 14px;">
           Nesse dia entra a primeira mensalidade de <strong style="color:#202124;">${reais(valorCentavos)}</strong>
@@ -933,7 +938,7 @@ export function testeTerminandoEmail({ userName, valorCentavos, fimDoTeste, semC
         </p>
         <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:16px 18px;margin:14px 0;">
           <p style="font-size:14px;color:#92400E;line-height:1.6;margin:0;">
-            <strong>Não quer continuar?</strong> Cancele antes de ${fim} e não é cobrado nada.
+            <strong>Não quer continuar?</strong> Cancele ${antesDoFim} e não é cobrado nada.
             Seus dispositivos voltam a levar direto ao Google e seu menu fica guardado.
           </p>
         </div>
@@ -1218,7 +1223,9 @@ export function weeklyTipEmail({ tip, unsubUrl, articleUrl }) {
 // contexto curto + CTA + preview de 1 pendência real (+ "e mais N-1").
 // ─────────────────────────────────────────────────────────────
 export function planoTrabalhoEmail({ empresa, pendencias, code, checklistItem, unsubUrl }) {
-  const nome = escapeHtml(empresa || "seu negócio");
+  // "sua empresa" e não "seu negócio": o texto diz "o plano da ${nome}" e
+  // "a presença da ${nome}" — com "seu negócio" saía "da seu negócio".
+  const nome = escapeHtml(empresa || "sua empresa");
   const nomeAssunto = empresa || "sua empresa";
   const n = Number(pendencias) || 0;
   const link = `https://startouch.com.br/radar/plano?code=${encodeURIComponent(code || "")}&origem=email`;

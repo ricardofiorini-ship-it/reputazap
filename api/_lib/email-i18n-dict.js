@@ -215,15 +215,15 @@ export default {
    "no cartão que você cadastrou, e o Menu Inteligente segue funcionando sem você fazer nada.": "will be charged to the card you added, and the Smart Menu keeps working without you doing anything.",
    "Não quer continuar?": "Don't want to continue?",
    "Ver minha assinatura →": "View my subscription →",
-   "Seu teste grátis do StarTouch Pro termina em em poucos dias": "Your StarTouch Pro free trial ends in a few days",
-   "tudo bem?, seu teste grátis termina em em poucos dias": "Your free trial ends in a few days",
-   "Cancele antes de em poucos dias e não é cobrado nada. Seus dispositivos voltam a levar direto ao Google e seu menu fica guardado.": "Cancel within the next few days and you won't be charged anything. Your devices go back to leading straight to Google and your menu stays saved.",
+   "Seu teste grátis do StarTouch Pro termina em poucos dias": "Your StarTouch Pro free trial ends in a few days",
+   "tudo bem?, seu teste grátis termina em poucos dias": "Your free trial ends in a few days",
+   "Cancele nos próximos dias e não é cobrado nada. Seus dispositivos voltam a levar direto ao Google e seu menu fica guardado.": "Cancel within the next few days and you won't be charged anything. Your devices go back to leading straight to Google and your menu stays saved.",
    "Pra o Menu Inteligente continuar no ar depois disso, cadastre um cartão no painel. A mensalidade é de": "To keep the Smart Menu live after that, add a card in the dashboard. The monthly fee is",
    ", sem fidelidade.": ", no commitment.",
    "Se não cadastrar, nada é cobrado.": "If you don't add one, nothing is charged.",
    "Cadastrar meu cartão →": "Add my card →",
-   "Seu teste grátis do Menu termina em em poucos dias — cadastre o cartão pra continuar": "Your Menu free trial ends in a few days — add a card to continue",
-   "Em em poucos dias seus dispositivos voltam a levar direto à avaliação no Google e seu menu fica guardado, pronto pra voltar quando quiser.": "In a few days your devices will go back to leading straight to your Google review page, and your menu will stay saved, ready to come back whenever you want.",
+   "Seu teste grátis do Menu termina em poucos dias — cadastre o cartão pra continuar": "Your Menu free trial ends in a few days — add a card to continue",
+   "Em poucos dias seus dispositivos voltam a levar direto à avaliação no Google e seu menu fica guardado, pronto pra voltar quando quiser.": "In a few days your devices will go back to leading straight to your Google review page, and your menu will stay saved, ready to come back whenever you want.",
    "Sua assinatura do StarTouch Pro foi encerrada": "Your StarTouch Pro subscription has ended",
    "ASSINATURA ENCERRADA": "SUBSCRIPTION ENDED",
    "Sua assinatura chegou ao fim. Não haverá novas cobranças.": "Your subscription has come to an end. There will be no further charges.",
@@ -269,8 +269,8 @@ export default {
    "segurando a sua visibilidade — e listamos, item por item, o que precisa ser feito.": "holding back your visibility — and listed, item by item, what needs to be done.",
    "Ver meu plano de trabalho →": "See my action plan →",
    "Não quer mais o resumo semanal?": "Don't want the weekly summary anymore?",
-   "O plano de trabalho da seu negócio está pronto": "Your business's action plan is ready",
-   "Testamos a presença da seu negócio nas inteligências artificiais (ChatGPT, Gemini, Perplexity).": "We tested how your business shows up in AI assistants (ChatGPT, Gemini, Perplexity).",
+   "O plano de trabalho da sua empresa está pronto": "Your business's action plan is ready",
+   "Testamos a presença da sua empresa nas inteligências artificiais (ChatGPT, Gemini, Perplexity).": "We tested how your business shows up in AI assistants (ChatGPT, Gemini, Perplexity).",
    "Sua nota no Google": "Your Google rating",
    "Total de avaliações": "Total reviews",
    "Novas nesta semana": "New this week",
@@ -433,7 +433,7 @@ export default {
     "Device $1 was unlinked from $2"
    ],
    [
-    "^(.+?), seu placa de balcão voltou pra configuração de fábrica$",
+    "^(.+?), sua placa de balcão voltou pra configuração de fábrica$",
     "$1, your Counter Stand has been reset to factory settings"
    ],
    [
@@ -441,15 +441,15 @@ export default {
     "It was called “$1” in your dashboard."
    ],
    [
-    "^(.+?), seu placa de mesa voltou pra configuração de fábrica$",
+    "^(.+?), sua placa de mesa voltou pra configuração de fábrica$",
     "$1, your Table Stand has been reset to factory settings"
    ],
    [
-    "^(.+?), seu placa de parede voltou pra configuração de fábrica$",
+    "^(.+?), sua placa de parede voltou pra configuração de fábrica$",
     "$1, your Wall Plaque has been reset to factory settings"
    ],
    [
-    "^(.+?), seu pulseira nfc voltou pra configuração de fábrica$",
+    "^(.+?), sua pulseira nfc voltou pra configuração de fábrica$",
     "$1, your NFC Wristband has been reset to factory settings"
    ],
    [
@@ -959,15 +959,15 @@ export default {
    "no cartão que você cadastrou, e o Menu Inteligente segue funcionando sem você fazer nada.": "en la tarjeta que registraste, y el Menú Inteligente sigue funcionando sin que hagas nada.",
    "Não quer continuar?": "¿No quieres continuar?",
    "Ver minha assinatura →": "Ver mi suscripción →",
-   "Seu teste grátis do StarTouch Pro termina em em poucos dias": "Tu prueba gratis de StarTouch Pro termina en pocos días",
-   "tudo bem?, seu teste grátis termina em em poucos dias": "Tu prueba gratis termina en pocos días",
-   "Cancele antes de em poucos dias e não é cobrado nada. Seus dispositivos voltam a levar direto ao Google e seu menu fica guardado.": "Cancela en los próximos días y no se te cobra nada. Tus dispositivos vuelven a llevar directo a Google y tu menú queda guardado.",
+   "Seu teste grátis do StarTouch Pro termina em poucos dias": "Tu prueba gratis de StarTouch Pro termina en pocos días",
+   "tudo bem?, seu teste grátis termina em poucos dias": "Tu prueba gratis termina en pocos días",
+   "Cancele nos próximos dias e não é cobrado nada. Seus dispositivos voltam a levar direto ao Google e seu menu fica guardado.": "Cancela en los próximos días y no se te cobra nada. Tus dispositivos vuelven a llevar directo a Google y tu menú queda guardado.",
    "Pra o Menu Inteligente continuar no ar depois disso, cadastre um cartão no painel. A mensalidade é de": "Para que el Menú Inteligente siga activo después de eso, registra una tarjeta en el panel. La mensualidad es de",
    ", sem fidelidade.": ", sin permanencia.",
    "Se não cadastrar, nada é cobrado.": "Si no la registras, no se cobra nada.",
    "Cadastrar meu cartão →": "Registrar mi tarjeta →",
-   "Seu teste grátis do Menu termina em em poucos dias — cadastre o cartão pra continuar": "Tu prueba gratis del Menú termina en pocos días — registra tu tarjeta para continuar",
-   "Em em poucos dias seus dispositivos voltam a levar direto à avaliação no Google e seu menu fica guardado, pronto pra voltar quando quiser.": "En pocos días tus dispositivos volverán a llevar directo a la reseña en Google y tu menú quedará guardado, listo para volver cuando quieras.",
+   "Seu teste grátis do Menu termina em poucos dias — cadastre o cartão pra continuar": "Tu prueba gratis del Menú termina en pocos días — registra tu tarjeta para continuar",
+   "Em poucos dias seus dispositivos voltam a levar direto à avaliação no Google e seu menu fica guardado, pronto pra voltar quando quiser.": "En pocos días tus dispositivos volverán a llevar directo a la reseña en Google y tu menú quedará guardado, listo para volver cuando quieras.",
    "Sua assinatura do StarTouch Pro foi encerrada": "Tu suscripción de StarTouch Pro terminó",
    "ASSINATURA ENCERRADA": "SUSCRIPCIÓN TERMINADA",
    "Sua assinatura chegou ao fim. Não haverá novas cobranças.": "Tu suscripción llegó a su fin. No habrá nuevos cobros.",
@@ -1013,8 +1013,8 @@ export default {
    "segurando a sua visibilidade — e listamos, item por item, o que precisa ser feito.": "que frenan tu visibilidad — y enumeramos, punto por punto, lo que hay que hacer.",
    "Ver meu plano de trabalho →": "Ver mi plan de trabajo →",
    "Não quer mais o resumo semanal?": "¿Ya no quieres el resumen semanal?",
-   "O plano de trabalho da seu negócio está pronto": "El plan de trabajo de tu negocio está listo",
-   "Testamos a presença da seu negócio nas inteligências artificiais (ChatGPT, Gemini, Perplexity).": "Probamos la presencia de tu negocio en las inteligencias artificiales (ChatGPT, Gemini, Perplexity).",
+   "O plano de trabalho da sua empresa está pronto": "El plan de trabajo de tu negocio está listo",
+   "Testamos a presença da sua empresa nas inteligências artificiais (ChatGPT, Gemini, Perplexity).": "Probamos la presencia de tu negocio en las inteligencias artificiales (ChatGPT, Gemini, Perplexity).",
    "Sua nota no Google": "Tu calificación en Google",
    "Total de avaliações": "Total de reseñas",
    "Novas nesta semana": "Nuevas esta semana",
@@ -1177,7 +1177,7 @@ export default {
     "El dispositivo $1 fue desvinculado de $2"
    ],
    [
-    "^(.+?), seu placa de balcão voltou pra configuração de fábrica$",
+    "^(.+?), sua placa de balcão voltou pra configuração de fábrica$",
     "$1, tu Placa de Mostrador volvió a la configuración de fábrica"
    ],
    [
@@ -1185,15 +1185,15 @@ export default {
     "Se llamaba “$1” en tu panel."
    ],
    [
-    "^(.+?), seu placa de mesa voltou pra configuração de fábrica$",
+    "^(.+?), sua placa de mesa voltou pra configuração de fábrica$",
     "$1, tu Placa de Mesa volvió a la configuración de fábrica"
    ],
    [
-    "^(.+?), seu placa de parede voltou pra configuração de fábrica$",
+    "^(.+?), sua placa de parede voltou pra configuração de fábrica$",
     "$1, tu Placa de Pared volvió a la configuración de fábrica"
    ],
    [
-    "^(.+?), seu pulseira nfc voltou pra configuração de fábrica$",
+    "^(.+?), sua pulseira nfc voltou pra configuração de fábrica$",
     "$1, tu Pulsera NFC volvió a la configuración de fábrica"
    ],
    [
@@ -1703,15 +1703,15 @@ export default {
    "no cartão que você cadastrou, e o Menu Inteligente segue funcionando sem você fazer nada.": "（从你绑定的卡中扣款），智能菜单会继续运行，你无需做任何操作。",
    "Não quer continuar?": "不想继续？",
    "Ver minha assinatura →": "查看我的订阅 →",
-   "Seu teste grátis do StarTouch Pro termina em em poucos dias": "你的 StarTouch Pro 免费试用将在几天后结束",
-   "tudo bem?, seu teste grátis termina em em poucos dias": "你的免费试用将在几天后结束",
-   "Cancele antes de em poucos dias e não é cobrado nada. Seus dispositivos voltam a levar direto ao Google e seu menu fica guardado.": "在接下来几天内取消，就不会产生任何费用。你的设备会恢复为直接跳转到 Google，菜单也会被保留。",
+   "Seu teste grátis do StarTouch Pro termina em poucos dias": "你的 StarTouch Pro 免费试用将在几天后结束",
+   "tudo bem?, seu teste grátis termina em poucos dias": "你的免费试用将在几天后结束",
+   "Cancele nos próximos dias e não é cobrado nada. Seus dispositivos voltam a levar direto ao Google e seu menu fica guardado.": "在接下来几天内取消，就不会产生任何费用。你的设备会恢复为直接跳转到 Google，菜单也会被保留。",
    "Pra o Menu Inteligente continuar no ar depois disso, cadastre um cartão no painel. A mensalidade é de": "如果希望智能菜单之后继续在线，请在控制面板中绑定一张卡。月费为",
    ", sem fidelidade.": "，无最低期限。",
    "Se não cadastrar, nada é cobrado.": "如果不绑定，不会产生任何费用。",
    "Cadastrar meu cartão →": "绑定我的卡 →",
-   "Seu teste grátis do Menu termina em em poucos dias — cadastre o cartão pra continuar": "你的菜单免费试用将在几天后结束——绑定卡片即可继续使用",
-   "Em em poucos dias seus dispositivos voltam a levar direto à avaliação no Google e seu menu fica guardado, pronto pra voltar quando quiser.": "几天后，你的设备将恢复为直接跳转到 Google 评价页面，菜单会被保留，随时可以重新启用。",
+   "Seu teste grátis do Menu termina em poucos dias — cadastre o cartão pra continuar": "你的菜单免费试用将在几天后结束——绑定卡片即可继续使用",
+   "Em poucos dias seus dispositivos voltam a levar direto à avaliação no Google e seu menu fica guardado, pronto pra voltar quando quiser.": "几天后，你的设备将恢复为直接跳转到 Google 评价页面，菜单会被保留，随时可以重新启用。",
    "Sua assinatura do StarTouch Pro foi encerrada": "你的 StarTouch Pro 订阅已结束",
    "ASSINATURA ENCERRADA": "订阅已结束",
    "Sua assinatura chegou ao fim. Não haverá novas cobranças.": "你的订阅已到期，之后不会再扣款。",
@@ -1757,8 +1757,8 @@ export default {
    "segurando a sua visibilidade — e listamos, item por item, o que precisa ser feito.": "正在拖累你的曝光度——我们逐项列出了需要做的事。",
    "Ver meu plano de trabalho →": "查看我的行动计划 →",
    "Não quer mais o resumo semanal?": "不想再收到每周总结？",
-   "O plano de trabalho da seu negócio está pronto": "你的商家的行动计划已准备好",
-   "Testamos a presença da seu negócio nas inteligências artificiais (ChatGPT, Gemini, Perplexity).": "我们测试了你的商家在人工智能（ChatGPT、Gemini、Perplexity）中的出现情况。",
+   "O plano de trabalho da sua empresa está pronto": "你的商家的行动计划已准备好",
+   "Testamos a presença da sua empresa nas inteligências artificiais (ChatGPT, Gemini, Perplexity).": "我们测试了你的商家在人工智能（ChatGPT、Gemini、Perplexity）中的出现情况。",
    "Sua nota no Google": "你的 Google 评分",
    "Total de avaliações": "评价总数",
    "Novas nesta semana": "本周新增",
@@ -1921,7 +1921,7 @@ export default {
     "设备 $1 已从 $2 解绑"
    ],
    [
-    "^(.+?), seu placa de balcão voltou pra configuração de fábrica$",
+    "^(.+?), sua placa de balcão voltou pra configuração de fábrica$",
     "$1，你的柜台立牌已恢复出厂设置"
    ],
    [
@@ -1929,15 +1929,15 @@ export default {
     "它在你的控制面板中名为“$1”。"
    ],
    [
-    "^(.+?), seu placa de mesa voltou pra configuração de fábrica$",
+    "^(.+?), sua placa de mesa voltou pra configuração de fábrica$",
     "$1，你的桌面立牌已恢复出厂设置"
    ],
    [
-    "^(.+?), seu placa de parede voltou pra configuração de fábrica$",
+    "^(.+?), sua placa de parede voltou pra configuração de fábrica$",
     "$1，你的墙面标牌已恢复出厂设置"
    ],
    [
-    "^(.+?), seu pulseira nfc voltou pra configuração de fábrica$",
+    "^(.+?), sua pulseira nfc voltou pra configuração de fábrica$",
     "$1，你的 NFC 手环已恢复出厂设置"
    ],
    [
