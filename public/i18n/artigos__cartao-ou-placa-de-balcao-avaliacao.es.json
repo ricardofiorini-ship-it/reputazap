@@ -17,7 +17,6 @@
     "Cartão: o dispositivo que vai até o cliente": "Tarjeta: el dispositivo que va hasta el cliente",
     "o atendimento acontece longe do caixa (salão, barbearia, clínica, oficina, garçom na mesa);": "la atención ocurre lejos de la caja (salón, barbería, clínica, taller, mesero en la mesa);",
     "o serviço é na casa do cliente (eletricista, encanador, diarista, técnico), onde não tem balcão;": "el servicio es en la casa del cliente (electricista, plomero, personal de limpieza, técnico), donde no hay mostrador;",
-    "você tem vendedores e quer saber quem traz mais avaliação.": "tienes vendedores y quieres saber quién trae más reseñas.",
     "Lado a lado": "Lado a lado",
     "Placa de balcão": "Placa de mostrador",
     "Cartão": "Tarjeta",
@@ -46,7 +45,8 @@
     "Como pedir avaliação no Google sem parecer chato": "Cómo pedir una reseña en Google sin parecer insistente",
     "O que dizer na hora de entregar o cartão, para o pedido soar natural.": "Qué decir al entregar la tarjeta, para que el pedido suene natural.",
     "NFC ou QR code para avaliações: qual funciona melhor?": "¿NFC o código QR para reseñas? Cuál funciona mejor",
-    "Custo, atrito e conversão dos dois formatos, e por que juntar os dois costuma ganhar.": "Costo, fricción y conversión de los dos formatos, y por qué combinarlos suele ganar."
+    "Custo, atrito e conversão dos dois formatos, e por que juntar os dois costuma ganhar.": "Costo, fricción y conversión de los dos formatos, y por qué combinarlos suele ganar.",
+    "você tem vendedores e quer saber quantas vezes o cartão de cada um foi tocado.": "tienes vendedores y quieres saber cuántas veces se tocó la tarjeta de cada uno."
   },
   "h": {
     "Artigos · Comparação": "<a href=\"/artigos\">Artículos</a> · Comparación",

@@ -150,7 +150,6 @@ export default {
    "Cada toque pode virar uma avaliação. Mais avaliações = mais clientes te encontrando.": "Every tap can turn into a review. More reviews = more customers finding you.",
    "Acompanhar no painel →": "Track it in the dashboard →",
    "coloca mais dispositivos em outros pontos (mesa, balcão, crachá). Quanto mais pontos de contato, mais avaliações por mês.": "place more devices in other spots (table, counter, badge). The more touchpoints, the more reviews per month.",
-   "🎯 Sua primeira avaliação chegou em seu negócio!": "🎯 Your first review is on its way at your business!",
    "tudo bem?, conseguimos! 🎉🎉🎉": "We did it! 🎉🎉🎉",
    "um dos seus dispositivos": "one of your devices",
    "Mais um ponto de contato com seus clientes em": "One more touchpoint with your customers at",
@@ -282,7 +281,6 @@ export default {
    "📲 Seus dispositivos esta semana": "📲 Your devices this week",
    "pessoas": "people",
    "encostaram o celular no seu StarTouch e foram direto pra sua página no Google.": "tapped their phone on your StarTouch and went straight to your Google page.",
-   "Quem trouxe mais": "Top performers",
    "✨ NOVIDADE": "✨ NEW",
    "Chegou o Menu Inteligente.": "The Smart Menu is here.",
    "Um toque, vários caminhos.": "One tap, many paths.",
@@ -329,7 +327,9 @@ export default {
    "Complete o perfil no Google (telefone, categoria).": "Complete your Google Business Profile (phone, category).",
    "Complete o perfil no Google (foto, telefone, categoria).": "Complete your Google Business Profile (photo, phone, category).",
    "Colete mais avaliações.": "Collect more reviews.",
-   "📊 Sua semana no Google — seu negócio": "📊 Your week on Google — your business"
+   "📊 Sua semana no Google — seu negócio": "📊 Your week on Google — your business",
+   "🎯 Primeiro toque no seu StarTouch em seu negócio!": "🎯 First tap on your StarTouch at your business!",
+   "Quem teve mais toques": "Most taps"
   },
   "p": [
    [
@@ -409,8 +409,8 @@ export default {
     "Tip: ask out loud. \"If you enjoyed it, would you give us a star?\" works $1x better than a silent device."
    ],
    [
-    "^🎯 Sua primeira avaliação chegou em (.+?)!$",
-    "🎯 Your first review is on its way at $1!"
+    "^🎯 Primeiro toque no seu StarTouch em (.+?)!$",
+    "🎯 First tap on your StarTouch at $1!"
    ],
    [
     "^(.+?), conseguimos! 🎉🎉🎉$",
@@ -894,7 +894,6 @@ export default {
    "Cada toque pode virar uma avaliação. Mais avaliações = mais clientes te encontrando.": "Cada toque puede convertirse en una reseña. Más reseñas = más clientes encontrándote.",
    "Acompanhar no painel →": "Seguir en el panel →",
    "coloca mais dispositivos em outros pontos (mesa, balcão, crachá). Quanto mais pontos de contato, mais avaliações por mês.": "coloca más dispositivos en otros puntos (mesa, mostrador, gafete). Cuantos más puntos de contacto, más reseñas por mes.",
-   "🎯 Sua primeira avaliação chegou em seu negócio!": "🎯 ¡Tu primera reseña llegó a tu negocio!",
    "tudo bem?, conseguimos! 🎉🎉🎉": "¡Lo logramos! 🎉🎉🎉",
    "um dos seus dispositivos": "uno de tus dispositivos",
    "Mais um ponto de contato com seus clientes em": "Un punto de contacto más con tus clientes en",
@@ -1026,7 +1025,6 @@ export default {
    "📲 Seus dispositivos esta semana": "📲 Tus dispositivos esta semana",
    "pessoas": "personas",
    "encostaram o celular no seu StarTouch e foram direto pra sua página no Google.": "acercaron el celular a tu StarTouch y fueron directo a tu página de Google.",
-   "Quem trouxe mais": "Quién trajo más",
    "✨ NOVIDADE": "✨ NOVEDAD",
    "Chegou o Menu Inteligente.": "Llegó el Menú Inteligente.",
    "Um toque, vários caminhos.": "Un toque, varios caminos.",
@@ -1073,7 +1071,9 @@ export default {
    "Complete o perfil no Google (telefone, categoria).": "Completa tu Perfil de Empresa de Google (teléfono, categoría).",
    "Complete o perfil no Google (foto, telefone, categoria).": "Completa tu Perfil de Empresa de Google (foto, teléfono, categoría).",
    "Colete mais avaliações.": "Consigue más reseñas.",
-   "📊 Sua semana no Google — seu negócio": "📊 Tu semana en Google — tu negocio"
+   "📊 Sua semana no Google — seu negócio": "📊 Tu semana en Google — tu negocio",
+   "🎯 Primeiro toque no seu StarTouch em seu negócio!": "🎯 ¡Primer toque en tu StarTouch en tu negocio!",
+   "Quem teve mais toques": "Quién tuvo más toques"
   },
   "p": [
    [
@@ -1153,8 +1153,8 @@ export default {
     "Consejo: pídelo de palabra. \"Si te gustó, ¿nos dejas una estrellita?\" funciona $1 veces mejor que un dispositivo en silencio."
    ],
    [
-    "^🎯 Sua primeira avaliação chegou em (.+?)!$",
-    "🎯 ¡Tu primera reseña llegó a $1!"
+    "^🎯 Primeiro toque no seu StarTouch em (.+?)!$",
+    "🎯 ¡Primer toque en tu StarTouch en $1!"
    ],
    [
     "^(.+?), conseguimos! 🎉🎉🎉$",
@@ -1638,7 +1638,6 @@ export default {
    "Cada toque pode virar uma avaliação. Mais avaliações = mais clientes te encontrando.": "每一次触碰都可能变成一条评价。评价越多 = 找到你的顾客越多。",
    "Acompanhar no painel →": "在控制面板中查看 →",
    "coloca mais dispositivos em outros pontos (mesa, balcão, crachá). Quanto mais pontos de contato, mais avaliações por mês.": "在更多位置放置设备（餐桌、柜台、胸牌）。接触点越多，每月的评价就越多。",
-   "🎯 Sua primeira avaliação chegou em seu negócio!": "🎯 你的商家迎来了第一条评价！",
    "tudo bem?, conseguimos! 🎉🎉🎉": "我们做到了！🎉🎉🎉",
    "um dos seus dispositivos": "你的一台设备",
    "Mais um ponto de contato com seus clientes em": "又多了一个与顾客接触的点，位于",
@@ -1770,7 +1769,6 @@ export default {
    "📲 Seus dispositivos esta semana": "📲 你的设备本周表现",
    "pessoas": "人",
    "encostaram o celular no seu StarTouch e foram direto pra sua página no Google.": "用手机触碰了你的 StarTouch，直接进入你的 Google 页面。",
-   "Quem trouxe mais": "带来最多的",
    "✨ NOVIDADE": "✨ 新功能",
    "Chegou o Menu Inteligente.": "智能菜单上线了。",
    "Um toque, vários caminhos.": "一次触碰，多种去处。",
@@ -1817,7 +1815,9 @@ export default {
    "Complete o perfil no Google (telefone, categoria).": "完善你的 Google 商家资料（电话、类别）。",
    "Complete o perfil no Google (foto, telefone, categoria).": "完善你的 Google 商家资料（照片、电话、类别）。",
    "Colete mais avaliações.": "收集更多评价。",
-   "📊 Sua semana no Google — seu negócio": "📊 你在 Google 的一周——你的商家"
+   "📊 Sua semana no Google — seu negócio": "📊 你在 Google 的一周——你的商家",
+   "🎯 Primeiro toque no seu StarTouch em seu negócio!": "🎯 你的商家的 StarTouch 迎来了第一次触碰！",
+   "Quem teve mais toques": "触碰最多的"
   },
   "p": [
    [
@@ -1897,8 +1897,8 @@ export default {
     "小贴士：开口邀请。“如果您满意，能给我们打个星吗？”这样一句话，效果是默默摆着设备的 $1 倍。"
    ],
    [
-    "^🎯 Sua primeira avaliação chegou em (.+?)!$",
-    "🎯 $1 迎来了第一条评价！"
+    "^🎯 Primeiro toque no seu StarTouch em (.+?)!$",
+    "🎯 $1 的 StarTouch 迎来了第一次触碰！"
    ],
    [
     "^(.+?), conseguimos! 🎉🎉🎉$",

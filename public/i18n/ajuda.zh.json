@@ -108,9 +108,7 @@
     "Vá em startouch.com.br/app, clique em \"Esqueci minha senha\", digite seu email e siga as instruções.": "前往 <a href=\"/app?login=1\">startouch.com.br/app</a>，点击<strong>“忘记密码”</strong>，输入邮箱并按提示操作。",
     "Vai chegar um link no seu email pra criar uma senha nova. Se não chegar em 5 minutos, confira a caixa de spam.": "你会收到一封带链接的邮件，用来设置新密码。如果 5 分钟内没收到，<strong>请检查垃圾邮件</strong>。",
     "Você ativa um por um, mas com a mesma conta. No primeiro, escolha \"Sou novo aqui\" e cadastre tudo. Do segundo em diante, escolha \"Já tenho conta StarTouch\", faça login e o sistema vincula automaticamente ao mesmo negócio.": "逐个激活，但都用<strong>同一个账户</strong>。第一个设备选择“我是新用户”并填写全部信息。从第二个开始，选择<strong>“我已有 StarTouch 账户”</strong>，登录后系统会自动绑定到同一家店铺。",
-    "Cada dispositivo pode ter um apelido diferente (ex: \"Caixa\", \"Mesa 5\", \"Cartão da Maria\") pra você saber qual gera mais avaliação.": "每个设备可以有不同的名字（例如<em>“收银台”</em>、<em>“5 号桌”</em>、<em>“Maria 的卡片”</em>），方便你知道哪个带来的评价最多。",
     "Entre em startouch.com.br/app com seu email e senha. No painel você vê:": "用邮箱和密码登录 <a href=\"/app?login=1\">startouch.com.br/app</a>。在控制面板中你可以看到：",
-    "▸ Sua nota média no Google ▸ Quantas avaliações novas chegaram ▸ Ranking comparado com concorrentes da sua categoria ▸ Quais dispositivos geraram mais avaliações": "▸ 你在 Google 上的<strong>平均评分</strong><br>\n        ▸ 新增了多少条评价<br>\n        ▸ 与<strong>同类竞争对手</strong>的排名对比<br>\n        ▸ 哪些<strong>设备</strong>带来的评价最多",
     "Primeiro: tente recuperar a senha em startouch.com.br/app → \"Esqueci minha senha\". Se o email não chegar, confira spam.": "首先：在 <a href=\"/app?login=1\">startouch.com.br/app</a> → “忘记密码”中尝试找回密码。如果没收到邮件，请检查垃圾邮件。",
     "Se você se cadastrou com o Google, tente o botão \"Entrar com Google\" em vez de email/senha.": "如果你是用 Google 注册的，请使用<strong>“使用 Google 登录”</strong>按钮，而不是邮箱/密码。",
     "Se nada funcionar, chama no WhatsApp (11) 97694-4026 que resolvemos rápido.": "如果都不行，<a href=\"https://wa.me/5511976944026\" target=\"_blank\" rel=\"noopener\">在 WhatsApp (11) 97694-4026 上联系我们</a>，我们会尽快解决。",
@@ -138,7 +136,9 @@
     "Sim. Se estiver no plano Pro, basta entrar em Configurações → Plano → Cancelar.": "<strong>可以。</strong>如果你在使用 Pro 套餐，只需进入<strong>设置 → 套餐 → 取消</strong>。",
     "O cancelamento vale a partir do fim do período já pago (sem cobrança no mês seguinte). O hardware comprado é seu pra sempre — continua funcionando no plano gratuito.": "取消将在已付费周期结束时生效（下个月不再扣费）。<strong>你购买的硬件永远属于你</strong>——在免费套餐下继续正常使用。",
     "WhatsApp (11) 97694-4026 — respondemos em horário comercial, de segunda a sexta.": "<strong>WhatsApp (11) 97694-4026</strong>——工作日（周一至周五）营业时间内回复（巴西利亚时间，使用葡萄牙语）。",
-    "Email: contato@startouch.com.br": "邮箱：<a href=\"mailto:contato@startouch.com.br\">contato@startouch.com.br</a>"
+    "Email: contato@startouch.com.br": "邮箱：<a href=\"mailto:contato@startouch.com.br\">contato@startouch.com.br</a>",
+    "Cada dispositivo pode ter um apelido diferente (ex: \"Caixa\", \"Mesa 5\", \"Cartão da Maria\") pra você saber quantas vezes cada um foi tocado.": "每个设备可以有不同的名字（例如<em>“收银台”</em>、<em>“5 号桌”</em>、<em>“Maria 的卡片”</em>），方便你知道每个设备被触碰了多少次。",
+    "▸ Sua nota média no Google ▸ Quantas avaliações novas chegaram ▸ Ranking comparado com concorrentes da sua categoria ▸ Quantas vezes cada dispositivo foi tocado": "▸ 你在 Google 上的<strong>平均评分</strong><br>\n        ▸ 新增了多少条评价<br>\n        ▸ 与<strong>同类竞争对手</strong>的排名对比<br>\n        ▸ 每个<strong>设备</strong>被触碰了多少次"
   },
   "p": []
 }

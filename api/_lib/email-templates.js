@@ -502,7 +502,9 @@ export function firstReviewEmail({ userName, bizName, channelName }) {
   const biz = escapeHtml(bizName || "seu negócio");
   const ch = channelName ? escapeHtml(channelName) : "um dos seus dispositivos";
   return {
-    subject: `🎯 Sua primeira avaliação chegou em ${biz}!`,
+    // O gatilho é o PRIMEIRO TOQUE, não uma avaliação — o Google não diz qual
+    // toque virou avaliação, então o assunto não pode prometer isso (12/10/2026).
+    subject: `🎯 Primeiro toque no seu StarTouch em ${biz}!`,
     html: shell({
       title: "🎯 PRIMEIRO TOQUE!",
       headerColor: "#137333",
@@ -1594,7 +1596,7 @@ function blocoPorPessoa(lista) {
     ? `<div style="font-size:12.5px;color:#8A5A00;line-height:1.5;margin-top:8px;">${zerados === 1 ? "1 dispositivo ficou" : `${zerados} dispositivos ficaram`} sem toque na semana — vale conferir se está com a pessoa e à vista do cliente.</div>`
     : "";
   return `
-          <div style="font-size:12px;font-weight:700;color:#6B46C1;text-transform:uppercase;letter-spacing:0.05em;margin:16px 0 4px;">Quem trouxe mais</div>
+          <div style="font-size:12px;font-weight:700;color:#6B46C1;text-transform:uppercase;letter-spacing:0.05em;margin:16px 0 4px;">Quem teve mais toques</div>
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0">${linhas}${maisLinha}</table>
           ${notaZero}`;
 }

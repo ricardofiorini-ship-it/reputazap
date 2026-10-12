@@ -5371,7 +5371,7 @@ function ActivatePlateModal({ businessId, onClose }) {
                 marginBottom: 6
               }}/>
             <div style={{ fontSize: 11.5, color: T.textDim, marginBottom: 16 }}>
-              Aparece nos seus relatórios pra você saber qual ponto traz mais avaliações.
+              Aparece nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.
             </div>
 
             {error && (

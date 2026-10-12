@@ -17,7 +17,6 @@
     "Cartão: o dispositivo que vai até o cliente": "Card: the device that goes to the customer",
     "o atendimento acontece longe do caixa (salão, barbearia, clínica, oficina, garçom na mesa);": "service happens away from the checkout (salon, barbershop, clinic, repair shop, waiter at the table);",
     "o serviço é na casa do cliente (eletricista, encanador, diarista, técnico), onde não tem balcão;": "the service is at the customer's home (electrician, plumber, cleaner, technician), where there's no counter;",
-    "você tem vendedores e quer saber quem traz mais avaliação.": "you have salespeople and want to know who brings in the most reviews.",
     "Lado a lado": "Side by side",
     "Placa de balcão": "Counter stand",
     "Cartão": "Card",
@@ -46,7 +45,8 @@
     "Como pedir avaliação no Google sem parecer chato": "How to ask for a Google review without being pushy",
     "O que dizer na hora de entregar o cartão, para o pedido soar natural.": "What to say when you hand over the card, so the request sounds natural.",
     "NFC ou QR code para avaliações: qual funciona melhor?": "NFC or QR code for reviews: which works better?",
-    "Custo, atrito e conversão dos dois formatos, e por que juntar os dois costuma ganhar.": "Cost, friction and conversion of both formats, and why combining them usually wins."
+    "Custo, atrito e conversão dos dois formatos, e por que juntar os dois costuma ganhar.": "Cost, friction and conversion of both formats, and why combining them usually wins.",
+    "você tem vendedores e quer saber quantas vezes o cartão de cada um foi tocado.": "you have salespeople and want to know how many times each one's card was tapped."
   },
   "h": {
     "Artigos · Comparação": "<a href=\"/artigos\">Articles</a> · Comparison",

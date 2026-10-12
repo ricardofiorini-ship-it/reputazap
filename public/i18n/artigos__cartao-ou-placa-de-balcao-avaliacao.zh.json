@@ -17,7 +17,6 @@
     "Cartão: o dispositivo que vai até o cliente": "评价卡：走到顾客面前的设备",
     "o atendimento acontece longe do caixa (salão, barbearia, clínica, oficina, garçom na mesa);": "服务发生在远离收银台的地方（美发店、理发店、诊所、汽修店、服务员在桌边）；",
     "o serviço é na casa do cliente (eletricista, encanador, diarista, técnico), onde não tem balcão;": "上门服务（电工、水管工、家政、维修技师），顾客家里没有柜台；",
-    "você tem vendedores e quer saber quem traz mais avaliação.": "你有销售人员，想知道谁带来的评价最多。",
     "Lado a lado": "对比一览",
     "Placa de balcão": "柜台立牌",
     "Cartão": "评价卡",
@@ -46,7 +45,8 @@
     "Como pedir avaliação no Google sem parecer chato": "如何邀请 Google 评价又不惹人烦",
     "O que dizer na hora de entregar o cartão, para o pedido soar natural.": "递出评价卡时该说什么，才能让邀请听起来自然。",
     "NFC ou QR code para avaliações: qual funciona melhor?": "NFC 还是二维码收集评价：哪个更好用？",
-    "Custo, atrito e conversão dos dois formatos, e por que juntar os dois costuma ganhar.": "两种形式的成本、操作门槛和转化率对比，以及为什么两者结合通常效果最好。"
+    "Custo, atrito e conversão dos dois formatos, e por que juntar os dois costuma ganhar.": "两种形式的成本、操作门槛和转化率对比，以及为什么两者结合通常效果最好。",
+    "você tem vendedores e quer saber quantas vezes o cartão de cada um foi tocado.": "你有销售人员，想知道每个人的卡片被触碰了多少次。"
   },
   "h": {
     "Artigos · Comparação": "<a href=\"/artigos\">文章</a> · 对比",
