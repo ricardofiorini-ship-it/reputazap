@@ -1,7 +1,6 @@
 {
   "t": {
     "Dispositivos NFC para avaliações no Google | StarTouch": "NFC devices for Google reviews | StarTouch",
-    "Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 12 meses de garantia, frete grátis acima de R$ 149.": "NFC cards and counter stands that help your business get more Google reviews: customers tap their phone and leave a review in seconds. No monthly fee, 12-month warranty, free shipping in Brazil on orders over R$ 149.",
     "StarTouch — início": "StarTouch — home",
     "StarTouch": "StarTouch",
     "Abrir carrinho": "Open cart",
@@ -94,7 +93,6 @@
     "Total": "Total",
     "Ir para o pagamento →": "Go to payment →",
     "🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149": "🔒 Secure payment via Stripe · 🚚 Free shipping over R$ 149",
-
     "Foto anterior": "Previous photo",
     "Próxima foto": "Next photo",
     "Seu carrinho está vazio.": "Your cart is empty.",
@@ -131,27 +129,52 @@
     "Quando os dispositivos chegarem, volte em startouch.com.br pra ativar": "When your devices arrive, come back to startouch.com.br to activate them",
     "— é rapidinho e o suporte te ajuda se precisar.": "— it only takes a moment, and our support team can help if needed.",
     "Boleto gerado — falta pagar": "Boleto issued — payment pending",
-    "O pedido só é confirmado quando o boleto for pago": "Your order is only confirmed once the boleto is paid"
+    "O pedido só é confirmado quando o boleto for pago": "Your order is only confirmed once the boleto is paid",
+    "Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 3 meses de garantia, frete grátis acima de R$ 149.": "NFC cards and counter stands that help your business get more Google reviews: customers tap their phone and leave a review in seconds. No monthly fee, 3-month warranty, free shipping in Brazil on orders over R$ 149."
   },
   "h": {
     "R$ 29,90 / unidade": "R$ 29,90 <small>/ unit</small>",
     "PVC fosco premium, tamanho de cartão de crédito · como funciona": "Premium matte PVC, credit-card size · <a href=\"/cartao-avaliacao-google-nfc\">how it works</a>",
     "Sem mensalidadepaga uma vez só": "<strong>No monthly fee</strong>pay only once",
     "Painel vitalíciográtis, para sempre": "<strong>Lifetime dashboard</strong>free, forever",
-    "12 mesesde garantia": "<strong>12-month</strong>warranty",
     "Frete grátisacima de R$ 149": "<strong>Free shipping</strong>on orders over R$ 149",
     "Vai comprar em quantidade para revender? Seja um distribuidor — a partir de R$ 800, com preço de atacado.": "Buying in bulk to resell? <a href=\"/revenda\">Become a distributor</a> — orders from R$ 800, at wholesale prices.",
     "ZAYOR BRASIL LTDA · CNPJ 68.972.361/0001-33": "<strong style=\"color:var(--texto);font-weight:600;\">ZAYOR BRASIL LTDA</strong> · CNPJ 68.972.361/0001-33",
-    "Preencha pra receber seus dispositivos. Você não precisa criar conta agora — depois de receber, é só voltar aqui pra ativar (leva 2 min).": "Fill this in to receive your devices. <strong>No need to create an account now</strong> — once they arrive, just come back here to activate them (takes 2 min)."
+    "Preencha pra receber seus dispositivos. Você não precisa criar conta agora — depois de receber, é só voltar aqui pra ativar (leva 2 min).": "Fill this in to receive your devices. <strong>No need to create an account now</strong> — once they arrive, just come back here to activate them (takes 2 min).",
+    "3 mesesde garantia": "<strong>3-month</strong>warranty"
   },
   "p": [
-    ["^Ver foto (\\d+) de (\\d+)$", "View photo $1 of $2"],
-    ["^(R\\$ [\\d.,]+) / un\\.$", "$1 / unit"],
-    ["^(\\d+) itens no carrinho$", "$1 items in cart"],
-    ["^(\\d+) itens$", "$1 items"],
-    ["^🎉 Frete grátis neste pedido\\. Enviamos por (.+)\\.$", "🎉 Free shipping on this order. We ship via $1."],
-    ["^· (\\d+) dia\\(s\\) útil\\(eis\\)$", "· $1 business day(s)"],
-    ["^Faltam (R\\$ [\\d.,]+) em produtos pra o frete sair de graça\\.$", "Add $1 more in products to get free shipping."],
-    ["^\\(a compensação leva 1 a 3 dias úteis\\)\\. O boleto foi enviado para o seu e-mail — guarde o link, ele é a única forma de concluir a compra\\.$", "(clearing takes 1 to 3 business days). The boleto was sent to your email — keep the link, it's the only way to complete your purchase."]
+    [
+      "^Ver foto (\\d+) de (\\d+)$",
+      "View photo $1 of $2"
+    ],
+    [
+      "^(R\\$ [\\d.,]+) / un\\.$",
+      "$1 / unit"
+    ],
+    [
+      "^(\\d+) itens no carrinho$",
+      "$1 items in cart"
+    ],
+    [
+      "^(\\d+) itens$",
+      "$1 items"
+    ],
+    [
+      "^🎉 Frete grátis neste pedido\\. Enviamos por (.+)\\.$",
+      "🎉 Free shipping on this order. We ship via $1."
+    ],
+    [
+      "^· (\\d+) dia\\(s\\) útil\\(eis\\)$",
+      "· $1 business day(s)"
+    ],
+    [
+      "^Faltam (R\\$ [\\d.,]+) em produtos pra o frete sair de graça\\.$",
+      "Add $1 more in products to get free shipping."
+    ],
+    [
+      "^\\(a compensação leva 1 a 3 dias úteis\\)\\. O boleto foi enviado para o seu e-mail — guarde o link, ele é a única forma de concluir a compra\\.$",
+      "(clearing takes 1 to 3 business days). The boleto was sent to your email — keep the link, it's the only way to complete your purchase."
+    ]
   ]
 }

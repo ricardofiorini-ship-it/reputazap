@@ -238,7 +238,6 @@
     "Não. São três coisas separadas: o dispositivo você compra uma vez (sem assinatura); o painel vem junto e é grátis — avaliações, ranking local, concorrentes com uma medição por semana, aviso de avaliação negativa, relatório semanal por email e link editável; e existe uma assinatura opcional, o StarTouch Pro (Menu Inteligente), por R$ 19,90 por mês com 7 dias grátis. Se você nunca assinar, o dispositivo e o painel continuam funcionando do mesmo jeito.": "不需要。这是三件独立的事：<strong>设备一次购买</strong>（无需订阅）；<strong>控制面板随附且免费</strong>——评价、本地排名、竞争对手（每周测量一次）、差评提醒、每周邮件报告和可编辑链接；另外还有<strong>一项可选订阅</strong>，即 StarTouch Pro（智能菜单），每月 R$ 19,90，可免费试用 7 天。即使您从不订阅，设备和控制面板也照常运行。",
     "Não precisa instalar nada. Funciona direto pelo navegador do celular — nem você nem o cliente baixam app. O NFC funciona em iPhone (a partir do 7) e em praticamente qualquer Android moderno, e todo produto traz QR Code de fallback pra celulares sem NFC.": "无需安装任何东西，直接在<strong>手机浏览器</strong>中使用——您和顾客都不用下载应用。NFC 支持 <strong>iPhone（7 及以上机型）和几乎所有新款 Android 手机</strong>，每件产品还附有<strong>备用二维码</strong>，没有 NFC 的手机也能用。",
     "Sim, quando quiser. Pelo painel você troca o perfil do Google de destino em segundos — sem precisar trocar o dispositivo. O dispositivo é físico, mas o destino é 100% editável: se você muda de endereço ou abre uma filial, a mesmo dispositivo continua valendo.": "可以，随时都行。在控制面板中，<strong>几秒钟即可更换目标 Google 商家资料</strong>——无需更换设备。设备是实体的，但目标 100% 可编辑：如果您搬迁或开设分店，<strong>同一个设备照样可以继续使用</strong>。",
-    "O frete é calculado pelo seu CEP e aparece antes de você confirmar o pagamento — grátis pra todo o Brasil acima de R$ 149 em produtos. Entrega em 5 a 10 dias úteis após a confirmação do pagamento. Pagamento via Stripe (PIX, cartão parcelado, Apple Pay e Google Pay). Todos os dispositivos têm 12 meses de garantia e suporte humano em português.": "运费根据您的 CEP（巴西邮政编码）计算，并会在确认付款前显示——<strong>商品满 R$ 149 巴西全境包邮</strong>。我们仅在巴西境内发货，付款确认后 5 至 10 个工作日送达。通过 <strong>Stripe</strong> 付款（PIX、信用卡分期、Apple Pay 和 Google Pay）。所有设备均享 <strong>12 个月保修</strong>，并提供葡萄牙语人工客服。",
     "100% compatível com o Google.": "100% 兼容 <span class=\"accent\">Google<span class=\"accent-dot\">.</span></span>",
     "Feito para negócios locais modernos.": "专为现代本地商家<span class=\"accent\">打造<span class=\"accent-dot\">.</span></span>",
     "Restaurantes, lojas, clínicas, academias, cafés, oficinas e salões estão transformando a experiência dos seus clientes com a StarTouch.": "餐厅、门店、诊所、健身房、咖啡店、汽修店和美发店都在用 <span class=\"accent\">StarTouch</span> 提升顾客体验。",
@@ -246,7 +245,8 @@
     "✓ Seguro e em conformidade": "<span class=\"check\">✓</span> 安全合规",
     "✓ Usado por negócios reais": "<span class=\"check\">✓</span> 真实商家都在用",
     "ZAYOR BRASIL LTDA · CNPJ 68.972.361/0001-33": "<strong>ZAYOR BRASIL LTDA</strong> · CNPJ 68.972.361/0001-33",
-    "Feito com 💙 para experiências modernas.": "用 <span class=\"heart\">💙</span> 打造现代体验。"
+    "Feito com 💙 para experiências modernas.": "用 <span class=\"heart\">💙</span> 打造现代体验。",
+    "O frete é calculado pelo seu CEP e aparece antes de você confirmar o pagamento — grátis pra todo o Brasil acima de R$ 149 em produtos. Entrega em 5 a 10 dias úteis após a confirmação do pagamento. Pagamento via Stripe (PIX, cartão parcelado, Apple Pay e Google Pay). Todos os dispositivos têm 3 meses de garantia e suporte humano em português.": "运费根据您的 CEP（巴西邮政编码）计算，并会在确认付款前显示——<strong>商品满 R$ 149 巴西全境包邮</strong>。我们仅在巴西境内发货，付款确认后 5 至 10 个工作日送达。通过 <strong>Stripe</strong> 付款（PIX、信用卡分期、Apple Pay 和 Google Pay）。所有设备均享 <strong>3 个月保修</strong>，并提供葡萄牙语人工客服。"
   },
   "p": [
     [

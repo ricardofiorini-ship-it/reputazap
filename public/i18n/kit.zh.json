@@ -1,7 +1,6 @@
 {
   "t": {
     "Dispositivos NFC para avaliações no Google | StarTouch": "获取 Google 评价的 NFC 设备 | StarTouch",
-    "Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 12 meses de garantia, frete grátis acima de R$ 149.": "NFC 卡和柜台立牌，帮您的店铺获得更多 Google 评价：顾客用手机一碰，几秒钟就能留下评价。无月费，12 个月质保，巴西境内订单满 R$ 149 免运费。",
     "StarTouch — início": "StarTouch — 首页",
     "StarTouch": "StarTouch",
     "Abrir carrinho": "打开购物车",
@@ -94,7 +93,6 @@
     "Total": "合计",
     "Ir para o pagamento →": "前往付款 →",
     "🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149": "🔒 通过 Stripe 安全支付 · 🚚 满 R$ 149 免运费",
-
     "Foto anterior": "上一张",
     "Próxima foto": "下一张",
     "Seu carrinho está vazio.": "您的购物车是空的。",
@@ -131,27 +129,52 @@
     "Quando os dispositivos chegarem, volte em startouch.com.br pra ativar": "设备到货后，请回到 startouch.com.br 激活",
     "— é rapidinho e o suporte te ajuda se precisar.": "——非常快，如有需要客服会协助您。",
     "Boleto gerado — falta pagar": "Boleto 已生成——尚未付款",
-    "O pedido só é confirmado quando o boleto for pago": "Boleto 付款后订单才会确认"
+    "O pedido só é confirmado quando o boleto for pago": "Boleto 付款后订单才会确认",
+    "Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 3 meses de garantia, frete grátis acima de R$ 149.": "NFC 卡和柜台立牌，帮您的店铺获得更多 Google 评价：顾客用手机一碰，几秒钟就能留下评价。无月费，3 个月质保，巴西境内订单满 R$ 149 免运费。"
   },
   "h": {
     "R$ 29,90 / unidade": "R$ 29,90 <small>/ 张</small>",
     "PVC fosco premium, tamanho de cartão de crédito · como funciona": "高级磨砂 PVC，信用卡大小 · <a href=\"/cartao-avaliacao-google-nfc\">了解使用方式</a>",
     "Sem mensalidadepaga uma vez só": "<strong>无月费</strong>一次付款",
     "Painel vitalíciográtis, para sempre": "<strong>终身控制面板</strong>永久免费",
-    "12 mesesde garantia": "<strong>12 个月</strong>质保",
     "Frete grátisacima de R$ 149": "<strong>免运费</strong>满 R$ 149",
     "Vai comprar em quantidade para revender? Seja um distribuidor — a partir de R$ 800, com preço de atacado.": "想批量购买转售？<a href=\"/revenda\">成为经销商</a>——R$ 800 起，享批发价。",
     "ZAYOR BRASIL LTDA · CNPJ 68.972.361/0001-33": "<strong style=\"color:var(--texto);font-weight:600;\">ZAYOR BRASIL LTDA</strong> · CNPJ 68.972.361/0001-33",
-    "Preencha pra receber seus dispositivos. Você não precisa criar conta agora — depois de receber, é só voltar aqui pra ativar (leva 2 min).": "填写信息以接收您的设备。<strong>现在无需注册账号</strong>——收到设备后，回到这里激活即可（只需 2 分钟）。"
+    "Preencha pra receber seus dispositivos. Você não precisa criar conta agora — depois de receber, é só voltar aqui pra ativar (leva 2 min).": "填写信息以接收您的设备。<strong>现在无需注册账号</strong>——收到设备后，回到这里激活即可（只需 2 分钟）。",
+    "3 mesesde garantia": "<strong>3 个月</strong>质保"
   },
   "p": [
-    ["^Ver foto (\\d+) de (\\d+)$", "查看第 $1 张照片（共 $2 张）"],
-    ["^(R\\$ [\\d.,]+) / un\\.$", "$1 / 件"],
-    ["^(\\d+) itens no carrinho$", "购物车中有 $1 件商品"],
-    ["^(\\d+) itens$", "$1 件商品"],
-    ["^🎉 Frete grátis neste pedido\\. Enviamos por (.+)\\.$", "🎉 本订单免运费。我们通过 $1 发货。"],
-    ["^· (\\d+) dia\\(s\\) útil\\(eis\\)$", "· $1 个工作日"],
-    ["^Faltam (R\\$ [\\d.,]+) em produtos pra o frete sair de graça\\.$", "商品金额再差 $1 即可免运费。"],
-    ["^\\(a compensação leva 1 a 3 dias úteis\\)\\. O boleto foi enviado para o seu e-mail — guarde o link, ele é a única forma de concluir a compra\\.$", "（到账需要 1 到 3 个工作日）。Boleto 已发送到您的邮箱——请保存好链接，这是完成购买的唯一方式。"]
+    [
+      "^Ver foto (\\d+) de (\\d+)$",
+      "查看第 $1 张照片（共 $2 张）"
+    ],
+    [
+      "^(R\\$ [\\d.,]+) / un\\.$",
+      "$1 / 件"
+    ],
+    [
+      "^(\\d+) itens no carrinho$",
+      "购物车中有 $1 件商品"
+    ],
+    [
+      "^(\\d+) itens$",
+      "$1 件商品"
+    ],
+    [
+      "^🎉 Frete grátis neste pedido\\. Enviamos por (.+)\\.$",
+      "🎉 本订单免运费。我们通过 $1 发货。"
+    ],
+    [
+      "^· (\\d+) dia\\(s\\) útil\\(eis\\)$",
+      "· $1 个工作日"
+    ],
+    [
+      "^Faltam (R\\$ [\\d.,]+) em produtos pra o frete sair de graça\\.$",
+      "商品金额再差 $1 即可免运费。"
+    ],
+    [
+      "^\\(a compensação leva 1 a 3 dias úteis\\)\\. O boleto foi enviado para o seu e-mail — guarde o link, ele é a única forma de concluir a compra\\.$",
+      "（到账需要 1 到 3 个工作日）。Boleto 已发送到您的邮箱——请保存好链接，这是完成购买的唯一方式。"
+    ]
   ]
 }

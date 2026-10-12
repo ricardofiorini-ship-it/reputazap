@@ -1,7 +1,6 @@
 {
   "t": {
     "Dispositivos NFC para avaliações no Google | StarTouch": "Dispositivos NFC para reseñas en Google | StarTouch",
-    "Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 12 meses de garantia, frete grátis acima de R$ 149.": "Tarjetas NFC y placas de mostrador para que tu negocio reciba más reseñas en Google: el cliente acerca el celular y deja su reseña en segundos. Sin mensualidad, 12 meses de garantía, envío gratis en Brasil en compras desde R$ 149.",
     "StarTouch — início": "StarTouch — inicio",
     "StarTouch": "StarTouch",
     "Abrir carrinho": "Abrir carrito",
@@ -94,7 +93,6 @@
     "Total": "Total",
     "Ir para o pagamento →": "Ir al pago →",
     "🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149": "🔒 Pago seguro con Stripe · 🚚 Envío gratis desde R$ 149",
-
     "Foto anterior": "Foto anterior",
     "Próxima foto": "Foto siguiente",
     "Seu carrinho está vazio.": "Tu carrito está vacío.",
@@ -131,27 +129,52 @@
     "Quando os dispositivos chegarem, volte em startouch.com.br pra ativar": "Cuando lleguen tus dispositivos, vuelve a startouch.com.br para activarlos",
     "— é rapidinho e o suporte te ajuda se precisar.": "— es rapidísimo y el soporte te ayuda si lo necesitas.",
     "Boleto gerado — falta pagar": "Boleto generado — falta pagarlo",
-    "O pedido só é confirmado quando o boleto for pago": "El pedido solo se confirma cuando se paga el boleto"
+    "O pedido só é confirmado quando o boleto for pago": "El pedido solo se confirma cuando se paga el boleto",
+    "Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 3 meses de garantia, frete grátis acima de R$ 149.": "Tarjetas NFC y placas de mostrador para que tu negocio reciba más reseñas en Google: el cliente acerca el celular y deja su reseña en segundos. Sin mensualidad, 3 meses de garantía, envío gratis en Brasil en compras desde R$ 149."
   },
   "h": {
     "R$ 29,90 / unidade": "R$ 29,90 <small>/ unidad</small>",
     "PVC fosco premium, tamanho de cartão de crédito · como funciona": "PVC mate premium, tamaño tarjeta de crédito · <a href=\"/cartao-avaliacao-google-nfc\">cómo funciona</a>",
     "Sem mensalidadepaga uma vez só": "<strong>Sin mensualidad</strong>pagas una sola vez",
     "Painel vitalíciográtis, para sempre": "<strong>Panel de por vida</strong>gratis, para siempre",
-    "12 mesesde garantia": "<strong>12 meses</strong>de garantía",
     "Frete grátisacima de R$ 149": "<strong>Envío gratis</strong>desde R$ 149",
     "Vai comprar em quantidade para revender? Seja um distribuidor — a partir de R$ 800, com preço de atacado.": "¿Vas a comprar en cantidad para revender? <a href=\"/revenda\">Hazte distribuidor</a> — desde R$ 800, con precio mayorista.",
     "ZAYOR BRASIL LTDA · CNPJ 68.972.361/0001-33": "<strong style=\"color:var(--texto);font-weight:600;\">ZAYOR BRASIL LTDA</strong> · CNPJ 68.972.361/0001-33",
-    "Preencha pra receber seus dispositivos. Você não precisa criar conta agora — depois de receber, é só voltar aqui pra ativar (leva 2 min).": "Completa tus datos para recibir tus dispositivos. <strong>No necesitas crear una cuenta ahora</strong> — cuando lleguen, solo vuelve aquí para activarlos (toma 2 min)."
+    "Preencha pra receber seus dispositivos. Você não precisa criar conta agora — depois de receber, é só voltar aqui pra ativar (leva 2 min).": "Completa tus datos para recibir tus dispositivos. <strong>No necesitas crear una cuenta ahora</strong> — cuando lleguen, solo vuelve aquí para activarlos (toma 2 min).",
+    "3 mesesde garantia": "<strong>3 meses</strong>de garantía"
   },
   "p": [
-    ["^Ver foto (\\d+) de (\\d+)$", "Ver foto $1 de $2"],
-    ["^(R\\$ [\\d.,]+) / un\\.$", "$1 / u."],
-    ["^(\\d+) itens no carrinho$", "$1 artículos en el carrito"],
-    ["^(\\d+) itens$", "$1 artículos"],
-    ["^🎉 Frete grátis neste pedido\\. Enviamos por (.+)\\.$", "🎉 Envío gratis en este pedido. Enviamos por $1."],
-    ["^· (\\d+) dia\\(s\\) útil\\(eis\\)$", "· $1 día(s) hábil(es)"],
-    ["^Faltam (R\\$ [\\d.,]+) em produtos pra o frete sair de graça\\.$", "Te faltan $1 en productos para tener envío gratis."],
-    ["^\\(a compensação leva 1 a 3 dias úteis\\)\\. O boleto foi enviado para o seu e-mail — guarde o link, ele é a única forma de concluir a compra\\.$", "(la acreditación tarda de 1 a 3 días hábiles). Enviamos el boleto a tu correo — guarda el enlace, es la única forma de completar la compra."]
+    [
+      "^Ver foto (\\d+) de (\\d+)$",
+      "Ver foto $1 de $2"
+    ],
+    [
+      "^(R\\$ [\\d.,]+) / un\\.$",
+      "$1 / u."
+    ],
+    [
+      "^(\\d+) itens no carrinho$",
+      "$1 artículos en el carrito"
+    ],
+    [
+      "^(\\d+) itens$",
+      "$1 artículos"
+    ],
+    [
+      "^🎉 Frete grátis neste pedido\\. Enviamos por (.+)\\.$",
+      "🎉 Envío gratis en este pedido. Enviamos por $1."
+    ],
+    [
+      "^· (\\d+) dia\\(s\\) útil\\(eis\\)$",
+      "· $1 día(s) hábil(es)"
+    ],
+    [
+      "^Faltam (R\\$ [\\d.,]+) em produtos pra o frete sair de graça\\.$",
+      "Te faltan $1 en productos para tener envío gratis."
+    ],
+    [
+      "^\\(a compensação leva 1 a 3 dias úteis\\)\\. O boleto foi enviado para o seu e-mail — guarde o link, ele é a única forma de concluir a compra\\.$",
+      "(la acreditación tarda de 1 a 3 días hábiles). Enviamos el boleto a tu correo — guarda el enlace, es la única forma de completar la compra."
+    ]
   ]
 }

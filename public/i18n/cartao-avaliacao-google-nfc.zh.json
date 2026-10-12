@@ -13,7 +13,6 @@
     "O cliente aproxima o celular e já cai na tela de estrelas da sua empresa no Google. Sem app, sem digitar, sem mensalidade.": "顾客用手机一碰，就直接进入您商家在 Google 上的星级评分页面。无需应用，无需输入，没有月费。",
     "Comprar cartão · R$ 29,90": "购买评价卡 · R$ 29,90",
     "Ver minha presença grátis": "免费查看我的线上曝光",
-    "Frete grátis acima de R$ 149 · 12 meses de garantia": "满 R$ 149 免运费 · 12 个月质保",
     "Resposta rápida": "快速解答",
     "Como funciona": "使用方法",
     "Pedir avaliação é fácil. O difícil é o cliente lembrar, procurar sua empresa no Google e achar onde clicar. O cartão tira esses passos do caminho.": "开口请顾客评价很容易，难的是让顾客记得去做、在 Google 上搜到您的商家并找到点哪里。评价卡帮您省掉这些步骤。",
@@ -105,9 +104,7 @@
     "Posso mostrar só para clientes satisfeitos?": "可以只给满意的顾客使用吗？",
     "Não. Filtrar clientes para que só os satisfeitos avaliem se chama review gating e é proibido pelas políticas do Google, que pode remover avaliações e até suspender o perfil da empresa. Todo cliente que toca num dispositivo StarTouch vai direto para o Google.": "不可以。筛选顾客、只让满意的人去评价，这种做法叫作 review gating（评价筛选），违反 Google 政策，Google 可能会删除评价，甚至暂停商家资料。每位触碰 StarTouch 设备的顾客都会直接进入 Google。",
     "Quanto tempo dura?": "能用多久？",
-    "O chip NFC não tem bateria nem precisa de carga: quem fornece a energia é o próprio celular do cliente, na hora do toque. Em uso normal, dura anos. O que estraga um cartão é dobrar ou furar o chip. Todo dispositivo tem 12 meses de garantia contra defeito de fabricação.": "NFC 芯片没有电池，也无需充电：触碰时由顾客自己的手机供电。正常使用可以用好几年。会损坏评价卡的是弯折或刺穿芯片。所有设备均享有 12 个月制造缺陷质保。",
     "Onde comprar? Frete e garantia?": "在哪里购买？运费和质保？",
-    "Direto no site da StarTouch (startouch.com.br/kit) ou nas nossas lojas no Mercado Livre, na Shopee, no TikTok Shop e na Amazon. No site, o frete é calculado pelo CEP e é grátis em compras acima de R$ 149 em produtos, e a entrega leva de 5 a 10 dias úteis após a confirmação do pagamento. Todo dispositivo tem 12 meses de garantia contra defeito de fabricação. Quer revender? Seja um distribuidor em startouch.com.br/revenda.": "可直接在 StarTouch 官网（startouch.com.br/kit）购买，或在我们的 Mercado Livre、Shopee、TikTok Shop 和 Amazon 店铺购买。官网运费按 CEP（巴西邮政编码）计算，商品满 R$ 149 免运费，付款确认后 5 至 10 个工作日送达。仅限巴西境内配送。所有设备均享有 12 个月制造缺陷质保。想做代理？请访问 startouch.com.br/revenda 成为经销商。",
     "Guias para tirar o máximo do cartão": "充分发挥评价卡作用的指南",
     "NFC funciona no iPhone? Quais modelos leem e como fazer": "iPhone 支持 NFC 吗？哪些机型可以读取以及如何操作",
     "Cartão ou placa de balcão: qual escolher": "评价卡还是柜台立牌：该选哪个",
@@ -115,7 +112,6 @@
     "Como conseguir mais avaliações no Google: 7 estratégias": "如何获得更多 Google 评价：7 个策略",
     "Como pedir avaliação sem parecer chato": "如何请顾客评价又不招人烦",
     "Onde comprar": "购买渠道",
-    "O mesmo dispositivo, com o mesmo painel grátis e 12 meses de garantia, em qualquer um destes canais:": "同样的设备、同样的免费控制面板和 12 个月质保，以下任一渠道均可购买：",
     "Site StarTouch (venda direta)": "StarTouch 官网（直销）",
     "Comece a receber mais avaliações esta semana": "本周就开始收获更多评价",
     "Cartão a partir de R$ 29,90, sem mensalidade, com painel grátis.": "评价卡 R$ 29,90 起，无月费，附赠免费控制面板。",
@@ -136,7 +132,11 @@
     "Mercado Livre": "Mercado Livre",
     "Shopee": "Shopee",
     "TikTok Shop": "TikTok Shop",
-    "Amazon": "Amazon"
+    "Amazon": "Amazon",
+    "Frete grátis acima de R$ 149 · 3 meses de garantia": "满 R$ 149 免运费 · 3 个月质保",
+    "O chip NFC não tem bateria nem precisa de carga: quem fornece a energia é o próprio celular do cliente, na hora do toque. Em uso normal, dura anos. O que estraga um cartão é dobrar ou furar o chip. Todo dispositivo tem 3 meses de garantia contra defeito de fabricação.": "NFC 芯片没有电池，也无需充电：触碰时由顾客自己的手机供电。正常使用可以用好几年。会损坏评价卡的是弯折或刺穿芯片。所有设备均享有 3 个月制造缺陷质保。",
+    "Direto no site da StarTouch (startouch.com.br/kit) ou nas nossas lojas no Mercado Livre, na Shopee, no TikTok Shop e na Amazon. No site, o frete é calculado pelo CEP e é grátis em compras acima de R$ 149 em produtos, e a entrega leva de 5 a 10 dias úteis após a confirmação do pagamento. Todo dispositivo tem 3 meses de garantia contra defeito de fabricação. Quer revender? Seja um distribuidor em startouch.com.br/revenda.": "可直接在 StarTouch 官网（startouch.com.br/kit）购买，或在我们的 Mercado Livre、Shopee、TikTok Shop 和 Amazon 店铺购买。官网运费按 CEP（巴西邮政编码）计算，商品满 R$ 149 免运费，付款确认后 5 至 10 个工作日送达。仅限巴西境内配送。所有设备均享有 3 个月制造缺陷质保。想做代理？请访问 startouch.com.br/revenda 成为经销商。",
+    "O mesmo dispositivo, com o mesmo painel grátis e 3 meses de garantia, em qualquer um destes canais:": "同样的设备、同样的免费控制面板和 3 个月质保，以下任一渠道均可购买："
   },
   "h": {
     "Um cartão de avaliação Google NFC é um cartão de PVC do tamanho de um cartão de crédito (8,5 × 5,4 cm) com um chip NFC e um QR Code. Quando o cliente aproxima o celular ou aponta a câmera, o navegador abre direto a tela de avaliação da empresa no Google, sem aplicativo e sem precisar digitar o nome. Não é um produto oficial do Google: é um atalho para a página de avaliação pública que o Google oferece a toda empresa. O da StarTouch custa R$ 29,90, não tem mensalidade e vem com um painel grátis para acompanhar as avaliações.": "<strong>Google NFC 评价卡</strong>是一张信用卡大小（8.5 × 5.4 厘米）的 PVC 卡片，内置 NFC 芯片并印有二维码。顾客用手机一碰或用相机一扫，浏览器就会直接打开该商家在 Google 上的评价页面，无需应用，也不用输入名称。<strong>它不是 Google 官方产品</strong>：它只是通往 Google 为每个商家提供的公开评价页面的快捷方式。StarTouch 评价卡售价 R$ 29,90，无月费，并附赠免费控制面板，方便您跟踪评价。",

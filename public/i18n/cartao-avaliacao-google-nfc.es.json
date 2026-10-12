@@ -13,7 +13,6 @@
     "O cliente aproxima o celular e já cai na tela de estrelas da sua empresa no Google. Sem app, sem digitar, sem mensalidade.": "El cliente acerca su celular y llega directo a la pantalla de estrellas de tu negocio en Google. Sin app, sin escribir, sin mensualidad.",
     "Comprar cartão · R$ 29,90": "Comprar tarjeta · R$ 29,90",
     "Ver minha presença grátis": "Ver mi presencia gratis",
-    "Frete grátis acima de R$ 149 · 12 meses de garantia": "Envío gratis desde R$ 149 · 12 meses de garantía",
     "Resposta rápida": "Respuesta rápida",
     "Como funciona": "Cómo funciona",
     "Pedir avaliação é fácil. O difícil é o cliente lembrar, procurar sua empresa no Google e achar onde clicar. O cartão tira esses passos do caminho.": "Pedir una reseña es fácil. Lo difícil es que el cliente se acuerde, busque tu negocio en Google y encuentre dónde hacer clic. La tarjeta elimina esos pasos.",
@@ -105,9 +104,7 @@
     "Posso mostrar só para clientes satisfeitos?": "¿Puedo mostrarla solo a clientes satisfechos?",
     "Não. Filtrar clientes para que só os satisfeitos avaliem se chama review gating e é proibido pelas políticas do Google, que pode remover avaliações e até suspender o perfil da empresa. Todo cliente que toca num dispositivo StarTouch vai direto para o Google.": "No. Filtrar clientes para que solo los satisfechos dejen reseña se llama review gating y está prohibido por las políticas de Google, que puede eliminar reseñas e incluso suspender el perfil del negocio. Todo cliente que toca un dispositivo StarTouch va directo a Google.",
     "Quanto tempo dura?": "¿Cuánto dura?",
-    "O chip NFC não tem bateria nem precisa de carga: quem fornece a energia é o próprio celular do cliente, na hora do toque. Em uso normal, dura anos. O que estraga um cartão é dobrar ou furar o chip. Todo dispositivo tem 12 meses de garantia contra defeito de fabricação.": "El chip NFC no tiene batería ni necesita carga: la energía la aporta el propio celular del cliente en el momento del toque. Con uso normal, dura años. Lo que daña una tarjeta es doblar o perforar el chip. Todo dispositivo tiene 12 meses de garantía contra defectos de fabricación.",
     "Onde comprar? Frete e garantia?": "¿Dónde comprar? ¿Envío y garantía?",
-    "Direto no site da StarTouch (startouch.com.br/kit) ou nas nossas lojas no Mercado Livre, na Shopee, no TikTok Shop e na Amazon. No site, o frete é calculado pelo CEP e é grátis em compras acima de R$ 149 em produtos, e a entrega leva de 5 a 10 dias úteis após a confirmação do pagamento. Todo dispositivo tem 12 meses de garantia contra defeito de fabricação. Quer revender? Seja um distribuidor em startouch.com.br/revenda.": "Directo en el sitio de StarTouch (startouch.com.br/kit) o en nuestras tiendas de Mercado Livre, Shopee, TikTok Shop y Amazon. En el sitio, el envío se calcula por CEP (código postal brasileño) y es gratis en compras desde R$ 149 en productos; la entrega tarda de 5 a 10 días hábiles tras la confirmación del pago. Solo enviamos dentro de Brasil. Todo dispositivo tiene 12 meses de garantía contra defectos de fabricación. ¿Quieres revender? Hazte distribuidor en startouch.com.br/revenda.",
     "Guias para tirar o máximo do cartão": "Guías para sacarle el máximo provecho a la tarjeta",
     "NFC funciona no iPhone? Quais modelos leem e como fazer": "¿El NFC funciona en iPhone? Qué modelos lo leen y cómo hacerlo",
     "Cartão ou placa de balcão: qual escolher": "Tarjeta o placa de mostrador: cuál elegir",
@@ -115,7 +112,6 @@
     "Como conseguir mais avaliações no Google: 7 estratégias": "Cómo conseguir más reseñas en Google: 7 estrategias",
     "Como pedir avaliação sem parecer chato": "Cómo pedir una reseña sin resultar insistente",
     "Onde comprar": "Dónde comprar",
-    "O mesmo dispositivo, com o mesmo painel grátis e 12 meses de garantia, em qualquer um destes canais:": "El mismo dispositivo, con el mismo panel gratis y 12 meses de garantía, en cualquiera de estos canales:",
     "Site StarTouch (venda direta)": "Sitio StarTouch (venta directa)",
     "Comece a receber mais avaliações esta semana": "Empieza a recibir más reseñas esta semana",
     "Cartão a partir de R$ 29,90, sem mensalidade, com painel grátis.": "Tarjeta desde R$ 29,90, sin mensualidad, con panel gratis.",
@@ -136,7 +132,11 @@
     "Mercado Livre": "Mercado Livre",
     "Shopee": "Shopee",
     "TikTok Shop": "TikTok Shop",
-    "Amazon": "Amazon"
+    "Amazon": "Amazon",
+    "Frete grátis acima de R$ 149 · 3 meses de garantia": "Envío gratis desde R$ 149 · 3 meses de garantía",
+    "O chip NFC não tem bateria nem precisa de carga: quem fornece a energia é o próprio celular do cliente, na hora do toque. Em uso normal, dura anos. O que estraga um cartão é dobrar ou furar o chip. Todo dispositivo tem 3 meses de garantia contra defeito de fabricação.": "El chip NFC no tiene batería ni necesita carga: la energía la aporta el propio celular del cliente en el momento del toque. Con uso normal, dura años. Lo que daña una tarjeta es doblar o perforar el chip. Todo dispositivo tiene 3 meses de garantía contra defectos de fabricación.",
+    "Direto no site da StarTouch (startouch.com.br/kit) ou nas nossas lojas no Mercado Livre, na Shopee, no TikTok Shop e na Amazon. No site, o frete é calculado pelo CEP e é grátis em compras acima de R$ 149 em produtos, e a entrega leva de 5 a 10 dias úteis após a confirmação do pagamento. Todo dispositivo tem 3 meses de garantia contra defeito de fabricação. Quer revender? Seja um distribuidor em startouch.com.br/revenda.": "Directo en el sitio de StarTouch (startouch.com.br/kit) o en nuestras tiendas de Mercado Livre, Shopee, TikTok Shop y Amazon. En el sitio, el envío se calcula por CEP (código postal brasileño) y es gratis en compras desde R$ 149 en productos; la entrega tarda de 5 a 10 días hábiles tras la confirmación del pago. Solo enviamos dentro de Brasil. Todo dispositivo tiene 3 meses de garantía contra defectos de fabricación. ¿Quieres revender? Hazte distribuidor en startouch.com.br/revenda.",
+    "O mesmo dispositivo, com o mesmo painel grátis e 3 meses de garantia, em qualquer um destes canais:": "El mismo dispositivo, con el mismo panel gratis y 3 meses de garantía, en cualquiera de estos canales:"
   },
   "h": {
     "Um cartão de avaliação Google NFC é um cartão de PVC do tamanho de um cartão de crédito (8,5 × 5,4 cm) com um chip NFC e um QR Code. Quando o cliente aproxima o celular ou aponta a câmera, o navegador abre direto a tela de avaliação da empresa no Google, sem aplicativo e sem precisar digitar o nome. Não é um produto oficial do Google: é um atalho para a página de avaliação pública que o Google oferece a toda empresa. O da StarTouch custa R$ 29,90, não tem mensalidade e vem com um painel grátis para acompanhar as avaliações.": "Una <strong>tarjeta de reseñas de Google NFC</strong> es una tarjeta de PVC del tamaño de una tarjeta de crédito (8,5 × 5,4 cm) con un chip NFC y un código QR. Cuando el cliente acerca el celular o apunta la cámara, el navegador abre directo la pantalla de reseñas del negocio en Google, sin app y sin tener que escribir el nombre. <strong>No es un producto oficial de Google</strong>: es un atajo a la página pública de reseñas que Google ofrece a todo negocio. La de StarTouch cuesta R$ 29,90, no tiene mensualidad e incluye un panel gratis para seguir tus reseñas.",

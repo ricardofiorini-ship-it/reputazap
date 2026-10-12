@@ -1,6 +1,6 @@
 # Termos de Uso — StarTouch e Trybo
 
-**Versão 1.9 — vigente a partir de 7 de outubro de 2026**
+**Versão 1.10 — vigente a partir de 12 de outubro de 2026**
 
 ---
 
@@ -56,7 +56,7 @@ Comunique-nos imediatamente qualquer uso não autorizado.
 
 Compras realizadas **até 18 de setembro de 2026** tiveram frete gratuito para todo o Brasil, independentemente do valor, e essa condição é mantida para os pedidos feitos até essa data.
 
-**Garantia.** Os dispositivos têm garantia de 12 meses contra defeito de fabricação, contados do recebimento, sem prejuízo dos prazos legais do Código de Defesa do Consumidor. A garantia não cobre danos por mau uso, queda, exposição a calor excessivo, perfuração do chip ou tentativa de reprogramação.
+**Garantia.** Os dispositivos têm garantia de 3 meses (90 dias) contra defeito de fabricação, contados do recebimento — o mesmo prazo da garantia legal do Código de Defesa do Consumidor. Dispositivos comprados até 11 de outubro de 2026 mantêm a garantia de 12 meses vigente na data da compra. A garantia não cobre danos por mau uso, queda, exposição a calor excessivo, perfuração do chip ou tentativa de reprogramação.
 
 **Direito de arrependimento.** Nas compras realizadas pelo site, você pode desistir em até **7 dias corridos** do recebimento, conforme o Art. 49 do Código de Defesa do Consumidor, com devolução integral do valor pago — **incluindo o frete que você pagou na compra**. O produto deve ser devolvido em condições de revenda. Escreva para contato@startouch.com.br para iniciar o processo.
 
@@ -230,7 +230,7 @@ O cartão é gerido pelo painel da Trybo, com a **mesma conta** da StarTouch. Di
 
 Hoje os cartões Trybo são vendidos em **marketplaces**, como o Mercado Livre. Nesses casos, pagamento, entrega, troca e devolução seguem o processo daquele canal, sem prejuízo dos seus direitos como consumidor — inclusive o de desistir da compra em até 7 dias do recebimento (Art. 49 do Código de Defesa do Consumidor).
 
-Independentemente do canal de compra, o cartão Trybo tem a **mesma garantia de 12 meses** contra defeito de fabricação dos dispositivos StarTouch, nas condições do item 4. Para acioná-la, escreva para contato@startouch.com.br. Se o cartão vier a ser vendido também pelo nosso site, o item 4 se aplica a essas compras por inteiro.
+Independentemente do canal de compra, o cartão Trybo tem a **mesma garantia de 3 meses** contra defeito de fabricação dos dispositivos StarTouch, nas condições do item 4. Para acioná-la, escreva para contato@startouch.com.br. Se o cartão vier a ser vendido também pelo nosso site, o item 4 se aplica a essas compras por inteiro.
 
 ### 15.3 O que é grátis, e para sempre
 
@@ -300,6 +300,7 @@ Vale o item 12. Sem conta ativa, o cartão continua levando ao último destino c
 | 1.7 | 04/10/2026 | Inclusão da marca **Trybo**, operada pela mesma empresa, nas seções 1, 2, 6, 9 e 10 e na nova **seção 15**, com as condições próprias dos cartões Trybo: o que é grátis para sempre (as quatro redes impressas no cartão), os destinos avançados em pagamento único de R$ 49,00, a garantia de 12 meses também para o cartão comprado em marketplace, a responsabilidade pelo destino configurado e os cartões da equipe. Descreve o que a Trybo já faz e **não reduz direitos de nenhum cliente** da StarTouch ou da Trybo |
 | 1.8 | 06/10/2026 | O StarTouch Pro (item 5.3) passa a incluir o Menu Inteligente em **até 5 dispositivos**, com **R$ 1,90 por mês por dispositivo adicional**, cobrado só após confirmação no painel. **Não retroage:** assinaturas contratadas até 06/10/2026 mantêm o Menu sem limite e sem adicional enquanto ativas |
 | 1.9 | 07/10/2026 | O teste gratuito de 7 dias do StarTouch Pro (item 5.3) passa a **dispensar o cartão**. Sem cartão cadastrado ao fim do teste, a assinatura se encerra sem cobrança. O teste é oferecido uma vez por cliente. Testes iniciados antes desta data, já com cartão, seguem como contratados |
+| 1.10 | 12/10/2026 | A garantia dos dispositivos StarTouch e dos cartões Trybo contra defeito de fabricação passa de **12 meses para 3 meses (90 dias)**, contados do recebimento — o prazo da garantia legal. **Não retroage:** quem comprou até 11/10/2026 mantém os 12 meses vigentes na data da compra |
 
 ---
 
