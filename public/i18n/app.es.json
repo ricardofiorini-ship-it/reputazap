@@ -429,15 +429,7 @@
   "ações": "acciones",
   "Fechar": "Cerrar",
   "Gerar mais avaliações": "Conseguir más reseñas",
-  "Escolha o caminho mais prático pra coletar mais reviews dos seus clientes.": "Elige la forma más práctica de conseguir más reseñas de tus clientes.",
-  "① Compartilhar link direto": "① Compartir enlace directo",
-  "Copiado!": "¡Copiado!",
-  "Copiar link": "Copiar enlace",
-  "Enviar por WhatsApp": "Enviar por WhatsApp",
-  "Coloca no rodapé do email, na descrição do Instagram, ou manda direto pros clientes que você atendeu.": "Ponlo en la firma de tu email, en la descripción de Instagram o envíalo directo a los clientes que atendiste.",
-  "② Já tem um dispositivo StarTouch?": "② ¿Ya tienes un dispositivo StarTouch?",
   "Ativar código (STAR-XXXXX)": "Activar código (STAR-XXXXX)",
-  "③ Ampliar pontos de captação": "③ Ampliar puntos de captación",
   "Comprar placa de balcão, cartão NFC ou pulseira": "Comprar placa de mostrador, tarjeta NFC o pulsera",
   "Seu resultado": "Tu resultado",
   "Você está entre as melhores empresas da sua categoria.": "Estás entre las mejores empresas de tu categoría.",
@@ -517,9 +509,6 @@
   "Um dispositivo NFC coleta avaliações a cada atendimento, sem esforço.": "Un dispositivo NFC consigue reseñas en cada atención, sin esfuerzo.",
   "Ativar código": "Activar código",
   "Responder transmite confiança e fortalece sua presença no Google.": "Responder transmite confianza y fortalece tu presencia en Google.",
-  "Peça avaliação aos clientes que você atendeu esta semana": "Pide reseña a los clientes que atendiste esta semana",
-  "Copie seu link de avaliação e mande por WhatsApp. É o jeito mais rápido de subir o volume sem depender de nada nosso.": "Copia tu enlace de reseña y envíalo por WhatsApp. Es la forma más rápida de subir el volumen sin depender de nada nuestro.",
-  "Pegar meu link": "Obtener mi enlace",
   "Continue coletando avaliações toda semana": "Sigue consiguiendo reseñas cada semana",
   "Sua ação da semana": "Tu acción de la semana",
   "Avaliações recentes": "Reseñas recientes",
@@ -1334,7 +1323,12 @@
   "Nenhum menu ligado: o toque vai direto à avaliação no Google.": "Ningún menú activado: el toque va directo a la reseña en Google.",
   "Editar este menu →": "Editar este menú →",
   "Ligar um menu neste dispositivo →": "Activar un menú en este dispositivo →",
-  "Ver como é o menu deste dispositivo": "Ver cómo es el menú de este dispositivo"
+  "Ver como é o menu deste dispositivo": "Ver cómo es el menú de este dispositivo",
+  "O jeito mais prático é um dispositivo StarTouch no balcão ou com a sua equipe: o cliente encosta o celular e já cai na avaliação, no momento em que está satisfeito.": "Lo más práctico es un dispositivo StarTouch en tu mostrador o con tu equipo: el cliente acerca el celular y llega directo a la reseña, en el momento en que está satisfecho.",
+  "Já tem um dispositivo StarTouch?": "¿Ya tienes un dispositivo StarTouch?",
+  "Peça a avaliação no momento certo": "Pide la reseña en el momento justo",
+  "Com um cartão ou placa StarTouch, o cliente encosta o celular e já cai na avaliação — na hora em que está satisfeito.": "Con una tarjeta o placa StarTouch, el cliente acerca el celular y llega directo a la reseña — justo cuando está satisfecho.",
+  "Ver dispositivos": "Ver dispositivos"
  },
  "p": [
   [
@@ -1718,10 +1712,6 @@
    "en la categoría $1"
   ],
   [
-   "^na (.+?)$",
-   "en $1"
-  ],
-  [
    "^de (.+?) a (.+?)$",
    "del $1 al $2"
   ],
@@ -1965,7 +1955,6 @@
   "×",
   "'Inter', sans-serif",
   "^place_id: (.+?) biz\\.name: (.+?) category_override \\(banco\\): (.+?) googleCategory \\(auto\\): (.+?) activeCategory \\(em uso\\): (.+?) localStorage\\.rz_activity: (.+?) build: (.+?) hora local: (.+?)$",
-  "^Olá! Como foi sua experiência com a gente(.+?)\\? Deixa uma avaliação rapidinho: (.+?)$",
   "^(.+?) · 3km$",
   "^M (.+?),(.+?)$",
   "^C (.+?),(.+?) (.+?),(.+?) (.+?),(.+?)$",

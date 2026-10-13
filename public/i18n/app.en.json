@@ -429,15 +429,7 @@
   "ações": "actions",
   "Fechar": "Close",
   "Gerar mais avaliações": "Get more reviews",
-  "Escolha o caminho mais prático pra coletar mais reviews dos seus clientes.": "Choose the easiest way to collect more reviews from your customers.",
-  "① Compartilhar link direto": "① Share a direct link",
-  "Copiado!": "Copied!",
-  "Copiar link": "Copy link",
-  "Enviar por WhatsApp": "Send via WhatsApp",
-  "Coloca no rodapé do email, na descrição do Instagram, ou manda direto pros clientes que você atendeu.": "Put it in your email footer, your Instagram bio, or send it straight to customers you've served.",
-  "② Já tem um dispositivo StarTouch?": "② Already have a StarTouch device?",
   "Ativar código (STAR-XXXXX)": "Activate code (STAR-XXXXX)",
-  "③ Ampliar pontos de captação": "③ Add more collection points",
   "Comprar placa de balcão, cartão NFC ou pulseira": "Buy a counter stand, NFC card or wristband",
   "Seu resultado": "Your result",
   "Você está entre as melhores empresas da sua categoria.": "You're among the best businesses in your category.",
@@ -517,9 +509,6 @@
   "Um dispositivo NFC coleta avaliações a cada atendimento, sem esforço.": "An NFC device collects reviews with every customer, effortlessly.",
   "Ativar código": "Activate code",
   "Responder transmite confiança e fortalece sua presença no Google.": "Replying builds trust and strengthens your presence on Google.",
-  "Peça avaliação aos clientes que você atendeu esta semana": "Ask the customers you served this week for a review",
-  "Copie seu link de avaliação e mande por WhatsApp. É o jeito mais rápido de subir o volume sem depender de nada nosso.": "Copy your review link and send it on WhatsApp. It's the fastest way to boost your volume without needing anything from us.",
-  "Pegar meu link": "Get my link",
   "Continue coletando avaliações toda semana": "Keep collecting reviews every week",
   "Sua ação da semana": "Your action this week",
   "Avaliações recentes": "Recent reviews",
@@ -1334,7 +1323,12 @@
   "Nenhum menu ligado: o toque vai direto à avaliação no Google.": "No menu turned on: the tap goes straight to your Google review.",
   "Editar este menu →": "Edit this menu →",
   "Ligar um menu neste dispositivo →": "Turn on a menu on this device →",
-  "Ver como é o menu deste dispositivo": "See what this device's menu looks like"
+  "Ver como é o menu deste dispositivo": "See what this device's menu looks like",
+  "O jeito mais prático é um dispositivo StarTouch no balcão ou com a sua equipe: o cliente encosta o celular e já cai na avaliação, no momento em que está satisfeito.": "The most practical way is a StarTouch device on your counter or with your team: the customer taps their phone and lands right on the review, at the moment they're happy.",
+  "Já tem um dispositivo StarTouch?": "Already have a StarTouch device?",
+  "Peça a avaliação no momento certo": "Ask for the review at the right moment",
+  "Com um cartão ou placa StarTouch, o cliente encosta o celular e já cai na avaliação — na hora em que está satisfeito.": "With a StarTouch card or stand, the customer taps their phone and lands right on the review — right when they're happy.",
+  "Ver dispositivos": "See devices"
  },
  "p": [
   [
@@ -1718,10 +1712,6 @@
    "in the $1 category"
   ],
   [
-   "^na (.+?)$",
-   "on $1"
-  ],
-  [
    "^de (.+?) a (.+?)$",
    "from $1 to $2"
   ],
@@ -1965,7 +1955,6 @@
   "×",
   "'Inter', sans-serif",
   "^place_id: (.+?) biz\\.name: (.+?) category_override \\(banco\\): (.+?) googleCategory \\(auto\\): (.+?) activeCategory \\(em uso\\): (.+?) localStorage\\.rz_activity: (.+?) build: (.+?) hora local: (.+?)$",
-  "^Olá! Como foi sua experiência com a gente(.+?)\\? Deixa uma avaliação rapidinho: (.+?)$",
   "^(.+?) · 3km$",
   "^M (.+?),(.+?)$",
   "^C (.+?),(.+?) (.+?),(.+?) (.+?),(.+?)$",

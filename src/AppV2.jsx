@@ -4345,35 +4345,16 @@ function WeekActions({ items, isMobile }) {
 // ─────────────────────────────────────────────────────────────
 // Modal "Gerar mais avaliações" — 3 caminhos práticos pra coletar mais
 // ─────────────────────────────────────────────────────────────
-function ShareReviewsModal({ placeId, bizName, onClose, onActivatePlate }) {
-  const [copied, setCopied] = React.useState(false)
-  const reviewUrl = placeId
-    ? `${typeof window !== 'undefined' ? window.location.origin : 'https://startouch.com.br'}/avaliar?place_id=${encodeURIComponent(placeId)}`
-    : null
-  const waText = encodeURIComponent(
-    `Olá! Como foi sua experiência com a gente${bizName ? ' na ' + bizName : ''}? Deixa uma avaliação rapidinho: ${reviewUrl || ''}`
-  )
-
+// O LINK SAIU (13/10/2026, Ricardo): a opção ① entregava de bandeja o link de
+// avaliação (copiar / mandar por WhatsApp) — e link de graça compete com o
+// próprio produto: se o link resolve, pra que o cartão? O caminho que fica é
+// o dispositivo: comprar (principal) ou ativar o que já tem.
+function ShareReviewsModal({ onClose, onActivatePlate }) {
   React.useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
-
-  async function handleCopy() {
-    if (!reviewUrl) return
-    try {
-      await navigator.clipboard.writeText(reviewUrl)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1800)
-    } catch {
-      // fallback: select + execCommand
-      const ta = document.createElement('textarea')
-      ta.value = reviewUrl; document.body.appendChild(ta)
-      ta.select(); document.execCommand('copy'); document.body.removeChild(ta)
-      setCopied(true); setTimeout(() => setCopied(false), 1800)
-    }
-  }
 
   return (
     <div
@@ -4394,45 +4375,29 @@ function ShareReviewsModal({ placeId, bizName, onClose, onActivatePlate }) {
           Gerar mais avaliações
         </h2>
         <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 18px', lineHeight: 1.5 }}>
-          Escolha o caminho mais prático pra coletar mais reviews dos seus clientes.
+          O jeito mais prático é um dispositivo StarTouch no balcão ou com a sua equipe:
+          o cliente encosta o celular e já cai na avaliação, no momento em que está satisfeito.
         </p>
 
-        {/* 1. Compartilhar link direto */}
-        {reviewUrl && (
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: T.textMid, letterSpacing:'.04em', textTransform:'uppercase', marginBottom: 8 }}>
-              ① Compartilhar link direto
-            </div>
-            <div style={{
-              padding: 12, background: T.bg, border:'1px solid '+T.border, borderRadius: 8,
-              fontSize: 12.5, color: T.textMid, marginBottom: 8, wordBreak:'break-all', fontFamily:'monospace'
-            }}>{reviewUrl}</div>
-            <div style={{ display:'flex', gap: 8, flexWrap:'wrap' }}>
-              <button onClick={handleCopy} style={{
-                flex:'1 1 140px', background: copied ? T.green : T.blue, color:'#fff',
-                border:'none', borderRadius: 8, padding:'10px 14px',
-                fontSize: 13, fontWeight: 700, cursor:'pointer',
-                display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6,
-                transition:'background .15s'
-              }}>{copied ? <><Check size={15}/> Copiado!</> : <><ClipboardList size={15}/> Copiar link</>}</button>
-              <a href={`https://wa.me/?text=${waText}`} target="_blank" rel="noreferrer" style={{
-                flex:'1 1 140px', background:'#25D366', color:'#fff', textDecoration:'none',
-                borderRadius: 8, padding:'10px 14px', fontSize: 13, fontWeight: 700,
-                display:'inline-flex', alignItems:'center', justifyContent:'center', gap: 6
-              }}>Enviar por WhatsApp</a>
-            </div>
-            <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 6, lineHeight: 1.45 }}>
-              Coloca no rodapé do email, na descrição do Instagram, ou manda direto pros clientes que você atendeu.
-            </div>
-          </div>
-        )}
+        {/* 1. Comprar dispositivo — o caminho principal */}
+        <a href="/kit" style={{
+          display:'flex', width:'100%', boxSizing:'border-box',
+          background: T.blue, color:'#fff',
+          border:'none', borderRadius: 8, padding:'13px 14px',
+          fontSize: 14, fontWeight: 700, textDecoration:'none',
+          alignItems:'center', gap: 10
+        }}>
+          <span style={{ display:'inline-flex' }}><ShoppingCart size={20}/></span>
+          <span style={{ flex: 1 }}>Comprar placa de balcão, cartão NFC ou pulseira</span>
+          <span>›</span>
+        </a>
 
         <div style={{ height: 1, background: T.border, margin:'18px 0' }}/>
 
         {/* 2. Ativar código de dispositivo que já tem */}
-        <div style={{ marginBottom: 14 }}>
+        <div>
           <div style={{ fontSize: 12, fontWeight: 700, color: T.textMid, letterSpacing:'.04em', textTransform:'uppercase', marginBottom: 8 }}>
-            ② Já tem um dispositivo StarTouch?
+            Já tem um dispositivo StarTouch?
           </div>
           <button
             onClick={() => { onClose(); onActivatePlate && onActivatePlate() }}
@@ -4446,24 +4411,6 @@ function ShareReviewsModal({ placeId, bizName, onClose, onActivatePlate }) {
             <span style={{ flex: 1 }}>Ativar código (STAR-XXXXX)</span>
             <span style={{ color: T.textDim }}>›</span>
           </button>
-        </div>
-
-        {/* 3. Comprar novos dispositivos */}
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: T.textMid, letterSpacing:'.04em', textTransform:'uppercase', marginBottom: 8 }}>
-            ③ Ampliar pontos de captação
-          </div>
-          <a href="/kit" style={{
-            display:'flex', width:'100%', boxSizing:'border-box',
-            background:'#fff', color: T.text,
-            border:'1.5px solid '+T.border, borderRadius: 8, padding:'12px 14px',
-            fontSize: 13.5, fontWeight: 600, textDecoration:'none',
-            alignItems:'center', gap: 10
-          }}>
-            <span style={{ display:'inline-flex' }}><ShoppingCart size={20}/></span>
-            <span style={{ flex: 1 }}>Comprar placa de balcão, cartão NFC ou pulseira</span>
-            <span style={{ color: T.textDim }}>›</span>
-          </a>
         </div>
       </Card>
     </div>
@@ -5157,14 +5104,15 @@ function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate, lacuna = nul
     }
   } else if (isGuest) {
     // Visitante sem avaliação pendente de resposta. Em vez do tip do Score
-    // (número nosso, que ele não conhece e não move), a coisa que ele consegue
-    // fazer hoje: mandar o link de avaliação pros clientes que já atendeu. Roda
-    // só com o place_id — sem conta, sem dispositivo, sem esperar nada chegar.
+    // (número nosso, que ele não conhece e não move), o caminho que move o
+    // número: o dispositivo. ATÉ 13/10/2026 isto oferecia "Pegar meu link" —
+    // o link de avaliação de bandeja, que compete com o próprio produto (se o
+    // link resolve, pra que o cartão?). O Ricardo mandou tirar.
     a = {
       Icon: MessageSquare, type: 'ask_review',
-      title: 'Peça avaliação aos clientes que você atendeu esta semana',
-      context: 'Copie seu link de avaliação e mande por WhatsApp. É o jeito mais rápido de subir o volume sem depender de nada nosso.',
-      badge: null, cta: 'Pegar meu link', onClick: () => setPedirOpen(true)
+      title: 'Peça a avaliação no momento certo',
+      context: 'Com um cartão ou placa StarTouch, o cliente encosta o celular e já cai na avaliação — na hora em que está satisfeito.',
+      badge: null, cta: 'Ver dispositivos', onClick: () => setPedirOpen(true)
     }
   } else {
     const { factors } = scoreBreakdown(d)

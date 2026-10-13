@@ -429,15 +429,7 @@
   "ações": "项行动",
   "Fechar": "关闭",
   "Gerar mais avaliações": "获取更多评价",
-  "Escolha o caminho mais prático pra coletar mais reviews dos seus clientes.": "选择最方便的方式，向顾客收集更多评价。",
-  "① Compartilhar link direto": "① 分享直达链接",
-  "Copiado!": "已复制！",
-  "Copiar link": "复制链接",
-  "Enviar por WhatsApp": "通过 WhatsApp 发送",
-  "Coloca no rodapé do email, na descrição do Instagram, ou manda direto pros clientes que você atendeu.": "可以放在邮件签名、Instagram 简介中，或直接发给你服务过的顾客。",
-  "② Já tem um dispositivo StarTouch?": "② 已经有 StarTouch 设备了？",
   "Ativar código (STAR-XXXXX)": "激活代码（STAR-XXXXX）",
-  "③ Ampliar pontos de captação": "③ 增加评价收集点",
   "Comprar placa de balcão, cartão NFC ou pulseira": "购买柜台立牌、NFC 卡或手环",
   "Seu resultado": "你的成绩",
   "Você está entre as melhores empresas da sua categoria.": "你位列同类最佳商家之列。",
@@ -517,9 +509,6 @@
   "Um dispositivo NFC coleta avaliações a cada atendimento, sem esforço.": "NFC 设备在每次服务时轻松收集评价。",
   "Ativar código": "激活代码",
   "Responder transmite confiança e fortalece sua presença no Google.": "回复评价能赢得信任，巩固你在 Google 上的影响力。",
-  "Peça avaliação aos clientes que você atendeu esta semana": "邀请本周服务过的顾客留下评价",
-  "Copie seu link de avaliação e mande por WhatsApp. É o jeito mais rápido de subir o volume sem depender de nada nosso.": "复制你的评价链接并通过 WhatsApp 发送。这是提升评价数量最快的方法，无需依赖我们的任何产品。",
-  "Pegar meu link": "获取我的链接",
   "Continue coletando avaliações toda semana": "每周持续收集评价",
   "Sua ação da semana": "本周行动",
   "Avaliações recentes": "最新评价",
@@ -1334,7 +1323,12 @@
   "Nenhum menu ligado: o toque vai direto à avaliação no Google.": "未启用菜单：轻触后会直接进入 Google 评价页面。",
   "Editar este menu →": "编辑这个菜单 →",
   "Ligar um menu neste dispositivo →": "为这台设备启用菜单 →",
-  "Ver como é o menu deste dispositivo": "查看这台设备的菜单"
+  "Ver como é o menu deste dispositivo": "查看这台设备的菜单",
+  "O jeito mais prático é um dispositivo StarTouch no balcão ou com a sua equipe: o cliente encosta o celular e já cai na avaliação, no momento em que está satisfeito.": "最方便的方式是在柜台或团队手里放一台 StarTouch 设备：顾客用手机轻触，就能在最满意的时候直接进入评价页面。",
+  "Já tem um dispositivo StarTouch?": "已经有 StarTouch 设备了？",
+  "Peça a avaliação no momento certo": "在合适的时机邀请评价",
+  "Com um cartão ou placa StarTouch, o cliente encosta o celular e já cai na avaliação — na hora em que está satisfeito.": "有了 StarTouch 卡片或立牌，顾客用手机一碰就能直接进入评价页面——正是他们最满意的时候。",
+  "Ver dispositivos": "查看设备"
  },
  "p": [
   [
@@ -1718,10 +1712,6 @@
    "在“$1”类别中"
   ],
   [
-   "^na (.+?)$",
-   "在 $1"
-  ],
-  [
    "^de (.+?) a (.+?)$",
    "$1 至 $2"
   ],
@@ -1965,7 +1955,6 @@
   "×",
   "'Inter', sans-serif",
   "^place_id: (.+?) biz\\.name: (.+?) category_override \\(banco\\): (.+?) googleCategory \\(auto\\): (.+?) activeCategory \\(em uso\\): (.+?) localStorage\\.rz_activity: (.+?) build: (.+?) hora local: (.+?)$",
-  "^Olá! Como foi sua experiência com a gente(.+?)\\? Deixa uma avaliação rapidinho: (.+?)$",
   "^(.+?) · 3km$",
   "^M (.+?),(.+?)$",
   "^C (.+?),(.+?) (.+?),(.+?) (.+?),(.+?)$",
