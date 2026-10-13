@@ -1315,8 +1315,6 @@
   "SEU MENU COMEÇA ASSIM": "YOUR MENU STARTS LIKE THIS",
   "Hoje, quem encosta o celular no seu dispositivo vai direto pra avaliação no Google.": "Today, whoever taps their phone on your device goes straight to your Google review.",
   "Com um dispositivo StarTouch, quem encosta o celular vai direto pra avaliação no Google.": "With a StarTouch device, whoever taps their phone goes straight to your Google review.",
-  "É o único caminho, por enquanto. Os espaços vazios são o que o Menu Inteligente libera: WhatsApp, cardápio, agenda, Instagram e o que mais você quiser — com a avaliação sempre em primeiro.": "It's the only path, for now. The empty spaces are what the Smart Menu unlocks: WhatsApp, menu, booking, Instagram and anything else you want — with the review always first.",
-  "Preencher um espaço": "Fill a space",
   "Não foi possível carregar o menu.": "Couldn't load the menu.",
   "O QUE O CLIENTE VÊ": "WHAT YOUR CUSTOMER SEES",
   "Abre o menu": "Opens the menu",
@@ -1328,7 +1326,12 @@
   "Já tem um dispositivo StarTouch?": "Already have a StarTouch device?",
   "Peça a avaliação no momento certo": "Ask for the review at the right moment",
   "Com um cartão ou placa StarTouch, o cliente encosta o celular e já cai na avaliação — na hora em que está satisfeito.": "With a StarTouch card or stand, the customer taps their phone and lands right on the review — right when they're happy.",
-  "Ver dispositivos": "See devices"
+  "Ver dispositivos": "See devices",
+  "É o único caminho, por enquanto.": "It's the only path, for now.",
+  "MENU INTELIGENTE · STARTOUCH PRO": "SMART MENU · STARTOUCH PRO",
+  "Preencha os espaços vazios.": "Fill in the empty spaces.",
+  "Com o Menu Inteligente, o mesmo toque também abre": "With the Smart Menu, the same tap also opens",
+  ", agendamento e outros links importantes — com a avaliação sempre em primeiro lugar.": ", booking and other important links — with the review always first."
  },
  "p": [
   [

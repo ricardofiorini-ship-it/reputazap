@@ -1315,8 +1315,6 @@
   "SEU MENU COMEÇA ASSIM": "你的菜单从这里开始",
   "Hoje, quem encosta o celular no seu dispositivo vai direto pra avaliação no Google.": "现在，用手机轻触你设备的人会直接进入 Google 评价页面。",
   "Com um dispositivo StarTouch, quem encosta o celular vai direto pra avaliação no Google.": "有了 StarTouch 设备，用手机轻触的人会直接进入 Google 评价页面。",
-  "É o único caminho, por enquanto. Os espaços vazios são o que o Menu Inteligente libera: WhatsApp, cardápio, agenda, Instagram e o que mais você quiser — com a avaliação sempre em primeiro.": "目前这是唯一的去处。空位就是智能菜单可以解锁的内容：WhatsApp、菜单、预约、Instagram，以及你想要的任何链接——评价始终排在第一位。",
-  "Preencher um espaço": "填一个空位",
   "Não foi possível carregar o menu.": "无法加载菜单。",
   "O QUE O CLIENTE VÊ": "顾客看到的内容",
   "Abre o menu": "打开菜单",
@@ -1328,7 +1326,12 @@
   "Já tem um dispositivo StarTouch?": "已经有 StarTouch 设备了？",
   "Peça a avaliação no momento certo": "在合适的时机邀请评价",
   "Com um cartão ou placa StarTouch, o cliente encosta o celular e já cai na avaliação — na hora em que está satisfeito.": "有了 StarTouch 卡片或立牌，顾客用手机一碰就能直接进入评价页面——正是他们最满意的时候。",
-  "Ver dispositivos": "查看设备"
+  "Ver dispositivos": "查看设备",
+  "É o único caminho, por enquanto.": "目前这是唯一的去处。",
+  "MENU INTELIGENTE · STARTOUCH PRO": "智能菜单 · STARTOUCH PRO",
+  "Preencha os espaços vazios.": "把空位填满。",
+  "Com o Menu Inteligente, o mesmo toque também abre": "有了智能菜单，同一次触碰还能打开",
+  ", agendamento e outros links importantes — com a avaliação sempre em primeiro lugar.": "、预约和其他重要链接——评价始终排在第一位。"
  },
  "p": [
   [

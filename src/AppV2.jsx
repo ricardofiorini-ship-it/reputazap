@@ -4006,7 +4006,12 @@ function TelefonePromo({ nome, onVazio, botoes = PROMO_BOTOES, vazios = PROMO_VA
 // acima dele. Some pro assinante: com o Pro cada dispositivo pode ter um menu
 // diferente, e o retrato passa a morar na lista de dispositivos ("Ver como é o
 // menu deste dispositivo"). Sem dispositivo ainda, vira "começa assim".
-function SeuMenuEstaAssim({ nome, isMobile, temDispositivo, onAdicionarBotao }) {
+// UM BLOCO SÓ (13/10/2026, Ricardo): o retrato ("seu menu está assim") e a
+// venda do Menu Inteligente moram no MESMO cartão branco — antes eram dois,
+// e o segundo, azul, repetia a conversa. Primeiro o fato (hoje o toque só
+// leva ao Google), depois o que muda com o Menu, o botão e o preço. Para quem
+// não é assinante; o assinante vê o banner azul "Seu Menu Inteligente".
+function SeuMenuEstaAssim({ nome, isMobile, temDispositivo, onAdicionarBotao, onAbrirMenu, ctaLabel = null }) {
   return (
     <Section>
       <div style={{
@@ -4019,27 +4024,44 @@ function SeuMenuEstaAssim({ nome, isMobile, temDispositivo, onAdicionarBotao }) 
           <TelefonePromo nome={nome} onVazio={onAdicionarBotao}/>
         </div>
         <div style={{ flex: '1 1 300px', minWidth: 0 }}>
-          <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em', color: T.blueDk, marginBottom: 6 }}>
+          {/* ── Como está ── */}
+          <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em', color: T.textMid, marginBottom: 6 }}>
             {temDispositivo ? 'SEU MENU ESTÁ ASSIM' : 'SEU MENU COMEÇA ASSIM'}
           </div>
-          <div style={{ fontSize: isMobile ? 18 : 21, fontWeight: 800, color: T.text, letterSpacing: '-0.02em', lineHeight: 1.25, marginBottom: 10 }}>
+          <div style={{ fontSize: isMobile ? 17 : 19, fontWeight: 800, color: T.text, letterSpacing: '-0.02em', lineHeight: 1.3, marginBottom: 6 }}>
             {temDispositivo
               ? 'Hoje, quem encosta o celular no seu dispositivo vai direto pra avaliação no Google.'
               : 'Com um dispositivo StarTouch, quem encosta o celular vai direto pra avaliação no Google.'}
           </div>
           <div style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.6 }}>
-            É o único caminho, por enquanto. Os espaços vazios são o que o Menu Inteligente libera:
-            WhatsApp, cardápio, agenda, Instagram e o que mais você quiser — com a avaliação sempre em primeiro.
+            É o único caminho, por enquanto.
           </div>
-          {onAdicionarBotao && (
-            <button type="button" onClick={onAdicionarBotao} style={{
-              marginTop: 14, background: 'transparent', border: `1.5px dashed ${T.blue}`, color: T.blueDk,
-              borderRadius: 10, padding: '10px 16px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
-              display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: 'inherit'
-            }}>
-              <Plus size={15} strokeWidth={2.4}/> Preencher um espaço
-            </button>
-          )}
+
+          <div style={{ height: 1, background: T.border, margin: '16px 0' }}/>
+
+          {/* ── O que muda com o Menu ── */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em', color: T.blueDk, marginBottom: 6 }}>
+            <Sparkles size={12}/> MENU INTELIGENTE · STARTOUCH PRO
+          </div>
+          <div style={{ fontSize: isMobile ? 19 : 22, fontWeight: 800, color: T.blue, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 8 }}>
+            Preencha os espaços vazios.
+          </div>
+          <div style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.6, marginBottom: 14, maxWidth: 520 }}>
+            Com o Menu Inteligente, o mesmo toque também abre <strong style={{ color: T.text }}>WhatsApp</strong>,
+            {' '}<strong style={{ color: T.text }}>Instagram</strong>, <strong style={{ color: T.text }}>cardápio</strong>,
+            agendamento e outros links importantes — com a avaliação sempre em primeiro lugar.
+          </div>
+          <button type="button" onClick={onAbrirMenu} style={{
+            border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            display: 'inline-flex', alignItems: 'center', gap: 9,
+            background: T.blue, color: '#fff', borderRadius: 10,
+            padding: '12px 22px', fontSize: 14.5, fontWeight: 800,
+            boxShadow: '0 6px 16px rgba(26,115,232,.22)'
+          }}>
+            {ctaLabel || 'Criar meu menu — 7 dias grátis'}
+            <ArrowRight size={17}/>
+          </button>
+          <PrecoMenu/>
         </div>
       </div>
     </Section>
@@ -6875,8 +6897,7 @@ function GuestMenuVitrine({ url, bizName, isMobile }) {
   return (
     <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 96px' : '32px 32px 96px' }}>
       <SeuMenuEstaAssim nome={(bizName || 'Seu negócio').trim()} isMobile={isMobile} temDispositivo={false}
-        onAdicionarBotao={() => irCadastro('menu_vitrine_telefone', '/app?tab=menu&add=1')}/>
-      <MenuInteligenteSlot plan="free" bizName={bizName} isMobile={isMobile}
+        onAdicionarBotao={() => irCadastro('menu_vitrine_telefone', '/app?tab=menu&add=1')}
         onAbrirMenu={() => irCadastro('menu_vitrine_banner')} ctaLabel="Criar minha conta grátis"/>
 
       <Section>
@@ -8961,11 +8982,14 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             o editor já na escolha do tipo (Experiencia.jsx, comecarAdicionar). */}
         {!guestMode && plan !== 'pro' && <SeuMenuEstaAssim nome={(d?.biz?.name || 'Seu negócio').trim()} isMobile={isMobile}
           temDispositivo={(d?.activePlates || []).length > 0}
+          onAbrirMenu={() => setTab('menu')}
           onAdicionarBotao={() => {
             try { const u = new URL(window.location.href); u.searchParams.set('add', '1'); window.history.replaceState({}, '', u) } catch {}
             setTab('menu')
           }} />}
-        {!guestMode && <MenuInteligenteSlot plan={plan} bizName={d?.biz?.name} isMobile={isMobile} onAbrirMenu={() => setTab('menu')} />}
+        {/* Assinante: banner azul "Seu Menu Inteligente / Configurar meu menu".
+            Quem não é assinante já tem a venda dentro do cartão acima. */}
+        {!guestMode && plan === 'pro' && <MenuInteligenteSlot plan={plan} bizName={d?.biz?.name} isMobile={isMobile} onAbrirMenu={() => setTab('menu')} />}
 
         {/* Widget Radar IA — desligado desde 09/07 e o produto foi aposentado
             em 07/09/2026. O componente devolve null; fica como referência. */}

@@ -1315,8 +1315,6 @@
   "SEU MENU COMEÇA ASSIM": "TU MENÚ EMPIEZA ASÍ",
   "Hoje, quem encosta o celular no seu dispositivo vai direto pra avaliação no Google.": "Hoy, quien acerca el celular a tu dispositivo va directo a la reseña en Google.",
   "Com um dispositivo StarTouch, quem encosta o celular vai direto pra avaliação no Google.": "Con un dispositivo StarTouch, quien acerca el celular va directo a la reseña en Google.",
-  "É o único caminho, por enquanto. Os espaços vazios são o que o Menu Inteligente libera: WhatsApp, cardápio, agenda, Instagram e o que mais você quiser — com a avaliação sempre em primeiro.": "Es el único camino, por ahora. Los espacios vacíos son lo que libera el Menú Inteligente: WhatsApp, carta, agenda, Instagram y lo que quieras — con la reseña siempre primero.",
-  "Preencher um espaço": "Llenar un espacio",
   "Não foi possível carregar o menu.": "No se pudo cargar el menú.",
   "O QUE O CLIENTE VÊ": "LO QUE VE EL CLIENTE",
   "Abre o menu": "Abre el menú",
@@ -1328,7 +1326,12 @@
   "Já tem um dispositivo StarTouch?": "¿Ya tienes un dispositivo StarTouch?",
   "Peça a avaliação no momento certo": "Pide la reseña en el momento justo",
   "Com um cartão ou placa StarTouch, o cliente encosta o celular e já cai na avaliação — na hora em que está satisfeito.": "Con una tarjeta o placa StarTouch, el cliente acerca el celular y llega directo a la reseña — justo cuando está satisfecho.",
-  "Ver dispositivos": "Ver dispositivos"
+  "Ver dispositivos": "Ver dispositivos",
+  "É o único caminho, por enquanto.": "Es el único camino, por ahora.",
+  "MENU INTELIGENTE · STARTOUCH PRO": "MENÚ INTELIGENTE · STARTOUCH PRO",
+  "Preencha os espaços vazios.": "Llena los espacios vacíos.",
+  "Com o Menu Inteligente, o mesmo toque também abre": "Con el Menú Inteligente, el mismo toque también abre",
+  ", agendamento e outros links importantes — com a avaliação sempre em primeiro lugar.": ", agenda y otros enlaces importantes — con la reseña siempre en primer lugar."
  },
  "p": [
   [
