@@ -1,6 +1,6 @@
 # Política de Privacidade — StarTouch
 
-**Versão 1.7 — vigente a partir de 24 de setembro de 2026**
+**Versão 1.8 — vigente a partir de 13 de outubro de 2026**
 
 ---
 
@@ -221,6 +221,7 @@ Utilizamos prestadores de serviço que atuam como **operadores**, tratando dados
 | **Google (Analytics)** | Análise de uso do site | Dados de navegação e identificador de navegador |
 | **Meta** | Mensuração de campanhas publicitárias | Dados de navegação e identificador de navegador |
 | **ViaCEP** | Preenchimento automático de endereço | CEP informado |
+| **DHL Express** | Entrega de pedidos enviados para fora do Brasil | Nome, telefone, e-mail, endereço de entrega e, se informado, documento fiscal do destinatário |
 | **OpenAI, Google e Perplexity** | Consultas do produto IA Radar | Nome, categoria e cidade do estabelecimento — dados de empresa, não de pessoa física |
 
 Também poderemos compartilhar dados quando houver determinação legal, ordem judicial ou requisição de autoridade competente, e em caso de reorganização societária, hipótese em que a presente Política continuará aplicável.
@@ -317,6 +318,7 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 | 1.5 | 15/09/2026 | Inclusão da linha "Histórico de visibilidade do estabelecimento no Google" na seção 9, com prazo de 24 meses. A medição de como o estabelecimento aparece nas buscas do Google passa a ser guardada ao longo do tempo, para responder se a visibilidade melhorou ou piorou. O registro contém o identificador público da ficha do estabelecimento no Google, o termo de busca medido e números de posicionamento — **não contém dado de pessoa natural**. O prazo é declarado por precaução, já que a ficha de um empresário individual pode coincidir com o nome de uma pessoa. Alteração meramente declaratória: não reduz direitos nem amplia finalidades |
 | 1.6 | 23/09/2026 | Inclusão da marca **Trybo** e do site trybo.co, operados pela mesma controladora, nas seções 1, 2, 3.1, 4, 6 e 9. A parte que descreve o que a Trybo já faz — perfis de redes sociais, equipe do estabelecimento, sistema do aparelho e rede aberta no toque — é declaratória e entra em vigor imediatamente. A **seção 4.4** (código temporário contra contagem artificial nos cartões Trybo) aplica aos cartões Trybo a finalidade de proteção contra uso abusivo já declarada na seção 6.3, com menos dados e prazo menor; não amplia finalidades nem reduz direitos. Não se aplica aos dispositivos StarTouch |
 | 1.7 | 24/09/2026 | A **seção 4.4** (código temporário contra contagem artificial) passa a valer também para os **dispositivos StarTouch**, e a pergunta que o código responde passa de "o mesmo aparelho tocou há menos de um minuto?" para "o mesmo aparelho já tocou neste dispositivo hoje?". **Não há dado novo**: são os mesmos elementos, com a mesma finalidade (prevenção de fraude na contagem, já declarada nas seções 4.4 e 6.3), a mesma chave diária descartada e o mesmo prazo de até 24 horas. O registro de toques da seção 4.1 continua sem identificador. Não reduz direitos nem amplia finalidades |
+| 1.8 | 13/10/2026 | Inclusão da **DHL Express** na seção 7, como operadora da entrega dos pedidos enviados para fora do Brasil. São os mesmos dados de entrega já coletados na compra, com a mesma finalidade (entregar o pedido); muda apenas quem transporta. Não reduz direitos nem amplia finalidades |
 | 1.3 | 07/09/2026 | Mudança de controladora: a ZAYOR BRASIL LTDA (CNPJ 68.972.361/0001-33) sucede a GT6 Brasil Comércio Varejista de Produtos Diversos Ltda, inclusive quanto aos dados já coletados (seção 1.1); atualização do endereço para o da nova sede. **Não é alteração meramente declaratória** como as duas anteriores — muda quem responde pelo tratamento —, mas não reduz direitos, não amplia finalidades e não altera nenhuma operação de tratamento |
 
 ---

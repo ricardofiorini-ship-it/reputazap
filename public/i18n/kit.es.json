@@ -92,7 +92,6 @@
     "Frete": "Envío",
     "Total": "Total",
     "Ir para o pagamento →": "Ir al pago →",
-    "🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149": "🔒 Pago seguro con Stripe · 🚚 Envío gratis desde R$ 149",
     "Foto anterior": "Foto anterior",
     "Próxima foto": "Foto siguiente",
     "Seu carrinho está vazio.": "Tu carrito está vacío.",
@@ -130,7 +129,19 @@
     "— é rapidinho e o suporte te ajuda se precisar.": "— es rapidísimo y el soporte te ayuda si lo necesitas.",
     "Boleto gerado — falta pagar": "Boleto generado — falta pagarlo",
     "O pedido só é confirmado quando o boleto for pago": "El pedido solo se confirma cuando se paga el boleto",
-    "Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 3 meses de garantia, frete grátis acima de R$ 149.": "Tarjetas NFC y placas de mostrador para que tu negocio reciba más reseñas en Google: el cliente acerca el celular y deja su reseña en segundos. Sin mensualidad, 3 meses de garantía, envío gratis en Brasil en compras desde R$ 149."
+    "Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 3 meses de garantia, frete grátis acima de R$ 149.": "Tarjetas NFC y placas de mostrador para que tu negocio reciba más reseñas en Google: el cliente acerca el celular y deja su reseña en segundos. Sin mensualidad, 3 meses de garantía, envío gratis en Brasil en compras desde R$ 149.",
+    "País de entrega": "País de entrega",
+    "Brasil": "Brasil",
+    "Código postal": "Código postal",
+    "Endereço completo (rua, número, apartamento)": "Dirección completa (calle, número, departamento)",
+    "Impostos e taxas de importação do seu país não estão incluídos: quando existem, são cobrados pela alfândega de quem recebe, na entrega.": "Los impuestos y tasas de importación de tu país no están incluidos: cuando existen, la aduana los cobra a quien recibe, en la entrega.",
+    "🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149 no Brasil": "🔒 Pago seguro vía Stripe · 🚚 Envío gratis en Brasil a partir de R$ 149",
+    "Escolha o país pra calcular o frete.": "Elige el país para calcular el envío.",
+    "Envio internacional com rastreio. Prazo contado a partir da postagem (produção em até 2 dias úteis).": "Envío internacional con seguimiento. El plazo se cuenta desde el despacho (producción en hasta 2 días hábiles).",
+    "Não consegui calcular o frete pra esse país.": "No pude calcular el envío para ese país.",
+    "Informe um telefone com código do país — a DHL usa pra entregar.": "Ingresa un teléfono con código de país — DHL lo usa para entregar.",
+    "Preencha o endereço completo e a cidade.": "Completa la dirección y la ciudad.",
+    "3 a 7 dias úteis": "3 a 7 días hábiles"
   },
   "h": {
     "R$ 29,90 / unidade": "R$ 29,90 <small>/ unidad</small>",
@@ -141,7 +152,9 @@
     "Vai comprar em quantidade para revender? Seja um distribuidor — a partir de R$ 800, com preço de atacado.": "¿Vas a comprar en cantidad para revender? <a href=\"/revenda\">Hazte distribuidor</a> — desde R$ 800, con precio mayorista.",
     "ZAYOR BRASIL LTDA · CNPJ 68.972.361/0001-33": "<strong style=\"color:var(--texto);font-weight:600;\">ZAYOR BRASIL LTDA</strong> · CNPJ 68.972.361/0001-33",
     "Preencha pra receber seus dispositivos. Você não precisa criar conta agora — depois de receber, é só voltar aqui pra ativar (leva 2 min).": "Completa tus datos para recibir tus dispositivos. <strong>No necesitas crear una cuenta ahora</strong> — cuando lleguen, solo vuelve aquí para activarlos (toma 2 min).",
-    "3 mesesde garantia": "<strong>3 meses</strong>de garantía"
+    "3 mesesde garantia": "<strong>3 meses</strong>de garantía",
+    "Documento fiscal (Tax ID, VAT) (opcional)": "Documento fiscal (Tax ID, VAT) <span style=\"font-weight:400;color:#94a3b8;\">(opcional)</span>",
+    "Estado ou província (se houver)": "Estado o provincia <span style=\"font-weight:400;color:#94a3b8;\">(si corresponde)</span>"
   },
   "p": [
     [

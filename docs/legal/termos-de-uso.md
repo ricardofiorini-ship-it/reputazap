@@ -1,6 +1,6 @@
 # Termos de Uso — StarTouch e Trybo
 
-**Versão 1.10 — vigente a partir de 12 de outubro de 2026**
+**Versão 1.11 — vigente a partir de 13 de outubro de 2026**
 
 ---
 
@@ -55,6 +55,8 @@ Comunique-nos imediatamente qualquer uso não autorizado.
 **Frete e prazo.** O frete é calculado no momento da compra, a partir do CEP de entrega e do peso e das dimensões do pedido, e é **exibido para você antes de confirmar o pagamento** — nada é cobrado a título de frete sem estar na tela. **Pedidos a partir de R$ 149,00 em produtos, sem contar o frete, têm frete gratuito para todo o Brasil.** O prazo estimado de entrega é de 5 a 10 dias úteis após a confirmação do pagamento, contado a partir da postagem, e pode variar conforme a região, o serviço de entrega escolhido e fatores alheios ao nosso controle.
 
 Compras realizadas **até 18 de setembro de 2026** tiveram frete gratuito para todo o Brasil, independentemente do valor, e essa condição é mantida para os pedidos feitos até essa data.
+
+**Entrega fora do Brasil.** Também enviamos dispositivos para outros países, pela DHL Express. O frete internacional é calculado no momento da compra, a partir do país de destino e do peso do pedido, e também é **exibido antes de você confirmar o pagamento**. O frete gratuito acima de R$ 149,00 vale **somente para entregas no Brasil**. **Impostos, tarifas e taxas de importação do país de destino não estão incluídos no preço nem no frete**: quando existirem, são cobrados de quem recebe, pela alfândega ou pela transportadora, no momento da entrega. O prazo estimado é de 3 a 7 dias úteis após a postagem e pode variar com o desembaraço aduaneiro. Se a encomenda for recusada ou não for retirada por falta de pagamento desses tributos, ela volta para nós, e o reembolso desconta o frete de ida e o de retorno cobrados pela transportadora.
 
 **Garantia.** Os dispositivos têm garantia de 3 meses (90 dias) contra defeito de fabricação, contados do recebimento — o mesmo prazo da garantia legal do Código de Defesa do Consumidor. Dispositivos comprados até 11 de outubro de 2026 mantêm a garantia de 12 meses vigente na data da compra. A garantia não cobre danos por mau uso, queda, exposição a calor excessivo, perfuração do chip ou tentativa de reprogramação.
 
@@ -301,6 +303,7 @@ Vale o item 12. Sem conta ativa, o cartão continua levando ao último destino c
 | 1.8 | 06/10/2026 | O StarTouch Pro (item 5.3) passa a incluir o Menu Inteligente em **até 5 dispositivos**, com **R$ 1,90 por mês por dispositivo adicional**, cobrado só após confirmação no painel. **Não retroage:** assinaturas contratadas até 06/10/2026 mantêm o Menu sem limite e sem adicional enquanto ativas |
 | 1.9 | 07/10/2026 | O teste gratuito de 7 dias do StarTouch Pro (item 5.3) passa a **dispensar o cartão**. Sem cartão cadastrado ao fim do teste, a assinatura se encerra sem cobrança. O teste é oferecido uma vez por cliente. Testes iniciados antes desta data, já com cartão, seguem como contratados |
 | 1.10 | 12/10/2026 | A garantia dos dispositivos StarTouch e dos cartões Trybo contra defeito de fabricação passa de **12 meses para 3 meses (90 dias)**, contados do recebimento — o prazo da garantia legal. **Não retroage:** quem comprou até 11/10/2026 mantém os 12 meses vigentes na data da compra |
+| 1.11 | 13/10/2026 | Inclusão da **entrega fora do Brasil** (item 4), pela DHL Express: frete calculado por país e peso e exibido antes do pagamento, frete gratuito acima de R$ 149,00 restrito ao Brasil, e impostos de importação do país de destino por conta de quem recebe. Cria uma opção nova e **não altera nenhuma condição das entregas no Brasil** |
 
 ---
 

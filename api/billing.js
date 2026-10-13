@@ -12,6 +12,7 @@ import { KIT_CATALOG } from "./_lib/catalogo-kit.js";
 import { dadosDoCliente, enderecoCompleto } from "./_lib/pedido-cliente.js";
 import { entradaDoScore } from "./_lib/visibilidade.js";
 import { cotaFrete } from "./_lib/frenet.js";
+import { cotaInternacional } from "./_lib/frete-internacional.js";
 import { soStartouch, logsSoStartouch } from "./_lib/linha.js";
 import { recalcularCartao } from "./_lib/trybo.js";
 
@@ -260,7 +261,8 @@ async function notifyAdminKitOrder({ order, userId, provedor = "mercadopago", pa
   if (d.endereco || d.cep || d.nome || d.razao) {
     const linha = [d.endereco, d.numero].filter(Boolean).join(", ");
     const compl = d.complemento ? ` — ${escapeHtmlLite(d.complemento)}` : "";
-    const cidade = [d.bairro, d.cidade, d.uf].filter(Boolean).join(" · ");
+    const cidade = [d.bairro, d.cidade, d.uf].filter(Boolean).join(" · ") +
+      (d.internacional ? ` · ${d.pais}` : "");
     shippingHtml =
       `<h3>📦 Entrega</h3>` +
       `<p><strong>${escapeHtmlLite(d.razao || d.nome || "—")}</strong>` +
@@ -271,7 +273,15 @@ async function notifyAdminKitOrder({ order, userId, provedor = "mercadopago", pa
         : "") +
       `<p>${escapeHtmlLite(linha)}${compl}<br/>` +
       `${escapeHtmlLite(cidade)}<br/>` +
-      `CEP ${escapeHtmlLite(d.cep || "—")}</p>`;
+      `${d.internacional ? "Código postal" : "CEP"} ${escapeHtmlLite(d.cep || "—")}</p>`;
+    if (d.internacional) {
+      shippingHtml +=
+        `<p style="background:#FEF7E0;padding:10px 12px;border-radius:8px;">🌎 <strong>ENVIO INTERNACIONAL (${escapeHtmlLite(d.pais)})</strong> — ` +
+        `despachar pelo MyDHL+ como Express Worldwide, com nota fiscal de exportação. ` +
+        `Impostos do destino: por conta do destinatário (não marcar "Duties & Taxes Paid").` +
+        (ship?.frete?.pesoKg ? ` Peso cobrado do cliente: <strong>${ship.frete.pesoKg} kg</strong>.` : "") +
+        `</p>`;
+    }
   }
 
   // FRETE — qual servico despachar. Sem esta linha o despachante escolhe o mais
@@ -282,7 +292,7 @@ async function notifyAdminKitOrder({ order, userId, provedor = "mercadopago", pa
     const nome = [d.transportadora, d.servico].filter(Boolean).join(" ") || "—";
     shippingHtml +=
       `<p><strong>Frete:</strong> ${escapeHtmlLite(nome)}` +
-      (fr.prazoDias ? ` · ${fr.prazoDias} dia(s) útil(eis)` : "") + `<br/>` +
+      (fr.prazoDias ? ` · ${fr.prazoDias} dia(s) útil(eis)` : fr.prazoTexto ? ` · ${escapeHtmlLite(fr.prazoTexto)}` : "") + `<br/>` +
       (fr.gratis
         ? `<span style="color:#137333;font-weight:700;">Frete grátis</span> (pedido acima da faixa) — despache pelo serviço acima mesmo assim.`
         : `<strong>Pago pelo cliente: ${fmtBRL(fr.centavos || 0)}</strong> — despache por este serviço, não pelo mais barato do dia.`) +
@@ -1432,7 +1442,27 @@ const FRETE_GRATIS_ACIMA_CENTAVOS = 14900;
  * ali a falha da Frenet nao derruba a venda: gratis com prazo desconhecido
  * ainda e' um pedido correto, enquanto cobrar sem cotar seria inventar numero.
  */
-async function resolveFreteKit({ cep, items, produtosCentavos, codigo }) {
+async function resolveFreteKit({ cep, pais = "BR", items, produtosCentavos, codigo }) {
+  // FORA DO BRASIL (13/10/2026): tabela da DHL, e SEM frete gratis — a faixa
+  // de R$ 149 foi pensada pro frete nacional, de R$ 20 a R$ 40. No
+  // internacional o frete e maior que o pedido, e "gratis" seria pagar do bolso.
+  if (pais && pais !== "BR") {
+    const cot = await cotaInternacional({ pais, items });
+    if (cot.erro) return { erro: cot.erro, motivo: cot.motivo };
+    const esc = cot.opcoes.find((o) => o.codigo === String(codigo || ""));
+    if (!esc) {
+      return {
+        erro: "O frete que você escolheu não está mais disponível. Calcule de novo, por favor.",
+        motivo: "opcao_indisponivel", opcoes: cot.opcoes,
+      };
+    }
+    return {
+      gratis: false, centavos: esc.precoCentavos,
+      transportadora: esc.transportadora, servico: esc.servico,
+      prazoDias: null, prazoTexto: esc.prazoTexto, codigo: esc.codigo,
+      internacional: true, pesoKg: cot.peso.cobrado, ptax: cot.dolar.ptax,
+    };
+  }
   const gratis = produtosCentavos >= FRETE_GRATIS_ACIMA_CENTAVOS;
   const cotacao = await cotaFrete({ cep, items, modo: "unitario", valorCentavos: produtosCentavos });
 
@@ -1493,7 +1523,9 @@ function linhaDeFrete(frete) {
       unit_amount: frete.centavos,
       product_data: {
         name: `Frete — ${nome}`,
-        description: frete.prazoDias
+        description: frete.internacional
+          ? `Envio internacional, ${frete.prazoTexto || "prazo estimado"} após a postagem. Impostos e taxas de importação do país de destino não incluídos — cobrados de quem recebe, na entrega.`
+          : frete.prazoDias
           ? `Entrega estimada em ${frete.prazoDias} dia(s) útil(eis) após a postagem.`
           : "Entrega para o endereço informado.",
       },
@@ -1510,6 +1542,9 @@ function linhaDeFrete(frete) {
  * um terceiro formato pro mesmo dado foi exatamente o bug dos dois vocabularios.
  */
 function leClienteEntrega(customer = {}) {
+  // Pais: "BR" quando nao vem — todo pedido anterior a 13/10/2026 e nacional.
+  const pais = (customer.country || "BR").toString().trim().toUpperCase();
+  if (pais !== "BR") return leClienteEntregaExterior(customer, pais);
   const c = {
     name: (customer.name || "").toString().trim(),
     email: (customer.email || "").toString().trim(),
@@ -1535,6 +1570,46 @@ function leClienteEntrega(customer = {}) {
   return { cliente: c };
 }
 
+/**
+ * Endereco FORA DO BRASIL (13/10/2026). Mesmas chaves em ingles do nacional,
+ * pra o tradutor (`_lib/pedido-cliente.js`) e o /admin/pedidos lerem sem
+ * caminho novo — mais `country`. Diferencas:
+ *  - sem CPF/CNPJ: estrangeiro nao tem. Documento fiscal do destinatario
+ *    (Tax ID/VAT) e opcional e vai no mesmo campo, sem validar formato.
+ *  - codigo postal e estado opcionais: ha pais sem um ou sem o outro.
+ *  - o numero da casa nao e campo separado: a linha de endereco la fora
+ *    traz tudo junto ("221B Baker Street").
+ */
+function leClienteEntregaExterior(customer, pais) {
+  const c = {
+    name: (customer.name || "").toString().trim(),
+    email: (customer.email || "").toString().trim(),
+    phone: (customer.phone || "").toString().trim(),
+    cpf_cnpj: (customer.cpf_cnpj || "").toString().trim().slice(0, 40),
+    cep: (customer.cep || "").toString().trim().slice(0, 20),
+    address: (customer.address || "").toString().trim(),
+    number: "",
+    complement: (customer.complement || "").toString().trim(),
+    neighborhood: "",
+    city: (customer.city || "").toString().trim(),
+    state: (customer.state || "").toString().trim().slice(0, 60),
+    country: pais,
+  };
+  if (!/^[A-Z]{2}$/.test(pais)) return { erro: "Escolha o país de entrega." };
+  if (!c.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)) {
+    return { erro: "Informe nome e um email válido." };
+  }
+  // A DHL liga pro destinatario quando a alfandega trava. Sem telefone, o
+  // pacote volta — e o frete de volta e nosso.
+  if (c.phone.replace(/\D/g, "").length < 6) {
+    return { erro: "Informe um telefone com código do país — a DHL usa pra entregar." };
+  }
+  if (!c.address || !c.city) {
+    return { erro: "Preencha o endereço de entrega (endereço e cidade)." };
+  }
+  return { cliente: c };
+}
+
 // Bloco `frete` gravado em `orders.shipping`, no MESMO formato que a revenda ja
 // usa — o tradutor (`_lib/pedido-cliente.js`) le dali. Terceiro formato pro
 // mesmo dado e como nasceu o bug dos dois vocabularios; um basta.
@@ -1543,6 +1618,12 @@ function freteParaPedido(frete) {
     servico: frete.servico, transportadora: frete.transportadora,
     centavos: frete.centavos, prazoDias: frete.prazoDias,
     gratis: !!frete.gratis,
+    // So no internacional: o despachante precisa do peso que foi cobrado (se
+    // a caixa real passar dele, a DHL fatura a diferenca) e do dolar da conta.
+    ...(frete.internacional ? {
+      internacional: true, prazoTexto: frete.prazoTexto,
+      pesoKg: frete.pesoKg, ptax: frete.ptax,
+    } : {}),
   };
 }
 
@@ -1596,7 +1677,7 @@ async function handleCheckoutKitStripe(req, res) {
     const c = { ...lido.cliente, email: auth.user.email };
 
     const frete = await resolveFreteKit({
-      cep: c.cep, items, produtosCentavos: carrinho.totalCents, codigo: frete_codigo,
+      cep: c.cep, pais: c.country || "BR", items, produtosCentavos: carrinho.totalCents, codigo: frete_codigo,
     });
     if (frete.erro) {
       return res.status(frete.motivo === "cep" ? 400 : 422)
@@ -1679,7 +1760,7 @@ async function handleCheckoutKitGuestStripe(req, res) {
     if (carrinho.erro) return res.status(400).json({ error: carrinho.erro });
 
     const frete = await resolveFreteKit({
-      cep: c.cep, items, produtosCentavos: carrinho.totalCents, codigo: frete_codigo,
+      cep: c.cep, pais: c.country || "BR", items, produtosCentavos: carrinho.totalCents, codigo: frete_codigo,
     });
     if (frete.erro) {
       return res.status(frete.motivo === "cep" ? 400 : 422)
@@ -2352,7 +2433,7 @@ async function concluiPedidoStripe(session) {
     if (!enderecoCompleto(dPedido) && !temEndereco) {
       console.warn(`[stripe/webhook] pedido ${extRef} PAGO e sem endereco de entrega — nem o nosso formulario nem o Stripe trouxeram. O despacho vai travar.`);
     }
-    if (!dPedido.documento) {
+    if (!dPedido.documento && !dPedido.internacional) {
       console.warn(`[stripe/webhook] pedido ${extRef} sem CPF/CNPJ — a nota fiscal trava ate alguem pedir por email.`);
     }
   }

@@ -92,7 +92,6 @@
     "Frete": "Shipping",
     "Total": "Total",
     "Ir para o pagamento →": "Go to payment →",
-    "🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149": "🔒 Secure payment via Stripe · 🚚 Free shipping over R$ 149",
     "Foto anterior": "Previous photo",
     "Próxima foto": "Next photo",
     "Seu carrinho está vazio.": "Your cart is empty.",
@@ -130,7 +129,19 @@
     "— é rapidinho e o suporte te ajuda se precisar.": "— it only takes a moment, and our support team can help if needed.",
     "Boleto gerado — falta pagar": "Boleto issued — payment pending",
     "O pedido só é confirmado quando o boleto for pago": "Your order is only confirmed once the boleto is paid",
-    "Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 3 meses de garantia, frete grátis acima de R$ 149.": "NFC cards and counter stands that help your business get more Google reviews: customers tap their phone and leave a review in seconds. No monthly fee, 3-month warranty, free shipping in Brazil on orders over R$ 149."
+    "Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 3 meses de garantia, frete grátis acima de R$ 149.": "NFC cards and counter stands that help your business get more Google reviews: customers tap their phone and leave a review in seconds. No monthly fee, 3-month warranty, free shipping in Brazil on orders over R$ 149.",
+    "País de entrega": "Shipping country",
+    "Brasil": "Brazil",
+    "Código postal": "Postal code",
+    "Endereço completo (rua, número, apartamento)": "Full address (street, number, apartment)",
+    "Impostos e taxas de importação do seu país não estão incluídos: quando existem, são cobrados pela alfândega de quem recebe, na entrega.": "Import duties and taxes in your country are not included: when they apply, customs charges them to the recipient on delivery.",
+    "🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149 no Brasil": "🔒 Secure payment via Stripe · 🚚 Free shipping in Brazil over R$ 149",
+    "Escolha o país pra calcular o frete.": "Choose the country to calculate shipping.",
+    "Envio internacional com rastreio. Prazo contado a partir da postagem (produção em até 2 dias úteis).": "International shipping with tracking. Delivery time counts from dispatch (production takes up to 2 business days).",
+    "Não consegui calcular o frete pra esse país.": "Couldn't calculate shipping for this country.",
+    "Informe um telefone com código do país — a DHL usa pra entregar.": "Enter a phone number with country code — DHL uses it for delivery.",
+    "Preencha o endereço completo e a cidade.": "Fill in the full address and the city.",
+    "3 a 7 dias úteis": "3 to 7 business days"
   },
   "h": {
     "R$ 29,90 / unidade": "R$ 29,90 <small>/ unit</small>",
@@ -141,7 +152,9 @@
     "Vai comprar em quantidade para revender? Seja um distribuidor — a partir de R$ 800, com preço de atacado.": "Buying in bulk to resell? <a href=\"/revenda\">Become a distributor</a> — orders from R$ 800, at wholesale prices.",
     "ZAYOR BRASIL LTDA · CNPJ 68.972.361/0001-33": "<strong style=\"color:var(--texto);font-weight:600;\">ZAYOR BRASIL LTDA</strong> · CNPJ 68.972.361/0001-33",
     "Preencha pra receber seus dispositivos. Você não precisa criar conta agora — depois de receber, é só voltar aqui pra ativar (leva 2 min).": "Fill this in to receive your devices. <strong>No need to create an account now</strong> — once they arrive, just come back here to activate them (takes 2 min).",
-    "3 mesesde garantia": "<strong>3-month</strong>warranty"
+    "3 mesesde garantia": "<strong>3-month</strong>warranty",
+    "Documento fiscal (Tax ID, VAT) (opcional)": "Tax ID (Tax ID, VAT) <span style=\"font-weight:400;color:#94a3b8;\">(optional)</span>",
+    "Estado ou província (se houver)": "State or province <span style=\"font-weight:400;color:#94a3b8;\">(if any)</span>"
   },
   "p": [
     [

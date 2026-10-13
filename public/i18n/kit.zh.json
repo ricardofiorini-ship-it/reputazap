@@ -92,7 +92,6 @@
     "Frete": "运费",
     "Total": "合计",
     "Ir para o pagamento →": "前往付款 →",
-    "🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149": "🔒 通过 Stripe 安全支付 · 🚚 满 R$ 149 免运费",
     "Foto anterior": "上一张",
     "Próxima foto": "下一张",
     "Seu carrinho está vazio.": "您的购物车是空的。",
@@ -130,7 +129,19 @@
     "— é rapidinho e o suporte te ajuda se precisar.": "——非常快，如有需要客服会协助您。",
     "Boleto gerado — falta pagar": "Boleto 已生成——尚未付款",
     "O pedido só é confirmado quando o boleto for pago": "Boleto 付款后订单才会确认",
-    "Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 3 meses de garantia, frete grátis acima de R$ 149.": "NFC 卡和柜台立牌，帮您的店铺获得更多 Google 评价：顾客用手机一碰，几秒钟就能留下评价。无月费，3 个月质保，巴西境内订单满 R$ 149 免运费。"
+    "Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 3 meses de garantia, frete grátis acima de R$ 149.": "NFC 卡和柜台立牌，帮您的店铺获得更多 Google 评价：顾客用手机一碰，几秒钟就能留下评价。无月费，3 个月质保，巴西境内订单满 R$ 149 免运费。",
+    "País de entrega": "收货国家",
+    "Brasil": "巴西",
+    "Código postal": "邮政编码",
+    "Endereço completo (rua, número, apartamento)": "详细地址（街道、门牌号、房间号）",
+    "Impostos e taxas de importação do seu país não estão incluídos: quando existem, são cobrados pela alfândega de quem recebe, na entrega.": "不含你所在国家的进口关税和税费：如有，将由海关在交货时向收件人收取。",
+    "🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149 no Brasil": "🔒 通过 Stripe 安全支付 · 🚚 巴西境内满 R$ 149 免运费",
+    "Escolha o país pra calcular o frete.": "请选择国家以计算运费。",
+    "Envio internacional com rastreio. Prazo contado a partir da postagem (produção em até 2 dias úteis).": "国际快递，可追踪。时效从寄出起计算（生产需最多 2 个工作日）。",
+    "Não consegui calcular o frete pra esse país.": "无法计算该国家的运费。",
+    "Informe um telefone com código do país — a DHL usa pra entregar.": "请填写带国家区号的电话——DHL 派送时会使用。",
+    "Preencha o endereço completo e a cidade.": "请填写完整地址和城市。",
+    "3 a 7 dias úteis": "3 至 7 个工作日"
   },
   "h": {
     "R$ 29,90 / unidade": "R$ 29,90 <small>/ 张</small>",
@@ -141,7 +152,9 @@
     "Vai comprar em quantidade para revender? Seja um distribuidor — a partir de R$ 800, com preço de atacado.": "想批量购买转售？<a href=\"/revenda\">成为经销商</a>——R$ 800 起，享批发价。",
     "ZAYOR BRASIL LTDA · CNPJ 68.972.361/0001-33": "<strong style=\"color:var(--texto);font-weight:600;\">ZAYOR BRASIL LTDA</strong> · CNPJ 68.972.361/0001-33",
     "Preencha pra receber seus dispositivos. Você não precisa criar conta agora — depois de receber, é só voltar aqui pra ativar (leva 2 min).": "填写信息以接收您的设备。<strong>现在无需注册账号</strong>——收到设备后，回到这里激活即可（只需 2 分钟）。",
-    "3 mesesde garantia": "<strong>3 个月</strong>质保"
+    "3 mesesde garantia": "<strong>3 个月</strong>质保",
+    "Documento fiscal (Tax ID, VAT) (opcional)": "税号（Tax ID、VAT） <span style=\"font-weight:400;color:#94a3b8;\">（选填）</span>",
+    "Estado ou província (se houver)": "州或省 <span style=\"font-weight:400;color:#94a3b8;\">（如有）</span>"
   },
   "p": [
     [

@@ -5,7 +5,6 @@
     "StarTouch — início": "StarTouch — inicio",
     "StarTouch": "StarTouch",
     "Ver minha presença grátis": "Ver mi presencia gratis",
-    "Versão 1.7 — vigente a partir de 24 de setembro de 2026": "Versión 1.7 — vigente a partir del 24 de septiembre de 2026",
     "Tradução oferecida por conveniência. O documento válido é o original em português; em caso de divergência, prevalece o texto em português.": "Traducción ofrecida únicamente por conveniencia. El documento válido es el original en portugués; en caso de divergencia, prevalece el texto en portugués.",
     "1. Quem somos": "1. Quiénes somos",
     "A StarTouch é uma marca operada por:": "StarTouch es una marca operada por:",
@@ -156,7 +155,11 @@
     "A seção 6.5 passa a declarar também a contagem agregada das escolhas feitas no aviso de cookies. Mesma natureza e mesma ressalva da versão anterior: são contadores, sem dado pessoal": "La sección 6.5 pasa a declarar también el conteo agregado de las elecciones realizadas en el aviso de cookies. Misma naturaleza y misma salvedad que la versión anterior: son contadores, sin datos personales",
     "13. Contato": "13. Contacto",
     "Para assuntos comerciais e de suporte, o canal continua sendo contato@startouch.com.br.": "Para asuntos comerciales y de soporte, el canal sigue siendo contato@startouch.com.br.",
-    "ZAYOR BRASIL LTDA — CNPJ 68.972.361/0001-33": "ZAYOR BRASIL LTDA — CNPJ 68.972.361/0001-33"
+    "ZAYOR BRASIL LTDA — CNPJ 68.972.361/0001-33": "ZAYOR BRASIL LTDA — CNPJ 68.972.361/0001-33",
+    "Versão 1.8 — vigente a partir de 13 de outubro de 2026": "Versión 1.8 — vigente a partir del 13 de octubre de 2026",
+    "DHL Express": "DHL Express",
+    "Entrega de pedidos enviados para fora do Brasil": "Entrega de pedidos enviados fuera de Brasil",
+    "Nome, telefone, e-mail, endereço de entrega e, se informado, documento fiscal do destinatário": "Nombre, teléfono, correo electrónico, dirección de entrega y, si se informa, documento fiscal del destinatario"
   },
   "h": {
     "Início · Documentos legais": "<a href=\"/\">Inicio</a> · Documentos legales",
@@ -218,7 +221,8 @@
     "A seção 4.4 (código temporário contra contagem artificial) passa a valer também para os dispositivos StarTouch, e a pergunta que o código responde passa de \"o mesmo aparelho tocou há menos de um minuto?\" para \"o mesmo aparelho já tocou neste dispositivo hoje?\". Não há dado novo: são os mesmos elementos, com a mesma finalidade (prevenção de fraude na contagem, já declarada nas seções 4.4 e 6.3), a mesma chave diária descartada e o mesmo prazo de até 24 horas. O registro de toques da seção 4.1 continua sem identificador. Não reduz direitos nem amplia finalidades": "La <strong>sección 4.4</strong> (código temporal contra el conteo artificial) pasa a valer también para los <strong>dispositivos StarTouch</strong>, y la pregunta que responde el código pasa de \"¿el mismo aparato tocó hace menos de un minuto?\" a \"¿el mismo aparato ya tocó este dispositivo hoy?\". <strong>No hay datos nuevos</strong>: son los mismos elementos, con la misma finalidad (prevención de fraude en el conteo, ya declarada en las secciones 4.4 y 6.3), la misma clave diaria descartada y el mismo plazo de hasta 24 horas. El registro de toques de la sección 4.1 sigue sin identificador. No reduce derechos ni amplía finalidades",
     "Mudança de controladora: a ZAYOR BRASIL LTDA (CNPJ 68.972.361/0001-33) sucede a GT6 Brasil Comércio Varejista de Produtos Diversos Ltda, inclusive quanto aos dados já coletados (seção 1.1); atualização do endereço para o da nova sede. Não é alteração meramente declaratória como as duas anteriores — muda quem responde pelo tratamento —, mas não reduz direitos, não amplia finalidades e não altera nenhuma operação de tratamento": "Cambio de controladora: ZAYOR BRASIL LTDA (CNPJ 68.972.361/0001-33) sucede a GT6 Brasil Comércio Varejista de Produtos Diversos Ltda, incluso respecto de los datos ya recopilados (sección 1.1); actualización de la dirección a la de la nueva sede. <strong>No es un cambio meramente declarativo</strong> como los dos anteriores — cambia quién responde por el tratamiento —, pero no reduce derechos, no amplía finalidades y no altera ninguna operación de tratamiento",
     "Encarregado pelo Tratamento de Dados Pessoais: Ricardo Fiorini E-mail: privacidade@startouch.com.br Endereço: Rua João Cordeiro, 311 — Moinho Velho — São Paulo/SP — CEP 02960-000": "<strong>Encargado del Tratamiento de Datos Personales:</strong> Ricardo Fiorini <strong>Correo electrónico:</strong> privacidade@startouch.com.br <strong>Dirección:</strong> Rua João Cordeiro, 311 — Moinho Velho — São Paulo/SP — CEP 02960-000",
-    "© StarTouch — Início · Privacidade · Termos · Preferências de cookies · Artigos": "© StarTouch — <a href=\"/\">Inicio</a> · <a href=\"/privacidade\">Privacidad</a> · <a href=\"/termos\">Términos</a> · <a href=\"#\" onclick=\"window.stConsent&&window.stConsent.abrir();return false;\">Preferencias de cookies</a> · <a href=\"/artigos\">Artículos</a>"
+    "© StarTouch — Início · Privacidade · Termos · Preferências de cookies · Artigos": "© StarTouch — <a href=\"/\">Inicio</a> · <a href=\"/privacidade\">Privacidad</a> · <a href=\"/termos\">Términos</a> · <a href=\"#\" onclick=\"window.stConsent&&window.stConsent.abrir();return false;\">Preferencias de cookies</a> · <a href=\"/artigos\">Artículos</a>",
+    "Inclusão da DHL Express na seção 7, como operadora da entrega dos pedidos enviados para fora do Brasil. São os mesmos dados de entrega já coletados na compra, com a mesma finalidade (entregar o pedido); muda apenas quem transporta. Não reduz direitos nem amplia finalidades": "Inclusión de <strong>DHL Express</strong> en la sección 7, como encargada de la entrega de los pedidos enviados fuera de Brasil. Son los mismos datos de entrega ya recogidos en la compra, con la misma finalidad (entregar el pedido); solo cambia quién transporta. No reduce derechos ni amplía finalidades"
   },
   "p": []
 }

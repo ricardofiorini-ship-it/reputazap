@@ -20,6 +20,7 @@
 // que dá pra conferir uma cotação sem fazer um pedido.
 
 import { cotaFrete } from "./_lib/frenet.js";
+import { cotaInternacional } from "./_lib/frete-internacional.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
 
 // De onde a falha veio → o que o cliente merece ver.
@@ -32,7 +33,12 @@ const STATUS = {
   carrinho: 400,
   frenet: 502,
   resposta_vazia: 502,
-  cep_sem_cobertura: 422
+  cep_sem_cobertura: 422,
+  // Internacional (13/10/2026)
+  pais: 400,
+  pais_sem_cobertura: 422,
+  peso: 422,
+  cambio: 502
 };
 
 export default async function handler(req, res) {
@@ -45,7 +51,9 @@ export default async function handler(req, res) {
   if (await limitou(req, res, LIMITES.frete)) return;
 
   const body = req.body || {};
-  const r = await cotaFrete({
+  // Fora do Brasil não há CEP nem Frenet: o preço sai da tabela da DHL.
+  const pais = String(body.pais || "BR").toUpperCase();
+  const r = pais !== "BR" ? await cotaInternacional({ pais, items: body.items }) : await cotaFrete({
     cep: body.cep,
     items: body.items,
     modo: body.modo === "consolidado" ? "consolidado" : "unitario"

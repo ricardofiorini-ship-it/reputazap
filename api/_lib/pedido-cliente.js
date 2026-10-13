@@ -48,6 +48,12 @@ export function dadosDoCliente(shipping) {
   // checkout do guest já grava. O que vem do Stripe pode vir pontuado.
   const doc = pega(c, "cpf_cnpj", "cnpj", "cpf", "documento").replace(/\D/g, "");
 
+  // Pedido pra FORA do Brasil (desde 13/10/2026): código postal tem letra
+  // ("SW1A 1AA", "K1A 0B1") e estado/província não é sigla de 2 letras. Os
+  // cortes que valem pro CEP e pra UF destruiriam o endereço calados.
+  const pais = (pega(c, "country", "pais") || "BR").toUpperCase();
+  const fora = pais !== "BR";
+
   return {
     // `razao` só existe na revenda (pessoa jurídica). Pra etiqueta, o
     // destinatário é a razão social quando há uma, senão o nome da pessoa.
@@ -62,13 +68,15 @@ export function dadosDoCliente(shipping) {
     documento_tipo: doc.length === 14 ? "CNPJ" : doc.length === 11 ? "CPF" : "",
     ie: pega(c, "ie", "inscricao_estadual"),
 
-    cep: pega(c, "cep", "postal_code", "zip").replace(/\D/g, ""),
+    pais,
+    internacional: fora,
+    cep: fora ? pega(c, "cep", "postal_code", "zip") : pega(c, "cep", "postal_code", "zip").replace(/\D/g, ""),
     endereco: pega(c, "endereco", "address", "logradouro", "rua"),
     numero: pega(c, "numero", "number"),
     complemento: pega(c, "complemento", "complement"),
     bairro: pega(c, "bairro", "neighborhood"),
     cidade: pega(c, "cidade", "city"),
-    uf: pega(c, "uf", "state", "estado").toUpperCase().slice(0, 2),
+    uf: fora ? pega(c, "uf", "state", "estado") : pega(c, "uf", "state", "estado").toUpperCase().slice(0, 2),
 
     observacoes: pega(c, "observacoes", "obs", "observacao"),
     transportadora: pega(c.frete || {}, "transportadora"),
@@ -86,6 +94,10 @@ export function dadosDoCliente(shipping) {
  * e um alarme que toca à toa acaba ignorado como o que não toca.
  */
 export function enderecoCompleto(d) {
+  // Fora do Brasil, código postal e estado podem não existir (Hong Kong,
+  // Emirados) — exigir os dois faria o webhook "completar" o endereço de
+  // entrega com o de cobrança do cartão, que é o pior lugar pra ele vir.
+  if (d.internacional) return !!(d.endereco && d.cidade && d.pais);
   return !!(d.cep && d.endereco && d.cidade && d.uf);
 }
 
@@ -103,13 +115,14 @@ export function textoDaEtiqueta(d, ref) {
     ["IE", d.ie],
     ["Telefone", d.telefone],
     ["E-mail", d.email],
-    ["CEP", d.cep],
+    [d.internacional ? "Código postal" : "CEP", d.cep],
     ["Endereço", d.endereco],
     ["Número", d.numero],
     ["Complemento", d.complemento],
     ["Bairro", d.bairro],
     ["Cidade", d.cidade],
-    ["UF", d.uf],
+    [d.internacional ? "Estado/Província" : "UF", d.uf],
+    ["País", d.internacional ? d.pais : ""],
     ["Pedido", ref || ""],
   ];
   return linhas.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join("\n");

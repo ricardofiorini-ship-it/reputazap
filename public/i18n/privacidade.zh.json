@@ -5,7 +5,6 @@
     "StarTouch — início": "StarTouch — 首页",
     "StarTouch": "StarTouch",
     "Ver minha presença grátis": "免费查看我的曝光情况",
-    "Versão 1.7 — vigente a partir de 24 de setembro de 2026": "第 1.7 版 — 自 2026 年 9 月 24 日起生效",
     "Tradução oferecida por conveniência. O documento válido é o original em português; em caso de divergência, prevalece o texto em português.": "本译文仅为方便阅读而提供。有效文件为葡萄牙语原文；如有任何不一致，以葡萄牙语文本为准。",
     "1. Quem somos": "1. 我们是谁",
     "A StarTouch é uma marca operada por:": "StarTouch 是由以下公司运营的品牌：",
@@ -156,7 +155,11 @@
     "A seção 6.5 passa a declarar também a contagem agregada das escolhas feitas no aviso de cookies. Mesma natureza e mesma ressalva da versão anterior: são contadores, sem dado pessoal": "第 6.5 节新增声明对 Cookie 通知中所作选择的汇总统计。性质及说明与上一版本相同：仅为计数器，不含个人数据",
     "13. Contato": "13. 联系方式",
     "Para assuntos comerciais e de suporte, o canal continua sendo contato@startouch.com.br.": "商务及支持事宜，联系渠道仍为 contato@startouch.com.br。",
-    "ZAYOR BRASIL LTDA — CNPJ 68.972.361/0001-33": "ZAYOR BRASIL LTDA — CNPJ 68.972.361/0001-33"
+    "ZAYOR BRASIL LTDA — CNPJ 68.972.361/0001-33": "ZAYOR BRASIL LTDA — CNPJ 68.972.361/0001-33",
+    "Versão 1.8 — vigente a partir de 13 de outubro de 2026": "第 1.8 版 — 自 2026 年 10 月 13 日起生效",
+    "DHL Express": "DHL Express",
+    "Entrega de pedidos enviados para fora do Brasil": "寄往巴西境外订单的配送",
+    "Nome, telefone, e-mail, endereço de entrega e, se informado, documento fiscal do destinatário": "姓名、电话、电子邮箱、收货地址，以及（如有填写）收件人税号"
   },
   "h": {
     "Início · Documentos legais": "<a href=\"/\">首页</a> · 法律文件",
@@ -218,7 +221,8 @@
     "A seção 4.4 (código temporário contra contagem artificial) passa a valer também para os dispositivos StarTouch, e a pergunta que o código responde passa de \"o mesmo aparelho tocou há menos de um minuto?\" para \"o mesmo aparelho já tocou neste dispositivo hoje?\". Não há dado novo: são os mesmos elementos, com a mesma finalidade (prevenção de fraude na contagem, já declarada nas seções 4.4 e 6.3), a mesma chave diária descartada e o mesmo prazo de até 24 horas. O registro de toques da seção 4.1 continua sem identificador. Não reduz direitos nem amplia finalidades": "<strong>第 4.4 节</strong>（防刷量临时代码）现在同样适用于 <strong>StarTouch 设备</strong>，代码所回答的问题由“同一部手机是否在不到一分钟前触碰过？”变为“同一部手机今天是否已经触碰过这台设备？”。<strong>没有新数据</strong>：仍是相同的要素、相同的目的（防止计数作假，已在第 4.4 节和第 6.3 节中声明）、同样每日销毁的密钥以及同样最长 24 小时的期限。第 4.1 节的触碰记录仍不含标识符。不减少权利，也不扩大目的",
     "Mudança de controladora: a ZAYOR BRASIL LTDA (CNPJ 68.972.361/0001-33) sucede a GT6 Brasil Comércio Varejista de Produtos Diversos Ltda, inclusive quanto aos dados já coletados (seção 1.1); atualização do endereço para o da nova sede. Não é alteração meramente declaratória como as duas anteriores — muda quem responde pelo tratamento —, mas não reduz direitos, não amplia finalidades e não altera nenhuma operação de tratamento": "控制者变更：ZAYOR BRASIL LTDA（CNPJ 68.972.361/0001-33）承继 GT6 Brasil Comércio Varejista de Produtos Diversos Ltda，包括对已收集的数据（第 1.1 节）；地址更新为新总部地址。<strong>这并非如前两次那样的纯声明性变更</strong>——它改变了数据处理的责任主体——但不减少权利、不扩大目的，也不改变任何数据处理操作",
     "Encarregado pelo Tratamento de Dados Pessoais: Ricardo Fiorini E-mail: privacidade@startouch.com.br Endereço: Rua João Cordeiro, 311 — Moinho Velho — São Paulo/SP — CEP 02960-000": "<strong>个人数据处理负责人：</strong> Ricardo Fiorini <strong>电子邮件：</strong> privacidade@startouch.com.br <strong>地址：</strong> Rua João Cordeiro, 311 — Moinho Velho — São Paulo/SP — CEP 02960-000",
-    "© StarTouch — Início · Privacidade · Termos · Preferências de cookies · Artigos": "© StarTouch — <a href=\"/\">首页</a> · <a href=\"/privacidade\">隐私</a> · <a href=\"/termos\">条款</a> · <a href=\"#\" onclick=\"window.stConsent&&window.stConsent.abrir();return false;\">Cookie 偏好设置</a> · <a href=\"/artigos\">文章</a>"
+    "© StarTouch — Início · Privacidade · Termos · Preferências de cookies · Artigos": "© StarTouch — <a href=\"/\">首页</a> · <a href=\"/privacidade\">隐私</a> · <a href=\"/termos\">条款</a> · <a href=\"#\" onclick=\"window.stConsent&&window.stConsent.abrir();return false;\">Cookie 偏好设置</a> · <a href=\"/artigos\">文章</a>",
+    "Inclusão da DHL Express na seção 7, como operadora da entrega dos pedidos enviados para fora do Brasil. São os mesmos dados de entrega já coletados na compra, com a mesma finalidade (entregar o pedido); muda apenas quem transporta. Não reduz direitos nem amplia finalidades": "在第 7 节中新增 <strong>DHL Express</strong>，作为寄往巴西境外订单的配送处理方。所涉数据与购买时已收集的配送数据相同，目的相同（交付订单）；仅承运方不同。不减少任何权利，也不扩大处理目的"
   },
   "p": []
 }

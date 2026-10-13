@@ -250,6 +250,15 @@
   #coForm label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:#334155;}
   #coForm input{font-family:inherit;font-size:15px;color:#0f172a;padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;transition:border-color .15s;width:100%;}
   #coForm input:focus{outline:none;border-color:#1A73E8;}
+  #coForm select{font-family:inherit;font-size:15px;color:#0f172a;padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;width:100%;}
+  #coForm select:focus{outline:none;border-color:#1A73E8;}
+  /* Entrega fora do Brasil (13/10/2026): os dois rótulos ficam no HTML e a
+     classe do formulário escolhe qual aparece — trocar texto pelo JavaScript
+     esconderia a frase da checagem de tradução. */
+  .so-ext{display:none;}
+  #coForm.ext .so-br{display:none !important;}
+  #coForm.ext .so-ext{display:revert;}
+  .co-aviso-imposto{margin-top:8px;padding:9px 11px;border-radius:8px;background:#FEF7E0;color:#7A4F01;}
   #coForm input:invalid:not(:placeholder-shown){border-color:#fca5a5;}
   .co-summary{font-size:14px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;margin-top:4px;display:flex;justify-content:space-between;align-items:center;}
   .co-summary strong{font-size:18px;color:#0f172a;font-weight:700;}
@@ -460,24 +469,29 @@
         </label>
       </div>
       <div class="co-row">
-        <label>CPF ou CNPJ <span class="co-cep-status" id="coDocStatus"></span>
+        <label>País de entrega
+          <select name="country" id="coPais" autocomplete="country"><option value="BR">Brasil</option></select>
+        </label>
+      </div>
+      <div class="co-row">
+        <label><span class="so-br">CPF ou CNPJ</span><span class="so-ext">Documento fiscal (Tax ID, VAT) <span style="font-weight:400;color:#94a3b8;">(opcional)</span></span> <span class="co-cep-status" id="coDocStatus"></span>
           <input name="cpf_cnpj" required inputmode="numeric" autocomplete="off" placeholder="000.000.000-00"/>
         </label>
       </div>
       <div class="co-row co-2">
-        <label>CEP <span class="co-cep-status" id="coCepStatus"></span>
+        <label><span class="so-br">CEP</span><span class="so-ext">Código postal</span> <span class="co-cep-status" id="coCepStatus"></span>
           <input name="cep" required inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"/>
         </label>
-        <label>Número
+        <label class="so-br">Número
           <input name="number" required placeholder="123"/>
         </label>
       </div>
       <div class="co-row">
-        <label>Endereço (rua)
+        <label><span class="so-br">Endereço (rua)</span><span class="so-ext">Endereço completo (rua, número, apartamento)</span>
           <input name="address" required autocomplete="address-line1" placeholder="Rua / Avenida"/>
         </label>
       </div>
-      <div class="co-row co-2">
+      <div class="co-row co-2 so-br">
         <label>Bairro
           <input name="neighborhood" autocomplete="address-level3" placeholder="Bairro"/>
         </label>
@@ -489,7 +503,7 @@
         <label>Cidade
           <input name="city" required autocomplete="address-level2" placeholder="Cidade"/>
         </label>
-        <label>Estado (UF)
+        <label><span class="so-br">Estado (UF)</span><span class="so-ext">Estado ou província <span style="font-weight:400;color:#94a3b8;">(se houver)</span></span>
           <input name="state" required maxlength="2" autocomplete="address-level1" placeholder="SP" style="text-transform:uppercase;"/>
         </label>
       </div>
@@ -498,6 +512,7 @@
           <div class="co-frete-tit">🚚 Entrega</div>
           <div id="coFreteOpts"></div>
           <div class="co-frete-msg" id="coFreteMsg">Preencha o CEP acima pra calcular o frete.</div>
+          <div class="co-frete-msg co-aviso-imposto so-ext">Impostos e taxas de importação do seu país não estão incluídos: quando existem, são cobrados pela alfândega de quem recebe, na entrega.</div>
         </div>
       </div>
       <div class="co-summary" style="flex-direction:column;align-items:stretch;gap:9px;">
@@ -511,7 +526,7 @@
         </div>
       </div>
       <button type="submit" class="co-submit" id="coSubmit">Ir para o pagamento →</button>
-      <p class="co-secure">🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149</p>
+      <p class="co-secure">🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149 no Brasil</p>
     </form>
   </div>
 </div>
@@ -754,6 +769,53 @@ function cartItems() {
   return Object.keys(cart).map(id => ({ id, qty: cart[id] }));
 }
 
+// ── ENTREGA FORA DO BRASIL (13/10/2026) ─────────────────────────
+// Lista igual à do servidor (PAISES_ATENDIDOS em api/_lib/frete-internacional.js);
+// quem decide é o servidor — a lista aqui só monta o menu. Os nomes saem do
+// próprio navegador, na língua escolhida no site.
+const PAISES_EXTERIOR = "AD AE AG AI AL AM AO AR AS AT AU AW AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BS BT BW BZ CA CG CH CI CK CL CM CN CO CR CV CW CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GT GU GW GY HK HN HR HT HU ID IE IL IN IS IT JE JM JO JP KE KG KH KI KM KN KR KW KY KZ LA LB LC LI LK LR LS LT LU LV MA MC MD ME MG MH MK MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PR PT PW PY QA RE RO RS RW SA SB SC SE SG SH SI SK SL SM SN SR ST SV SX SZ TC TD TG TH TJ TL TM TN TO TR TT TV TW TZ UG US UY UZ VA VC VG VI VN VU WS XK YT ZA ZM ZW".split(" ");
+const paisSel = document.getElementById("coPais");
+(function montaPaises() {
+  let lang = "pt-BR";
+  try { lang = localStorage.getItem("st_lang") || "pt-BR"; } catch (_) {}
+  let nomeDe = (c) => c;
+  try { const dn = new Intl.DisplayNames([lang === "zh" ? "zh-CN" : lang, "pt-BR"], { type: "region" }); nomeDe = (c) => dn.of(c) || c; } catch (_) {}
+  const ops = PAISES_EXTERIOR.map(c => [c, nomeDe(c)]).sort((a, b) => a[1].localeCompare(b[1], lang));
+  for (const [c, n] of ops) {
+    const o = document.createElement("option");
+    o.value = c; o.textContent = n;
+    paisSel.appendChild(o);
+  }
+})();
+function ehExterior() { return paisSel.value !== "BR"; }
+paisSel.addEventListener("change", () => {
+  const ext = ehExterior();
+  coForm.classList.toggle("ext", ext);
+  const uf = coForm.querySelector('input[name="state"]');
+  const cepEl = coForm.querySelector('input[name="cep"]');
+  const doc = coForm.querySelector('input[name="cpf_cnpj"]');
+  if (ext) {
+    uf.removeAttribute("maxlength"); uf.style.textTransform = ""; uf.placeholder = "";
+    cepEl.setAttribute("inputmode", "text"); cepEl.placeholder = "";
+    doc.setAttribute("inputmode", "text"); doc.placeholder = "";
+    coForm.querySelector('input[name="phone"]').placeholder = "+1 555 123 4567";
+    document.getElementById("coDocStatus").textContent = "";
+    document.getElementById("coCepStatus").textContent = "";
+  } else {
+    uf.setAttribute("maxlength", "2"); uf.style.textTransform = "uppercase"; uf.placeholder = "SP";
+    cepEl.setAttribute("inputmode", "numeric"); cepEl.placeholder = "00000-000";
+    doc.setAttribute("inputmode", "numeric"); doc.placeholder = "000.000.000-00";
+    coForm.querySelector('input[name="phone"]').placeholder = "(11) 99999-9999";
+  }
+  // Os campos de um país não servem pro outro: limpa o que veio do ViaCEP
+  // e o documento mascarado, pra ninguém pagar com endereço misturado.
+  for (const n of ["cep", "address", "number", "neighborhood", "complement", "city", "state", "cpf_cnpj"]) {
+    coForm.querySelector(`input[name="${n}"]`).value = "";
+  }
+  frete = { status: "vazio", opcoes: [], codigo: null, valor: 0 };
+  if (ext) cotarFrete(); else renderFrete();
+});
+
 function openCheckoutModal() {
   const logado = !!localStorage.getItem("rz_token");
   document.getElementById("coIntro").innerHTML = logado
@@ -773,7 +835,7 @@ function openCheckoutModal() {
   document.body.style.overflow = "hidden";
   setTimeout(() => coForm.querySelector('input[name="name"]')?.focus(), 50);
   // Carrinho pode ter mudado desde a última cotação — o CEP continua ali.
-  if (coForm.querySelector('input[name="cep"]').value.replace(/\D/g, "").length === 8) cotarFrete();
+  if (ehExterior() || coForm.querySelector('input[name="cep"]').value.replace(/\D/g, "").length === 8) cotarFrete();
 }
 function closeGuestModal() {
   modal.hidden = true;
@@ -790,7 +852,8 @@ function atualizaResumo() {
   document.getElementById("coSummaryItems").textContent = itemCount === 1 ? "1 item" : `${itemCount} itens`;
   document.getElementById("coSummarySub").textContent = fmt(sub);
 
-  const gratis = sub >= FRETE_GRATIS_ACIMA;
+  // Frete grátis é só no Brasil — o servidor decide igual.
+  const gratis = !ehExterior() && sub >= FRETE_GRATIS_ACIMA;
   let valorFrete = 0, rotulo = "—";
   if (gratis) { rotulo = "grátis"; }
   else if (frete.status === "ok" && frete.codigo) { valorFrete = frete.valor; rotulo = fmt(frete.valor); }
@@ -813,7 +876,7 @@ function renderFrete() {
   box.innerHTML = "";
   msg.className = "co-frete-msg";
 
-  if (sub >= FRETE_GRATIS_ACIMA) {
+  if (!ehExterior() && sub >= FRETE_GRATIS_ACIMA) {
     msg.classList.add("ok");
     const via = frete.opcoes[0] ? ` Enviamos por ${frete.opcoes[0].transportadora} ${frete.opcoes[0].servico}.` : "";
     msg.textContent = `🎉 Frete grátis neste pedido.${via}`;
@@ -824,13 +887,16 @@ function renderFrete() {
   const falta = FRETE_GRATIS_ACIMA - sub;
   if (frete.status === "carregando") { msg.textContent = "Calculando o frete…"; atualizaResumo(); return; }
   if (frete.status === "erro")   { msg.classList.add("erro"); msg.textContent = frete.erro; atualizaResumo(); return; }
-  if (frete.status !== "ok")     { msg.textContent = "Preencha o CEP acima pra calcular o frete."; atualizaResumo(); return; }
+  if (frete.status !== "ok")     {
+    msg.textContent = ehExterior() ? "Escolha o país pra calcular o frete." : "Preencha o CEP acima pra calcular o frete.";
+    atualizaResumo(); return;
+  }
 
   box.innerHTML = frete.opcoes.map((o, i) => `
     <label class="co-frete-opt">
       <input type="radio" name="frete_opt" value="${o.codigo}" ${o.codigo === frete.codigo ? "checked" : ""}/>
       <span class="fnome">${o.transportadora} ${o.servico}
-        ${o.prazoDias ? `<span class="fprazo">· ${o.prazoDias} dia(s) útil(eis)</span>` : ""}</span>
+        ${o.prazoDias ? `<span class="fprazo">· ${o.prazoDias} dia(s) útil(eis)</span>` : o.internacional ? `<span class="fprazo">· <span>3 a 7 dias úteis</span></span>` : ""}</span>
       <span class="fpreco">${fmt(o.precoCentavos / 100)}</span>
     </label>`).join("");
 
@@ -842,7 +908,9 @@ function renderFrete() {
   });
 
   // Empurrão pro frete grátis — só quando está perto o bastante pra valer.
-  msg.textContent = falta > 0 && falta <= 80
+  msg.textContent = ehExterior()
+    ? "Envio internacional com rastreio. Prazo contado a partir da postagem (produção em até 2 dias úteis)."
+    : falta > 0 && falta <= 80
     ? `Faltam ${fmt(falta)} em produtos pra o frete sair de graça.`
     : "Prazo contado a partir da postagem (produção em até 2 dias úteis).";
   atualizaResumo();
@@ -852,7 +920,8 @@ let freteReq = 0;
 async function cotarFrete() {
   const cep = coForm.querySelector('input[name="cep"]').value.replace(/\D/g, "");
   const items = cartItems();
-  if (cep.length !== 8 || items.length === 0) {
+  const ext = ehExterior();
+  if ((!ext && cep.length !== 8) || items.length === 0) {
     frete = { status: "vazio", opcoes: [], codigo: null, valor: 0 };
     renderFrete();
     return;
@@ -864,7 +933,7 @@ async function cotarFrete() {
     const r = await fetch("/api/frete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cep, items, modo: "unitario" })
+      body: JSON.stringify(ext ? { pais: paisSel.value, items } : { cep, items, modo: "unitario" })
     });
     const d = await r.json();
     // Resposta atrasada de um CEP que o cliente já trocou não pode sobrescrever
@@ -872,7 +941,7 @@ async function cotarFrete() {
     if (req !== freteReq) return;
     if (!r.ok || !Array.isArray(d.opcoes) || d.opcoes.length === 0) {
       frete = { status: "erro", opcoes: [], codigo: null, valor: 0,
-                erro: d.error || "Não consegui calcular o frete pra esse CEP." };
+                erro: d.error || (ext ? "Não consegui calcular o frete pra esse país." : "Não consegui calcular o frete pra esse CEP.") };
     } else {
       const maisBarata = d.opcoes[0];
       frete = { status: "ok", opcoes: d.opcoes, codigo: maisBarata.codigo,
@@ -889,11 +958,13 @@ async function cotarFrete() {
 const cepInput = coForm.querySelector('input[name="cep"]');
 const cepStatus = document.getElementById("coCepStatus");
 cepInput.addEventListener("input", () => {
+  if (ehExterior()) return;
   let v = cepInput.value.replace(/\D/g, "").slice(0, 8);
   if (v.length > 5) v = v.slice(0, 5) + "-" + v.slice(5);
   cepInput.value = v;
 });
 cepInput.addEventListener("blur", async () => {
+  if (ehExterior()) return;
   const cep = cepInput.value.replace(/\D/g, "");
   if (cep.length !== 8) return;
   cepStatus.textContent = "buscando…";
@@ -954,6 +1025,7 @@ function isValidDoc(digits) {
   return digits.length === 11 ? isValidCPF(digits) : digits.length === 14 ? isValidCNPJ(digits) : false;
 }
 docInput.addEventListener("input", () => {
+  if (ehExterior()) return;
   docInput.value = maskDoc(docInput.value);
   const digits = docInput.value.replace(/\D/g, "");
   docStatus.textContent = (digits.length === 11 || digits.length === 14)
@@ -970,23 +1042,30 @@ coForm.addEventListener("submit", async (e) => {
     name: (fd.get("name") || "").trim(),
     email: (fd.get("email") || "").trim(),
     phone: (fd.get("phone") || "").trim(),
-    cpf_cnpj: (fd.get("cpf_cnpj") || "").replace(/\D/g, ""),
+    cpf_cnpj: ehExterior() ? (fd.get("cpf_cnpj") || "").trim() : (fd.get("cpf_cnpj") || "").replace(/\D/g, ""),
     cep: (fd.get("cep") || "").trim(),
     address: (fd.get("address") || "").trim(),
     number: (fd.get("number") || "").trim(),
     complement: (fd.get("complement") || "").trim(),
     neighborhood: (fd.get("neighborhood") || "").trim(),
     city: (fd.get("city") || "").trim(),
-    state: (fd.get("state") || "").trim().toUpperCase(),
+    state: ehExterior() ? (fd.get("state") || "").trim() : (fd.get("state") || "").trim().toUpperCase(),
+    country: paisSel.value,
   };
 
   if (!customer.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customer.email)) {
     alert("Informe seu nome e um email válido."); return;
   }
-  if (!isValidDoc(customer.cpf_cnpj)) {
+  if (ehExterior()) {
+    if (customer.phone.replace(/\D/g, "").length < 6) {
+      alert("Informe um telefone com código do país — a DHL usa pra entregar."); return;
+    }
+    if (!customer.address || !customer.city) {
+      alert("Preencha o endereço completo e a cidade."); return;
+    }
+  } else if (!isValidDoc(customer.cpf_cnpj)) {
     alert("Informe um CPF ou CNPJ válido."); return;
-  }
-  if (!customer.cep || !customer.address || !customer.number || !customer.city || !customer.state) {
+  } else if (!customer.cep || !customer.address || !customer.number || !customer.city || !customer.state) {
     alert("Preencha o endereço completo (CEP, rua, número, cidade e estado)."); return;
   }
 
