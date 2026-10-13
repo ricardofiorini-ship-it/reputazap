@@ -386,10 +386,7 @@
   "reputação atual": "reputación actual",
   "recebidas": "recibidas",
   "Avalie no Google": "Califícanos en Google",
-  "Avaliação no Google": "Reseña en Google",
   "Cardápio": "Carta",
-  "Agendamento": "Agenda",
-  "Mais contatos": "Más contactos",
   "StarTouch Pro: R$ 19,90/mês": "StarTouch Pro: R$ 19,90/mes",
   "· 7 dias grátis, sem cartão · até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade": "· 7 días gratis, sin tarjeta · hasta 5 dispositivos (R$ 1,90 por cada extra) · sin permanencia",
   "1. Monte seu menu de graça → 2. Publique e teste 7 dias, sem cartão → 3. Gostou? Cadastre o cartão pra continuar": "1. Arma tu menú gratis → 2. Publícalo y pruébalo 7 días, sin tarjeta → 3. ¿Te gustó? Registra la tarjeta para seguir",
@@ -1324,7 +1321,20 @@
   "Aí são R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra), sem fidelidade. Se não cadastrar o cartão, o menu sai do ar no 8º dia e nada é cobrado.": "Después son R$ 19,90 al mes, con el Menú en hasta 5 dispositivos (R$ 1,90 por cada extra), sin permanencia. Si no registras la tarjeta, el menú se desactiva el día 8 y no se cobra nada.",
   "R$ 19,90 por mês": "R$ 19,90 al mes",
   "Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade, cancele quando quiser. O teste grátis já foi usado nesta conta.": "Menú en hasta 5 dispositivos (R$ 1,90 por cada extra) · sin permanencia, cancela cuando quieras. La prueba gratis ya se usó en esta cuenta.",
-  "Assinar o StarTouch Pro": "Suscribirme a StarTouch Pro"
+  "Assinar o StarTouch Pro": "Suscribirme a StarTouch Pro",
+  "SEU MENU ESTÁ ASSIM": "ASÍ SE VE TU MENÚ",
+  "SEU MENU COMEÇA ASSIM": "TU MENÚ EMPIEZA ASÍ",
+  "Hoje, quem encosta o celular no seu dispositivo vai direto pra avaliação no Google.": "Hoy, quien acerca el celular a tu dispositivo va directo a la reseña en Google.",
+  "Com um dispositivo StarTouch, quem encosta o celular vai direto pra avaliação no Google.": "Con un dispositivo StarTouch, quien acerca el celular va directo a la reseña en Google.",
+  "É o único caminho, por enquanto. Os espaços vazios são o que o Menu Inteligente libera: WhatsApp, cardápio, agenda, Instagram e o que mais você quiser — com a avaliação sempre em primeiro.": "Es el único camino, por ahora. Los espacios vacíos son lo que libera el Menú Inteligente: WhatsApp, carta, agenda, Instagram y lo que quieras — con la reseña siempre primero.",
+  "Preencher um espaço": "Llenar un espacio",
+  "Não foi possível carregar o menu.": "No se pudo cargar el menú.",
+  "O QUE O CLIENTE VÊ": "LO QUE VE EL CLIENTE",
+  "Abre o menu": "Abre el menú",
+  "Nenhum menu ligado: o toque vai direto à avaliação no Google.": "Ningún menú activado: el toque va directo a la reseña en Google.",
+  "Editar este menu →": "Editar este menú →",
+  "Ligar um menu neste dispositivo →": "Activar un menú en este dispositivo →",
+  "Ver como é o menu deste dispositivo": "Ver cómo es el menú de este dispositivo"
  },
  "p": [
   [
@@ -1746,6 +1756,10 @@
   [
    "^Seus (.+?) botões aparecem$",
    "Tus $1 botones aparecen"
+  ],
+  [
+   "^Menu de (.+?)$",
+   "Menú de $1"
   ]
  ],
  "px": [

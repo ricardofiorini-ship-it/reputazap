@@ -386,10 +386,7 @@
   "reputação atual": "当前口碑",
   "recebidas": "已收到",
   "Avalie no Google": "在 Google 上评价",
-  "Avaliação no Google": "Google 评价",
   "Cardápio": "菜单",
-  "Agendamento": "预约",
-  "Mais contatos": "更多联系方式",
   "StarTouch Pro: R$ 19,90/mês": "StarTouch Pro：R$ 19,90/月",
   "· 7 dias grátis, sem cartão · até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade": "· 7 天免费，无需银行卡 · 最多 5 台设备（每增加一台 R$ 1,90） · 无合约期",
   "1. Monte seu menu de graça → 2. Publique e teste 7 dias, sem cartão → 3. Gostou? Cadastre o cartão pra continuar": "1. 免费搭建菜单 → 2. 发布并试用 7 天，无需银行卡 → 3. 满意吗？绑定银行卡即可继续",
@@ -1324,7 +1321,20 @@
   "Aí são R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra), sem fidelidade. Se não cadastrar o cartão, o menu sai do ar no 8º dia e nada é cobrado.": "之后每月 R$ 19,90，菜单最多可用于 5 台设备（每增加一台 R$ 1,90），无合约期。如果不绑卡，菜单会在第 8 天下线，不会收取任何费用。",
   "R$ 19,90 por mês": "每月 R$ 19,90",
   "Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade, cancele quando quiser. O teste grátis já foi usado nesta conta.": "菜单最多可用于 5 台设备（每增加一台 R$ 1,90）· 无合约期，随时可取消。此账户已使用过免费试用。",
-  "Assinar o StarTouch Pro": "订阅 StarTouch Pro"
+  "Assinar o StarTouch Pro": "订阅 StarTouch Pro",
+  "SEU MENU ESTÁ ASSIM": "你的菜单现在是这样",
+  "SEU MENU COMEÇA ASSIM": "你的菜单从这里开始",
+  "Hoje, quem encosta o celular no seu dispositivo vai direto pra avaliação no Google.": "现在，用手机轻触你设备的人会直接进入 Google 评价页面。",
+  "Com um dispositivo StarTouch, quem encosta o celular vai direto pra avaliação no Google.": "有了 StarTouch 设备，用手机轻触的人会直接进入 Google 评价页面。",
+  "É o único caminho, por enquanto. Os espaços vazios são o que o Menu Inteligente libera: WhatsApp, cardápio, agenda, Instagram e o que mais você quiser — com a avaliação sempre em primeiro.": "目前这是唯一的去处。空位就是智能菜单可以解锁的内容：WhatsApp、菜单、预约、Instagram，以及你想要的任何链接——评价始终排在第一位。",
+  "Preencher um espaço": "填一个空位",
+  "Não foi possível carregar o menu.": "无法加载菜单。",
+  "O QUE O CLIENTE VÊ": "顾客看到的内容",
+  "Abre o menu": "打开菜单",
+  "Nenhum menu ligado: o toque vai direto à avaliação no Google.": "未启用菜单：轻触后会直接进入 Google 评价页面。",
+  "Editar este menu →": "编辑这个菜单 →",
+  "Ligar um menu neste dispositivo →": "为这台设备启用菜单 →",
+  "Ver como é o menu deste dispositivo": "查看这台设备的菜单"
  },
  "p": [
   [
@@ -1746,6 +1756,10 @@
   [
    "^Seus (.+?) botões aparecem$",
    "你的 $1 个按钮会在"
+  ],
+  [
+   "^Menu de (.+?)$",
+   "$1 的菜单"
   ]
  ],
  "px": [

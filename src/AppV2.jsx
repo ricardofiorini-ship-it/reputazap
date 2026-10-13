@@ -3886,49 +3886,13 @@ const PROMO_MENU = true
 // O telefone da demonstração (12/10/2026, mesma estratégia da Trybo): só o
 // botão do Google vem preenchido — é o que o dispositivo dele JÁ faz hoje — e
 // o resto são espaços VAZIOS, tracejados, esperando ser preenchidos. Telefone
-// cheio parecia pronto e alheio; vazio é convite: "falta o seu". As opções de
-// preenchimento estão nos balões em volta (PROMO_BALOES). Só o NOME do
+// cheio parecia pronto e alheio; vazio é convite: "falta o seu". Só o NOME do
 // negócio vem do cliente: ver o próprio nome é o que faz a pessoa entender
 // que aquilo é sobre ela. Mesmo desenho no e-mail semanal (menuBanner).
 const PROMO_BOTOES = [
   { tipo: 'google', label: 'Avalie no Google' }
 ]
 const PROMO_VAZIOS = 4
-
-// Os balões que flutuam ao redor do telefone. `lado` diz de que borda eles
-// saem; `topo` é a posição vertical em % do bloco visual.
-const PROMO_BALOES = [
-  { tipo: 'google',    texto: 'Avaliação\nno Google', lado: 'esq', topo: 6 },
-  { tipo: 'whatsapp',  texto: 'WhatsApp',             lado: 'esq', topo: 34 },
-  { tipo: 'instagram', texto: 'Instagram',            lado: 'esq', topo: 61 },
-  { tipo: 'website',   texto: 'Cardápio',             lado: 'esq', topo: 86 },
-  { tipo: 'booking',   texto: 'Agendamento',          lado: 'dir', topo: 20 },
-  { tipo: 'contact',   texto: 'Mais contatos',        lado: 'dir', topo: 50 }
-]
-
-function BalaoMarca({ tipo, texto, lado, topo }) {
-  return (
-    <div style={{
-      position: 'absolute', top: topo + '%',
-      [lado === 'esq' ? 'left' : 'right']: 0,
-      transform: 'translateY(-50%)',
-      display: 'flex', alignItems: 'center', gap: 7,
-      background: 'rgba(255,255,255,.97)', borderRadius: 999,
-      padding: '7px 13px 7px 8px', whiteSpace: 'pre-line',
-      boxShadow: '0 6px 16px rgba(4,26,66,.28)',
-      fontSize: 11.5, fontWeight: 700, color: '#1F2937', lineHeight: 1.2
-    }}>
-      <span style={{
-        width: 24, height: 24, borderRadius: '50%', background: '#fff',
-        display: 'grid', placeItems: 'center', flex: '0 0 auto',
-        boxShadow: 'inset 0 0 0 1px #EEF2F7'
-      }}>
-        <IconeMenu tipo={tipo} tamanho={14}/>
-      </span>
-      {texto}
-    </div>
-  )
-}
 
 // ── ADIANTA O PAINEL NOVO ──
 // Clicar no Menu Inteligente descarta este painel e baixa OUTRO aplicativo
@@ -3971,11 +3935,13 @@ function PrecoMenu({ claro = false }) {
   )
 }
 
-// O telefone da propaganda do Menu (banner do /app). Tela branca com o nome do
+// O telefone do "Seu menu está assim" (SeuMenuEstaAssim). Tela branca com o nome do
 // negócio, o Google preenchido e os espaços vazios (PROMO_VAZIOS). Os espaços
 // são BOTÕES: tocar num deles leva pra tela do Menu Inteligente (onVazio) —
 // o convite "falta o seu" vira o caminho pra preencher.
-function TelefonePromo({ nome, onVazio }) {
+// Também desenha um menu de verdade (botoes = os publicados, vazios = 0) — é o
+// mesmo telefone do "Ver como é o menu deste dispositivo" do assinante.
+function TelefonePromo({ nome, onVazio, botoes = PROMO_BOTOES, vazios = PROMO_VAZIOS, subtitulo = 'Conecte-se com a nossa casa' }) {
   return (
     <div style={{
       width: 214,
@@ -3993,9 +3959,9 @@ function TelefonePromo({ nome, onVazio }) {
             {nome}
           </div>
           <div style={{ fontSize: 10, color: '#6B7280', margin: '3px 0 12px' }}>
-            Conecte-se com a nossa casa
+            {subtitulo}
           </div>
-          {PROMO_BOTOES.map(({ tipo, label }) => (
+          {botoes.map(({ tipo, label }) => (
             <div key={label} style={{
               display: 'flex', alignItems: 'center', gap: 9,
               background: '#fff', border: '1px solid #E8EAED', borderRadius: 10,
@@ -4009,7 +3975,7 @@ function TelefonePromo({ nome, onVazio }) {
               <ChevronRight size={12} color="#9AA0A6"/>
             </div>
           ))}
-          {Array.from({ length: PROMO_VAZIOS }, (_, i) => (
+          {Array.from({ length: vazios }, (_, i) => (
             <button key={'vazio' + i} type="button" onClick={onVazio}
               aria-label="Adicionar um botão ao seu menu"
               style={{
@@ -4032,7 +3998,55 @@ function TelefonePromo({ nome, onVazio }) {
   )
 }
 
-function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, onAdicionarBotao = null, ctaLabel = null }) {
+// ── SEU MENU ESTÁ ASSIM (12/10/2026, Ricardo) ──
+// Um RETRATO, não propaganda: o que o cliente do lojista vê hoje ao encostar
+// o celular. Pra quem não é assinante isso é só o Google — o toque leva direto
+// à avaliação —, e os espaços vazios ("+") são o que o Menu Inteligente
+// libera; tocar num deles leva a montar o menu. Fica FORA do banner, logo
+// acima dele. Some pro assinante: com o Pro cada dispositivo pode ter um menu
+// diferente, e o retrato passa a morar na lista de dispositivos ("Ver como é o
+// menu deste dispositivo"). Sem dispositivo ainda, vira "começa assim".
+function SeuMenuEstaAssim({ nome, isMobile, temDispositivo, onAdicionarBotao }) {
+  return (
+    <Section>
+      <div style={{
+        background: T.surface, border: `1px solid ${T.border}`, borderRadius: 16, boxShadow: T.shadow,
+        padding: isMobile ? '20px 16px' : '24px 30px',
+        display: 'flex', alignItems: 'center', gap: isMobile ? 18 : 34,
+        flexDirection: isMobile ? 'column' : 'row'
+      }}>
+        <div style={{ flex: '0 0 auto' }}>
+          <TelefonePromo nome={nome} onVazio={onAdicionarBotao}/>
+        </div>
+        <div style={{ flex: '1 1 300px', minWidth: 0 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em', color: T.blueDk, marginBottom: 6 }}>
+            {temDispositivo ? 'SEU MENU ESTÁ ASSIM' : 'SEU MENU COMEÇA ASSIM'}
+          </div>
+          <div style={{ fontSize: isMobile ? 18 : 21, fontWeight: 800, color: T.text, letterSpacing: '-0.02em', lineHeight: 1.25, marginBottom: 10 }}>
+            {temDispositivo
+              ? 'Hoje, quem encosta o celular no seu dispositivo vai direto pra avaliação no Google.'
+              : 'Com um dispositivo StarTouch, quem encosta o celular vai direto pra avaliação no Google.'}
+          </div>
+          <div style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.6 }}>
+            É o único caminho, por enquanto. Os espaços vazios são o que o Menu Inteligente libera:
+            WhatsApp, cardápio, agenda, Instagram e o que mais você quiser — com a avaliação sempre em primeiro.
+          </div>
+          {onAdicionarBotao && (
+            <button type="button" onClick={onAdicionarBotao} style={{
+              marginTop: 14, background: 'transparent', border: `1.5px dashed ${T.blue}`, color: T.blueDk,
+              borderRadius: 10, padding: '10px 16px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: 'inherit'
+            }}>
+              <Plus size={15} strokeWidth={2.4}/> Preencher um espaço
+            </button>
+          )}
+        </div>
+      </div>
+    </Section>
+  )
+}
+
+function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = null }) {
   const ehPro = plan === 'pro'
   const nome = (bizName || 'Seu negócio').trim()
 
@@ -4154,29 +4168,10 @@ function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, onAdicionar
           </div>
         </div>
 
-        {/* ── O telefone ──
-            Computador: ao lado do texto, com os balões em volta mostrando o
-            que pode entrar nos espaços vazios. Celular (12/10/2026): ABAIXO do
-            texto, sem os balões (não há largura pra eles) — antes ficava
-            escondido no celular e a estratégia do "telefone quase vazio"
-            simplesmente não aparecia pra quem abre o painel pelo celular. */}
-        {isMobile ? (
-          <div style={{ position: 'relative', alignSelf: 'center' }}>
-            <TelefonePromo nome={nome} onVazio={onAdicionarBotao || onAbrirMenu}/>
-          </div>
-        ) : (
-          <div style={{
-            flex: '0 0 auto', width: 430, height: 330, position: 'relative'
-          }}>
-            <div aria-hidden="true">{PROMO_BALOES.map(b => <BalaoMarca key={b.texto} {...b}/>)}</div>
-            <div style={{
-              position: 'absolute', left: '50%', top: 0,
-              transform: 'translateX(-50%) scale(.755)', transformOrigin: 'top center'
-            }}>
-              <TelefonePromo nome={nome} onVazio={onAdicionarBotao || onAbrirMenu}/>
-            </div>
-          </div>
-        )}
+        {/* O telefone SAIU do banner (12/10/2026, Ricardo): ele virou o cartão
+            "Seu menu está assim" (SeuMenuEstaAssim), logo ACIMA deste banner —
+            um retrato do que o cliente do cliente vê hoje, e não peça de
+            propaganda. Aqui fica só o argumento e o botão. */}
       </div>
     </Section>
   )
@@ -5619,7 +5614,79 @@ function UnlinkPlateModal({ plate, displayName, onClose, onDone }) {
   )
 }
 
-function CapturePoints({ items, plates, businessId, bizName, isAdmin, reviewCount = 0, isMobile }) {
+// ── VER COMO É O MENU DESTE DISPOSITIVO (12/10/2026) ──
+// O retrato do que o cliente do lojista vê ao encostar o celular NESTE
+// dispositivo. Busca na hora (só quando abre): a lista de dispositivos não
+// sabe qual menu está ligado em cada um, a de menus sabe. Mostra o PUBLICADO —
+// rascunho não chega ao cliente — e, sem menu ligado, diz que o toque vai
+// direto à avaliação no Google.
+function MenuDoDispositivo({ plate, bizName, displayName, onClose }) {
+  const [estado, setEstado] = React.useState({ carregando: true })
+  React.useEffect(() => {
+    let vivo = true
+    apiCall('/api/experiences?action=list')
+      .then(r => {
+        if (!vivo) return
+        const disp = (r?.devices || []).find(x => x.id === plate.id)
+        const exp = disp && disp.served_mode === 'menu' && disp.experience_id
+          ? (r?.experiences || []).find(e => e.id === disp.experience_id && e.published)
+          : null
+        setEstado({ carregando: false, exp })
+      })
+      .catch(e => { if (vivo) setEstado({ carregando: false, erro: e?.message || 'Não foi possível carregar o menu.' }) })
+    return () => { vivo = false }
+  }, [plate.id])
+  React.useEffect(() => {
+    const fechar = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', fechar)
+    return () => window.removeEventListener('keydown', fechar)
+  }, [onClose])
+
+  const pub = estado.exp?.published
+  const botoes = pub
+    ? (pub.buttons || []).map(b => ({ tipo: b.type, label: b.label }))
+    : [{ tipo: 'google', label: 'Avalie no Google' }]
+  return (
+    <div onClick={onClose} role="presentation" style={{
+      position:'fixed', inset: 0, zIndex: 1000, background:'rgba(15,23,42,.55)',
+      display:'flex', alignItems:'center', justifyContent:'center', padding: 16
+    }}>
+      <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={'Menu de ' + displayName} style={{
+        background: T.surface, borderRadius: 16, padding: '22px 20px 18px', width: '100%', maxWidth: 360,
+        maxHeight: 'calc(100vh - 32px)', overflowY: 'auto', position: 'relative', boxShadow:'0 20px 50px rgba(15,23,42,.28)'
+      }}>
+        <button type="button" onClick={onClose} aria-label="Fechar" style={{
+          position:'absolute', top: 10, right: 10, width: 30, height: 30, border:'none', background:'transparent',
+          cursor:'pointer', color: T.textDim, display:'grid', placeItems:'center'
+        }}><X size={16}/></button>
+        <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em', color: T.blueDk, marginBottom: 4 }}>O QUE O CLIENTE VÊ</div>
+        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 4, paddingRight: 24 }}>{displayName}</div>
+        <div style={{ fontSize: 12.5, color: T.textMid, lineHeight: 1.5, marginBottom: 14 }}>
+          {estado.carregando ? 'Carregando…'
+            : estado.erro ? estado.erro
+            : pub ? <>Abre o menu <strong>{estado.exp.name}</strong>.</>
+            : 'Nenhum menu ligado: o toque vai direto à avaliação no Google.'}
+        </div>
+        {!estado.carregando && !estado.erro && (
+          <div style={{ display:'flex', justifyContent:'center' }}>
+            <TelefonePromo nome={(pub?.brand?.titulo || bizName || 'Seu negócio').trim()}
+              subtitulo={pub ? (pub.brand?.subtitulo || '') : 'Conecte-se com a nossa casa'}
+              botoes={botoes} vazios={0}/>
+          </div>
+        )}
+        {!estado.carregando && !estado.erro && (
+          <a href={pub ? '/app?tab=menu&exp=' + encodeURIComponent(estado.exp.id) : '/app?tab=menu'} style={{
+            display:'block', textAlign:'center', marginTop: 14, fontSize: 13, fontWeight: 700, color: T.blue, textDecoration:'none'
+          }}>
+            {pub ? 'Editar este menu →' : 'Ligar um menu neste dispositivo →'}
+          </a>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function CapturePoints({ items, plates, businessId, bizName, isAdmin, reviewCount = 0, isMobile, plan }) {
   const [modalOpen, setModalOpen] = React.useState(false)
   // Renomear apelido (30/jul): o nome era escrito só na ativação e ficava preso.
   // `renamed` guarda o que já salvamos nesta sessão pra lista refletir na hora,
@@ -5670,6 +5737,8 @@ function CapturePoints({ items, plates, businessId, bizName, isAdmin, reviewCoun
   // (não só o id) porque o modal precisa do código pra conferir o que o
   // cliente digita.
   const [unlinking, setUnlinking] = React.useState(null)
+  // "Ver como é o menu deste dispositivo" (assinante): o dispositivo aberto.
+  const [vendoMenu, setVendoMenu] = React.useState(null)
   const resetOf = (p) => Object.prototype.hasOwnProperty.call(resets, p.id) ? resets[p.id] : (p.counter_reset_at ? { at: p.counter_reset_at, taps: p.counter_reset_taps || 0 } : null)
   // Parcial = o que veio DEPOIS do recomeço. O total nunca é tocado.
   function partialOf(p) {
@@ -6206,6 +6275,19 @@ ${corte}
                         </div>
                       )
                     })()}
+                    {/* Assinante: cada dispositivo pode abrir um menu diferente,
+                        então o retrato "Seu menu está assim" do painel saiu e
+                        mora aqui, um por dispositivo (12/10/2026, Ricardo). */}
+                    {!isEditing && plan === 'pro' && (
+                      <button type="button" onClick={() => setVendoMenu(p)}
+                        style={{
+                          display:'block', marginTop: 6, background:'transparent', color: T.blue,
+                          border:'none', padding: 0, fontSize: 12, fontWeight: 600,
+                          cursor:'pointer', fontFamily:"'Inter', sans-serif", textDecoration:'underline'
+                        }}>
+                        Ver como é o menu deste dispositivo
+                      </button>
+                    )}
                     {/* Saída do dispositivo. Vermelho e pequeno de propósito:
                         precisa ser encontrável por quem procura e discreto pra
                         quem não procura — é ação de mão única. */}
@@ -6272,6 +6354,11 @@ ${corte}
           businessId={businessId}
           onClose={() => setModalOpen(false)}
         />
+      )}
+      {vendoMenu && (
+        <MenuDoDispositivo plate={vendoMenu} bizName={bizName}
+          displayName={nickOf(vendoMenu) || PRODUCT_LABELS[vendoMenu.product_type] || 'Este dispositivo'}
+          onClose={() => setVendoMenu(null)}/>
       )}
       {unlinking && (
         <UnlinkPlateModal
@@ -6833,6 +6920,8 @@ function GuestMenuVitrine({ url, bizName, isMobile }) {
   ]
   return (
     <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 96px' : '32px 32px 96px' }}>
+      <SeuMenuEstaAssim nome={(bizName || 'Seu negócio').trim()} isMobile={isMobile} temDispositivo={false}
+        onAdicionarBotao={() => irCadastro('menu_vitrine_telefone')}/>
       <MenuInteligenteSlot plan="free" bizName={bizName} isMobile={isMobile}
         onAbrirMenu={() => irCadastro('menu_vitrine_banner')} ctaLabel="Criar minha conta grátis"/>
 
@@ -8912,13 +9001,17 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             e não teria como configurar o que comprou.
             Ocupa o espaço que era do widget do Radar, desligado desde 09/07 e
             aposentado em 07/09. */}
-        {!guestMode && <MenuInteligenteSlot plan={plan} bizName={d?.biz?.name} isMobile={isMobile} onAbrirMenu={() => setTab('menu')}
+        {/* "Seu menu está assim": só pra quem NÃO é assinante — com o Pro cada
+            dispositivo pode ter um menu diferente, e o retrato vai pra lista
+            de dispositivos. O "+" leva pra tela do Menu com `?add=1`, que abre
+            o editor já na escolha do tipo (Experiencia.jsx, comecarAdicionar). */}
+        {!guestMode && plan !== 'pro' && <SeuMenuEstaAssim nome={(d?.biz?.name || 'Seu negócio').trim()} isMobile={isMobile}
+          temDispositivo={(d?.activePlates || []).length > 0}
           onAdicionarBotao={() => {
-            // "+" do telefone: a tela do Menu lê `?add=1` e abre o editor já na
-            // escolha do tipo de botão (ver Experiencia.jsx, comecarAdicionar).
             try { const u = new URL(window.location.href); u.searchParams.set('add', '1'); window.history.replaceState({}, '', u) } catch {}
             setTab('menu')
           }} />}
+        {!guestMode && <MenuInteligenteSlot plan={plan} bizName={d?.biz?.name} isMobile={isMobile} onAbrirMenu={() => setTab('menu')} />}
 
         {/* Widget Radar IA — desligado desde 09/07 e o produto foi aposentado
             em 07/09/2026. O componente devolve null; fica como referência. */}
@@ -9045,7 +9138,7 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
 
         {!isGuest && (
         <Section id="pontos-de-captacao">
-          <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} bizName={d.biz.name} isAdmin={isAdminUser(user)} reviewCount={d.kpis.reviewCount} isMobile={isMobile} />
+          <CapturePoints items={d.capturePoints} plates={d.activePlates} businessId={d.biz.id} bizName={d.biz.name} isAdmin={isAdminUser(user)} reviewCount={d.kpis.reviewCount} isMobile={isMobile} plan={plan} />
         </Section>
         )}
 
