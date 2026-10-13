@@ -1,5 +1,5 @@
 import React from 'react'
-import { Plus, Archive, Pencil, Trash2, ChevronRight, ExternalLink, X } from 'lucide-react'
+import { Plus, Archive, Pencil, Trash2, ChevronRight, ExternalLink, X, Zap, Smartphone, BarChart3, Heart } from 'lucide-react'
 import { Head, Panel, Chip, Carregando, Erro, dataBr, desde } from '../ui.jsx'
 import { api } from '../lib/api.js'
 import EditorMenu, { CHAVE_MENU_PAGANDO, perguntaExtra } from './EditorMenu.jsx'
@@ -56,14 +56,26 @@ const EXEMPLO = {
   ]
 }
 
-function Demonstracao({ nome, acao, setAcao, onVazio }) {
+function Demonstracao({ nome, foto, acao, setAcao, onVazio }) {
   const escolhida = EXEMPLO.acoes.find(a => a.tipo === acao)
+  const [fotoFalhou, setFotoFalhou] = React.useState(false)
+  React.useEffect(() => setFotoFalhou(false), [foto])
   return <section className="exp-descoberta" aria-label="Demonstração do Menu Inteligente">
     <div className="exp-cena">
       <div className="exp-fone-area">
         <PhoneFrame className="exp-fone" aria-label="Demonstração do Menu Inteligente">
-          <div className="exp-fone-tela">
-            <div className="exp-avatar">{(nome || 'S').trim().charAt(0).toUpperCase()}</div>
+          {/* Desenho de 13/10/2026 (imagem de referência do Ricardo): faixa de
+              capa no topo e o avatar redondo sobre ela. A capa é só cor — o
+              menu público não tem foto de capa, e a vitrine não promete o que
+              a loja não tem. A foto, quando existe, é a mesma que o menu real
+              mostra no lugar do logo. */}
+          <div className="exp-fone-tela exp-fone-v2">
+            <div className="exp-fone-capa" aria-hidden="true"/>
+            <div className="exp-avatar">
+              {foto && !fotoFalhou
+                ? <img src={foto} alt="" onError={() => setFotoFalhou(true)}/>
+                : (nome || 'S').trim().charAt(0).toUpperCase()}
+            </div>
             <strong>{nome || 'Seu negócio'}</strong><p>{EXEMPLO.subtitulo}</p>
             {/* 12/10/2026, mesma estratégia da Trybo: só o Google preenchido —
                 é o que o dispositivo dele já faz hoje — e o resto VAZIO,
@@ -76,10 +88,10 @@ function Demonstracao({ nome, acao, setAcao, onVazio }) {
                   <IconeMenu tipo={a.tipo}/><span>{TIPOS[a.tipo].label}</span><ChevronRight size={13}/>
                 </button>
               ))}
-              {[0, 1, 2, 3].map(i => (
+              {[0, 1, 2].map(i => (
                 <button key={'vazio' + i} type="button" className="exp-fone-vazio" aria-label="Espaço livre para um botão seu"
                   onClick={onVazio}>
-                  <Plus size={14} strokeWidth={2.4}/>
+                  <Plus size={14} strokeWidth={2.4}/><span>Adicionar botão</span>
                 </button>
               ))}
             </div>
@@ -89,7 +101,7 @@ function Demonstracao({ nome, acao, setAcao, onVazio }) {
             <img src="/startouch-logo-dark.png" alt="StarTouch" width="82" height="27" style={{ display: 'block', objectFit: 'contain', margin: '18px auto 0' }}/>
           </div>
         </PhoneFrame>
-        <span className="exp-demo-nota">Demonstração · você escolhe os botões</span>
+        <span className="exp-demo-nota">Demonstração — você escolhe os botões</span>
       </div>
     </div>
   </section>
@@ -452,25 +464,33 @@ export default function Experiencia({ dados }) {
           <div className="exp-eyebrow">MENU INTELIGENTE <Chip>PRO</Chip></div>
           {/* Sem quebra forçada: a frase tem tamanho variável e um <br/> fixo
               quebraria feio em telas estreitas. */}
-          <h2>Vá além das avaliações no Google.</h2>
-          <p>Com o Menu Inteligente, o mesmo toque também conecta seu cliente ao WhatsApp,
-            aos seus produtos, agendamentos e muito mais.</p>
+          <h2>Vá além das avaliações no Google<span className="exp-ponto">.</span></h2>
+          <p>Transforme cada toque em uma nova oportunidade de conexão. Com o Menu Inteligente, seu
+            cliente pode avaliar sua empresa no Google e também acessar seu WhatsApp, produtos,
+            agendamentos, redes sociais e muito mais — tudo em um só lugar.</p>
           <div className="exp-hero-acao">
             <button className="v3-btn solid" onClick={dados.previewToques ? () => abrir('preview-menu') : () => criarSeTiverDispositivo()} disabled={criando}>
               <Plus size={16}/>{criando ? 'Criando…' : 'Criar meu Menu Inteligente'}<ChevronRight size={16}/>
             </button>
-            <span>Monte e visualize antes de publicar.</span>
+            <span>Monte, personalize e visualize seu menu antes de publicar.</span>
           </div>
           {/* Preço à vista desde 06/10/2026 — escondido, ninguém entendia que
               era uma assinatura. Mesmos números da caixa do "Publicar". */}
           {!estado.dados?.plano?.proAtivo && (
-            <p className="exp-hero-preco">
-              <strong>R$ 19,90/mês · 7 dias grátis, sem cartão</strong> · até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade, cancele quando quiser.
-              <br/>Monte de graça, publique e teste 7 dias sem cartão — só é cobrado se você cadastrar o cartão pra continuar.
-            </p>
+            <div className="exp-hero-preco">
+              <div className="exp-preco-linha"><strong>R$ 19,90/mês · 7 dias grátis · sem cartão de crédito</strong></div>
+              <div className="exp-preco-detalhe">até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade</div>
+              <p>Você monta de graça, publica e testa por 7 dias. Só paga se decidir continuar e cadastrar um cartão após o período gratuito.</p>
+            </div>
           )}
+          <ul className="exp-beneficios">
+            <li><span><Zap size={17}/></span>Rápido de configurar</li>
+            <li><span><Smartphone size={17}/></span>Funciona em qualquer celular</li>
+            <li><span><BarChart3 size={17}/></span>Mais conexão com seus clientes</li>
+            <li><span><Heart size={17}/></span>Fortalece sua marca</li>
+          </ul>
         </header>
-        <Demonstracao nome={negocioExibido?.name} acao={acao} setAcao={setAcao} onVazio={() => comecarAdicionar(estado.dados)}/>
+        <Demonstracao nome={negocioExibido?.name} foto={dados.info?.photoUrl || null} acao={acao} setAcao={setAcao} onVazio={() => comecarAdicionar(estado.dados)}/>
       </div>
 
       {/* ── Seus menus ── */}
