@@ -871,7 +871,6 @@
   "Abre sua agenda: Calendly, Doctoralia ou o sistema que você já usa.": "Opens your booking page: Calendly, Doctoralia or the system you already use.",
   "Leva ao seu perfil, para o cliente continuar acompanhando.": "Takes them to your profile so the customer can keep following you.",
   "Demonstração do Menu Inteligente": "Smart Menu demo",
-  "Toque em um botão para ver o que acontece.": "Tap a button to see what happens.",
   "Demonstração · você escolhe os botões": "Demo · you choose the buttons",
   "Não foi possível carregar.": "Couldn't load.",
   "Publicação cancelada: você não confirmou os dispositivos extras. Desligue o Menu de alguns dispositivos ou publique de novo.": "Publishing canceled: you didn't confirm the extra devices. Turn off the Menu on some devices or publish again.",
@@ -1309,8 +1308,8 @@
   "O que é da PESSOA se edita aqui; o que é do NEGÓCIO vem do Google e é leitura — campo editável que não altera nada é a mentira mais fácil de cometer num painel": "What belongs to the PERSON is edited here; what belongs to the BUSINESS comes from Google and is read-only — an editable field that changes nothing is the easiest lie a dashboard can tell",
   "Aparece nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.": "Shows up in your reports so you know how many times each spot was tapped.",
   "Espaço livre para um botão seu": "Free space for one of your buttons",
-  "Este espaço é seu: WhatsApp, cardápio, agenda, Instagram, site — você escolhe o que entra aqui.": "This space is yours: WhatsApp, menu, booking, Instagram, website — you choose what goes here.",
-  "Adicionar um botão ao seu menu": "Add a button to your menu"
+  "Adicionar um botão ao seu menu": "Add a button to your menu",
+  "Toque num espaço vazio (+) para montar o seu: WhatsApp, cardápio, agenda, Instagram, site.": "Tap an empty space (+) to build yours: WhatsApp, menu, booking, Instagram, website."
  },
  "p": [
   [

@@ -4032,7 +4032,7 @@ function TelefonePromo({ nome, onVazio }) {
   )
 }
 
-function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = null }) {
+function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, onAdicionarBotao = null, ctaLabel = null }) {
   const ehPro = plan === 'pro'
   const nome = (bizName || 'Seu negócio').trim()
 
@@ -4162,7 +4162,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = 
             simplesmente não aparecia pra quem abre o painel pelo celular. */}
         {isMobile ? (
           <div style={{ position: 'relative', alignSelf: 'center' }}>
-            <TelefonePromo nome={nome} onVazio={onAbrirMenu}/>
+            <TelefonePromo nome={nome} onVazio={onAdicionarBotao || onAbrirMenu}/>
           </div>
         ) : (
           <div style={{
@@ -4173,7 +4173,7 @@ function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = 
               position: 'absolute', left: '50%', top: 0,
               transform: 'translateX(-50%) scale(.755)', transformOrigin: 'top center'
             }}>
-              <TelefonePromo nome={nome} onVazio={onAbrirMenu}/>
+              <TelefonePromo nome={nome} onVazio={onAdicionarBotao || onAbrirMenu}/>
             </div>
           </div>
         )}
@@ -8912,7 +8912,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             e não teria como configurar o que comprou.
             Ocupa o espaço que era do widget do Radar, desligado desde 09/07 e
             aposentado em 07/09. */}
-        {!guestMode && <MenuInteligenteSlot plan={plan} bizName={d?.biz?.name} isMobile={isMobile} onAbrirMenu={() => setTab('menu')} />}
+        {!guestMode && <MenuInteligenteSlot plan={plan} bizName={d?.biz?.name} isMobile={isMobile} onAbrirMenu={() => setTab('menu')}
+          onAdicionarBotao={() => {
+            // "+" do telefone: a tela do Menu lê `?add=1` e abre o editor já na
+            // escolha do tipo de botão (ver Experiencia.jsx, comecarAdicionar).
+            try { const u = new URL(window.location.href); u.searchParams.set('add', '1'); window.history.replaceState({}, '', u) } catch {}
+            setTab('menu')
+          }} />}
 
         {/* Widget Radar IA — desligado desde 09/07 e o produto foi aposentado
             em 07/09/2026. O componente devolve null; fica como referência. */}

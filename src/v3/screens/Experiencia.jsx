@@ -56,7 +56,7 @@ const EXEMPLO = {
   ]
 }
 
-function Demonstracao({ nome, acao, setAcao }) {
+function Demonstracao({ nome, acao, setAcao, onVazio }) {
   const escolhida = EXEMPLO.acoes.find(a => a.tipo === acao)
   return <section className="exp-descoberta" aria-label="Demonstração do Menu Inteligente">
     <div className="exp-cena">
@@ -78,15 +78,13 @@ function Demonstracao({ nome, acao, setAcao }) {
               ))}
               {[0, 1, 2, 3].map(i => (
                 <button key={'vazio' + i} type="button" className="exp-fone-vazio" aria-label="Espaço livre para um botão seu"
-                  aria-pressed={acao === 'vazio'} onClick={() => setAcao('vazio')}>
+                  onClick={onVazio}>
                   <Plus size={14} strokeWidth={2.4}/>
                 </button>
               ))}
             </div>
             <div className="exp-fone-feedback" role="status">
-              {acao === 'vazio'
-                ? 'Este espaço é seu: WhatsApp, cardápio, agenda, Instagram, site — você escolhe o que entra aqui.'
-                : escolhida ? escolhida.detalhe : 'Toque em um botão para ver o que acontece.'}
+              {escolhida ? escolhida.detalhe : 'Toque num espaço vazio (+) para montar o seu: WhatsApp, cardápio, agenda, Instagram, site.'}
             </div>
             <img src="/startouch-logo-dark.png" alt="StarTouch" width="82" height="27" style={{ display: 'block', objectFit: 'contain', margin: '18px auto 0' }}/>
           </div>
@@ -271,6 +269,33 @@ export default function Experiencia({ dados }) {
     }
   }
 
+  // ── O "+" DO TELEFONE (12/10/2026) ──
+  // Do banner do /app (chega com `?add=1`) ou da demonstração aqui embaixo: o
+  // cliente tocou num espaço vazio querendo pôr um botão. Leva direto pro
+  // editor com a escolha do tipo já aberta — no menu que ele já tem, ou num
+  // menu novo, criado na hora, se ainda não tiver nenhum.
+  const [adicionarNoEditor, setAdicionarNoEditor] = React.useState(false)
+  const pedidoAdicionar = React.useRef((() => {
+    try { return new URLSearchParams(window.location.search).get('add') === '1' } catch { return false }
+  })())
+  const comecarAdicionar = (d) => {
+    setAdicionarNoEditor(true)
+    if (dados.previewToques) { abrir('preview-menu'); return }
+    const ativa = (d?.experiences || []).find(e => !e.archived_at)
+    if (ativa) abrir(ativa.id)
+    else criar()
+  }
+  React.useEffect(() => {
+    if (!pedidoAdicionar.current || estado.carregando || estado.erro) return
+    pedidoAdicionar.current = false
+    try {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('add')
+      window.history.replaceState({}, '', url)
+    } catch {}
+    comecarAdicionar(estado.dados)
+  }, [estado]) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (estado.carregando) return <Carregando o="suas experiências"/>
   if (estado.erro) return <Erro mensagem={estado.erro} onTentar={carregar}/>
 
@@ -361,6 +386,8 @@ export default function Experiencia({ dados }) {
           info: dados.info, devices,
           dispositivosDaExp: devices.filter(d => d.experience_id === aberta.id && d.experience_enabled)
         }}
+        abrirAdicionar={adicionarNoEditor}
+        onAdicionarAberto={() => setAdicionarNoEditor(false)}
         onVoltar={() => abrir(null)}
         onAtualizar={(_exp, opts) => { if (!opts?.silencioso) carregar() }}
       />
@@ -402,7 +429,7 @@ export default function Experiencia({ dados }) {
             </p>
           )}
         </header>
-        <Demonstracao nome={negocioExibido?.name} acao={acao} setAcao={setAcao}/>
+        <Demonstracao nome={negocioExibido?.name} acao={acao} setAcao={setAcao} onVazio={() => comecarAdicionar(estado.dados)}/>
       </div>
 
       {/* ── Seus menus ── */}

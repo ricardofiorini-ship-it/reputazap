@@ -81,7 +81,10 @@ function novoBotaoLocal(type, tipos) {
 }
 
 // ── Prévia ──────────────────────────────────────────────────
-function Previa({ draft, foto, onSelecionar, selecionado }) {
+// `vagas`: quantos espaços vazios ("+") aparecem abaixo dos botões (12/10/2026,
+// mesma estratégia do banner do /app). Tocar num deles abre a escolha do tipo
+// — o mesmo "Adicionar botão" da lista, só que a partir do próprio telefone.
+function Previa({ draft, foto, onSelecionar, selecionado, vagas = 0, onAdicionar }) {
   const ligados = (draft.buttons || []).filter(b => b.enabled)
   return (
     <PhoneFrame className="v3-fone">
@@ -93,11 +96,16 @@ function Previa({ draft, foto, onSelecionar, selecionado }) {
           : <div style={{ height: 6 }}/>}
         <div className="nome">{draft.brand?.titulo || 'Seu negócio'}</div>
         {draft.brand?.subtitulo && <div className="sb">{draft.brand.subtitulo}</div>}
-        {ligados.length === 0 && <div className="vazio">Nenhum botão ligado ainda.</div>}
+        {ligados.length === 0 && !vagas && <div className="vazio">Nenhum botão ligado ainda.</div>}
         {ligados.map(b => (
           <button type="button" className="bt" key={b.id} aria-label={`Editar ${b.label} na prévia`} aria-pressed={selecionado === b.id} onClick={() => onSelecionar(b.id)}>
             <IconeTipo tipo={b.type} tamanho={20}/>
             <span>{b.label}</span>
+          </button>
+        ))}
+        {onAdicionar && Array.from({ length: vagas }, (_, i) => (
+          <button type="button" className="bt vaga" key={'vaga' + i} aria-label="Adicionar um botão ao seu menu" onClick={onAdicionar}>
+            <Plus size={16} strokeWidth={2.4}/>
           </button>
         ))}
         <img src="/startouch-logo-dark.png" alt="StarTouch" width="82" height="27" style={{ display: 'block', objectFit: 'contain', margin: '18px auto 0' }}/>
@@ -329,13 +337,28 @@ function CaixaAssinatura({ expId, ligados, onFechar }) {
   )
 }
 
-export default function EditorMenu({ exp, dados, tipos, limites, foto, experiencias, plano, onVoltar, onAtualizar }) {
+export default function EditorMenu({ exp, dados, tipos, limites, foto, experiencias, plano, onVoltar, onAtualizar, abrirAdicionar = false, onAdicionarAberto }) {
   const [draft, setDraft] = React.useState(() => exp.draft || { brand: {}, buttons: [] })
   const [validacao, setValidacao] = React.useState(null)
   const [salvando, setSalvando] = React.useState(false)
   const [sujo, setSujo] = React.useState(false)
   const [aberto, setAberto] = React.useState(null)
-  const [addOpen, setAddOpen] = React.useState(false)
+  // `abrirAdicionar`: o cliente chegou pelo "+" do telefone (banner do /app ou
+  // demonstração) — a escolha do tipo já abre, sem ele procurar o botão.
+  const [addOpen, setAddOpen] = React.useState(!!abrirAdicionar)
+  // O "+" do telefone da prévia: abre a mesma escolha de tipo do "Adicionar
+  // botão" e leva a tela até ela (no celular a prévia fica longe da lista).
+  const abrirEscolhaDeTipo = React.useCallback(() => {
+    setAddOpen(true)
+    requestAnimationFrame(() => document.getElementById('me-adicionar')?.scrollIntoView({ block: 'center', behavior: 'smooth' }))
+  }, [])
+  // Pedido consumido: avisa quem pediu, pra não reabrir na próxima vez que
+  // este ou outro menu for aberto pela lista.
+  React.useEffect(() => {
+    if (!abrirAdicionar) return
+    abrirEscolhaDeTipo()
+    onAdicionarAberto?.()
+  }, [abrirAdicionar]) // eslint-disable-line react-hooks/exhaustive-deps
   // Qual botão acabou de ser adicionado — só ele mostra "Inserir".
   const [recem, setRecem] = React.useState(null)
   // A caixa da assinatura. Abre no "Publicar" de quem ainda não tem Pro.
@@ -797,7 +820,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                 <p className="v3-dica" style={{ padding: '10px 0' }}>Nenhum botão ainda. Adicione o primeiro abaixo.</p>
               )}
 
-              <div style={{ marginTop: 12 }}>
+              <div id="me-adicionar" style={{ marginTop: 12 }}>
                 {!addOpen ? (
                   <button className="v3-btn me-add-button" onClick={() => setAddOpen(true)} disabled={cheio}>
                     <Plus size={13}/> {cheio ? `Limite de ${limites?.botoes || 12} botões` : 'Adicionar botão'}
@@ -829,7 +852,10 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
         <aside className="v3-previa" id="menu-previa" aria-label="Prévia do seu menu">
           <div className="cab"><span className="t">Seu menu, na prática</span><Chip tipo={naoPublicado ? 'n' : 'g'}>{naoPublicado ? 'Rascunho' : 'Publicado'}</Chip></div>
           <p className="me-preview-tip">Clique em um botão abaixo para editar.</p>
-          <Previa draft={draft} foto={fotoDisponivel} selecionado={aberto} onSelecionar={id => {
+          <Previa draft={draft} foto={fotoDisponivel} selecionado={aberto}
+            vagas={cheio ? 0 : Math.max(0, Math.min(5 - ligados, (limites?.botoes || 12) - draft.buttons.length))}
+            onAdicionar={abrirEscolhaDeTipo}
+            onSelecionar={id => {
             setAberto(id)
             setRecem(null)
             requestAnimationFrame(() => document.getElementById(`editor-botao-${id}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }))

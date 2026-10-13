@@ -871,7 +871,6 @@
   "Abre sua agenda: Calendly, Doctoralia ou o sistema que você já usa.": "打开你的预约页面：Calendly、Doctoralia 或你正在使用的系统。",
   "Leva ao seu perfil, para o cliente continuar acompanhando.": "跳转到你的主页，让顾客持续关注你。",
   "Demonstração do Menu Inteligente": "智能菜单演示",
-  "Toque em um botão para ver o que acontece.": "点按一个按钮，看看会发生什么。",
   "Demonstração · você escolhe os botões": "演示 · 按钮由你选择",
   "Não foi possível carregar.": "无法加载。",
   "Publicação cancelada: você não confirmou os dispositivos extras. Desligue o Menu de alguns dispositivos ou publique de novo.": "发布已取消：你没有确认额外设备。请在部分设备上关闭菜单，或重新发布。",
@@ -1309,8 +1308,8 @@
   "O que é da PESSOA se edita aqui; o que é do NEGÓCIO vem do Google e é leitura — campo editável que não altera nada é a mentira mais fácil de cometer num painel": "属于“个人”的信息在这里编辑；属于“商家”的信息来自 Google，只读——一个能编辑却改变不了任何东西的字段，是控制面板最容易犯的谎言",
   "Aparece nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.": "会显示在你的报告中，方便你了解每个位置被触碰了多少次。",
   "Espaço livre para um botão seu": "留给你自己的按钮的空位",
-  "Este espaço é seu: WhatsApp, cardápio, agenda, Instagram, site — você escolhe o que entra aqui.": "这个位置属于你：WhatsApp、菜单、预约、Instagram、网站——放什么由你决定。",
-  "Adicionar um botão ao seu menu": "为你的菜单添加一个按钮"
+  "Adicionar um botão ao seu menu": "为你的菜单添加一个按钮",
+  "Toque num espaço vazio (+) para montar o seu: WhatsApp, cardápio, agenda, Instagram, site.": "点一下空位（+）来搭建你自己的：WhatsApp、菜单、预约、Instagram、网站。"
  },
  "p": [
   [

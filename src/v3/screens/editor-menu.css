@@ -26,6 +26,10 @@
 .menu-editor .v3-fone { min-width: 214px; border-color: var(--ink); box-shadow: var(--shadow); }
 .menu-editor .v3-fone .bt { width: 100%; cursor: pointer; text-align: left; font: inherit; font-size: 12px; }
 .menu-editor .v3-fone .bt[aria-pressed="true"] { border-color: var(--blue); background: var(--blue-soft); }
+/* Espaço vazio da prévia (12/10/2026): tracejado e só com "+", pra ninguém
+   achar que é botão de verdade do menu. Tocar abre a escolha do tipo. */
+.menu-editor .v3-fone .bt.vaga { justify-content: center; min-height: 41px; background: transparent; border: 1.5px dashed #C9D8EA; color: #A9BCD3; box-shadow: none; }
+.menu-editor .v3-fone .bt.vaga:hover, .menu-editor .v3-fone .bt.vaga:focus-visible { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
 .menu-editor .v3-fone .bt span { overflow-wrap: anywhere; min-width: 0; }
 .menu-editor .me-preview-resumo { display: grid; gap: 6px; margin-top: 17px; font-size: 11px; color: var(--ink); }
 .menu-editor .me-preview-resumo span { color: var(--mid); font-size: 10px; line-height: 1.6; }
