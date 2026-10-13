@@ -485,7 +485,7 @@ export default function Experiencia({ dados }) {
           )}
           <ul className="exp-beneficios">
             <li><span><Zap size={17}/></span>Rápido de configurar</li>
-            <li><span><Smartphone size={17}/></span>Funciona em qualquer celular</li>
+            <li><span><Smartphone size={17}/></span>Abre sem instalar aplicativo</li>
             <li><span><BarChart3 size={17}/></span>Mais conexão com seus clientes</li>
             <li><span><Heart size={17}/></span>Fortalece sua marca</li>
           </ul>
