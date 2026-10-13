@@ -998,6 +998,28 @@ async function copyReferral(){
   }
 }
 
+// ── A EMPRESA QUE O VISITANTE JÁ ESCOLHEU (12/10/2026, Ricardo) ──
+// Quem consultou o próprio negócio no painel (/app, como visitante) e depois
+// foi ativar um dispositivo caía no "Qual sua empresa?" e tinha que buscar
+// tudo de novo. O painel guarda a escolha em `rz_guest_biz` (o /ativar já lê
+// o mesmo). Aqui ela vem pré-selecionada no passo 2, com "Trocar" — vale como
+// confirmação de um clique, nunca como escolha escondida. `?place_id=` na URL
+// ganha do guardado. Falhou a consulta: segue a busca normal, sem aviso.
+(function preselecionarEmpresa(){
+  if (DEMO) return;
+  let pid = params.get("place_id") || params.get("place");
+  if (!pid) {
+    try { const g = JSON.parse(localStorage.getItem("rz_guest_biz") || "null"); if (g && g.placeId) pid = g.placeId; } catch {}
+  }
+  if (!pid) return;
+  fetch(`/api/bizinfo?place_id=${encodeURIComponent(pid)}`).then(r => r.json()).then(d => {
+    if (!d || d.error || !d.name || selectedBiz) return;
+    pickBiz({ place_id: pid, name: d.name, address: d.address || "", rating: d.rating ?? null, total: d.total ?? null });
+    const sub = document.querySelector("#nStep2 .sub");
+    if (sub) sub.textContent = "Já trouxemos a empresa que você consultou. Confira e siga — ou toque em Trocar.";
+  }).catch(() => {});
+})();
+
 </script>
 
 <!-- WhatsApp de suporte StarTouch — flutuante, presente em toda a página -->
