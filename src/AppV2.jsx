@@ -4413,6 +4413,76 @@ function WeekActions({ items, isMobile }) {
 // avaliação (copiar / mandar por WhatsApp) — e link de graça compete com o
 // próprio produto: se o link resolve, pra que o cartão? O caminho que fica é
 // o dispositivo: comprar (principal) ou ativar o que já tem.
+// ── MOTIVAR A EQUIPE (13/10/2026, Ricardo) ──
+// Pra quem JÁ tem dispositivo, o que falta não é ferramenta: é a equipe usar o
+// cartão na hora certa. Dicas práticas, curtas, e um atalho pros toques de
+// cada dispositivo — o número que dá pra acompanhar por pessoa. Honesto sobre
+// o limite: toque mostra quem está PEDINDO; o Google não diz quem gerou cada
+// avaliação (ver o caso do cliente de 11/10/2026).
+function EquipeModal({ onClose }) {
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+  const dicas = [
+    { t: 'Peça na hora certa', d: 'Logo depois de um elogio, na entrega da conta ou no fim do atendimento — quando o cliente está satisfeito.' },
+    { t: 'Use uma frase pronta', d: '"Se gostou, encosta o celular aqui e deixa sua avaliação. Leva 30 segundos." Frase decorada sai natural.' },
+    { t: 'Cada um com o seu', d: 'Cartão na mão de quem atende, um por pessoa. Assim você vê quem está pedindo.' },
+    { t: 'Acompanhe e reconheça', d: 'Veja os toques de cada dispositivo e reconheça quem mais pede. Toque mostra quem está pedindo — o Google não informa quem gerou cada avaliação.' },
+    { t: 'Lembre toda semana', d: 'O resumo de segunda mostra quem teve mais toques. Leve o número pra conversa com a equipe.' }
+  ]
+  const verToques = () => {
+    onClose()
+    requestAnimationFrame(() => document.getElementById('pontos-de-captacao')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+  return (
+    <div onClick={(e) => { if (e.target === e.currentTarget) onClose() }} style={{
+      position:'fixed', inset: 0, background:'rgba(15,23,42,.55)',
+      display:'grid', placeItems:'center', zIndex: 100, padding: 16
+    }}>
+      <Card padded={false} style={{ padding: 24, maxWidth: 520, width:'100%', position:'relative', maxHeight:'calc(100vh - 32px)', overflowY:'auto' }}>
+        <button onClick={onClose} aria-label="Fechar" style={{
+          position:'absolute', top: 12, right: 12, width: 32, height: 32, borderRadius: 8,
+          border:'none', background:'transparent', color: T.textMid, fontSize: 22, cursor:'pointer'
+        }}>×</button>
+        <h2 style={{ fontFamily:"'Inter', sans-serif", fontSize: 20, fontWeight: 700, color: T.text, margin:'0 0 6px', letterSpacing:'-0.02em', paddingRight: 28 }}>
+          Faça sua equipe pedir mais
+        </h2>
+        <p style={{ fontSize: 13.5, color: T.textMid, margin:'0 0 16px', lineHeight: 1.5 }}>
+          Você já tem o dispositivo. O que faz o número subir é a equipe usar na hora certa.
+        </p>
+        <div style={{ display:'grid', gap: 12, marginBottom: 18 }}>
+          {dicas.map((x, i) => (
+            <div key={x.t} style={{ display:'flex', gap: 11, alignItems:'flex-start' }}>
+              <span style={{
+                width: 24, height: 24, borderRadius:'50%', flex:'none', marginTop: 1,
+                background:'#EAF1FD', color:'#1A56DB', fontWeight: 700, fontSize: 12.5, display:'grid', placeItems:'center'
+              }}>{i + 1}</span>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{x.t}</div>
+                <div style={{ fontSize: 13, color: T.textMid, lineHeight: 1.5, marginTop: 2 }}>{x.d}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button type="button" onClick={verToques} style={{
+          width:'100%', background: T.blue, color:'#fff', border:'none', borderRadius: 8,
+          padding:'12px 14px', fontSize: 14, fontWeight: 700, cursor:'pointer', fontFamily:'inherit',
+          display:'flex', alignItems:'center', justifyContent:'center', gap: 8
+        }}>
+          Ver os toques de cada dispositivo <ChevronRight size={16}/>
+        </button>
+        <a href="/kit" style={{
+          display:'block', textAlign:'center', marginTop: 12, fontSize: 13, fontWeight: 600, color: T.blue, textDecoration:'none'
+        }}>
+          Equipe maior? Um cartão pra cada pessoa →
+        </a>
+      </Card>
+    </div>
+  )
+}
+
 function ShareReviewsModal({ onClose, onActivatePlate }) {
   React.useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose() }
@@ -5114,6 +5184,8 @@ function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate, lacuna = nul
   // O modal "Gerar mais avaliações" (copiar link + WhatsApp) já existe e é o
   // destino natural de quem acabou de ler quantas avaliações faltam.
   const [pedirOpen, setPedirOpen] = React.useState(false)
+  // "Motivar minha equipe" — quem JÁ tem dispositivo (13/10/2026).
+  const [equipeOpen, setEquipeOpen] = React.useState(false)
   const reviews = d.recentReviews || []
   // Avaliações SEM resposta (real: sem flag `replied` → todas contam).
   const unreplied = reviews.filter(r => !r.replied)
@@ -5149,8 +5221,12 @@ function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate, lacuna = nul
         ? `Você tem nota ${alvo.minhaNota.toFixed(1).replace('.', ',')} e ${alvo.rival.nome} tem ${alvo.rival.nota.toFixed(1).replace('.', ',')} — o que falta é volume, não qualidade.`
         : `${alvo.rival.nome} tem ${alvo.rival.reviews.toLocaleString('pt-BR')} avaliações e você tem ${alvo.meus.toLocaleString('pt-BR')}.`,
       badge: null,
-      cta: podeAtivar ? 'Ativar meu dispositivo' : 'Pedir avaliação agora',
-      onClick: podeAtivar ? onActivate : () => setPedirOpen(true)
+      // Três casos (13/10/2026, Ricardo): sem dispositivo ativa o que tem na
+      // mão; visitante vai pro dispositivo; QUEM JÁ TEM dispositivo não precisa
+      // de outro — precisa que a equipe use o que tem. Antes este último também
+      // caía em "Pedir avaliação agora" → comprar/ativar, que não fazia sentido.
+      cta: podeAtivar ? 'Ativar meu dispositivo' : noDevice ? 'Pedir avaliação agora' : 'Motivar minha equipe',
+      onClick: podeAtivar ? onActivate : noDevice ? () => setPedirOpen(true) : () => setEquipeOpen(true)
     }
   } else if (podeAtivar) {
     a = {
@@ -5225,6 +5301,7 @@ function WeeklyAction({ d, demoMode, isMobile, placeId, onActivate, lacuna = nul
           onActivatePlate={onActivate}
         />
       )}
+      {equipeOpen && <EquipeModal onClose={() => setEquipeOpen(false)}/>}
     </Card>
   )
 }
