@@ -6912,7 +6912,13 @@ function GuestSearch({ isMobile }) {
 // funciona + convite pro cadastro. Sem preço, pela decisão de 08/09: quem
 // cobra é a caixa do "Publicar"; aqui só "7 dias grátis", que já diz que é pago.
 function GuestMenuVitrine({ url, bizName, isMobile }) {
-  const irCadastro = (de) => { trackFunnel('guest_signup_click', { from: de }); window.location.href = url }
+  // `depois`: pra onde o /ativar manda quando a conta fica pronta (?next=). Sem
+  // isso, quem se cadastrou a partir DAQUI caía no painel inicial e perdia o
+  // fio — tinha que achar a aba do Menu de novo (12/10/2026).
+  const irCadastro = (de, depois = '/app?tab=menu') => {
+    trackFunnel('guest_signup_click', { from: de })
+    window.location.href = url + (url.includes('?') ? '&' : '?') + 'next=' + encodeURIComponent(depois)
+  }
   const passos = [
     { Ico: User,   t: 'Crie sua conta grátis', d: 'Seu negócio já está aqui — é só salvar. Leva um minuto.' },
     { Ico: Pencil, t: 'Monte o seu menu', d: 'Escolha os botões: WhatsApp, Instagram, cardápio, agendamento. A avaliação no Google fica sempre em primeiro.' },
@@ -6921,7 +6927,7 @@ function GuestMenuVitrine({ url, bizName, isMobile }) {
   return (
     <main style={{ maxWidth: 1280, margin:'0 auto', padding: isMobile ? '20px 16px 96px' : '32px 32px 96px' }}>
       <SeuMenuEstaAssim nome={(bizName || 'Seu negócio').trim()} isMobile={isMobile} temDispositivo={false}
-        onAdicionarBotao={() => irCadastro('menu_vitrine_telefone')}/>
+        onAdicionarBotao={() => irCadastro('menu_vitrine_telefone', '/app?tab=menu&add=1')}/>
       <MenuInteligenteSlot plan="free" bizName={bizName} isMobile={isMobile}
         onAbrirMenu={() => irCadastro('menu_vitrine_banner')} ctaLabel="Criar minha conta grátis"/>
 

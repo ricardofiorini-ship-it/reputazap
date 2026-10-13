@@ -375,6 +375,12 @@ const state = { user:{}, business:null, plan:null, nfcLink:null, from:fromSource
 // Só paths internos (começam com / mas não //) — evita open redirect.
 const NEXT_RAW = params.get("next") || "";
 const NEXT_URL = (NEXT_RAW.startsWith("/") && !NEXT_RAW.startsWith("//")) ? NEXT_RAW : null;
+// Quem sai daqui pro LOGIN (conta que já existia) leva o destino junto: o
+// login do /app segue `?next=` depois de entrar. Sem isso, quem veio do "+" do
+// Menu caía no painel inicial e perdia o fio (12/10/2026).
+function comDestino(caminho){
+  return NEXT_URL ? caminho + "&next=" + encodeURIComponent(NEXT_URL) : caminho;
+}
 
 // Google Sign-In — Client ID public, ok hardcodar
 const GOOGLE_CLIENT_ID = "215106300952-pb5ucf4l8jd8ls9q6ff059b41mo26gkt.apps.googleusercontent.com";
@@ -468,7 +474,7 @@ async function handleGoogleCredential(response) {
       state.bizSaved = true;
       if (state.activity) localStorage.setItem("rz_activity", state.activity);
       // Conversão de cadastro ANTES de sair da página (redirect no callback)
-      fireSignupConversion(() => { window.location.href = "/app?login=1"; });
+      fireSignupConversion(() => { window.location.href = comDestino("/app?login=1"); });
       return;
     }
     // NFC flow: cadastro -> busca (mesma página, sem redirect — só dispara)
@@ -659,7 +665,7 @@ async function goToStep2(){
       // é o passo onde a pessoa já decidiu se cadastrar: mandá-la de volta pro
       // formulário que acabou de recusá-la é onde o caminho morria.
       if(data.codigo==="email_ja_existe"){
-        const proximo=`/app?login=1&email=${encodeURIComponent(email)}`;
+        const proximo=comDestino(`/app?login=1&email=${encodeURIComponent(email)}`);
         // `\n\n` ESCRITO, não quebra de linha de verdade: string com aspas
         // simples/duplas não atravessa linha em JavaScript. Escrita assim, ela
         // derrubou por sintaxe o <script> INTEIRO desta página (615 linhas) —
@@ -700,7 +706,7 @@ async function goToStep2(){
       state.bizSaved = true;
       if (state.activity) localStorage.setItem("rz_activity", state.activity);
       // Conversão de cadastro ANTES de sair da página (redirect no callback)
-      fireSignupConversion(() => { window.location.href = "/app?login=1"; });
+      fireSignupConversion(() => { window.location.href = comDestino("/app?login=1"); });
       return;
     }
     // NFC flow: cadastro -> busca (mesma página, sem redirect — só dispara)
