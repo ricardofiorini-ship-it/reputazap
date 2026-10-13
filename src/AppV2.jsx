@@ -3971,6 +3971,67 @@ function PrecoMenu({ claro = false }) {
   )
 }
 
+// O telefone da propaganda do Menu (banner do /app). Tela branca com o nome do
+// negócio, o Google preenchido e os espaços vazios (PROMO_VAZIOS). Os espaços
+// são BOTÕES: tocar num deles leva pra tela do Menu Inteligente (onVazio) —
+// o convite "falta o seu" vira o caminho pra preencher.
+function TelefonePromo({ nome, onVazio }) {
+  return (
+    <div style={{
+      width: 214,
+      '--ink': '#1F2937', '--mid': '#6B7280', '--surf': '#FFFFFF',
+      '--line': '#E5E7EB', '--blue-dk': '#0B57D0'
+    }}>
+      <PhoneFrame>
+        <div style={{ padding: '14px 12px', textAlign: 'center', background: '#FFFFFF' }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%', background: '#F1F5F9',
+            color: '#0B3EA8', fontWeight: 800, fontSize: 18,
+            display: 'grid', placeItems: 'center', margin: '0 auto 8px'
+          }}>{nome.charAt(0).toUpperCase()}</div>
+          <div style={{ fontSize: 13.5, fontWeight: 800, color: '#111827', lineHeight: 1.25 }}>
+            {nome}
+          </div>
+          <div style={{ fontSize: 10, color: '#6B7280', margin: '3px 0 12px' }}>
+            Conecte-se com a nossa casa
+          </div>
+          {PROMO_BOTOES.map(({ tipo, label }) => (
+            <div key={label} style={{
+              display: 'flex', alignItems: 'center', gap: 9,
+              background: '#fff', border: '1px solid #E8EAED', borderRadius: 10,
+              padding: '9px 10px', marginBottom: 7,
+              boxShadow: '0 1px 2px rgba(16,24,40,.05)'
+            }}>
+              <IconeMenu tipo={tipo} tamanho={15}/>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#1F2937', flex: 1, textAlign: 'left' }}>
+                {label}
+              </span>
+              <ChevronRight size={12} color="#9AA0A6"/>
+            </div>
+          ))}
+          {Array.from({ length: PROMO_VAZIOS }, (_, i) => (
+            <button key={'vazio' + i} type="button" onClick={onVazio}
+              aria-label="Adicionar um botão ao seu menu"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '100%', height: 35, border: '1.5px dashed #C9D8EA', borderRadius: 10,
+                marginBottom: 7, color: '#A9BCD3', background: 'transparent',
+                cursor: 'pointer', padding: 0, fontFamily: 'inherit'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#1A73E8'; e.currentTarget.style.color = '#1A73E8' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#C9D8EA'; e.currentTarget.style.color = '#A9BCD3' }}>
+              <Plus size={13} strokeWidth={2.4}/>
+            </button>
+          ))}
+          <div style={{ fontSize: 8.5, color: '#9AA0A6', marginTop: 10 }}>
+            Powered by <strong style={{ color: '#0B3EA8' }}>StarTouch</strong>
+          </div>
+        </div>
+      </PhoneFrame>
+    </div>
+  )
+}
+
 function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = null }) {
   const ehPro = plan === 'pro'
   const nome = (bizName || 'Seu negócio').trim()
@@ -4093,63 +4154,26 @@ function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = 
           </div>
         </div>
 
-        {/* ── O telefone e os balões ──
-            Escondidos no celular: ali não há largura pra eles sem espremer o
-            texto, que é o que de fato vende. */}
-        {!isMobile && (
-          <div aria-hidden="true" style={{
+        {/* ── O telefone ──
+            Computador: ao lado do texto, com os balões em volta mostrando o
+            que pode entrar nos espaços vazios. Celular (12/10/2026): ABAIXO do
+            texto, sem os balões (não há largura pra eles) — antes ficava
+            escondido no celular e a estratégia do "telefone quase vazio"
+            simplesmente não aparecia pra quem abre o painel pelo celular. */}
+        {isMobile ? (
+          <div style={{ position: 'relative', alignSelf: 'center' }}>
+            <TelefonePromo nome={nome} onVazio={onAbrirMenu}/>
+          </div>
+        ) : (
+          <div style={{
             flex: '0 0 auto', width: 430, height: 330, position: 'relative'
           }}>
-            {PROMO_BALOES.map(b => <BalaoMarca key={b.texto} {...b}/>)}
-
+            <div aria-hidden="true">{PROMO_BALOES.map(b => <BalaoMarca key={b.texto} {...b}/>)}</div>
             <div style={{
               position: 'absolute', left: '50%', top: 0,
-              transform: 'translateX(-50%) scale(.755)', transformOrigin: 'top center',
-              width: 214,
-              '--ink': '#1F2937', '--mid': '#6B7280', '--surf': '#FFFFFF',
-              '--line': '#E5E7EB', '--blue-dk': '#0B57D0'
+              transform: 'translateX(-50%) scale(.755)', transformOrigin: 'top center'
             }}>
-              <PhoneFrame>
-                <div style={{ padding: '14px 12px', textAlign: 'center' }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: '50%', background: '#F1F5F9',
-                    color: '#0B3EA8', fontWeight: 800, fontSize: 18,
-                    display: 'grid', placeItems: 'center', margin: '0 auto 8px'
-                  }}>{nome.charAt(0).toUpperCase()}</div>
-                  <div style={{ fontSize: 13.5, fontWeight: 800, color: '#111827', lineHeight: 1.25 }}>
-                    {nome}
-                  </div>
-                  <div style={{ fontSize: 10, color: '#6B7280', margin: '3px 0 12px' }}>
-                    Conecte-se com a nossa casa
-                  </div>
-                  {PROMO_BOTOES.map(({ tipo, label }) => (
-                    <div key={label} style={{
-                      display: 'flex', alignItems: 'center', gap: 9,
-                      background: '#fff', border: '1px solid #E8EAED', borderRadius: 10,
-                      padding: '9px 10px', marginBottom: 7,
-                      boxShadow: '0 1px 2px rgba(16,24,40,.05)'
-                    }}>
-                      <IconeMenu tipo={tipo} tamanho={15}/>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: '#1F2937', flex: 1, textAlign: 'left' }}>
-                        {label}
-                      </span>
-                      <ChevronRight size={12} color="#9AA0A6"/>
-                    </div>
-                  ))}
-                  {Array.from({ length: PROMO_VAZIOS }, (_, i) => (
-                    <div key={'vazio' + i} aria-hidden="true" style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      height: 35, border: '1.5px dashed #C9D8EA', borderRadius: 10,
-                      marginBottom: 7, color: '#A9BCD3'
-                    }}>
-                      <Plus size={13} strokeWidth={2.4}/>
-                    </div>
-                  ))}
-                  <div style={{ fontSize: 8.5, color: '#9AA0A6', marginTop: 10 }}>
-                    Powered by <strong style={{ color: '#0B3EA8' }}>StarTouch</strong>
-                  </div>
-                </div>
-              </PhoneFrame>
+              <TelefonePromo nome={nome} onVazio={onAbrirMenu}/>
             </div>
           </div>
         )}
