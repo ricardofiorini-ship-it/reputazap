@@ -49,7 +49,10 @@ const DIVISOR_VOLUMETRICO = 5000;
 const PESO_MAXIMO_KG = 30;
 
 function premissa(nome, padrao) {
-  const v = parseFloat(String(process.env[nome] ?? "").replace(",", "."));
+  // Aceita do jeito que alguém digita no painel da Vercel: "0.53", "0,53",
+  // "53" ou "53%". Número de 1 a 99 é lido como porcentagem.
+  let v = parseFloat(String(process.env[nome] ?? "").replace("%", "").replace(",", ".").trim());
+  if (Number.isFinite(v) && v >= 1 && v < 100) v = v / 100;
   if (Number.isFinite(v) && v >= 0 && v < 1) return { valor: v, padrao: false };
   return { valor: padrao, padrao: true };
 }
@@ -67,7 +70,7 @@ function premissas() {
       `${combustivel.padrao ? `DHL_COMBUSTIVEL=${COMBUSTIVEL_PADRAO}` : ""}. ` +
       `Configure na Vercel com os números reais do MyDHL+.`);
   }
-  return { desconto: desconto.valor, combustivel: combustivel.valor };
+  return { desconto: desconto.valor, combustivel: combustivel.valor, padrao: desconto.padrao || combustivel.padrao };
 }
 
 // ── Zonas (página 4 do PDF) ──────────────────────────────────────
@@ -270,5 +273,8 @@ export async function cotaInternacional({ pais, items }) {
     opcoes,
     peso: { cobrado: pc.peso, real: pc.real, volumetrico: pc.volumetrico },
     dolar: { ptax: dolar.valor, data: dolar.data },
+    // Só diz SE as envs foram lidas, nunca o valor: o desconto é condição
+    // comercial da ZAYOR com a DHL e esta resposta é pública.
+    premissas: premissas().padrao ? "padrao" : "configuradas",
   };
 }
