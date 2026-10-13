@@ -1313,7 +1313,11 @@
   "dispositivo ainda sem menu": "device still without a menu",
   "dispositivos ainda sem menu": "devices still without a menu",
   "Um pro balcão, outro pra equipe: crie outro menu e ligue no dispositivo que quiser.": "One for the counter, another for the team: create another menu and turn it on in any device you want.",
-  "Criar outro menu": "Create another menu"
+  "Criar outro menu": "Create another menu",
+  "Primeiro, um dispositivo StarTouch": "First, a StarTouch device",
+  "O Menu Inteligente abre quando o cliente encosta o celular no seu cartão, placa ou pulseira StarTouch. Você ainda não tem nenhum dispositivo ativado — adquira um para criar o seu menu.": "The Smart Menu opens when your customer taps their phone on your StarTouch card, stand or wristband. You don't have any activated device yet — get one to create your menu.",
+  "Ver dispositivos na loja": "See devices in the shop",
+  "Já tenho um — ativar": "I already have one — activate"
  },
  "p": [
   [

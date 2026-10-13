@@ -1313,7 +1313,11 @@
   "dispositivo ainda sem menu": "台设备还没有菜单",
   "dispositivos ainda sem menu": "台设备还没有菜单",
   "Um pro balcão, outro pra equipe: crie outro menu e ligue no dispositivo que quiser.": "柜台一个，团队一个：再创建一个菜单，在任意设备上启用。",
-  "Criar outro menu": "再创建一个菜单"
+  "Criar outro menu": "再创建一个菜单",
+  "Primeiro, um dispositivo StarTouch": "首先，你需要一台 StarTouch 设备",
+  "O Menu Inteligente abre quando o cliente encosta o celular no seu cartão, placa ou pulseira StarTouch. Você ainda não tem nenhum dispositivo ativado — adquira um para criar o seu menu.": "顾客用手机轻触你的 StarTouch 卡片、立牌或手环时，智能菜单就会打开。你还没有激活任何设备——先购买一台，才能创建你的菜单。",
+  "Ver dispositivos na loja": "去商店看看设备",
+  "Já tenho um — ativar": "我已经有了——去激活"
  },
  "p": [
   [

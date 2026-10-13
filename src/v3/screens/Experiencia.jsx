@@ -1,5 +1,5 @@
 import React from 'react'
-import { Plus, Archive, Pencil, Trash2, ChevronRight, ExternalLink } from 'lucide-react'
+import { Plus, Archive, Pencil, Trash2, ChevronRight, ExternalLink, X } from 'lucide-react'
 import { Head, Panel, Chip, Carregando, Erro, dataBr, desde } from '../ui.jsx'
 import { api } from '../lib/api.js'
 import EditorMenu, { CHAVE_MENU_PAGANDO, perguntaExtra } from './EditorMenu.jsx'
@@ -279,12 +279,46 @@ export default function Experiencia({ dados }) {
     try { return new URLSearchParams(window.location.search).get('add') === '1' } catch { return false }
   })())
   const comecarAdicionar = (d) => {
-    setAdicionarNoEditor(true)
-    if (dados.previewToques) { abrir('preview-menu'); return }
+    if (dados.previewToques) { setAdicionarNoEditor(true); abrir('preview-menu'); return }
     const ativa = (d?.experiences || []).find(e => !e.archived_at)
-    if (ativa) abrir(ativa.id)
-    else criar()
+    if (ativa) { setAdicionarNoEditor(true); abrir(ativa.id) }
+    else if (criarSeTiverDispositivo(d)) setAdicionarNoEditor(true)
   }
+
+  // ── SEM DISPOSITIVO, SEM MENU NOVO (12/10/2026) ──
+  // O menu só existe pra abrir quando o cliente encosta o celular num
+  // dispositivo. Quem não tem nenhum ativado pode navegar à vontade (a
+  // demonstração está aí pra isso), mas na hora de CRIAR é avisado que
+  // precisa de um dispositivo antes — com o caminho pra loja e pra ativar.
+  // Quem já tem menu criado continua podendo editar.
+  const [pedeDispositivo, setPedeDispositivo] = React.useState(false)
+  function criarSeTiverDispositivo(d = estado.dados) {
+    if (!dados.previewToques && !((d?.devices) || []).length) { setPedeDispositivo(true); return false }
+    criar()
+    return true
+  }
+  const avisoDispositivo = pedeDispositivo && (
+    <div className="me-paywall-fundo" onClick={() => setPedeDispositivo(false)} role="presentation">
+      <div className="me-paywall" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="pede-disp-titulo">
+        <button className="me-paywall-x" onClick={() => setPedeDispositivo(false)} aria-label="Fechar"><X size={16}/></button>
+        <div className="me-paywall-selo">MENU INTELIGENTE</div>
+        <h2 id="pede-disp-titulo" style={{ fontSize: 20, margin: '10px 0 8px', letterSpacing: '-0.02em' }}>Primeiro, um dispositivo StarTouch</h2>
+        <p className="me-paywall-sub">
+          O Menu Inteligente abre quando o cliente encosta o celular no seu cartão, placa ou pulseira StarTouch.
+          Você ainda não tem nenhum dispositivo ativado — adquira um para criar o seu menu.
+        </p>
+        <a className="v3-btn solid" href="/kit" style={{ width: '100%', justifyContent: 'center', marginTop: 16 }}>
+          Ver dispositivos na loja <ChevronRight size={15}/>
+        </a>
+        <a className="v3-btn" href="/ativar-codigo" style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}>
+          Já tenho um — ativar
+        </a>
+        <button type="button" className="v3-btn ghost" onClick={() => setPedeDispositivo(false)} style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}>
+          Agora não
+        </button>
+      </div>
+    </div>
+  )
   React.useEffect(() => {
     if (!pedidoAdicionar.current || estado.carregando || estado.erro) return
     pedidoAdicionar.current = false
@@ -374,12 +408,13 @@ export default function Experiencia({ dados }) {
     return (
       <>
       {faixaPagamento}
+      {avisoDispositivo}
       <EditorMenu
         // `key`: o editor guarda o rascunho em estado próprio. Sem a chave, o
         // "Criar outro menu" (que pula de um menu direto pro outro, sem passar
         // pela lista) abriria o menu novo mostrando o conteúdo do anterior.
         key={aberta.id}
-        onCriarOutro={dados.previewToques ? undefined : criar}
+        onCriarOutro={dados.previewToques ? undefined : () => criarSeTiverDispositivo()}
         exp={aberta} tipos={tiposExibidos} limites={limitesExibidos} experiencias={experiences}
         // Na prévia o plano vem do `?preview&plano=`, senão a caixa da
         // assinatura só daria pra revisar com conta real e cartão na mão.
@@ -403,6 +438,7 @@ export default function Experiencia({ dados }) {
   return (
     <>
       {faixaPagamento}
+      {avisoDispositivo}
       {/* TOPO COMPACTO (Ricardo, 07/09/2026). "Experiência do Cliente" virou
           título pequeno da página: o espaço nobre é da experiência, não do
           nome da área — o menu lateral já diz onde a pessoa está. O aviso dos
@@ -420,7 +456,7 @@ export default function Experiencia({ dados }) {
           <p>Com o Menu Inteligente, o mesmo toque também conecta seu cliente ao WhatsApp,
             aos seus produtos, agendamentos e muito mais.</p>
           <div className="exp-hero-acao">
-            <button className="v3-btn solid" onClick={dados.previewToques ? () => abrir('preview-menu') : criar} disabled={criando}>
+            <button className="v3-btn solid" onClick={dados.previewToques ? () => abrir('preview-menu') : () => criarSeTiverDispositivo()} disabled={criando}>
               <Plus size={16}/>{criando ? 'Criando…' : 'Criar meu Menu Inteligente'}<ChevronRight size={16}/>
             </button>
             <span>Monte e visualize antes de publicar.</span>
