@@ -5587,7 +5587,6 @@ function UnlinkPlateModal({ plate, displayName, onClose, onDone }) {
 
 function CapturePoints({ items, plates, businessId, bizName, isAdmin, reviewCount = 0, isMobile }) {
   const [modalOpen, setModalOpen] = React.useState(false)
-  const [showCode, setShowCode] = React.useState(false)
   // Renomear apelido (30/jul): o nome era escrito só na ativação e ficava preso.
   // `renamed` guarda o que já salvamos nesta sessão pra lista refletir na hora,
   // sem recarregar a página — a lista vem por prop de cima.
@@ -5703,6 +5702,7 @@ function CapturePoints({ items, plates, businessId, bizName, isAdmin, reviewCoun
       return `<tr>
         <td>${esc(nickOf(p) || PRODUCT_LABELS[p.product_type] || 'Dispositivo')}</td>
         <td>${esc(PRODUCT_LABELS[p.product_type] || p.product_type)}</td>
+        <td style="font-family:monospace">${esc(p.code || '—')}</td>
         <td class="n">${tapsOf(p)}</td>
         <td class="q">${p.last_tapped_at ? new Date(p.last_tapped_at).toLocaleDateString('pt-BR') : '—'}${!period && r ? ` <span class="obs">(contagem zerada em ${new Date(r.at).toLocaleDateString('pt-BR')})</span>` : ''}</td>
       </tr>`
@@ -5766,7 +5766,7 @@ function CapturePoints({ items, plates, businessId, bizName, isAdmin, reviewCoun
   ${comparacao}
 </div>
 <h2>Por dispositivo</h2>
-<table><thead><tr><th>Dispositivo</th><th>Tipo</th><th style="text-align:right">Toques</th><th>Último toque</th></tr></thead><tbody>${linhas}</tbody></table>
+<table><thead><tr><th>Dispositivo</th><th>Tipo</th><th>Código</th><th style="text-align:right">Toques</th><th>Último toque</th></tr></thead><tbody>${linhas}</tbody></table>
 ${grafico}
 ${corte}
 <div class="rodape">
@@ -6133,7 +6133,12 @@ ${corte}
                     <div style={{ fontSize: 12, color: T.textMid, marginTop: 2 }}>
                       {/* "último toque" olha o contador de sempre, não a janela:
                           dispositivo com 0 na semana ainda tem um último toque real. */}
-                      {productLabel}{p.last_tapped_at && (p.total_taps || 0) > 0 ? ' · último toque ' + relativeDate(p.last_tapped_at) : ''}
+                      {/* O código fica à vista de todo cliente (12/10/2026): é o que vem
+                          impresso no dispositivo e é como ele separa dois cartões de
+                          mesmo tipo e sem apelido. Antes só o admin via, atrás de um botão. */}
+                      {productLabel}
+                      {p.code && <> · <span style={{ fontFamily:'monospace', fontSize: 11.5, letterSpacing: '.02em' }}>{p.code}</span></>}
+                      {p.last_tapped_at && (p.total_taps || 0) > 0 ? ' · último toque ' + relativeDate(p.last_tapped_at) : ''}
                     </div>
                     {/* Trava de 24/09: o mesmo celular no mesmo cartão conta uma vez
                         por dia. Os repetidos ficam à vista em vez de sumir — número
@@ -6167,9 +6172,6 @@ ${corte}
                         </div>
                       )
                     })()}
-                    {showCode && (
-                      <div style={{ fontSize: 10.5, color: T.textDim, marginTop: 2, fontFamily:'monospace' }}>{p.code}</div>
-                    )}
                     {/* Saída do dispositivo. Vermelho e pequeno de propósito:
                         precisa ser encontrável por quem procura e discreto pra
                         quem não procura — é ação de mão única. */}
@@ -6228,14 +6230,6 @@ ${corte}
               }}>
               <Download size={14}/> Baixar relatório
             </button>
-            {isAdmin && (
-              <button onClick={() => setShowCode(s => !s)} style={{
-                background:'transparent', color: T.textMid, border:`1px solid ${T.border}`, borderRadius: 10,
-                padding:'10px 14px', fontSize: 12, fontWeight: 500, cursor:'pointer'
-              }}>
-                {showCode ? 'Esconder' : 'Mostrar'} códigos
-              </button>
-            )}
           </div>
         </>
       )}
