@@ -3161,7 +3161,15 @@ function Header({ bizName, plan, isMobile, onNavigate, user, onLogout, demoMode,
     }}>
       <div style={{ display:'flex', alignItems:'center', gap: isMobile ? 10 : 14, minWidth: 0 }}>
         {/* Logo — dominante visualmente (era pequeno demais antes) */}
-        <a href="/" style={{ display:'inline-flex', alignItems:'center', textDecoration:'none', flexShrink: 0 }}>
+        {/* Logo leva pro INÍCIO DO PAINEL, não pra home do site (13/10/2026,
+            Ricardo): quem está no painel e clica no logo quer voltar pro
+            painel. Troca de aba sem recarregar; o href é o plano B. */}
+        <a href="/app" onClick={(e) => {
+          if (!onTabChange) return
+          e.preventDefault()
+          onTabChange('painel')
+          try { window.scrollTo({ top: 0, behavior: 'smooth' }) } catch {}
+        }} style={{ display:'inline-flex', alignItems:'center', textDecoration:'none', flexShrink: 0 }}>
           <img src="/startouch-logo-dark.png" alt="StarTouch" style={{ height: isMobile ? 38 : 46, width:'auto' }}/>
         </a>
         {/* DESKTOP: as abas moram aqui, ao lado do logo. CELULAR: o nome do
