@@ -182,6 +182,8 @@ export const api = {
   // seria redirecionamento aberto com a nossa marca no meio.
   assinatura: {
     checkout: (retorno) => post('/api/billing?action=checkout', { retorno }),
+    // { comTeste }: se este cliente ainda tem direito aos 7 dias grátis.
+    testeDisponivel: () => post('/api/billing?action=teste-disponivel', {}),
     cancelar: ()        => post('/api/billing?action=portal', {}),
     portal:   ()        => post('/api/billing?action=billing-portal', {})
   }

@@ -266,9 +266,51 @@ function Item({ b, tipos, erro, aberto, novo, onAbrir, onMudar, onMover, onRemov
 // ressuscitar uma intenção de ontem.
 export const CHAVE_MENU_PAGANDO = 'st_menu_pagando'
 
+// SEM DISPOSITIVO (12/10/2026, Ricardo). Abre no "Publicar" de quem não tem
+// nenhum dispositivo ativado — antes da caixa da assinatura, nunca depois.
+// Começa pelo que está garantido (o menu não se perdeu), diz POR QUE precisa
+// de um dispositivo e dá as duas saídas: comprar, ou ativar o que já tem na
+// mão (comum em quem comprou no Mercado Livre e ainda não ativou).
+function CaixaSemDispositivo({ onFechar }) {
+  React.useEffect(() => {
+    const fechar = (e) => { if (e.key === 'Escape') onFechar() }
+    window.addEventListener('keydown', fechar)
+    return () => window.removeEventListener('keydown', fechar)
+  }, [onFechar])
+  return (
+    <div className="me-paywall-fundo" onClick={onFechar} role="presentation">
+      <div className="me-paywall" onClick={e => e.stopPropagation()}
+           role="dialog" aria-modal="true" aria-labelledby="sem-disp-titulo">
+        <button className="me-paywall-x" onClick={onFechar} aria-label="Fechar"><X size={16}/></button>
+        <div className="me-paywall-selo"><Sparkles size={13}/> MENU INTELIGENTE</div>
+        <h2 id="sem-disp-titulo">Seu menu está salvo.</h2>
+        <p className="me-paywall-sub">
+          Para publicar, você precisa de um dispositivo StarTouch: é ele que abre o menu quando o cliente encosta o celular.
+          Sua conta ainda não tem nenhum.
+        </p>
+        <a className="v3-btn solid me-paywall-cta" href="/kit">Ver dispositivos na loja</a>
+        <a className="v3-btn me-paywall-voltar" href="/ativar-codigo">Já tenho um — ativar</a>
+        <button className="v3-btn ghost me-paywall-voltar" onClick={onFechar}>Continuar editando</button>
+      </div>
+    </div>
+  )
+}
+
 function CaixaAssinatura({ expId, ligados, onFechar }) {
   const [indo, setIndo] = React.useState(false)
   const [erro, setErro] = React.useState(null)
+  // Tem direito aos 7 dias grátis? null = perguntando. O teste é UM por
+  // cliente: quem já assinou e cancelou não pode ver "7 dias grátis" em
+  // destaque e cair direto no pagamento. Falha na consulta = sem teste (a
+  // mesma regra do checkout, que é quem decide de verdade).
+  const [comTeste, setComTeste] = React.useState(null)
+  React.useEffect(() => {
+    let vivo = true
+    api.assinatura.testeDisponivel()
+      .then(r => { if (vivo) setComTeste(!!r?.comTeste) })
+      .catch(() => { if (vivo) setComTeste(false) })
+    return () => { vivo = false }
+  }, [])
 
   async function assinar() {
     setIndo(true); setErro(null)
@@ -300,13 +342,18 @@ function CaixaAssinatura({ expId, ligados, onFechar }) {
         <button className="me-paywall-x" onClick={onFechar} aria-label="Fechar"><X size={16}/></button>
 
         <div className="me-paywall-selo"><Sparkles size={13}/> MENU INTELIGENTE</div>
-        <h2 id="paywall-titulo">Seu menu está salvo.</h2>
+        {/* O TESTE GRÁTIS VEM PRIMEIRO (12/10/2026, Ricardo): é o que mais
+            comunica. Antes ele estava escondido no rodapé do preço, e o título
+            falava em "é preciso ter o Pro" — soava como cobrança imediata. */}
+        <h2 id="paywall-titulo">{comTeste ? 'Publique e teste 7 dias grátis.' : 'Seu menu está salvo.'}</h2>
         <p className="me-paywall-sub">
-          Para ele chegar aos seus dispositivos, é preciso ter o StarTouch Pro.
+          {comTeste === null ? 'Um instante…'
+            : comTeste ? 'Seu menu está salvo. Ao publicar, ele já passa a abrir nos seus dispositivos — sem cartão e sem pagar nada por 7 dias.'
+            : 'Para ele chegar aos seus dispositivos, assine o StarTouch Pro.'}
         </p>
 
         <ul className="me-paywall-lista">
-          <li><Check size={14}/> {ligados === 1 ? 'Seu botão' : `Seus ${ligados} botões`} no lugar da avaliação avulsa</li>
+          <li><Check size={14}/> {ligados === 1 ? 'Seu botão aparece' : `Seus ${ligados} botões aparecem`} quando o cliente encosta o celular</li>
           <li><Check size={14}/> Troque o menu quando quiser, sem trocar o dispositivo</li>
           {/* Era "Relatórios de uso por dispositivo" — mas toques por
               dispositivo são grátis (e a /plano-pro diz isso). O que o Pro
@@ -316,15 +363,22 @@ function CaixaAssinatura({ expId, ligados, onFechar }) {
           <li><Check size={14}/> A avaliação no Google continua no topo, sempre</li>
         </ul>
 
-        <div className="me-paywall-preco">
-          <strong>7 dias grátis, sem cartão</strong>
-          <span>gostou? cadastre o cartão pra continuar por R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade. Sem cartão, o menu sai do ar no 8º dia e nada é cobrado</span>
-        </div>
+        {comTeste !== null && (comTeste ? (
+          <div className="me-paywall-preco">
+            <strong>Cartão só depois do 7º dia — e só se você quiser continuar.</strong>
+            <span>Aí são R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra), sem fidelidade. Se não cadastrar o cartão, o menu sai do ar no 8º dia e nada é cobrado.</span>
+          </div>
+        ) : (
+          <div className="me-paywall-preco">
+            <strong>R$ 19,90 por mês</strong>
+            <span>Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade, cancele quando quiser. O teste grátis já foi usado nesta conta.</span>
+          </div>
+        ))}
 
         {erro && <div className="me-paywall-erro"><AlertTriangle size={13}/> {erro}</div>}
 
-        <button className="v3-btn solid me-paywall-cta" onClick={assinar} disabled={indo}>
-          {indo ? 'Abrindo…' : 'Começar os 7 dias grátis'}
+        <button className="v3-btn solid me-paywall-cta" onClick={assinar} disabled={indo || comTeste === null}>
+          {indo ? 'Abrindo…' : comTeste === false ? 'Assinar o StarTouch Pro' : 'Começar os 7 dias grátis'}
         </button>
         <button className="v3-btn ghost me-paywall-voltar" onClick={onFechar} disabled={indo}>
           Continuar editando
@@ -363,6 +417,8 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   const [recem, setRecem] = React.useState(null)
   // A caixa da assinatura. Abre no "Publicar" de quem ainda não tem Pro.
   const [paywall, setPaywall] = React.useState(false)
+  // O aviso de "sem dispositivo". Abre no "Publicar" de quem não tem nenhum.
+  const [semDispositivo, setSemDispositivo] = React.useState(false)
 
   // MODO PRÉVIA: a experiência é fictícia e não existe no banco. Sem esta
   // guarda, cada tecla digitada aqui vira um POST que responde 404 e pinta
@@ -553,6 +609,12 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
         setSujo(false)
       }
 
+      // SEM DISPOSITIVO, NÃO PUBLICA (12/10/2026, Ricardo). Vem ANTES da caixa
+      // da assinatura de propósito: vender o Pro pra quem não tem onde usar
+      // é cobrança por algo que não funciona — reembolso e reclamação na
+      // certa. Vale também pra quem já é Pro. O menu já foi salvo acima.
+      if (!ehPrevia && !(dados.devices || []).length) { setSemDispositivo(true); return }
+
       // O servidor recusa de qualquer jeito (402). Perguntar aqui antes só
       // evita a viagem de ida e volta — a trava não é esta linha, é a de lá.
       if (plano && !plano.proAtivo) { setPaywall(true); return }
@@ -618,6 +680,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   return (
     <div className="menu-editor">
       {paywall && <CaixaAssinatura expId={exp.id} ligados={ligados} onFechar={() => setPaywall(false)}/>}
+      {semDispositivo && <CaixaSemDispositivo onFechar={() => setSemDispositivo(false)}/>}
       <div className="v3-head v3-editor-head">
         <div>
           <button className="v3-btn ghost" onClick={onVoltar} style={{ marginBottom: 8 }}>

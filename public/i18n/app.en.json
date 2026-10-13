@@ -1046,14 +1046,9 @@
   "Não recebemos o endereço do pagamento.": "We didn't receive the payment address.",
   "Não foi possível abrir o pagamento.": "Couldn't open the payment page.",
   "Seu menu está salvo.": "Your menu is saved.",
-  "Para ele chegar aos seus dispositivos, é preciso ter o StarTouch Pro.": "To reach your devices, you need StarTouch Pro.",
-  "Seu botão": "Your button",
-  "no lugar da avaliação avulsa": "instead of the standalone review link",
   "Troque o menu quando quiser, sem trocar o dispositivo": "Change the menu whenever you want, without changing the device",
   "Meça sua visibilidade no Google quando quiser": "Measure your Google visibility whenever you want",
   "A avaliação no Google continua no topo, sempre": "The Google review always stays on top",
-  "7 dias grátis, sem cartão": "7-day free trial, no card",
-  "gostou? cadastre o cartão pra continuar por R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade. Sem cartão, o menu sai do ar no 8º dia e nada é cobrado": "like it? add a card to continue for R$ 19,90 per month, with the Menu on up to 5 devices (R$ 1,90 per extra) · no commitment. Without a card, the menu goes offline on day 8 and nothing is charged",
   "Começar os 7 dias grátis": "Start the 7-day free trial",
   "Continuar editando": "Keep editing",
   "Enquanto isso, seus dispositivos seguem levando direto à avaliação no Google.": "Meanwhile, your devices keep sending people straight to the Google review.",
@@ -1317,7 +1312,19 @@
   "Primeiro, um dispositivo StarTouch": "First, a StarTouch device",
   "O Menu Inteligente abre quando o cliente encosta o celular no seu cartão, placa ou pulseira StarTouch. Você ainda não tem nenhum dispositivo ativado — adquira um para criar o seu menu.": "The Smart Menu opens when your customer taps their phone on your StarTouch card, stand or wristband. You don't have any activated device yet — get one to create your menu.",
   "Ver dispositivos na loja": "See devices in the shop",
-  "Já tenho um — ativar": "I already have one — activate"
+  "Já tenho um — ativar": "I already have one — activate",
+  "Para publicar, você precisa de um dispositivo StarTouch: é ele que abre o menu quando o cliente encosta o celular. Sua conta ainda não tem nenhum.": "To publish, you need a StarTouch device: it's what opens the menu when your customer taps their phone. Your account doesn't have one yet.",
+  "Publique e teste 7 dias grátis.": "Publish and try it free for 7 days.",
+  "Um instante…": "One moment…",
+  "Seu menu está salvo. Ao publicar, ele já passa a abrir nos seus dispositivos — sem cartão e sem pagar nada por 7 dias.": "Your menu is saved. Once you publish, it starts opening on your devices right away — no card and nothing to pay for 7 days.",
+  "Para ele chegar aos seus dispositivos, assine o StarTouch Pro.": "To bring it to your devices, subscribe to StarTouch Pro.",
+  "Seu botão aparece": "Your button shows up",
+  "quando o cliente encosta o celular": "when your customer taps their phone",
+  "Cartão só depois do 7º dia — e só se você quiser continuar.": "Card only after day 7 — and only if you want to keep going.",
+  "Aí são R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra), sem fidelidade. Se não cadastrar o cartão, o menu sai do ar no 8º dia e nada é cobrado.": "Then it's R$ 19,90 per month, with the Menu on up to 5 devices (R$ 1,90 per extra), no commitment. If you don't add a card, the menu goes offline on day 8 and nothing is charged.",
+  "R$ 19,90 por mês": "R$ 19,90 per month",
+  "Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade, cancele quando quiser. O teste grátis já foi usado nesta conta.": "Menu on up to 5 devices (R$ 1,90 per extra) · no commitment, cancel anytime. The free trial has already been used on this account.",
+  "Assinar o StarTouch Pro": "Subscribe to StarTouch Pro"
  },
  "p": [
   [
@@ -1605,10 +1612,6 @@
    "Edit $1 in the preview"
   ],
   [
-   "^Seus (.+?) botões$",
-   "Your $1 buttons"
-  ],
-  [
    "^Publicado(.+?)$",
    "Published"
   ],
@@ -1739,6 +1742,10 @@
   [
    "^Você tem (.+?) (.+?) — que tal um menu pra (.+?)\\?$",
    "You have $1 device(s) still without a menu — how about a menu for them?"
+  ],
+  [
+   "^Seus (.+?) botões aparecem$",
+   "Your $1 buttons show up"
   ]
  ],
  "px": [

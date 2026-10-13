@@ -1046,14 +1046,9 @@
   "Não recebemos o endereço do pagamento.": "No recibimos la dirección del pago.",
   "Não foi possível abrir o pagamento.": "No se pudo abrir el pago.",
   "Seu menu está salvo.": "Tu menú está guardado.",
-  "Para ele chegar aos seus dispositivos, é preciso ter o StarTouch Pro.": "Para que llegue a tus dispositivos, necesitas StarTouch Pro.",
-  "Seu botão": "Tu botón",
-  "no lugar da avaliação avulsa": "en lugar de la reseña sola",
   "Troque o menu quando quiser, sem trocar o dispositivo": "Cambia el menú cuando quieras, sin cambiar el dispositivo",
   "Meça sua visibilidade no Google quando quiser": "Mide tu visibilidad en Google cuando quieras",
   "A avaliação no Google continua no topo, sempre": "La reseña en Google sigue arriba, siempre",
-  "7 dias grátis, sem cartão": "7 días gratis, sin tarjeta",
-  "gostou? cadastre o cartão pra continuar por R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade. Sem cartão, o menu sai do ar no 8º dia e nada é cobrado": "¿te gustó? registra la tarjeta para continuar por R$ 19,90 al mes, con el Menú en hasta 5 dispositivos (R$ 1,90 por extra) · sin permanencia. Sin tarjeta, el menú se desactiva el día 8 y no se cobra nada",
   "Começar os 7 dias grátis": "Empezar los 7 días gratis",
   "Continuar editando": "Seguir editando",
   "Enquanto isso, seus dispositivos seguem levando direto à avaliação no Google.": "Mientras tanto, tus dispositivos siguen llevando directo a la reseña en Google.",
@@ -1317,7 +1312,19 @@
   "Primeiro, um dispositivo StarTouch": "Primero, un dispositivo StarTouch",
   "O Menu Inteligente abre quando o cliente encosta o celular no seu cartão, placa ou pulseira StarTouch. Você ainda não tem nenhum dispositivo ativado — adquira um para criar o seu menu.": "El Menú Inteligente se abre cuando el cliente acerca el celular a tu tarjeta, placa o pulsera StarTouch. Aún no tienes ningún dispositivo activado — consigue uno para crear tu menú.",
   "Ver dispositivos na loja": "Ver dispositivos en la tienda",
-  "Já tenho um — ativar": "Ya tengo uno — activar"
+  "Já tenho um — ativar": "Ya tengo uno — activar",
+  "Para publicar, você precisa de um dispositivo StarTouch: é ele que abre o menu quando o cliente encosta o celular. Sua conta ainda não tem nenhum.": "Para publicar, necesitas un dispositivo StarTouch: es el que abre el menú cuando el cliente acerca el celular. Tu cuenta aún no tiene ninguno.",
+  "Publique e teste 7 dias grátis.": "Publica y pruébalo 7 días gratis.",
+  "Um instante…": "Un momento…",
+  "Seu menu está salvo. Ao publicar, ele já passa a abrir nos seus dispositivos — sem cartão e sem pagar nada por 7 dias.": "Tu menú está guardado. Al publicarlo, empieza a abrirse en tus dispositivos — sin tarjeta y sin pagar nada por 7 días.",
+  "Para ele chegar aos seus dispositivos, assine o StarTouch Pro.": "Para que llegue a tus dispositivos, suscríbete a StarTouch Pro.",
+  "Seu botão aparece": "Tu botón aparece",
+  "quando o cliente encosta o celular": "cuando el cliente acerca el celular",
+  "Cartão só depois do 7º dia — e só se você quiser continuar.": "Tarjeta solo después del día 7 — y solo si quieres continuar.",
+  "Aí são R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra), sem fidelidade. Se não cadastrar o cartão, o menu sai do ar no 8º dia e nada é cobrado.": "Después son R$ 19,90 al mes, con el Menú en hasta 5 dispositivos (R$ 1,90 por cada extra), sin permanencia. Si no registras la tarjeta, el menú se desactiva el día 8 y no se cobra nada.",
+  "R$ 19,90 por mês": "R$ 19,90 al mes",
+  "Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade, cancele quando quiser. O teste grátis já foi usado nesta conta.": "Menú en hasta 5 dispositivos (R$ 1,90 por cada extra) · sin permanencia, cancela cuando quieras. La prueba gratis ya se usó en esta cuenta.",
+  "Assinar o StarTouch Pro": "Suscribirme a StarTouch Pro"
  },
  "p": [
   [
@@ -1605,10 +1612,6 @@
    "Editar $1 en la vista previa"
   ],
   [
-   "^Seus (.+?) botões$",
-   "Tus $1 botones"
-  ],
-  [
    "^Publicado(.+?)$",
    "Publicado"
   ],
@@ -1739,6 +1742,10 @@
   [
    "^Você tem (.+?) (.+?) — que tal um menu pra (.+?)\\?$",
    "Tienes $1 dispositivo(s) aún sin menú — ¿qué tal un menú para ellos?"
+  ],
+  [
+   "^Seus (.+?) botões aparecem$",
+   "Tus $1 botones aparecen"
   ]
  ],
  "px": [

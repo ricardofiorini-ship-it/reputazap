@@ -2075,6 +2075,27 @@ async function handleCartaoStripe(req, res) {
   }
 }
 
+// TEM DIREITO AO TESTE GRÁTIS? (12/10/2026)
+// A caixa de assinatura do Menu destaca os 7 dias grátis — mas o teste é UM
+// por cliente (`jaTeveAssinatura`). Prometer "7 dias grátis" em destaque pra
+// quem já assinou e cancelou seria prometer o que o checkout não entrega:
+// ele cai direto no pagamento. A caixa pergunta aqui antes de escolher o
+// texto. Mesma regra e mesma fonte do checkout, então os dois nunca discordam;
+// falha ao consultar = sem teste, igual lá.
+async function handleTesteDisponivelStripe(req, res) {
+  const auth = await authUser(req);
+  if (auth.error) return res.status(auth.status).json({ error: auth.error });
+  try {
+    const { data: biz } = await supabase.from("businesses")
+      .select("stripe_customer_id").eq("user_id", auth.user.id).maybeSingle();
+    const stripe = getStripe();
+    return res.json({ comTeste: !(await jaTeveAssinatura(stripe, biz?.stripe_customer_id)) });
+  } catch (err) {
+    console.error("[stripe/teste-disponivel] erro:", err);
+    return res.json({ comTeste: false });
+  }
+}
+
 // O ENDERECO, ONDE QUER QUE ELE ESTEJA.
 //
 // Mesmo cuidado do `fimDoPeriodo` logo acima, e pelo mesmo motivo: o Stripe
@@ -3325,6 +3346,7 @@ export default async function handler(req, res) {
     if (action === "portal")   return await handleCancelStripe(req, res);
     if (action === "billing-portal") return await handlePortalStripe(req, res);
     if (action === "cartao") return await handleCartaoStripe(req, res);
+    if (action === "teste-disponivel") return await handleTesteDisponivelStripe(req, res);
     if (action === "checkout-kit") return await handleCheckoutKitStripe(req, res);
     if (action === "checkout-kit-guest") return await handleCheckoutKitGuestStripe(req, res);
     if (action === "checkout-trybo") return await handleCheckoutTrybo(req, res);

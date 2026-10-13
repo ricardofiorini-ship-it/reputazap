@@ -1046,14 +1046,9 @@
   "Não recebemos o endereço do pagamento.": "未收到付款页面地址。",
   "Não foi possível abrir o pagamento.": "无法打开付款页面。",
   "Seu menu está salvo.": "你的菜单已保存。",
-  "Para ele chegar aos seus dispositivos, é preciso ter o StarTouch Pro.": "要让它出现在你的设备上，需要 StarTouch Pro。",
-  "Seu botão": "你的按钮",
-  "no lugar da avaliação avulsa": "取代单一的评价链接",
   "Troque o menu quando quiser, sem trocar o dispositivo": "随时更换菜单，无需更换设备",
   "Meça sua visibilidade no Google quando quiser": "随时衡量你在 Google 上的曝光度",
   "A avaliação no Google continua no topo, sempre": "Google 评价始终置顶",
-  "7 dias grátis, sem cartão": "7 天免费试用，无需银行卡",
-  "gostou? cadastre o cartão pra continuar por R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade. Sem cartão, o menu sai do ar no 8º dia e nada é cobrado": "满意吗？绑定银行卡即可以每月 R$ 19,90 继续使用，菜单最多可用于 5 台设备（每台额外设备 R$ 1,90）· 无合约。未绑卡的话，菜单会在第 8 天下线，不收取任何费用",
   "Começar os 7 dias grátis": "开始 7 天免费试用",
   "Continuar editando": "继续编辑",
   "Enquanto isso, seus dispositivos seguem levando direto à avaliação no Google.": "在此期间，你的设备仍会直接引导至 Google 评价。",
@@ -1317,7 +1312,19 @@
   "Primeiro, um dispositivo StarTouch": "首先，你需要一台 StarTouch 设备",
   "O Menu Inteligente abre quando o cliente encosta o celular no seu cartão, placa ou pulseira StarTouch. Você ainda não tem nenhum dispositivo ativado — adquira um para criar o seu menu.": "顾客用手机轻触你的 StarTouch 卡片、立牌或手环时，智能菜单就会打开。你还没有激活任何设备——先购买一台，才能创建你的菜单。",
   "Ver dispositivos na loja": "去商店看看设备",
-  "Já tenho um — ativar": "我已经有了——去激活"
+  "Já tenho um — ativar": "我已经有了——去激活",
+  "Para publicar, você precisa de um dispositivo StarTouch: é ele que abre o menu quando o cliente encosta o celular. Sua conta ainda não tem nenhum.": "要发布，你需要一台 StarTouch 设备：顾客用手机轻触它时，菜单才会打开。你的账户里还没有设备。",
+  "Publique e teste 7 dias grátis.": "发布并免费试用 7 天。",
+  "Um instante…": "请稍候…",
+  "Seu menu está salvo. Ao publicar, ele já passa a abrir nos seus dispositivos — sem cartão e sem pagar nada por 7 dias.": "你的菜单已保存。发布后，它会立即在你的设备上打开——7 天内无需绑卡，不用付任何费用。",
+  "Para ele chegar aos seus dispositivos, assine o StarTouch Pro.": "订阅 StarTouch Pro，菜单才能出现在你的设备上。",
+  "Seu botão aparece": "你的按钮会在",
+  "quando o cliente encosta o celular": "顾客用手机轻触时出现",
+  "Cartão só depois do 7º dia — e só se você quiser continuar.": "第 7 天之后才需要绑卡——而且只在你想继续使用时。",
+  "Aí são R$ 19,90 por mês, com o Menu em até 5 dispositivos (R$ 1,90 por extra), sem fidelidade. Se não cadastrar o cartão, o menu sai do ar no 8º dia e nada é cobrado.": "之后每月 R$ 19,90，菜单最多可用于 5 台设备（每增加一台 R$ 1,90），无合约期。如果不绑卡，菜单会在第 8 天下线，不会收取任何费用。",
+  "R$ 19,90 por mês": "每月 R$ 19,90",
+  "Menu em até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade, cancele quando quiser. O teste grátis já foi usado nesta conta.": "菜单最多可用于 5 台设备（每增加一台 R$ 1,90）· 无合约期，随时可取消。此账户已使用过免费试用。",
+  "Assinar o StarTouch Pro": "订阅 StarTouch Pro"
  },
  "p": [
   [
@@ -1605,10 +1612,6 @@
    "在预览中编辑 $1"
   ],
   [
-   "^Seus (.+?) botões$",
-   "你的 $1 个按钮"
-  ],
-  [
    "^Publicado(.+?)$",
    "已发布"
   ],
@@ -1739,6 +1742,10 @@
   [
    "^Você tem (.+?) (.+?) — que tal um menu pra (.+?)\\?$",
    "你还有 $1 台设备没有菜单——要不要为它们也做一个菜单？"
+  ],
+  [
+   "^Seus (.+?) botões aparecem$",
+   "你的 $1 个按钮会在"
   ]
  ],
  "px": [
