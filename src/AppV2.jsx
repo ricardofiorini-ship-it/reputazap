@@ -4012,56 +4012,98 @@ function TelefonePromo({ nome, onVazio, botoes = PROMO_BOTOES, vazios = PROMO_VA
 // leva ao Google), depois o que muda com o Menu, o botão e o preço. Para quem
 // não é assinante; o assinante vê o banner azul "Seu Menu Inteligente".
 function SeuMenuEstaAssim({ nome, isMobile, temDispositivo, onAdicionarBotao, onAbrirMenu, ctaLabel = null }) {
+  // Desenho do Ricardo (13/10/2026, imagem de referência): telefone sobre
+  // uma mancha azul suave; à direita o fato em letra grande, uma linha, a
+  // venda com o título azul grande, o botão em degradê, o preço e os três
+  // passos em círculos numerados. No celular, a mesma ordem, em coluna.
+  const forte = { color: '#111827', fontWeight: 700 }
+  const passos = ['Monte seu menu de graça', 'Publique e teste 7 dias, sem cartão', 'Gostou? Cadastre o cartão pra continuar']
   return (
     <Section>
       <div style={{
-        background: T.surface, border: `1px solid ${T.border}`, borderRadius: 16, boxShadow: T.shadow,
-        padding: isMobile ? '20px 16px' : '24px 30px',
-        display: 'flex', alignItems: 'center', gap: isMobile ? 18 : 34,
+        position: 'relative', overflow: 'hidden',
+        background: 'linear-gradient(180deg,#FFFFFF 0%,#FBFCFF 100%)',
+        border: '1px solid #E6EAF0', borderRadius: 20, boxShadow: '0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.05)',
+        padding: isMobile ? '22px 16px 24px' : '30px 40px 30px 30px',
+        display: 'flex', alignItems: 'center', gap: isMobile ? 20 : 52,
         flexDirection: isMobile ? 'column' : 'row'
       }}>
-        <div style={{ flex: '0 0 auto' }}>
-          <TelefonePromo nome={nome} onVazio={onAdicionarBotao}/>
+        {/* Telefone sobre a mancha azul */}
+        <div style={{ position: 'relative', flex: '0 0 auto', padding: isMobile ? '6px 26px' : '8px 40px' }}>
+          <div aria-hidden="true" style={{
+            position: 'absolute', left: '50%', top: '50%', width: isMobile ? 320 : 440, height: isMobile ? 400 : 540,
+            transform: 'translate(-50%,-50%)', borderRadius: '50%', pointerEvents: 'none',
+            background: 'radial-gradient(ellipse at center, rgba(26,115,232,.24) 0%, rgba(26,115,232,.11) 42%, rgba(26,115,232,0) 70%)'
+          }}/>
+          {/* `zoom` e não transform: escala o telefone E o espaço que ele ocupa. */}
+          <div style={{ position: 'relative', zoom: isMobile ? 1 : 1.16 }}>
+            <TelefonePromo nome={nome} onVazio={onAdicionarBotao}/>
+          </div>
         </div>
-        <div style={{ flex: '1 1 300px', minWidth: 0 }}>
+
+        <div style={{ flex: '1 1 380px', minWidth: 0 }}>
           {/* ── Como está ── */}
-          <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em', color: T.textMid, marginBottom: 6 }}>
+          <div style={{ fontSize: isMobile ? 11 : 12, fontWeight: 600, letterSpacing: '.12em', color: '#5F6B7A', marginBottom: 10 }}>
             {temDispositivo ? 'SEU MENU ESTÁ ASSIM' : 'SEU MENU COMEÇA ASSIM'}
           </div>
-          <div style={{ fontSize: isMobile ? 17 : 19, fontWeight: 800, color: T.text, letterSpacing: '-0.02em', lineHeight: 1.3, marginBottom: 6 }}>
+          <div style={{ fontSize: isMobile ? 21 : 30, fontWeight: 800, color: '#0B1220', letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: 10 }}>
             {temDispositivo
               ? 'Hoje, quem encosta o celular no seu dispositivo vai direto pra avaliação no Google.'
               : 'Com um dispositivo StarTouch, quem encosta o celular vai direto pra avaliação no Google.'}
           </div>
-          <div style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.6 }}>
+          <div style={{ fontSize: isMobile ? 15 : 18, color: '#5F6B7A', lineHeight: 1.5 }}>
             É o único caminho, por enquanto.
           </div>
 
-          <div style={{ height: 1, background: T.border, margin: '16px 0' }}/>
+          <div style={{ height: 1, background: '#E6EAF0', margin: isMobile ? '18px 0' : '22px 0' }}/>
 
           {/* ── O que muda com o Menu ── */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em', color: T.blueDk, marginBottom: 6 }}>
-            <Sparkles size={12}/> MENU INTELIGENTE · STARTOUCH PRO
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: isMobile ? 11 : 12.5, fontWeight: 700, letterSpacing: '.12em', color: '#1A56DB', marginBottom: 8 }}>
+            <Sparkles size={isMobile ? 13 : 15}/> MENU INTELIGENTE · STARTOUCH PRO
           </div>
-          <div style={{ fontSize: isMobile ? 19 : 22, fontWeight: 800, color: T.blue, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 8 }}>
+          <div style={{ fontSize: isMobile ? 26 : 38, fontWeight: 800, color: '#1A56DB', letterSpacing: '-0.035em', lineHeight: 1.1, marginBottom: 12 }}>
             Preencha os espaços vazios.
           </div>
-          <div style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.6, marginBottom: 14, maxWidth: 520 }}>
-            Com o Menu Inteligente, o mesmo toque também abre <strong style={{ color: T.text }}>WhatsApp</strong>,
-            {' '}<strong style={{ color: T.text }}>Instagram</strong>, <strong style={{ color: T.text }}>cardápio</strong>,
-            agendamento e outros links importantes — com a avaliação sempre em primeiro lugar.
+          <div style={{ fontSize: isMobile ? 15 : 17.5, color: '#4B5563', lineHeight: 1.6, marginBottom: 20, maxWidth: 640 }}>
+            Com o Menu Inteligente, o mesmo toque também abre <span style={forte}>WhatsApp</span>,{' '}
+            <span style={forte}>Instagram</span>, <span style={forte}>cardápio</span>, <span style={forte}>agendamento</span>{' '}
+            e outros links importantes — com a avaliação sempre em primeiro lugar.
           </div>
+
           <button type="button" onClick={onAbrirMenu} style={{
             border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-            display: 'inline-flex', alignItems: 'center', gap: 9,
-            background: T.blue, color: '#fff', borderRadius: 10,
-            padding: '12px 22px', fontSize: 14.5, fontWeight: 800,
-            boxShadow: '0 6px 16px rgba(26,115,232,.22)'
+            display: 'inline-flex', alignItems: 'center', gap: 12,
+            background: 'linear-gradient(180deg,#1A73E8 0%,#0B57D0 100%)', color: '#fff', borderRadius: 12,
+            padding: isMobile ? '14px 22px' : '17px 34px', fontSize: isMobile ? 15.5 : 18, fontWeight: 700,
+            boxShadow: '0 8px 20px rgba(11,87,208,.28)', width: isMobile ? '100%' : 'auto', justifyContent: 'center'
           }}>
             {ctaLabel || 'Criar meu menu — 7 dias grátis'}
-            <ArrowRight size={17}/>
+            <ArrowRight size={isMobile ? 18 : 20}/>
           </button>
-          <PrecoMenu/>
+
+          {/* Preço + passos. Mesmos números da caixa do "Publicar"
+              (EditorMenu.jsx) e do PrecoMenu — mudou lá, muda aqui. */}
+          <div style={{ fontSize: isMobile ? 13.5 : 15, color: '#5F6B7A', lineHeight: 1.6, marginTop: 18 }}>
+            <strong style={{ color: '#111827', fontWeight: 700 }}>StarTouch Pro: R$ 19,90/mês</strong>
+            {' · 7 dias grátis, sem cartão · até 5 dispositivos (R$ 1,90 por extra) · sem fidelidade'}
+          </div>
+          {/* Três colunas iguais: no painel não cabe uma linha só (a referência é
+              mais larga), e quebrar no meio deixava os passos desalinhados. */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))',
+            gap: isMobile ? 8 : 14, marginTop: 14
+          }}>
+            {passos.map((t, i) => (
+              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: '#4B5563', lineHeight: 1.35 }}>
+                <span style={{
+                  width: 26, height: 26, borderRadius: '50%', flex: 'none',
+                  background: '#EAF1FD', color: '#1A56DB', fontWeight: 700, fontSize: 13.5,
+                  display: 'grid', placeItems: 'center'
+                }}>{i + 1}</span>
+                <span>{t}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </Section>
