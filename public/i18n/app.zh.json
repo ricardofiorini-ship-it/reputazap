@@ -386,9 +386,6 @@
   "reputação atual": "当前口碑",
   "recebidas": "已收到",
   "Avalie no Google": "在 Google 上评价",
-  "Fale no WhatsApp": "WhatsApp 联系",
-  "Nosso cardápio": "我们的菜单",
-  "Agende seu horário": "预约时间",
   "Avaliação no Google": "Google 评价",
   "Cardápio": "菜单",
   "Agendamento": "预约",
@@ -1310,7 +1307,9 @@
   "nome, telefone e troca de senha sem sair do painel": "无需离开控制面板即可修改姓名、电话和密码",
   "O que a rede consolidada soma e o que ela NÃO soma. Toques somam; nota do Google não, porque média de médias não é média — precisa ser ponderada por número de avaliações, ou não se mostra": "合并后的网络会汇总什么、不汇总什么。触碰次数会汇总；Google 评分不会，因为平均值的平均值不是平均值——必须按评价数量加权，否则不显示",
   "O que é da PESSOA se edita aqui; o que é do NEGÓCIO vem do Google e é leitura — campo editável que não altera nada é a mentira mais fácil de cometer num painel": "属于“个人”的信息在这里编辑；属于“商家”的信息来自 Google，只读——一个能编辑却改变不了任何东西的字段，是控制面板最容易犯的谎言",
-  "Aparece nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.": "会显示在你的报告中，方便你了解每个位置被触碰了多少次。"
+  "Aparece nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.": "会显示在你的报告中，方便你了解每个位置被触碰了多少次。",
+  "Espaço livre para um botão seu": "留给你自己的按钮的空位",
+  "Este espaço é seu: WhatsApp, cardápio, agenda, Instagram, site — você escolhe o que entra aqui.": "这个位置属于你：WhatsApp、菜单、预约、Instagram、网站——放什么由你决定。"
  },
  "p": [
   [

@@ -386,9 +386,6 @@
   "reputação atual": "current reputation",
   "recebidas": "received",
   "Avalie no Google": "Review us on Google",
-  "Fale no WhatsApp": "Chat on WhatsApp",
-  "Nosso cardápio": "Our menu",
-  "Agende seu horário": "Book an appointment",
   "Avaliação no Google": "Google review",
   "Cardápio": "Menu",
   "Agendamento": "Booking",
@@ -1310,7 +1307,9 @@
   "nome, telefone e troca de senha sem sair do painel": "name, phone and password change without leaving the dashboard",
   "O que a rede consolidada soma e o que ela NÃO soma. Toques somam; nota do Google não, porque média de médias não é média — precisa ser ponderada por número de avaliações, ou não se mostra": "What the consolidated network adds up and what it does NOT. Taps add up; the Google rating doesn't, because an average of averages isn't an average — it must be weighted by number of reviews, or it isn't shown",
   "O que é da PESSOA se edita aqui; o que é do NEGÓCIO vem do Google e é leitura — campo editável que não altera nada é a mentira mais fácil de cometer num painel": "What belongs to the PERSON is edited here; what belongs to the BUSINESS comes from Google and is read-only — an editable field that changes nothing is the easiest lie a dashboard can tell",
-  "Aparece nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.": "Shows up in your reports so you know how many times each spot was tapped."
+  "Aparece nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.": "Shows up in your reports so you know how many times each spot was tapped.",
+  "Espaço livre para um botão seu": "Free space for one of your buttons",
+  "Este espaço é seu: WhatsApp, cardápio, agenda, Instagram, site — você escolhe o que entra aqui.": "This space is yours: WhatsApp, menu, booking, Instagram, website — you choose what goes here."
  },
  "p": [
   [

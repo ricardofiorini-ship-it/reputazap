@@ -1446,13 +1446,14 @@ const REFERRAL_WA = "https://wa.me/?text=" + encodeURIComponent(REFERRAL_MSG);
 // bloqueia imagem por padrao, e um banner que depende de imagem chega como um
 // retangulo vazio justamente pra quem nunca clicou em nada — que e exatamente
 // o publico que este banner existe pra alcancar.
+// 12/10/2026, mesma estratégia da Trybo: o telefone mostra só o Google
+// preenchido — o que o dispositivo já faz hoje — e o resto em espaços VAZIOS
+// (MENU_VAZIOS), tracejados, esperando ser preenchidos. O texto do banner diz
+// o que pode entrar neles. Mesmo desenho do banner do /app (PROMO_BOTOES).
 const MENU_DEMO = [
   { i: "\u2B50", t: "Avalie no Google" },
-  { i: "\uD83D\uDCAC", t: "Fale no WhatsApp" },
-  { i: "\uD83D\uDCF7", t: "Instagram" },
-  { i: "\uD83D\uDCCB", t: "Nosso cardápio" },
-  { i: "\uD83D\uDCC5", t: "Agende seu horário" },
 ];
+const MENU_VAZIOS = 4;
 
 const MESES_PT = [
   "janeiro", "fevereiro", "março", "abril", "maio", "junho",
@@ -1884,6 +1885,12 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
       </td></tr>
     </table>`;
 
+  // Espaço livre: tracejado e só com "+", pra não parecer botão de verdade.
+  const itemVazio = `
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 6px;">
+      <tr><td height="30" style="height:30px;border:1.5px dashed #C9D8EA;border-radius:10px;text-align:center;font-size:15px;line-height:1;color:#A9BCD3;font-weight:700;">+</td></tr>
+    </table>`;
+
   const menuBanner = (temDispositivo && toques > 0)
     ? `
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#0B3EA8;background-image:linear-gradient(135deg,#0B3EA8 0%,#1A73E8 100%);border-radius:14px;margin:16px 0 4px;">
@@ -1911,6 +1918,7 @@ export function weeklyDigestEmail({ bizName, rating, total, newThisWeek, recentR
                   <div style="font-size:12.5px;font-weight:800;color:#111827;line-height:1.25;">${biz}</div>
                   <div style="font-size:9.5px;color:#6B7280;margin:3px 0 11px;">Conecte-se com a nossa casa</div>
                   ${MENU_DEMO.map(itemMenu).join("")}
+                  ${Array.from({ length: MENU_VAZIOS }, () => itemVazio).join("")}
                   <div style="font-size:8px;color:#9AA0A6;margin-top:8px;">Powered by <strong style="color:#0B3EA8;">StarTouch</strong></div>
                 </td></tr>
               </table>

@@ -27,6 +27,10 @@
 .exp-fone-acoes button > span { flex: 1; font-size: 10px; color: var(--ink); }
 .exp-fone-acoes button > svg { flex: none; }
 .exp-fone-acoes button[aria-pressed="true"] { border-color: var(--blue); background: var(--blue-soft); }
+/* Espaço livre (12/10/2026): tracejado e sem texto, pra ninguém achar que é
+   botão de verdade — é o lugar que o cliente vai preencher. */
+.exp-fone-acoes button.exp-fone-vazio { justify-content: center; min-height: 37px; border: 1.5px dashed #C9D8EA; background: transparent; color: #A9BCD3; }
+.exp-fone-acoes button.exp-fone-vazio[aria-pressed="true"] { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
 .exp-fone-feedback { font-size: 10px; line-height: 1.5; color: var(--mid); min-height: 47px; padding: 13px 2px 6px; }
 .exp-fone-tela > small { color: var(--dim); font-size: 8px; margin-top: auto; padding-top: 8px; }
 .exp-fone-base { width: 60px; height: 3px; margin: 7px auto 3px; background: var(--surf); border-radius: 8px; }

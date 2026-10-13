@@ -21,7 +21,7 @@ import {
   Image as ImageIcon, Store, PartyPopper, Construction, Monitor, Bookmark, RefreshCw,
   Truck, ShieldCheck, Siren, ClipboardList, Inbox, Tag, UtensilsCrossed, Hand, ChevronRight,
   Smartphone, QrCode, Pencil, MessageCircle, Globe, CalendarCheck,
-  ArrowRight, Zap, Heart, ChevronDown
+  ArrowRight, Zap, Heart, ChevronDown, Plus
 } from 'lucide-react'
 import PhoneFrame from './v3/PhoneFrame.jsx'
 // ─────────────────────────────────────────────────────────────
@@ -3883,16 +3883,17 @@ function HeroBlock({ d, position, gridPos, demoMode, isMobile, onScoreDetails, o
 // ─────────────────────────────────────────────────────────────
 const PROMO_MENU = true
 
-// Os botões do telefone da demonstração. Ilustração, não a configuração de
-// ninguém — por isso é fixo. Só o NOME do negócio vem do cliente: ver o
-// próprio nome é o que faz a pessoa entender que aquilo é sobre ela.
+// O telefone da demonstração (12/10/2026, mesma estratégia da Trybo): só o
+// botão do Google vem preenchido — é o que o dispositivo dele JÁ faz hoje — e
+// o resto são espaços VAZIOS, tracejados, esperando ser preenchidos. Telefone
+// cheio parecia pronto e alheio; vazio é convite: "falta o seu". As opções de
+// preenchimento estão nos balões em volta (PROMO_BALOES). Só o NOME do
+// negócio vem do cliente: ver o próprio nome é o que faz a pessoa entender
+// que aquilo é sobre ela. Mesmo desenho no e-mail semanal (menuBanner).
 const PROMO_BOTOES = [
-  { tipo: 'google',     label: 'Avalie no Google' },
-  { tipo: 'whatsapp',   label: 'Fale no WhatsApp' },
-  { tipo: 'instagram',  label: 'Instagram' },
-  { tipo: 'website',    label: 'Nosso cardápio' },
-  { tipo: 'booking',    label: 'Agende seu horário' }
+  { tipo: 'google', label: 'Avalie no Google' }
 ]
+const PROMO_VAZIOS = 4
 
 // Os balões que flutuam ao redor do telefone. `lado` diz de que borda eles
 // saem; `topo` é a posição vertical em % do bloco visual.
@@ -4133,6 +4134,15 @@ function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = 
                         {label}
                       </span>
                       <ChevronRight size={12} color="#9AA0A6"/>
+                    </div>
+                  ))}
+                  {Array.from({ length: PROMO_VAZIOS }, (_, i) => (
+                    <div key={'vazio' + i} aria-hidden="true" style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      height: 35, border: '1.5px dashed #C9D8EA', borderRadius: 10,
+                      marginBottom: 7, color: '#A9BCD3'
+                    }}>
+                      <Plus size={13} strokeWidth={2.4}/>
                     </div>
                   ))}
                   <div style={{ fontSize: 8.5, color: '#9AA0A6', marginTop: 10 }}>

@@ -65,15 +65,28 @@ function Demonstracao({ nome, acao, setAcao }) {
           <div className="exp-fone-tela">
             <div className="exp-avatar">{(nome || 'S').trim().charAt(0).toUpperCase()}</div>
             <strong>{nome || 'Seu negócio'}</strong><p>{EXEMPLO.subtitulo}</p>
+            {/* 12/10/2026, mesma estratégia da Trybo: só o Google preenchido —
+                é o que o dispositivo dele já faz hoje — e o resto VAZIO,
+                tracejado, esperando ser preenchido. Telefone cheio parecia
+                pronto e alheio; vazio é convite. Mesmo desenho no banner do
+                /app (PROMO_BOTOES) e no e-mail semanal (menuBanner). */}
             <div className="exp-fone-acoes">
-              {EXEMPLO.acoes.filter(a => TIPOS[a.tipo]).map(a => (
+              {EXEMPLO.acoes.filter(a => a.tipo === 'google' && TIPOS[a.tipo]).map(a => (
                 <button key={a.tipo} type="button" aria-pressed={acao === a.tipo} onClick={() => setAcao(a.tipo)}>
                   <IconeMenu tipo={a.tipo}/><span>{TIPOS[a.tipo].label}</span><ChevronRight size={13}/>
                 </button>
               ))}
+              {[0, 1, 2, 3].map(i => (
+                <button key={'vazio' + i} type="button" className="exp-fone-vazio" aria-label="Espaço livre para um botão seu"
+                  aria-pressed={acao === 'vazio'} onClick={() => setAcao('vazio')}>
+                  <Plus size={14} strokeWidth={2.4}/>
+                </button>
+              ))}
             </div>
             <div className="exp-fone-feedback" role="status">
-              {escolhida ? escolhida.detalhe : 'Toque em um botão para ver o que acontece.'}
+              {acao === 'vazio'
+                ? 'Este espaço é seu: WhatsApp, cardápio, agenda, Instagram, site — você escolhe o que entra aqui.'
+                : escolhida ? escolhida.detalhe : 'Toque em um botão para ver o que acontece.'}
             </div>
             <img src="/startouch-logo-dark.png" alt="StarTouch" width="82" height="27" style={{ display: 'block', objectFit: 'contain', margin: '18px auto 0' }}/>
           </div>
