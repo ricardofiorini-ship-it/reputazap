@@ -1063,7 +1063,6 @@
   "Dê forma ao seu menu.": "Shape your menu.",
   "Personalize o que o cliente encontra. Acompanhe cada mudança na prévia.": "Customize what the customer finds. Follow every change in the preview.",
   "Ainda não publicado": "Not published yet",
-  "Ver prévia": "See preview",
   "Salvar rascunho": "Save draft",
   "Rascunho salvo": "Draft saved",
   "Etapas para colocar o menu no ar": "Steps to put the menu live",
@@ -1309,7 +1308,12 @@
   "Aparece nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.": "Shows up in your reports so you know how many times each spot was tapped.",
   "Espaço livre para um botão seu": "Free space for one of your buttons",
   "Adicionar um botão ao seu menu": "Add a button to your menu",
-  "Toque num espaço vazio (+) para montar o seu: WhatsApp, cardápio, agenda, Instagram, site.": "Tap an empty space (+) to build yours: WhatsApp, menu, booking, Instagram, website."
+  "Toque num espaço vazio (+) para montar o seu: WhatsApp, cardápio, agenda, Instagram, site.": "Tap an empty space (+) to build yours: WhatsApp, menu, booking, Instagram, website.",
+  "Cada dispositivo pode abrir um menu diferente.": "Each device can open a different menu.",
+  "dispositivo ainda sem menu": "device still without a menu",
+  "dispositivos ainda sem menu": "devices still without a menu",
+  "Um pro balcão, outro pra equipe: crie outro menu e ligue no dispositivo que quiser.": "One for the counter, another for the team: create another menu and turn it on in any device you want.",
+  "Criar outro menu": "Create another menu"
  },
  "p": [
   [
@@ -1727,9 +1731,21 @@
   [
    "^em (.+?)$",
    "on $1"
+  ],
+  [
+   "^Você tem (.+?) (.+?) — que tal um menu pra (.+?)\\?$",
+   "You have $1 device(s) still without a menu — how about a menu for them?"
   ]
  ],
  "px": [
+  [
+   "^Você tem (\\d+) dispositivos ainda sem menu — que tal um menu pra eles\\?$",
+   "You have $1 devices still without a menu — how about a menu for them?"
+  ],
+  [
+   "^Você tem 1 dispositivo ainda sem menu — que tal um menu pra ele\\?$",
+   "You have 1 device still without a menu — how about a menu for it?"
+  ],
   [
    "^Você aparece no (.+?)º lugar pra quem busca (.+?) por perto, mas só em (.+?) dos (.+?) lugares testados\\.$",
    "You show up in position $1 for people searching for $2 nearby, but only in $3 of the $4 places tested."

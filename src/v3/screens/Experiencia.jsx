@@ -375,6 +375,11 @@ export default function Experiencia({ dados }) {
       <>
       {faixaPagamento}
       <EditorMenu
+        // `key`: o editor guarda o rascunho em estado próprio. Sem a chave, o
+        // "Criar outro menu" (que pula de um menu direto pro outro, sem passar
+        // pela lista) abriria o menu novo mostrando o conteúdo do anterior.
+        key={aberta.id}
+        onCriarOutro={dados.previewToques ? undefined : criar}
         exp={aberta} tipos={tiposExibidos} limites={limitesExibidos} experiencias={experiences}
         // Na prévia o plano vem do `?preview&plano=`, senão a caixa da
         // assinatura só daria pra revisar com conta real e cartão na mão.

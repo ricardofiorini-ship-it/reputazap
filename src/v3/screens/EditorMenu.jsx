@@ -337,7 +337,7 @@ function CaixaAssinatura({ expId, ligados, onFechar }) {
   )
 }
 
-export default function EditorMenu({ exp, dados, tipos, limites, foto, experiencias, plano, onVoltar, onAtualizar, abrirAdicionar = false, onAdicionarAberto }) {
+export default function EditorMenu({ exp, dados, tipos, limites, foto, experiencias, plano, onVoltar, onAtualizar, abrirAdicionar = false, onAdicionarAberto, onCriarOutro }) {
   const [draft, setDraft] = React.useState(() => exp.draft || { brand: {}, buttons: [] })
   const [validacao, setValidacao] = React.useState(null)
   const [salvando, setSalvando] = React.useState(false)
@@ -611,6 +611,9 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
     .filter(([k]) => k === 'custom_url' || !usados.has(k))
 
   const vinculados = (dados.dispositivosDaExp || []).length
+  // Dispositivos do negócio que ainda não abrem menu nenhum (vão direto ao
+  // Google): candidatos naturais a um segundo menu.
+  const semMenu = (dados.devices || []).filter(d => !(d.experience_id && d.experience_enabled)).length
 
   return (
     <div className="menu-editor">
@@ -631,7 +634,6 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           </div>
         </div>
         <div className="v3-pickers">
-          <a className="v3-btn me-preview-link" href="#menu-previa">Ver prévia</a>
           {/* O rascunho salva sozinho, mas salvamento invisivel nao passa
               confianca: a pessoa procura o botao, nao acha, e fica na duvida
               se perdeu o trabalho. O botao É o indicador -- diz o estado e
@@ -700,6 +702,26 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
                     : 'Ligue em um dispositivo abaixo para ele começar a abrir o menu.'}</>
               : <><b>Publicado.</b> O que você vê aqui é o que aparece para o cliente.</>}
           </span>
+        </div>
+      )}
+
+      {/* ── UM MENU POR DISPOSITIVO (12/10/2026) ──
+          O Ricardo publicou um menu num dispositivo e não ficou claro que dava
+          pra ter OUTRO menu em OUTRO dispositivo (balcão ≠ equipe). Aparece
+          logo depois de publicar — a hora em que a pessoa acabou de entender
+          como funciona — e continua aparecendo enquanto houver dispositivo
+          ainda sem menu, dizendo quantos. */}
+      {onCriarOutro && publicado && (publicou || semMenu > 0) && (
+        <div className="me-outro-menu">
+          <div>
+            <b>Cada dispositivo pode abrir um menu diferente.</b>{' '}
+            {semMenu > 0
+              ? `Você tem ${semMenu} ${semMenu === 1 ? 'dispositivo ainda sem menu' : 'dispositivos ainda sem menu'} — que tal um menu pra ${semMenu === 1 ? 'ele' : 'eles'}?`
+              : 'Um pro balcão, outro pra equipe: crie outro menu e ligue no dispositivo que quiser.'}
+          </div>
+          <button type="button" className="v3-btn solid" onClick={onCriarOutro}>
+            <Plus size={14}/> Criar outro menu
+          </button>
         </div>
       )}
 

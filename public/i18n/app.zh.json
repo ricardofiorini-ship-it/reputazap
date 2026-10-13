@@ -1063,7 +1063,6 @@
   "Dê forma ao seu menu.": "打造你的菜单。",
   "Personalize o que o cliente encontra. Acompanhe cada mudança na prévia.": "自定义顾客看到的内容，在预览中查看每处更改。",
   "Ainda não publicado": "尚未发布",
-  "Ver prévia": "查看预览",
   "Salvar rascunho": "保存草稿",
   "Rascunho salvo": "草稿已保存",
   "Etapas para colocar o menu no ar": "菜单上线步骤",
@@ -1309,7 +1308,12 @@
   "Aparece nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.": "会显示在你的报告中，方便你了解每个位置被触碰了多少次。",
   "Espaço livre para um botão seu": "留给你自己的按钮的空位",
   "Adicionar um botão ao seu menu": "为你的菜单添加一个按钮",
-  "Toque num espaço vazio (+) para montar o seu: WhatsApp, cardápio, agenda, Instagram, site.": "点一下空位（+）来搭建你自己的：WhatsApp、菜单、预约、Instagram、网站。"
+  "Toque num espaço vazio (+) para montar o seu: WhatsApp, cardápio, agenda, Instagram, site.": "点一下空位（+）来搭建你自己的：WhatsApp、菜单、预约、Instagram、网站。",
+  "Cada dispositivo pode abrir um menu diferente.": "每台设备都可以打开不同的菜单。",
+  "dispositivo ainda sem menu": "台设备还没有菜单",
+  "dispositivos ainda sem menu": "台设备还没有菜单",
+  "Um pro balcão, outro pra equipe: crie outro menu e ligue no dispositivo que quiser.": "柜台一个，团队一个：再创建一个菜单，在任意设备上启用。",
+  "Criar outro menu": "再创建一个菜单"
  },
  "p": [
   [
@@ -1727,9 +1731,21 @@
   [
    "^em (.+?)$",
    "于 $1"
+  ],
+  [
+   "^Você tem (.+?) (.+?) — que tal um menu pra (.+?)\\?$",
+   "你还有 $1 台设备没有菜单——要不要为它们也做一个菜单？"
   ]
  ],
  "px": [
+  [
+   "^Você tem (\\d+) dispositivos ainda sem menu — que tal um menu pra eles\\?$",
+   "你还有 $1 台设备没有菜单——要不要为它们也做一个菜单？"
+  ],
+  [
+   "^Você tem 1 dispositivo ainda sem menu — que tal um menu pra ele\\?$",
+   "你还有 1 台设备没有菜单——要不要为它也做一个菜单？"
+  ],
   [
    "^Você aparece no (.+?)º lugar pra quem busca (.+?) por perto, mas só em (.+?) dos (.+?) lugares testados\\.$",
    "附近搜索“$2”时，你排在第 $1 位，但只在测试的 $4 个地点中的 $3 个出现。"

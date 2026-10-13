@@ -1063,7 +1063,6 @@
   "Dê forma ao seu menu.": "Dale forma a tu menú.",
   "Personalize o que o cliente encontra. Acompanhe cada mudança na prévia.": "Personaliza lo que encuentra el cliente. Sigue cada cambio en la vista previa.",
   "Ainda não publicado": "Aún no publicado",
-  "Ver prévia": "Ver vista previa",
   "Salvar rascunho": "Guardar borrador",
   "Rascunho salvo": "Borrador guardado",
   "Etapas para colocar o menu no ar": "Pasos para publicar el menú",
@@ -1309,7 +1308,12 @@
   "Aparece nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.": "Aparece en tus reportes para que sepas cuántas veces se tocó cada punto.",
   "Espaço livre para um botão seu": "Espacio libre para un botón tuyo",
   "Adicionar um botão ao seu menu": "Agregar un botón a tu menú",
-  "Toque num espaço vazio (+) para montar o seu: WhatsApp, cardápio, agenda, Instagram, site.": "Toca un espacio vacío (+) para armar el tuyo: WhatsApp, carta, agenda, Instagram, sitio web."
+  "Toque num espaço vazio (+) para montar o seu: WhatsApp, cardápio, agenda, Instagram, site.": "Toca un espacio vacío (+) para armar el tuyo: WhatsApp, carta, agenda, Instagram, sitio web.",
+  "Cada dispositivo pode abrir um menu diferente.": "Cada dispositivo puede abrir un menú diferente.",
+  "dispositivo ainda sem menu": "dispositivo aún sin menú",
+  "dispositivos ainda sem menu": "dispositivos aún sin menú",
+  "Um pro balcão, outro pra equipe: crie outro menu e ligue no dispositivo que quiser.": "Uno para el mostrador, otro para el equipo: crea otro menú y actívalo en el dispositivo que quieras.",
+  "Criar outro menu": "Crear otro menú"
  },
  "p": [
   [
@@ -1727,9 +1731,21 @@
   [
    "^em (.+?)$",
    "en $1"
+  ],
+  [
+   "^Você tem (.+?) (.+?) — que tal um menu pra (.+?)\\?$",
+   "Tienes $1 dispositivo(s) aún sin menú — ¿qué tal un menú para ellos?"
   ]
  ],
  "px": [
+  [
+   "^Você tem (\\d+) dispositivos ainda sem menu — que tal um menu pra eles\\?$",
+   "Tienes $1 dispositivos aún sin menú — ¿qué tal un menú para ellos?"
+  ],
+  [
+   "^Você tem 1 dispositivo ainda sem menu — que tal um menu pra ele\\?$",
+   "Tienes 1 dispositivo aún sin menú — ¿qué tal un menú para él?"
+  ],
   [
    "^Você aparece no (.+?)º lugar pra quem busca (.+?) por perto, mas só em (.+?) dos (.+?) lugares testados\\.$",
    "Apareces en el puesto $1 para quien busca $2 cerca, pero solo en $3 de los $4 lugares probados."
