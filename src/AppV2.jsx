@@ -8570,6 +8570,18 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     painel: ['pontos-de-captacao']
   }
 
+  // CATRACA POR ABA (14/10/2026). O consent.js conta o carregamento do /app,
+  // mas trocar de aba não recarrega a página — a aba Menu não aparecia em
+  // medição nenhuma. Cada aba vista vira +1 em "/app/<aba>" no mesmo contador
+  // agregado (page_hits, Política §6.5): dia + página, nada que individualize.
+  React.useEffect(() => {
+    try {
+      const corpo = JSON.stringify({ path: '/app/' + String(tab).toLowerCase().replace(/[^a-z0-9_-]/g, ''), source: '', medium: '', campaign: '' })
+      if (navigator.sendBeacon) navigator.sendBeacon('/api/visitas', new Blob([corpo], { type: 'application/json' }))
+      else fetch('/api/visitas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: corpo, keepalive: true })
+    } catch { /* a catraca nunca pode quebrar o painel */ }
+  }, [tab])
+
   // Sincroniza URL com state — copiar/colar e F5 mantêm aba correta
   React.useEffect(() => {
     if (typeof window === 'undefined') return
