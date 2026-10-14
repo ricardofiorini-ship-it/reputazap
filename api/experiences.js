@@ -37,6 +37,7 @@ import { resolvePlano, podeUsarMenu } from "./_lib/plan.js";
 import { reimprimir } from "./_lib/imprimir.js";
 import { soStartouch, LINHA_STARTOUCH } from "./_lib/linha.js";
 import { contarComMenu, exigeConfirmacao, sincronizarExtras, resumoDoLimite } from "./_lib/menu-extras.js";
+import { sendTransactionalEmail } from "./_lib/email-sender.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
@@ -128,6 +129,55 @@ function gerarSlug(nome) {
   return `${base}-${sufixo}`;
 }
 
+// ── AVISO AO ADMIN: QUEM ESTÁ MEXENDO NO MENU (14/10/2026) ──
+// O aviso do Pro (billing.js) só sai quando alguém INICIA o teste no Stripe.
+// Quem monta o menu e para na cobrança não deixava rastro nenhum — e em
+// 14/10 a consulta mostrou 19 negócios assim, invisíveis. São os contatos
+// mais quentes da base: já mostraram que querem o produto.
+// Um aviso por negócio por tipo (dedupe por biz_id). Nunca derruba a ação
+// do cliente: qualquer falha vira log.
+const AVISO_MENU = {
+  criou:    { tipo: "admin_menu_criado",   emoji: "🧩", titulo: "Montou um Menu Inteligente" },
+  cobranca: { tipo: "admin_menu_cobranca", emoji: "💳", titulo: "Tentou publicar o Menu e parou na cobrança" },
+};
+const escHtml = (v) => String(v ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+async function avisaAdminMenu(qual, { biz, user, exp }) {
+  try {
+    const to = process.env.ADMIN_NOTIFICATIONS_EMAIL;
+    if (!to) { console.warn(`[experiences/admin] ADMIN_NOTIFICATIONS_EMAIL não setado — aviso "${qual}" pulado`); return; }
+    if (!user?.id || ADMIN_EMAILS.has(String(user.email || "").toLowerCase())) return;
+    const cfg = AVISO_MENU[qual];
+
+    const { count: dispositivos } = await soStartouch(supabase.from("plates").select("id", { count: "exact", head: true }))
+      .eq("business_id", biz.id).eq("status", "active");
+    const meta = user.user_metadata || {};
+    const nome = meta.name || meta.full_name || "—";
+    const fone = meta.phone || "";
+    const digitos = String(fone).replace(/\D/g, "");
+    const zap = digitos.length >= 10 ? `https://wa.me/${digitos.startsWith("55") ? digitos : "55" + digitos}` : null;
+
+    const html = `<h2>${cfg.emoji} ${cfg.titulo}</h2>
+<p><strong>Negócio:</strong> ${escHtml(biz.name || "—")}</p>
+<p><strong>Cliente:</strong> ${escHtml(nome)} &lt;${escHtml(user.email || "—")}&gt;</p>
+<p><strong>Telefone:</strong> ${escHtml(fone || "—")}${zap ? ` — <a href="${zap}">abrir no WhatsApp</a>` : ""}</p>
+<p><strong>Menu:</strong> ${escHtml(exp?.name || "—")}</p>
+<p><strong>Dispositivos ativos:</strong> ${dispositivos ?? "—"}</p>
+${qual === "cobranca" ? "<p>O rascunho está salvo. Falta só assinar o Pro (7 dias grátis) pra ir ao ar.</p>" : "<p>Ainda não publicou. Se não aparecer o aviso de cobrança depois, parou antes de tentar publicar.</p>"}`;
+
+    const r = await sendTransactionalEmail({
+      userId: user.id, emailType: cfg.tipo, to,
+      subject: `${cfg.emoji} ${cfg.titulo} — ${biz.name || nome}`,
+      html,
+      metadata: { biz_id: biz.id, experience_id: exp?.id || null },
+      dedupeByMetadata: { key: "biz_id", value: biz.id },
+    });
+    console.log(`[experiences/admin] ${qual} (${biz.name || biz.id}): ${r?.sent ? "enviado" : (r?.reason || r?.error || "não enviado")}`);
+  } catch (e) {
+    console.error(`[experiences/admin] aviso "${qual}" falhou (${biz?.id}): ${e?.message}`);
+  }
+}
+
 // ============================================================
 // Actions
 // ============================================================
@@ -164,7 +214,7 @@ async function listar(req, res, biz, user) {
   });
 }
 
-async function criar(req, res, biz) {
+async function criar(req, res, biz, user) {
   const { count } = await supabase.from("experiences")
     .select("id", { count: "exact", head: true })
     .eq("business_id", biz.id).is("archived_at", null);
@@ -191,6 +241,7 @@ async function criar(req, res, biz) {
     criada = data;
   }
   if (!criada) return res.status(500).json({ error: ultimoErro?.message || "Não foi possível criar." });
+  await avisaAdminMenu("criou", { biz, user, exp: criada });
   return res.json({ ok: true, experience: criada });
 }
 
@@ -230,6 +281,7 @@ async function publicar(req, res, biz, user) {
     // 402 (Payment Required) e não 403: a tela precisa distinguir "falta pagar"
     // — que abre a caixa da assinatura — de "não pode" ou "deu erro".
     // O rascunho JÁ ESTÁ salvo neste ponto; a recusa não perde trabalho nenhum.
+    await avisaAdminMenu("cobranca", { biz, user, exp });
     return res.status(402).json({
       error: "Publicar o Menu Inteligente exige o plano Pro.",
       precisaPro: true,
@@ -415,7 +467,7 @@ export default async function handler(req, res) {
     if (!biz) return res.status(404).json({ error: "Nenhum negócio cadastrado nesta conta." });
 
     if (action === "list"       && req.method === "GET")  return await listar(req, res, biz, auth.user);
-    if (action === "create"     && req.method === "POST") return await criar(req, res, biz);
+    if (action === "create"     && req.method === "POST") return await criar(req, res, biz, auth.user);
     if (action === "save-draft" && req.method === "POST") return await salvarRascunho(req, res, biz);
     if (action === "publish"    && req.method === "POST") return await publicar(req, res, biz, auth.user);
     if (action === "discard"    && req.method === "POST") return await descartar(req, res, biz);
