@@ -120,18 +120,25 @@ export async function generateBatchCodes(supabase, n, productType) {
   while (set.size < n) set.add(generatePlateCode(productType));
   const arr = [...set];
 
-  // Checa colisões com o banco numa query só. Se ESSA query falhar, não dá
-  // pra assumir "sem colisão" (poderia tentar inserir duplicata e derrubar o
-  // lote inteiro com erro críptico) — aborta cedo com mensagem clara.
-  // linha-ok: unicidade de código vale entre TODAS as linhas
-  const { data: existing, error: collErr } = await supabase
-    .from("plates")
-    .select("code")
-    .in("code", arr);
-  if (collErr) {
-    throw new Error("Falha ao verificar colisão de códigos no banco: " + collErr.message);
+  // Checa colisões com o banco em PEDAÇOS de 200 (13/10/2026). O `.in()` vai
+  // na URL do GET: 2000 códigos davam ~28 mil caracteres e o gateway do
+  // Supabase recusava o endereço, derrubando o lote inteiro — lote pequeno
+  // passava, por isso nunca tinha aparecido. Pedaço de 200 também fica longe
+  // do corte calado de 1000 linhas por consulta. Se UMA consulta falhar, não
+  // dá pra assumir "sem colisão" (poderia inserir duplicata e derrubar o lote
+  // com erro críptico) — aborta cedo com mensagem clara.
+  const existingSet = new Set();
+  for (let i = 0; i < arr.length; i += 200) {
+    // linha-ok: unicidade de código vale entre TODAS as linhas
+    const { data: existing, error: collErr } = await supabase
+      .from("plates")
+      .select("code")
+      .in("code", arr.slice(i, i + 200));
+    if (collErr) {
+      throw new Error("Falha ao verificar colisão de códigos no banco: " + collErr.message);
+    }
+    for (const r of existing || []) existingSet.add(r.code);
   }
-  const existingSet = new Set((existing || []).map((r) => r.code));
 
   const final = [];
   for (const c of arr) {
