@@ -193,7 +193,19 @@
 
   // ── GA4 ─────────────────────────────────────────────────────
   gtag("js", new Date());
-  gtag("config", GA4_ID);
+  // ── TRÁFEGO INTERNO (14/10/2026) ──
+  // O navegador que abre uma página de admin (ou o painel de testes) fica
+  // marcado, e dali em diante TODA visita dele vai pro GA4 com
+  // traffic_type=internal — que o filtro "Internal Traffic" da propriedade
+  // descarta. Marcar pelo navegador e não pelo IP de propósito: o IP do
+  // celular muda o tempo todo, o navegador não. `?interno=0` desmarca.
+  var interno = false;
+  try {
+    if (/^\/(admin|painel-f7dsaz3c)/.test(location.pathname) || /[?&]interno=1\b/.test(location.search)) localStorage.setItem("st_interno", "1");
+    if (/[?&]interno=0\b/.test(location.search)) localStorage.removeItem("st_interno");
+    interno = localStorage.getItem("st_interno") === "1";
+  } catch (e) { /* sem localStorage: conta como visita normal */ }
+  gtag("config", GA4_ID, interno ? { traffic_type: "internal" } : {});
 
   // ── AS TAGS SÃO BAIXADAS DEPOIS DA PÁGINA (28/09/2026) ─────────
   // O gtag.js e o fbevents.js custavam ~0,6s de processador no celular bem na
