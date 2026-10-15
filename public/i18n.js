@@ -160,6 +160,25 @@
     return;
   }
 
+  // ---------- medição da língua (15/10/2026) ----------
+  // Até aqui nada registrava quem lia o site em outra língua (o "Idioma" do
+  // GA4 é o do celular, não o escolhido aqui). Duas réguas, como no resto:
+  // - catraca: +1 em "/idioma/<en|es|zh>" com a página como origem — mesmo
+  //   contador agregado da Política §6.5, nada que individualize;
+  // - GA4: evento "idioma_site" com o parâmetro "idioma" (dimensão
+  //   personalizada "Idioma do site" registrada na propriedade), sob o
+  //   Consent Mode como qualquer evento.
+  // Página legal (consent.js com data-prefs-only) não é contada: quem abre uma
+  // política de privacidade não é contado por abri-la (§6.5).
+  (function medirIdioma() {
+    try {
+      if (document.querySelector("script[data-prefs-only]")) return;
+      var corpo = JSON.stringify({ path: "/idioma/" + lang, source: page.replace(/_+/g, "-"), medium: "", campaign: "" });
+      if (navigator.sendBeacon) navigator.sendBeacon("/api/visitas", new Blob([corpo], { type: "application/json" }));
+      if (typeof window.gtag === "function") window.gtag("event", "idioma_site", { idioma: lang, pagina: page });
+    } catch (e) { /* medir nunca pode quebrar a tradução */ }
+  })();
+
   // ---------- tradução ----------
   var L = valid(lang);
   document.documentElement.lang = L.html;
