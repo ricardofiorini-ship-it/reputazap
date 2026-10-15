@@ -194,14 +194,17 @@
   // ── GA4 ─────────────────────────────────────────────────────
   gtag("js", new Date());
   // ── TRÁFEGO INTERNO (14/10/2026) ──
-  // O navegador que abre uma página de admin (ou o painel de testes) fica
-  // marcado, e dali em diante TODA visita dele vai pro GA4 com
+  // O navegador que abre uma página de admin fica marcado, e dali em diante
+  // TODA visita dele vai pro GA4 com
   // traffic_type=internal — que o filtro "Internal Traffic" da propriedade
   // descarta. Marcar pelo navegador e não pelo IP de propósito: o IP do
   // celular muda o tempo todo, o navegador não. `?interno=0` desmarca.
+  // SÓ /admin, de propósito: o painel V3 (/painel-f7dsaz3c) recebe cliente de
+  // verdade (24 usuários no GA4 em set/out) — marcá-lo apagaria gente real,
+  // e o filtro ativo é irreversível.
   var interno = false;
   try {
-    if (/^\/(admin|painel-f7dsaz3c)/.test(location.pathname) || /[?&]interno=1\b/.test(location.search)) localStorage.setItem("st_interno", "1");
+    if (/^\/admin(\/|-|$)/.test(location.pathname) || /[?&]interno=1\b/.test(location.search)) localStorage.setItem("st_interno", "1");
     if (/[?&]interno=0\b/.test(location.search)) localStorage.removeItem("st_interno");
     interno = localStorage.getItem("st_interno") === "1";
   } catch (e) { /* sem localStorage: conta como visita normal */ }
