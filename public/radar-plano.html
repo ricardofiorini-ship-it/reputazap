@@ -844,7 +844,7 @@
   function gaIds(){
     try {
       const cid = (document.cookie.match(/_ga=GA\d\.\d\.(\d+\.\d+)/) || [])[1] || "";
-      const sid = (document.cookie.match(/_ga_HCLV0Z640L=GS\d\.\d\.(\d+)/) || [])[1] || "";
+      const sid = (document.cookie.match(/_ga_HCLV0Z640L=GS\d\.\d\.s?(\d+)/) || [])[1] || "";
       return { ga_client_id: cid, ga_session_id: sid };
     } catch (_) { return { ga_client_id: "", ga_session_id: "" }; }
   }
