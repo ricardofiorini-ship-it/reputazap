@@ -202,11 +202,15 @@
   // SÓ /admin, de propósito: o painel V3 (/painel-f7dsaz3c) recebe cliente de
   // verdade (24 usuários no GA4 em set/out) — marcá-lo apagaria gente real,
   // e o filtro ativo é irreversível.
+  // A chave é "st_interno_admin" e não "st_interno": a 1ª versão (14/10,
+  // ~10 min no ar) marcava também o painel V3, e a chave velha pode ter
+  // ficado em navegador de cliente. Ela é apagada e ignorada.
   var interno = false;
   try {
-    if (/^\/admin(\/|-|$)/.test(location.pathname) || /[?&]interno=1\b/.test(location.search)) localStorage.setItem("st_interno", "1");
-    if (/[?&]interno=0\b/.test(location.search)) localStorage.removeItem("st_interno");
-    interno = localStorage.getItem("st_interno") === "1";
+    localStorage.removeItem("st_interno");
+    if (/^\/admin(\/|-|$)/.test(location.pathname) || /[?&]interno=1\b/.test(location.search)) localStorage.setItem("st_interno_admin", "1");
+    if (/[?&]interno=0\b/.test(location.search)) localStorage.removeItem("st_interno_admin");
+    interno = localStorage.getItem("st_interno_admin") === "1";
   } catch (e) { /* sem localStorage: conta como visita normal */ }
   gtag("config", GA4_ID, interno ? { traffic_type: "internal" } : {});
 
