@@ -1322,15 +1322,39 @@ async function precoDoPro(stripe) {
       console.error(`[stripe/checkout] STRIPE_PRICE_ID ${envId} INVÁLIDO (${e?.message}) — usando o preço do link. Corrija a env na Vercel.`);
     }
   }
+  // Ler o link exige a permissão "Payment Links Read", que a chave restrita de
+  // produção NÃO tem (16/10/2026: o cliente viu "Permission denied" no botão
+  // dos 7 dias grátis). Falha aqui não encerra: cai pras assinaturas.
   const link = (process.env.STRIPE_PRO_PAYMENT_LINK || "").split("?")[0];
-  if (!link) throw new Error("Configure STRIPE_PRICE_ID (ou STRIPE_PRO_PAYMENT_LINK) na Vercel");
-  for await (const pl of stripe.paymentLinks.list({ limit: 100 })) {
-    if ((pl.url || "").split("?")[0] !== link) continue;
-    const itens = await stripe.paymentLinks.listLineItems(pl.id, { limit: 5 });
-    const id = itens.data?.[0]?.price?.id;
-    if (id) { _precoPro = id; return id; }
+  if (link) {
+    try {
+      for await (const pl of stripe.paymentLinks.list({ limit: 100 })) {
+        if ((pl.url || "").split("?")[0] !== link) continue;
+        const itens = await stripe.paymentLinks.listLineItems(pl.id, { limit: 5 });
+        const id = itens.data?.[0]?.price?.id;
+        if (id) { _precoPro = id; return id; }
+      }
+    } catch (e) {
+      console.error(`[stripe/checkout] não consegui ler o link de pagamento (${e?.message}) — procurando o preço nas assinaturas. Setar STRIPE_PRICE_ID com o preço de PRODUÇÃO resolve de vez.`);
+    }
   }
-  throw new Error("Não achei o preço do Pro: o link STRIPE_PRO_PAYMENT_LINK não está no Stripe. Configure STRIPE_PRICE_ID.");
+  // Último caminho: o preço que as assinaturas Pro de verdade já usam. A chave
+  // lê assinaturas (o `jaTeveAssinatura` depende disso). Ignora o item do
+  // dispositivo extra, que mora na mesma assinatura.
+  try {
+    for await (const sub of stripe.subscriptions.list({ status: "all", limit: 100 })) {
+      const item = (sub.items?.data || []).find((i) =>
+        i.price?.active && i.price?.lookup_key !== "menu_dispositivo_extra" && i.price?.recurring);
+      if (item) {
+        console.warn(`[stripe/checkout] preço do Pro achado na assinatura ${sub.id}: ${item.price.id}. Setar STRIPE_PRICE_ID=${item.price.id} na Vercel.`);
+        _precoPro = item.price.id;
+        return item.price.id;
+      }
+    }
+  } catch (e) {
+    console.error(`[stripe/checkout] não consegui ler as assinaturas (${e?.message})`);
+  }
+  throw new Error("Não achei o preço do Pro. Configure STRIPE_PRICE_ID na Vercel com o preço de PRODUÇÃO.");
 }
 
 // Teste grátis é UM por cliente. Com cartão isso se regulava sozinho; sem
