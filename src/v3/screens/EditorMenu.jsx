@@ -289,7 +289,13 @@ function CaixaSemDispositivo({ onFechar }) {
           Sua conta ainda não tem nenhum.
         </p>
         <a className="v3-btn solid me-paywall-cta" href="/kit">Ver dispositivos na loja</a>
-        <a className="v3-btn me-paywall-voltar" href="/ativar-codigo">Já tenho um — ativar</a>
+        <a className="v3-btn me-paywall-voltar" href="/ativar-codigo" onClick={e => {
+          // Dentro do /app, o modal de ativação atende aqui mesmo (AppV2,
+          // 'st:ativar-dispositivo'); o /ativar-codigo é pra quem não tem conta.
+          const ev = new CustomEvent('st:ativar-dispositivo', { cancelable: true })
+          window.dispatchEvent(ev)
+          if (ev.defaultPrevented) { e.preventDefault(); onFechar() }
+        }}>Já tenho um — ativar</a>
         <button className="v3-btn ghost me-paywall-voltar" onClick={onFechar}>Continuar editando</button>
       </div>
     </div>

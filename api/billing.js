@@ -1424,6 +1424,12 @@ async function handleCheckoutStripe(req, res) {
       // No teste, o Stripe só pede cartão "se precisar" — e com 7 dias de
       // R$ 0 ele não precisa. Sem teste (quem volta), cobra na hora: cartão.
       ...(comTeste ? { payment_method_collection: "if_required" } : {}),
+      // A página do Stripe tem cara de "pagar", e quem não lê o resumo desiste
+      // achando que precisa do cartão (16/10/2026, observado pelo Ricardo). A
+      // frase fica colada no botão, que é onde a dúvida acontece.
+      ...(comTeste ? { custom_text: { submit: {
+        message: "Nada é cobrado hoje e você não precisa pôr cartão agora. Se não cadastrar o cartão até o 7º dia, o teste termina sozinho e você não paga nada.",
+      } } } : {}),
       // `client_reference_id` é o que amarra o pagamento à conta. SEM ELE o
       // webhook não sabe de quem é a assinatura e o Pro não liga.
       client_reference_id: auth.user.id,

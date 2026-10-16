@@ -8564,6 +8564,22 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
   const [activatePlateOpen, setActivatePlateOpen] = React.useState(false)
   const [scoreOpen, setScoreOpen] = React.useState(false)  // detalhamento do Score StarTouch
 
+  // "Já tenho um — ativar" dentro da tela do Menu (16/10/2026). A tela é do V3
+  // e lá o botão é um link pro /ativar-codigo — página feita pra quem chega sem
+  // conta, que mandou um cliente LOGADO pro cadastro. Aqui no /app o mesmo
+  // botão avisa por evento e quem atende é o modal de sempre, sem sair da tela.
+  // Fora do /app ninguém escuta o evento e o link segue valendo.
+  React.useEffect(() => {
+    if (guestMode || demoMode) return
+    const abrir = (ev) => {
+      ev.preventDefault()
+      try { const u = new URL(window.location.href); u.searchParams.set('tab', 'menu'); window.history.replaceState({}, '', u) } catch {}
+      setActivatePlateOpen(true)
+    }
+    window.addEventListener('st:ativar-dispositivo', abrir)
+    return () => window.removeEventListener('st:ativar-dispositivo', abrir)
+  }, [guestMode, demoMode])
+
   // Hashes válidos por aba (preservados ao trocar de aba — outros são limpos)
   const VALID_HASHES_BY_TAB = {
     config: ['conta', 'negocio', 'plano'],
@@ -9054,7 +9070,11 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             o editor já na escolha do tipo (Experiencia.jsx, comecarAdicionar). */}
         {!guestMode && plan !== 'pro' && <SeuMenuEstaAssim nome={(d?.biz?.name || 'Seu negócio').trim()} isMobile={isMobile}
           temDispositivo={(d?.activePlates || []).length > 0}
-          onAbrirMenu={() => setTab('menu')}
+          onAbrirMenu={() => {
+            // O botão diz "Criar meu menu": chega na aba já criando (Experiencia.jsx, `?criar=1`)
+            try { const u = new URL(window.location.href); u.searchParams.set('criar', '1'); window.history.replaceState({}, '', u) } catch {}
+            setTab('menu')
+          }}
           onAdicionarBotao={() => {
             try { const u = new URL(window.location.href); u.searchParams.set('add', '1'); window.history.replaceState({}, '', u) } catch {}
             setTab('menu')

@@ -322,7 +322,13 @@ export default function Experiencia({ dados }) {
         <a className="v3-btn solid" href="/kit" style={{ width: '100%', justifyContent: 'center', marginTop: 16 }}>
           Ver dispositivos na loja <ChevronRight size={15}/>
         </a>
-        <a className="v3-btn" href="/ativar-codigo" style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}>
+        <a className="v3-btn" href="/ativar-codigo" style={{ width: '100%', justifyContent: 'center', marginTop: 8 }} onClick={e => {
+          // Dentro do /app, o modal de ativação atende aqui mesmo (AppV2,
+          // 'st:ativar-dispositivo'); o /ativar-codigo é pra quem não tem conta.
+          const ev = new CustomEvent('st:ativar-dispositivo', { cancelable: true })
+          window.dispatchEvent(ev)
+          if (ev.defaultPrevented) { e.preventDefault(); setPedeDispositivo(false) }
+        }}>
           Já tenho um — ativar
         </a>
         <button type="button" className="v3-btn ghost" onClick={() => setPedeDispositivo(false)} style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}>
@@ -331,15 +337,29 @@ export default function Experiencia({ dados }) {
       </div>
     </div>
   )
+  // `?criar=1` (16/10/2026): o "Criar meu menu" do /app já é o pedido de
+  // criar. Antes ele só trocava de aba, e o cliente caía numa tela com outro
+  // botão "Criar meu Menu Inteligente" — dois cliques pra mesma coisa. Agora
+  // vai direto: abre o menu que já existe ou cria o primeiro.
+  const pedidoCriar = React.useRef((() => {
+    try { return new URLSearchParams(window.location.search).get('criar') === '1' } catch { return false }
+  })())
   React.useEffect(() => {
-    if (!pedidoAdicionar.current || estado.carregando || estado.erro) return
+    if ((!pedidoAdicionar.current && !pedidoCriar.current) || estado.carregando || estado.erro) return
+    const adicionar = pedidoAdicionar.current
     pedidoAdicionar.current = false
+    pedidoCriar.current = false
     try {
       const url = new URL(window.location.href)
       url.searchParams.delete('add')
+      url.searchParams.delete('criar')
       window.history.replaceState({}, '', url)
     } catch {}
-    comecarAdicionar(estado.dados)
+    if (adicionar) { comecarAdicionar(estado.dados); return }
+    if (dados.previewToques) { abrir('preview-menu'); return }
+    const ativa = (estado.dados?.experiences || []).find(e => !e.archived_at)
+    if (ativa) abrir(ativa.id)
+    else criarSeTiverDispositivo(estado.dados)
   }, [estado]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (estado.carregando) return <Carregando o="suas experiências"/>
