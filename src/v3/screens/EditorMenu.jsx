@@ -726,11 +726,22 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
             (`experience_enabled`), e o dispositivo só passa a servir o menu
             quando ele está publicado (`served_mode`). Quem vincula antes não
             quebra nada — o dispositivo segue no Google até a publicação. */}
-        <div className="ativo"><span>1</span><div><b>Crie</b><small>Conteúdo e botões</small></div></div>
-        <i>→</i>
-        <div><span>2</span><div><b>Vincule</b><small>Escolha onde usar</small></div></div>
-        <i>→</i>
-        <div><span>3</span><div><b>Publique</b><small>Coloque no ar</small></div></div>
+        {/* As etapas seguem o estado real (16/10/2026). Antes o "1 Crie" ficava
+            aceso pra sempre, e a tela dizia "Publicado" logo abaixo de um
+            passo a passo que parecia parado no começo. */}
+        {(() => {
+          const noAr = publicado && !naoPublicado
+          const atual = noAr ? (vinculados > 0 ? 4 : 2) : (vinculados > 0 ? 3 : 1)
+          const cls = (n) => n < atual || (n === 3 && noAr) ? 'feito' : n === atual ? 'ativo' : ''
+          const num = (n) => cls(n) === 'feito' ? <Check size={13}/> : n
+          return <>
+            <div className={cls(1)}><span>{num(1)}</span><div><b>Crie</b><small>Conteúdo e botões</small></div></div>
+            <i>→</i>
+            <div className={cls(2)}><span>{num(2)}</span><div><b>Vincule</b><small>Escolha onde usar</small></div></div>
+            <i>→</i>
+            <div className={cls(3)}><span>{num(3)}</span><div><b>Publique</b><small>Coloque no ar</small></div></div>
+          </>
+        })()}
       </div>
 
       {/* Barra de estado: recusa com a lista, ou convite a publicar. */}
