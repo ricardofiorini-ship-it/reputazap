@@ -1149,7 +1149,24 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar, plano }) {
         </div>
       </header>
       <div className="body">
-        {!devices.length && <p className="v3-dica" style={{ padding: '8px 0' }}>Você ainda não tem dispositivos ativos.</p>}
+        {/* Sem dispositivo (nunca teve, ou desvinculou o que tinha): o aviso
+            sozinho era um beco sem saída. As duas saídas, as mesmas da caixa
+            "Seu menu está salvo" (16/10/2026, Ricardo). */}
+        {!devices.length && (
+          <div style={{ padding: '8px 0' }}>
+            <p className="v3-dica" style={{ marginBottom: 10 }}>Você ainda não tem dispositivos ativos.</p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <a className="v3-btn solid" href="/ativar-codigo" onClick={e => {
+                // Dentro do /app, o modal de ativação atende aqui mesmo (AppV2,
+                // 'st:ativar-dispositivo'); o /ativar-codigo é pra quem não tem conta.
+                const ev = new CustomEvent('st:ativar-dispositivo', { cancelable: true })
+                window.dispatchEvent(ev)
+                if (ev.defaultPrevented) e.preventDefault()
+              }}>Já tenho um — ativar</a>
+              <a className="v3-btn" href="/kit">Ver dispositivos na loja</a>
+            </div>
+          </div>
+        )}
 
         {/* O aviso que faltava. Ligar um dispositivo antes de publicar é uma
             ação legítima que simplesmente não produz efeito ainda — e sem
