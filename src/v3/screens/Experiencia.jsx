@@ -479,6 +479,13 @@ export default function Experiencia({ dados }) {
           dobra. */}
       <div className="exp-titulo-pagina">Experiência do Cliente</div>
 
+      {/* QUEM JÁ TEM MENU NÃO PRECISA DA VENDA (16/10/2026, Ricardo). A
+          apresentação com "Criar meu Menu Inteligente" ficava no topo pra
+          sempre, e a lista dos menus de verdade morava embaixo dela — quem
+          voltava pra mexer no menu achava que tinha que criar outro. Com menu
+          criado, a página abre na lista; a apresentação só existe pra quem
+          ainda não tem nenhum. */}
+      {ativas.length === 0 && (
       <div className="exp-hero">
         <header className="exp-intro">
           <div className="exp-eyebrow">MENU INTELIGENTE <Chip>PRO</Chip></div>
@@ -512,10 +519,16 @@ export default function Experiencia({ dados }) {
         </header>
         <Demonstracao nome={negocioExibido?.name} foto={dados.info?.photoUrl || null} acao={acao} setAcao={setAcao} onVazio={() => comecarAdicionar(estado.dados)}/>
       </div>
+      )}
 
       {/* ── Seus menus ── */}
       {ativas.length > 0 && (
-        <Panel titulo="Seus menus" sub="Gerencie os menus que você criou e veja onde estão sendo usados">
+        <Panel titulo="Seus menus" sub="Gerencie os menus que você criou e veja onde estão sendo usados"
+          rodape={
+            <button className="v3-btn" onClick={dados.previewToques ? () => abrir('preview-menu') : () => criarSeTiverDispositivo()} disabled={criando}>
+              <Plus size={14}/>{criando ? 'Criando…' : 'Criar outro menu'}
+            </button>
+          }>
           {ativas.map(e => {
             const usando = devices.filter(d => d.experience_id === e.id && d.served_mode === 'menu')
             const naoPublicado = e.pendente !== false   // o servidor decide; ver estaPendente()
@@ -539,6 +552,17 @@ export default function Experiencia({ dados }) {
                     ))}
                     {acoes.length > 5 && <span className="tag">+{acoes.length - 5}</span>}
                   </div>
+                  {/* O que falta pra este menu chegar no cliente. Sem esta
+                      linha, "rascunho" e "não ligado" não diziam o que fazer. */}
+                  {(!e.published || naoPublicado || !usando.length) && (
+                    <div className="meta" style={{ marginTop: 6, color: 'var(--blue)', fontWeight: 600 }}>
+                      {!e.published
+                        ? 'Próximo passo: publicar — o cliente ainda não vê este menu.'
+                        : naoPublicado
+                          ? 'Próximo passo: publicar as alterações — o cliente ainda vê a versão anterior.'
+                          : 'Próximo passo: escolher em quais dispositivos ele abre.'}
+                    </div>
+                  )}
                 </div>
                 <div className="lado">
                   {e.published

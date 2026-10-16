@@ -1346,7 +1346,20 @@
   "Rápido de configurar": "Rápido de configurar",
   "Abre sem instalar aplicativo": "Abre sin instalar ninguna app",
   "Mais conexão com seus clientes": "Más conexión con tus clientes",
-  "Fortalece sua marca": "Fortalece tu marca"
+  "Fortalece sua marca": "Fortalece tu marca",
+  "Seu menu": "Tu menú",
+  "Gerenciar menus": "Gestionar menús",
+  "Alterações não publicadas": "Cambios sin publicar",
+  "No ar": "Publicado",
+  "Publicado, sem dispositivo": "Publicado, sin dispositivo",
+  "Falta publicar.": "Falta publicarlo.",
+  "Falta publicar — o teste de 7 dias grátis começa aí, sem cartão.": "Falta publicarlo — la prueba gratis de 7 días empieza ahí, sin tarjeta.",
+  "Falta publicar as alterações; o cliente ainda vê a versão anterior.": "Falta publicar los cambios; el cliente todavía ve la versión anterior.",
+  "Falta escolher em quais dispositivos ele abre.": "Falta elegir en qué dispositivos se abre.",
+  "1 dispositivo ainda leva direto à avaliação no Google, sem menu.": "1 dispositivo todavía lleva directo a la reseña en Google, sin menú.",
+  "Próximo passo: publicar — o cliente ainda não vê este menu.": "Próximo paso: publicar — el cliente todavía no ve este menú.",
+  "Próximo passo: publicar as alterações — o cliente ainda vê a versão anterior.": "Próximo paso: publicar los cambios — el cliente todavía ve la versión anterior.",
+  "Próximo passo: escolher em quais dispositivos ele abre.": "Próximo paso: elegir en qué dispositivos se abre."
  },
  "p": [
   [
@@ -1768,6 +1781,14 @@
   [
    "^Menu de (.+?)$",
    "Menú de $1"
+  ],
+  [
+   "^Abre em (.+?) (.+?)\\.$",
+   "Se abre en $1 dispositivo(s)."
+  ],
+  [
+   "^(.+?) dispositivos ainda levam direto à avaliação no Google, sem menu\\.$",
+   "$1 dispositivos todavía llevan directo a la reseña en Google, sin menú."
   ]
  ],
  "px": [

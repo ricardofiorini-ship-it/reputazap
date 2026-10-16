@@ -4117,6 +4117,98 @@ function SeuMenuEstaAssim({ nome, isMobile, temDispositivo, onAdicionarBotao, on
   )
 }
 
+// ── SEUS MENUS NO PAINEL (16/10/2026, Ricardo) ──
+// Depois de criar um menu, o painel seguia oferecendo "Crie seu Menu
+// Inteligente" — a venda de uma coisa que a pessoa já tinha. Agora o bloco
+// pergunta ao servidor se há menu: havendo, mostra a LISTA (estado de cada um
+// e o próximo passo); não havendo, a venda de sempre (`semMenu`). Enquanto
+// pergunta não desenha nada, pra não piscar a venda e trocá-la em seguida.
+// Falha na consulta = mostra a venda, que é o que o painel já fazia.
+function BlocoMenu({ isMobile, semMenu, onAbrirMenu }) {
+  const [estado, setEstado] = React.useState({ carregando: true })
+  React.useEffect(() => {
+    let vivo = true
+    apiCall('/api/experiences?action=list')
+      .then(r => { if (vivo) setEstado({ carregando: false, r }) })
+      .catch(() => { if (vivo) setEstado({ carregando: false, r: null }) })
+    return () => { vivo = false }
+  }, [])
+  if (estado.carregando) return null
+  const exps = (estado.r?.experiences || []).filter(e => !e.archived_at)
+  if (!exps.length) return semMenu
+  const devices = estado.r?.devices || []
+  const semMenuNoDisp = devices.filter(x => x.served_mode !== 'menu').length
+  const proAtivo = !!estado.r?.plano?.proAtivo
+
+  return (
+    <Section>
+      <Card padded={false} style={{ padding: isMobile ? 16 : 22 }}>
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap: 12, flexWrap:'wrap', marginBottom: 14 }}>
+          <div>
+            <div style={{ display:'flex', alignItems:'center', gap: 6, fontSize: 11, fontWeight: 800, letterSpacing: '.08em', color: T.blueDk, marginBottom: 4 }}>
+              <Sparkles size={12}/> MENU INTELIGENTE
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: T.text, letterSpacing: '-0.02em' }}>
+              {exps.length === 1 ? 'Seu menu' : 'Seus menus'}
+            </div>
+          </div>
+          <button type="button" onClick={() => onAbrirMenu(null)} style={{
+            border:`1px solid ${T.border}`, background:'#fff', color: T.blue, borderRadius: 9, padding:'9px 14px',
+            fontSize: 13, fontWeight: 700, cursor:'pointer', fontFamily:'inherit', display:'inline-flex', alignItems:'center', gap: 6
+          }}>
+            Gerenciar menus <ArrowRight size={14}/>
+          </button>
+        </div>
+
+        <div style={{ display:'flex', flexDirection:'column', gap: 10 }}>
+          {exps.map(e => {
+            const usando = devices.filter(x => x.experience_id === e.id && x.served_mode === 'menu').length
+            const pendente = e.pendente !== false
+            const st = !e.published
+              ? { txt: 'Rascunho', bg: '#F1F3F4', cor: '#5F6368' }
+              : pendente
+                ? { txt: 'Alterações não publicadas', bg: '#FEF7E0', cor: '#B06000' }
+                : usando
+                  ? { txt: 'No ar', bg: T.greenSoft, cor: '#137333' }
+                  : { txt: 'Publicado, sem dispositivo', bg: '#FEF7E0', cor: '#B06000' }
+            const passo = !e.published
+              ? (proAtivo ? 'Falta publicar.' : 'Falta publicar — o teste de 7 dias grátis começa aí, sem cartão.')
+              : pendente ? 'Falta publicar as alterações; o cliente ainda vê a versão anterior.'
+              : !usando ? 'Falta escolher em quais dispositivos ele abre.'
+              : `Abre em ${usando} ${usando === 1 ? 'dispositivo' : 'dispositivos'}.`
+            return (
+              <button type="button" key={e.id} onClick={() => onAbrirMenu(e.id)} style={{
+                display:'flex', alignItems:'center', gap: 12, width:'100%', textAlign:'left',
+                border:`1px solid ${T.border}`, borderRadius: 12, background:'#fff', padding: '12px 14px',
+                cursor:'pointer', fontFamily:'inherit'
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap' }}>
+                    <span style={{ fontSize: 14.5, fontWeight: 700, color: T.text }}>{e.name}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, borderRadius: 999, padding: '2px 8px', background: st.bg, color: st.cor }}>{st.txt}</span>
+                  </div>
+                  <div style={{ fontSize: 12.5, color: T.textMid, marginTop: 3, lineHeight: 1.45 }}>{passo}</div>
+                </div>
+                <span style={{ display:'inline-flex', alignItems:'center', gap: 4, color: T.blue, fontSize: 13, fontWeight: 700, flex:'none' }}>
+                  <Pencil size={13}/> Editar
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        {semMenuNoDisp > 0 && (
+          <div style={{ fontSize: 12.5, color: T.textMid, marginTop: 12, lineHeight: 1.5 }}>
+            {semMenuNoDisp === 1
+              ? '1 dispositivo ainda leva direto à avaliação no Google, sem menu.'
+              : `${semMenuNoDisp} dispositivos ainda levam direto à avaliação no Google, sem menu.`}
+          </div>
+        )}
+      </Card>
+    </Section>
+  )
+}
+
 function MenuInteligenteSlot({ plan, bizName, isMobile, onAbrirMenu, ctaLabel = null }) {
   const ehPro = plan === 'pro'
   const nome = (bizName || 'Seu negócio').trim()
@@ -9068,20 +9160,30 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
             dispositivo pode ter um menu diferente, e o retrato vai pra lista
             de dispositivos. O "+" leva pra tela do Menu com `?add=1`, que abre
             o editor já na escolha do tipo (Experiencia.jsx, comecarAdicionar). */}
-        {!guestMode && plan !== 'pro' && <SeuMenuEstaAssim nome={(d?.biz?.name || 'Seu negócio').trim()} isMobile={isMobile}
-          temDispositivo={(d?.activePlates || []).length > 0}
-          onAbrirMenu={() => {
-            // O botão diz "Criar meu menu": chega na aba já criando (Experiencia.jsx, `?criar=1`)
-            try { const u = new URL(window.location.href); u.searchParams.set('criar', '1'); window.history.replaceState({}, '', u) } catch {}
+        {/* Com menu criado, os dois blocos abaixo dão lugar à lista dos menus
+            (BlocoMenu). Eles seguem valendo pra quem ainda não criou nenhum. */}
+        {!guestMode && <BlocoMenu isMobile={isMobile}
+          onAbrirMenu={(expId) => {
+            try { const u = new URL(window.location.href); if (expId) u.searchParams.set('exp', expId); else u.searchParams.delete('exp'); window.history.replaceState({}, '', u) } catch {}
             setTab('menu')
           }}
-          onAdicionarBotao={() => {
-            try { const u = new URL(window.location.href); u.searchParams.set('add', '1'); window.history.replaceState({}, '', u) } catch {}
-            setTab('menu')
-          }} />}
-        {/* Assinante: banner azul "Seu Menu Inteligente / Configurar meu menu".
-            Quem não é assinante já tem a venda dentro do cartão acima. */}
-        {!guestMode && plan === 'pro' && <MenuInteligenteSlot plan={plan} bizName={d?.biz?.name} isMobile={isMobile} onAbrirMenu={() => setTab('menu')} />}
+          semMenu={plan !== 'pro'
+            ? <SeuMenuEstaAssim nome={(d?.biz?.name || 'Seu negócio').trim()} isMobile={isMobile}
+                temDispositivo={(d?.activePlates || []).length > 0}
+                onAbrirMenu={() => {
+                  // O botão diz "Criar meu menu": chega na aba já criando (Experiencia.jsx, `?criar=1`)
+                  try { const u = new URL(window.location.href); u.searchParams.set('criar', '1'); window.history.replaceState({}, '', u) } catch {}
+                  setTab('menu')
+                }}
+                onAdicionarBotao={() => {
+                  try { const u = new URL(window.location.href); u.searchParams.set('add', '1'); window.history.replaceState({}, '', u) } catch {}
+                  setTab('menu')
+                }} />
+            // Assinante sem menu: banner azul "Seu Menu Inteligente / Configurar meu menu".
+            : <MenuInteligenteSlot plan={plan} bizName={d?.biz?.name} isMobile={isMobile} onAbrirMenu={() => {
+                try { const u = new URL(window.location.href); u.searchParams.set('criar', '1'); window.history.replaceState({}, '', u) } catch {}
+                setTab('menu')
+              }} />} />}
 
         {/* Widget Radar IA — desligado desde 09/07 e o produto foi aposentado
             em 07/09/2026. O componente devolve null; fica como referência. */}

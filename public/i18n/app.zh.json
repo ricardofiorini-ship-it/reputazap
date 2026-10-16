@@ -1346,7 +1346,20 @@
   "Rápido de configurar": "设置快捷",
   "Abre sem instalar aplicativo": "无需安装应用即可打开",
   "Mais conexão com seus clientes": "与顾客联系更紧密",
-  "Fortalece sua marca": "强化你的品牌"
+  "Fortalece sua marca": "强化你的品牌",
+  "Seu menu": "您的菜单",
+  "Gerenciar menus": "管理菜单",
+  "Alterações não publicadas": "有未发布的更改",
+  "No ar": "已上线",
+  "Publicado, sem dispositivo": "已发布，未绑定设备",
+  "Falta publicar.": "尚未发布。",
+  "Falta publicar — o teste de 7 dias grátis começa aí, sem cartão.": "尚未发布——发布后开始 7 天免费试用，无需银行卡。",
+  "Falta publicar as alterações; o cliente ainda vê a versão anterior.": "请发布更改；顾客看到的仍是旧版本。",
+  "Falta escolher em quais dispositivos ele abre.": "请选择在哪些设备上打开它。",
+  "1 dispositivo ainda leva direto à avaliação no Google, sem menu.": "1 台设备仍直接跳转到 Google 评价，没有菜单。",
+  "Próximo passo: publicar — o cliente ainda não vê este menu.": "下一步：发布——顾客还看不到这个菜单。",
+  "Próximo passo: publicar as alterações — o cliente ainda vê a versão anterior.": "下一步：发布更改——顾客看到的仍是旧版本。",
+  "Próximo passo: escolher em quais dispositivos ele abre.": "下一步：选择在哪些设备上打开它。"
  },
  "p": [
   [
@@ -1768,6 +1781,14 @@
   [
    "^Menu de (.+?)$",
    "$1 的菜单"
+  ],
+  [
+   "^Abre em (.+?) (.+?)\\.$",
+   "在 $1 台设备上打开。"
+  ],
+  [
+   "^(.+?) dispositivos ainda levam direto à avaliação no Google, sem menu\\.$",
+   "$1 台设备仍直接跳转到 Google 评价，没有菜单。"
   ]
  ],
  "px": [
