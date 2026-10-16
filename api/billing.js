@@ -1302,10 +1302,26 @@ const TRIAL_DIAS_PRO = 7;
 // O preço do Pro. STRIPE_PRICE_ID manda; sem ele, lê o preço do link de
 // pagamento que já vendia o Pro — o mesmo R$ 19,90 que o cliente via antes.
 // Guardado por instância: o preço não muda entre um clique e outro.
+//
+// O STRIPE_PRICE_ID é CONFERIDO antes de usar (15/10/2026). Ele estava
+// apontando pra um preço do modo TESTE com a chave de produção — e passou anos
+// sem fazer mal porque o link de pagamento tinha prioridade. Quando ele virou o
+// caminho principal (07/10), todo clique em "Começar os 7 dias grátis" passou a
+// dar "No such price" na cara do cliente. Preço inválido agora grita no log e
+// cai pro link, que é o preço que já vendia.
 let _precoPro = null;
 async function precoDoPro(stripe) {
-  if (process.env.STRIPE_PRICE_ID) return process.env.STRIPE_PRICE_ID;
   if (_precoPro) return _precoPro;
+  const envId = process.env.STRIPE_PRICE_ID;
+  if (envId) {
+    try {
+      const p = await stripe.prices.retrieve(envId);
+      if (p?.active) { _precoPro = p.id; return p.id; }
+      console.error(`[stripe/checkout] STRIPE_PRICE_ID ${envId} está INATIVO no Stripe — usando o preço do link. Corrija a env na Vercel.`);
+    } catch (e) {
+      console.error(`[stripe/checkout] STRIPE_PRICE_ID ${envId} INVÁLIDO (${e?.message}) — usando o preço do link. Corrija a env na Vercel.`);
+    }
+  }
   const link = (process.env.STRIPE_PRO_PAYMENT_LINK || "").split("?")[0];
   if (!link) throw new Error("Configure STRIPE_PRICE_ID (ou STRIPE_PRO_PAYMENT_LINK) na Vercel");
   for await (const pl of stripe.paymentLinks.list({ limit: 100 })) {

@@ -126,6 +126,18 @@ export default async function handler(req, res) {
       headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` }
     });
     services.push({ name: "Stripe", ok: r.ok, status: r.status, error: r.error });
+    // O preço do Pro tem que existir no MESMO modo da chave. Preço de teste com
+    // chave de produção derrubou o checkout do Pro de 07 a 15/10/2026 sem
+    // nenhum monitor acusar — o /balance respondia 200.
+    if (process.env.STRIPE_PRICE_ID) {
+      const p = await ping(`https://api.stripe.com/v1/prices/${encodeURIComponent(process.env.STRIPE_PRICE_ID)}`, {
+        headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` }
+      });
+      services.push({
+        name: "Stripe — preço do Pro (STRIPE_PRICE_ID)", ok: p.ok, status: p.status,
+        error: p.ok ? null : (p.error || "preço não existe neste modo (teste x produção?) — checkout cai pro link")
+      });
+    }
   } else {
     services.push({ name: "Stripe", ok: false, error: "STRIPE_SECRET_KEY ausente — nenhum checkout abre" });
   }
