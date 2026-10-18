@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin/>
 <link rel="preload" as="style" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
 <noscript><link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap"/></noscript>
-<link rel="preload" as="image" href="/img/kit/cartao-2-800.webp" fetchpriority="high"/>
+<link rel="preload" as="image" href="/img/kit/cartao-v2-1-800.webp" fetchpriority="high"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <link rel="apple-touch-icon" href="/startouch-logo.png"/>
 <meta name="description" content="Cartão NFC e placas de balcão para o seu negócio receber mais avaliações no Google: o cliente aproxima o celular e avalia em segundos. Sem mensalidade, 3 meses de garantia, frete grátis acima de R$ 149."/>
@@ -326,9 +326,9 @@
        largura toda e a galeria; os outros vem abaixo, menores. -->
   <article class="hero-card" id="heroCard">
     <div class="gal">
-      <div class="gal-main" data-gal="cartao-2,cartao-1,cartao-3,cartao-4,cartao-5,cartao-6">
+      <div class="gal-main" data-gal="cartao-v2-1,cartao-v2-2,cartao-v2-3,cartao-v2-4,cartao-v2-5,cartao-v2-6,cartao-v2-7">
         
-        <img id="heroImg" src="/img/kit/cartao-2-800.webp" alt="Mão segurando o Cartão NFC para Avaliação no Google da StarTouch" width="800" height="800" fetchpriority="high"/>
+        <img id="heroImg" src="/img/kit/cartao-v2-1-800.webp" alt="Atendente entregando o Cartão NFC StarTouch para o cliente avaliar no Google pelo celular" width="800" height="800" fetchpriority="high"/>
       </div>
       <div class="thumbs"></div>
     </div>
@@ -353,7 +353,7 @@
 
   <div class="grid">
     <article class="card">
-      <div class="card-img" data-gal="placa-m-2,placa-m-3,placa-m-4"><img src="/img/kit/placa-m-2-800.webp" alt="Placa de Balcão M com NFC e QR Code" width="800" height="1200" loading="lazy"/><span class="size-tag">10 × 15 cm</span></div>
+      <div class="card-img" data-gal="placa-m-v2-1,placa-m-v2-2,placa-m-v2-3,placa-m-v2-4,placa-m-v2-5,placa-m-v2-6,placa-m-v2-7"><img src="/img/kit/placa-m-v2-1-800.webp" alt="Placa de Balcão M com NFC e QR Code" width="800" height="800" loading="lazy"/><span class="size-tag">10 × 15 cm</span></div>
       <div class="thumbs sm"></div>
       <div class="card-body">
         <span class="card-tag" style="align-self:flex-start">Mesas e balcões</span>
@@ -440,7 +440,7 @@
 
 <!-- Barra fixa no celular: aparece depois que o card do Cartao sai da tela -->
 <div class="sticky" id="sticky" aria-hidden="true">
-  <img id="stImg" src="/img/kit/cartao-2-160.webp" alt="" width="46" height="46"/>
+  <img id="stImg" src="/img/kit/cartao-v2-1-160.webp" alt="" width="46" height="46"/>
   <div class="st-info">
     <div class="st-nm" id="stNome">Cartão NFC para Avaliação no Google</div>
     <div class="st-pr" id="stPreco">R$ 29,90</div>
@@ -535,8 +535,8 @@
 // Catalogo. Os ids sao o contrato com o servidor (KIT_CATALOG no billing.js)
 // e com os links de fora (/kit?add=cartao-nfc) — nao renomear.
 const PRODUCTS = [
-  { id: "cartao-nfc",   name: "Cartão NFC para Avaliação no Google", price: 29.90, thumb: "/img/kit/cartao-2-160.webp", },
-  { id: "placa-mesa",   name: "Placa de Balcão M", price: 49.90, thumb: "/img/kit/placa-m-2-160.webp" },
+  { id: "cartao-nfc",   name: "Cartão NFC para Avaliação no Google", price: 29.90, thumb: "/img/kit/cartao-v2-1-160.webp", },
+  { id: "placa-mesa",   name: "Placa de Balcão M", price: 49.90, thumb: "/img/kit/placa-m-v2-1-160.webp" },
   { id: "placa-balcao", name: "Placa de Balcão G", price: 79.90, thumb: "/img/kit/gadget-placa-160.webp" },
   { id: "pulseira",     name: "Pulseira NFC", price: 109.90, soldOut: true, thumb: "/img/kit/gadget-pulseira-160.webp" }
 ];

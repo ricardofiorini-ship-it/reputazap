@@ -4,7 +4,6 @@
     "StarTouch — início": "StarTouch — home",
     "StarTouch": "StarTouch",
     "Abrir carrinho": "Open cart",
-    "Mão segurando o Cartão NFC para Avaliação no Google da StarTouch": "Hand holding the StarTouch NFC Review Card for Google reviews",
     "Placa de Balcão M com NFC e QR Code": "Counter Stand M with NFC and QR code",
     "Placa de Balcão G com NFC e QR Code": "Counter Stand L with NFC and QR code",
     "Pulseira NFC StarTouch": "StarTouch NFC Wristband",
@@ -141,7 +140,8 @@
     "Não consegui calcular o frete pra esse país.": "Couldn't calculate shipping for this country.",
     "Informe um telefone com código do país — a DHL usa pra entregar.": "Enter a phone number with country code — DHL uses it for delivery.",
     "Preencha o endereço completo e a cidade.": "Fill in the full address and the city.",
-    "3 a 7 dias úteis": "3 to 7 business days"
+    "3 a 7 dias úteis": "3 to 7 business days",
+    "Atendente entregando o Cartão NFC StarTouch para o cliente avaliar no Google pelo celular": "Staff member handing the StarTouch NFC card to a customer to review on Google with their phone"
   },
   "h": {
     "R$ 29,90 / unidade": "R$ 29,90 <small>/ unit</small>",

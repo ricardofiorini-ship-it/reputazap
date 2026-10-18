@@ -4,7 +4,6 @@
     "StarTouch — início": "StarTouch — 首页",
     "StarTouch": "StarTouch",
     "Abrir carrinho": "打开购物车",
-    "Mão segurando o Cartão NFC para Avaliação no Google da StarTouch": "手持 StarTouch Google NFC 评价卡",
     "Placa de Balcão M com NFC e QR Code": "柜台立牌 M 号，支持 NFC 和二维码",
     "Placa de Balcão G com NFC e QR Code": "柜台立牌 L 号，支持 NFC 和二维码",
     "Pulseira NFC StarTouch": "StarTouch NFC 手环",
@@ -141,7 +140,8 @@
     "Não consegui calcular o frete pra esse país.": "无法计算该国家的运费。",
     "Informe um telefone com código do país — a DHL usa pra entregar.": "请填写带国家区号的电话——DHL 派送时会使用。",
     "Preencha o endereço completo e a cidade.": "请填写完整地址和城市。",
-    "3 a 7 dias úteis": "3 至 7 个工作日"
+    "3 a 7 dias úteis": "3 至 7 个工作日",
+    "Atendente entregando o Cartão NFC StarTouch para o cliente avaliar no Google pelo celular": "店员把 StarTouch NFC 卡递给顾客，用手机在 Google 上评价"
   },
   "h": {
     "R$ 29,90 / unidade": "R$ 29,90 <small>/ 张</small>",
