@@ -227,6 +227,11 @@
       "source": "/cartao-avaliacao-google-nfc.html",
       "destination": "/cartao-avaliacao-google-nfc",
       "permanent": true
+    },
+    {
+      "source": "/comparativo-cartao-avaliacao-google.html",
+      "destination": "/comparativo-cartao-avaliacao-google",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -275,6 +280,10 @@
     {
       "source": "/cartao-avaliacao-google-nfc",
       "destination": "/cartao-avaliacao-google-nfc.html"
+    },
+    {
+      "source": "/comparativo-cartao-avaliacao-google",
+      "destination": "/comparativo-cartao-avaliacao-google.html"
     },
     {
       "source": "/ativar",
