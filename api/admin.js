@@ -849,20 +849,59 @@ async function handleDeleteUser(req, res, admin) {
     // 1. Acha os businesses do user
     const { data: bizs } = await supabase
       .from("businesses")
-      .select("id, name")
+      .select("id, name, stripe_customer_id")
       .eq("user_id", userId);
     const bizIds = (bizs || []).map(b => b.id);
+
+    // 1b. STRIPE PRIMEIRO (18/10/2026). A exclusão apagava a conta e deixava o
+    // cliente do Stripe vivo — com a assinatura Pro rodando. A pessoa pede pra
+    // ser esquecida e continua sendo cobrada todo mês, sem conta pra cancelar
+    // e sem o webhook achar de quem é. Apagar o cliente no Stripe encerra as
+    // assinaturas dele na hora e tira nome/e-mail/cartão da nossa conta (o
+    // registro fiscal dos pagamentos o Stripe guarda por obrigação dele).
+    // Se falhar, NADA é apagado: conta excluída com cobrança viva é o pior
+    // desfecho, e esse não tem volta.
+    // As colunas stripe_* já guardaram ids do Mercado Pago — só `cus_` é Stripe.
+    const clientesStripe = [...new Set((bizs || []).map(b => b.stripe_customer_id).filter(c => /^cus_/.test(c || "")))];
+    if (clientesStripe.length) {
+      if (!process.env.STRIPE_SECRET_KEY) {
+        return res.status(503).json({ error: "Este usuário tem cliente no Stripe e STRIPE_SECRET_KEY não está configurada — nada foi apagado." });
+      }
+      if (!_stripeAdmin) _stripeAdmin = new Stripe(process.env.STRIPE_SECRET_KEY);
+      for (const cus of clientesStripe) {
+        try {
+          await _stripeAdmin.customers.del(cus);
+        } catch (e) {
+          if (e?.code !== "resource_missing") {
+            return res.status(502).json({ error: `Não consegui apagar o cliente ${cus} no Stripe (${e?.message}) — nada foi apagado. Cancele a assinatura no painel do Stripe e tente de novo.` });
+          }
+        }
+      }
+      summary.stripe_customers_deleted = clientesStripe;
+    }
 
     // 2. Devolve placas pro estoque (mantém código + histórico de taps, perde vínculo)
     if (bizIds.length) {
       // linha-ok: apagar conta devolve ao estoque TODO dispositivo dela, de qualquer linha
       const { data: returnedPlates, error: platesErr } = await supabase
         .from("plates")
+        // Mesma volta à fábrica do `unlink-plate` (api/plates.js): sem zerar
+        // contagem e menu, o próximo dono herdaria os toques e o modo do antigo.
         .update({
           business_id: null,
           status: "in_stock",
           channel_name: null,
-          activated_at: null
+          activated_at: null,
+          total_taps: 0,
+          last_tapped_at: null,
+          counter_reset_at: null,
+          counter_reset_taps: 0,
+          experience_id: null,
+          experience_enabled: false,
+          served_mode: "google_direto",
+          served_slug: null,
+          served_reason: "padrao",
+          served_at: null
         })
         .in("business_id", bizIds)
         .select("id");
