@@ -1359,7 +1359,18 @@
   "1 dispositivo ainda leva direto à avaliação no Google, sem menu.": "1 台设备仍直接跳转到 Google 评价，没有菜单。",
   "Próximo passo: publicar — o cliente ainda não vê este menu.": "下一步：发布——顾客还看不到这个菜单。",
   "Próximo passo: publicar as alterações — o cliente ainda vê a versão anterior.": "下一步：发布更改——顾客看到的仍是旧版本。",
-  "Próximo passo: escolher em quais dispositivos ele abre.": "下一步：选择在哪些设备上打开它。"
+  "Próximo passo: escolher em quais dispositivos ele abre.": "下一步：选择在哪些设备上打开它。",
+  "Não recebi o endereço do pagamento": "未收到付款地址",
+  "Não consegui abrir o pagamento": "无法打开付款页面",
+  "Seu teste grátis de 7 dias começou": "您的 7 天免费试用已开始",
+  "Seu Menu Inteligente está no ar até": "您的智能菜单上线至",
+  ", sem pagar nada.": "，无需付费。",
+  "Seu Menu Inteligente está no ar, sem pagar nada.": "您的智能菜单已上线，无需付费。",
+  "Para ele continuar abrindo depois disso, insira seus dados de pagamento (R$ 19,90/mês, sem fidelidade). Se não inserir, nada é cobrado e seus dispositivos voltam a levar direto ao Google.": "如需在此之后继续使用，请填写付款信息（每月 R$ 19.90，无最低期限）。如不填写，不会收取任何费用，您的设备将恢复直接跳转到 Google。",
+  "Inserir dados de pagamento": "填写付款信息",
+  "Seu Menu Inteligente parou de abrir": "您的智能菜单已停止打开",
+  "O período do StarTouch Pro terminou e seus dispositivos voltaram a levar direto à avaliação no Google. Seu menu está guardado: insira seus dados de pagamento para continuar (R$ 19,90/mês, sem fidelidade).": "StarTouch Pro 期限已结束，您的设备已恢复直接跳转到 Google 评价。您的菜单已保存：填写付款信息即可继续（每月 R$ 19.90，无最低期限）。",
+  "Ao publicar, começa seu teste grátis de 7 dias, sem cartão.": "发布即开始 7 天免费试用，无需银行卡。"
  },
  "p": [
   [

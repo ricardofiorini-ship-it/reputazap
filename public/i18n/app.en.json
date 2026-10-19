@@ -1359,7 +1359,18 @@
   "1 dispositivo ainda leva direto à avaliação no Google, sem menu.": "1 device still goes straight to the Google review, without a menu.",
   "Próximo passo: publicar — o cliente ainda não vê este menu.": "Next step: publish — customers can't see this menu yet.",
   "Próximo passo: publicar as alterações — o cliente ainda vê a versão anterior.": "Next step: publish the changes — customers still see the previous version.",
-  "Próximo passo: escolher em quais dispositivos ele abre.": "Next step: choose which devices open it."
+  "Próximo passo: escolher em quais dispositivos ele abre.": "Next step: choose which devices open it.",
+  "Não recebi o endereço do pagamento": "I did not receive the payment address",
+  "Não consegui abrir o pagamento": "I could not open the payment page",
+  "Seu teste grátis de 7 dias começou": "Your 7-day free trial has started",
+  "Seu Menu Inteligente está no ar até": "Your Smart Menu is live until",
+  ", sem pagar nada.": ", at no cost.",
+  "Seu Menu Inteligente está no ar, sem pagar nada.": "Your Smart Menu is live, at no cost.",
+  "Para ele continuar abrindo depois disso, insira seus dados de pagamento (R$ 19,90/mês, sem fidelidade). Se não inserir, nada é cobrado e seus dispositivos voltam a levar direto ao Google.": "To keep it opening after that, enter your payment details (R$ 19.90/month, no commitment). If you do not, nothing is charged and your devices go back to leading straight to Google.",
+  "Inserir dados de pagamento": "Enter payment details",
+  "Seu Menu Inteligente parou de abrir": "Your Smart Menu has stopped opening",
+  "O período do StarTouch Pro terminou e seus dispositivos voltaram a levar direto à avaliação no Google. Seu menu está guardado: insira seus dados de pagamento para continuar (R$ 19,90/mês, sem fidelidade).": "Your StarTouch Pro period has ended and your devices are leading straight to the Google review again. Your menu is saved: enter your payment details to continue (R$ 19.90/month, no commitment).",
+  "Ao publicar, começa seu teste grátis de 7 dias, sem cartão.": "Publishing starts your 7-day free trial, no card needed."
  },
  "p": [
   [

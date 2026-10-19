@@ -46,6 +46,21 @@ export default async function handler(req, res) {
     }
 
     console.log("[mybiz] Business encontrado:", business.name);
+
+    // O MENU SAIU DO AR POR FALTA DE PAGAMENTO? (19/10/2026)
+    // Teve assinatura no Stripe (cliente "cus_"), não é mais Pro e tem menu
+    // publicado: os dispositivos voltaram a levar direto ao Google. O painel
+    // mostra "insira seus dados de pagamento para continuar". Calculado aqui
+    // e não na tela porque a tela do /app não carrega as experiências.
+    // Falha na consulta = não mostra (nunca um aviso de cobrança chutado).
+    business.menu_fora_do_ar = false;
+    if (business.plan !== "pro" && String(business.stripe_customer_id || "").startsWith("cus_")) {
+      const { count, error: eExp } = await supabase.from("experiences")
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", business.id).not("published", "is", null).is("archived_at", null);
+      if (eExp) console.warn("[mybiz] não consegui ver os menus publicados:", eExp.message);
+      else business.menu_fora_do_ar = (count || 0) > 0;
+    }
     res.json({ business });
   } catch (err) {
     console.error("[mybiz] Erro inesperado:", err);

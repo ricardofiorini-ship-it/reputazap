@@ -647,11 +647,19 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
       // Ação que dá certo em silêncio é indistinguível de ação que não
       // aconteceu — foi exatamente assim que este botão pareceu quebrado.
       setPublicou({ em: r.dispositivos_com_este_menu || 0, quando: Date.now() })
+      // Este publicar abriu o teste de 7 dias (19/10/2026): o painel em volta
+      // mostra a faixa "seu teste começou" na hora, sem esperar recarregar.
+      if (r.teste_iniciado) {
+        window.dispatchEvent(new CustomEvent("st:teste-iniciado", { detail: r.teste_iniciado }))
+      }
       onAtualizar?.(r.experience)
     } catch (e) {
       // 402 = falta assinar. Vem do servidor, e é ele quem manda: se a tela
       // achasse que tem Pro e o servidor discordasse, quem vale é o servidor.
       if (e.status === 402 || e.corpo?.precisaPro) { setPaywall(true); return }
+      // A trava de verdade do "sem dispositivo" é do servidor, que não abre
+      // teste pra quem não tem onde usar o menu.
+      if (e.corpo?.semDispositivo) { setSemDispositivo(true); return }
       // O servidor devolve a lista do que corrigir junto com a recusa — o
       // ApiError carrega o corpo justamente pra isso.
       setValidacao(e.validacao || null)
@@ -768,7 +776,10 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
         <div className="v3-barra rascunho">
           <span>
             <b>Pronto para revisar.</b>{' '}
-            {publicado ? 'Seus clientes continuam vendo a versão publicada.' : 'Este menu ainda não está no ar.'}
+            {publicado ? 'Seus clientes continuam vendo a versão publicada.'
+              : (plano && !plano.proAtivo && !ehPrevia)
+                ? 'Ao publicar, começa seu teste grátis de 7 dias, sem cartão.'
+                : 'Este menu ainda não está no ar.'}
           </span>
           <span style={{ display: 'flex', gap: 8 }}>
             {publicado && <button className="v3-btn ghost" onClick={descartar}>Descartar</button>}

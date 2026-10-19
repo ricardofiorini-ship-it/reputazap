@@ -630,7 +630,11 @@ function buildData(real, user, demoMode) {
       // "assinante em dia" de "cancelou e esta usando o que ja pagou". Sem
       // ele a tela chamaria os dois de Pro e ofereceria cancelar de novo pra
       // quem ja cancelou.
-      cancelaEm: biz.stripe_cancel_at_period_end === true ? (biz.stripe_current_period_end || null) : null
+      cancelaEm: biz.stripe_cancel_at_period_end === true ? (biz.stripe_current_period_end || null) : null,
+      // Teste de 7 dias e menu fora do ar por falta de pagamento (19/10/2026):
+      // alimentam as faixas AvisoTesteMenu e AvisoMenuForaDoAr.
+      periodoAte: biz.stripe_current_period_end || null,
+      menuForaDoAr: biz.menu_fora_do_ar === true
     },
     // Preferências de alertas vindas do banco (Fase 2a). Shape compatível com AlertChannelsCard.
     alertChannels: alertPreferences ? {
@@ -2736,6 +2740,126 @@ function AvisoCartaoRecusado({ isMobile }) {
         background: '#DC2626', color: '#fff', borderRadius: 9, padding: '11px 18px',
         fontSize: 13.5, fontWeight: 700, whiteSpace: 'nowrap', opacity: indo ? .65 : 1
       }}>{indo ? 'Abrindo…' : 'Resolver pagamento →'}</button>
+    </div>
+  )
+}
+
+// ── TESTE DE 7 DIAS RODANDO (19/10/2026, Ricardo) ──
+// Desde que publicar o Menu passou a abrir o teste sozinho, sem passar pelo
+// Stripe, a pessoa não viu tela de assinatura nenhuma — então o painel
+// precisa dizer, em todas as abas, que o teste começou e quando acaba. Some
+// quando o cartão já está cadastrado: aí não há nada a pedir. `st:teste-
+// iniciado` (EditorMenu) acende a faixa na hora do publicar, sem recarregar.
+function AvisoTesteMenu({ isMobile, emTeste, fimDoTeste }) {
+  const [agora, setAgora] = React.useState(null)   // teste aberto nesta visita
+  React.useEffect(() => {
+    const ouvir = (e) => setAgora({ fimDoTeste: e.detail?.fimDoTeste || null })
+    window.addEventListener('st:teste-iniciado', ouvir)
+    return () => window.removeEventListener('st:teste-iniciado', ouvir)
+  }, [])
+  const ativo = emTeste || !!agora
+  const fim = agora?.fimDoTeste || fimDoTeste
+
+  // Cartão já cadastrado? Pergunta ao vivo (nada no banco registra). Falha =
+  // mostra a faixa: pedir o cartão a quem já pôs é menos grave que o menu sair
+  // do ar sem aviso.
+  const [temCartao, setTemCartao] = React.useState(null)
+  React.useEffect(() => {
+    if (!ativo) return
+    let vivo = true
+    apiCall('/api/billing?action=cartao', { method: 'POST' })
+      .then(r => { if (vivo) setTemCartao(r?.temCartao === true) })
+      .catch(() => {})
+    return () => { vivo = false }
+  }, [ativo])
+
+  const [indo, setIndo] = React.useState(false)
+  const [erro, setErro] = React.useState('')
+  if (!ativo || temCartao === true) return null
+
+  const data = fim ? new Date(fim).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : null
+  async function inserirPagamento() {
+    setIndo(true); setErro('')
+    try {
+      const r = await apiCall('/api/billing?action=billing-portal', { method: 'POST', body: JSON.stringify({ retorno: 'app' }) })
+      if (!r?.url) throw new Error('Não recebi o endereço do pagamento')
+      window.location.href = r.url
+    } catch (e) {
+      setErro(e.message || 'Não consegui abrir o pagamento')
+      setIndo(false)
+    }
+  }
+  return (
+    <div role="status" style={{
+      maxWidth: 1200, margin: isMobile ? '12px 12px 0' : '16px auto 0',
+      background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 12,
+      padding: isMobile ? 14 : '14px 18px',
+      display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap'
+    }}>
+      <div style={{ flex: '1 1 320px', minWidth: 0 }}>
+        <div style={{ fontSize: 14.5, fontWeight: 800, color: T.blueDk }}>
+          Seu teste grátis de 7 dias começou
+        </div>
+        <div style={{ fontSize: 13, color: T.blueDk, lineHeight: 1.55, marginTop: 3 }}>
+          {data
+            ? <>Seu Menu Inteligente está no ar até <strong>{data}</strong>, sem pagar nada.</>
+            : 'Seu Menu Inteligente está no ar, sem pagar nada.'}{' '}
+          Para ele continuar abrindo depois disso, insira seus dados de pagamento (R$ 19,90/mês, sem fidelidade).
+          Se não inserir, nada é cobrado e seus dispositivos voltam a levar direto ao Google.
+        </div>
+        {erro && <div style={{ fontSize: 12, color: T.red, marginTop: 6 }}>{erro}</div>}
+      </div>
+      <button type="button" onClick={inserirPagamento} disabled={indo} style={{
+        border: 'none', cursor: indo ? 'default' : 'pointer', fontFamily: 'inherit',
+        background: T.blue, color: '#fff', borderRadius: 9, padding: '11px 18px',
+        fontSize: 13.5, fontWeight: 700, whiteSpace: 'nowrap', opacity: indo ? .65 : 1
+      }}>{indo ? 'Abrindo…' : 'Inserir dados de pagamento'}</button>
+    </div>
+  )
+}
+
+// ── O MENU PAROU DE ABRIR (19/10/2026, Ricardo) ──
+// O teste (ou a assinatura) terminou sem pagamento: o Stripe encerrou, o plano
+// voltou pro free e os dispositivos voltaram ao Google. O menu continua
+// guardado. A faixa diz isso e leva direto ao pagamento — checkout com cartão,
+// porque o teste é um só por cliente (`jaTeveAssinatura`). Quem decide se
+// aparece é o /api/mybiz (`menu_fora_do_ar`).
+function AvisoMenuForaDoAr({ isMobile }) {
+  const [indo, setIndo] = React.useState(false)
+  const [erro, setErro] = React.useState('')
+  async function inserirPagamento() {
+    setIndo(true); setErro('')
+    try {
+      const r = await apiCall('/api/billing?action=checkout', { method: 'POST', body: JSON.stringify({ retorno: 'app' }) })
+      if (!r?.url) throw new Error('Não recebi o endereço do pagamento')
+      window.location.href = r.url
+    } catch (e) {
+      setErro(e.message || 'Não consegui abrir o pagamento')
+      setIndo(false)
+    }
+  }
+  return (
+    <div role="alert" style={{
+      maxWidth: 1200, margin: isMobile ? '12px 12px 0' : '16px auto 0',
+      background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 12,
+      padding: isMobile ? 14 : '14px 18px',
+      display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap'
+    }}>
+      <div style={{ flex: '1 1 320px', minWidth: 0 }}>
+        <div style={{ fontSize: 14.5, fontWeight: 800, color: '#92400E' }}>
+          Seu Menu Inteligente parou de abrir
+        </div>
+        <div style={{ fontSize: 13, color: '#92400E', lineHeight: 1.55, marginTop: 3 }}>
+          O período do StarTouch Pro terminou e seus dispositivos voltaram a levar direto à avaliação no Google.
+          Seu menu está guardado: insira seus dados de pagamento para continuar (R$ 19,90/mês, sem fidelidade).
+        </div>
+        {erro && <div style={{ fontSize: 12, color: T.red, marginTop: 6 }}>{erro}</div>}
+      </div>
+      <button type="button" onClick={inserirPagamento} disabled={indo} style={{
+        border: 'none', cursor: indo ? 'default' : 'pointer', fontFamily: 'inherit',
+        background: '#B45309', color: '#fff', borderRadius: 9, padding: '11px 18px',
+        fontSize: 13.5, fontWeight: 700, whiteSpace: 'nowrap', opacity: indo ? .65 : 1
+      }}>{indo ? 'Abrindo…' : 'Inserir dados de pagamento'}</button>
     </div>
   )
 }
@@ -9012,6 +9136,10 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
       <Header bizName={headerBizName} plan={plan} isMobile={isMobile} onNavigate={setTab} user={user} onLogout={isGuest ? () => { window.location.href = '/app' } : onLogout} demoMode={demoMode} guest={isGuest} signupUrl={guestSignupUrl}
         activeTab={tab} onTabChange={navigateFromMore} />
       {!isGuest && !demoMode && d?.billing?.status === 'past_due' && <AvisoCartaoRecusado isMobile={isMobile}/>}
+      {!isGuest && !demoMode && d?.billing?.status !== 'past_due' && (
+        <AvisoTesteMenu isMobile={isMobile} emTeste={d?.billing?.status === 'trialing' && !d?.billing?.cancelaEm} fimDoTeste={d?.billing?.periodoAte}/>
+      )}
+      {!isGuest && !demoMode && d?.billing?.menuForaDoAr && <AvisoMenuForaDoAr isMobile={isMobile}/>}
       {/* A SEGUNDA BARRA (`TopTabs`) SAIU em 21/09: as abas subiram pra dentro
           do header, numa linha só. No celular ela nunca renderizou — lá quem
           navega é a `BottomTabBar`. */}

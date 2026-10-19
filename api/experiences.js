@@ -38,6 +38,7 @@ import { reimprimir } from "./_lib/imprimir.js";
 import { soStartouch, LINHA_STARTOUCH } from "./_lib/linha.js";
 import { contarComMenu, exigeConfirmacao, sincronizarExtras, resumoDoLimite } from "./_lib/menu-extras.js";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
+import { iniciarTesteSemCheckout } from "./_lib/stripe-pro.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
@@ -96,7 +97,7 @@ async function autenticar(req) {
 async function negocioDo(user) {
   const { data, error } = await supabase
     .from("businesses")
-    .select("id, name, place_id, plan, stripe_current_period_end, trial_ends_at, stripe_subscription_id, stripe_cancel_at_period_end")
+    .select("id, name, place_id, plan, stripe_current_period_end, trial_ends_at, stripe_subscription_id, stripe_cancel_at_period_end, stripe_customer_id")
     .eq("user_id", user.id)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -139,10 +140,11 @@ function gerarSlug(nome) {
 const AVISO_MENU = {
   criou:    { tipo: "admin_menu_criado",   emoji: "🧩", titulo: "Montou um Menu Inteligente" },
   cobranca: { tipo: "admin_menu_cobranca", emoji: "💳", titulo: "Tentou publicar o Menu e parou na cobrança" },
+  teste:    { tipo: "admin_menu_teste",    emoji: "🧪", titulo: "Publicou o Menu — teste de 7 dias começou" },
 };
 const escHtml = (v) => String(v ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-async function avisaAdminMenu(qual, { biz, user, exp }) {
+async function avisaAdminMenu(qual, { biz, user, exp, detalhe = "" }) {
   try {
     const to = process.env.ADMIN_NOTIFICATIONS_EMAIL;
     if (!to) { console.warn(`[experiences/admin] ADMIN_NOTIFICATIONS_EMAIL não setado — aviso "${qual}" pulado`); return; }
@@ -163,7 +165,10 @@ async function avisaAdminMenu(qual, { biz, user, exp }) {
 <p><strong>Telefone:</strong> ${escHtml(fone || "—")}${zap ? ` — <a href="${zap}">abrir no WhatsApp</a>` : ""}</p>
 <p><strong>Menu:</strong> ${escHtml(exp?.name || "—")}</p>
 <p><strong>Dispositivos ativos:</strong> ${dispositivos ?? "—"}</p>
-${qual === "cobranca" ? "<p>O rascunho está salvo. Falta só assinar o Pro (7 dias grátis) pra ir ao ar.</p>" : "<p>Ainda não publicou. Se não aparecer o aviso de cobrança depois, parou antes de tentar publicar.</p>"}`;
+${qual === "cobranca" ? "<p>O rascunho está salvo. Falta assinar o Pro pra ir ao ar.</p>"
+  : qual === "teste" ? "<p>O menu já está no ar, sem cartão. Se não cadastrar o cartão até o fim dos 7 dias, a assinatura se encerra sozinha e o menu volta pro Google.</p>"
+  : "<p>Ainda não publicou.</p>"}
+${detalhe ? `<p><strong>Atenção:</strong> ${escHtml(detalhe)}</p>` : ""}`;
 
     const r = await sendTransactionalEmail({
       userId: user.id, emailType: cfg.tipo, to,
@@ -276,19 +281,8 @@ async function publicar(req, res, biz, user) {
   const exp = await experienciaDo(biz, req.body?.id);
   if (!exp) return res.status(404).json({ error: "Experiência não encontrada." });
 
-  const resolucao = resolvePlano(biz, user?.email || null);
-  if (!podeUsarMenu(resolucao)) {
-    // 402 (Payment Required) e não 403: a tela precisa distinguir "falta pagar"
-    // — que abre a caixa da assinatura — de "não pode" ou "deu erro".
-    // O rascunho JÁ ESTÁ salvo neste ponto; a recusa não perde trabalho nenhum.
-    await avisaAdminMenu("cobranca", { biz, user, exp });
-    return res.status(402).json({
-      error: "Publicar o Menu Inteligente exige o plano Pro.",
-      precisaPro: true,
-      plano: resolucao
-    });
-  }
-
+  // Validação e limite de dispositivos vêm ANTES do teste: abrir uma
+  // assinatura pra um menu que nem vai ao ar seria cobrança sem produto.
   const veredito = validarParaPublicar(exp.draft);
   if (!veredito.podePublicar) {
     // Recusa com a lista do que corrigir. Publicar removendo os quebrados em
@@ -302,6 +296,61 @@ async function publicar(req, res, biz, user) {
     biz, email: user?.email, proAtivo: true, total: projetado, aceitaExtra: req.body?.aceitaExtra
   });
   if (pergunta) return res.status(409).json(pergunta);
+
+  // ── SEM PRO? O TESTE COMEÇA AQUI (19/10/2026, Ricardo) ──
+  // Antes: Publicar → caixa da assinatura → página do Stripe → volta. Agora:
+  // Publicar → no ar, com 7 dias de teste sem cartão. O cartão só é pedido
+  // pra continuar depois (painel e e-mail do Stripe 3 dias antes). Regra do
+  // teste intacta — ver _lib/stripe-pro.js.
+  //
+  // A trava continua sendo esta função: quem já usou o teste, ou quando o
+  // Stripe falha, recebe 402 e a tela abre a caixa da assinatura, como antes.
+  let testeIniciado = null;
+  if (!podeUsarMenu(resolvePlano(biz, user?.email || null))) {
+    const { count: dispositivos } = await soStartouch(supabase.from("plates").select("id", { count: "exact", head: true }))
+      .eq("business_id", biz.id).eq("status", "active");
+    // Sem dispositivo, não abre assinatura (12/10, Ricardo): vender o Pro pra
+    // quem não tem onde usar é reembolso e reclamação na certa. A tela já
+    // barra antes; isto é a trava de verdade.
+    if (!dispositivos) {
+      return res.status(409).json({ error: "Para publicar, ative um dispositivo StarTouch primeiro.", semDispositivo: true });
+    }
+
+    const t = await iniciarTesteSemCheckout({ biz, user });
+    if (!t.ok) {
+      await avisaAdminMenu("cobranca", {
+        biz, user, exp,
+        detalhe: t.motivo === "erro" ? `O teste automático FALHOU no Stripe (${t.erro}). O cliente viu a caixa da assinatura.` : "Já usou o teste grátis antes: só volta pagando."
+      });
+      return res.status(402).json({
+        error: "Publicar o Menu Inteligente exige o plano Pro.",
+        precisaPro: true,
+        testeUsado: t.motivo === "teste_usado",
+        plano: resolvePlano(biz, user?.email || null)
+      });
+    }
+
+    const fimPeriodo = t.sub?.items?.data?.[0]?.current_period_end ?? t.sub?.current_period_end ?? t.sub?.trial_end ?? null;
+    const patchPlano = {
+      plan: "pro",
+      stripe_customer_id: t.customerId,
+      stripe_subscription_id: t.sub.id,
+      stripe_subscription_status: t.sub.status,
+      stripe_current_period_end: fimPeriodo ? new Date(fimPeriodo * 1000).toISOString() : null,
+      stripe_cancel_at_period_end: false,
+    };
+    const { error: ePlano } = await supabase.from("businesses").update(patchPlano).eq("id", biz.id);
+    if (ePlano) {
+      // O teste existe no Stripe, mas o banco não sabe: o webhook não escuta
+      // `subscription.created`, então ninguém mais grava isto até o teste
+      // acabar. O /m/ seguiria servindo o Google. Grita — corrigir à mão pelo
+      // /admin/assinaturas, que lê o Stripe direto.
+      console.error(`[experiences/teste] teste ${t.sub.id} ABERTO no Stripe mas o plano NÃO foi gravado (biz=${biz.id}): ${ePlano.message}`);
+    }
+    Object.assign(biz, patchPlano);
+    testeIniciado = { fimDoTeste: t.fimDoTeste };
+    await avisaAdminMenu("teste", { biz, user, exp });
+  }
 
   const published = montarPublicado(exp.draft);
   const { data, error } = await supabase.from("experiences").update({
@@ -318,6 +367,9 @@ async function publicar(req, res, biz, user) {
     ok: true,
     experience: { ...data, pendente: estaPendente(data.draft, data.published) },
     validacao: veredito,
+    // Preenchido só quando ESTE publicar abriu o teste: a tela diz "seu teste
+    // de 7 dias começou" em vez de só "publicado".
+    teste_iniciado: testeIniciado,
     dispositivos_atualizados: mudados,
     // Quantos dispositivos passaram a abrir este menu agora — é o que a tela
     // usa pra confirmar o efeito, em vez de só dizer "publicado".
