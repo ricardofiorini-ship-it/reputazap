@@ -621,10 +621,16 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
       // certa. Vale também pra quem já é Pro. O menu já foi salvo acima.
       if (!ehPrevia && !(dados.devices || []).length) { setSemDispositivo(true); return }
 
-      // O servidor recusa de qualquer jeito (402). Perguntar aqui antes só
-      // evita a viagem de ida e volta — a trava não é esta linha, é a de lá.
-      if (plano && !plano.proAtivo) { setPaywall(true); return }
-      if (ehPrevia) { setPublicou({ em: 0, quando: Date.now() }); return }
+      // Quem não é Pro VAI ao servidor e volta com 402, de propósito. Até
+      // 19/10/2026 esta linha abria a caixa da assinatura sozinha, pra poupar
+      // a viagem — e com isso o servidor nunca soube que a pessoa tentou
+      // publicar: o aviso "parou na cobrança" (api/experiences.js) não saiu
+      // uma vez sequer, e "montou e não publicou" ficou sem resposta sobre
+      // ONDE parou. Na prévia não há servidor a avisar; ali a tela decide.
+      if (ehPrevia) {
+        if (plano && !plano.proAtivo) { setPaywall(true); return }
+        setPublicou({ em: 0, quando: Date.now() }); return
+      }
 
       let r
       try {
