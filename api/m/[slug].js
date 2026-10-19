@@ -167,7 +167,14 @@ export function pagina({ exp, biz, temFoto, slug, plateCode }) {
     // menos do que um botão que não leva a lugar nenhum.
     if (!href) return "";
     const externo = /^https?:/i.test(href) && b.type !== "contact";
-    return `<a class="bt" href="/m/${esc(slug)}?go=${esc(b.id)}${q}"${externo ? ' rel="noopener"' : ""}>
+    // LINK DIRETO, NÃO MAIS PELO NOSSO ?go= (19/10/2026). O celular só abre o
+    // APLICATIVO (WhatsApp, Instagram, Maps) quando o toque vai direto pro
+    // link dele; chegando por redirecionamento do nosso servidor, abre a
+    // página da web — o Ricardo tocou no WhatsApp do próprio menu e caiu na
+    // tela "do PC". O clique continua contado: o script do fim da página avisa
+    // o servidor (`&reg=1`) no mesmo toque. O contato segue pela sub-tela.
+    const alvo = b.type === "contact" ? `/m/${esc(slug)}?go=${esc(b.id)}${q}` : esc(href);
+    return `<a class="bt" href="${alvo}" data-go="${esc(b.id)}"${externo ? ' rel="noopener"' : ""}>
       <span class="ic">${icone(b.type)}</span><span class="lb">${esc(b.label)}</span>
       <span class="ch">›</span>
     </a>`;
@@ -230,6 +237,18 @@ h1{font-size:22px;font-weight:700;text-align:center;margin:0;letter-spacing:-.02
   ${linhas || '<div class="vazio">Este menu ainda não tem ações disponíveis.</div>'}
   <div class="rod"><a href="https://startouch.com.br" rel="noopener"><img src="/startouch-logo-dark.png" alt="StarTouch" width="94" height="31" loading="lazy" decoding="async" style="display:inline-block;object-fit:contain"/></a></div>
 </div>
+<script>
+// Conta o clique sem ficar no caminho do cliente. sendBeacon é feito pra
+// isto: o navegador entrega o aviso mesmo com a página saindo. Grava o MESMO
+// evento que o ?go= gravava — nenhum dado novo, nada de terceiro.
+document.addEventListener("click", function (e) {
+  var a = e.target.closest && e.target.closest("a[data-go]");
+  if (!a || a.getAttribute("href").indexOf("?go=") !== -1) return;
+  var u = "/m/${esc(slug)}?go=" + encodeURIComponent(a.getAttribute("data-go")) + "&reg=1${q}";
+  try { if (navigator.sendBeacon && navigator.sendBeacon(u)) return; } catch (x) {}
+  try { fetch(u, { method: "POST", keepalive: true }); } catch (x) {}
+});
+</script>
 </body>
 </html>`;
 }
@@ -416,13 +435,19 @@ export default async function handler(req, res) {
     }
 
     // ── Clique: registra e encaminha ──
-    // O registro acontece no SERVIDOR, e não por script na página, porque
-    // evento não gravado não volta — e é este número que a tela de Resultados
-    // vai mostrar. Um salto a mais, e o cliente já estava navegando.
+    // Desde 19/10/2026 o botão vai DIRETO pro destino (senão o celular abre a
+    // página do WhatsApp em vez do aplicativo) e o clique chega aqui pelo aviso
+    // `reg=1` do script da página. O redirecionamento antigo fica: atende o
+    // contato, página aberta antes do deploy e navegador sem script.
     if (req.query.go) {
       const b = acha(req.query.go);
-      if (!b) return res.redirect(302, `/m/${encodeURIComponent(slug)}`);
+      if (!b) return req.query.reg ? res.status(204).end() : res.redirect(302, `/m/${encodeURIComponent(slug)}`);
       const url = destino(b, biz, slug);
+      // `reg=1`: só o aviso do clique (o botão já foi direto pro destino).
+      if (req.query.reg) {
+        if (url) await registrar({ exp, plate, kind: "click", botao: b, req });
+        return res.status(204).end();
+      }
       if (!url) return res.redirect(302, `/m/${encodeURIComponent(slug)}`);
       await registrar({ exp, plate, kind: "click", botao: b, req });
       return res.redirect(302, url);

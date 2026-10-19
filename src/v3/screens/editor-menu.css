@@ -189,6 +189,16 @@
 .me-guia-acoes { display: flex; justify-content: space-between; gap: 10px; }
 .me-guia-acoes .v3-btn { font-size: 13px; padding: 8px 14px; }
 .me-guia-rever { display: inline-flex; align-items: center; gap: 5px; }
+/* No celular o cartão rouba metade da tela e sobra pouco pra rolar o que está
+   aceso (Ricardo, 19/10/2026): mais baixo, texto menor, mesmo conteúdo. */
+@media (max-width: 640px) {
+  .me-guia-cartao { padding: 11px 12px 10px; border-radius: 12px; }
+  .me-guia-conta { margin-bottom: 6px; }
+  .me-guia-cartao h3 { font-size: 14.5px; margin-bottom: 3px; }
+  .me-guia-cartao p { font-size: 12.5px; line-height: 1.42; margin-bottom: 9px; }
+  .me-guia-acoes .v3-btn { padding: 6px 12px; font-size: 12.5px; }
+  .me-guia-x { top: 6px; right: 6px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .me-guia-escuro, .me-guia-anel, .me-guia-cartao { transition: none; animation: none; }
 }
