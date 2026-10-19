@@ -100,7 +100,7 @@
           body: JSON.stringify({ token_hash: tokenHash, password: senha })
         });
         var j = null; try { j = await r.json(); } catch (x) {}
-        if (r.status === 401 || (j && j.codigo === "link_expirado")) return telaPedirOutro(j && j.error);
+        if (r.status === 401 || (j && j.codigo === "link_expirado")) return telaPedirOutro();
         if (!r.ok || !j || !j.token) throw new Error((j && j.error) || "Não consegui trocar a senha. Tente de novo.");
         guardarSessao(j);
         location.replace(destino());
