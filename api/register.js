@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { sendInBackground } from "./_lib/email-sender.js";
 import { welcomeEmail, adminNewClientEmail } from "./_lib/email-templates.js";
+import { tryboBoasVindasEmail, remetenteTrybo } from "./_lib/email-trybo.js";
 import { logFunnel } from "./track.js";
 import { idiomaDoPedido } from "./_lib/idioma.js";
 
@@ -16,7 +17,10 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { name, email, phone, password, anon_id } = req.body;
+  const { name, email, phone, password, anon_id, produto } = req.body;
+  // Conta criada pela ativação do cartão Trybo (19/10/2026): boas-vindas da
+  // Trybo, não o "Bem-vindo ao StarTouch" que falava em avaliações no Google.
+  const ehTrybo = produto === "trybo";
   // WhatsApp deixou de ser obrigatório em 10/09/2026. Motivo medido: de 9
   // pessoas que clicaram em "criar conta" no painel do visitante, 4 chegaram
   // ao fim — e o formulário pedia 5 campos pra quem só queria ver o nome de um
@@ -96,15 +100,16 @@ export default async function handler(req, res) {
     const emailPromises = [];
 
     // 1) Boas-vindas pro cliente
-    const tmpl = welcomeEmail({ userName: name });
+    const tmpl = ehTrybo ? tryboBoasVindasEmail({ nome: name }) : welcomeEmail({ userName: name });
     emailPromises.push(sendInBackground({
       userId: data.user.id,
+      // Mesmo tipo "welcome": é ele que impede boas-vindas em dobro.
       emailType: "welcome",
       to: email,
       subject: tmpl.subject,
       html: tmpl.html,
-      metadata: { source: "register" },
-      lang: lang || "pt"
+      metadata: { source: ehTrybo ? "trybo" : "register" },
+      ...(ehTrybo ? { from: remetenteTrybo() || undefined, lang: "pt" } : { lang: lang || "pt" })
     }));
 
     // 2) Notificação admin (pra Ricardo) — 1x por novo cliente
@@ -114,7 +119,7 @@ export default async function handler(req, res) {
         clientName: name,
         clientEmail: email,
         clientPhone: telefone,
-        source: "register"
+        source: ehTrybo ? "trybo" : "register"
       });
       emailPromises.push(sendInBackground({
         userId: data.user.id,

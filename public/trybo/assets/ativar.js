@@ -72,7 +72,11 @@
     var r = await fetch(url, opcoes);
     var j = null;
     try { j = await r.json(); } catch (e) { /* resposta sem corpo */ }
-    if (!r.ok) throw new Error((j && j.error) || "Não consegui falar com o sistema. Tente de novo.");
+    if (!r.ok) {
+      var falha = new Error((j && j.error) || "Não consegui falar com o sistema. Tente de novo.");
+      falha.codigo = j && j.codigo;   // ex.: email_ja_existe — a tela oferece a saída certa
+      throw falha;
+    }
     return j;
   }
 
@@ -164,7 +168,9 @@
   }
 
   // ── PASSO 2 — a conta ─────────────────────────────────────
-  function telaConta(modo) {
+  // `email` e `aviso`: quem tentou criar conta com um e-mail que já tem conta
+  // vem pra cá já no "Entrar", com o e-mail preenchido e o porquê na tela.
+  function telaConta(modo, email, aviso) {
     var criar = modo !== "entrar";
     moldura("conta",
       '<button class="back-button" data-voltar>' + icon("back") + " Voltar</button>" +
@@ -172,19 +178,39 @@
       "<h1>" + (criar ? "Crie sua conta." : "Entre na sua conta.") + "</h1>" +
       '<p class="intro">' + (criar
         ? "É com ela que você troca o destino do cartão depois, sem reimprimir nada."
-        : "Use o mesmo e-mail que você já usa na StarTouch.") + "</p>" +
+        : "Use o e-mail e a senha da sua conta.") + "</p>" +
       '<div class="code-badge">' + icon("card") + " " + esc(estado.code) + "</div>" +
       '<form id="f">' +
         (criar ? '<label class="field">Seu nome<input name="nome" required maxlength="80" autocomplete="name"></label>' : "") +
-        '<label class="field">E-mail<input name="email" type="email" required autocomplete="email" inputmode="email"></label>' +
+        '<label class="field">E-mail<input name="email" type="email" required autocomplete="email" inputmode="email" value="' + esc(email || "") + '"></label>' +
         '<label class="field">Senha<input name="senha" type="password" required minlength="6" autocomplete="' + (criar ? "new-password" : "current-password") + '"></label>' +
-        '<p class="form-error" hidden tabindex="-1" role="alert"></p>' +
+        '<p class="form-error"' + (aviso ? "" : " hidden") + ' tabindex="-1" role="alert">' + esc(aviso || "") + "</p>" +
         '<button class="btn primary full" type="submit">' + (criar ? "Criar conta" : "Entrar") + " " + icon("arrow") + "</button>" +
       "</form>" +
-      '<button class="link-button" data-trocar>' + (criar ? "Já tenho conta na StarTouch" : "Ainda não tenho conta") + "</button>");
+      (criar ? "" : '<button class="link-button" type="button" data-esqueci style="margin:0 0 12px">Esqueci minha senha</button><br>') +
+      '<button class="link-button" data-trocar>' + (criar ? "Já tenho conta" : "Ainda não tenho conta") + "</button>");
 
     app.querySelector("[data-voltar]").onclick = function () { estado.passo = "codigo"; render(); };
     app.querySelector("[data-trocar]").onclick = function () { telaConta(criar ? "entrar" : "criar"); };
+
+    // Esquecer a senha no meio da ativação era beco sem saída (19/10/2026).
+    // O e-mail que chega é da Trybo e, trocada a senha, a pessoa volta pra
+    // cá com o mesmo cartão (`code`).
+    var esqueci = app.querySelector("[data-esqueci]");
+    if (esqueci) esqueci.onclick = async function () {
+      var form = document.getElementById("f");
+      var email = String(new FormData(form).get("email") || "").trim();
+      if (!email) return erro(form, "Digite o seu e-mail acima e toque de novo em “Esqueci minha senha”.");
+      esqueci.disabled = true;
+      try {
+        await fetch("/api/forgot-password", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email, produto: "trybo", code: estado.code })
+        });
+      } catch (e) { /* a resposta é a mesma de qualquer jeito */ }
+      esqueci.disabled = false;
+      erro(form, "Se esse e-mail tiver conta, chega em instantes um link para criar uma senha nova. Confira também o spam.");
+    };
 
     document.getElementById("f").onsubmit = async function (e) {
       e.preventDefault();
@@ -197,7 +223,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(criar
-            ? { name: d.get("nome"), email: d.get("email"), password: d.get("senha") }
+            ? { name: d.get("nome"), email: d.get("email"), password: d.get("senha"), produto: "trybo" }
             : { email: d.get("email"), password: d.get("senha") })
         });
         if (!r || !r.token) throw new Error("Não recebi a sessão. Tente de novo.");
@@ -205,6 +231,10 @@
         estado.passo = "redes";
         render();
       } catch (err) {
+        if (criar && err.codigo === "email_ja_existe") {
+          return telaConta("entrar", d.get("email"),
+            "Você já tem uma conta com esse e-mail. Entre com a sua senha — ou toque em “Esqueci minha senha”.");
+        }
         erro(form, err.message);
       } finally {
         ocupado(botao, false);

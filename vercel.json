@@ -264,6 +264,10 @@
       "destination": "/trybo/meu-painel.html"
     },
     {
+      "source": "/nova-senha-trybo",
+      "destination": "/trybo/nova-senha.html"
+    },
+    {
       "source": "/",
       "missing": [
         {

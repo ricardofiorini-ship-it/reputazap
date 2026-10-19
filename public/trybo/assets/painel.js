@@ -184,9 +184,10 @@
       "</section></main>" +
       '<footer class="activation-footer">Trybo, uma solução StarTouch.</footer>';
 
-    // Mesma chamada do login da StarTouch. A resposta é sempre a mesma frase,
-    // exista ou não a conta — dizer "não achei esse e-mail" contaria a quem
-    // está sondando quem é cliente.
+    // A resposta é sempre a mesma frase, exista ou não a conta — dizer "não
+    // achei esse e-mail" contaria a quem está sondando quem é cliente.
+    // `produto: "trybo"` (19/10/2026): o e-mail e a página da senha nova são
+    // da Trybo e devolvem a pessoa a este painel. Antes caía na StarTouch.
     app.querySelector("[data-esqueci]").onclick = async function () {
       var form = document.getElementById("f");
       var email = String(form.email.value || "").trim();
@@ -195,7 +196,7 @@
         await fetch("/api/forgot-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email })
+          body: JSON.stringify({ email: email, produto: "trybo" })
         });
       } catch (e) {}
       erro(form, "Se esse e-mail tiver conta, chega um link para criar uma senha nova. Confira também o spam.");

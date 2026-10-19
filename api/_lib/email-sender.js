@@ -71,7 +71,10 @@ export async function sendTransactionalEmail({
   replyTo,
   // lang: língua do e-mail (pt|en|es|zh). Sem ela, vale a da conta — ver
   // _lib/idioma.js. Aviso ao admin (admin_*) sempre em português.
-  lang
+  lang,
+  // from: remetente próprio (ex: "Trybo <...>", ver _lib/email-trybo.js).
+  // Sem ele, o da StarTouch.
+  from
 }) {
   if (!userId || !emailType || !to) {
     // `to` fora do log (PII). O booleano diz o que precisa pra depurar.
@@ -147,7 +150,7 @@ export async function sendTransactionalEmail({
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: EMAIL_FROM,
+        from: from || EMAIL_FROM,
         to: [to],
         subject,
         html,

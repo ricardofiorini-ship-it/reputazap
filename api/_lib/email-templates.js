@@ -606,7 +606,8 @@ export function adminNewClientEmail({ clientName, clientEmail, clientPhone, sour
     register: "📝 Cadastro email/senha",
     login_google: "🔵 Login Google (1ª vez)",
     activate_codigo: "📦 Veio pelo /ativar-codigo (NFC)",
-    activate_inbound: "🌐 Veio pela landing"
+    activate_inbound: "🌐 Veio pela landing",
+    trybo: "💳 Ativação de cartão Trybo"
   }[source] || source || "Direto";
   const when = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
 
