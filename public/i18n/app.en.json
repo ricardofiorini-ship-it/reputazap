@@ -1370,7 +1370,23 @@
   "Inserir dados de pagamento": "Enter payment details",
   "Seu Menu Inteligente parou de abrir": "Your Smart Menu has stopped opening",
   "O período do StarTouch Pro terminou e seus dispositivos voltaram a levar direto à avaliação no Google. Seu menu está guardado: insira seus dados de pagamento para continuar (R$ 19,90/mês, sem fidelidade).": "Your StarTouch Pro period has ended and your devices are leading straight to the Google review again. Your menu is saved: enter your payment details to continue (R$ 19.90/month, no commitment).",
-  "Ao publicar, começa seu teste grátis de 7 dias, sem cartão.": "Publishing starts your 7-day free trial, no card needed."
+  "Ao publicar, começa seu teste grátis de 7 dias, sem cartão.": "Publishing starts your 7-day free trial, no card needed.",
+  "Ver o passo a passo": "See the step-by-step",
+  "A cara do seu menu": "Your menu's look",
+  "Confira o nome do seu negócio e escreva uma frase curta de boas-vindas. É a primeira coisa que o seu cliente lê.": "Check your business name and write a short welcome line. It's the first thing your customer reads.",
+  "Os botões": "The buttons",
+  "O “Avaliar no Google” já vem pronto e fica sempre no topo. Clique em “Adicionar botão” para incluir WhatsApp, Instagram, cardápio, agenda… Preencha e clique em “Inserir”.": "“Review on Google” comes ready and always stays at the top. Click “Add button” to include WhatsApp, Instagram, menu, booking… Fill it in and click “Add”.",
+  "Veja como fica": "See how it looks",
+  "Este celular mostra, na hora, o que o seu cliente vai ver. Clique num botão dele para editar.": "This phone shows, in real time, what your customer will see. Click one of its buttons to edit it.",
+  "Escolha onde ele abre": "Choose where it opens",
+  "Ligue o interruptor do cartão, placa ou pulseira em que este menu deve aparecer. Quem encostar o celular ali abre o menu.": "Turn on the switch for the card, plate or wristband where this menu should appear. Anyone who taps their phone there opens the menu.",
+  "O menu abre quando o cliente encosta o celular num dispositivo StarTouch. Se você já tem um na mão, ative aqui; se não, veja na loja.": "The menu opens when the customer taps their phone on a StarTouch device. If you already have one, activate it here; if not, check the store.",
+  "Tudo certo? Clique em “Publicar menu”. Começa o seu teste grátis de 7 dias, sem cartão. Antes disso, nada muda para o cliente.": "All set? Click “Publish menu”. Your 7-day free trial starts, no card needed. Until then, nothing changes for the customer.",
+  "Tudo certo? Clique em “Publicar menu”. Antes disso, nada muda para o cliente: o dispositivo continua levando direto ao Google.": "All set? Click “Publish menu”. Until then, nothing changes for the customer: the device keeps going straight to Google.",
+  "Fechar o passo a passo": "Close the step-by-step",
+  "Pular": "Skip",
+  "Entendi": "Got it",
+  "Próximo": "Next"
  },
  "p": [
   [

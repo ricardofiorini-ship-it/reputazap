@@ -17,8 +17,9 @@ import './editor-menu.css'
 import PhoneFrame from '../PhoneFrame.jsx'
 import {
   ArrowLeft, ChevronUp, ChevronDown, GripVertical, Trash2, Plus, Lock,
-  AlertTriangle, Check, ExternalLink, Info, Sparkles, X, Copy, Link2
+  AlertTriangle, Check, ExternalLink, Info, Sparkles, X, Copy, Link2, Compass
 } from 'lucide-react'
+import GuiaMenu, { guiaJaVisto } from './GuiaMenu.jsx'
 import { api } from '../lib/api.js'
 import { Chip } from '../ui.jsx'
 import { nomeProduto } from '../lib/dados.js'
@@ -441,6 +442,18 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   const fotoDisponivel = foto && !fotoFalhou ? foto : null
   const listaRef = React.useRef(null)
 
+  // O GUIA (19/10/2026): abre sozinho na primeira vez que a pessoa entra num
+  // menu ainda não publicado; depois, só pelo "Ver o passo a passo". `null` =
+  // fechado; número = passo em que abre. Quem chegou pelo "+" do telefone já
+  // quer pôr botão, então o guia abre direto nos botões.
+  const [guia, setGuia] = React.useState(null)
+  React.useEffect(() => {
+    if (exp.published || guiaJaVisto()) return
+    // Um instante pra tela assentar: medir antes disso acende o lugar errado.
+    const t = setTimeout(() => setGuia(abrirAdicionar ? 1 : 0), 450)
+    return () => clearTimeout(t)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // O nome interno vive em `experiences.name`, fora do JSON: ele não é
   // conteúdo do menu, é etiqueta de organização. Grava ao sair do campo —
   // salvar a cada tecla num campo de nome é pedido de rede à toa.
@@ -683,6 +696,8 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
   const avisos = validacao?.avisos || []
   const erroDe = (id) => erros.find(e => e.id === id) || null
   const ligados = (draft.buttons || []).filter(b => b.enabled).length
+  // Janela por cima do guia é tela travada: a janela ganha, o guia sai.
+  React.useEffect(() => { if (paywall || semDispositivo || publicou) setGuia(null) }, [paywall, semDispositivo, publicou])
   const cheio = draft.buttons.length >= (limites?.botoes || 12)
 
   // Tipo já usado some da lista — EXCETO `custom_url`, que é a válvula de
@@ -701,6 +716,10 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
     <div className="menu-editor">
       {paywall && <CaixaAssinatura expId={exp.id} ligados={ligados} onFechar={() => setPaywall(false)}/>}
       {semDispositivo && <CaixaSemDispositivo onFechar={() => setSemDispositivo(false)}/>}
+      {guia !== null && (
+        <GuiaMenu inicio={guia} temDispositivo={(dados.devices || []).length > 0}
+          comTeste={!!(plano && !plano.proAtivo)} onFechar={() => setGuia(null)}/>
+      )}
       <div className="v3-head v3-editor-head">
         <div>
           <button className="v3-btn ghost" onClick={onVoltar} style={{ marginBottom: 8 }}>
@@ -717,6 +736,9 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           </div>
         </div>
         <div className="v3-pickers">
+          <button className="v3-btn ghost me-guia-rever" onClick={() => setGuia(0)}>
+            <Compass size={13}/> Ver o passo a passo
+          </button>
           {/* O rascunho salva sozinho, mas salvamento invisivel nao passa
               confianca: a pessoa procura o botao, nao acha, e fica na duvida
               se perdeu o trabalho. O botao É o indicador -- diz o estado e
@@ -760,7 +782,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
 
       {/* Barra de estado: recusa com a lista, ou convite a publicar. */}
       {erros.length > 0 ? (
-        <div className="v3-barra bloqueio">
+        <div className="v3-barra bloqueio" data-guia="publicar">
           <div>
             <b>Falta corrigir {erros.length} {erros.length === 1 ? 'coisa' : 'coisas'} antes de publicar.</b>
             <ul className="lista">
@@ -773,7 +795,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           <button className="v3-btn" disabled>Publicar</button>
         </div>
       ) : naoPublicado ? (
-        <div className="v3-barra rascunho">
+        <div className="v3-barra rascunho" data-guia="publicar">
           <span>
             <b>Pronto para revisar.</b>{' '}
             {publicado ? 'Seus clientes continuam vendo a versão publicada.'
@@ -789,7 +811,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           </span>
         </div>
       ) : (
-        <div className="v3-barra ok">
+        <div className="v3-barra ok" data-guia="publicar">
           <span>
             <Check size={14}/>{' '}
             {publicou
@@ -847,7 +869,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
             </div>
           </details>
 
-          <section className="v3-panel">
+          <section className="v3-panel" data-guia="identidade">
             <header>
               {/* Par simetrico do "Botoes do Menu" logo abaixo: as duas secoes
                   passam a nomear a PARTE do menu que a pessoa esta editando, em
@@ -883,7 +905,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
             </div>
           </section>
 
-          <section className="v3-panel">
+          <section className="v3-panel" data-guia="botoes">
             <header>
               <div>
                 <h2>Os caminhos do seu menu</h2>
@@ -968,7 +990,7 @@ export default function EditorMenu({ exp, dados, tipos, limites, foto, experienc
           <LinkMagico exp={exp}/>
         </div>
 
-        <aside className="v3-previa" id="menu-previa" aria-label="Prévia do seu menu">
+        <aside className="v3-previa" id="menu-previa" data-guia="previa" aria-label="Prévia do seu menu">
           <div className="cab"><span className="t">Seu menu, na prática</span><Chip tipo={naoPublicado ? 'n' : 'g'}>{naoPublicado ? 'Rascunho' : 'Publicado'}</Chip></div>
           <p className="me-preview-tip">Clique em um botão abaixo para editar.</p>
           <Previa draft={draft} foto={fotoDisponivel} selecionado={aberto}
@@ -1146,7 +1168,7 @@ function OndeEstaNoAr({ exp, dados, experiencias, onAtualizar, plano }) {
   const esperandoPublicacao = ligados.length - servindo.length
 
   return (
-    <section className="v3-panel">
+    <section className="v3-panel" data-guia="dispositivos">
       <header>
         <h2>Em quais dispositivos este menu deve aparecer?</h2>
         <div className="psub">

@@ -1370,7 +1370,23 @@
   "Inserir dados de pagamento": "填写付款信息",
   "Seu Menu Inteligente parou de abrir": "您的智能菜单已停止打开",
   "O período do StarTouch Pro terminou e seus dispositivos voltaram a levar direto à avaliação no Google. Seu menu está guardado: insira seus dados de pagamento para continuar (R$ 19,90/mês, sem fidelidade).": "StarTouch Pro 期限已结束，您的设备已恢复直接跳转到 Google 评价。您的菜单已保存：填写付款信息即可继续（每月 R$ 19.90，无最低期限）。",
-  "Ao publicar, começa seu teste grátis de 7 dias, sem cartão.": "发布即开始 7 天免费试用，无需银行卡。"
+  "Ao publicar, começa seu teste grátis de 7 dias, sem cartão.": "发布即开始 7 天免费试用，无需银行卡。",
+  "Ver o passo a passo": "查看分步指南",
+  "A cara do seu menu": "菜单的外观",
+  "Confira o nome do seu negócio e escreva uma frase curta de boas-vindas. É a primeira coisa que o seu cliente lê.": "确认您的商家名称，并写一句简短的欢迎语。这是顾客最先看到的内容。",
+  "Os botões": "按钮",
+  "O “Avaliar no Google” já vem pronto e fica sempre no topo. Clique em “Adicionar botão” para incluir WhatsApp, Instagram, cardápio, agenda… Preencha e clique em “Inserir”.": "“在 Google 上评价”已预先设置好，并始终位于顶部。点击“添加按钮”即可加入 WhatsApp、Instagram、菜单、预约……填写后点击“添加”。",
+  "Veja como fica": "查看效果",
+  "Este celular mostra, na hora, o que o seu cliente vai ver. Clique num botão dele para editar.": "这部手机会实时显示顾客将看到的内容。点击其中的按钮即可编辑。",
+  "Escolha onde ele abre": "选择在哪里打开",
+  "Ligue o interruptor do cartão, placa ou pulseira em que este menu deve aparecer. Quem encostar o celular ali abre o menu.": "打开要显示此菜单的卡片、立牌或手环的开关。任何人用手机触碰它即可打开菜单。",
+  "O menu abre quando o cliente encosta o celular num dispositivo StarTouch. Se você já tem um na mão, ative aqui; se não, veja na loja.": "顾客用手机触碰 StarTouch 设备时，菜单就会打开。如果您已有设备，请在此激活；如果没有，请前往商店查看。",
+  "Tudo certo? Clique em “Publicar menu”. Começa o seu teste grátis de 7 dias, sem cartão. Antes disso, nada muda para o cliente.": "一切就绪？点击“发布菜单”。您的 7 天免费试用随即开始，无需银行卡。在此之前，顾客看到的内容不会改变。",
+  "Tudo certo? Clique em “Publicar menu”. Antes disso, nada muda para o cliente: o dispositivo continua levando direto ao Google.": "一切就绪？点击“发布菜单”。在此之前，顾客看到的内容不会改变：设备仍会直接跳转到 Google。",
+  "Fechar o passo a passo": "关闭分步指南",
+  "Pular": "跳过",
+  "Entendi": "知道了",
+  "Próximo": "下一步"
  },
  "p": [
   [

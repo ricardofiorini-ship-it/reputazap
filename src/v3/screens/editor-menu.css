@@ -157,3 +157,38 @@
   font-size: 12px; color: var(--mid); line-height: 1.55; margin: 11px 0 0;
 }
 .menu-editor .me-link-ver { margin-top: 10px; }
+
+/* ── O guia do editor (19/10/2026) ──────────────────────────
+   Quatro faixas escuras em volta da parte acesa, um anel azul nela e o cartão
+   com o texto. Acima do topo fixo e da barra de abas do /app (50), abaixo das
+   janelas (100+) — e qualquer janela que abra fecha o guia antes. */
+.menu-editor [data-guia] { scroll-margin-top: 85px; }
+.me-guia { position: fixed; inset: 0; z-index: 70; pointer-events: none; }
+.me-guia-escuro { position: fixed; background: rgba(15, 23, 42, .7); pointer-events: auto; transition: all .18s ease-out; }
+.me-guia-anel {
+  position: fixed; border-radius: 12px; pointer-events: none;
+  box-shadow: 0 0 0 3px var(--blue), 0 0 0 7px rgba(26, 115, 232, .28);
+  transition: all .18s ease-out;
+}
+.me-guia-cartao {
+  position: fixed; pointer-events: auto;
+  background: var(--surf); color: var(--ink); border-radius: 14px;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, .32);
+  padding: 16px 16px 14px; transition: top .18s ease-out, left .18s ease-out;
+  animation: me-paywall-entra .16s ease-out;
+}
+.me-guia-x { position: absolute; top: 10px; right: 10px; background: none; border: 0; color: var(--dim); cursor: pointer; padding: 4px; border-radius: 6px; }
+.me-guia-x:hover { background: var(--blue-soft); color: var(--blue); }
+.me-guia-conta { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+.me-guia-conta i { width: 18px; height: 4px; border-radius: 3px; background: var(--line); }
+.me-guia-conta i.feito { background: var(--blue-soft); }
+.me-guia-conta i.atual { background: var(--blue); width: 26px; }
+.me-guia-conta span { margin-left: 6px; font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.me-guia-cartao h3 { font-size: 16px; margin: 0 26px 6px 0; letter-spacing: -0.01em; }
+.me-guia-cartao p { font-size: 13.5px; line-height: 1.5; margin: 0 0 14px; color: var(--mid, #3C4757); }
+.me-guia-acoes { display: flex; justify-content: space-between; gap: 10px; }
+.me-guia-acoes .v3-btn { font-size: 13px; padding: 8px 14px; }
+.me-guia-rever { display: inline-flex; align-items: center; gap: 5px; }
+@media (prefers-reduced-motion: reduce) {
+  .me-guia-escuro, .me-guia-anel, .me-guia-cartao { transition: none; animation: none; }
+}
