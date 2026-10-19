@@ -267,9 +267,9 @@
 
     var upgrade = d.desbloqueado
       ? '<div class="upgrade-box"><span>' + icon("check") + " Destinos avançados</span><strong>Liberados na sua conta.</strong></div>"
-      : '<div class="upgrade-box"><span>' + icon("spark") + " Mais possibilidades</span><strong>Destinos avançados.</strong>" +
-        "<span>Link livre, LinkedIn, Spotify e mais, por R$ 49 uma vez. Sem mensalidade.</span>" +
-        '<button class="btn primary" data-comprar>Liberar por R$ 49</button></div>';
+      : '<div class="upgrade-box"><span>' + icon("spark") + " Destinos avançados</span><strong>Leve o cliente para qualquer link.</strong>" +
+        "<span>Sua agenda online, a promoção da semana, o cardápio, o site — e mais 7 redes. R$ 49, uma vez só.</span>" +
+        '<button class="btn primary" data-saiba>Ver o que libera</button></div>';
 
     app.innerHTML =
       '<a class="skip" href="#dashboard-main">Pular para o conteúdo</a>' +
@@ -296,6 +296,52 @@
     else if (estado.view === "cards") { alvo.innerHTML = grade(); ligarGrade(); }
     else { alvo.innerHTML = editor(); ligarEditor(); }
     app.querySelectorAll("[data-comprar]").forEach(function (b) { b.onclick = function () { comprar(b); }; });
+    app.querySelectorAll("[data-saiba]").forEach(function (b) { b.onclick = explicarAvancados; });
+  }
+
+  // ── O QUE OS DESTINOS AVANÇADOS LIBERAM (19/10/2026) ──
+  // Antes, "Link livre, LinkedIn, Spotify e mais" levava direto ao pagamento.
+  // A lista dizia O QUE é, nunca PARA QUE serve — e "link livre" não quer
+  // dizer nada pra quem não é do ramo. Agora o botão abre esta explicação:
+  // primeiro o uso (com exemplos do dia a dia de salão e barbearia, o
+  // público da Trybo), depois as redes, depois as condições. O pagamento é o
+  // último passo, não o primeiro.
+  //
+  // Tudo aqui é verdade do sistema, não promessa: a liberação vale pro
+  // NEGÓCIO (business_entitlements), então pega todos os cartões, inclusive
+  // os ativados depois; o checkout aceita cartão e PIX; as quatro redes do
+  // cartão seguem grátis (destination_kinds.is_free). Mudou alguma dessas
+  // regras, muda este texto junto.
+  function explicarAvancados() {
+    var usos = [
+      ["Sua agenda online", "O cliente encosta o celular e já marca o próximo horário — Trinks, Booksy, Calendly ou a que você usar."],
+      ["Um post ou vídeo", "A promoção da semana, o antes e depois, o vídeo que mais trouxe cliente."],
+      ["Cardápio e preços", "A tabela de serviços, o catálogo ou a página da sua loja."],
+      ["Qualquer outro link", "Seu site, um formulário, um cupom, a página de avaliações."]
+    ];
+    var redes = ["LinkedIn", "Facebook", "Threads", "Kwai", "Telegram", "Spotify", "Canal do WhatsApp"];
+    abrirModal("Destinos avançados",
+      '<div class="adv">' +
+        '<p class="adv-lead">Hoje o seu cartão leva para o seu perfil no <strong>Instagram, TikTok, WhatsApp ou YouTube</strong>. Com os destinos avançados, ele pode levar o cliente para <strong>qualquer link</strong>:</p>' +
+        '<ul class="adv-usos">' + usos.map(function (u) {
+          return "<li>" + icon("check") + "<div><strong>" + esc(u[0]) + "</strong><span>" + esc(u[1]) + "</span></div></li>";
+        }).join("") + "</ul>" +
+        '<p class="adv-sub">E mais 7 redes:</p>' +
+        '<div class="adv-redes">' + redes.map(function (r) { return "<span>" + esc(r) + "</span>"; }).join("") + "</div>" +
+        '<div class="adv-preco"><div><strong>R$ 49</strong><span>uma vez só</span></div>' +
+          "<ul>" +
+            "<li>" + icon("check") + "Sem mensalidade: pagou, é seu.</li>" +
+            "<li>" + icon("check") + "Vale para todos os seus cartões, inclusive os que você ativar depois.</li>" +
+            "<li>" + icon("check") + "Troque o destino quando quiser, sem reimprimir nada.</li>" +
+            "<li>" + icon("check") + "Instagram, TikTok, WhatsApp e YouTube continuam grátis.</li>" +
+          "</ul></div>" +
+        '<button type="button" class="btn primary full" data-comprar-modal>Liberar por R$ 49 ' + icon("arrow") + "</button>" +
+        '<p class="adv-pagto">' + icon("lock") + " Pagamento seguro no cartão de crédito ou PIX.</p>" +
+        '<button type="button" class="link-button adv-depois" data-fechar>Agora não</button>' +
+      "</div>");
+    modal.querySelectorAll("[data-fechar]").forEach(function (b) { b.onclick = fecharModal; });
+    var pagar = modal.querySelector("[data-comprar-modal]");
+    pagar.onclick = function () { comprar(pagar); };
   }
 
   // ── Destinos avançados: o checkout é o mesmo da StarTouch (Stripe) ──
@@ -593,8 +639,8 @@
           slot(2, cfg.find(function (d) { return d.posicao === 2; }), true) +
           '<p class="field-hint">Com <strong>um</strong> destino, o celular abre direto nele — é o que mais converte. Com <strong>dois</strong>, o cliente escolhe.</p>' +
           (estado.dados.desbloqueado ? "" :
-            '<div class="unlock-inline"><p><strong>Quer apontar para um post, o cardápio ou a agenda?</strong> Link livre, LinkedIn, Spotify e mais redes, em todos os seus cartões. R$ 49, uma vez.</p>' +
-            '<button type="button" class="btn secondary" data-comprar>Liberar por R$ 49</button></div>') +
+            '<div class="unlock-inline"><p><strong>Quer que o cartão abra a sua agenda, um post ou o cardápio?</strong> Com os destinos avançados ele leva para qualquer link — R$ 49, uma vez só, para todos os seus cartões.</p>' +
+            '<button type="button" class="btn secondary" data-saiba>Ver o que libera</button></div>') +
           '<p class="form-error" hidden tabindex="-1" role="alert"></p>' +
           '<div class="form-footer"><a class="small-link" href="https://trybo.co/t/' + encodeURIComponent(c.code) + '" target="_blank" rel="noopener">Fazer um toque de teste</a>' +
           '<button class="btn primary" type="submit">Salvar ' + icon("check") + "</button></div>" +

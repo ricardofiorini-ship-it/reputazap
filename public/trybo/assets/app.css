@@ -26,3 +26,24 @@ dialog{width:min(540px,calc(100% - 36px));padding:28px;border:1px solid #e5dbea;
 .unlock-inline .btn{flex:0 0 auto;white-space:nowrap}
 .upgrade-box .btn{width:100%;min-height:40px;padding:10px 14px}
 @media(max-width:560px){.unlock-inline{flex-direction:column;align-items:stretch}}
+/* Destinos avançados: a explicação antes do pagamento (19/10/2026) */
+.adv-lead{font-size:.95rem;color:#4d4955;margin:0 0 16px}
+.adv-usos{list-style:none;padding:0;margin:0 0 18px;display:grid;gap:12px}
+.adv-usos li{display:flex;gap:11px;align-items:flex-start}
+.adv-usos li svg{width:18px;height:18px;color:#7661b2;margin-top:2px}
+.adv-usos strong{display:block;font-size:.92rem;color:#1b1b20}
+.adv-usos span{font-size:.84rem;line-height:1.5;color:#77747e}
+.adv-sub{font-size:.8rem;font-weight:600;color:#49434f;margin:0 0 8px}
+.adv-redes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+.adv-redes span{font-size:.78rem;padding:5px 10px;border-radius:999px;background:#f3f0f8;border:1px solid #e8e2f0;color:#554362}
+.adv-preco{display:flex;gap:18px;align-items:center;padding:16px;border-radius:14px;background:var(--holo);margin-bottom:16px}
+.adv-preco>div{text-align:center;flex-shrink:0}
+.adv-preco>div strong{display:block;font-size:2rem;letter-spacing:-.05em;line-height:1;color:#1b1b20}
+.adv-preco>div span{font-size:.75rem;color:#7c7088}
+.adv-preco ul{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.adv-preco li{display:flex;gap:7px;font-size:.8rem;line-height:1.45;color:#4d4955}
+.adv-preco li svg{width:15px;height:15px;color:#7661b2;flex-shrink:0;margin-top:1px}
+.adv-pagto{display:flex;align-items:center;justify-content:center;gap:6px;font-size:.75rem;color:#88808f;margin:10px 0 4px}
+.adv-pagto svg{width:14px;height:14px}
+.adv-depois{display:block;margin:6px auto 0}
+@media (max-width:480px){.adv-preco{flex-direction:column;align-items:stretch}}
