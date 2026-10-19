@@ -26,7 +26,7 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { sendTransactionalEmail } from "../_lib/email-sender.js";
-import { tapsHistoryNewsEmail, revendaNewsEmail } from "../_lib/email-templates.js";
+import { tapsHistoryNewsEmail, revendaNewsEmail, menuPublicarEmail } from "../_lib/email-templates.js";
 import { proMenuEmail } from "../_lib/email-pro-menu.js";
 import { unsubUrl } from "../_lib/unsubscribe.js";
 import { soStartouch } from "../_lib/linha.js";
@@ -57,6 +57,17 @@ const CAMPAIGNS = {
     soComDispositivo: true,
     precisaDispositivos: true,
     build: ({ userName, unsub, dispositivos }) => proMenuEmail({ userName, unsubUrl: unsub, dispositivos }),
+  },
+  // 19/10/2026. Quem MONTOU um Menu e não publicou. O e-mail conta que
+  // publicar agora começa o teste sem pedir pagamento (commit 68f4299).
+  // `soNaoAssinantes` tira também quem já teve assinatura (`stripe_customer_id`):
+  // esses já usaram o teste e, ao publicar, cairiam no pagamento — o e-mail
+  // prometeria o que a tela não entrega.
+  "menu-publicar": {
+    label: "Menu montado e não publicado: publicar começa o teste de 7 dias",
+    soNaoAssinantes: true,
+    soMenuNaoPublicado: true,
+    build: ({ userName, unsub }) => menuPublicarEmail({ userName, unsubUrl: unsub }),
   },
 };
 
@@ -128,6 +139,28 @@ export default async function handler(req, res) {
       .map((b) => b.user_id));
     s.skipped_assinantes = userIds.filter((id) => assinantes.has(id)).length;
     userIds = userIds.filter((id) => !assinantes.has(id));
+  }
+
+  // Só quem tem menu montado (não arquivado) e NENHUM publicado. Quem tem um
+  // publicado e outro em rascunho já conhece o caminho — fica de fora.
+  if (campaign.soMenuNaoPublicado) {
+    const userDoBiz = new Map((businesses || []).map((b) => [b.id, b.user_id]));
+    const comRascunho = new Set(), comPublicado = new Set();
+    for (let de = 0; de < 100000; de += 1000) {
+      const { data: pag, error: eErr } = await supabase
+        .from("experiences").select("business_id, published")
+        .is("archived_at", null).order("id", { ascending: true }).range(de, de + 999);
+      if (eErr) return res.status(500).json({ ...s, error: "menus: " + eErr.message });
+      for (const e of pag || []) {
+        const u = userDoBiz.get(e.business_id);
+        if (!u) continue;
+        (e.published ? comPublicado : comRascunho).add(u);
+      }
+      if (!pag || pag.length < 1000) break;
+    }
+    const alvo = new Set([...comRascunho].filter((u) => !comPublicado.has(u)));
+    s.skipped_fora_do_alvo = userIds.filter((id) => !alvo.has(id)).length;
+    userIds = userIds.filter((id) => alvo.has(id));
   }
 
   // Dispositivos ATIVOS por usuário — em páginas de 1000, porque o Supabase

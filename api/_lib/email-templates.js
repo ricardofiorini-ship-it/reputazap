@@ -174,6 +174,65 @@ export function tapsHistoryNewsEmail({ userName, unsubUrl }) {
  * percentual por decisão do Ricardo, e um e-mail que diga "até 59%" mandaria
  * a pessoa para uma página que não confirma o número.
  */
+// ── "SEU MENU ESTÁ PRONTO, SÓ FALTA PUBLICAR" (19/10/2026) ──
+// Campanha `menu-publicar` do broadcast: só pra quem montou um Menu e não
+// publicou. Até 19/10 publicar abria a caixa da assinatura e a página do
+// Stripe; desde `68f4299` publicar já põe no ar e começa o teste, e o
+// pagamento só é pedido no fim. O e-mail existe pra contar essa mudança a
+// quem parou no caminho antigo. Não promete nada que o fluxo não faça:
+// 7 dias, sem cartão, sem cobrança se não cadastrar (Termos 1.9 §5.3).
+export function menuPublicarEmail({ userName, unsubUrl }) {
+  const name = escapeHtml(userName?.split(" ")[0] || "tudo bem");
+  return {
+    subject: "Seu Menu Inteligente está pronto. Falta só publicar",
+    html: shell({
+      title: "MENU INTELIGENTE",
+      unsubUrl,
+      unsubLabel: "receber nossos emails",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:23px;color:#202124;line-height:1.3;">
+          Olá, ${name}!
+        </h1>
+        <p style="font-size:15px;color:#202124;line-height:1.6;margin:0 0 14px;font-weight:600;">
+          Vimos que você montou o seu Menu Inteligente, mas ele ainda não foi publicado.
+        </p>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 18px;">
+          Ficou mais simples: agora basta clicar em <strong style="color:#202124;">Publicar</strong>.
+          O menu entra no ar na hora, nos seus dispositivos, e começa o seu teste grátis de 7 dias.
+        </p>
+
+        <table width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 14px;"><tr>
+            <td style="padding:0 0 0 14px;border-left:3px solid #1A73E8;">
+              <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.35;">Sem cartão para começar</div>
+              <div style="font-size:14px;color:#5F6368;line-height:1.55;margin-top:2px;">Você não preenche nenhum dado de pagamento para publicar.</div>
+            </td>
+          </tr></table>
+          <table width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 14px;"><tr>
+            <td style="padding:0 0 0 14px;border-left:3px solid #1A73E8;">
+              <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.35;">Pagamento só no fim do teste</div>
+              <div style="font-size:14px;color:#5F6368;line-height:1.55;margin-top:2px;">Os dados de pagamento só são pedidos quando os 7 dias terminarem, se você quiser continuar (R$ 19,90/mês, sem fidelidade).</div>
+            </td>
+          </tr></table>
+          <table width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 14px;"><tr>
+            <td style="padding:0 0 0 14px;border-left:3px solid #1A73E8;">
+              <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.35;">Nada é cobrado sem você decidir</div>
+              <div style="font-size:14px;color:#5F6368;line-height:1.55;margin-top:2px;">Se não inserir os dados, o teste termina sozinho: seus dispositivos voltam a levar direto à avaliação no Google e o seu menu fica guardado.</div>
+            </td>
+          </tr></table>
+
+        ${cta("https://startouch.com.br/app?tab=menu", "Publicar meu menu →")}
+
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:18px 0 0;">
+          Se tiver qualquer dúvida, fale com a gente pelo <a href="https://startouch.com.br/ajuda" style="color:#1A73E8;">startouch.com.br/ajuda</a>.
+        </p>
+        <p style="font-size:13px;color:#5F6368;line-height:1.6;margin:14px 0 0;">
+          Equipe StarTouch
+        </p>
+      `
+    })
+  };
+}
+
 export function revendaNewsEmail({ userName, unsubUrl }) {
   const name = escapeHtml(userName?.split(" ")[0] || "tudo bem");
   return {
