@@ -69,3 +69,10 @@ dialog{width:min(540px,calc(100% - 36px));padding:28px;border:1px solid #e5dbea;
 .dest-campos{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:12px}
 .dest-campos .field{margin-bottom:12px}
 @media (max-width:640px){.dest-campos{grid-template-columns:1fr;gap:0}}
+.dest-slot[hidden]{display:none!important}
+.dest-remover{margin-left:8px;border:0;background:none;color:#9b2637;font-size:.78rem;font-weight:600;cursor:pointer;padding:4px 6px;border-radius:6px}
+.dest-remover:hover{background:#fff2f2}
+.dest-add{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;margin:0 0 14px;border:1.5px dashed #c9bfd8;border-radius:14px;background:#faf8fd;color:#554362;font-weight:600;font-size:.9rem;cursor:pointer}
+.dest-add:hover:not(:disabled){border-color:#7661b2;background:#f3eefa}
+.dest-add:disabled{cursor:default;color:#9a91a6;border-style:solid;border-color:#ebe7f0;background:#fff}
+.dest-add svg{width:17px;height:17px}

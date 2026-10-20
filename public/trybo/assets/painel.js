@@ -266,15 +266,15 @@
     }
 
     var upgrade = d.desbloqueado
-      ? '<div class="upgrade-box"><span>' + icon("check") + " Destinos avançados</span><strong>Liberados na sua conta.</strong></div>"
-      : '<div class="upgrade-box"><span>' + icon("spark") + " Destinos avançados</span><strong>Leve o cliente para qualquer link.</strong>" +
+      ? '<div class="upgrade-box"><span>' + icon("check") + " Botões avançados</span><strong>Liberados na sua conta.</strong></div>"
+      : '<div class="upgrade-box"><span>' + icon("spark") + " Botões avançados</span><strong>Leve o cliente para qualquer link.</strong>" +
         "<span>Sua agenda online, a promoção da semana, o cardápio, o site — e mais 7 redes. R$ 49, uma vez só.</span>" +
         '<button class="btn primary" data-saiba>Ver o que libera</button></div>';
 
     app.innerHTML =
       '<a class="skip" href="#dashboard-main">Pular para o conteúdo</a>' +
       '<aside class="sidebar"><div class="sidebar-brand">' + logo + "<span>MEU PAINEL</span></div>" +
-        '<div class="workspace"><span class="avatar">' + esc(nome.slice(0, 1).toUpperCase()) + "</span><div><strong>" + esc(nome) + "</strong><span>" + (d.desbloqueado ? "Destinos avançados" : "Plano gratuito") + "</span></div></div>" +
+        '<div class="workspace"><span class="avatar">' + esc(nome.slice(0, 1).toUpperCase()) + "</span><div><strong>" + esc(nome) + "</strong><span>" + (d.desbloqueado ? "Botões avançados" : "Plano gratuito") + "</span></div></div>" +
         '<nav class="side-nav" aria-label="Painel">' + lado("overview", "Visão geral", "grid") + lado("cards", "Meus cartões", "card") + "</nav>" +
         '<div class="sidebar-lower">' + upgrade +
           (d.tambem_startouch ? '<a class="side-link" href="/app">' + icon("arrow") + " Painel StarTouch</a>" : "") +
@@ -320,9 +320,9 @@
       ["Qualquer outro link", "Seu site, um formulário, um cupom, a página de avaliações."]
     ];
     var redes = ["LinkedIn", "Facebook", "Threads", "Kwai", "Telegram", "Spotify", "Canal do WhatsApp"];
-    abrirModal("Destinos avançados",
+    abrirModal("Botões avançados",
       '<div class="adv">' +
-        '<p class="adv-lead">Hoje o seu cartão leva para o seu perfil no <strong>Instagram, TikTok, WhatsApp ou YouTube</strong>. Com os destinos avançados, ele pode levar o cliente para <strong>qualquer link</strong>:</p>' +
+        '<p class="adv-lead">Hoje o seu cartão leva para o seu perfil no <strong>Instagram, TikTok, WhatsApp ou YouTube</strong>. Com os botões avançados, ele pode levar o cliente para <strong>qualquer link</strong>:</p>' +
         '<ul class="adv-usos">' + usos.map(function (u) {
           return "<li>" + icon("check") + "<div><strong>" + esc(u[0]) + "</strong><span>" + esc(u[1]) + "</span></div></li>";
         }).join("") + "</ul>" +
@@ -332,7 +332,7 @@
           "<ul>" +
             "<li>" + icon("check") + "Sem mensalidade: pagou, é seu.</li>" +
             "<li>" + icon("check") + "Vale para todos os seus cartões, inclusive os que você ativar depois.</li>" +
-            "<li>" + icon("check") + "Troque o destino quando quiser, sem reimprimir nada.</li>" +
+            "<li>" + icon("check") + "Troque os botões quando quiser, sem reimprimir nada.</li>" +
             "<li>" + icon("check") + "Instagram, TikTok, WhatsApp e YouTube continuam grátis.</li>" +
           "</ul></div>" +
         '<button type="button" class="btn primary full" data-comprar-modal>Liberar por R$ 49 ' + icon("arrow") + "</button>" +
@@ -364,9 +364,9 @@
   // então o painel confere de novo por um tempo, em vez de mostrar "não
   // liberado" pra quem acabou de pagar.
   async function aguardarDesbloqueio() {
-    toast("Pagamento recebido. Liberando os destinos avançados…");
+    toast("Pagamento recebido. Liberando os botões avançados…");
     for (var i = 0; i < 10; i++) {
-      if (estado.dados && estado.dados.desbloqueado) { toast("Pronto: destinos avançados liberados em todos os seus cartões."); return; }
+      if (estado.dados && estado.dados.desbloqueado) { toast("Pronto: botões avançados liberados em todos os seus cartões."); return; }
       await new Promise(function (ok) { setTimeout(ok, 3000); });
       try { estado.dados = await api("/api/trybo?action=painel&dias=" + estado.dias); shell(); } catch (e) { if (tratar(e)) return; }
     }
@@ -436,7 +436,7 @@
   }
 
   function miniRedes(c) {
-    if (!c.servidos.length) return '<small>Sem destino</small>';
+    if (!c.servidos.length) return '<small>Sem botões</small>';
     return c.servidos.map(function (d) {
       return '<span class="' + esc(d.kind) + '" title="' + esc(d.label || nomeKind(d.kind)) + '" aria-label="' + esc(d.label || nomeKind(d.kind)) + '">' + icon(d.kind) + "</span>";
     }).join("");
@@ -579,7 +579,7 @@
       d.catalogo.map(function (k) {
         var travado = !k.is_free && !d.desbloqueado;
         return '<option value="' + esc(k.kind) + '"' + (k.kind === selecionado ? " selected" : "") + (travado ? " disabled" : "") + ">" +
-          esc(k.label) + (travado ? " · destinos avançados" : "") + "</option>";
+          esc(k.label) + (travado ? " · botões avançados" : "") + "</option>";
       }).join("");
   }
 
@@ -608,11 +608,17 @@
   function slot(n, destino, permitirNenhum) {
     var kind = destino ? destino.kind : (permitirNenhum ? "" : "instagram");
     var valor = destino ? valorDe(destino.kind, destino.url) : (kind ? perfilGuardado(kind) : "");
-    return '<div class="dest-slot' + (kind ? "" : " vazio") + '" data-slot="' + n + '">' +
+    // Vaga vazia nasce ESCONDIDA (só a 1ª aparece sempre): o editor mostra os
+    // botões em uso e um "+ Adicionar botão", como o Menu da StarTouch.
+    // Com as quatro vagas sempre à mostra, quem já tinha quatro não via onde
+    // "inserir" — e quem tinha uma via três caixas vazias sem saber por quê.
+    return '<div class="dest-slot' + (kind ? "" : " vazio") + '" data-slot="' + n + '"' + (!kind && n > 1 ? " hidden" : "") + ">" +
       '<div class="dest-topo"><span class="dest-num">' + n + '</span>' +
         '<span class="network-icon dest-ic ' + esc(kind) + '">' + icon(kind || "plus") + "</span>" +
         '<strong class="dest-titulo">' + (kind ? esc(nomeKind(kind)) : "Adicionar um botão") + "</strong>" +
-        '<span class="dest-ordem">' + (n === 1 ? "aparece primeiro" : "botão " + n) + "</span></div>" +
+        '<span class="dest-ordem">' + (n === 1 ? "aparece primeiro" : "botão " + n) + "</span>" +
+        (n > 1 ? '<button type="button" class="dest-remover" data-remover="' + n + '" aria-label="Remover o botão ' + n + '">Remover</button>' : "") +
+        "</div>" +
       '<div class="dest-campos">' +
         '<label class="field">Rede<select name="kind' + n + '">' + opcoes(kind, n > 1 ? "Nenhum" : false) + "</select></label>" +
         '<label class="field" ' + (kind ? "" : "hidden") + '><span class="dest-rotulo">' + (kind ? rotuloCampo(kind) : "Perfil") + '</span><input name="valor' + n + '" value="' + esc(valor) + '" placeholder="' + dicaDe(kind) + '" maxlength="500" autocapitalize="none" spellcheck="false"></label>' +
@@ -624,7 +630,7 @@
       return '<div class="profile-preview blocked-preview">' + icon("lock") + "<h3>Cartão bloqueado</h3><p>Quem encostar vê o aviso de cartão bloqueado.</p></div>";
     }
     var s = c.servidos;
-    if (!s.length) return '<div class="profile-preview"><h3>Sem destino</h3><p>Quem encostar vê um aviso de que o cartão ainda não foi configurado.</p></div>';
+    if (!s.length) return '<div class="profile-preview"><h3>Sem botões</h3><p>Quem encostar vê um aviso de que o cartão ainda não foi configurado.</p></div>';
     if (s.length === 1) {
       return '<div class="profile-preview"><span class="preview-avatar">' + icon(s[0].kind) + "</span><h3>Abre direto</h3><p>Quem encostar vai direto para o " + esc(s[0].label || nomeKind(s[0].kind)) + ", sem tela no meio.</p>" +
         '<span class="preview-brand">TRYBO <small>uma solução StarTouch</small></span></div>';
@@ -642,7 +648,7 @@
     estado.editando = c.code;
     var cfg = c.configurados;
     var aviso = c.motivo === "rebaixado_plano"
-      ? '<p class="form-error" role="alert">Parte dos destinos deste cartão é dos destinos avançados e não está sendo mostrada. O cartão está levando só para os destinos grátis.</p>'
+      ? '<p class="form-error" role="alert">Parte dos botões deste cartão é dos botões avançados e não está aparecendo. O cartão está mostrando só os botões grátis.</p>'
       : "";
     return '<div class="network-editor-head"><label class="field">Qual cartão?<select id="qual">' +
         cartoes.map(function (x) { return '<option value="' + esc(x.code) + '"' + (x.code === c.code ? " selected" : "") + ">" + esc(nomeCartao(x)) + " — " + esc(x.code) + "</option>"; }).join("") +
@@ -657,9 +663,10 @@
           // mostrando as quatro redes no menu.
           slot(3, cfg.find(function (d) { return d.posicao === 3; }), true) +
           slot(4, cfg.find(function (d) { return d.posicao === 4; }), true) +
-          '<p class="field-hint">Com <strong>um</strong> destino, o celular abre direto nele — é o que mais converte. Com <strong>dois a quatro</strong>, o cliente escolhe numa lista.</p>' +
+          '<button type="button" class="dest-add" id="addBotao">' + icon("plus") + " Adicionar botão</button>" +
+          '<p class="field-hint">Com <strong>um</strong> botão, o celular abre direto nele — é o que mais converte. Com <strong>dois a quatro</strong>, o cliente escolhe.</p>' +
           (estado.dados.desbloqueado ? "" :
-            '<div class="unlock-inline"><p><strong>Quer que o cartão abra a sua agenda, um post ou o cardápio?</strong> Com os destinos avançados ele leva para qualquer link — R$ 49, uma vez só, para todos os seus cartões.</p>' +
+            '<div class="unlock-inline"><p><strong>Quer que o cartão abra a sua agenda, um post ou o cardápio?</strong> Com os botões avançados ele leva para qualquer link — R$ 49, uma vez só, para todos os seus cartões.</p>' +
             '<button type="button" class="btn secondary" data-saiba>Ver o que libera</button></div>') +
           '<p class="form-error" hidden tabindex="-1" role="alert"></p>' +
           '<div class="form-footer"><a class="small-link" href="https://trybo.co/t/' + encodeURIComponent(c.code) + '" target="_blank" rel="noopener">Fazer um toque de teste</a>' +
@@ -690,9 +697,42 @@
         ic.innerHTML = icon(k || "plus");
         caixa.querySelector(".dest-titulo").textContent = k ? nomeKind(k) : "Adicionar um botão";
         caixa.querySelector(".dest-rotulo").textContent = k ? rotuloCampo(k) : "Perfil";
-        if (k) campo.focus();
       };
     });
+
+    // ── + Adicionar botão / Remover ──
+    var add = document.getElementById("addBotao");
+    function vagas() { return [].slice.call(form.querySelectorAll(".dest-slot")); }
+    function atualizarAdd() {
+      var livre = vagas().some(function (v) { return v.hidden; });
+      add.disabled = !livre;
+      add.innerHTML = livre ? icon("plus") + " Adicionar botão" : "Máximo de 4 botões";
+    }
+    add.onclick = function () {
+      var vaga = vagas().find(function (v) { return v.hidden; });
+      if (!vaga) return;
+      vaga.hidden = false;
+      // Já vem com a primeira rede grátis que ainda não está no cartão: um
+      // clique a menos pra quem só quer pôr o TikTok que faltava.
+      var usadas = vagas().filter(function (v) { return !v.hidden; }).map(function (v) { return v.querySelector("select").value; });
+      var sugestao = ["instagram", "tiktok", "whatsapp", "youtube"].find(function (k) { return usadas.indexOf(k) === -1; }) || "";
+      var sel = vaga.querySelector("select");
+      sel.value = sugestao;
+      sel.onchange();
+      sel.focus();
+      atualizarAdd();
+    };
+    form.querySelectorAll("[data-remover]").forEach(function (b) {
+      b.onclick = function () {
+        var vaga = form.querySelector('[data-slot="' + b.dataset.remover + '"]');
+        var sel = vaga.querySelector("select");
+        sel.value = "";
+        sel.onchange();
+        vaga.hidden = true;
+        atualizarAdd();
+      };
+    });
+    atualizarAdd();
 
     form.onsubmit = async function (e) {
       e.preventDefault();
@@ -704,11 +744,11 @@
         var kind = d.get("kind" + n);
         if (kind) destinos.push({ posicao: destinos.length + 1, kind: kind, valor: String(d.get("valor" + n) || "").trim() });
       });
-      if (!destinos.length) return erro(form, "Escolha pelo menos um destino.");
-      if (destinos.some(function (x) { return !x.valor; })) return erro(form, "Preencha o perfil de cada destino escolhido.");
+      if (!destinos.length) return erro(form, "Adicione pelo menos um botão.");
+      if (destinos.some(function (x) { return !x.valor; })) return erro(form, "Preencha o perfil de cada botão.");
       var vistos = {};
       if (destinos.some(function (x) { var k = x.kind + "|" + x.valor.toLowerCase(); if (vistos[k]) return true; vistos[k] = 1; return false; })) {
-        return erro(form, "Há dois destinos iguais. Deixe cada rede uma vez só.");
+        return erro(form, "Há dois botões iguais. Deixe cada rede uma vez só.");
       }
 
       ocupado(botao, true, "Salvando…");
@@ -718,7 +758,7 @@
         if (apelido !== (c.apelido || "")) {
           await api("/api/trybo?action=renomear", { method: "POST", body: JSON.stringify({ code: c.code, apelido: apelido }) });
         }
-        toast("Salvo. O cartão já leva para o destino novo.");
+        toast("Salvo. O cartão já mostra os botões novos.");
         await carregar();
       } catch (err) {
         if (!tratar(err)) { ocupado(botao, false); erro(form, err.message); }

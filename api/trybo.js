@@ -137,16 +137,16 @@ const MAX_DESTINOS = 4;
 // log: o lojista perde a 3ª rede, nunca o cartão.
 async function gravarDestinos(plateId, linhas) {
   const { error: delErr } = await supabase.from("plate_destinations").delete().eq("plate_id", plateId);
-  if (delErr) return { error: "Não consegui limpar os destinos antigos: " + delErr.message };
+  if (delErr) return { error: "Não consegui limpar os botões antigos: " + delErr.message };
   const { error: insErr } = await supabase.from("plate_destinations").insert(linhas);
   if (!insErr) return { ok: true, cortados: 0 };
   if (insErr.code === "23514" && linhas.length > 2) {
     console.error("[trybo] o banco recusou a 3ª/4ª posição — rode supabase/trybo-004-quatro-destinos.sql. Gravando só as duas primeiras.");
     const { error: e2 } = await supabase.from("plate_destinations").insert(linhas.filter((l) => l.posicao <= 2));
     if (!e2) return { ok: true, cortados: linhas.length - 2 };
-    return { error: "Não consegui salvar os destinos: " + e2.message };
+    return { error: "Não consegui salvar os botões: " + e2.message };
   }
-  return { error: "Não consegui salvar os destinos: " + insErr.message };
+  return { error: "Não consegui salvar os botões: " + insErr.message };
 }
 
 // ── POST ?action=salvar-destinos ────────────────────────────
@@ -164,11 +164,11 @@ async function handleSalvarDestinos(req, res, user) {
   }
 
   if (!Array.isArray(destinos) || destinos.length === 0) {
-    return res.status(400).json({ error: "Escolha pelo menos um destino" });
+    return res.status(400).json({ error: "Adicione pelo menos um botão" });
   }
   // O banco também recusa, mas a mensagem de lá é críptica.
   if (destinos.length > MAX_DESTINOS) {
-    return res.status(400).json({ error: `Cada cartão mostra no máximo ${MAX_DESTINOS} destinos.` });
+    return res.status(400).json({ error: `Cada cartão mostra no máximo ${MAX_DESTINOS} botões.` });
   }
 
   const cat = await catalogo();
@@ -184,7 +184,7 @@ async function handleSalvarDestinos(req, res, user) {
       return res.status(400).json({ error: `Posição inválida (de 1 a ${MAX_DESTINOS})` });
     }
     if (usadas.has(posicao)) {
-      return res.status(400).json({ error: "Dois destinos na mesma posição" });
+      return res.status(400).json({ error: "Dois botões na mesma posição" });
     }
     usadas.add(posicao);
 
@@ -201,7 +201,7 @@ async function handleSalvarDestinos(req, res, user) {
     // e ai nao ha tela nenhuma envolvida.
     if (!info.is_free && !desbloqueado) {
       return res.status(403).json({
-        error: `${info.label} faz parte do desbloqueio de destinos avançados.`,
+        error: `${info.label} faz parte dos botões avançados.`,
         precisa_desbloqueio: true
       });
     }
@@ -570,19 +570,19 @@ async function handleTransferir(req, res, user) {
 
   const { data: dests, error: dErr } = await supabase
     .from("plate_destinations").select("posicao, kind, url").eq("plate_id", antigo.id);
-  if (dErr) return res.status(500).json({ error: "O cartão novo foi ativado, mas não consegui copiar os destinos. Configure no painel." });
+  if (dErr) return res.status(500).json({ error: "O cartão novo foi ativado, mas não consegui copiar os botões. Configure no painel." });
   if (dests && dests.length) {
     const { error: iErr } = await supabase
       .from("plate_destinations")
       .insert(dests.map((d) => ({ plate_id: alvo.id, posicao: d.posicao, kind: d.kind, url: d.url })));
-    if (iErr) return res.status(500).json({ error: "O cartão novo foi ativado, mas não consegui copiar os destinos. Configure no painel." });
+    if (iErr) return res.status(500).json({ error: "O cartão novo foi ativado, mas não consegui copiar os botões. Configure no painel." });
   }
 
   try {
     await recalcularCartao(supabase, alvo.id);
   } catch (e) {
     console.error("[trybo.transferir] recalculo:", e);
-    return res.status(500).json({ error: "O cartão novo foi ativado, mas não consegui publicar os destinos. Abra ele no painel e salve." });
+    return res.status(500).json({ error: "O cartão novo foi ativado, mas não consegui publicar os botões. Abra ele no painel e salve." });
   }
 
   // Só agora o antigo sai de cena.
@@ -794,7 +794,7 @@ async function handleAtivar(req, res, user) {
   if (gravado.error) {
     console.error("[trybo.ativar] destinos não gravados:", gravado.error);
     return res.status(500).json({
-      error: "O cartão foi ativado, mas não consegui salvar os destinos. Abra o painel e configure."
+      error: "O cartão foi ativado, mas não consegui salvar os botões. Abra o painel e configure."
     });
   }
 
@@ -804,7 +804,7 @@ async function handleAtivar(req, res, user) {
   } catch (e) {
     console.error("[trybo.ativar] recálculo falhou:", e);
     return res.status(500).json({
-      error: "O cartão foi ativado, mas não consegui publicar os destinos. Abra o painel e salve de novo."
+      error: "O cartão foi ativado, mas não consegui publicar os botões. Abra o painel e salve de novo."
     });
   }
 

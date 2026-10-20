@@ -1824,7 +1824,9 @@ async function handleCheckoutKitGuestStripe(req, res) {
 const TRYBO_DESTINOS_CENTS = 4900;
 const TRYBO_DESTINOS_ITEM = {
   id: "trybo_destinos",
-  name: "Trybo — Destinos avançados",
+  // "Botões avançados" desde 19/10/2026 (era "Destinos avançados"): o
+  // produto passou a chamar de botão o que a StarTouch já chamava assim.
+  name: "Trybo — Botões avançados",
   qty: 1,
   unit_price: Number((TRYBO_DESTINOS_CENTS / 100).toFixed(2)),
 };
@@ -1838,12 +1840,12 @@ async function handleCheckoutTrybo(req, res) {
     if (bizErr) throw new Error("Não consegui ler sua conta: " + bizErr.message);
     // Sem negocio nao ha onde pendurar o direito — e quem nao ativou cartao
     // nenhum nao tem o que desbloquear.
-    if (!biz) return res.status(400).json({ error: "Ative um cartão Trybo antes de liberar os destinos avançados." });
+    if (!biz) return res.status(400).json({ error: "Ative um cartão Trybo antes de liberar os botões avançados." });
 
     const { data: jaTem, error: entErr } = await supabase
       .rpc("has_entitlement", { p_business: biz.id, p_feature: "destinos" });
     if (entErr) throw new Error("Não consegui checar o desbloqueio: " + entErr.message);
-    if (jaTem === true) return res.status(400).json({ error: "Os destinos avançados já estão liberados na sua conta." });
+    if (jaTem === true) return res.status(400).json({ error: "Os botões avançados já estão liberados na sua conta." });
 
     const stripe = getStripe();
     const origin = req.headers.origin || `https://${req.headers.host}`;
@@ -1947,11 +1949,13 @@ async function concluiDesbloqueioTrybo(session) {
       userId: order.user_id || "guest",
       emailType: "trybo_desbloqueio",
       to,
-      subject: "Destinos avançados liberados — Trybo",
+      subject: "Botões avançados liberados — Trybo",
+      from: remetenteTrybo() || undefined,
+      lang: "pt",
       html:
         `<h2 style="margin:0 0 6px;">Pagamento confirmado ✅</h2>` +
         `<p style="font-size:13px;color:#68757F;margin:0 0 16px;">Pedido <code>${escapeHtmlLite(extRef)}</code> · ${fmtBRL(total)}</p>` +
-        `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">Os <strong>destinos avançados</strong> já estão liberados em todos os cartões Trybo da sua conta — link livre, LinkedIn, Spotify e as demais redes. É só escolher o destino no painel: <a href="https://startouch.com.br/painel-trybo">startouch.com.br/painel-trybo</a>.</p>` +
+        `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">Os <strong>botões avançados</strong> já estão liberados em todos os cartões Trybo da sua conta — link livre, LinkedIn, Spotify e as demais redes. É só adicionar o botão no painel: <a href="https://startouch.com.br/painel-trybo">startouch.com.br/painel-trybo</a>.</p>` +
         `<p style="font-size:14px;color:#68757F;line-height:1.6;">Pagamento único: não há mensalidade. Qualquer dúvida, é só responder este e-mail.</p>`,
       dedupeByMetadata: { key: "ref", value: extRef },
       metadata: { ref: extRef },
@@ -1962,9 +1966,9 @@ async function concluiDesbloqueioTrybo(session) {
 
   await sendOrderEmail({
     userId: order.user_id,
-    subject: `✨ Trybo — destinos avançados liberados — ${fmtBRL(total)}`,
+    subject: `✨ Trybo — botões avançados liberados — ${fmtBRL(total)}`,
     html:
-      `<h2>✨ Venda Trybo — Destinos avançados</h2>` +
+      `<h2>✨ Venda Trybo — Botões avançados</h2>` +
       `<p><strong>Conta:</strong> ${escapeHtmlLite(order.biz_name || "—")} &lt;${escapeHtmlLite(to || "—")}&gt;</p>` +
       `<p><strong>Total:</strong> ${fmtBRL(total)}</p>` +
       `<p><strong>Pagamento (Stripe):</strong> ${escapeHtmlLite(pagamentoId)}</p>` +

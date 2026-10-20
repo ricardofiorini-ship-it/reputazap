@@ -177,7 +177,7 @@
       '<p class="eyebrow">' + (criar ? "FALTA POUCO" : "BEM-VINDO DE VOLTA") + "</p>" +
       "<h1>" + (criar ? "Crie sua conta." : "Entre na sua conta.") + "</h1>" +
       '<p class="intro">' + (criar
-        ? "É com ela que você troca o destino do cartão depois, sem reimprimir nada."
+        ? "É com ela que você troca os botões do cartão depois, sem reimprimir nada."
         : "Use o e-mail e a senha da sua conta.") + "</p>" +
       '<div class="code-badge">' + icon("card") + " " + esc(estado.code) + "</div>" +
       '<form id="f">' +
