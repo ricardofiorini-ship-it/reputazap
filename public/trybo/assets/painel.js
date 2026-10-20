@@ -627,7 +627,7 @@
     estado.editando = c.code;
     var cfg = c.configurados;
     var aviso = c.motivo === "rebaixado_plano"
-      ? '<p class="form-error" role="alert">Um destino deste cartão faz parte dos destinos avançados e não está sendo mostrado. O cartão está levando só para o que é grátis.</p>'
+      ? '<p class="form-error" role="alert">Parte dos destinos deste cartão é dos destinos avançados e não está sendo mostrada. O cartão está levando só para os destinos grátis.</p>'
       : "";
     return '<div class="network-editor-head"><label class="field">Qual cartão?<select id="qual">' +
         cartoes.map(function (x) { return '<option value="' + esc(x.code) + '"' + (x.code === c.code ? " selected" : "") + ">" + esc(nomeCartao(x)) + " — " + esc(x.code) + "</option>"; }).join("") +
