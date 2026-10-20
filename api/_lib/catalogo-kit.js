@@ -34,6 +34,18 @@ export const KIT_CATALOG = {
     category_id: "electronics",
     soldOut: false
   },
+  // Cartão Trybo vendido pelo site (19/10/2026, decisão do Ricardo: R$ 39,90,
+  // carrinho do /kit). Entra pela vitrine da trybo.co (/kit?add=cartao-trybo)
+  // e NÃO aparece na vitrine da StarTouch — lá cada produto é um bloco de HTML
+  // próprio. O despacho é o mesmo do cartão: um TRY- do estoque.
+  "cartao-trybo": {
+    name: "Cartão Trybo Black",
+    description: "Cartão NFC + QR Code que leva o cliente às suas redes: Instagram, TikTok, WhatsApp e YouTube, sem mensalidade.",
+    price_cents: 3990,
+    image: "https://startouch.com.br/trybo/produto/trybo-produto.jpg",
+    category_id: "electronics",
+    soldOut: false
+  },
   "pulseira": {
     name: "Pulseira NFC",
     description: "Pulseira NFC pra atendimento e experiências em eventos.",
@@ -85,6 +97,11 @@ export const LOGISTICA = {
   "cartao-nfc": {
     peso: 0.050, comprimento: 16, largura: 11, altura: 2,
     // Tamanho de cartao de credito; 0,9 mm de espessura.
+    bruto: { comprimento: 8.5, largura: 5.4, altura: 0.09 }
+  },
+  // Mesmo cartão em PVC, mesma embalagem do cartão StarTouch.
+  "cartao-trybo": {
+    peso: 0.050, comprimento: 16, largura: 11, altura: 2,
     bruto: { comprimento: 8.5, largura: 5.4, altura: 0.09 }
   },
   "pulseira": {
