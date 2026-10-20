@@ -46,10 +46,11 @@ export default async function handler(req, res) {
           // busca nem o place_id direto carregavam. Agora qualquer "não achei"
           // tenta a API nova; só cota e chave recusada ficam de fora (ali a
           // nova falharia igual, e o problema é outro).
+          // COTA ESGOTADA também cai na nova (19/10/2026, decisão do Ricardo)
+          // — e grita em vermelho: é o teto de custo da API antiga batendo.
           if (!j.result) {
-            console.warn(`[bizinfo] API antiga sem resultado (${j.status}${j.error_message ? ": " + j.error_message : ""}) para ${place_id}`);
-          }
-          if (!j.result && j.status !== "OVER_QUERY_LIMIT") {
+            const log = j.status === "OVER_QUERY_LIMIT" ? console.error : console.warn;
+            log(`[bizinfo] API antiga sem resultado (${j.status}${j.error_message ? ": " + j.error_message : ""}) para ${place_id} — tentando a API nova`);
             return await detalhesPelaApiNova(place_id, API_KEY);
           }
           return j.result || null;   // sem result: não cacheia o "não achei"

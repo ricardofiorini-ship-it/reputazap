@@ -36,7 +36,9 @@ export default async function handler(req, res) {
         // Área de serviço (endereço oculto): a API antiga dá NOT_FOUND. Ver
         // _lib/places-area-servico.js.
         // Qualquer "não achei" tenta a API nova (ficha recém-criada também — ver bizinfo.js).
-        if (!detailData.result && detailData.status !== "OVER_QUERY_LIMIT" && detailData.status !== "REQUEST_DENIED") {
+        // Cota esgotada também (19/10/2026): ver bizinfo.js.
+        if (!detailData.result) {
+          if (detailData.status === "OVER_QUERY_LIMIT") console.error(`[reviews] COTA da API antiga esgotada — ${place_id} pela API nova`);
           const novo = await detalhesPelaApiNova(place_id, API_KEY, { comAvaliacoes: true });
           if (novo) return novo;
         }

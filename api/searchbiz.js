@@ -1,7 +1,7 @@
 import { fetchWithTimeout } from "./_lib/fetch-timeout.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
 import { comCachePlaces, chaveDe, TTL } from "./_lib/places-cache.js";
-import { buscarAreaDeServico } from "./_lib/places-area-servico.js";
+import { buscarPelaApiNova } from "./_lib/places-area-servico.js";
 import { sugerirNegocios } from "./_lib/places-sugestao.js";
 
 // Haversine — distância em metros entre dois pontos lat/lng
@@ -161,15 +161,23 @@ async function buscar({ q, nameQuery, cepDigits, API_KEY }) {
   //    de Porto Alegre (o caso que originou isto) sumia da lista de novo. Sem
   //    CEP nao ha como saber qual Elite a pessoa quer. O freio de custo ficou
   //    no autocomplete (4 letras, 800ms), que corta as duas chamadas juntas.
-  const [textRes, areaServico] = await Promise.all([
+  const [textRes, pelaNova] = await Promise.all([
     fetchWithTimeout(tsUrl, {}, 8000),
-    buscarAreaDeServico(q, API_KEY).catch((e) => {
-      console.warn("[searchbiz] busca de area de servico (API nova) falhou:", e.message);
+    buscarPelaApiNova(q, API_KEY).catch((e) => {
+      console.warn("[searchbiz] busca pela API nova falhou:", e.message);
       return [];
     })
   ]);
+  const areaServico = pelaNova.filter((p) => p.area_de_servico);
   const tData = await textRes.json();
   let raw = tData.results || [];
+  // COTA ESGOTADA (ou chave recusada) na API antiga: a lista vem vazia e o
+  // cadastro parava calado (19/10/2026). A nova já respondeu, em paralelo —
+  // usa a lista inteira dela. Grita: é o teto de custo batendo.
+  if (!raw.length && tData.status && tData.status !== "OK" && tData.status !== "ZERO_RESULTS") {
+    console.error(`[searchbiz] textsearch antigo falhou (${tData.status}) — usando a API nova (q="${q}")`);
+    raw = pelaNova.filter((p) => !p.area_de_servico);
+  }
 
   // 3. Trava de Brasil + remove lojas fechadas (Google mantem fechadas no indice).
   raw = raw.filter((p) => inBrazil(p.geometry?.location));

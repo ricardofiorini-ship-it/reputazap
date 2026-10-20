@@ -29,12 +29,20 @@ const BASE = "https://places.googleapis.com/v1";
 // Elétricas" sem endereço: 43 avaliações em POA, 5 no interior de SP). Escolher
 // o place_id errado é pior que a diferença de preço — ver o caso de 18/09.
 export async function buscarAreaDeServico(q, API_KEY) {
+  return (await buscarPelaApiNova(q, API_KEY)).filter((p) => p.area_de_servico);
+}
+
+// A busca INTEIRA pela API nova, no formato do textsearch antigo (inclusive
+// `geometry.location`, que a trava de Brasil e a distância leem). O searchbiz
+// usa a lista toda quando o textsearch antigo falha por COTA (19/10/2026: a
+// cota diária da API antiga estourou e o cadastro de negócio novo parou, calado).
+export async function buscarPelaApiNova(q, API_KEY) {
   const r = await fetchWithTimeout(`${BASE}/places:searchText`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": API_KEY,
-      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.types,places.businessStatus,places.pureServiceAreaBusiness,places.rating,places.userRatingCount"
+      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.types,places.businessStatus,places.pureServiceAreaBusiness,places.rating,places.userRatingCount,places.location"
     },
     body: JSON.stringify({
       textQuery: q,
@@ -45,23 +53,24 @@ export async function buscarAreaDeServico(q, API_KEY) {
   }, 6000);
   const d = await r.json();
   if (!r.ok) throw new Error(d?.error?.message || `HTTP ${r.status}`);
-  return (d.places || [])
-    .filter((p) => p.pureServiceAreaBusiness === true)
-    .map((p) => ({
-      place_id: p.id,
-      name: p.displayName?.text || "",
-      formatted_address: p.formattedAddress || "",
-      types: p.types || [],
-      business_status: p.businessStatus,
-      rating: p.rating,
-      user_ratings_total: p.userRatingCount,
-      area_de_servico: true
-    }));
+  return (d.places || []).map((p) => ({
+    place_id: p.id,
+    name: p.displayName?.text || "",
+    formatted_address: p.formattedAddress || "",
+    types: p.types || [],
+    business_status: p.businessStatus,
+    rating: p.rating,
+    user_ratings_total: p.userRatingCount,
+    ...(p.location ? { geometry: { location: { lat: p.location.latitude, lng: p.location.longitude } } } : {}),
+    area_de_servico: p.pureServiceAreaBusiness === true
+  }));
 }
 
 // Detalhes pela API nova, devolvidos NO FORMATO do place/details antigo — quem
-// chama só troca a fonte, não a leitura. Usado apenas quando o antigo respondeu
-// NOT_FOUND (não em erro qualquer: soluço do Google não pode virar chamada dobrada).
+// chama só troca a fonte, não a leitura. Usado quando o antigo volta SEM
+// resultado — NOT_FOUND (área de serviço), ficha recém-criada e, desde
+// 19/10/2026, COTA ESGOTADA (decisão do Ricardo: o site não pode parar de
+// cadastrar por causa do teto de custo; a API nova tem cota própria).
 export async function detalhesPelaApiNova(placeId, API_KEY, { comAvaliacoes = false } = {}) {
   const campos = [
     "displayName", "rating", "userRatingCount", "formattedAddress",
