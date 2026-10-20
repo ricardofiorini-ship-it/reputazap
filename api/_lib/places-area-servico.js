@@ -73,9 +73,19 @@ export async function detalhesPelaApiNova(placeId, API_KEY, { comAvaliacoes = fa
     { headers: { "X-Goog-Api-Key": API_KEY, "X-Goog-FieldMask": campos.join(",") } },
     6000
   );
-  if (!r.ok) return null;
+  // A falha GRITA (19/10/2026): devolvia null calado, e "o Google não tem
+  // esse negócio" ficava indistinguível de "a chave não tem acesso à API
+  // nova". Foi assim que uma ficha recém-criada parecia inexistente.
+  if (!r.ok) {
+    const corpo = await r.text().catch(() => "");
+    console.error(`[places-area-servico] detalhes ${placeId}: HTTP ${r.status} ${corpo.slice(0, 300)}`);
+    return null;
+  }
   const p = await r.json();
-  if (!p?.displayName) return null;
+  if (!p?.displayName) {
+    console.warn(`[places-area-servico] detalhes ${placeId}: resposta sem displayName`);
+    return null;
+  }
   return {
     name: p.displayName.text,
     rating: p.rating,
