@@ -91,3 +91,46 @@ export function tryboNovaSenhaEmail({ link } = {}) {
     })
   };
 }
+
+// ── Pedido feito no carrinho da Trybo (19/10/2026) ──────────
+// Até aqui, quem comprava o cartão Trybo recebia "Recebemos seu pedido
+// StarTouch" e "ative em startouch.com.br" — a instrução de ativação errada.
+// O webhook (billing.js) escolhe estes pelo prefixo `kit_trybo` do pedido.
+const brl = (c) => "R$ " + (Number(c || 0) / 100).toFixed(2).replace(".", ",");
+
+export function tryboPedidoRecebidoEmail({ nome, ref, itens = [], totalCentavos } = {}) {
+  const primeiro = String(nome || "").trim().split(/\s+/)[0];
+  const linhas = itens.map((i) =>
+    `<tr><td style="padding:6px 0;font-size:14px;color:#4d4955">${esc(i.qty || 1)} × ${esc(i.name || "Cartão Trybo")}</td></tr>`).join("");
+  return {
+    subject: "Recebemos seu pedido Trybo",
+    html: casca({
+      previa: "Seu pedido chegou até nós. Assim que o pagamento for confirmado, preparamos o envio.",
+      titulo: primeiro ? `Pedido recebido, ${primeiro}.` : "Pedido recebido.",
+      corpo:
+        p("Seu pedido chegou até nós. Assim que o pagamento for confirmado, preparamos o envio e você recebe o código de rastreio por aqui.") +
+        `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e8e6ed;border-bottom:1px solid #e8e6ed;margin:0 0 14px">${linhas}` +
+        `<tr><td style="padding:8px 0;font-size:14px;color:#1b1b20"><strong>Total: ${brl(totalCentavos)}</strong> <span style="color:#9a96a1">· pedido ${esc(ref || "—")}</span></td></tr></table>`,
+      botao: "Ver como funciona",
+      link: "https://trybo.co/#como-funciona",
+      rodape: "Qualquer dúvida, é só responder este e-mail ou chamar no WhatsApp (11) 97694-4026."
+    })
+  };
+}
+
+export function tryboPedidoConfirmadoEmail({ nome, ref, totalCentavos } = {}) {
+  const primeiro = String(nome || "").trim().split(/\s+/)[0];
+  return {
+    subject: "Pagamento confirmado — seu cartão Trybo",
+    html: casca({
+      previa: "Pagamento confirmado. Já estamos preparando o envio do seu cartão.",
+      titulo: primeiro ? `Tudo certo, ${primeiro}.` : "Pagamento confirmado.",
+      corpo:
+        p(`Pagamento confirmado (${brl(totalCentavos)} · pedido ${esc(ref || "—")}). Já estamos preparando o envio e você recebe o código de rastreio por aqui.`) +
+        p("<strong>Quando o cartão chegar</strong>, é só abrir <strong>trybo.co/ativar</strong> e digitar o código do verso. Em um minuto ele já leva o cliente para as suas redes."),
+      botao: "Ver como ativar",
+      link: "https://trybo.co/ativar",
+      rodape: "Qualquer dúvida, é só responder este e-mail ou chamar no WhatsApp (11) 97694-4026."
+    })
+  };
+}

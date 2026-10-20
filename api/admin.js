@@ -23,6 +23,7 @@ import { dadosDoCliente, enderecoCompleto, textoDaEtiqueta }
   from "./_lib/pedido-cliente.js";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
 import { pedidoAtualizadoEmail } from "./_lib/email-templates.js";
+import { remetenteTrybo } from "./_lib/email-trybo.js";
 import Stripe from "stripe";
 
 // Lista de emails autorizados como admin (hardcoded)
@@ -1346,6 +1347,9 @@ async function avisaClienteDoPedido({ pedido, destino, rastreio, admin }) {
     userId: pedido.user_id || "guest",
     emailType: `pedido_${destino}`,
     to, subject: corpo.subject, html: corpo.html,
+    // Pedido do carrinho da Trybo sai com o remetente da Trybo (o texto destes
+    // avisos não cita marca nenhuma, então serve aos dois).
+    ...((pedido.external_reference || "").startsWith("kit_trybo") ? { from: remetenteTrybo() || undefined, lang: "pt" } : {}),
     dedupeByMetadata: { key: "ref", value: pedido.external_reference },
     metadata: { ref: pedido.external_reference, por: admin?.email || null },
   });

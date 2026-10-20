@@ -5,6 +5,7 @@ import { MercadoPagoConfig, PreApproval, Preference, Payment } from "mercadopago
 import crypto from "crypto";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
 import { pedidoRecebidoEmail, pedidoConfirmadoEmail } from "./_lib/email-templates.js";
+import { tryboPedidoRecebidoEmail, tryboPedidoConfirmadoEmail, remetenteTrybo } from "./_lib/email-trybo.js";
 import { assinaturaRecusadaEmail, assinaturaCobradaEmail, testeTerminandoEmail, assinaturaEncerradaEmail } from "./_lib/email-templates.js";
 import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia } from "./_lib/email-templates.js";
 import { resolvePlano } from "./_lib/plan.js";
@@ -1727,6 +1728,16 @@ async function handleCheckoutKitGuestStripe(req, res) {
     const body = parseJson(await getRawBody(req));
     const { items = [], customer = {}, frete_codigo = "" } = body;
 
+    // CARRINHO DA TRYBO (19/10/2026): a mesma compra, com outra marca. Muda só
+    // o que o cliente vê — a volta do pagamento (página da Trybo, não a loja
+    // da StarTouch) e os e-mails (o webhook reconhece o prefixo `kit_trybo`).
+    // Só aceita produto Trybo: carrinho misto mandaria o e-mail da Trybo
+    // sobre uma placa da StarTouch.
+    const ehTrybo = body.marca === "trybo";
+    if (ehTrybo && (!Array.isArray(items) || items.some((i) => !String(i?.id || "").includes("trybo")))) {
+      return res.status(400).json({ error: "Este carrinho vende só o cartão Trybo." });
+    }
+
     const lido = leClienteEntrega(customer);
     if (lido.erro) return res.status(400).json({ error: lido.erro });
     const c = lido.cliente;
@@ -1746,7 +1757,7 @@ async function handleCheckoutKitGuestStripe(req, res) {
 
     const stripe = getStripe();
     const origin = req.headers.origin || `https://${req.headers.host}`;
-    const extRef = refDePedido("kit_guest");
+    const extRef = refDePedido(ehTrybo ? "kit_trybo_guest" : "kit_guest");
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -1760,7 +1771,7 @@ async function handleCheckoutKitGuestStripe(req, res) {
       payment_method_types: ["card", "pix"],
       payment_method_options: { card: { installments: { enabled: true } } },
       metadata: {
-        order_type: "kit", tipo: "kit_guest",
+        order_type: "kit", tipo: "kit_guest", ...(ehTrybo ? { marca: "trybo" } : {}),
         external_reference: extRef, kit_total_cents: String(carrinho.totalCents),
         frete_cents: String(frete.centavos),
         ga_client_id: (body.ga_client_id || "").toString(),
@@ -1770,8 +1781,10 @@ async function handleCheckoutKitGuestStripe(req, res) {
       locale: "pt-BR",
       // `{CHECKOUT_SESSION_ID}` e substituido pelo Stripe no redirect. Sem ele
       // a pagina nao tem como saber se o boleto foi pago ou so emitido.
-      success_url: `${origin}/kit?compra=sucesso&sid={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/kit?compra=falhou`
+      success_url: ehTrybo
+        ? `${origin}/comprar-trybo?compra=sucesso&sid={CHECKOUT_SESSION_ID}`
+        : `${origin}/kit?compra=sucesso&sid={CHECKOUT_SESSION_ID}`,
+      cancel_url: ehTrybo ? `${origin}/comprar-trybo?compra=falhou` : `${origin}/kit?compra=falhou`
     });
 
     await gravar("orders", {
@@ -2290,7 +2303,14 @@ async function avisaClientePedidoRecebido({ session, stripe, extRef }) {
   // do Stripe quando `c.nome` faltava, entao o e-mail saia certo por acidente,
   // nao por acerto. Passa a ler o dado do pedido direto, com o Stripe de reserva.
   const cliente = dadosDoCliente(order?.shipping);
-  const { subject, html } = pedidoRecebidoEmail({
+  // Pedido feito no carrinho da Trybo: e-mail da Trybo (19/10/2026).
+  const trybo = extRef.startsWith("kit_trybo") && !boleto;
+  const { subject, html } = trybo ? tryboPedidoRecebidoEmail({
+    nome: cliente.nome || session?.customer_details?.name || null,
+    ref: extRef,
+    itens: Array.isArray(order?.items) ? order.items : [],
+    totalCentavos: session?.amount_total ?? order?.total_cents ?? 0,
+  }) : pedidoRecebidoEmail({
     nome: cliente.nome || session?.customer_details?.name || null,
     ref: extRef,
     itens: Array.isArray(order?.items) ? order.items : [],
@@ -2310,6 +2330,7 @@ async function avisaClientePedidoRecebido({ session, stripe, extRef }) {
     userId: order?.user_id || "guest",
     emailType: boleto ? "pedido_boleto" : "pedido_recebido",
     to, subject, html,
+    ...(trybo ? { from: remetenteTrybo() || undefined, lang: "pt" } : {}),
     // Sem isto, dois pedidos do mesmo cliente colidiriam na idempotencia por
     // (user_id, email_type) e o segundo nunca sairia.
     dedupeByMetadata: { key: "ref", value: extRef },
@@ -2330,14 +2351,18 @@ async function avisaClientePedidoPago({ order, extRef, totalCentavos }) {
   const cliente = dadosDoCliente(order?.shipping);
   const to = order?.email || cliente.email;
   if (!to) { console.warn(`[stripe/webhook] pedido ${extRef} pago sem e-mail do cliente — aviso pulado`); return; }
-  const { subject, html } = pedidoConfirmadoEmail({
-    nome: cliente.nome || null, ref: extRef, totalCentavos,
-    ehRevenda: extRef.startsWith("revenda_"),
-  });
+  const trybo = extRef.startsWith("kit_trybo");
+  const { subject, html } = trybo
+    ? tryboPedidoConfirmadoEmail({ nome: cliente.nome || null, ref: extRef, totalCentavos })
+    : pedidoConfirmadoEmail({
+        nome: cliente.nome || null, ref: extRef, totalCentavos,
+        ehRevenda: extRef.startsWith("revenda_"),
+      });
   await sendTransactionalEmail({
     userId: order?.user_id || "guest",
     emailType: "pedido_confirmado",
     to, subject, html,
+    ...(trybo ? { from: remetenteTrybo() || undefined, lang: "pt" } : {}),
     dedupeByMetadata: { key: "ref", value: extRef },
     metadata: { ref: extRef },
   });
@@ -2440,7 +2465,9 @@ async function concluiPedidoStripe(session) {
       order, pagamentoId, status: session.payment_status || "paid"
     });
   } else {
-    const userId = extRef.startsWith("kit_guest_") ? "guest" : extRef.split("_")[1];
+    // `kit_trybo_guest_` (carrinho da Trybo, 19/10/2026) também é convidado:
+    // sem esta linha, "trybo" viraria um id de usuário no aviso ao admin.
+    const userId = (extRef.startsWith("kit_guest_") || extRef.startsWith("kit_trybo_guest_")) ? "guest" : extRef.split("_")[1];
     await notifyAdminKitOrder({
       order, userId, provedor: "stripe",
       pagamento: {

@@ -54,3 +54,65 @@
 .buy-nota{font-size:.78rem;line-height:1.55;color:#8a8890;margin:0}
 @media (max-width:900px){.buy-grid{grid-template-columns:1fr;gap:28px}.buy-thumbs{grid-template-columns:repeat(8,minmax(44px,1fr));overflow-x:auto}}
 @media (max-width:520px){.buy-nav{display:none}.buy-specs{grid-template-columns:1fr}}
+/* Carrinho da Trybo (19/10/2026) */
+.cmp-page{background:var(--soft)}
+.cmp-page .header{position:static;background:#fff;border-bottom:1px solid var(--line)}
+.cmp-voltar{font-size:.88rem;color:var(--muted)}
+.cmp-main{padding:36px 0 90px}
+.cmp-titulo{font-size:clamp(1.8rem,3vw,2.4rem);letter-spacing:-.05em;margin:0 0 24px}
+.cmp-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:28px;align-items:start}
+.cmp-form,.cmp-lado{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px}
+.cmp-lado{position:sticky;top:20px}
+.cmp-lado h2{font-size:1.05rem;margin:0 0 16px}
+.cmp-form fieldset{border:0;padding:0;margin:0 0 26px}
+.cmp-form legend{font-size:1.05rem;font-weight:700;margin-bottom:14px;padding:0}
+.cmp-form legend small,.cmp-campo small{font-weight:400;color:var(--muted)}
+.cmp-campo{display:flex;flex-direction:column;gap:6px;font-size:.84rem;font-weight:600;color:#3d3b42;margin-bottom:14px}
+.cmp-campo input{font:inherit;font-weight:400;font-size:1rem;padding:12px 13px;border:1px solid #d9d7de;border-radius:10px;background:#fff;color:var(--ink);width:100%;min-width:0}
+.cmp-campo input:focus{outline:2px solid #b7a2d7;outline-offset:1px;border-color:#b7a2d7}
+.cmp-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}
+.cmp-cep{font-size:.8rem;color:var(--muted);margin:0 0 24px}
+.cmp-op{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1px solid #e1dfe6;border-radius:12px;margin-bottom:8px;cursor:pointer}
+.cmp-op:has(input:checked){border-color:var(--ink);background:#faf9fc}
+.cmp-op span{flex:1;display:flex;flex-direction:column}
+.cmp-op strong{font-size:.9rem}
+.cmp-op small{font-size:.78rem;color:var(--muted)}
+.cmp-op b{font-size:.92rem}
+.cmp-frete-msg{font-size:.88rem;color:var(--muted);margin:0}
+.cmp-frete-msg.erro,.cmp-erro{color:#9b2637}
+.cmp-erro{font-size:.9rem;background:#fff2f2;border:1px solid #f2cdd2;padding:12px;border-radius:10px;margin:0 0 14px}
+.cmp-pagar{width:100%}
+.cmp-seguro{display:flex;align-items:center;justify-content:center;gap:7px;font-size:.78rem;color:var(--muted);margin:12px 0 0;text-align:center}
+.cmp-seguro svg{width:15px;height:15px;flex-shrink:0}
+.cmp-item{display:flex;gap:14px;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.cmp-item img{border-radius:12px;flex-shrink:0}
+.cmp-item>div:nth-child(2){flex:1;display:flex;flex-direction:column}
+.cmp-item strong{font-size:.98rem}
+.cmp-item span{font-size:.82rem;color:var(--muted)}
+.cmp-qtd{display:flex;align-items:center;border:1px solid #dcdae1;border-radius:10px;overflow:hidden}
+.cmp-qtd button{width:34px;height:36px;border:0;background:#fff;font-size:1.1rem;cursor:pointer}
+.cmp-qtd button:hover{background:var(--soft)}
+.cmp-qtd span{min-width:28px;text-align:center;font-weight:600;color:var(--ink);font-size:.95rem}
+.cmp-contas{margin:16px 0;display:grid;gap:8px}
+.cmp-contas div{display:flex;justify-content:space-between;font-size:.9rem}
+.cmp-contas dt{color:var(--muted)}.cmp-contas dd{margin:0}
+.cmp-contas .total{border-top:1px solid var(--line);padding-top:10px;font-size:1.1rem;font-weight:700}
+.cmp-contas .total dt{color:var(--ink)}
+.cmp-dica{font-size:.82rem;color:#6b5c86;background:#f4f0fa;border-radius:10px;padding:10px 12px;margin:0 0 16px;display:flex;gap:7px;align-items:center}
+.cmp-dica svg{width:15px;height:15px}
+.cmp-inclui{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.cmp-inclui li{display:flex;gap:8px;font-size:.84rem;color:#4d4955}
+.cmp-inclui svg{width:16px;height:16px;color:#7661b2;flex-shrink:0;margin-top:1px}
+.cmp-aviso{background:#fff7e6;border:1px solid #f1dcae;color:#7a5410;padding:12px 14px;border-radius:12px;font-size:.9rem;margin:0 0 18px}
+.cmp-footer{text-align:center;font-size:.78rem;color:var(--muted);padding:0 0 30px}
+.cmp-footer a{text-decoration:underline}
+.cmp-ok{max-width:560px;margin:30px auto;background:#fff;border:1px solid var(--line);border-radius:20px;padding:36px 30px;text-align:center}
+.cmp-ok-icone{width:56px;height:56px;border-radius:50%;background:#171719;color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.cmp-ok-icone svg{width:26px;height:26px}
+.cmp-ok h1{font-size:2rem;letter-spacing:-.05em;margin:0 0 10px}
+.cmp-ok>p{color:var(--muted);line-height:1.6}
+.cmp-passos{text-align:left;background:var(--soft);border-radius:14px;padding:18px 20px;margin:22px 0}
+.cmp-passos h2{font-size:1rem;margin:0 0 8px}
+.cmp-passos ol{margin:0;padding-left:20px;display:grid;gap:6px;font-size:.9rem;color:#4d4955}
+@media (max-width:900px){.cmp-grid{grid-template-columns:1fr}.cmp-lado{position:static;order:-1}}
+@media (max-width:520px){.cmp-form,.cmp-lado{padding:18px}.cmp-2{grid-template-columns:1fr;gap:0}.cmp-cep{margin-top:-6px}}
