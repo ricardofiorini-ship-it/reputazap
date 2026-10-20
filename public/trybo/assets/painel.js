@@ -101,7 +101,10 @@
     whatsapp: '<path d="m3 21 1.5-5A9 9 0 1 1 8 20L3 21Z"/><path d="M8 7c0 5 4 9 8 9l1-3-3-1-1 1-2-2 1-1-1-3H8Z"/>',
     youtube: '<rect x="2" y="5" width="20" height="14" rx="5"/><path d="m10 9 5 3-5 3z"/>'
   };
+  // Rede com logotipo oficial usa o SocialIcon (public/trybo/assets/social-icon.js,
+  // gerado da mesma fonte que a página do toque usa). O resto segue no traço.
   function icon(n) {
+    if (window.SocialIcon && window.SocialIcon.tem(n)) return window.SocialIcon(n, 20, { decorativo: true });
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (icons[n] || icons.links) + "</svg>";
   }
   function esc(v) {

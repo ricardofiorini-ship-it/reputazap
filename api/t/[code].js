@@ -27,6 +27,7 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 import { toqueRepetido, marcarRepetido } from "../_lib/toque-repetido.js";
+import { SocialIcon } from "../_lib/social-icons.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -210,10 +211,16 @@ const TOKENS = `
   --realce:#111114; --sobre-realce:#ffffff; --raio:14px;
 `;
 
-function paginaEscolha({ destinos, code, avisoInApp }) {
+export function paginaEscolha({ destinos, code, avisoInApp }) {
+  // Logotipo oficial da rede (SocialIcon, a mesma fonte do painel), embutido
+  // no HTML: continua zero request a mais. Rede sem logotipo (link livre,
+  // canal do WhatsApp) leva um elo de corrente.
+  const ELO = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b6b76" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m10 13 4-4m-6 7-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m2 1 1-1a4 4 0 1 1 6 6l-4 4a4 4 0 0 1-6 0"/></svg>';
   const botoes = destinos.map((d, i) => `
       <a class="b" href="/t/${encodeURIComponent(code)}?ir=${i + 1}" rel="noopener">
-        <span>${escapeHtml(d.label || d.kind)}</span>
+        <span class="ic">${SocialIcon(d.kind, 24, { decorativo: true }) || ELO}</span>
+        <span class="nm">${escapeHtml(d.label || d.kind)}</span>
+        <span class="seta" aria-hidden="true">›</span>
       </a>`).join("");
 
   const aviso = avisoInApp ? `
@@ -234,11 +241,15 @@ body{min-height:100dvh;display:flex;align-items:center;justify-content:center;pa
  font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 .c{width:100%;max-width:380px;text-align:center}
 h1{font-size:20px;line-height:1.25;margin:0 0 24px;font-weight:700;letter-spacing:-.01em}
-.b{display:flex;align-items:center;justify-content:center;min-height:56px;margin:0 0 12px;
- padding:14px 18px;border:1px solid var(--linha);border-radius:var(--raio);
- background:var(--realce);color:var(--sobre-realce);text-decoration:none;font-weight:650;font-size:17px}
-.b:active{opacity:.82}
-.b+.b{background:var(--fundo);color:var(--tinta)}
+.b{display:flex;align-items:center;gap:14px;min-height:58px;margin:0 0 12px;
+ padding:12px 16px;border:1px solid var(--linha);border-radius:var(--raio);
+ background:var(--fundo);color:var(--tinta);text-decoration:none;font-weight:650;font-size:17px;
+ box-shadow:0 1px 3px rgba(17,17,20,.06)}
+.b:active{transform:scale(.985);background:#f7f7f9}
+.b .ic{width:28px;height:28px;flex:none;display:flex;align-items:center;justify-content:center}
+.b .ic svg{width:26px;height:26px}
+.b .nm{flex:1;text-align:left}
+.b .seta{color:#b4b4bd;font-size:24px;line-height:1}
 .aviso{margin:18px 0 0;font-size:13px;line-height:1.5;color:var(--apagado)}
 .rodape{margin:28px 0 0;font-size:12px;color:var(--apagado)}
 </style>
