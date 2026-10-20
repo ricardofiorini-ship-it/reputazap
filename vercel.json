@@ -79,6 +79,28 @@
       "permanent": false
     },
     {
+      "source": "/sitemap.xml",
+      "has": [
+        {
+          "type": "host",
+          "value": "trybo.co"
+        }
+      ],
+      "destination": "/trybo/sitemap.xml",
+      "permanent": false
+    },
+    {
+      "source": "/robots.txt",
+      "has": [
+        {
+          "type": "host",
+          "value": "trybo.co"
+        }
+      ],
+      "destination": "/trybo/robots.txt",
+      "permanent": false
+    },
+    {
       "source": "/app-legacy",
       "destination": "/app",
       "permanent": false

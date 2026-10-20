@@ -1,0 +1,12 @@
+# Trybo — https://trybo.co
+# Servido em trybo.co/robots.txt pelo redirect do vercel.json (o public/robots.txt
+# e o da StarTouch e aponta pro sitemap dela).
+User-agent: *
+Allow: /
+Disallow: /painel
+Disallow: /ativar
+Disallow: /app
+Disallow: /admin
+Disallow: /avaliar
+
+Sitemap: https://trybo.co/trybo/sitemap.xml
