@@ -50,3 +50,22 @@ dialog{width:min(540px,calc(100% - 36px));padding:28px;border:1px solid #e5dbea;
 
 /* Campo escondido some de verdade: .field{display:flex} anulava o atributo hidden (19/10/2026) */
 .field[hidden]{display:none!important}
+/* Editor: cada destino é um botão (19/10/2026) */
+.dest-cab{margin:6px 0 12px}
+.dest-cab h3{font-size:1rem;margin:0 0 3px;color:var(--ink)}
+.dest-cab p{font-size:.82rem;margin:0}
+.dest-slot{border:1px solid #e3dfe9;border-radius:14px;padding:14px 16px 4px;margin-bottom:12px;background:#fff;box-shadow:0 1px 2px #1b1b200a;transition:border-color .15s,background .15s}
+.dest-slot:focus-within{border-color:#b7a2d7;box-shadow:0 0 0 3px #b7a2d733}
+.dest-slot.vazio{border-style:dashed;border-color:#d6d0de;background:#fbfafd;box-shadow:none}
+.dest-topo{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.dest-num{width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:.72rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.dest-slot.vazio .dest-num{background:#cfc9d8}
+.dest-ic{width:32px!important;height:32px!important}
+.dest-ic svg{width:18px;height:18px}
+.dest-slot.vazio .dest-ic{background:#f0edf4;color:#9a91a6}
+.dest-titulo{font-size:.98rem;color:var(--ink)}
+.dest-slot.vazio .dest-titulo{color:#8a8295;font-weight:600}
+.dest-ordem{margin-left:auto;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:#9a91a6}
+.dest-campos{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:12px}
+.dest-campos .field{margin-bottom:12px}
+@media (max-width:640px){.dest-campos{grid-template-columns:1fr;gap:0}}

@@ -595,13 +595,28 @@
     return p ? valorDe(kind, p.url) : "";
   }
 
+  // CADA DESTINO É UM BOTÃO (19/10/2026, Ricardo). Eram quatro pares de
+  // "select + Perfil" iguais, mesma cor e mesmo tamanho — não dava pra ver
+  // que aquilo eram os botões que o cliente toca. Agora cada um é um cartão
+  // com o número da ordem e o ícone colorido da rede; o vazio é tracejado,
+  // com cara de "adicione aqui".
+  function rotuloCampo(kind) {
+    if (kind === "whatsapp") return "Número do WhatsApp, com DDD";
+    if (["url", "spotify", "whatsapp_canal"].indexOf(kind) !== -1) return "Endereço completo (https://…)";
+    return "Seu @ no " + nomeKind(kind);
+  }
   function slot(n, destino, permitirNenhum) {
     var kind = destino ? destino.kind : (permitirNenhum ? "" : "instagram");
     var valor = destino ? valorDe(destino.kind, destino.url) : (kind ? perfilGuardado(kind) : "");
-    return '<div class="form-grid" data-slot="' + n + '">' +
-      '<label class="field">' + ["Primeiro", "Segundo", "Terceiro", "Quarto"][n - 1] + " destino" + '<select name="kind' + n + '">' + opcoes(kind, n > 2 ? (permitirNenhum && "Nenhum") : permitirNenhum) + "</select></label>" +
-      '<label class="field" ' + (kind ? "" : "hidden") + '>Perfil<input name="valor' + n + '" value="' + esc(valor) + '" placeholder="' + dicaDe(kind) + '" maxlength="500" autocapitalize="none" spellcheck="false"></label>' +
-      "</div>";
+    return '<div class="dest-slot' + (kind ? "" : " vazio") + '" data-slot="' + n + '">' +
+      '<div class="dest-topo"><span class="dest-num">' + n + '</span>' +
+        '<span class="network-icon dest-ic ' + esc(kind) + '">' + icon(kind || "plus") + "</span>" +
+        '<strong class="dest-titulo">' + (kind ? esc(nomeKind(kind)) : "Adicionar um botão") + "</strong>" +
+        '<span class="dest-ordem">' + (n === 1 ? "aparece primeiro" : "botão " + n) + "</span></div>" +
+      '<div class="dest-campos">' +
+        '<label class="field">Rede<select name="kind' + n + '">' + opcoes(kind, n > 1 ? "Nenhum" : false) + "</select></label>" +
+        '<label class="field" ' + (kind ? "" : "hidden") + '><span class="dest-rotulo">' + (kind ? rotuloCampo(kind) : "Perfil") + '</span><input name="valor' + n + '" value="' + esc(valor) + '" placeholder="' + dicaDe(kind) + '" maxlength="500" autocapitalize="none" spellcheck="false"></label>' +
+      "</div></div>";
   }
 
   function previa(c) {
@@ -635,6 +650,7 @@
       '<div class="editor-grid"><section class="panel editor-panel"><div class="panel-heading"><div><h2>Para onde ele leva.</h2><p>Instagram, TikTok, WhatsApp e YouTube: grátis, para sempre.</p></div></div>' +
         '<form id="ef">' + aviso +
           '<label class="field">Nome do cartão<input name="apelido" maxlength="60" value="' + esc(c.apelido || "") + '" placeholder="Ex.: Camila · cadeira 2"></label>' +
+          '<div class="dest-cab"><h3>Os botões do seu cartão</h3><p>É o que o cliente vê ao encostar o celular, nesta ordem.</p></div>' +
           slot(1, cfg.find(function (d) { return d.posicao === 1; }), false) +
           slot(2, cfg.find(function (d) { return d.posicao === 2; }), true) +
           // Até quatro desde 19/10/2026 (eram dois): o cartão foi vendido
@@ -663,9 +679,18 @@
       var sel = form.querySelector('[name="kind' + n + '"]');
       var campo = form.querySelector('[name="valor' + n + '"]');
       sel.onchange = function () {
-        campo.parentNode.hidden = !sel.value;
-        campo.placeholder = dicaDe(sel.value);
-        campo.value = sel.value ? perfilGuardado(sel.value) : "";
+        var k = sel.value;
+        var caixa = form.querySelector('[data-slot="' + n + '"]');
+        campo.parentNode.hidden = !k;
+        campo.placeholder = dicaDe(k);
+        campo.value = k ? perfilGuardado(k) : "";
+        caixa.classList.toggle("vazio", !k);
+        var ic = caixa.querySelector(".dest-ic");
+        ic.className = "network-icon dest-ic " + k;
+        ic.innerHTML = icon(k || "plus");
+        caixa.querySelector(".dest-titulo").textContent = k ? nomeKind(k) : "Adicionar um botão";
+        caixa.querySelector(".dest-rotulo").textContent = k ? rotuloCampo(k) : "Perfil";
+        if (k) campo.focus();
       };
     });
 
