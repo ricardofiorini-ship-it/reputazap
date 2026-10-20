@@ -39,7 +39,15 @@ export default async function handler(req, res) {
           const j = await r.json();
           // NOT_FOUND num place_id válido = negócio de área de serviço (endereço
           // oculto), que a API antiga não enxerga. Ver _lib/places-area-servico.js.
-          if (!j.result && j.status === "NOT_FOUND") {
+          //
+          // FICHA RECÉM-CRIADA (19/10/2026): "Believe Studio Cabeleireiro",
+          // Guarulhos, aberta havia dias — a API nova acha pelo id, a antiga
+          // não, e não responde NOT_FOUND. O cadastro ficava impossível: nem a
+          // busca nem o place_id direto carregavam. Agora qualquer "não achei"
+          // tenta a API nova; só cota e chave recusada ficam de fora (ali a
+          // nova falharia igual, e o problema é outro).
+          if (!j.result && j.status !== "OVER_QUERY_LIMIT" && j.status !== "REQUEST_DENIED") {
+            if (j.status !== "NOT_FOUND") console.warn(`[bizinfo] API antiga sem resultado (${j.status}) para ${place_id} — tentando a nova`);
             return await detalhesPelaApiNova(place_id, API_KEY);
           }
           return j.result || null;   // sem result: não cacheia o "não achei"

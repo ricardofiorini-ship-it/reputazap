@@ -35,7 +35,8 @@ export default async function handler(req, res) {
         const detailData = await detailRes.json();
         // Área de serviço (endereço oculto): a API antiga dá NOT_FOUND. Ver
         // _lib/places-area-servico.js.
-        if (!detailData.result && detailData.status === "NOT_FOUND") {
+        // Qualquer "não achei" tenta a API nova (ficha recém-criada também — ver bizinfo.js).
+        if (!detailData.result && detailData.status !== "OVER_QUERY_LIMIT" && detailData.status !== "REQUEST_DENIED") {
           const novo = await detalhesPelaApiNova(place_id, API_KEY, { comAvaliacoes: true });
           if (novo) return novo;
         }
