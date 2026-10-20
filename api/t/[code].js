@@ -179,7 +179,7 @@ async function registrarEncaminhamento(plate, destino, metodo, req) {
       plate_id: plate.id,
       code: plate.code,
       kind: "click",
-      button_id: metodo,                       // auto | escolha_1 | escolha_2
+      button_id: metodo,                       // auto | escolha_1 … escolha_4
       action: destino?.kind || "outro",
       happened_at: new Date().toISOString(),
       medium: tapMedium(req.query),
@@ -198,8 +198,9 @@ async function registrarEncaminhamento(plate, destino, metodo, req) {
 // Regras que nao sao estilo, sao requisito:
 //   - abaixo de 15 KB e ZERO request externo (sem fonte, sem icone, sem
 //     script de fora). Cada request a mais e meio segundo no 4G da loja.
-//   - dois botoes, nunca tres. A trava real esta no banco (posicao in 1,2);
-//     aqui e so nao inventar um terceiro.
+//   - ate QUATRO botoes (eram dois ate 19/10/2026: o cartao foi vendido
+//     mostrando as quatro redes no menu). A trava real esta no banco
+//     (supabase/trybo-004-quatro-destinos.sql); aqui e so nao inventar um quinto.
 //
 // >>> VISUAL PROVISORIO <<<  Os tokens abaixo (cor, fonte, raio) sao neutros
 // e serao trocados pelos do site da Trybo quando o export chegar. E um bloco
@@ -392,8 +393,8 @@ export default async function handler(req, res) {
       return res.status(200).send(paginaSemDestino());
     }
 
-    // ── Dois destinos: pagina de escolha ──
-    const validos = destinos.filter((d) => safeUrl(d?.url)).slice(0, 2);
+    // ── Dois a quatro destinos: pagina de escolha ──
+    const validos = destinos.filter((d) => safeUrl(d?.url)).slice(0, 4);
     if (validos.length === 0) {
       res.setHeader("Content-Type", "text/html; charset=utf-8");
       return res.status(200).send(paginaSemDestino());

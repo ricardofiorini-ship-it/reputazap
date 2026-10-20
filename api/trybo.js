@@ -123,8 +123,34 @@ async function handleCartao(req, res, user) {
   });
 }
 
+// ── ATÉ QUATRO DESTINOS POR CARTÃO (19/10/2026) ─────────────
+// Eram dois. O cartão foi vendido mostrando as quatro redes no menu, e o
+// primeiro cliente não conseguiu somar a terceira. A trava de verdade é do
+// banco (supabase/trybo-004-quatro-destinos.sql); esta é a mesma regra com
+// mensagem que o lojista entende.
+const MAX_DESTINOS = 4;
+
+// Apaga e regrava os destinos de um cartão. Se o banco ainda estiver na
+// regra antiga (SQL 004 não rodado), ele recusa a posição 3 DEPOIS de os
+// antigos terem sido apagados — e o cartão ficaria sem destino nenhum, na
+// mão de um cliente. Então, nesse caso, grava os dois primeiros e GRITA no
+// log: o lojista perde a 3ª rede, nunca o cartão.
+async function gravarDestinos(plateId, linhas) {
+  const { error: delErr } = await supabase.from("plate_destinations").delete().eq("plate_id", plateId);
+  if (delErr) return { error: "Não consegui limpar os destinos antigos: " + delErr.message };
+  const { error: insErr } = await supabase.from("plate_destinations").insert(linhas);
+  if (!insErr) return { ok: true, cortados: 0 };
+  if (insErr.code === "23514" && linhas.length > 2) {
+    console.error("[trybo] o banco recusou a 3ª/4ª posição — rode supabase/trybo-004-quatro-destinos.sql. Gravando só as duas primeiras.");
+    const { error: e2 } = await supabase.from("plate_destinations").insert(linhas.filter((l) => l.posicao <= 2));
+    if (!e2) return { ok: true, cortados: linhas.length - 2 };
+    return { error: "Não consegui salvar os destinos: " + e2.message };
+  }
+  return { error: "Não consegui salvar os destinos: " + insErr.message };
+}
+
 // ── POST ?action=salvar-destinos ────────────────────────────
-// body: { code, destinos: [ { posicao: 1|2, kind, valor }, ... ] }
+// body: { code, destinos: [ { posicao: 1..4, kind, valor }, ... ] }
 // `valor` e o @ (ou o telefone, ou a URL inteira nos destinos livres).
 async function handleSalvarDestinos(req, res, user) {
   const negocio = await negocioDo(user);
@@ -140,12 +166,9 @@ async function handleSalvarDestinos(req, res, user) {
   if (!Array.isArray(destinos) || destinos.length === 0) {
     return res.status(400).json({ error: "Escolha pelo menos um destino" });
   }
-  // O banco tambem recusa (check posicao in 1,2), mas a mensagem de la e
-  // criptica. Aqui o lojista entende o porque.
-  if (destinos.length > 2) {
-    return res.status(400).json({
-      error: "Cada cartão mostra no máximo dois destinos. Mais que isso e as pessoas param de escolher."
-    });
+  // O banco também recusa, mas a mensagem de lá é críptica.
+  if (destinos.length > MAX_DESTINOS) {
+    return res.status(400).json({ error: `Cada cartão mostra no máximo ${MAX_DESTINOS} destinos.` });
   }
 
   const cat = await catalogo();
@@ -157,8 +180,8 @@ async function handleSalvarDestinos(req, res, user) {
   for (let i = 0; i < destinos.length; i++) {
     const d = destinos[i] || {};
     const posicao = Number(d.posicao || i + 1);
-    if (posicao !== 1 && posicao !== 2) {
-      return res.status(400).json({ error: "Posição inválida (só existe 1 e 2)" });
+    if (!Number.isInteger(posicao) || posicao < 1 || posicao > MAX_DESTINOS) {
+      return res.status(400).json({ error: `Posição inválida (de 1 a ${MAX_DESTINOS})` });
     }
     if (usadas.has(posicao)) {
       return res.status(400).json({ error: "Dois destinos na mesma posição" });
@@ -197,12 +220,8 @@ async function handleSalvarDestinos(req, res, user) {
   // Troca o conjunto inteiro. Apagar e reinserir e mais simples e mais seguro
   // do que casar posicao a posicao: o estado final e exatamente o que o
   // lojista viu na tela, sem sobra de uma configuracao anterior.
-  const { error: delErr } = await supabase
-    .from("plate_destinations").delete().eq("plate_id", cartao.id);
-  if (delErr) return res.status(500).json({ error: "Não consegui limpar os destinos antigos: " + delErr.message });
-
-  const { error: insErr } = await supabase.from("plate_destinations").insert(linhas);
-  if (insErr) return res.status(500).json({ error: "Não consegui salvar os destinos: " + insErr.message });
+  const gravado = await gravarDestinos(cartao.id, linhas);
+  if (gravado.error) return res.status(500).json({ error: gravado.error });
 
   // O elo com o cartao no balcao. Se isto falhar, a resposta e ERRO — o
   // lojista NAO pode ver "salvo" enquanto o cartao ainda serve o destino
@@ -722,9 +741,9 @@ async function handleAtivar(req, res, user) {
   }
 
   // ── 4. os perfis da conta ──
-  // A conta guarda TODOS os perfis que a pessoa preencheu. O cartão mostra
-  // no máximo dois — são coisas diferentes, e é o que permite trocar o
-  // destino depois sem digitar o @ de novo.
+  // A conta guarda TODOS os perfis que a pessoa preencheu, e o cartão mostra
+  // até quatro (eram dois até 19/10/2026). Guardar na conta é o que permite
+  // trocar o destino depois sem digitar o @ de novo.
   const preenchidos = [];
   for (const kind of REDES_DA_ARTE) {
     const valor = String((perfis || {})[kind] || "").trim();
@@ -765,17 +784,15 @@ async function handleAtivar(req, res, user) {
     if (error) console.warn("[trybo.ativar] perfil não gravado:", p.kind, error.message);
   }
 
-  // ── 5. os dois destinos do cartão ──
-  // Os dois primeiros preenchidos, na ordem impressa na arte. A pessoa troca
-  // depois no painel — perguntar "quais dois?" agora seria uma decisão a mais
-  // num momento em que ela só quer ver o cartão funcionando.
-  const doisPrimeiros = preenchidos.slice(0, 2).map((p, i) => ({
+  // ── 5. os destinos do cartão ──
+  // Todas as redes preenchidas (até quatro), na ordem impressa na arte. A
+  // pessoa troca ou tira depois no painel.
+  const destinosCartao = preenchidos.slice(0, MAX_DESTINOS).map((p, i) => ({
     plate_id: plate.id, posicao: i + 1, kind: p.kind, url: p.url
   }));
-  await supabase.from("plate_destinations").delete().eq("plate_id", plate.id);
-  const { error: destErr } = await supabase.from("plate_destinations").insert(doisPrimeiros);
-  if (destErr) {
-    console.error("[trybo.ativar] destinos não gravados:", destErr);
+  const gravado = await gravarDestinos(plate.id, destinosCartao);
+  if (gravado.error) {
+    console.error("[trybo.ativar] destinos não gravados:", gravado.error);
     return res.status(500).json({
       error: "O cartão foi ativado, mas não consegui salvar os destinos. Abra o painel e configure."
     });
@@ -797,7 +814,7 @@ async function handleAtivar(req, res, user) {
     url: `https://trybo.co/t/${encodeURIComponent(plate.code)}`,
     negocio: negocio.name,
     destinos: resultado.destinos,
-    sobraram: preenchidos.slice(2).map((p) => p.kind)
+    sobraram: preenchidos.slice(MAX_DESTINOS - (gravado.cortados || 0)).map((p) => p.kind)
   });
 }
 

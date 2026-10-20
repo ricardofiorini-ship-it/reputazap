@@ -261,7 +261,7 @@
       '<form id="f">' +
         '<label class="field">Nome que o cliente vê<input name="nome" required maxlength="50" placeholder="Sua marca ou seu nome"></label>' +
         '<div class="network-fields">' + campos + "</div>" +
-        '<p class="field-hint">O cartão mostra as <strong>duas primeiras</strong> que você preencher. Dá para trocar depois, no painel, sem reimprimir nada.</p>' +
+        '<p class="field-hint">O cartão mostra <strong>todas as que você preencher</strong>: com uma, abre direto nela; com mais, o cliente escolhe. Dá para trocar depois, no painel, sem reimprimir nada.</p>' +
         '<p class="form-error" hidden tabindex="-1" role="alert"></p>' +
         '<div class="form-footer"><span>' + icon("lock") + " Incluído com o cartão</span>" +
         '<button class="btn primary" type="submit">Ativar cartão ' + icon("check") + "</button></div>" +

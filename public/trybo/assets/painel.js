@@ -575,7 +575,7 @@
   // ── Editar o destino ──────────────────────────────────────
   function opcoes(selecionado, permitirNenhum) {
     var d = estado.dados;
-    return (permitirNenhum ? '<option value="">Nenhum (o cartão abre direto na primeira)</option>' : "") +
+    return (permitirNenhum ? '<option value="">' + (permitirNenhum === true ? "Nenhum (o cartão abre direto na primeira)" : permitirNenhum) + "</option>" : "") +
       d.catalogo.map(function (k) {
         var travado = !k.is_free && !d.desbloqueado;
         return '<option value="' + esc(k.kind) + '"' + (k.kind === selecionado ? " selected" : "") + (travado ? " disabled" : "") + ">" +
@@ -599,7 +599,7 @@
     var kind = destino ? destino.kind : (permitirNenhum ? "" : "instagram");
     var valor = destino ? valorDe(destino.kind, destino.url) : (kind ? perfilGuardado(kind) : "");
     return '<div class="form-grid" data-slot="' + n + '">' +
-      '<label class="field">' + (n === 1 ? "Primeiro destino" : "Segundo destino") + '<select name="kind' + n + '">' + opcoes(kind, permitirNenhum) + "</select></label>" +
+      '<label class="field">' + ["Primeiro", "Segundo", "Terceiro", "Quarto"][n - 1] + " destino" + '<select name="kind' + n + '">' + opcoes(kind, n > 2 ? (permitirNenhum && "Nenhum") : permitirNenhum) + "</select></label>" +
       '<label class="field" ' + (kind ? "" : "hidden") + '>Perfil<input name="valor' + n + '" value="' + esc(valor) + '" placeholder="' + dicaDe(kind) + '" maxlength="500" autocapitalize="none" spellcheck="false"></label>' +
       "</div>";
   }
@@ -614,7 +614,7 @@
       return '<div class="profile-preview"><span class="preview-avatar">' + icon(s[0].kind) + "</span><h3>Abre direto</h3><p>Quem encostar vai direto para o " + esc(s[0].label || nomeKind(s[0].kind)) + ", sem tela no meio.</p>" +
         '<span class="preview-brand">TRYBO <small>uma solução StarTouch</small></span></div>';
     }
-    return '<div class="profile-preview"><h3>O cliente escolhe</h3><p>Duas opções, um toque.</p><div class="preview-links">' +
+    return '<div class="profile-preview"><h3>O cliente escolhe</h3><p>' + s.length + ' opções, um toque.</p><div class="preview-links">' +
       s.map(function (d) { return '<span class="preview-link ' + esc(d.kind) + '">' + icon(d.kind) + "<span>" + esc(d.label || nomeKind(d.kind)) + "</span>" + icon("arrow") + "</span>"; }).join("") +
       '</div><span class="preview-brand">TRYBO <small>uma solução StarTouch</small></span></div>';
   }
@@ -637,7 +637,11 @@
           '<label class="field">Nome do cartão<input name="apelido" maxlength="60" value="' + esc(c.apelido || "") + '" placeholder="Ex.: Camila · cadeira 2"></label>' +
           slot(1, cfg.find(function (d) { return d.posicao === 1; }), false) +
           slot(2, cfg.find(function (d) { return d.posicao === 2; }), true) +
-          '<p class="field-hint">Com <strong>um</strong> destino, o celular abre direto nele — é o que mais converte. Com <strong>dois</strong>, o cliente escolhe.</p>' +
+          // Até quatro desde 19/10/2026 (eram dois): o cartão foi vendido
+          // mostrando as quatro redes no menu.
+          slot(3, cfg.find(function (d) { return d.posicao === 3; }), true) +
+          slot(4, cfg.find(function (d) { return d.posicao === 4; }), true) +
+          '<p class="field-hint">Com <strong>um</strong> destino, o celular abre direto nele — é o que mais converte. Com <strong>dois a quatro</strong>, o cliente escolhe numa lista.</p>' +
           (estado.dados.desbloqueado ? "" :
             '<div class="unlock-inline"><p><strong>Quer que o cartão abra a sua agenda, um post ou o cardápio?</strong> Com os destinos avançados ele leva para qualquer link — R$ 49, uma vez só, para todos os seus cartões.</p>' +
             '<button type="button" class="btn secondary" data-saiba>Ver o que libera</button></div>') +
@@ -655,7 +659,7 @@
     qual.onchange = function () { estado.editando = qual.value; shell(); };
 
     var form = document.getElementById("ef");
-    [1, 2].forEach(function (n) {
+    [1, 2, 3, 4].forEach(function (n) {
       var sel = form.querySelector('[name="kind' + n + '"]');
       var campo = form.querySelector('[name="valor' + n + '"]');
       sel.onchange = function () {
@@ -671,14 +675,15 @@
       var d = new FormData(form);
       var c = acharCartao(estado.editando);
       var destinos = [];
-      [1, 2].forEach(function (n) {
+      [1, 2, 3, 4].forEach(function (n) {
         var kind = d.get("kind" + n);
         if (kind) destinos.push({ posicao: destinos.length + 1, kind: kind, valor: String(d.get("valor" + n) || "").trim() });
       });
       if (!destinos.length) return erro(form, "Escolha pelo menos um destino.");
       if (destinos.some(function (x) { return !x.valor; })) return erro(form, "Preencha o perfil de cada destino escolhido.");
-      if (destinos.length === 2 && destinos[0].kind === destinos[1].kind && destinos[0].valor === destinos[1].valor) {
-        return erro(form, "Os dois destinos são iguais. Deixe só um — o cartão abre direto nele.");
+      var vistos = {};
+      if (destinos.some(function (x) { var k = x.kind + "|" + x.valor.toLowerCase(); if (vistos[k]) return true; vistos[k] = 1; return false; })) {
+        return erro(form, "Há dois destinos iguais. Deixe cada rede uma vez só.");
       }
 
       ocupado(botao, true, "Salvando…");
