@@ -1,6 +1,6 @@
 # Política de Privacidade — StarTouch
 
-**Versão 1.9 — vigente a partir de 19 de outubro de 2026**
+**Versão 1.10 — vigente a partir de 20 de outubro de 2026**
 
 ---
 
@@ -112,7 +112,7 @@ Quando alguém aproxima o celular de um dispositivo StarTouch ou lê o QR Code, 
 
 **Não vinculamos endereço IP ao toque. Não registramos identificador de aparelho. Não registramos nome, telefone, e-mail ou qualquer forma de contato.** Não há formulário, não há cadastro e não há instalação de aplicativo. A única exceção, temporária e mantida fora do registro de toques, está descrita na seção 4.4.
 
-Uma ressalva, em nome da precisão: a página intermediária consulta nossos servidores para exibir o nome do estabelecimento, e essa consulta passa pelo mecanismo de proteção contra uso automatizado abusivo descrito na seção 6.3, que registra temporariamente o endereço IP de origem. Esse registro existe exclusivamente para segurança do serviço, tem prazo curto de retenção, não é cruzado com o registro de toques e não permite reconstruir quem acionou qual dispositivo.
+Uma ressalva, em nome da precisão: como em qualquer acesso a um site, a nossa infraestrutura de hospedagem mantém os registros de acesso exigidos pelo Marco Civil da Internet (seção 6.3). Esses registros não são cruzados com o registro de toques e não permitem reconstruir quem acionou qual dispositivo. A página intermediária não faz nenhuma outra consulta aos nossos servidores.
 
 Essa restrição é deliberada e está implementada no código: o registro de toque foi construído sem os campos que permitiriam identificar uma pessoa. O resultado é uma métrica de volume — quantos toques o dispositivo recebeu, em que formato — que não se conecta a nenhum indivíduo.
 
@@ -320,6 +320,7 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 | 1.7 | 24/09/2026 | A **seção 4.4** (código temporário contra contagem artificial) passa a valer também para os **dispositivos StarTouch**, e a pergunta que o código responde passa de "o mesmo aparelho tocou há menos de um minuto?" para "o mesmo aparelho já tocou neste dispositivo hoje?". **Não há dado novo**: são os mesmos elementos, com a mesma finalidade (prevenção de fraude na contagem, já declarada nas seções 4.4 e 6.3), a mesma chave diária descartada e o mesmo prazo de até 24 horas. O registro de toques da seção 4.1 continua sem identificador. Não reduz direitos nem amplia finalidades |
 | 1.8 | 13/10/2026 | Inclusão da **DHL Express** na seção 7, como operadora da entrega dos pedidos enviados para fora do Brasil. São os mesmos dados de entrega já coletados na compra, com a mesma finalidade (entregar o pedido); muda apenas quem transporta. Não reduz direitos nem amplia finalidades |
 | 1.9 | 19/10/2026 | Seção 4: a tela de escolha do cartão Trybo passa a mostrar até oito opções (eram duas). Alteração de redação: **não há dado novo** nem finalidade nova |
+| 1.10 | 20/10/2026 | Seção 4.1: corrigida a ressalva que dizia que a página intermediária consulta nossos servidores para exibir o nome do estabelecimento. Essa consulta deixou de existir em 03/10/2026; o único registro técnico que resta no trajeto é o da hospedagem, já declarado na seção 6.3. A mudança descreve **menos** tratamento do que a versão anterior: não reduz direitos nem amplia finalidades |
 | 1.3 | 07/09/2026 | Mudança de controladora: a ZAYOR BRASIL LTDA (CNPJ 68.972.361/0001-33) sucede a GT6 Brasil Comércio Varejista de Produtos Diversos Ltda, inclusive quanto aos dados já coletados (seção 1.1); atualização do endereço para o da nova sede. **Não é alteração meramente declaratória** como as duas anteriores — muda quem responde pelo tratamento —, mas não reduz direitos, não amplia finalidades e não altera nenhuma operação de tratamento |
 
 ---
