@@ -603,6 +603,8 @@
   // que aquilo eram os botões que o cliente toca. Agora cada um é um cartão
   // com o número da ordem e o ícone colorido da rede; o vazio é tracejado,
   // com cara de "adicione aqui".
+  // Até oito botões por cartão (supabase/trybo-005-oito-botoes.sql).
+  var VAGAS = [1, 2, 3, 4, 5, 6, 7, 8];
   function rotuloCampo(kind) {
     if (kind === "whatsapp") return "Número do WhatsApp, com DDD";
     if (["url", "spotify", "whatsapp_canal"].indexOf(kind) !== -1) return "Endereço completo (https://…)";
@@ -664,10 +666,9 @@
           slot(2, cfg.find(function (d) { return d.posicao === 2; }), true) +
           // Até quatro desde 19/10/2026 (eram dois): o cartão foi vendido
           // mostrando as quatro redes no menu.
-          slot(3, cfg.find(function (d) { return d.posicao === 3; }), true) +
-          slot(4, cfg.find(function (d) { return d.posicao === 4; }), true) +
+          [3, 4, 5, 6, 7, 8].map(function (n) { return slot(n, cfg.find(function (d) { return d.posicao === n; }), true); }).join("") +
           '<button type="button" class="dest-add" id="addBotao">' + icon("plus") + " Adicionar botão</button>" +
-          '<p class="field-hint">Com <strong>um</strong> botão, o celular abre direto nele — é o que mais converte. Com <strong>dois a quatro</strong>, o cliente escolhe.</p>' +
+          '<p class="field-hint">Com <strong>um</strong> botão, o celular abre direto nele — é o que mais converte. Com <strong>dois ou mais</strong>, o cliente escolhe.</p>' +
           (estado.dados.desbloqueado ? "" :
             '<div class="unlock-inline"><p><strong>Quer que o cartão abra a sua agenda, um post ou o cardápio?</strong> Com os botões avançados ele leva para qualquer link — R$ 49, uma vez só, para todos os seus cartões.</p>' +
             '<button type="button" class="btn secondary" data-saiba>Ver o que libera</button></div>') +
@@ -685,7 +686,7 @@
     qual.onchange = function () { estado.editando = qual.value; shell(); };
 
     var form = document.getElementById("ef");
-    [1, 2, 3, 4].forEach(function (n) {
+    VAGAS.forEach(function (n) {
       var sel = form.querySelector('[name="kind' + n + '"]');
       var campo = form.querySelector('[name="valor' + n + '"]');
       sel.onchange = function () {
@@ -709,7 +710,7 @@
     function atualizarAdd() {
       var livre = vagas().some(function (v) { return v.hidden; });
       add.disabled = !livre;
-      add.innerHTML = livre ? icon("plus") + " Adicionar botão" : "Máximo de 4 botões";
+      add.innerHTML = livre ? icon("plus") + " Adicionar botão" : "Máximo de " + VAGAS.length + " botões";
     }
     add.onclick = function () {
       var vaga = vagas().find(function (v) { return v.hidden; });
@@ -743,7 +744,7 @@
       var d = new FormData(form);
       var c = acharCartao(estado.editando);
       var destinos = [];
-      [1, 2, 3, 4].forEach(function (n) {
+      VAGAS.forEach(function (n) {
         var kind = d.get("kind" + n);
         if (kind) destinos.push({ posicao: destinos.length + 1, kind: kind, valor: String(d.get("valor" + n) || "").trim() });
       });

@@ -128,7 +128,9 @@ async function handleCartao(req, res, user) {
 // primeiro cliente não conseguiu somar a terceira. A trava de verdade é do
 // banco (supabase/trybo-004-quatro-destinos.sql); esta é a mesma regra com
 // mensagem que o lojista entende.
-const MAX_DESTINOS = 4;
+// Oito desde o mesmo dia (supabase/trybo-005-oito-botoes.sql): com os
+// botões avançados, quatro vagas não bastavam.
+const MAX_DESTINOS = 8;
 
 // Apaga e regrava os destinos de um cartão. Se o banco ainda estiver na
 // regra antiga (SQL 004 não rodado), ele recusa a posição 3 DEPOIS de os
@@ -140,11 +142,15 @@ async function gravarDestinos(plateId, linhas) {
   if (delErr) return { error: "Não consegui limpar os botões antigos: " + delErr.message };
   const { error: insErr } = await supabase.from("plate_destinations").insert(linhas);
   if (!insErr) return { ok: true, cortados: 0 };
-  if (insErr.code === "23514" && linhas.length > 2) {
-    console.error("[trybo] o banco recusou a 3ª/4ª posição — rode supabase/trybo-004-quatro-destinos.sql. Gravando só as duas primeiras.");
-    const { error: e2 } = await supabase.from("plate_destinations").insert(linhas.filter((l) => l.posicao <= 2));
-    if (!e2) return { ok: true, cortados: linhas.length - 2 };
-    return { error: "Não consegui salvar os botões: " + e2.message };
+  // Banco numa regra mais antiga: tenta 4 (trybo-004), depois 2 (trybo-001).
+  if (insErr.code === "23514") {
+    for (const teto of [4, 2]) {
+      if (linhas.length <= teto) continue;
+      console.error(`[trybo] o banco recusou posição acima de ${teto} — rode supabase/trybo-005-oito-botoes.sql. Gravando só ${teto}.`);
+      const { error: e2 } = await supabase.from("plate_destinations").insert(linhas.filter((l) => l.posicao <= teto));
+      if (!e2) return { ok: true, cortados: linhas.length - teto };
+      if (e2.code !== "23514") return { error: "Não consegui salvar os botões: " + e2.message };
+    }
   }
   return { error: "Não consegui salvar os botões: " + insErr.message };
 }

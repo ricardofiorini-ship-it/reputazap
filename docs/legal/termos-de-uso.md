@@ -224,7 +224,7 @@ Fica eleito o foro da comarca de São Paulo/SP para dirimir controvérsias, ress
 
 ### 15.1 O que é
 
-O cartão Trybo tem chip NFC e QR Code impresso. Quando o cliente aproxima o celular ou lê o código, ele é levado ao perfil que você configurou — no Instagram, TikTok, WhatsApp, YouTube ou outro destino do item 15.5 — ou a uma tela com as opções que você escolheu para aquele cartão. Cada cartão leva a **até quatro botões**.
+O cartão Trybo tem chip NFC e QR Code impresso. Quando o cliente aproxima o celular ou lê o código, ele é levado ao perfil que você configurou — no Instagram, TikTok, WhatsApp, YouTube ou outro destino do item 15.5 — ou a uma tela com as opções que você escolheu para aquele cartão. Cada cartão leva a **até oito botões**.
 
 O cartão é gerido pelo painel da Trybo, com a **mesma conta** da StarTouch. Dispositivos StarTouch e cartões Trybo aparecem em painéis separados, cada um com o seu produto.
 
@@ -303,7 +303,7 @@ Vale o item 12. Sem conta ativa, o cartão continua levando ao último destino c
 | 1.8 | 06/10/2026 | O StarTouch Pro (item 5.3) passa a incluir o Menu Inteligente em **até 5 dispositivos**, com **R$ 1,90 por mês por dispositivo adicional**, cobrado só após confirmação no painel. **Não retroage:** assinaturas contratadas até 06/10/2026 mantêm o Menu sem limite e sem adicional enquanto ativas |
 | 1.9 | 07/10/2026 | O teste gratuito de 7 dias do StarTouch Pro (item 5.3) passa a **dispensar o cartão**. Sem cartão cadastrado ao fim do teste, a assinatura se encerra sem cobrança. O teste é oferecido uma vez por cliente. Testes iniciados antes desta data, já com cartão, seguem como contratados |
 | 1.10 | 12/10/2026 | A garantia dos dispositivos StarTouch e dos cartões Trybo contra defeito de fabricação passa de **12 meses para 3 meses (90 dias)**, contados do recebimento — o prazo da garantia legal. **Não retroage:** quem comprou até 11/10/2026 mantém os 12 meses vigentes na data da compra |
-| 1.12 | 19/10/2026 | Seção 15: cada cartão Trybo passa a levar a **até quatro botões** (eram dois), e o cartão passa a ser vendido também pelo site, com as condições do item 4. O que se chamava "destino" passa a se chamar **botão** ("destinos avançados" viram "botões avançados"), sem mudança de condição. **Amplia o que o cliente recebe e não reduz direitos** |
+| 1.12 | 19/10/2026 | Seção 15: cada cartão Trybo passa a levar a **até oito botões** (eram dois), e o cartão passa a ser vendido também pelo site, com as condições do item 4. O que se chamava "destino" passa a se chamar **botão** ("destinos avançados" viram "botões avançados"), sem mudança de condição. **Amplia o que o cliente recebe e não reduz direitos** |
 | 1.11 | 13/10/2026 | Inclusão da **entrega fora do Brasil** (item 4), pela DHL Express: frete calculado por país e peso e exibido antes do pagamento, frete gratuito acima de R$ 149,00 restrito ao Brasil, e impostos de importação do país de destino por conta de quem recebe. Cria uma opção nova e **não altera nenhuma condição das entregas no Brasil** |
 
 ---
