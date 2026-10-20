@@ -2229,6 +2229,19 @@ async function pagamentoConfirmado(session, stripe) {
   console.warn(`[stripe/webhook] sessao ${session?.id || "?"} veio SEM payment_status (versao antiga da API) — consultando o PaymentIntent pra decidir`);
   const pi = session?.payment_intent;
   if (!pi) {
+    // COMPRA DE R$ 0 (cupom de 100%, cortesia — 19/10/2026): não existe
+    // PaymentIntent, então a pergunta de baixo não tem a quem ser feita. Lê
+    // a sessão de novo pela API, que responde no formato atual e traz o
+    // `payment_status` ("no_payment_required"). Sem isto, toda cortesia
+    // ficaria pendente pra sempre, calada.
+    if (session?.id) {
+      try {
+        const fresca = await stripe.checkout.sessions.retrieve(session.id);
+        if (fresca?.payment_status === "paid" || fresca?.payment_status === "no_payment_required") return true;
+      } catch (e) {
+        console.error(`[stripe/webhook] nao consegui reler a sessao ${session.id}: ${e?.message}`);
+      }
+    }
     console.warn(`[stripe/webhook] sessao ${session?.id || "?"} tambem nao trouxe payment_intent — NAO marcada como paga`);
     return false;
   }
