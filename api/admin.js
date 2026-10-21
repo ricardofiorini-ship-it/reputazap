@@ -478,7 +478,11 @@ async function funilDoMenu(since, until) {
     if (comPublicado.has(e.business_id)) continue;
     const atual = porNegocio.get(e.business_id) || { criado_em: e.created_at, mexeu_em: null };
     if (e.created_at < atual.criado_em) atual.criado_em = e.created_at;
-    if (e.draft_updated_at && (!atual.mexeu_em || e.draft_updated_at > atual.mexeu_em)) atual.mexeu_em = e.draft_updated_at;
+    // `draft_updated_at` nasce com DEFAULT NOW() junto com o menu: sem esta
+    // folga, todo menu parecia "editado" na criação e o "nunca mexeu" nunca
+    // aparecia (visto na primeira leitura, 21/10).
+    const editou = e.draft_updated_at && (new Date(e.draft_updated_at) - new Date(e.created_at)) > 60 * 1000;
+    if (editou && (!atual.mexeu_em || e.draft_updated_at > atual.mexeu_em)) atual.mexeu_em = e.draft_updated_at;
     porNegocio.set(e.business_id, atual);
   }
   const parados = [...porNegocio.entries()].map(([id, x]) => {
