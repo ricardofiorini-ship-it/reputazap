@@ -460,7 +460,34 @@ function blocoMenu(m){
           ? `${m.publicaram - m.no_ar_em_dispositivo} publicaram mas não ligaram em nenhum aparelho — o menu existe e ninguém encosta nele`
           : "")
     + linha("Assinantes <span style='font-weight:600;color:var(--ink-3);font-size:12px'>· agora</span>", m.assinantes, m.publicaram,
-        `${m.em_teste_gratis} em teste grátis · ${m.cancelaram_com_prazo_correndo} cancelaram e ainda estão no prazo pago`);
+        `${m.em_teste_gratis} em teste grátis · ${m.cancelaram_com_prazo_correndo} cancelaram e ainda estão no prazo pago`)
+    + blocoParados(m);
+}
+
+// Quem montou e não publicou, com o motivo provável (21/10/2026). Estado de
+// agora, desde sempre — não segue o período do topo.
+function blocoParados(m){
+  const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  if(m.parados_erro) return `<div class="state">Não deu pra ler os dispositivos (${esc(m.parados_erro)}) — a lista de parados ficou de fora em vez de sair errada.</div>`;
+  const ps = m.parados || [];
+  if(!ps.length) return "";
+  const rot = { sem_dispositivo:"Sem dispositivo ativo", teste_usado:"Já usou o teste — publicar pede cartão", nem_editou:"Nunca mexeu no menu", nao_clicou:"Pronto pra publicar e não publicou" };
+  const resumo = Object.entries(m.parados_por_motivo || {}).filter(([,n]) => n > 0)
+    .map(([k,n]) => `<div class="step"><div class="row1"><span class="label">${rot[k] || k}</span><span class="count">${n}<small>de ${ps.length}</small></span></div></div>`).join("");
+  const data = (d) => d ? new Date(d).toLocaleDateString("pt-BR") : "—";
+  const linhas = ps.map(p => `<tr>
+      <td>${esc(p.negocio)}<br><span style="color:var(--ink-3);font-size:11.5px">${esc(p.email || "")}</span></td>
+      <td>${esc(p.motivo_texto)}</td>
+      <td style="text-align:center">${p.dispositivos}</td>
+      <td>${data(p.criado_em)}</td>
+      <td>${data(p.mexeu_em)}</td>
+    </tr>`).join("");
+  return `<h3 style="font-size:14px;font-weight:800;margin:22px 0 6px;">Pararam no rascunho: ${ps.length} · desde sempre</h3>
+    <p style="font-size:12.5px;color:var(--ink-3);margin:0 0 10px;line-height:1.5;">Motivo provável, na ordem em que a tela barra. "Já usou o teste" é aproximação (tem cadastro no Stripe e não é Pro); o e-mail "parou na cobrança" confirma.</p>
+    ${resumo}
+    <div style="overflow-x:auto;margin-top:10px"><table style="width:100%;border-collapse:collapse;font-size:12.5px">
+      <thead><tr style="text-align:left;color:var(--ink-3)"><th>Negócio</th><th>Motivo</th><th>Disp.</th><th>Criou</th><th>Última edição</th></tr></thead>
+      <tbody>${linhas}</tbody></table></div>`;
 }
 
 function init(){

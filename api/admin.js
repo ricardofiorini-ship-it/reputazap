@@ -22,6 +22,7 @@ import { validaTransicao, camposDaTransicao, destinosPossiveis, pulaEnvio, ROTUL
 import { dadosDoCliente, enderecoCompleto, textoDaEtiqueta }
   from "./_lib/pedido-cliente.js";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
+import { soStartouch } from "./_lib/linha.js";
 import { pedidoAtualizadoEmail } from "./_lib/email-templates.js";
 import { remetenteTrybo } from "./_lib/email-trybo.js";
 import Stripe from "stripe";
@@ -382,20 +383,44 @@ const EMAILS_INTERNOS = new Set([
 // Falha em silencio de proposito: se a leitura de usuarios cair, e melhor um
 // relatorio COM as contas de teste do que relatorio nenhum — e o aviso sai no
 // log pra nao virar diferenca silenciosa.
+// Devolve também o e-mail de cada conta (Map id → e-mail), que a lista de
+// menus parados usa pra o Ricardo poder chamar a pessoa.
 async function idsInternos() {
   try {
     const { data, error } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
     if (error) throw error;
-    return new Set(
-      (data?.users || [])
-        .filter(u => EMAILS_INTERNOS.has((u.email || "").toLowerCase().trim()))
-        .map(u => u.id)
+    const users = data?.users || [];
+    const internos = new Set(
+      users.filter(u => EMAILS_INTERNOS.has((u.email || "").toLowerCase().trim())).map(u => u.id)
     );
+    internos.emails = new Map(users.map(u => [u.id, u.email || ""]));
+    return internos;
   } catch (e) {
     console.warn("[admin] nao consegui excluir contas internas do funil:", e?.message || e);
     return null;
   }
 }
+
+// ── POR QUE PAROU NO RASCUNHO (21/10/2026) ──
+// "Montou e não publicou" era um número só, e o Ricardo não tinha como saber
+// ONDE cada um parou. Os motivos possíveis já estão nas tabelas, sem evento
+// novo — a ordem abaixo é a ordem em que a tela barra:
+//   sem_dispositivo  nenhum dispositivo StarTouch ativo: o Publicar abre a
+//                    caixa "ative um dispositivo" e não vai adiante.
+//   teste_usado      já tem cliente no Stripe e não é Pro: o teste grátis já
+//                    foi usado, então publicar pede cartão (caixa da assinatura).
+//   nem_editou       nunca mexeu no menu que nasce pronto: abriu e saiu.
+//   nao_clicou       tem dispositivo, teria o teste na hora, mexeu no menu —
+//                    e não clicou em Publicar (ou clicou e o Stripe falhou:
+//                    nesse caso chegou o e-mail "parou na cobrança" com FALHOU).
+// "teste_usado" é aproximação: cus_ sem Pro quase sempre é assinatura antiga,
+// mas pode ser só um checkout abandonado. O aviso "parou na cobrança" diz qual.
+const MOTIVO_PARADO = {
+  sem_dispositivo: "Sem dispositivo ativo",
+  teste_usado: "Já usou o teste — publicar pede cartão",
+  nem_editou: "Nunca mexeu no menu",
+  nao_clicou: "Pronto pra publicar e não publicou",
+};
 
 async function funilDoMenu(since, until) {
   const noPeriodo = (d) => {
@@ -405,12 +430,14 @@ async function funilDoMenu(since, until) {
     return true;
   };
 
-  const [exps, plates, negocios, internos] = await Promise.all([
-    supabase.from("experiences").select("id, business_id, published, archived_at, created_at, published_at"),
+  const [exps, plates, negocios, internos, ativos] = await Promise.all([
+    supabase.from("experiences").select("id, business_id, published, archived_at, created_at, published_at, draft_updated_at"),
     // linha-ok: conta só menus; cartão Trybo nunca serve 'menu'
     supabase.from("plates").select("experience_id, served_mode").eq("served_mode", "menu"),
-    supabase.from("businesses").select("id, user_id, plan, stripe_subscription_status, stripe_cancel_at_period_end, stripe_current_period_end"),
-    idsInternos()
+    supabase.from("businesses").select("id, user_id, name, plan, stripe_customer_id, stripe_subscription_status, stripe_cancel_at_period_end, stripe_current_period_end"),
+    idsInternos(),
+    // Dispositivos StarTouch ativos, pra separar "não tem onde usar" dos outros.
+    soStartouch(supabase.from("plates").select("business_id").eq("status", "active").not("business_id", "is", null))
   ]);
   if (exps.error) return { erro: exps.error.message };
 
@@ -440,7 +467,43 @@ async function funilDoMenu(since, until) {
   const donosComMenu = new Set(vivas.map(e => e.business_id)).size;
   const donosPublicaram = new Set(publicadas.map(e => e.business_id)).size;
 
+  // Parados: negócio com menu vivo e NENHUM menu publicado, desde sempre (é
+  // estado, não período — quem montou em setembro e segue parado conta).
+  const comPublicado = new Set(todasVivas.filter(e => e.published).map(e => e.business_id));
+  const dispositivosPor = new Map();
+  for (const p of (ativos.data || [])) dispositivosPor.set(p.business_id, (dispositivosPor.get(p.business_id) || 0) + 1);
+  const negPorId = new Map(negs.map(b => [b.id, b]));
+  const porNegocio = new Map();
+  for (const e of todasVivas) {
+    if (comPublicado.has(e.business_id)) continue;
+    const atual = porNegocio.get(e.business_id) || { criado_em: e.created_at, mexeu_em: null };
+    if (e.created_at < atual.criado_em) atual.criado_em = e.created_at;
+    if (e.draft_updated_at && (!atual.mexeu_em || e.draft_updated_at > atual.mexeu_em)) atual.mexeu_em = e.draft_updated_at;
+    porNegocio.set(e.business_id, atual);
+  }
+  const parados = [...porNegocio.entries()].map(([id, x]) => {
+    const b = negPorId.get(id) || {};
+    const dispositivos = dispositivosPor.get(id) || 0;
+    const pro = b.plan === "pro";
+    const motivo = !dispositivos ? "sem_dispositivo"
+      : (!pro && String(b.stripe_customer_id || "").startsWith("cus_")) ? "teste_usado"
+      : !x.mexeu_em ? "nem_editou"
+      : "nao_clicou";
+    return {
+      negocio: b.name || id, email: internos?.emails?.get(b.user_id) || null,
+      criado_em: x.criado_em, mexeu_em: x.mexeu_em, dispositivos,
+      plano: b.plan || "free", motivo, motivo_texto: MOTIVO_PARADO[motivo]
+    };
+  }).sort((a, b) => (b.criado_em || "").localeCompare(a.criado_em || ""));
+  const parados_por_motivo = Object.fromEntries(Object.keys(MOTIVO_PARADO).map(k => [k, parados.filter(p => p.motivo === k).length]));
+  // A leitura de dispositivos falhar faria todo mundo parecer "sem dispositivo"
+  // — o pior engano possível aqui. Diz em voz alta em vez de classificar errado.
+  const erroDispositivos = ativos.error ? ativos.error.message : null;
+
   return {
+    parados: erroDispositivos ? null : parados,
+    parados_por_motivo: erroDispositivos ? null : parados_por_motivo,
+    parados_erro: erroDispositivos,
     // Diz em voz alta se a exclusão valeu. Sem isto, uma falha na leitura de
     // usuários apareceria como um número levemente maior — e ninguém notaria.
     internos_excluidos: internos ? negsInternos.size : null,
