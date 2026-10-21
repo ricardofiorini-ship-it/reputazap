@@ -3,6 +3,7 @@ import { limitou, LIMITES } from "./_lib/rate-limit.js";
 import { comCachePlaces, chaveDe, TTL } from "./_lib/places-cache.js";
 import { buscarPelaApiNova } from "./_lib/places-area-servico.js";
 import { sugerirNegocios } from "./_lib/places-sugestao.js";
+import { pareceLinkDoMaps, negocioDoLink } from "./_lib/places-link.js";
 
 // Haversine — distância em metros entre dois pontos lat/lng
 function haversine(a, b) {
@@ -81,6 +82,18 @@ export default async function handler(req, res) {
   if (await limitou(req, res, LIMITES.searchbiz)) return;
 
   const API_KEY = process.env.PLACES_API_KEY;
+
+  // Link do Google Maps colado no campo: resolve a ficha exata, sem depender
+  // do ranking do Google (ver _lib/places-link.js). Antes do modo sugestao, pra
+  // valer no autocomplete e na busca completa, em todas as telas.
+  if (pareceLinkDoMaps(q)) {
+    try {
+      return res.json({ results: await negocioDoLink(q, API_KEY), via: "link" });
+    } catch (err) {
+      console.warn("[searchbiz] link do Maps falhou:", err.message);
+      return res.json({ results: [], via: "link" });
+    }
+  }
 
   // `?modo=sugestao`: o autocomplete da tela do convidado. Uma chamada barata
   // ao Autocomplete do Google em vez de Text Search duplo — ver
