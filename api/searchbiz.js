@@ -114,9 +114,19 @@ export default async function handler(req, res) {
     }
   }
 
-  const cepDigits = (cep || "").replace(/\D/g, "");
+  // CEP DIGITADO JUNTO DO NOME (21/10/2026). A tela de ativacao tem um campo
+  // so, e a dica de "nao achou" manda escrever nome + CEP. Sem isto o CEP ia
+  // pro Google como texto e nao ancorava nada. Aqui ele sai do texto e vira o
+  // ponto da busca, igual ao campo de CEP das outras telas.
+  let qBusca = q;
+  let cepDigits = (cep || "").replace(/\D/g, "");
+  const cepNoTexto = q.match(/\b(\d{5})-?(\d{3})\b/);
+  if (cepNoTexto) {
+    if (cepDigits.length !== 8) cepDigits = cepNoTexto[1] + cepNoTexto[2];
+    qBusca = q.replace(cepNoTexto[0], " ").replace(/\s+/g, " ").trim() || q;
+  }
   // Nome pra ranquear por relevancia. Se o front nao mandar `name`, usa o `q`.
-  const nameQuery = (name || q || "").trim();
+  const nameQuery = (cepNoTexto ? qBusca : (name || q || "")).trim();
 
   // A busca inteira (Geocoding + Text Search + ordenacao) vira UM payload
   // guardado por 24h. Sem isto o autocomplete da tela do convidado seria
@@ -133,13 +143,14 @@ export default async function handler(req, res) {
   // aparecer. Sem virar a versao, quem ja buscou o nome nas ultimas 24h seguiria
   // recebendo a lista sem ele.
   // v4 em 21/10/2026: estabelecimento que so a API nova acha passou a entrar.
-  const chaveCache = `searchbiz:v4:${chaveDe(q)}|${chaveDe(nameQuery)}|${cepDigits}`;
+  // v5 (mesmo dia): a API nova passou a usar o CEP como ponto tambem.
+  const chaveCache = `searchbiz:v5:${chaveDe(qBusca)}|${chaveDe(nameQuery)}|${cepDigits}`;
 
   try {
     const { data } = await comCachePlaces({
       key: chaveCache,
       ttlMs: TTL.SEARCHBIZ,
-      produce: () => buscar({ q, nameQuery, cepDigits, API_KEY })
+      produce: () => buscar({ q: qBusca, nameQuery, cepDigits, API_KEY })
     });
     // `produce` devolve null quando nao achou nada — de proposito, pra nao
     // gravar vazio (um 429 momentaneo do Google viraria 24h de "nao existe").
@@ -177,7 +188,7 @@ async function buscar({ q, nameQuery, cepDigits, API_KEY }) {
   //    no autocomplete (4 letras, 800ms), que corta as duas chamadas juntas.
   const [textRes, pelaNova] = await Promise.all([
     fetchWithTimeout(tsUrl, {}, 8000),
-    buscarPelaApiNova(q, API_KEY).catch((e) => {
+    buscarPelaApiNova(q, API_KEY, { origin }).catch((e) => {
       console.warn("[searchbiz] busca pela API nova falhou:", e.message);
       return [];
     })

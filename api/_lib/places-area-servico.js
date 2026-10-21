@@ -36,7 +36,9 @@ export async function buscarAreaDeServico(q, API_KEY) {
 // `geometry.location`, que a trava de Brasil e a distância leem). O searchbiz
 // usa a lista toda quando o textsearch antigo falha por COTA (19/10/2026: a
 // cota diária da API antiga estourou e o cadastro de negócio novo parou, calado).
-export async function buscarPelaApiNova(q, API_KEY) {
+// `origin` (opcional, do CEP): puxa a lista pra perto do ponto — ficha nova
+// com pouca avaliacao so aparece quando a busca esta ancorada na cidade dela.
+export async function buscarPelaApiNova(q, API_KEY, { origin } = {}) {
   const r = await fetchWithTimeout(`${BASE}/places:searchText`, {
     method: "POST",
     headers: {
@@ -48,7 +50,8 @@ export async function buscarPelaApiNova(q, API_KEY) {
       textQuery: q,
       languageCode: "pt-BR",
       regionCode: "BR",
-      includePureServiceAreaBusinesses: true
+      includePureServiceAreaBusinesses: true,
+      ...(origin ? { locationBias: { circle: { center: { latitude: origin.lat, longitude: origin.lng }, radius: 25000 } } } : {})
     })
   }, 6000);
   const d = await r.json();

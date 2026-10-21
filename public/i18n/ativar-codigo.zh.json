@@ -75,8 +75,6 @@
     "Código não encontrado": "未找到代码",
     "Buscando no Google…": "正在 Google 中搜索…",
     "Erro na busca. Tente de novo.": "搜索出错，请重试。",
-    "Não encontramos sua empresa no Google. Tente o nome completo junto com a cidade (ex: Padaria Bella Vista Campinas). Ou cole aqui o link do seu perfil no Google Maps (no Maps, abra sua empresa → Compartilhar → Copiar link). Se ainda assim não der, fale com a gente no WhatsApp (botão verde) que ativamos pra você.": "在 Google 上没有找到你的店铺。请尝试输入完整店名加城市（例如：Bella Vista 面包店 Campinas）。或者把你在 Google 地图上的店铺链接粘贴到这里（在地图中打开你的店铺 → 分享 → 复制链接）。如果仍然不行，请通过 WhatsApp（绿色按钮）联系我们，我们帮你激活。",
-    "Nenhuma sugestão ainda — continue digitando ou veja mais resultados.": "暂无建议——继续输入，或查看更多结果。",
     "Trocar": "更换",
     "Busque e selecione seu negócio antes de continuar.": "请先搜索并选择你的店铺，再继续。",
     "Tente de novo em alguns segundos.": "请几秒后再试。",
@@ -106,7 +104,15 @@
     "✓ link copiado!": "✓ 链接已复制！",
     "Copie o link do StarTouch:": "复制 StarTouch 链接：",
     "Vai aparecer nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.": "它会显示在你的报告中，方便你了解每个位置被触碰了多少次。",
-    "Já trouxemos a empresa que você consultou. Confira e siga — ou toque em Trocar.": "我们已经带入了你刚才查询的商家。确认后继续——或点击“更换”。"
+    "Já trouxemos a empresa que você consultou. Confira e siga — ou toque em Trocar.": "我们已经带入了你刚才查询的商家。确认后继续——或点击“更换”。",
+    "Não apareceu sua empresa? Ver mais resultados": "没有看到你的店铺？查看更多结果",
+    "Nenhuma sugestão ainda — continue digitando ou toque em \"Ver mais resultados\".": "暂无建议——继续输入，或点击“查看更多结果”。",
+    "Não encontramos sua empresa no Google. Tente assim:": "在 Google 上没有找到你的店铺。试试这样：",
+    "Não é nenhum desses? Tente assim:": "都不是？试试这样：",
+    "Nome + cidade. Exemplo: Padaria Bella Vista Campinas": "店名 + 城市。例如：Bella Vista 面包店 Campinas",
+    "Nome + CEP. Exemplo: Padaria Bella Vista 13015-000": "店名 + 邮编（CEP）。例如：Bella Vista 面包店 13015-000",
+    "Ou cole aqui o link da sua empresa no Google Maps (no Maps: abra sua empresa → Compartilhar → Copiar link)": "或者把你的店铺在 Google 地图上的链接粘贴到这里（在地图中：打开你的店铺 → 分享 → 复制链接）",
+    "Ainda não deu? Fale com a gente no WhatsApp (botão verde) que ativamos pra você.": "还是不行？通过 WhatsApp（绿色按钮）联系我们，我们帮你激活。"
   },
   "h": {
     "👀 Prévia do novo fluxo — nada é salvo. Adicione ?demo=1 pra revisar; remova pra usar de verdade.": "👀 新流程预览——不会保存任何内容。添加 <b>?demo=1</b> 进行预览；去掉即可正式使用。",
@@ -115,7 +121,6 @@
     "Ainda não tem um dispositivo? Conheça os modelos": "还没有设备？<a href=\"/kit\">查看款式</a>",
     "Já tenho conta StarTouch · Entrar": "已有 StarTouch 账户 · <b>登录</b>",
     "É só o navegador lembrando da página antiga. Abra o link do dispositivo em uma aba anônima (ou limpe o cache) que ele vai direto pra avaliação.": "这只是浏览器记住了旧页面。在<strong>无痕标签页</strong>中打开设备链接（或清除缓存），就会直接进入评价页面。",
-    "Não achou? Ver mais resultados": "没找到？<b>查看更多结果</b>",
     "Apelido do dispositivo (opcional)": "设备备注名 <span style=\"color:#9aa0a6;font-weight:400;\">（选填）</span>"
   },
   "p": [

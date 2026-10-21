@@ -75,8 +75,6 @@
     "Código não encontrado": "Code not found",
     "Buscando no Google…": "Searching Google…",
     "Erro na busca. Tente de novo.": "Search failed. Try again.",
-    "Não encontramos sua empresa no Google. Tente o nome completo junto com a cidade (ex: Padaria Bella Vista Campinas). Ou cole aqui o link do seu perfil no Google Maps (no Maps, abra sua empresa → Compartilhar → Copiar link). Se ainda assim não der, fale com a gente no WhatsApp (botão verde) que ativamos pra você.": "We couldn't find your business on Google. Try the full name together with the city (e.g. Bella Vista Bakery Campinas). Or paste the link to your Google Maps profile here (in Maps, open your business → Share → Copy link). If that still doesn't work, message us on WhatsApp (green button) and we'll activate it for you.",
-    "Nenhuma sugestão ainda — continue digitando ou veja mais resultados.": "No suggestions yet — keep typing or see more results.",
     "Trocar": "Change",
     "Busque e selecione seu negócio antes de continuar.": "Search for and select your business before continuing.",
     "Tente de novo em alguns segundos.": "Try again in a few seconds.",
@@ -106,7 +104,15 @@
     "✓ link copiado!": "✓ link copied!",
     "Copie o link do StarTouch:": "Copy the StarTouch link:",
     "Vai aparecer nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.": "It will show up in your reports so you know how many times each spot was tapped.",
-    "Já trouxemos a empresa que você consultou. Confira e siga — ou toque em Trocar.": "We already brought in the business you looked up. Check it and continue — or tap Change."
+    "Já trouxemos a empresa que você consultou. Confira e siga — ou toque em Trocar.": "We already brought in the business you looked up. Check it and continue — or tap Change.",
+    "Não apareceu sua empresa? Ver mais resultados": "Don't see your business? See more results",
+    "Nenhuma sugestão ainda — continue digitando ou toque em \"Ver mais resultados\".": "No suggestions yet — keep typing or tap \"See more results\".",
+    "Não encontramos sua empresa no Google. Tente assim:": "We couldn't find your business on Google. Try this:",
+    "Não é nenhum desses? Tente assim:": "None of these? Try this:",
+    "Nome + cidade. Exemplo: Padaria Bella Vista Campinas": "Name + city. Example: Bella Vista Bakery Campinas",
+    "Nome + CEP. Exemplo: Padaria Bella Vista 13015-000": "Name + ZIP code (CEP). Example: Bella Vista Bakery 13015-000",
+    "Ou cole aqui o link da sua empresa no Google Maps (no Maps: abra sua empresa → Compartilhar → Copiar link)": "Or paste your business's Google Maps link here (in Maps: open your business → Share → Copy link)",
+    "Ainda não deu? Fale com a gente no WhatsApp (botão verde) que ativamos pra você.": "Still no luck? Message us on WhatsApp (green button) and we'll activate it for you."
   },
   "h": {
     "👀 Prévia do novo fluxo — nada é salvo. Adicione ?demo=1 pra revisar; remova pra usar de verdade.": "👀 Preview of the new flow — nothing is saved. Add <b>?demo=1</b> to review; remove it to use it for real.",
@@ -115,7 +121,6 @@
     "Ainda não tem um dispositivo? Conheça os modelos": "Don't have a device yet? <a href=\"/kit\">See the models</a>",
     "Já tenho conta StarTouch · Entrar": "I already have a StarTouch account · <b>Sign in</b>",
     "É só o navegador lembrando da página antiga. Abra o link do dispositivo em uma aba anônima (ou limpe o cache) que ele vai direto pra avaliação.": "It's just your browser remembering the old page. Open the device link in an <strong>incognito tab</strong> (or clear the cache) and it will go straight to the review.",
-    "Não achou? Ver mais resultados": "Can't find it? <b>See more results</b>",
     "Apelido do dispositivo (opcional)": "Device nickname <span style=\"color:#9aa0a6;font-weight:400;\">(optional)</span>"
   },
   "p": [

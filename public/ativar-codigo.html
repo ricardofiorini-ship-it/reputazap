@@ -43,6 +43,13 @@
   .linklike{display:block;width:100%;text-align:center;background:none;border:none;color:#5F6368;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:10px;margin-top:14px;}
   .linklike:hover{color:#1A73E8;}
   .linklike b{color:#1A73E8;}
+  /* "Ver mais resultados" era um link cinza que passava batido (21/10/2026): o
+     cliente nao via e achava que a empresa nao existia. Virou botao. */
+  .btn-mais{display:block;width:100%;text-align:center;background:#fff;border:1.5px solid #1A73E8;color:#1A73E8;border-radius:10px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;padding:12px;margin-top:12px;}
+  .btn-mais:hover{background:#E8F0FE;}
+  .dica-busca{background:#FEF7E0;border:1px solid #F9E1A0;border-radius:10px;padding:12px 14px;margin-top:12px;font-size:13px;color:#3C4043;line-height:1.5;}
+  .dica-busca ul{margin:6px 0 8px 18px;padding:0;}
+  .dica-busca li{margin:3px 0;}
   .msg{font-size:13px;margin-top:6px;margin-bottom:12px;padding:10px 12px;border-radius:8px;display:none;}
   .msg.error{display:block;background:#FCE8E6;color:#C5221F;}
   .msg.success{display:block;background:#E6F4EA;color:#137333;}
@@ -233,7 +240,7 @@
       <div id="nBizSearchWrap">
         <input type="text" id="nBizSearch" placeholder="Ex: Padaria Bella Vista" autocomplete="off" oninput="agendarSugestao()"/>
         <div id="nResults" style="margin-top:10px;"></div>
-        <button type="button" class="linklike" id="nBuscaCompleta" style="margin-top:4px;display:none" onclick="buscaCompleta()">Não achou? <b>Ver mais resultados</b></button>
+        <button type="button" class="btn-mais" id="nBuscaCompleta" style="display:none" onclick="buscaCompleta()">Não apareceu sua empresa? Ver mais resultados</button>
       </div>
       <div class="msg" id="nMsg2"></div>
       <div class="step-actions">
@@ -652,8 +659,8 @@ function desenharResultados(lista, completa){
   maisBtn.style.display = completa ? "none" : "block";
   if(!lista.length){
     box.innerHTML = completa
-      ? '<p style="font-size:13px;color:#5F6368;line-height:1.5;">Não encontramos sua empresa no Google. Tente o nome completo junto com a cidade (ex: Padaria Bella Vista Campinas). Ou cole aqui o link do seu perfil no Google Maps (no Maps, abra sua empresa → Compartilhar → Copiar link). Se ainda assim não der, fale com a gente no WhatsApp (botão verde) que ativamos pra você.</p>'
-      : '<p style="font-size:13px;color:#5F6368;">Nenhuma sugestão ainda — continue digitando ou veja mais resultados.</p>';
+      ? dicaBusca("Não encontramos sua empresa no Google. Tente assim:")
+      : '<p style="font-size:13px;color:#5F6368;">Nenhuma sugestão ainda — continue digitando ou toque em "Ver mais resultados".</p>';
     return;
   }
   // Índice no atributo, não o objeto inteiro: nome e endereço vêm do Google e
@@ -665,7 +672,18 @@ function desenharResultados(lista, completa){
       <div class="result-name">${escHtml(r.name)}</div>
       <div class="result-addr">${nota}${escHtml(r.address || "")}</div>
     </div>`;
-  }).join("");
+  }).join("") + (completa ? dicaBusca("Não é nenhum desses? Tente assim:") : "");
+}
+
+// Dica de quando a busca completa nao achou — ou achou so homonimos. As tres
+// saidas funcionam no servidor: cidade e CEP ancoram a busca no lugar certo, e
+// o link do Maps identifica a ficha sem depender do Google (api/_lib/places-link.js).
+function dicaBusca(titulo){
+  return `<div class="dica-busca"><b>${titulo}</b><ul>`+
+    `<li>Nome + cidade. Exemplo: Padaria Bella Vista Campinas</li>`+
+    `<li>Nome + CEP. Exemplo: Padaria Bella Vista 13015-000</li>`+
+    `<li>Ou cole aqui o link da sua empresa no Google Maps (no Maps: abra sua empresa → Compartilhar → Copiar link)</li>`+
+    `</ul>Ainda não deu? Fale com a gente no WhatsApp (botão verde) que ativamos pra você.</div>`;
 }
 
 function pickBiz(biz){

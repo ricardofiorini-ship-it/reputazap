@@ -75,8 +75,6 @@
     "Código não encontrado": "Código no encontrado",
     "Buscando no Google…": "Buscando en Google…",
     "Erro na busca. Tente de novo.": "Error en la búsqueda. Inténtalo de nuevo.",
-    "Não encontramos sua empresa no Google. Tente o nome completo junto com a cidade (ex: Padaria Bella Vista Campinas). Ou cole aqui o link do seu perfil no Google Maps (no Maps, abra sua empresa → Compartilhar → Copiar link). Se ainda assim não der, fale com a gente no WhatsApp (botão verde) que ativamos pra você.": "No encontramos tu empresa en Google. Prueba el nombre completo junto con la ciudad (ej.: Panadería Bella Vista Campinas). O pega aquí el enlace de tu perfil en Google Maps (en Maps, abre tu empresa → Compartir → Copiar enlace). Si aun así no funciona, escríbenos por WhatsApp (botón verde) y la activamos por ti.",
-    "Nenhuma sugestão ainda — continue digitando ou veja mais resultados.": "Aún no hay sugerencias — sigue escribiendo o ve más resultados.",
     "Trocar": "Cambiar",
     "Busque e selecione seu negócio antes de continuar.": "Busca y selecciona tu negocio antes de continuar.",
     "Tente de novo em alguns segundos.": "Inténtalo de nuevo en unos segundos.",
@@ -106,7 +104,15 @@
     "✓ link copiado!": "✓ ¡enlace copiado!",
     "Copie o link do StarTouch:": "Copia el enlace de StarTouch:",
     "Vai aparecer nos seus relatórios pra você saber quantas vezes cada ponto foi tocado.": "Aparecerá en tus reportes para que sepas cuántas veces se tocó cada punto.",
-    "Já trouxemos a empresa que você consultou. Confira e siga — ou toque em Trocar.": "Ya trajimos la empresa que consultaste. Revisa y sigue — o toca en Cambiar."
+    "Já trouxemos a empresa que você consultou. Confira e siga — ou toque em Trocar.": "Ya trajimos la empresa que consultaste. Revisa y sigue — o toca en Cambiar.",
+    "Não apareceu sua empresa? Ver mais resultados": "¿No aparece tu empresa? Ver más resultados",
+    "Nenhuma sugestão ainda — continue digitando ou toque em \"Ver mais resultados\".": "Aún no hay sugerencias — sigue escribiendo o toca \"Ver más resultados\".",
+    "Não encontramos sua empresa no Google. Tente assim:": "No encontramos tu empresa en Google. Prueba así:",
+    "Não é nenhum desses? Tente assim:": "¿No es ninguno de estos? Prueba así:",
+    "Nome + cidade. Exemplo: Padaria Bella Vista Campinas": "Nombre + ciudad. Ejemplo: Panadería Bella Vista Campinas",
+    "Nome + CEP. Exemplo: Padaria Bella Vista 13015-000": "Nombre + código postal (CEP). Ejemplo: Panadería Bella Vista 13015-000",
+    "Ou cole aqui o link da sua empresa no Google Maps (no Maps: abra sua empresa → Compartilhar → Copiar link)": "O pega aquí el enlace de tu empresa en Google Maps (en Maps: abre tu empresa → Compartir → Copiar enlace)",
+    "Ainda não deu? Fale com a gente no WhatsApp (botão verde) que ativamos pra você.": "¿Todavía nada? Escríbenos por WhatsApp (botón verde) y la activamos por ti."
   },
   "h": {
     "👀 Prévia do novo fluxo — nada é salvo. Adicione ?demo=1 pra revisar; remova pra usar de verdade.": "👀 Vista previa del nuevo flujo — no se guarda nada. Agrega <b>?demo=1</b> para revisar; quítalo para usarlo de verdad.",
@@ -115,7 +121,6 @@
     "Ainda não tem um dispositivo? Conheça os modelos": "¿Todavía no tienes un dispositivo? <a href=\"/kit\">Conoce los modelos</a>",
     "Já tenho conta StarTouch · Entrar": "Ya tengo cuenta StarTouch · <b>Entrar</b>",
     "É só o navegador lembrando da página antiga. Abra o link do dispositivo em uma aba anônima (ou limpe o cache) que ele vai direto pra avaliação.": "Es solo el navegador recordando la página anterior. Abre el enlace del dispositivo en una <strong>pestaña de incógnito</strong> (o borra la caché) y irá directo a la reseña.",
-    "Não achou? Ver mais resultados": "¿No lo encontraste? <b>Ver más resultados</b>",
     "Apelido do dispositivo (opcional)": "Apodo del dispositivo <span style=\"color:#9aa0a6;font-weight:400;\">(opcional)</span>"
   },
   "p": [
