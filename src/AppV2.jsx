@@ -6843,6 +6843,8 @@ function GuestSearch({ isMobile }) {
   const [suggestions, setSuggestions] = React.useState([])
   const [selectedTerms, setSelectedTerms] = React.useState([])
   const [addInput, setAddInput] = React.useState('')
+  const [cep, setCep] = React.useState('')            // só dígitos, até 8
+  const [cepInfo, setCepInfo] = React.useState(null)  // { cidade } | { erro: true } | null
 
   // Analytics: abriu a busca sem cadastro (topo do funil convidado)
   React.useEffect(() => {
@@ -6850,59 +6852,63 @@ function GuestSearch({ isMobile }) {
     try { if (typeof window !== 'undefined' && window.fbq) window.fbq('trackCustom', 'GuestSearchView') } catch {}
   }, [])
 
-  // ── AUTOCOMPLETE ────────────────────────────────────────────
-  // Esta tela tem UM campo, e é de propósito. Antes eram dois, com um botão
-  // "Buscar meu negócio" que só acendia com NOME + CEP completo: 57% de quem
-  // abria ia embora sem nunca buscar — o botão ficava cinza e não dizia o que
-  // faltava. Agora a lista aparece sozinha enquanto a pessoa digita, o mesmo
-  // padrão que o Radar já usava (public/radar.html).
+  // ── BUSCA: NOME + CEP, NO CLIQUE (21/10/2026, decisão do Ricardo) ──
+  // Mesma busca da ativação do dispositivo (public/ativar-codigo.html). De
+  // 09/09 a 21/10 esta tela foi UM campo com autocomplete, sem CEP — e ficha
+  // nova, com pouca avaliação, numa cidade menor, o Google não devolvia pelo
+  // nome (caso Studio Gabi Siston Braz, Rio Grande-RS: vinham estúdios de São
+  // Paulo). O CEP ancora a busca na região e o servidor descarta o que está a
+  // mais de 150 km; o nome da cidade (ViaCEP) vai junto no texto, que é o que
+  // de fato fez o Google achar a ficha nos testes.
   //
-  // O CEP saiu inteiro em 09/09/2026, decisão do Ricardo, e o que ele custava
-  // era desproporcional ao que entregava:
-  //   • DEPOIS da busca ele não valia nada — viajava na URL até o painel e o
-  //     `api/diagnostico` o IGNORA de propósito (a medição ancora no endereço
-  //     do negócio no Google, não no CEP digitado);
-  //   • DENTRO da busca ele era a âncora do Text Search. Sem ele o Google
-  //     decide a relevância pelo IP do nosso servidor, então a lista pode
-  //     trazer negócio de outra região. É o preço combinado: quem escolhe na
-  //     lista vê nome e ENDEREÇO de cada opção e não erra a unidade.
-  // Se um dia a lista vier ruim demais, o conserto NÃO é ressuscitar o campo —
-  // é ancorar sem perguntar nada (cidade deduzida, ou o Places Autocomplete).
+  // Busca SÓ no clique: o autocomplete chamava o Google a cada pausa.
   //
-  // O que segura o custo (cada busca é Geocoding + Text Search de verdade):
-  //   1. só a partir de 4 letras;
-  //   2. dispara na PAUSA, não na tecla (800ms).
-  //      Eram 3 letras e 450ms até 27/09/2026: a busca virou o maior gasto no
-  //      Google (30 a 170 buscas pagas por dia, contra ZERO antes do autocomplete),
-  //      e a maior parte era palavra pela metade — "Pad", "Pada", "Padar".
-  //   3. memória local — voltar a uma consulta já feita não chama o servidor;
-  //   4. cache de 24h no `api/searchbiz`, que é o freio que vale dinheiro;
-  //   5. desde 01/10/2026 a pausa chama o Autocomplete do Google (modo=sugestao),
-  //      ~12x mais barato e uma chamada só. Mesmo com 1–4, setembro fechou em
-  //      R$572 de busca. A busca completa ficou atrás do "Não achou?".
-  const MIN_LETRAS = 4
+  // A lição de antes de 09/09 continua valendo: com nome + CEP e botão cinza,
+  // 57% iam embora sem buscar — o botão não dizia o que faltava. Por isso o
+  // botão aqui é SEMPRE clicável e, se faltar algo, diz o quê.
+  //
+  // O CEP não viaja pro painel: o `api/diagnostico` ancora no endereço do
+  // negócio no Google, não no CEP digitado.
+  const MIN_LETRAS = 3
   // chave → results (vive só nesta tela). É um objeto simples, e NÃO um Map:
   // este arquivo importa o ícone `Map` do lucide-react lá no topo, então aqui
   // dentro `new Map()` constrói um componente React e estoura na hora
   // ("Map is not a constructor") — tela branca, com o build verde.
   const memoRef = React.useRef(Object.create(null))
   const pedidoRef = React.useRef(0)         // ignora resposta de busca velha
-  // `guest_search_submit` é UM POR PESSOA, não um por busca. Com o autocomplete
-  // a mesma pessoa dispara 3–5 buscas, e sem esta trava o passo "Buscou um
-  // negócio" do /admin/funil e do GA4 inflaria sozinho — a régua mudaria junto
-  // com a tela e ninguém saberia se o 57% melhorou ou se só a conta mudou.
-  // (O painel conta anon_id distinto e aguentaria; o GA4 conta evento e não.)
+  // `guest_search_submit` é UM POR PESSOA, não um por busca — senão o passo
+  // "Buscou um negócio" do /admin/funil e do GA4 inflaria sozinho.
   const contouRef = React.useRef(false)
+
+  // CEP completo → confirma a cidade (ViaCEP, grátis) pra pessoa ver na hora
+  // se digitou certo. ViaCEP fora do ar não trava: segue só com o CEP.
+  React.useEffect(() => {
+    setCepInfo(null)
+    if (cep.length !== 8) return
+    let vivo = true
+    fetch(`https://viacep.com.br/ws/${cep}/json/`).then(r => r.json()).then(j => {
+      if (!vivo) return
+      setCepInfo(j.erro ? { erro: true } : { cidade: `${j.localidade} - ${j.uf}` })
+    }).catch(() => { if (vivo) setCepInfo({ cidade: '' }) })
+    return () => { vivo = false }
+  }, [cep])
+
+  // Link do Google Maps colado no nome dispensa o CEP: o link já diz qual é a
+  // ficha (api/_lib/places-link.js).
+  const ehLinkDoMaps = (t) => !/\s/.test(t) && /^(https?:\/\/)?([a-z0-9-]+\.)*(google\.[a-z.]+|goo\.gl|share\.google)\//i.test(t)
 
   async function doSearch(e) {
     if (e) e.preventDefault()
     const name = q.trim()
-    if (name.length < MIN_LETRAS) return
-    // Prioridade do match (backend): NOME (1o) + TIPO (2o) na query. Sem CEP,
-    // quem ordena é a cobertura do nome — por isso o nome vai também em `name`.
-    const type = term.trim()
-    const fullQ = [name, type].filter(Boolean).join(' ')
-    const chave = fullQ
+    const link = ehLinkDoMaps(name)
+    if (!link) {
+      if (name.length < MIN_LETRAS) { setError('Digite o nome do negócio.'); return }
+      if (cep.length !== 8) { setError('Digite o CEP do negócio (8 números).'); return }
+      if (cepInfo?.erro) { setError('CEP não encontrado. Confira os números.'); return }
+    }
+    const cidade = link ? '' : (cepInfo?.cidade || '')
+    const fullQ = link ? name : [name, term.trim(), cidade].filter(Boolean).join(' ')
+    const chave = fullQ + '|' + (link ? '' : cep)
 
     if (memoRef.current[chave]) {
       setResults(memoRef.current[chave]); setError(''); setLoading(false)
@@ -6912,13 +6918,11 @@ function GuestSearch({ isMobile }) {
     const meu = ++pedidoRef.current
     setLoading(true); setError('')
     try {
-      // modo=sugestao: Autocomplete do Google (barato) em vez de Text Search
-      // duplo — desde 01/10/2026, ver api/_lib/places-sugestao.js.
-      const params = new URLSearchParams({ q: fullQ, name, modo: 'sugestao' })
+      const params = new URLSearchParams({ q: fullQ, name })
+      if (!link) params.set('cep', cep)
       const r = await fetch(`/api/searchbiz?${params.toString()}`)
       const d = await r.json()
-      // Chegou tarde: outra busca já saiu depois desta. Descarta, senão a lista
-      // pisca com o resultado de um nome que a pessoa já apagou.
+      // Chegou tarde: outra busca já saiu depois desta.
       if (meu !== pedidoRef.current) return
       const lista = d.results || []
       memoRef.current[chave] = lista
@@ -6935,47 +6939,6 @@ function GuestSearch({ isMobile }) {
       if (meu === pedidoRef.current) setLoading(false)
     }
   }
-
-  // A saída de quem não achou na sugestão: a busca COMPLETA (Text Search, até
-  // 20 resultados, com nota). É paga de verdade — por isso só no clique, nunca
-  // na pausa da digitação. Mesma memória local, com chave separada.
-  async function buscarCompleto() {
-    const name = q.trim()
-    if (name.length < MIN_LETRAS) return
-    const fullQ = [name, term.trim()].filter(Boolean).join(' ')
-    const chave = 'completa:' + fullQ
-    if (memoRef.current[chave]) { setResults(memoRef.current[chave]); return }
-    const meu = ++pedidoRef.current
-    setLoading(true); setError('')
-    try {
-      const r = await fetch(`/api/searchbiz?${new URLSearchParams({ q: fullQ, name }).toString()}`)
-      const d = await r.json()
-      if (meu !== pedidoRef.current) return
-      const lista = d.results || []
-      memoRef.current[chave] = lista
-      setResults(lista)
-    } catch {
-      if (meu !== pedidoRef.current) return
-      setError('Erro ao buscar. Tente de novo.')
-    } finally {
-      if (meu === pedidoRef.current) setLoading(false)
-    }
-  }
-  const linkCompleto = (
-    <button type="button" onClick={buscarCompleto} disabled={loading} style={{
-      background:'none', border:'none', padding:0, marginTop:12, cursor:'pointer',
-      fontSize:13, fontWeight:600, color:T.blue, fontFamily:'inherit'
-    }}>Não achou? Ver mais resultados</button>
-  )
-
-  // O gatilho: parou de digitar → busca. Some assim que o negócio é escolhido,
-  // pra não ficar buscando por trás do passo dos termos.
-  React.useEffect(() => {
-    if (selectedBiz) return
-    if (q.trim().length < MIN_LETRAS) { setResults(null); return }
-    const t = setTimeout(doSearch, 800)
-    return () => clearTimeout(t)
-  }, [q, selectedBiz])
 
   // Escolheu o negócio → carrega os termos sugeridos (não navega ainda).
   async function pick(biz) {
@@ -7083,35 +7046,28 @@ function GuestSearch({ isMobile }) {
           </div>
           <form onSubmit={doSearch}>
             <div style={{ marginBottom:14 }}>
-              {/* "no Google" no rótulo, e não só na dica de baixo: é a única
-                  instrução que a pessoa lê ANTES de digitar. Quem escreve o
-                  apelido da loja ("o Zé da esquina") não acha nada, e o rótulo
-                  é onde isso se evita — a dica embaixo já chega tarde. */}
+              {/* "no Google" no rótulo: é a única instrução que a pessoa lê
+                  ANTES de digitar. Quem escreve o apelido da loja ("o Zé da
+                  esquina") não acha nada. */}
               <label style={labelStyle}>Nome do negócio no Google</label>
-              {/* O exemplo carrega o BAIRRO de propósito. Sem CEP, escrever a
-                  cidade ou o bairro junto do nome é o que mais acerta — o Text
-                  Search do Google lê "smartfit manaus" como "Smart Fit em
-                  Manaus" e resolve a região sozinho. Ensinar isso no exemplo
-                  custa zero; ensinar depois do erro custa a pessoa. */}
-              <input style={inputStyle} value={q} onChange={e=>setQ(e.target.value)} placeholder="Ex: Padaria do João Pinheiros" autoFocus
-                autoComplete="off" spellCheck={false}/>
-              {/* Uma palavra errada no nome joga a busca pra outro estado: o
-                  Google prefere quem casa EXATO com o que foi digitado, mesmo a
-                  2.000 km, em vez do acerto parcial que está na esquina. Testado
-                  com "Farol da Ilha" (o negócio é "Farol da Villa"): voltaram um
-                  apartamento em São Vicente e uma ilha ecológica, e o restaurante
-                  a 0 km ficou de fora. A dica continua valendo, mas agora divide
-                  espaço com a lista que aparece embaixo — então encolheu, e o
-                  aviso por extenso ficou pra quando a busca volta vazia. */}
-              {/* O rótulo já diz "no Google", então a dica não repete isso — ela
-                  usa o espaço pra ensinar o que de fato acerta a busca: a cidade
-                  ou o bairro junto do nome. */}
-              <span style={{ display:'block', fontSize:12, color:T.textDim, marginTop:5, lineHeight:1.45 }}>
-                {loading
-                  ? 'Procurando no Google…'
-                  : <>Tem mais de uma unidade com esse nome? Acrescente a <b>cidade ou o bairro</b>.</>}
-              </span>
+              <input style={inputStyle} value={q} onChange={e=>{ setQ(e.target.value); setError('') }} placeholder="Ex: Padaria do João"
+                autoComplete="off" spellCheck={false} autoFocus/>
             </div>
+            <div style={{ marginBottom:14 }}>
+              <label style={labelStyle}>CEP do negócio</label>
+              <input style={inputStyle} value={cep.length > 5 ? cep.slice(0, 5) + '-' + cep.slice(5) : cep}
+                onChange={e => { setCep(e.target.value.replace(/\D/g, '').slice(0, 8)); setError('') }}
+                placeholder="00000-000" inputMode="numeric" maxLength={9} autoComplete="postal-code"/>
+              {cepInfo && (
+                <span style={{ display:'block', fontSize:12.5, marginTop:5, color: cepInfo.erro ? T.red : '#188038', fontWeight:600 }}>
+                  {cepInfo.erro ? 'CEP não encontrado. Confira os números.' : (cepInfo.cidade ? cepInfo.cidade + ' ✓' : '')}
+                </span>
+              )}
+            </div>
+            <button type="submit" disabled={loading} style={{
+              width:'100%', padding:'13px', background:T.blue, color:'#fff', border:'none', borderRadius:11,
+              fontSize:15, fontWeight:700, fontFamily:"'Inter', sans-serif", cursor: loading ? 'wait' : 'pointer', opacity: loading ? .7 : 1
+            }}>{loading ? 'Procurando no Google…' : 'Buscar meu negócio'}</button>
           </form>
 
           {error && <p style={{ fontSize:13, color:T.red, marginTop:12 }}>{error}</p>}
@@ -7170,11 +7126,11 @@ function GuestSearch({ isMobile }) {
                     Quase sempre é o nome. Tente assim:
                   </p>
                   <ul style={{ fontSize:13.5, color:'#7A5200', lineHeight:1.6, margin:0, paddingLeft:18 }}>
-                    <li>Acrescente a <b>cidade ou o bairro</b> ao nome — é o que mais resolve (ex: <i>Supermercado Mambo Pinheiros</i>).</li>
+                    <li>Confira se o <b>CEP</b> é o do endereço do negócio.</li>
                     <li>Escreva o <b>nome exato</b> como aparece no Google, sem apelido nem abreviação.</li>
+                    <li>Ou cole no campo do nome o <b>link do seu negócio no Google Maps</b> (no Maps: abra o negócio → Compartilhar → Copiar link).</li>
                     <li>Se o negócio é novo, ele pode ainda <b>não estar no Google Maps</b>. Cadastre grátis em <a href="https://business.google.com" target="_blank" rel="noopener" style={{ color:'#B06000', fontWeight:700 }}>google.com/business</a> e volte aqui.</li>
                   </ul>
-                  {linkCompleto}
                 </div>
               )) : (
                 <>
@@ -7200,7 +7156,9 @@ function GuestSearch({ isMobile }) {
                       </button>
                     ))}
                   </div>
-                  {linkCompleto}
+                  <p style={{ fontSize:12.5, color:T.textMid, lineHeight:1.5, margin:'12px 0 0' }}>
+                    Não é nenhum desses? Confira o CEP, ou cole no campo do nome o link do seu negócio no Google Maps (Compartilhar → Copiar link).
+                  </p>
                 </>
               )}
             </div>

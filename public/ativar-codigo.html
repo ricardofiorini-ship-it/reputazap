@@ -50,6 +50,9 @@
   .dica-busca{background:#FEF7E0;border:1px solid #F9E1A0;border-radius:10px;padding:12px 14px;margin-top:12px;font-size:13px;color:#3C4043;line-height:1.5;}
   .dica-busca ul{margin:6px 0 8px 18px;padding:0;}
   .dica-busca li{margin:3px 0;}
+  .campo-rot{display:block;font-size:13px;font-weight:600;color:#3C4043;margin:12px 0 6px;}
+  .cep-info{font-size:13px;color:#188038;min-height:18px;margin-top:4px;}
+  .cep-info.erro{color:#C5221F;}
   .msg{font-size:13px;margin-top:6px;margin-bottom:12px;padding:10px 12px;border-radius:8px;display:none;}
   .msg.error{display:block;background:#FCE8E6;color:#C5221F;}
   .msg.success{display:block;background:#E6F4EA;color:#137333;}
@@ -231,16 +234,23 @@
     <!-- ─── PASSO 2: busca de negócio ─── -->
     <div id="nStep2" class="hidden">
       <h1>Qual sua empresa?</h1>
-      <p class="sub">Comece a digitar o nome — as sugestões vêm do Google. Se tiver mais de uma unidade, confira o endereço embaixo do nome.</p>
+      <p class="sub">Informe o nome e o CEP da empresa. O CEP faz a busca olhar só a sua região. Se tiver mais de uma unidade, confira o endereço embaixo do nome.</p>
       <div id="nBizConfirm" class="hidden"></div>
-      <!-- UM CAMPO SÓ (04/10/2026). Antes: nome "exato" + CEP + ramo, todos
-           obrigatórios — e o ramo nem era salvo. Agora é o mesmo autocomplete
-           do /app: sugestão enquanto digita (barata) e a busca completa só no
-           "Não achou?" (paga). -->
+      <!-- CEP + NOME, OS DOIS OBRIGATÓRIOS (21/10/2026, decisão do Ricardo).
+           De 04/10 a 21/10 foi um campo só, com autocomplete — e ficha nova,
+           com pouca avaliação, numa cidade menor, o Google não devolvia pelo
+           nome (caso Studio Gabi Siston Braz, Rio Grande-RS: vinham estúdios
+           de São Paulo). O CEP ancora a busca na região e o servidor descarta
+           o que está a mais de 150 km. Exceção: link do Google Maps colado no
+           campo do nome dispensa o CEP (o link já diz qual é a ficha). -->
       <div id="nBizSearchWrap">
-        <input type="text" id="nBizSearch" placeholder="Ex: Padaria Bella Vista" autocomplete="off" oninput="agendarSugestao()"/>
+        <label class="campo-rot" for="nBizSearch">Nome da empresa</label>
+        <input type="text" id="nBizSearch" placeholder="Ex: Padaria Bella Vista" autocomplete="off" oninput="limparAviso()" onkeydown="if(event.key==='Enter'){event.preventDefault();buscarNegocios();}"/>
+        <label class="campo-rot" for="nBizCep">CEP da empresa</label>
+        <input type="text" id="nBizCep" placeholder="00000-000" inputmode="numeric" maxlength="9" autocomplete="postal-code" oninput="limparAviso();mudouCep()"/>
+        <div id="nCepInfo" class="cep-info"></div>
+        <button type="button" class="btn-mais" id="nBuscar" onclick="buscarNegocios()">Buscar minha empresa</button>
         <div id="nResults" style="margin-top:10px;"></div>
-        <button type="button" class="btn-mais" id="nBuscaCompleta" style="display:none" onclick="buscaCompleta()">Não apareceu sua empresa? Ver mais resultados</button>
       </div>
       <div class="msg" id="nMsg2"></div>
       <div class="step-actions">
@@ -597,70 +607,93 @@ async function routeByStatus(){
   trackAtiv("ativ_view");
 }
 
-// ── Busca de negócio: UM CAMPO, com sugestão enquanto digita (04/10/2026) ──
-// Mesmo desenho do /app: a pausa na digitação chama o Autocomplete do Google
-// (modo=sugestao — barato, 10 mil grátis/mês) e a busca completa (Text Search,
-// paga, com nota) só roda no clique de "Não achou?". Antes eram três campos
-// obrigatórios — nome exato, CEP e ramo — e o ramo nem era salvo.
+// ── Busca de negócio: CEP + NOME (21/10/2026) ──
+// Busca completa (Text Search) ancorada no CEP, num clique. O autocomplete do
+// campo único (04/10) saiu desta tela: sem região, o Google não achava ficha
+// nova. O nome da cidade (ViaCEP) vai junto no texto — nos testes, nome +
+// cidade foi o que fez o Google devolver a ficha; o CEP sozinho só aproxima.
 const MIN_LETRAS = 3;
-let _timerSug = null, _pedidoBusca = 0;
+let _pedidoBusca = 0, _cep = null;   // _cep = { digitos, cidade } validado
 const _memoBusca = {};
 const escHtml = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ehLinkDoMaps = (q) => !/\s/.test(q) && /^(https?:\/\/)?([a-z0-9-]+\.)*(google\.[a-z.]+|goo\.gl|share\.google)\//i.test(q);
 
-function agendarSugestao(){
-  clearTimeout(_timerSug);
-  const q = document.getElementById("nBizSearch").value.trim();
-  const box = document.getElementById("nResults");
-  const maisBtn = document.getElementById("nBuscaCompleta");
-  if(q.length < MIN_LETRAS){ box.innerHTML = ""; maisBtn.style.display = "none"; return; }
-  _timerSug = setTimeout(() => buscarNegocios(false), 600);
+async function mudouCep(){
+  const el = document.getElementById("nBizCep");
+  const d = el.value.replace(/\D/g, "").slice(0, 8);
+  el.value = d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d;
+  const info = document.getElementById("nCepInfo");
+  _cep = null; info.textContent = ""; info.className = "cep-info";
+  if(d.length !== 8) return;
+  if(DEMO){ _cep = { digitos: d, cidade: "São Paulo - SP" }; info.textContent = "São Paulo - SP ✓"; return; }
+  try{
+    const j = await (await fetch(`https://viacep.com.br/ws/${d}/json/`)).json();
+    if(el.value.replace(/\D/g, "") !== d) return;   // a pessoa já mudou o CEP
+    if(j.erro){ info.textContent = "CEP não encontrado. Confira os números."; info.className = "cep-info erro"; return; }
+    _cep = { digitos: d, cidade: `${j.localidade} - ${j.uf}` };
+    info.textContent = `${j.localidade} - ${j.uf} ✓`;
+  }catch{
+    // ViaCEP fora do ar não trava ninguém: segue só com o CEP (o servidor geocoda).
+    _cep = { digitos: d, cidade: "" };
+  }
 }
-function buscaCompleta(){ buscarNegocios(true); }
 
-async function buscarNegocios(completa){
+// Aviso some assim que a pessoa mexe no campo (não fica acusando quem já corrigiu).
+function limparAviso(){
+  const p = document.querySelector("#nResults p.aviso-busca");
+  if(p) p.remove();
+}
+function avisoBusca(texto){
+  document.getElementById("nResults").innerHTML = `<p class="aviso-busca" style="font-size:13px;color:#C5221F;">${texto}</p>`;
+}
+
+async function buscarNegocios(){
   const box = document.getElementById("nResults");
-  const maisBtn = document.getElementById("nBuscaCompleta");
   const q = document.getElementById("nBizSearch").value.trim();
-  if(q.length < MIN_LETRAS) return;
+  const link = ehLinkDoMaps(q);
+  if(!link){
+    if(q.length < MIN_LETRAS){ avisoBusca("Digite o nome da empresa."); document.getElementById("nBizSearch").focus(); return; }
+    const d = document.getElementById("nBizCep").value.replace(/\D/g, "");
+    if(d.length !== 8){ avisoBusca("Digite o CEP da empresa (8 números)."); document.getElementById("nBizCep").focus(); return; }
+    if(!_cep){ avisoBusca("CEP não encontrado. Confira os números."); document.getElementById("nBizCep").focus(); return; }
+  }
 
   // Modo prévia: resultados fictícios, sem chamar o Google.
   if(DEMO){
     desenharResultados([
       {name:"Cafeteria do Centro", address:"Rua das Flores, 100 — Centro, São Paulo - SP", place_id:"demo1", rating:null, total:null},
       {name:"Cafeteria do Centro (Filial)", address:"Av. Brasil, 900 — Jardim, Campinas - SP", place_id:"demo2", rating:null, total:null}
-    ], completa);
+    ]);
     return;
   }
 
-  const chave = (completa ? "c:" : "s:") + q.toLowerCase();
-  if(_memoBusca[chave]){ desenharResultados(_memoBusca[chave], completa); return; }
+  const cep = link ? "" : _cep.digitos;
+  const cidade = link ? "" : (_cep.cidade || "");
+  const chave = q.toLowerCase() + "|" + cep;
+  if(_memoBusca[chave]){ desenharResultados(_memoBusca[chave]); return; }
   const meu = ++_pedidoBusca;
   box.innerHTML = '<p style="font-size:13px;color:#5F6368;">Buscando no Google…</p>';
   try{
-    const params = new URLSearchParams({ q, name: q });
-    if(!completa) params.set("modo", "sugestao");
-    const res = await fetch(`/api/searchbiz?${params.toString()}`);
+    // q = nome + cidade (pro Google achar); name = só o nome (pra ordenar).
+    const qs = new URLSearchParams({ q: link ? q : [q, cidade].filter(Boolean).join(" "), name: q });
+    if(cep) qs.set("cep", cep);
+    const res = await fetch(`/api/searchbiz?${qs.toString()}`);
     const data = await res.json();
-    if(meu !== _pedidoBusca) return;   // chegou tarde: a pessoa já digitou outra coisa
+    if(meu !== _pedidoBusca) return;   // chegou tarde: a pessoa já buscou outra coisa
     const lista = data.results || [];
     _memoBusca[chave] = lista;
-    desenharResultados(lista, completa);
-    if(!lista.length) trackAtiv("ativ_busca_vazia", { completa: !!completa });
+    desenharResultados(lista);
+    if(!lista.length) trackAtiv("ativ_busca_vazia", { com_cep: !!cep, link });
   }catch{
     if(meu !== _pedidoBusca) return;
     box.innerHTML = '<p style="font-size:13px;color:#C5221F;">Erro na busca. Tente de novo.</p>';
   }
-  maisBtn.style.display = completa ? "none" : "block";
 }
 
-function desenharResultados(lista, completa){
+function desenharResultados(lista){
   const box = document.getElementById("nResults");
-  const maisBtn = document.getElementById("nBuscaCompleta");
-  maisBtn.style.display = completa ? "none" : "block";
   if(!lista.length){
-    box.innerHTML = completa
-      ? dicaBusca("Não encontramos sua empresa no Google. Tente assim:")
-      : '<p style="font-size:13px;color:#5F6368;">Nenhuma sugestão ainda — continue digitando ou toque em "Ver mais resultados".</p>';
+    box.innerHTML = dicaBusca("Não encontramos sua empresa nessa região. Tente assim:");
     return;
   }
   // Índice no atributo, não o objeto inteiro: nome e endereço vêm do Google e
@@ -672,17 +705,16 @@ function desenharResultados(lista, completa){
       <div class="result-name">${escHtml(r.name)}</div>
       <div class="result-addr">${nota}${escHtml(r.address || "")}</div>
     </div>`;
-  }).join("") + (completa ? dicaBusca("Não é nenhum desses? Tente assim:") : "");
+  }).join("") + dicaBusca("Não é nenhum desses? Tente assim:");
 }
 
-// Dica de quando a busca completa nao achou — ou achou so homonimos. As tres
-// saidas funcionam no servidor: cidade e CEP ancoram a busca no lugar certo, e
-// o link do Maps identifica a ficha sem depender do Google (api/_lib/places-link.js).
+// Dica de quando a busca nao achou — ou achou so homonimos. O link do Maps
+// identifica a ficha sem depender do Google achar (api/_lib/places-link.js).
 function dicaBusca(titulo){
   return `<div class="dica-busca"><b>${titulo}</b><ul>`+
-    `<li>Nome + cidade. Exemplo: Padaria Bella Vista Campinas</li>`+
-    `<li>Nome + CEP. Exemplo: Padaria Bella Vista 13015-000</li>`+
-    `<li>Ou cole aqui o link da sua empresa no Google Maps (no Maps: abra sua empresa → Compartilhar → Copiar link)</li>`+
+    `<li>Confira se o CEP é o do endereço da empresa.</li>`+
+    `<li>Tente só a parte principal do nome. Exemplo: Bella Vista em vez de Padaria e Confeitaria Bella Vista Ltda</li>`+
+    `<li>Ou cole no campo do nome o link da sua empresa no Google Maps (no Maps: abra sua empresa → Compartilhar → Copiar link)</li>`+
     `</ul>Ainda não deu? Fale com a gente no WhatsApp (botão verde) que ativamos pra você.</div>`;
 }
 
@@ -714,7 +746,6 @@ function resetBiz(){
   document.getElementById("nBizConfirm").classList.add("hidden");
   document.getElementById("nBizSearchWrap").classList.remove("hidden");
   document.getElementById("nResults").innerHTML="";
-  document.getElementById("nBuscaCompleta").style.display="none";
   // Desabilita botão Continuar do passo 2
   const cont = document.getElementById("nStep2Continue");
   if (cont){ cont.disabled = true; cont.style.opacity = ".5"; cont.style.cursor = "not-allowed"; }
