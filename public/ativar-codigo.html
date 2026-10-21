@@ -652,7 +652,7 @@ function desenharResultados(lista, completa){
   maisBtn.style.display = completa ? "none" : "block";
   if(!lista.length){
     box.innerHTML = completa
-      ? '<p style="font-size:13px;color:#5F6368;line-height:1.5;">Não encontramos sua empresa no Google. Confira o nome — ou fale com a gente no WhatsApp (botão verde) que ativamos pra você.</p>'
+      ? '<p style="font-size:13px;color:#5F6368;line-height:1.5;">Não encontramos sua empresa no Google. Tente o nome completo junto com a cidade (ex: Padaria Bella Vista Campinas) — ou fale com a gente no WhatsApp (botão verde) que ativamos pra você.</p>'
       : '<p style="font-size:13px;color:#5F6368;">Nenhuma sugestão ainda — continue digitando ou veja mais resultados.</p>';
     return;
   }

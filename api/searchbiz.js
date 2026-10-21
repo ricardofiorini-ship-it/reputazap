@@ -119,7 +119,8 @@ export default async function handler(req, res) {
   // v3 em 25/09/2026: negocio de area de servico (endereco oculto) passou a
   // aparecer. Sem virar a versao, quem ja buscou o nome nas ultimas 24h seguiria
   // recebendo a lista sem ele.
-  const chaveCache = `searchbiz:v3:${chaveDe(q)}|${chaveDe(nameQuery)}|${cepDigits}`;
+  // v4 em 21/10/2026: estabelecimento que so a API nova acha passou a entrar.
+  const chaveCache = `searchbiz:v4:${chaveDe(q)}|${chaveDe(nameQuery)}|${cepDigits}`;
 
   try {
     const { data } = await comCachePlaces({
@@ -212,6 +213,23 @@ async function buscar({ q, nameQuery, cepDigits, API_KEY }) {
     if (jaTem.has(p.place_id)) continue;
     if (nameMatch(p.name, nameQuery).coverage < 0.5) continue;
     raw.push(p);
+    jaTem.add(p.place_id);
+  }
+
+  // 3d. Estabelecimento COM endereco que so a API nova achou (21/10/2026).
+  //     Caso: "Studio Gabi Siston Braz" (Rio Grande-RS). Buscando nome + cidade,
+  //     a API nova devolve o estudio em 5o; o textsearch antigo nao devolve —
+  //     e esta lista so aproveitava da nova os de area de servico, entao a dona
+  //     nao achava a propria empresa. Mesmas travas dos outros: Brasil, aberto,
+  //     estabelecimento, e o nome tem que bater ao menos pela metade.
+  for (const p of pelaNova) {
+    if (p.area_de_servico || jaTem.has(p.place_id)) continue;
+    if (!inBrazil(p.geometry?.location)) continue;
+    if (p.business_status && p.business_status !== "OPERATIONAL") continue;
+    if (!semTipo(p) && !p.types.includes("establishment")) continue;
+    if (nameMatch(p.name, nameQuery).coverage < 0.5) continue;
+    raw.push(p);
+    jaTem.add(p.place_id);
   }
 
   if (!raw.length) return null;   // nada achado: nao grava no cache
