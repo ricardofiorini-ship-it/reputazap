@@ -63,10 +63,22 @@ const CAMPAIGNS = {
   // `soNaoAssinantes` tira também quem já teve assinatura (`stripe_customer_id`):
   // esses já usaram o teste e, ao publicar, cairiam no pagamento — o e-mail
   // prometeria o que a tela não entrega.
+  //
+  // 21/10/2026 — virou LEMBRETE AUTOMÁTICO (cron diário em vercel.json, pedido
+  // do Ricardo): todo dia pega quem passou a se encaixar, e o dedupe da
+  // campanha garante uma vez por pessoa. Duas travas novas:
+  //   - 24h desde o menu mais antigo em rascunho: sem isso, quem está montando
+  //     agora receberia "vimos que você não publicou" no meio da montagem.
+  //   - só quem tem dispositivo: o e-mail diz "basta clicar em Publicar", e
+  //     sem dispositivo a tela responde "ative um dispositivo primeiro" (9 dos
+  //     31 parados em 21/10).
   "menu-publicar": {
     label: "Menu montado e não publicado: publicar começa o teste de 7 dias",
     soNaoAssinantes: true,
     soMenuNaoPublicado: true,
+    minHorasDesdeMenu: 24,
+    soComDispositivo: true,
+    precisaDispositivos: true,
     build: ({ userName, unsub }) => menuPublicarEmail({ userName, unsubUrl: unsub }),
   },
 };
@@ -75,8 +87,12 @@ const CAMPAIGNS = {
 // Ricardo com letras e números. O CRON_SECRET da Vercel não servia no
 // navegador — marcado como Sensitive não dá pra ver, e caractere como + & #
 // estraga na URL. O CRON_SECRET segue aceito.
+//
+// 21/10/2026: o atalho `x-vercel-cron` SAIU daqui. Cabeçalho qualquer um
+// escreve, e esta rota manda e-mail pra base inteira com confirm=1 — agora
+// que ela tem cron, isso deixaria de ser teórico. O cron da Vercel manda
+// `Authorization: Bearer ${CRON_SECRET}` sozinho quando a env existe.
 function checkAuth(req) {
-  if (req.headers["x-vercel-cron"] === "1") return true;
   const validos = [process.env.BROADCAST_SECRET, CRON_SECRET]
     .map((v) => (v || "").trim()).filter(Boolean);
   if (!validos.length) return false;
@@ -146,19 +162,27 @@ export default async function handler(req, res) {
   if (campaign.soMenuNaoPublicado) {
     const userDoBiz = new Map((businesses || []).map((b) => [b.id, b.user_id]));
     const comRascunho = new Set(), comPublicado = new Set();
+    const rascunhoMaisAntigo = new Map();
     for (let de = 0; de < 100000; de += 1000) {
       const { data: pag, error: eErr } = await supabase
-        .from("experiences").select("business_id, published")
+        .from("experiences").select("business_id, published, created_at")
         .is("archived_at", null).order("id", { ascending: true }).range(de, de + 999);
       if (eErr) return res.status(500).json({ ...s, error: "menus: " + eErr.message });
       for (const e of pag || []) {
         const u = userDoBiz.get(e.business_id);
         if (!u) continue;
         (e.published ? comPublicado : comRascunho).add(u);
+        if (!e.published && (!rascunhoMaisAntigo.has(u) || e.created_at < rascunhoMaisAntigo.get(u))) {
+          rascunhoMaisAntigo.set(u, e.created_at);
+        }
       }
       if (!pag || pag.length < 1000) break;
     }
-    const alvo = new Set([...comRascunho].filter((u) => !comPublicado.has(u)));
+    const corte = campaign.minHorasDesdeMenu
+      ? new Date(Date.now() - campaign.minHorasDesdeMenu * 3600 * 1000).toISOString() : null;
+    const recente = (u) => corte && rascunhoMaisAntigo.get(u) > corte;
+    s.skipped_menu_recente = [...comRascunho].filter((u) => !comPublicado.has(u) && recente(u)).length;
+    const alvo = new Set([...comRascunho].filter((u) => !comPublicado.has(u) && !recente(u)));
     s.skipped_fora_do_alvo = userIds.filter((id) => !alvo.has(id)).length;
     userIds = userIds.filter((id) => alvo.has(id));
   }

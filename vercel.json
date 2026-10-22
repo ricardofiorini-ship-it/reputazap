@@ -497,6 +497,10 @@
     {
       "path": "/api/cron/plan-sweep",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/broadcast?campaign=menu-publicar&confirm=1",
+      "schedule": "0 13 * * *"
     }
   ]
 }
