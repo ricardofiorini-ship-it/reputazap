@@ -53,6 +53,10 @@ const PROBES = [
   // Trybo (23/10/2026). A /t/ é o endereço GRAVADO nos chips — não dá pra
   // trocar —, e até aqui nenhuma sonda passava por ela. Código inexistente de
   // propósito: responde 302 pra ativação sem contar toque nenhum.
+  // O /api/health responde 503 quando algo de fora quebra (23/10/2026): chave
+  // do Stripe, remetente não verificado no Resend, evento do webhook
+  // desmarcado. Sem esta linha ele só era lido por quem lembrasse de abrir.
+  { nome: "Saúde geral (/api/health)", url: `${BASE}/api/health`, papel: "Stripe, webhook, Resend e Mercado Pago" },
   { nome: "Cartão Trybo (/t/)",       url: "https://trybo.co/t/TRY-SONDA0",     papel: "toque nos cartões Trybo" },
   { nome: "Trybo (api/trybo)",        url: `${BASE}/api/trybo?action=checar-codigo&code=TRY-SONDA0`, papel: "ativação e painel da Trybo" },
 ];
