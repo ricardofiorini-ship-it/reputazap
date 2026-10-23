@@ -342,6 +342,14 @@
       "destination": "/distributors.html"
     },
     {
+      "source": "/distributors/es",
+      "destination": "/distributors-es.html"
+    },
+    {
+      "source": "/distributors/zh",
+      "destination": "/distributors-zh.html"
+    },
+    {
       "source": "/ativar-placa",
       "destination": "/ativar-placa.html"
     },

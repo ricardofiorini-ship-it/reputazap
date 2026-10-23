@@ -7,6 +7,10 @@
 <title>Become an Exclusive StarTouch Distributor</title>
 <meta name="description" content="Bring StarTouch to your country: NFC Google review cards and counter plaques plus a reputation platform your customers keep using. One exclusive distributor per country. Minimum order US$ 500 FOB."/>
 <link rel="canonical" href="https://startouch.com.br/distributors"/>
+<link rel="alternate" hreflang="en" href="https://startouch.com.br/distributors"/>
+<link rel="alternate" hreflang="es" href="https://startouch.com.br/distributors/es"/>
+<link rel="alternate" hreflang="zh" href="https://startouch.com.br/distributors/zh"/>
+<link rel="alternate" hreflang="x-default" href="https://startouch.com.br/distributors"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <meta property="og:title" content="Become the exclusive StarTouch distributor in your country"/>
 <meta property="og:description" content="NFC review hardware + a reputation platform. One partner per country. Minimum order US$ 500 FOB."/>
@@ -29,6 +33,11 @@
   .btn:hover{background:var(--azul-esc)}
   .btn.claro{background:#fff;color:var(--azul-esc)}
   .btn.peq{padding:9px 16px;font-size:14px}
+  .dir{display:flex;align-items:center;gap:14px}
+  .langs{display:flex;gap:2px;font-size:13.5px;font-weight:700}
+  .langs a{color:var(--cinza);text-decoration:none;padding:6px 8px;border-radius:8px}
+  .langs a.on{color:var(--azul);background:#E8F0FE}
+  @media(max-width:420px){.dir .btn.peq{display:none}}
 
   .hero{background:radial-gradient(1200px 500px at 80% -10%,#1E3A8A 0,transparent 60%),var(--escuro);color:#fff;padding:64px 0 56px}
   .hero .in{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
@@ -117,7 +126,10 @@
 
 <header class="topo"><div class="in">
   <a class="logo" href="/" aria-label="StarTouch home"><img src="/img/startouch-logo-dark-280.webp" alt="StarTouch" width="140" height="50"/></a>
-  <a class="btn peq" href="#apply">Apply now</a>
+  <div class="dir">
+    <nav class="langs" aria-label="Language"><a href="/distributors" class="on" hreflang="en" lang="en">EN</a><a href="/distributors/es" hreflang="es" lang="es">ES</a><a href="/distributors/zh" hreflang="zh" lang="zh">中文</a></nav>
+    <a class="btn peq" href="#apply">Apply now</a>
+  </div>
 </div></header>
 
 <section class="hero">
@@ -297,7 +309,7 @@ document.getElementById("form").addEventListener("submit", async (e) => {
   }
   btn.disabled = true; btn.textContent = "Sending…";
   try {
-    const r = await fetch("/api/distribuidores", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(d) });
+    const r = await fetch("/api/distribuidores", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...d, lang: document.documentElement.lang }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { msg.className = "erro"; msg.textContent = j.error || "Something went wrong. Please try again."; return; }
     f.reset();
