@@ -91,6 +91,7 @@ export default async function handler(req, res) {
     if (action === "pedidos")      return await handlePedidos(req, res);
     if (action === "pedido-status") return await handlePedidoStatus(req, res, admin);
     if (action === "assinaturas")  return await handleAssinaturas(req, res);
+    if (action === "trocar-negocio") return await handleTrocarNegocio(req, res, admin);
     return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects, funnel, visitas, grid-suggest, grid, pedidos, pedido-status ou assinaturas" });
   } catch (err) {
     console.error("[admin] erro:", err);
@@ -1217,6 +1218,41 @@ function familiaDoPedido(o) {
 }
 
 /** Lista os pedidos, do mais novo pro mais velho. */
+// TROCAR O NEGÓCIO DE UM CLIENTE (23/10/2026). O mesmo que o botão "Trocar
+// negócio vinculado" do painel faz (api/savebiz.js), feito pelo admin quando o
+// cliente pede pelo WhatsApp e não consegue sozinho. A linha de `businesses` é
+// a mesma (UNIQUE user_id), então dispositivos e plano vão junto; o marco zero
+// das avaliações recomeça e o termo de busca da loja antiga é zerado — iguais
+// à troca do painel. Só POST, com o place_id conferido de antemão.
+async function handleTrocarNegocio(req, res, admin) {
+  if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
+  const b = req.body || {};
+  const userId = String(b.user_id || "");
+  const placeId = String(b.place_id || "").trim();
+  const nome = String(b.name || "").trim();
+  if (!/^[0-9a-f-]{36}$/i.test(userId) || !placeId || !nome) {
+    return res.status(400).json({ error: "user_id, place_id e name obrigatórios" });
+  }
+  const { data: atual, error: e1 } = await supabase.from("businesses")
+    .select("id, place_id, name").eq("user_id", userId).maybeSingle();
+  if (e1) return res.status(500).json({ error: e1.message });
+  if (!atual) return res.status(404).json({ error: "Conta sem negócio" });
+  if (atual.place_id === placeId) return res.json({ ok: true, igual: true, business: atual });
+
+  const patch = {
+    place_id: placeId,
+    name: nome,
+    address: String(b.address || "").trim() || null,
+    rating: Number.isFinite(Number(b.rating)) ? Number(b.rating) : null,
+    total_reviews: Number.isFinite(Number(b.total)) ? Number(b.total) : null,
+    category_override: null
+  };
+  const { data, error } = await supabase.from("businesses").update(patch).eq("id", atual.id).select().single();
+  if (error) return res.status(500).json({ error: error.message });
+  console.log("[admin] TROCA DE NEGOCIO pelo admin:", { por: admin.email, business_id: atual.id, de: atual.place_id, de_nome: atual.name, para: placeId, para_nome: nome });
+  return res.json({ ok: true, de: { place_id: atual.place_id, name: atual.name }, business: data });
+}
+
 async function handlePedidos(req, res) {
   // "envio" (padrão) = tudo que tem caixa pra despachar: revenda + kit.
   // Antes o padrão era "revenda", então a tela abria escondendo justamente a
