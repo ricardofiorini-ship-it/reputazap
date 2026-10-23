@@ -10,6 +10,8 @@ import { assinaturaRecusadaEmail, assinaturaCobradaEmail, testeTerminandoEmail, 
 import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia } from "./_lib/email-templates.js";
 import { resolvePlano } from "./_lib/plan.js";
 import { KIT_CATALOG, diasDeProducao } from "./_lib/catalogo-kit.js";
+import { validaCupom, descontoCentavos, cupomStripe } from "./_lib/cupom-volta.js";
+import { limitou, LIMITES } from "./_lib/rate-limit.js";
 import { dadosDoCliente, enderecoCompleto } from "./_lib/pedido-cliente.js";
 import { entradaDoScore } from "./_lib/visibilidade.js";
 import { cotaFrete } from "./_lib/frenet.js";
@@ -284,6 +286,14 @@ async function notifyAdminKitOrder({ order, userId, provedor = "mercadopago", pa
         (ship?.frete?.pesoKg ? ` Peso cobrado do cliente: <strong>${ship.frete.pesoKg} kg</strong>.` : "") +
         `</p>`;
     }
+  }
+
+  // Cupom VOLTA: o total do pedido já vem com o desconto; a linha diz de onde
+  // veio a diferença pra quem confere o valor contra os itens.
+  if (ship?.cupom_usado?.codigo) {
+    shippingHtml +=
+      `<p style="background:#E6F4EA;padding:10px 12px;border-radius:8px;">🏷️ <strong>Cupom ${escapeHtmlLite(ship.cupom_usado.codigo)}</strong> — ` +
+      `${ship.cupom_usado.pct}% nos produtos (−${fmtBRL(ship.cupom_usado.desconto_centavos)}). Cliente que tinha abandonado o carrinho.</p>`;
   }
 
   // FRETE — qual servico despachar. Sem esta linha o despachante escolhe o mais
@@ -1653,12 +1663,23 @@ function montaCarrinhoStripe(items) {
   return { line_items, itensPedido, totalCents };
 }
 
+// Cupom "VOLTA" (20% na primeira compra de quem não fechou — _lib/cupom-volta.js).
+// Conferido AQUI, no servidor, mesmo que a tela já tenha conferido: o desconto
+// que vale é o que o servidor calcula. Cupom que caducou entre a tela e o
+// clique recusa o checkout com motivo "cupom", e a tela tira o cupom e avisa.
+async function cupomDoPedido(codigo, produtosCentavos) {
+  if (!codigo) return null;
+  const v = await validaCupom(codigo);
+  if (!v.ok) return { erro: v.erro };
+  return { codigo: v.codigo, pct: v.pct, desconto: descontoCentavos(produtosCentavos, v.pct) };
+}
+
 async function handleCheckoutKitStripe(req, res) {
   const auth = await authUser(req);
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
   try {
     const { items = [], biz_name = "", ga_client_id = "", ga_session_id = "",
-            customer = {}, frete_codigo = "" } = parseJson(await getRawBody(req));
+            customer = {}, frete_codigo = "", cupom: cupomCodigo = "" } = parseJson(await getRawBody(req));
     const carrinho = montaCarrinhoStripe(items);
     if (carrinho.erro) return res.status(400).json({ error: carrinho.erro });
 
@@ -1677,7 +1698,9 @@ async function handleCheckoutKitStripe(req, res) {
       return res.status(frete.motivo === "cep" ? 400 : 422)
         .json({ error: frete.erro, motivo: frete.motivo, opcoes: frete.opcoes });
     }
-    const totalComFrete = carrinho.totalCents + frete.centavos;
+    const cupom = await cupomDoPedido(cupomCodigo, carrinho.totalCents);
+    if (cupom?.erro) return res.status(400).json({ error: cupom.erro, motivo: "cupom" });
+    const totalComFrete = carrinho.totalCents - (cupom?.desconto || 0) + frete.centavos;
     const linhaFrete = linhaDeFrete(frete);
 
     const stripe = getStripe();
@@ -1703,11 +1726,12 @@ async function handleCheckoutKitStripe(req, res) {
       metadata: {
         user_id: auth.user.id, biz_name, order_type: "kit",
         external_reference: extRef, kit_total_cents: String(carrinho.totalCents),
-        frete_cents: String(frete.centavos),
+        frete_cents: String(frete.centavos), ...(cupom ? { cupom: cupom.codigo } : {}),
         ga_client_id: String(ga_client_id || ""), ga_session_id: String(ga_session_id || "")
       },
       payment_intent_data: { metadata: { user_id: auth.user.id, biz_name, order_type: "kit", external_reference: extRef } },
-      allow_promotion_codes: true,
+      // O Stripe não aceita `discounts` junto com `allow_promotion_codes`.
+      ...(cupom ? { discounts: await cupomStripe(stripe, cupom) } : { allow_promotion_codes: true }),
       locale: "pt-BR",
       success_url: `${origin}/app?kit=success&session={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/kit?biz=${encodeURIComponent(biz_name)}&cancelled=1`
@@ -1725,7 +1749,8 @@ async function handleCheckoutKitStripe(req, res) {
       // regra de frete gratis e da conferencia de margem.
       total_cents: totalComFrete,
       status: "pending",
-      shipping: { ...c, frete: freteParaPedido(frete), produtos_centavos: carrinho.totalCents },
+      shipping: { ...c, frete: freteParaPedido(frete), produtos_centavos: carrinho.totalCents,
+        ...(cupom ? { cupom_usado: { codigo: cupom.codigo, pct: cupom.pct, desconto_centavos: cupom.desconto } } : {}) },
     }, "stripe/checkout-kit");
 
     return res.json({ url: session.url });
@@ -1745,6 +1770,8 @@ async function handleCheckoutKitGuestStripe(req, res) {
   try {
     const body = parseJson(await getRawBody(req));
     const { items = [], customer = {}, frete_codigo = "" } = body;
+    // O cupom é da StarTouch: no carrinho da Trybo ele é ignorado.
+    const cupomCodigo = body.marca === "trybo" ? "" : body.cupom;
 
     // CARRINHO DA TRYBO (19/10/2026): a mesma compra, com outra marca. Muda só
     // o que o cliente vê — a volta do pagamento (página da Trybo, não a loja
@@ -1770,7 +1797,9 @@ async function handleCheckoutKitGuestStripe(req, res) {
       return res.status(frete.motivo === "cep" ? 400 : 422)
         .json({ error: frete.erro, motivo: frete.motivo, opcoes: frete.opcoes });
     }
-    const totalComFrete = carrinho.totalCents + frete.centavos;
+    const cupom = await cupomDoPedido(cupomCodigo, carrinho.totalCents);
+    if (cupom?.erro) return res.status(400).json({ error: cupom.erro, motivo: "cupom" });
+    const totalComFrete = carrinho.totalCents - (cupom?.desconto || 0) + frete.centavos;
     const linhaFrete = linhaDeFrete(frete);
 
     const stripe = getStripe();
@@ -1791,11 +1820,12 @@ async function handleCheckoutKitGuestStripe(req, res) {
       metadata: {
         order_type: "kit", tipo: "kit_guest", ...(ehTrybo ? { marca: "trybo" } : {}),
         external_reference: extRef, kit_total_cents: String(carrinho.totalCents),
-        frete_cents: String(frete.centavos),
+        frete_cents: String(frete.centavos), ...(cupom ? { cupom: cupom.codigo } : {}),
         ga_client_id: (body.ga_client_id || "").toString(),
         ga_session_id: (body.ga_session_id || "").toString()
       },
       payment_intent_data: { metadata: { order_type: "kit", tipo: "kit_guest", external_reference: extRef } },
+      ...(cupom ? { discounts: await cupomStripe(stripe, cupom) } : {}),
       locale: "pt-BR",
       // `{CHECKOUT_SESSION_ID}` e substituido pelo Stripe no redirect. Sem ele
       // a pagina nao tem como saber se o boleto foi pago ou so emitido.
@@ -1813,7 +1843,8 @@ async function handleCheckoutKitGuestStripe(req, res) {
       items: carrinho.itensPedido,
       total_cents: totalComFrete,
       status: "pending",
-      shipping: { ...c, frete: freteParaPedido(frete), produtos_centavos: carrinho.totalCents },
+      shipping: { ...c, frete: freteParaPedido(frete), produtos_centavos: carrinho.totalCents,
+        ...(cupom ? { cupom_usado: { codigo: cupom.codigo, pct: cupom.pct, desconto_centavos: cupom.desconto } } : {}) },
     }, "stripe/checkout-kit-guest");
 
     return res.json({ url: session.url });
@@ -2885,6 +2916,15 @@ export default async function handler(req, res) {
   // Publico de proposito e sem segredo: o id da sessao (`cs_...`) e
   // inadivinhavel e so quem comprou o tem, na propria URL. A resposta nao
   // carrega nada pessoal — so se pagou, por qual meio, e quanto.
+  // Cupom VOLTA: a loja confere antes de mostrar o desconto. Responde só se
+  // vale, quanto e até quando — nada sobre o pedido de onde ele veio.
+  if (action === "cupom") {
+    if (await limitou(req, res, LIMITES.cupom)) return;
+    const v = await validaCupom(req.query.codigo);
+    if (!v.ok) return res.status(v.motivo === "banco" ? 503 : 404).json({ error: v.erro, motivo: v.motivo });
+    return res.json({ codigo: v.codigo, pct: v.pct, expira: v.expira });
+  }
+
   if (action === "status-compra") {
     const sid = (req.query.sid || "").toString().trim();
     if (!/^cs_[A-Za-z0-9_]+$/.test(sid)) return res.status(400).json({ error: "sid invalido" });

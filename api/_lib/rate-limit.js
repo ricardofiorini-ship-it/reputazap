@@ -183,5 +183,8 @@ export const LIMITES = {
   // comprando refaz a conta algumas vezes (troca o CEP, muda a quantidade).
   // Folgado o bastante pra ninguem esbarrar comprando, apertado o bastante
   // pra um laco nao queimar a cota — que, se acabar, derruba TODO checkout.
-  frete:       { nome: "frete",       porIpHora: 40, globalDia: 800 }
+  frete:       { nome: "frete",       porIpHora: 40, globalDia: 800 },
+  // Cupom VOLTA: apertado pra ninguem ficar chutando codigo. Quem tem o cupom
+  // confere uma ou duas vezes; 20 por hora ja e muito pra isso.
+  cupom:       { nome: "cupom",       porIpHora: 20 }
 };

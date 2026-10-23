@@ -1,6 +1,6 @@
 # Política de Privacidade — StarTouch
 
-**Versão 1.10 — vigente a partir de 20 de outubro de 2026**
+**Versão 1.11 — vigente a partir de 23 de outubro de 2026**
 
 ---
 
@@ -65,6 +65,10 @@ Nome, e-mail, telefone, CPF ou CNPJ, CEP, logradouro, número, complemento, bair
 *Base legal:* execução de contrato (Art. 7º, V) e cumprimento de obrigação legal e regulatória, notadamente fiscal (Art. 7º, II).
 O CPF ou CNPJ é exigido pelo processador de pagamentos e pela legislação fiscal aplicável à emissão do documento de venda.
 
+**Lembrete de compra não concluída**
+Se você preenche seus dados de entrega na loja e não conclui o pagamento, podemos enviar **um único e-mail**, cerca de um dia depois, lembrando do pedido e oferecendo um cupom de desconto para a primeira compra. Usamos apenas o nome, o e-mail e os itens escolhidos, já informados no pedido. Não enviamos um segundo lembrete, e quem já comprou conosco não recebe. Se não quiser recebê-lo, escreva para privacidade@startouch.com.br.
+*Base legal:* legítimo interesse (Art. 7º, IX), limitado a uma mensagem sobre a compra que você mesmo iniciou.
+
 **Preferências de alerta**
 E-mail e telefone indicados pelo lojista para receber avisos da plataforma — por exemplo, aviso de avaliação negativa.
 *Base legal:* execução de contrato (Art. 7º, V).
@@ -90,7 +94,7 @@ Quando a compra é feita por canal de terceiro, recebemos nome e telefone do com
 
 ### 3.2 O que fazemos com esses dados
 
-Criar e manter sua conta; processar e entregar seu pedido; emitir documentos fiscais; enviar comunicações operacionais sobre sua conta e seus pedidos; enviar alertas que você configurou; prestar suporte; e, quando você optar por recebê-los, enviar conteúdos e novidades.
+Criar e manter sua conta; processar e entregar seu pedido; lembrar, uma única vez, de uma compra iniciada e não concluída; emitir documentos fiscais; enviar comunicações operacionais sobre sua conta e seus pedidos; enviar alertas que você configurou; prestar suporte; e, quando você optar por recebê-los, enviar conteúdos e novidades.
 
 **Não vendemos, alugamos ou cedemos dados pessoais a terceiros para fins de marketing.**
 
@@ -321,6 +325,7 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 | 1.8 | 13/10/2026 | Inclusão da **DHL Express** na seção 7, como operadora da entrega dos pedidos enviados para fora do Brasil. São os mesmos dados de entrega já coletados na compra, com a mesma finalidade (entregar o pedido); muda apenas quem transporta. Não reduz direitos nem amplia finalidades |
 | 1.9 | 19/10/2026 | Seção 4: a tela de escolha do cartão Trybo passa a mostrar até oito opções (eram duas). Alteração de redação: **não há dado novo** nem finalidade nova |
 | 1.10 | 20/10/2026 | Seção 4.1: corrigida a ressalva que dizia que a página intermediária consulta nossos servidores para exibir o nome do estabelecimento. Essa consulta deixou de existir em 03/10/2026; o único registro técnico que resta no trajeto é o da hospedagem, já declarado na seção 6.3. A mudança descreve **menos** tratamento do que a versão anterior: não reduz direitos nem amplia finalidades |
+| 1.11 | 23/10/2026 | Seção 3.1: inclusão do **lembrete de compra não concluída** — um único e-mail, com cupom de desconto, para quem preencheu os dados de entrega e não pagou. Usa dados já coletados no pedido (nome, e-mail e itens) e vale apenas para pedidos iniciados a partir desta versão. Amplia a finalidade do uso do e-mail do pedido, por isso é declarada aqui antes de entrar em funcionamento |
 | 1.3 | 07/09/2026 | Mudança de controladora: a ZAYOR BRASIL LTDA (CNPJ 68.972.361/0001-33) sucede a GT6 Brasil Comércio Varejista de Produtos Diversos Ltda, inclusive quanto aos dados já coletados (seção 1.1); atualização do endereço para o da nova sede. **Não é alteração meramente declaratória** como as duas anteriores — muda quem responde pelo tratamento —, mas não reduz direitos, não amplia finalidades e não altera nenhuma operação de tratamento |
 
 ---

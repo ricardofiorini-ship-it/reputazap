@@ -866,13 +866,75 @@ function atualizaResumo() {
   else if (frete.status === "carregando") { rotulo = "calculando…"; }
 
   document.getElementById("coSummaryFrete").textContent = rotulo;
-  document.getElementById("coSummaryTotal").textContent = fmt(sub + valorFrete);
+  // Cupom VOLTA: desconto só nos produtos. A faixa do frete grátis (acima)
+  // olha o valor ANTES do desconto — o servidor faz igual.
+  const desconto = cupomAtivo ? Math.round(sub * cupomAtivo.pct) / 100 : 0;
+  linhaCupom(desconto);
+  document.getElementById("coSummaryTotal").textContent = fmt(sub - desconto + valorFrete);
 
   // Só libera o pagamento quando o frete está resolvido. Deixar passar sem
   // resolver levaria o cliente pro Stripe e o servidor recusaria lá na frente,
   // que é o pior lugar pra descobrir que faltava algo.
   const pronto = gratis || (frete.status === "ok" && !!frete.codigo);
   document.getElementById("coSubmit").disabled = !pronto;
+}
+
+// ── Cupom VOLTA (20% na primeira compra; e-mail de carrinho abandonado) ──
+// Chega pelo link do e-mail (?cupom=), fica guardado no navegador até expirar
+// e é conferido no servidor antes de aparecer. O desconto que vale é o que o
+// servidor calcula no checkout; aqui é só pra pessoa ver o número certo.
+let cupomAtivo = null;
+function lerCupomGuardado() {
+  try { return JSON.parse(localStorage.getItem("st_cupom") || "null"); } catch (_) { return null; }
+}
+function guardarCupom(c) {
+  try { c ? localStorage.setItem("st_cupom", JSON.stringify(c)) : localStorage.removeItem("st_cupom"); } catch (_) {}
+}
+function linhaCupom(desconto) {
+  let el = document.getElementById("coSummaryCupom");
+  if (!cupomAtivo) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "coSummaryCupom";
+    el.style.color = "#137333";
+    el.innerHTML = '<span></span><span></span>';
+    document.querySelector(".co-linhas").appendChild(el);
+  }
+  el.children[0].textContent = `Cupom ${cupomAtivo.codigo} (${cupomAtivo.pct}% nos produtos)`;
+  el.children[1].textContent = "−" + fmt(desconto);
+}
+function avisoCupom() {
+  let b = document.getElementById("cupomAviso");
+  if (!cupomAtivo) { if (b) b.remove(); return; }
+  if (!b) {
+    b = document.createElement("div");
+    b.id = "cupomAviso";
+    b.style.cssText = "position:sticky;top:0;z-index:60;background:#E6F4EA;color:#0d652d;font:600 14px/1.4 system-ui,sans-serif;text-align:center;padding:10px 16px;border-bottom:1px solid #b7e1c1;";
+    document.body.prepend(b);
+  }
+  b.textContent = `🏷️ Cupom ${cupomAtivo.codigo} ativo: ${cupomAtivo.pct}% OFF nos produtos, aplicado no pagamento.`;
+}
+async function carregarCupom() {
+  // Voltou do pagamento: o cupom foi usado, não fica rondando a loja.
+  if (params.get("compra") === "sucesso") { guardarCupom(null); return; }
+  const daUrl = (params.get("cupom") || "").trim().toUpperCase();
+  const guardado = lerCupomGuardado();
+  const codigo = daUrl || guardado?.codigo;
+  if (!codigo) return;
+  try {
+    const r = await fetch("/api/billing?action=cupom&codigo=" + encodeURIComponent(codigo));
+    const d = await r.json();
+    if (r.ok && d.codigo) {
+      cupomAtivo = { codigo: d.codigo, pct: d.pct, expira: d.expira };
+      guardarCupom(cupomAtivo);
+    } else {
+      cupomAtivo = null;
+      if (r.status !== 503) guardarCupom(null);
+      if (daUrl && d.error) alert(d.error);
+    }
+  } catch (_) { /* sem rede: segue sem cupom, o checkout confere de novo */ }
+  avisoCupom();
+  atualizaResumo();
 }
 
 function renderFrete() {
@@ -1090,7 +1152,8 @@ coForm.addEventListener("submit", async (e) => {
   const url = token ? "/api/billing?action=checkout-kit" : "/api/billing?action=checkout-kit-guest";
   const headers = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
-  const corpo = { items, customer, frete_codigo: frete.codigo || "", ...gaIds() };
+  const corpo = { items, customer, frete_codigo: frete.codigo || "", ...gaIds(),
+                  ...(cupomAtivo ? { cupom: cupomAtivo.codigo } : {}) };
   if (token) corpo.biz_name = bizName || "";
 
   try {
@@ -1102,7 +1165,8 @@ coForm.addEventListener("submit", async (e) => {
       localStorage.removeItem("rz_token");
       res = await fetch("/api/billing?action=checkout-kit-guest", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items, customer, frete_codigo: frete.codigo || "", ...gaIds() })
+        body: JSON.stringify({ items, customer, frete_codigo: frete.codigo || "", ...gaIds(),
+                               ...(cupomAtivo ? { cupom: cupomAtivo.codigo } : {}) })
       });
     }
     const data = await res.json();
@@ -1110,6 +1174,8 @@ coForm.addEventListener("submit", async (e) => {
       // O frete escolhido caducou entre a cotação e o clique: recota e deixa o
       // cliente escolher de novo, em vez de só dizer "erro".
       if (data.motivo === "opcao_indisponivel" || data.motivo === "frenet") await cotarFrete();
+      // Cupom caducou entre a tela e o clique: tira e mostra o total sem ele.
+      if (data.motivo === "cupom") { cupomAtivo = null; guardarCupom(null); avisoCupom(); atualizaResumo(); }
       alert(data.error || "Erro ao iniciar o checkout. Tente novamente.");
       submitBtn.disabled = false;
       submitBtn.textContent = orig;
@@ -1182,6 +1248,7 @@ if (addParam) {
 }
 renderCart();
 if (itemCount() > 0 && params.get("compra") !== "sucesso") openDrawer();
+carregarCupom();
 </script>
 
 <!-- WhatsApp de suporte StarTouch — botão flutuante -->

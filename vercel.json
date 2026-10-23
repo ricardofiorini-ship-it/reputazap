@@ -499,6 +499,10 @@
       "schedule": "7 * * * *"
     },
     {
+      "path": "/api/cron/carrinho-abandonado",
+      "schedule": "20 11-23 * * *"
+    },
+    {
       "path": "/api/cron/plan-sweep",
       "schedule": "0 5 * * *"
     },

@@ -22,7 +22,6 @@
     "3. Dados do lojista (cliente StarTouch)": "3. 商家数据（StarTouch 客户）",
     "3.1 O que coletamos e por quê": "3.1 我们收集什么及原因",
     "3.2 O que fazemos com esses dados": "3.2 我们如何使用这些数据",
-    "Criar e manter sua conta; processar e entregar seu pedido; emitir documentos fiscais; enviar comunicações operacionais sobre sua conta e seus pedidos; enviar alertas que você configurou; prestar suporte; e, quando você optar por recebê-los, enviar conteúdos e novidades.": "创建和维护您的账户；处理并交付您的订单；开具税务单据；发送有关您的账户和订单的运营通知；发送您已设置的提醒；提供支持；以及在您选择接收时，发送内容和最新资讯。",
     "Não vendemos, alugamos ou cedemos dados pessoais a terceiros para fins de marketing.": "我们不会出于营销目的向第三方出售、出租或转让个人数据。",
     "4. Dados do consumidor final (quem encosta o celular no dispositivo)": "4. 终端消费者数据（用手机触碰设备的人）",
     "Esta seção descreve o caso de uso central do produto, e merece leitura atenta por parte do lojista.": "本节描述产品的核心使用场景，值得商家仔细阅读。",
@@ -158,9 +157,10 @@
     "DHL Express": "DHL Express",
     "Entrega de pedidos enviados para fora do Brasil": "寄往巴西境外订单的配送",
     "Nome, telefone, e-mail, endereço de entrega e, se informado, documento fiscal do destinatário": "姓名、电话、电子邮箱、收货地址，以及（如有填写）收件人税号",
-    "Versão 1.10 — vigente a partir de 20 de outubro de 2026": "版本 1.10 — 自 2026 年 10 月 20 日起生效",
     "Quando alguém aproxima o celular de um dispositivo StarTouch ou lê o QR Code, ocorre um redirecionamento para a página de avaliação do estabelecimento no Google. Num cartão Trybo, o redirecionamento é para a rede social escolhida pelo lojista — ou para uma tela com as opções que ele configurou. Nesse trajeto, registramos exclusivamente:": "当有人将手机靠近 StarTouch 设备或扫描二维码时，会被重定向至该门店在 Google 上的评价页面。若是 Trybo 卡片，则重定向至商家所选的社交网络——或至显示商家所设置选项的页面。在此过程中，我们仅记录：",
-    "Seção 4.1: corrigida a ressalva que dizia que a página intermediária consulta nossos servidores para exibir o nome do estabelecimento. Essa consulta deixou de existir em 03/10/2026; o único registro técnico que resta no trajeto é o da hospedagem, já declarado na seção 6.3. A mudança descreve menos tratamento do que a versão anterior: não reduz direitos nem amplia finalidades": "第 4.1 节：更正了此前声称中间页面会查询我们的服务器以显示商家名称的说明。该查询已于 2026 年 10 月 3 日停止；途中仅剩的技术记录是托管日志，已在第 6.3 节中声明。此次变更所描述的数据处理少于上一版本：不减少任何权利，也不扩大任何目的"
+    "Seção 4.1: corrigida a ressalva que dizia que a página intermediária consulta nossos servidores para exibir o nome do estabelecimento. Essa consulta deixou de existir em 03/10/2026; o único registro técnico que resta no trajeto é o da hospedagem, já declarado na seção 6.3. A mudança descreve menos tratamento do que a versão anterior: não reduz direitos nem amplia finalidades": "第 4.1 节：更正了此前声称中间页面会查询我们的服务器以显示商家名称的说明。该查询已于 2026 年 10 月 3 日停止；途中仅剩的技术记录是托管日志，已在第 6.3 节中声明。此次变更所描述的数据处理少于上一版本：不减少任何权利，也不扩大任何目的",
+    "Versão 1.11 — vigente a partir de 23 de outubro de 2026": "1.11 版 — 自 2026 年 10 月 23 日起生效",
+    "Criar e manter sua conta; processar e entregar seu pedido; lembrar, uma única vez, de uma compra iniciada e não concluída; emitir documentos fiscais; enviar comunicações operacionais sobre sua conta e seus pedidos; enviar alertas que você configurou; prestar suporte; e, quando você optar por recebê-los, enviar conteúdos e novidades.": "创建和维护您的账户；处理并交付您的订单；就您已开始但未完成的购买提醒您一次；开具税务单据；发送有关您的账户和订单的运营通知；发送您设置的提醒；提供支持；以及在您选择接收时，发送内容和新闻。"
   },
   "h": {
     "Início · Documentos legais": "<a href=\"/\">首页</a> · 法律文件",
@@ -224,7 +224,9 @@
     "Encarregado pelo Tratamento de Dados Pessoais: Ricardo Fiorini E-mail: privacidade@startouch.com.br Endereço: Rua João Cordeiro, 311 — Moinho Velho — São Paulo/SP — CEP 02960-000": "<strong>个人数据处理负责人：</strong> Ricardo Fiorini <strong>电子邮件：</strong> privacidade@startouch.com.br <strong>地址：</strong> Rua João Cordeiro, 311 — Moinho Velho — São Paulo/SP — CEP 02960-000",
     "© StarTouch — Início · Privacidade · Termos · Preferências de cookies · Artigos": "© StarTouch — <a href=\"/\">首页</a> · <a href=\"/privacidade\">隐私</a> · <a href=\"/termos\">条款</a> · <a href=\"#\" onclick=\"window.stConsent&&window.stConsent.abrir();return false;\">Cookie 偏好设置</a> · <a href=\"/artigos\">文章</a>",
     "Inclusão da DHL Express na seção 7, como operadora da entrega dos pedidos enviados para fora do Brasil. São os mesmos dados de entrega já coletados na compra, com a mesma finalidade (entregar o pedido); muda apenas quem transporta. Não reduz direitos nem amplia finalidades": "在第 7 节中新增 <strong>DHL Express</strong>，作为寄往巴西境外订单的配送处理方。所涉数据与购买时已收集的配送数据相同，目的相同（交付订单）；仅承运方不同。不减少任何权利，也不扩大处理目的",
-    "Seção 4: a tela de escolha do cartão Trybo passa a mostrar até oito opções (eram duas). Alteração de redação: não há dado novo nem finalidade nova": "第 4 节：Trybo 卡片的选择页面最多显示八个选项（此前为两个）。仅为措辞调整：<strong>不收集新数据</strong>，也无新用途"
+    "Seção 4: a tela de escolha do cartão Trybo passa a mostrar até oito opções (eram duas). Alteração de redação: não há dado novo nem finalidade nova": "第 4 节：Trybo 卡片的选择页面最多显示八个选项（此前为两个）。仅为措辞调整：<strong>不收集新数据</strong>，也无新用途",
+    "Lembrete de compra não concluída Se você preenche seus dados de entrega na loja e não conclui o pagamento, podemos enviar um único e-mail, cerca de um dia depois, lembrando do pedido e oferecendo um cupom de desconto para a primeira compra. Usamos apenas o nome, o e-mail e os itens escolhidos, já informados no pedido. Não enviamos um segundo lembrete, e quem já comprou conosco não recebe. Se não quiser recebê-lo, escreva para privacidade@startouch.com.br. Base legal: legítimo interesse (Art. 7º, IX), limitado a uma mensagem sobre a compra que você mesmo iniciou.": "<strong>未完成购买提醒</strong> 如果您在商店填写了收货信息但未完成付款，我们可能会在大约一天后发送<strong>一封邮件</strong>，提醒您该订单，并提供首次购买的折扣券。我们只使用订单中已提供的姓名、电子邮件和所选商品。我们不会发送第二次提醒，已购买过的客户也不会收到。如果您不想收到，请写信至 privacidade@startouch.com.br。<em>法律依据：</em>合法利益（第 7 条第 IX 款），仅限于一封关于您自己发起的购买的消息。",
+    "Seção 3.1: inclusão do lembrete de compra não concluída — um único e-mail, com cupom de desconto, para quem preencheu os dados de entrega e não pagou. Usa dados já coletados no pedido (nome, e-mail e itens) e vale apenas para pedidos iniciados a partir desta versão. Amplia a finalidade do uso do e-mail do pedido, por isso é declarada aqui antes de entrar em funcionamento": "第 3.1 节：新增<strong>未完成购买提醒</strong> — 向填写了收货信息但未付款的人发送一封附带折扣券的邮件。它使用订单中已收集的数据（姓名、电子邮件和商品），仅适用于自本版本起发起的订单。由于它扩大了订单电子邮件的使用目的，因此在实施前在此声明"
   },
   "p": []
 }

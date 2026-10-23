@@ -335,6 +335,45 @@ function linhasDoPedido(itens) {
 }
 
 /**
+ * CUPOM VOLTA — UM e-mail pra quem preencheu a entrega no /kit e não pagou
+ * (cron carrinho-abandonado, Política 1.11 §3.1). É o único: o texto diz isso,
+ * e o cron garante — um cupom por e-mail, pra sempre.
+ *
+ * O botão já leva o carrinho montado e o cupom aplicado; o código vai escrito
+ * também, pra quem abrir a loja por outro caminho.
+ */
+export function cupomVoltaEmail({ nome, itens, codigo, pct, expira, link }) {
+  const saudacao = nome ? `Olá, ${escapeHtml(String(nome).split(" ")[0])}!` : "Olá!";
+  const lista = (Array.isArray(itens) ? itens : [])
+    .map((i) => `${i.qty || 1}× ${escapeHtml(i.name || "Item")}`).join("<br/>");
+  const ate = new Date(expira).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit" });
+
+  const body =
+    `<h2 style="margin:0 0 10px;font-size:22px;">Seu pedido ficou pela metade</h2>` +
+    `<p style="font-size:15px;color:#3D4A57;line-height:1.6;margin:0 0 12px;">${saudacao} Vimos que você começou uma compra na StarTouch e não chegou a finalizar. Se ainda fizer sentido, separamos um desconto pra sua primeira compra:</p>` +
+    `<table width="100%" cellspacing="0" cellpadding="0" style="background:#E8F0FE;border:1px dashed #1A73E8;border-radius:12px;margin:16px 0;">` +
+    `<tr><td style="padding:18px 20px;text-align:center;">` +
+    `<div style="font-size:28px;font-weight:800;color:#1A73E8;">${pct}% OFF</div>` +
+    `<div style="font-size:13px;color:#3D4A57;margin:4px 0 10px;">nos produtos, até ${ate}</div>` +
+    `<div style="display:inline-block;font-family:monospace;font-size:18px;font-weight:700;letter-spacing:2px;background:#fff;border-radius:8px;padding:8px 14px;color:#202124;">${escapeHtml(codigo)}</div>` +
+    `</td></tr></table>` +
+    (lista ? `<p style="font-size:14px;color:#3D4A57;line-height:1.6;margin:0 0 4px;"><strong>O que estava no seu carrinho:</strong><br/>${lista}</p>` : "") +
+    cta(link, "Finalizar com desconto →") +
+    `<p style="font-size:13px;color:#68757F;line-height:1.6;">O botão já abre o carrinho com o cupom aplicado. O desconto vale só sobre os produtos (o frete é cobrado à parte), pode ser usado uma vez e não se soma a outras promoções.</p>` +
+    `<p style="font-size:13px;color:#68757F;line-height:1.6;">Este é o único lembrete — não vamos mandar outro. Ficou alguma dúvida? É só responder este e-mail.</p>`;
+
+  return {
+    subject: `${pct}% OFF pra finalizar seu pedido StarTouch`,
+    html: shell({ title: "StarTouch", body }).replace(
+      // O rodapé padrão diz "você criou uma conta" — quem abandona o carrinho
+      // como convidado não criou. Troca a frase por uma verdadeira.
+      /Você está recebendo isso porque criou uma conta no StarTouch\.<br\/>\s*Pra ajustar quais emails recebe, acesse <a [^>]*>o painel<\/a>\./,
+      "Você está recebendo isso porque preencheu seus dados de entrega na loja da StarTouch."
+    ),
+  };
+}
+
+/**
  * PEDIDO RECEBIDO — sai assim que a sessão de checkout fecha.
  *
  * No boleto isso acontece na EMISSÃO, então o texto NÃO pode dizer que está
