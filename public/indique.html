@@ -15,7 +15,8 @@
   a{color:var(--azul-esc)}
   .topo{background:#fff;border-bottom:1px solid var(--linha)}
   .topo .in{max-width:880px;margin:0 auto;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
-  .logo{font-weight:800;font-size:18px;color:var(--tinta);text-decoration:none}
+  .logo{display:inline-flex;align-items:center}
+  .logo img{height:34px;width:auto;display:block}
   .wrap{max-width:880px;margin:0 auto;padding:28px 16px 80px}
   .hero{background:linear-gradient(135deg,#1A73E8,#1557B0);color:#fff;border-radius:18px;padding:30px 24px;margin-bottom:20px}
   .hero .tag{display:inline-block;background:rgba(255,255,255,.18);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px}
@@ -57,12 +58,18 @@
   .sit.paga{background:#E4F2EC;color:#15654A}
   .regras li{margin:0 0 8px 18px;font-size:14.5px;color:#3D4A57}
   .vazio{color:var(--cinza);font-size:14px}
+  .quem-pode{background:#E8F0FE;color:#174EA6;border-radius:12px;padding:14px 16px;font-size:14.5px;margin:16px 0}
+  .abas{display:flex;gap:6px;margin-bottom:12px}
+  .aba{flex:1;background:#F1F3F4;border:none;border-radius:10px;padding:10px;font-size:14px;font-weight:700;color:var(--cinza);cursor:pointer;font-family:inherit}
+  .aba.on{background:var(--azul);color:#fff}
+  .entrada .acoes .btn{width:100%;text-align:center}
+  .alt{font-size:13.5px;color:var(--cinza);margin-top:12px;text-align:center}
   .sub{color:var(--cinza);font-size:14px;margin:-6px 0 12px}
 </style>
 </head>
 <body>
 <header class="topo"><div class="in">
-  <a class="logo" href="/">StarTouch</a>
+  <a class="logo" href="/" aria-label="StarTouch — voltar pro início"><img src="/img/startouch-logo-dark-280.webp" alt="StarTouch" width="140" height="50"/></a>
   <a href="/kit">Loja</a>
 </div></header>
 
@@ -76,17 +83,38 @@
   <!-- Quem ainda não entrou -->
   <section id="fora" hidden>
     <div class="passos">
-      <div class="passo"><div class="n">1</div><b>Pegue seu link</b><span>Entre na sua conta StarTouch. O link é seu e não muda.</span></div>
+      <div class="passo"><div class="n">1</div><b>Pegue seu link</b><span>Crie uma conta grátis (ou entre na sua). O link é seu e não muda.</span></div>
       <div class="passo"><div class="n">2</div><b>Compartilhe</b><span>Mande pra clientes, colegas e grupos: quem tem comércio e quer mais avaliações no Google.</span></div>
       <div class="passo"><div class="n">3</div><b>Receba 10%</b><span>Cada compra pelo seu link vira comissão, paga por PIX todo mês.</span></div>
     </div>
-    <div class="card" style="margin-top:16px">
-      <h2>Pegue o seu link</h2>
-      <p class="sub" style="margin:0">Qualquer conta StarTouch participa, inclusive a gratuita.</p>
-      <div class="acoes">
-        <a class="btn" href="/app?next=/indique">Entrar e pegar meu link</a>
-        <a class="btn sec" href="/ativar?from=indique&next=/indique">Criar conta grátis</a>
+    <div class="quem-pode"><strong>Qualquer pessoa pode participar</strong>, não só quem é cliente: consultor, contador, agência, fornecedor, amigo que conhece muito comerciante. <strong>Não precisa ter negócio cadastrado.</strong> Só precisa de uma conta grátis, que serve pra guardar seu link e pagar suas comissões.</div>
+    <div class="card entrada">
+      <h2>Pegue o seu link em 1 minuto</h2>
+      <div class="abas" role="tablist">
+        <button class="aba on" type="button" data-aba="criar" role="tab">Criar conta grátis</button>
+        <button class="aba" type="button" data-aba="entrar" role="tab">Já tenho conta</button>
       </div>
+      <form id="fCriar">
+        <label for="cNome">Seu nome</label>
+        <input class="campo" id="cNome" autocomplete="name" required/>
+        <label for="cEmail">E-mail</label>
+        <input class="campo" id="cEmail" type="email" autocomplete="email" required/>
+        <label for="cZap">WhatsApp (opcional)</label>
+        <input class="campo" id="cZap" type="tel" autocomplete="tel" inputmode="tel"/>
+        <label for="cSenha">Crie uma senha</label>
+        <input class="campo" id="cSenha" type="password" autocomplete="new-password" minlength="6" required placeholder="Pelo menos 6 caracteres"/>
+        <div class="acoes"><button class="btn" type="submit">Criar conta e pegar meu link</button></div>
+        <p id="cMsg" class="erro"></p>
+      </form>
+      <form id="fEntrar" hidden>
+        <label for="eEmail">E-mail</label>
+        <input class="campo" id="eEmail" type="email" autocomplete="username" required/>
+        <label for="eSenha">Senha</label>
+        <input class="campo" id="eSenha" type="password" autocomplete="current-password" required/>
+        <div class="acoes"><button class="btn" type="submit">Entrar e pegar meu link</button></div>
+        <p id="eMsg" class="erro"></p>
+        <p class="alt">Entra com o Google? <a href="/app?next=/indique">Entrar com Google</a> · <a href="/app?next=/indique">Esqueci a senha</a></p>
+      </form>
     </div>
   </section>
 
@@ -236,6 +264,58 @@ document.getElementById("pixForm").addEventListener("submit", async (e) => {
   if(!resposta.ok){ m.className="erro"; m.textContent = d.error || "Não consegui salvar."; return; }
   m.className="ok"; m.textContent="Chave PIX salva ✓";
   document.getElementById("pixAviso").hidden = true;
+});
+
+// Entrar e criar conta AQUI, sem passar pelo /ativar: aquele cadastro pede o
+// negócio no Google, e quem só quer indicar (consultor, contador) não tem.
+// O /api/register cria a conta sem negócio e já devolve a sessão.
+function guardarSessao(d){
+  gravar(K_TOKEN, d.token);
+  if(d.refresh_token) gravar(K_REFRESH, d.refresh_token);
+  if(d.expires_at) gravar(K_EXP, String(d.expires_at));
+}
+document.querySelectorAll(".aba").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".aba").forEach(x => x.classList.toggle("on", x === b));
+  document.getElementById("fCriar").hidden = b.dataset.aba !== "criar";
+  document.getElementById("fEntrar").hidden = b.dataset.aba !== "entrar";
+}));
+async function enviarEntrada(url, corpo, msgId, botao){
+  const m = document.getElementById(msgId); m.textContent = "";
+  const txt = botao.textContent; botao.disabled = true; botao.textContent = "Aguarde…";
+  try{
+    const r = await fetch(url, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(corpo) });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok || !d.token){
+      m.textContent = d.error || "Não deu certo. Tente de novo.";
+      if(d.codigo === "email_ja_existe"){
+        document.querySelector('.aba[data-aba="entrar"]').click();
+        document.getElementById("eEmail").value = corpo.email;
+        document.getElementById("eMsg").textContent = "Você já tem conta com esse e-mail. Entre com a sua senha.";
+      }
+      return;
+    }
+    guardarSessao(d);
+    document.getElementById("fora").hidden = true;
+    await carregar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }catch{ m.textContent = "Falha de conexão. Tente de novo."; }
+  finally{ botao.disabled = false; botao.textContent = txt; }
+}
+document.getElementById("fCriar").addEventListener("submit", (e) => {
+  e.preventDefault();
+  enviarEntrada("/api/register", {
+    name: document.getElementById("cNome").value.trim(),
+    email: document.getElementById("cEmail").value.trim(),
+    phone: document.getElementById("cZap").value.trim(),
+    password: document.getElementById("cSenha").value
+  }, "cMsg", e.submitter || e.target.querySelector("button"));
+});
+document.getElementById("fEntrar").addEventListener("submit", (e) => {
+  e.preventDefault();
+  enviarEntrada("/api/login", {
+    email: document.getElementById("eEmail").value.trim(),
+    password: document.getElementById("eSenha").value
+  }, "eMsg", e.submitter || e.target.querySelector("button"));
 });
 
 carregar();
