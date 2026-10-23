@@ -338,6 +338,10 @@
       "destination": "/indique.html"
     },
     {
+      "source": "/distributors",
+      "destination": "/distributors.html"
+    },
+    {
       "source": "/ativar-placa",
       "destination": "/ativar-placa.html"
     },
