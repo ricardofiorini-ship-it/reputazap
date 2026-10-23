@@ -20,6 +20,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { limitou } from "./_lib/rate-limit.js";
 import { sendRawEmail } from "./_lib/email-sender.js";
+import { listarTodosUsuarios } from "./_lib/usuarios.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -55,7 +56,7 @@ function novoProtocolo() {
 // O e-mail informado corresponde a um usuário? Só o admin vê o resultado.
 async function confereIdentidade(email) {
   try {
-    const { data } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const { data } = await listarTodosUsuarios(supabase);
     const alvo = email.toLowerCase();
     return (data?.users || []).some((u) => (u.email || "").toLowerCase() === alvo);
   } catch (e) {

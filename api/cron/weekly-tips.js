@@ -24,6 +24,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sendTransactionalEmail, sendRawEmail } from "../_lib/email-sender.js";
 import { weeklyTipEmail, tipPreviewEmail } from "../_lib/email-templates.js";
 import { unsubUrl, approveUrl } from "../_lib/unsubscribe.js";
+import { listarTodosUsuarios } from "../_lib/usuarios.js";
 import {
   TIPS, periodNumber, periodLabel, sendDateOf, previewDateOf,
   previewPeriodDueToday, todayStr, articleUrl,
@@ -55,7 +56,7 @@ async function dispatchToAll({ tip, period, artUrl, dry, forceTo, limit }) {
   if (bizErr) { s.errors.push({ error: bizErr.message }); return s; }
   const userIds = [...new Set((businesses || []).map((b) => b.user_id).filter(Boolean))];
 
-  const { data: usersList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const { data: usersList } = await listarTodosUsuarios(supabase);
   const emailById = new Map((usersList?.users || []).map((u) => [u.id, u.email]));
   const { data: prefsRows } = await supabase
     .from("alert_preferences")

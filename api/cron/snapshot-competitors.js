@@ -25,6 +25,7 @@ import { createClient } from "@supabase/supabase-js";
 import { fetchRankingByTerm } from "../_lib/competitors.js";
 import { sendTransactionalEmail } from "../_lib/email-sender.js";
 import { weeklyReportEmail } from "../_lib/email-templates.js";
+import { listarTodosUsuarios } from "../_lib/usuarios.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -81,7 +82,7 @@ export default async function handler(req, res) {
   }
 
   // Emails dos donos + preferências (pro resumo semanal, só Pro)
-  const { data: usersList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const { data: usersList } = await listarTodosUsuarios(supabase);
   const emailById = new Map((usersList?.users || []).map(u => [u.id, u.email]));
   const userIds = [...new Set((businesses || []).map(b => b.user_id))];
   const { data: prefsRows } = await supabase

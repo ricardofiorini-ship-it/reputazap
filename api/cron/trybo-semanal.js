@@ -24,6 +24,7 @@ import { sendTransactionalEmail } from "../_lib/email-sender.js";
 import { tryboResumoSemanalEmail, remetenteTrybo } from "../_lib/email-trybo.js";
 import { unsubUrl } from "../_lib/unsubscribe.js";
 import { LINHA_TRYBO } from "../_lib/linha.js";
+import { listarTodosUsuarios } from "../_lib/usuarios.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
@@ -141,7 +142,7 @@ export default async function handler(req, res) {
     }
 
     const userIds = [...new Set([...negocios.values()].map((b) => b.user_id).filter(Boolean))];
-    const { data: usuarios } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const { data: usuarios } = await listarTodosUsuarios(supabase);
     const userById = new Map((usuarios?.users || []).map((u) => [u.id, u]));
     const { data: prefs } = userIds.length
       ? await supabase.from("alert_preferences").select("user_id, email_enabled, email_to").in("user_id", userIds)

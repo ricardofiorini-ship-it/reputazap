@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sendInBackground } from "./_lib/email-sender.js";
 import { tryboNovaSenhaEmail, remetenteTrybo } from "./_lib/email-trybo.js";
 import { limitou } from "./_lib/rate-limit.js";
+import { listarTodosUsuarios } from "./_lib/usuarios.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -47,7 +48,7 @@ async function contaSoTrybo(email) {
   if (!url || !chave || !email) return false;
   try {
     const admin = createClient(url, chave, { auth: { persistSession: false } });
-    const { data } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const { data } = await listarTodosUsuarios(admin);
     const user = (data?.users || []).find((u) => (u.email || "").toLowerCase() === email);
     if (!user) return false;
     const { data: negocios, error } = await admin.from("businesses").select("place_id").eq("user_id", user.id);

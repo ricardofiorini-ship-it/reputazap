@@ -31,6 +31,7 @@ import { createClient } from "@supabase/supabase-js";
 import { fetchWithTimeout } from "../_lib/fetch-timeout.js";
 import { sendTransactionalEmail } from "../_lib/email-sender.js";
 import { negativeReviewEmail } from "../_lib/email-templates.js";
+import { listarTodosUsuarios } from "../_lib/usuarios.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -97,7 +98,7 @@ export default async function handler(req, res) {
   if (!bizs?.length) { stats.took_ms = Date.now() - t0; return res.json({ ...stats, note: "nenhum negócio" }); }
 
   // 2. Email dos donos (auth.users) — 1 chamada, vira mapa
-  const { data: usersList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const { data: usersList } = await listarTodosUsuarios(supabase);
   const emailById = new Map((usersList?.users || []).map(u => [u.id, u.email]));
 
   // 2b. CONTAGEM DE CUSTO (01/ago) — só mede, NÃO muda quem recebe alerta.

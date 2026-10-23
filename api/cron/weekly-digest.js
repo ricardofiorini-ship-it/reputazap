@@ -30,6 +30,7 @@ import { soStartouch, logsSoStartouch } from "../_lib/linha.js";
 // Fonte unica do que o Score StarTouch le da grade — a MESMA funcao que o
 // painel V3 chama. Ver o comentario em api/_lib/visibilidade.js.
 import { entradaDoScore } from "../_lib/visibilidade.js";
+import { listarTodosUsuarios } from "../_lib/usuarios.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -116,7 +117,7 @@ export default async function handler(req, res) {
   if (bizErr) return res.status(500).json({ error: bizErr.message });
 
   // Emails dos donos + preferências
-  const { data: usersList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const { data: usersList } = await listarTodosUsuarios(supabase);
   const emailById = new Map((usersList?.users || []).map((u) => [u.id, u.email]));
   const userIds = [...new Set((businesses || []).map((b) => b.user_id))];
   const { data: prefsRows } = await supabase

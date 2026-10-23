@@ -26,6 +26,7 @@ import { soStartouch } from "./_lib/linha.js";
 import { pedidoAtualizadoEmail } from "./_lib/email-templates.js";
 import { remetenteTrybo, tryboPedidoAtualizadoEmail } from "./_lib/email-trybo.js";
 import Stripe from "stripe";
+import { listarTodosUsuarios } from "./_lib/usuarios.js";
 
 // Lista de emails autorizados como admin (hardcoded)
 const ADMIN_EMAILS = new Set([
@@ -391,7 +392,7 @@ const EMAILS_INTERNOS = new Set([
 // menus parados usa pra o Ricardo poder chamar a pessoa.
 async function idsInternos() {
   try {
-    const { data, error } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const { data, error } = await listarTodosUsuarios(supabase);
     if (error) throw error;
     const users = data?.users || [];
     const internos = new Set(
@@ -668,9 +669,7 @@ async function handleGrid(req, res) {
 // ── STATS: números gerais do sistema ─────────────────────────
 async function handleStats(req, res) {
   // Total de users (auth.users)
-  const { data: usersList, error: usersErr } = await supabase.auth.admin.listUsers({
-    page: 1, perPage: 1000
-  });
+  const { data: usersList, error: usersErr } = await listarTodosUsuarios(supabase);
   if (usersErr) return res.status(500).json({ error: usersErr.message });
   const totalClients = usersList?.users?.length || 0;
 
@@ -750,9 +749,7 @@ async function handleStats(req, res) {
 // ── LIST CLIENTS: tabela completa pra revisão ────────────────
 async function handleListClients(req, res) {
   // Pega todos os users
-  const { data: usersList, error: usersErr } = await supabase.auth.admin.listUsers({
-    page: 1, perPage: 1000
-  });
+  const { data: usersList, error: usersErr } = await listarTodosUsuarios(supabase);
   if (usersErr) return res.status(500).json({ error: usersErr.message });
   const users = usersList?.users || [];
 

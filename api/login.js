@@ -3,6 +3,7 @@ import { sendInBackground } from "./_lib/email-sender.js";
 import { welcomeEmail, adminNewClientEmail } from "./_lib/email-templates.js";
 import { idiomaDoPedido, idiomaValido, gravarIdioma } from "./_lib/idioma.js";
 import { logFunnel } from "./track.js";
+import { listarTodosUsuarios } from "./_lib/usuarios.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -39,9 +40,7 @@ async function findUserByEmail(email) {
   if (!email) return null;
   const target = email.toLowerCase();
   // perPage=1000 = padrao maximo. Pra escalar acima disso, paginar.
-  const { data, error } = await supabaseAdmin.auth.admin.listUsers({
-    page: 1, perPage: 1000
-  });
+  const { data, error } = await listarTodosUsuarios(supabaseAdmin);
   if (error) {
     console.error("[login.findUserByEmail]", error);
     return null;

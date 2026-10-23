@@ -30,6 +30,7 @@ import { tapsHistoryNewsEmail, revendaNewsEmail, menuPublicarEmail } from "../_l
 import { proMenuEmail } from "../_lib/email-pro-menu.js";
 import { unsubUrl } from "../_lib/unsubscribe.js";
 import { soStartouch } from "../_lib/linha.js";
+import { listarTodosUsuarios } from "../_lib/usuarios.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -222,7 +223,7 @@ export default async function handler(req, res) {
 
   // perPage 1000: hoje a base cabe folgado. Se um dia passar disso, aqui
   // precisa paginar — e o número de `users` abaixo denuncia o teto.
-  const { data: usersList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const { data: usersList } = await listarTodosUsuarios(supabase);
   const userById = new Map((usersList?.users || []).map((u) => [u.id, u]));
   const { data: prefsRows } = await supabase
     .from("alert_preferences")
