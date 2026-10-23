@@ -249,8 +249,8 @@ const MOCK = {
   products: [
     {
       id:'placa-balcao', name:'Placa de Balcão G', price:'R$ 79,90',
-      img:'/gadget-placa.png',
-      images:['/gadget-placa.png','/placa-g-2.png','/placa-g-3.png','/placa-g-4.png','/placa-g-5.png'],
+      img:'/img/kit/placa-g-v3-1-800.webp',
+      images:['/img/kit/placa-g-v3-1-800.webp','/img/kit/placa-tamanhos-800.webp','/img/kit/placa-g-v3-3-800.webp','/placa-g-4.png','/placa-g-5.png'],
       desc:'PS preto de 2 mm com NFC + QR Code. O cliente toca o celular e avalia no Google em segundos.',
       specs:['PS preto 2 mm com base inclinada','21 × 15 cm (display de balcão)','NFC + QR Code de fallback impresso','Sem app — o cliente não instala nada'],
       buyUrl:'/kit?add=placa-balcao'
@@ -5794,7 +5794,7 @@ const COVER_TYPES = ['placa_mesa', 'cartao_nfc']
 
 // Vitrine de produtos pro estado vazio — renders bonitas dos 3 itens vendidos.
 const PRODUCT_SHOWCASE = [
-  { img: '/gadget-placa.png',    name: 'Placa de balcão' },
+  { img: '/img/kit/placa-g-v3-1-800.webp', name: 'Placa de balcão' },
   { img: '/gadget-cartao.png',   name: 'Cartão NFC' },
   { img: '/gadget-pulseira.png', name: 'Pulseira NFC' },
 ]

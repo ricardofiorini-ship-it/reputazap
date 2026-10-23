@@ -14,7 +14,7 @@ export const KIT_CATALOG = {
     name: "Placa de Balcão G",
     description: "Placa NFC de balcão tamanho G — PS preto 2 mm. Cliente aproxima o celular e avalia no Google em segundos.",
     price_cents: 7990,
-    image: "https://startouch.com.br/gadget-placa.png",
+    image: "https://startouch.com.br/img/kit/placa-g-v3-1.jpg",
     category_id: "electronics",
     soldOut: false
   },
