@@ -29,11 +29,11 @@ const supabase = (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY)
 // o outro. Ficam separados do KIT_CATALOG (billing.js) de propósito: aquele é
 // o preço de VAREJO, e misturar os dois seria a próxima confusão cara.
 const REVENDA = {
-  cartao: { nome: "Cartão de Avaliação NFC", centavos: 1390 },
-  placag: { nome: "Placa de Balcão G",       centavos: 3290 },
-  placam: { nome: "Placa de Balcão M",       centavos: 2290 },
+  cartao: { nome: "Cartão de Avaliação NFC", centavos: 1995 },
+  placag: { nome: "Placa de Balcão G",       centavos: 3995 },
+  placam: { nome: "Placa de Balcão M",       centavos: 2495 },
 };
-const MINIMO_CENTAVOS = 200000;  // R$ 2.000,00, sem o frete (era R$ 800 ate 18/09/2026)
+const MINIMO_CENTAVOS = 80000;   // R$ 800,00, sem o frete (R$ 2.000 de 18/09 a 23/10/2026; precos = metade do varejo desde 23/10)
 const MAX_UNIDADES = 10000;
 
 // A tabela da revenda usa outros ids que o catalogo do site. Duas grafias pro

@@ -11,7 +11,7 @@
 <script src="/i18n.js" data-page="revenda"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Programa de Revenda — StarTouch</title>
-<meta name="description" content="Revenda StarTouch: dispositivos NFC com painel de reputação vitalício incluso, sem mensalidade obrigatória para o cliente final. Pedido mínimo R$ 2.000, NF-e, produção em 10 dias úteis."/>
+<meta name="description" content="Revenda StarTouch: dispositivos NFC com painel de reputação vitalício incluso, sem mensalidade obrigatória para o cliente final. Pedido mínimo R$ 800, NF-e, produção em 10 dias úteis."/>
 <link rel="canonical" href="https://startouch.com.br/revenda"/>
 <link rel="stylesheet" href="/startouch-vars.css"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
@@ -321,7 +321,7 @@
         <a class="btn primary" href="#pedido">Quero revender StarTouch</a>
         <a class="btn secondary" href="#precos">Ver preços</a>
       </div>
-      <div class="note">Exclusivo para <strong>pessoa jurídica</strong> · Pedido mínimo de <strong>R$ 2.000</strong> + frete</div>
+      <div class="note">Exclusivo para <strong>pessoa jurídica</strong> · Pedido mínimo de <strong>R$ 800</strong> + frete</div>
     </div>
 
     <aside class="heroArte">
@@ -444,17 +444,17 @@
           <tr>
             <td><div class="prodline"><img class="thumb" src="/rev-cartao.webp" width="352" height="440" loading="lazy" alt="Cartão de Avaliação NFC StarTouch, unidade"/><div><div class="prod">Cartão de Avaliação NFC</div><div class="desc">Tamanho carteira, ideal para atendimento, equipe e balcão.</div></div></div></td>
             <td><span class="old">R$ 39,90</span></td>
-            <td><span class="pay">R$ 13,90</span></td>
+            <td><span class="pay">R$ 19,95</span></td>
           </tr>
           <tr>
             <td><div class="prodline"><img class="thumb" src="/rev-placa.webp" width="293" height="440" loading="lazy" alt="Placa de Balcão G StarTouch em PS preto"/><div><div class="prod">Placa de Balcão G</div><div class="desc">PS preto 2 mm, 21 × 15 cm.</div></div></div></td>
             <td><span class="old">R$ 79,90</span></td>
-            <td><span class="pay">R$ 32,90</span></td>
+            <td><span class="pay">R$ 39,95</span></td>
           </tr>
           <tr>
             <td><div class="prodline"><img class="thumb" src="/rev-placa-m.webp" width="293" height="440" loading="lazy" alt="Placa de Balcão M StarTouch em PS preto"/><div><div class="prod">Placa de Balcão M</div><div class="desc">PS preto 2 mm, 10 × 15 cm.</div></div></div></td>
             <td><span class="old">R$ 49,90</span></td>
-            <td><span class="pay">R$ 22,90</span></td>
+            <td><span class="pay">R$ 24,95</span></td>
           </tr>
           <tr>
             <td><div class="prod">Pulseira NFC</div><div class="desc">Temporariamente indisponível.</div></td>
@@ -464,7 +464,7 @@
         </tbody>
       </table>
       <div class="pricefoot">
-        <strong>Pedido mínimo: R$ 2.000 + frete.</strong>
+        <strong>Pedido mínimo: R$ 800 + frete.</strong>
       </div>
     </div>
   </div>
@@ -556,9 +556,9 @@
           </div>
 
           <h3 style="margin:26px 0 4px;font-size:17px;font-weight:700;">Quantidades</h3>
-          <div class="qty"><div><b>Cartão de Avaliação NFC</b><br><span>R$ 13,90 por unidade</span></div><input id="q-cartao" type="number" min="0" max="10000" step="1" value="0" aria-label="Quantidade de cartões"/></div>
-          <div class="qty"><div><b>Placa de Balcão G</b><br><span>R$ 32,90 por unidade</span></div><input id="q-placag" type="number" min="0" max="10000" step="1" value="0" aria-label="Quantidade de placas G"/></div>
-          <div class="qty"><div><b>Placa de Balcão M</b><br><span>R$ 22,90 por unidade</span></div><input id="q-placam" type="number" min="0" max="10000" step="1" value="0" aria-label="Quantidade de placas M"/></div>
+          <div class="qty"><div><b>Cartão de Avaliação NFC</b><br><span>R$ 19,95 por unidade</span></div><input id="q-cartao" type="number" min="0" max="10000" step="1" value="0" aria-label="Quantidade de cartões"/></div>
+          <div class="qty"><div><b>Placa de Balcão G</b><br><span>R$ 39,95 por unidade</span></div><input id="q-placag" type="number" min="0" max="10000" step="1" value="0" aria-label="Quantidade de placas G"/></div>
+          <div class="qty"><div><b>Placa de Balcão M</b><br><span>R$ 24,95 por unidade</span></div><input id="q-placam" type="number" min="0" max="10000" step="1" value="0" aria-label="Quantidade de placas M"/></div>
 
           <div class="field" style="margin-top:20px"><label for="f-obs">Observações (opcional)</label><textarea id="f-obs" maxlength="600" placeholder="Prazo desejado, dúvidas sobre entrega, o que for."></textarea></div>
         </div>
@@ -571,7 +571,7 @@
           <div id="freteBox" class="freteBox" hidden></div>
 
           <div class="total"><span><b>Total</b></span><strong id="total">R$ 0,00</strong></div>
-          <div id="min" class="min">Faltam R$ 2.000,00 para atingir o pedido mínimo.</div>
+          <div id="min" class="min">Faltam R$ 800,00 para atingir o pedido mínimo.</div>
           <button id="send" class="btn primary" style="width:100%" type="submit" disabled>Ir para o pagamento</button>
           <p class="small" id="sendNota">O frete é calculado pelo CEP e some no total antes do pagamento. Nota fiscal em todo pedido.</p>
           <div id="retorno" role="status"></div>
@@ -637,11 +637,11 @@
   // para o comprador ver o total antes de enviar: o servidor recalcula do zero
   // e ignora qualquer valor que venha desta página.
   var PRECOS = {
-    cartao: { nome: "Cartão NFC",  centavos: 1390, campo: "q-cartao" },
-    placag: { nome: "Placa G",     centavos: 3290, campo: "q-placag" },
-    placam: { nome: "Placa M",     centavos: 2290, campo: "q-placam" }
+    cartao: { nome: "Cartão NFC",  centavos: 1995, campo: "q-cartao" },
+    placag: { nome: "Placa G",     centavos: 3995, campo: "q-placag" },
+    placam: { nome: "Placa M",     centavos: 2495, campo: "q-placam" }
   };
-  var MINIMO = 200000;
+  var MINIMO = 80000;
   var $ = function (id) { return document.getElementById(id); };
   var brl = function (c) { return (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); };
 
