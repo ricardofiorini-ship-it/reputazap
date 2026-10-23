@@ -30,11 +30,15 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 const DIA_MS = 86400000;
 const FUSO_BR_MS = 3 * 3600000;   // Brasil sem horário de verão desde 2019
 
+// Aceita também o BROADCAST_SECRET, igual ao broadcast.js: o CRON_SECRET está
+// marcado como Sensitive na Vercel (não dá pra ver) e pode ter caractere que
+// estraga na URL — o teste pelo navegador nunca bateria (23/10/2026).
 function checkAuth(req) {
-  const segredo = (process.env.CRON_SECRET || "").trim();
-  if (!segredo) return false;
+  const validos = [process.env.BROADCAST_SECRET, process.env.CRON_SECRET]
+    .map((v) => (v || "").trim()).filter(Boolean);
+  if (!validos.length) return false;
   const bearer = (req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
-  return bearer === segredo || String(req.query.secret || "").trim() === segredo;
+  return validos.includes(bearer) || validos.includes(String(req.query.secret || "").trim());
 }
 
 function janela() {
@@ -67,7 +71,15 @@ function emLotes(lista, n = 150) {
 }
 
 export default async function handler(req, res) {
-  if (!checkAuth(req)) return res.status(401).json({ error: "Não autorizado." });
+  if (!checkAuth(req)) {
+    // Diz o que precisa pra depurar sem revelar segredo nenhum (mesmo
+    // diagnóstico do broadcast.js).
+    return res.status(401).json({
+      error: "Não autorizado: o secret da URL não bate com BROADCAST_SECRET nem com CRON_SECRET da Vercel.",
+      broadcast_secret_configurada: !!(process.env.BROADCAST_SECRET || "").trim(),
+      caracteres_recebidos_na_url: String(req.query.secret || "").trim().length,
+    });
+  }
 
   const dry = req.query.dry === "1";
   const forceTo = String(req.query.to || "").trim() || null;
