@@ -186,7 +186,7 @@ function desenhaFiltros(){
   // pra saber se não existe pedido daquele tipo ou se o filtro está errado —
   // e foi essa dúvida que fez a compra normal parecer inexistente.
   const n = k => contagem[k] == null ? "" : ` (${contagem[k]})`;
-  const tipos = [["envio","Pra enviar"],["revenda","Revenda"],["kit","Kit"],
+  const tipos = [["envio","Pra enviar"],["revenda","Revenda"],["kit","Kit"],["trybo_cartao","Trybo"],
                  ["digital","Digital"],["","Todos"]];
   const sts = [["","Qualquer estado"],["paid","Pago"],["em_producao","Em produção"],
                ["postado","Postado"],["pending","Aguardando pagamento"],["entregue","Entregue"]];

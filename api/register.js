@@ -127,7 +127,7 @@ export default async function handler(req, res) {
         to: adminTo,
         subject: adminTmpl.subject,
         html: adminTmpl.html,
-        metadata: { source: "register", client_email: email }
+        metadata: { source: ehTrybo ? "trybo" : "register", client_email: email }
       }));
     }
 

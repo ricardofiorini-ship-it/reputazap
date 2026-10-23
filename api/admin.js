@@ -1192,6 +1192,10 @@ async function handleProspects(req, res) {
 // caixa que nunca foi despachada. O filtro é o que impede esse clique.
 const FAMILIAS = [
   { chave: "revenda", rotulo: "Revenda", prefixo: "revenda_", fisico: true },
+  // Cartão Trybo comprado no carrinho da Trybo (23/10/2026). ANTES do "kit_",
+  // que é prefixo dele e o engolia: o pedido aparecia como "Kit" e nada na
+  // tela dizia que o que vai na caixa é um cartão TRY-.
+  { chave: "trybo_cartao", rotulo: "Trybo · cartão", prefixo: "kit_trybo", fisico: true },
   { chave: "kit",     rotulo: "Kit",     prefixo: "kit_",     fisico: true },
   { chave: "ia",      rotulo: "Pacote IA", prefixo: "ia_",    fisico: false },
   { chave: "plano",   rotulo: "Assinatura", prefixo: "plano_", fisico: false },

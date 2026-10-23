@@ -612,7 +612,7 @@ export function adminNewClientEmail({ clientName, clientEmail, clientPhone, sour
   const when = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
 
   return {
-    subject: `🎉 Novo cliente no StarTouch: ${name}`,
+    subject: source === "trybo" ? `🎉 Novo cliente na Trybo: ${name}` : `🎉 Novo cliente no StarTouch: ${name}`,
     html: shell({
       title: "🎉 NOVO CLIENTE",
       headerColor: "#137333",

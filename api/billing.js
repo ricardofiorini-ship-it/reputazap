@@ -301,15 +301,25 @@ async function notifyAdminKitOrder({ order, userId, provedor = "mercadopago", pa
       `</p>`;
   }
 
+  // Cartão Trybo no pedido (carrinho da Trybo ou da StarTouch): diz em voz
+  // alta o que despachar. Sem isto o aviso dizia "pedido StarTouch" e quem
+  // embala mandaria um cartão de avaliação (23/10/2026).
+  const qtdTrybo = items.filter((i) => /trybo/i.test(`${i.id || ""} ${i.name || ""}`))
+    .reduce((n, i) => n + (Number(i.qty) || 1), 0);
+  const ehTrybo = qtdTrybo > 0 || String(order?.external_reference || "").startsWith("kit_trybo");
+  const marca = ehTrybo ? "Trybo" : "StarTouch";
   const html =
-    `<h2>🛒 Novo pedido pago na StarTouch</h2>` +
+    `<h2>🛒 Novo pedido pago na ${marca}</h2>` +
+    (qtdTrybo
+      ? `<p style="background:#1b1b20;color:#fff;padding:10px 14px;border-radius:8px;"><strong>Despachar ${qtdTrybo} cartão(ões) TRY- do estoque</strong> — cartão Trybo (redes sociais), não o de avaliação. O cliente ativa em trybo.co/ativar.</p>`
+      : "") +
     `<p><strong>Cliente:</strong> ${escapeHtmlLite(biz)} &lt;${escapeHtmlLite(email)}&gt;</p>` +
     `<p><strong>Itens:</strong></p>${itemsHtml}` +
     `<p><strong>Total:</strong> ${fmtBRL(totalCents)}</p>` +
     shippingHtml +
     `<p><strong>Pagamento (${prov.nome}):</strong> ${escapeHtmlLite(pagamento.id || "")} · ${escapeHtmlLite(pagamento.status || "")}</p>` +
     `<p>${prov.despacho}</p>`;
-  await sendOrderEmail({ userId, subject: `🛒 Novo pedido StarTouch — ${fmtBRL(totalCents)}`, html });
+  await sendOrderEmail({ userId, subject: `🛒 Novo pedido ${marca} — ${fmtBRL(totalCents)}`, html });
 }
 
 // Pedido de REVENDA pago. Diferente do kit: aqui tem CNPJ, razao social e o

@@ -50,6 +50,11 @@ const PROBES = [
   { nome: "Meus negócios (mybiz)",    url: `${BASE}/api/mybiz`,                papel: "dados do painel do cliente" },
   { nome: "Avaliações (reviews)",     url: `${BASE}/api/reviews`,              papel: "notas e reviews do Google" },
   { nome: "Placas (plates)",          url: `${BASE}/api/plates?action=list-stock`, papel: "ativação e estoque de placas" },
+  // Trybo (23/10/2026). A /t/ é o endereço GRAVADO nos chips — não dá pra
+  // trocar —, e até aqui nenhuma sonda passava por ela. Código inexistente de
+  // propósito: responde 302 pra ativação sem contar toque nenhum.
+  { nome: "Cartão Trybo (/t/)",       url: "https://trybo.co/t/TRY-SONDA0",     papel: "toque nos cartões Trybo" },
+  { nome: "Trybo (api/trybo)",        url: `${BASE}/api/trybo?action=checar-codigo&code=TRY-SONDA0`, papel: "ativação e painel da Trybo" },
 ];
 
 function checkAuth(req) {

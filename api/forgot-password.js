@@ -19,6 +19,12 @@ export default async function handler(req, res) {
   if (!email) return res.status(400).json({ error: "Email obrigatório" });
 
   if (produto === "trybo") return trybo(req, res, String(email).trim().toLowerCase(), code);
+  // Pedido feito na tela da StarTouch por conta que é SÓ da Trybo (23/10/2026):
+  // sem isto ela recebia o e-mail da StarTouch e caía no /app. Na dúvida
+  // (erro de consulta), segue o caminho padrão — ele funciona pros dois.
+  if (await contaSoTrybo(String(email).trim().toLowerCase())) {
+    return trybo(req, res, String(email).trim().toLowerCase(), code);
+  }
 
   const origin = req.headers.origin || `https://${req.headers.host}`;
   const redirectTo = `${origin}/reset`;
@@ -32,6 +38,25 @@ export default async function handler(req, res) {
 
   // Sempre retorna ok pra nao vazar quais emails existem
   res.json({ ok: true });
+}
+
+// Conta só da Trybo = tem negócio, e nenhum com ficha no Google (trybo-003).
+// perPage 1000: a base cabe folgada hoje (mesmo teto do broadcast).
+async function contaSoTrybo(email) {
+  const url = process.env.SUPABASE_URL, chave = process.env.SUPABASE_SERVICE_KEY;
+  if (!url || !chave || !email) return false;
+  try {
+    const admin = createClient(url, chave, { auth: { persistSession: false } });
+    const { data } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const user = (data?.users || []).find((u) => (u.email || "").toLowerCase() === email);
+    if (!user) return false;
+    const { data: negocios, error } = await admin.from("businesses").select("place_id").eq("user_id", user.id);
+    if (error || !negocios?.length) return false;
+    return negocios.every((b) => !b.place_id);
+  } catch (e) {
+    console.warn("[forgot-password] não consegui ver se a conta é da Trybo:", e?.message || e);
+    return false;
+  }
 }
 
 // ── TRYBO (19/10/2026) ──────────────────────────────────────

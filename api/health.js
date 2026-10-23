@@ -8,6 +8,8 @@
 // chaves, só se estão presentes).
 // ============================================================
 
+import { remetenteTrybo } from "./_lib/email-trybo.js";
+
 const REQUIRED_ENVS = [
   // Core — sem isso nada funciona
   { name: "SUPABASE_URL",         category: "core",     description: "URL do projeto Supabase" },
@@ -140,6 +142,63 @@ export default async function handler(req, res) {
     }
   } else {
     services.push({ name: "Stripe", ok: false, error: "STRIPE_SECRET_KEY ausente — nenhum checkout abre" });
+  }
+
+  // Domínios do remetente no Resend (23/10/2026). Ter a chave não prova que o
+  // e-mail sai: se o domínio do remetente deixar de estar verificado, TODO
+  // e-mail daquela marca falha e o resto do monitor segue verde. Os dois que
+  // usamos: o da StarTouch (RESEND_FROM) e o da Trybo (remetenteTrybo).
+  if (process.env.RESEND_API_KEY) {
+    const dominioDe = (v) => ((String(v || "").match(/@([^>\s]+)/) || [])[1] || "").toLowerCase();
+    const alvos = [
+      { marca: "StarTouch", dominio: dominioDe(process.env.RESEND_FROM) },
+      { marca: "Trybo", dominio: dominioDe(remetenteTrybo()) },
+    ].filter((a) => a.dominio && a.dominio !== "resend.dev");
+    try {
+      const r = await fetch("https://api.resend.com/domains", { headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` } });
+      const corpo = await r.json().catch(() => ({}));
+      const dominios = Array.isArray(corpo?.data) ? corpo.data : [];
+      for (const a of alvos) {
+        const d = dominios.find((x) => (x?.name || "").toLowerCase() === a.dominio);
+        const ok = r.ok && d?.status === "verified";
+        services.push({
+          name: `Resend — remetente ${a.marca} (${a.dominio})`, ok, status: r.status,
+          error: ok ? null : (!r.ok ? "Resend não respondeu" : d ? `domínio "${d.status}", não verificado — e-mails da ${a.marca} falham` : `domínio não cadastrado no Resend — e-mails da ${a.marca} falham`)
+        });
+      }
+    } catch (e) {
+      services.push({ name: "Resend — remetentes", ok: false, error: e?.message || "falha ao consultar o Resend" });
+    }
+  }
+
+  // Eventos do webhook do Stripe (23/10/2026). Cada um destes, desmarcado no
+  // painel do Stripe, falha CALADO: boleto pago que nunca vira 'paid', estorno
+  // que não tira o desbloqueio da Trybo, cliente em teste que nunca recebe o
+  // "cadastre o cartão". Só se descobre olhando a lista — então ela é olhada.
+  if (process.env.STRIPE_SECRET_KEY) {
+    const NECESSARIOS = [
+      "checkout.session.completed", "checkout.session.async_payment_succeeded",
+      "checkout.session.async_payment_failed", "customer.subscription.updated",
+      "customer.subscription.deleted", "customer.subscription.trial_will_end", "charge.refunded",
+    ];
+    try {
+      const r = await fetch("https://api.stripe.com/v1/webhook_endpoints?limit=20", {
+        headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` }
+      });
+      const corpo = await r.json().catch(() => ({}));
+      const nossos = (corpo?.data || []).filter((w) => /\/api\/billing/.test(w?.url || "") && w?.status === "enabled");
+      const marcados = new Set(nossos.flatMap((w) => w.enabled_events || []));
+      const faltam = marcados.has("*") ? [] : NECESSARIOS.filter((e) => !marcados.has(e));
+      const ok = r.ok && nossos.length > 0 && faltam.length === 0;
+      services.push({
+        name: "Stripe — eventos do webhook", ok, status: r.status,
+        error: ok ? null : (!r.ok ? "Stripe não respondeu à lista de webhooks"
+          : !nossos.length ? "nenhum webhook ativo apontando pra /api/billing"
+          : `faltam marcar no painel do Stripe: ${faltam.join(", ")}`)
+      });
+    } catch (e) {
+      services.push({ name: "Stripe — eventos do webhook", ok: false, error: e?.message || "falha ao consultar o Stripe" });
+    }
   }
 
   // Mercado Pago (legado)

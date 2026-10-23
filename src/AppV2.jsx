@@ -463,6 +463,16 @@ function useRealData(user, demoMode, guestMode = false, guestContext = null) {
         const cb = '?_t=' + Date.now()
         const myBizRes = await apiCall('/api/mybiz' + cb)
         const biz = myBizRes.business || null
+        // Negócio SEM place_id = conta só da Trybo (trybo-003: nasce sem
+        // Google). Aqui ela veria "Configure seu negócio" e uma busca no Google
+        // que não tem nada a ver com o cartão de redes sociais que comprou —
+        // vai pro painel dela. ?startouch=1 deixa seguir, pra quem quiser
+        // ligar a StarTouch também (23/10/2026).
+        if (biz && !biz.place_id && typeof window !== 'undefined' &&
+            new URLSearchParams(window.location.search).get('startouch') !== '1') {
+          window.location.replace('/painel-trybo')
+          return
+        }
         if (!biz || !biz.place_id) {
           if (!cancelled) setState({ loading: false, error: null, biz, reviews: [], bizInfo: null, plates: null, alertPreferences: null, hasBusiness: false })
           return

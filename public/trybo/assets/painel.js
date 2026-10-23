@@ -461,7 +461,44 @@
       '<div class="analytics-grid"><section class="panel activity-panel"><div class="panel-heading"><div><h2>Cada toque conta.</h2><p>Toques nos seus cartões, por dia</p></div><span class="chart-legend"><i></i> Toques</span></div>' + grafico(d.serie) + "</section>" +
         paraOndeForam(d.redes) + "</div>" +
       '<section class="panel"><div class="panel-heading"><div><h2>Seus cartões</h2><p>Cada profissional, de perto.</p></div><button class="text-btn" data-nav-cards>Ver todos ' + icon("arrow") + "</button></div>" + tabela(cartoes.slice(0, 4)) + "</section>" +
-      '<div class="tip"><span>' + icon("spark") + "</span><div><strong>O melhor momento é logo depois de um bom atendimento.</strong><p>Apresente o cartão e convide o cliente a acompanhar o seu trabalho.</p></div></div>";
+      '<div class="tip"><span>' + icon("spark") + "</span><div><strong>O melhor momento é logo depois de um bom atendimento.</strong><p>Apresente o cartão e convide o cliente a acompanhar o seu trabalho.</p></div></div>" +
+      contaEmails();
+  }
+
+  // ── E-mails e dados da conta (23/10/2026) ─────────────────
+  // O resumo semanal tem "não quero mais receber" no rodapé; sem isto, quem
+  // clicou não tinha como voltar. Lê e grava a MESMA preferência do resumo da
+  // StarTouch (alert_preferences.email_enabled) — sem coluna nova.
+  function contaEmails() {
+    return '<section class="panel"><div class="panel-heading"><div><h2>E-mails e dados</h2><p>O que chega na sua caixa de entrada.</p></div></div>' +
+      '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" data-resumo disabled style="margin-top:3px">' +
+      '<span><strong>Resumo semanal</strong><br><small>Toda segunda: toques da semana em cada cartão e para onde as pessoas foram.</small></span></label>' +
+      '<p class="panel-note">Avisos da conta (pedido, cartão ativado ou trocado) chegam sempre. Para pedir uma cópia ou a exclusão dos seus dados, ' +
+      '<a href="/privacidade/solicitacao" target="_blank" rel="noopener">use este formulário</a>.</p></section>';
+  }
+
+  async function ligarEmails() {
+    var caixa = app.querySelector("[data-resumo]");
+    if (!caixa) return;
+    var prefs = null;
+    try { prefs = (await api("/api/alerts?action=preferences")).preferences; }
+    catch (err) { if (!tratar(err)) toast("Não consegui ler suas preferências de e-mail."); return; }
+    caixa.checked = prefs.email_enabled !== false;
+    caixa.disabled = false;
+    caixa.onchange = async function () {
+      caixa.disabled = true;
+      // O POST grava a linha inteira: manda o resto como está, pra não apagar
+      // os alertas que a mesma conta tenha configurado na StarTouch.
+      var corpo = Object.assign({}, prefs, { email_enabled: caixa.checked });
+      try {
+        prefs = (await api("/api/alerts?action=preferences", { method: "POST", body: JSON.stringify(corpo) })).preferences || corpo;
+        toast(caixa.checked ? "Resumo semanal ligado." : "Resumo semanal desligado.");
+      } catch (err) {
+        caixa.checked = !caixa.checked;
+        if (!tratar(err)) toast(err.message);
+      }
+      caixa.disabled = false;
+    };
   }
 
   function vazio() {
@@ -487,6 +524,7 @@
     if (todos) todos.onclick = function () { estado.view = "cards"; shell(); };
     ligarEditar();
     app.querySelectorAll("#view-content [data-ativar]").forEach(function (b) { b.onclick = function () { location.href = "/ativar-trybo"; }; });
+    ligarEmails();
   }
 
   function ligarEditar() {

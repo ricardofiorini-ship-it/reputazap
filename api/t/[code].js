@@ -300,7 +300,7 @@ function paginaSemDestino() {
   return paginaAviso({
     titulo: "Cartão ativo, sem destino",
     texto: "Este cartão ainda não aponta para nenhuma rede. Quem configura é o dono da loja, no painel.",
-    acao: { href: "https://startouch.com.br/app", texto: "Configurar agora" }
+    acao: { href: "https://startouch.com.br/painel-trybo", texto: "Configurar agora" }
   });
 }
 
