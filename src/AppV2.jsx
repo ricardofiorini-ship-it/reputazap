@@ -264,7 +264,7 @@ const MOCK = {
       buyUrl:'/kit?add=placa-mesa'
     },
     {
-      id:'cartao-nfc', name:'Cartão de Avaliação NFC', price:'R$ 29,90',
+      id:'cartao-nfc', name:'Cartão de Avaliação NFC', price:'R$ 39,90',
       img:'/cartao-1.png',
       images:['/cartao-1.png','/cartao-2.png','/cartao-3.png','/cartao-4.png','/cartao-5.png','/cartao-6.png'],
       desc:'Do tamanho de um cartão de crédito. Ideal pra atendimento e um cartão por vendedor.',
@@ -2268,7 +2268,7 @@ function LojaScreen({ data, isMobile, plan }) {
           gap: isMobile ? 16 : 24, textAlign:'center'
         }}>
           {[
-            { icon:'truck', t:'Envio rápido', d:'Despacho em 24h pela Jadlog/Correios' },
+            { icon:'truck', t:'Envio rápido', d:'Envio com rastreio pela Jadlog/Correios' },
             { icon:'shield', t:'Garantia 90 dias', d:'Defeito de fabricação trocamos sem custo' },
             { icon:'phone', t:'Suporte WhatsApp', d:SUPPORT_WA_DISPLAY+' — tira dúvidas direto com a gente' }
           ].map((it, i) => (

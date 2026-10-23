@@ -73,7 +73,7 @@
     "Finalizar compra": "Checkout",
     "Continuar comprando": "Keep shopping",
     "🔒 Pagamento seguro via Stripe · PIX, cartão parcelado, Apple Pay e Google Pay": "🔒 Secure payment via Stripe · PIX, card in installments, Apple Pay and Google Pay",
-    "R$ 29,90": "R$ 29,90",
+    "R$ 39,90": "R$ 39,90",
     "Dados para entrega": "Shipping details",
     "Nome completo": "Full name",
     "Email": "Email",
@@ -144,7 +144,7 @@
     "Atendente entregando o Cartão NFC StarTouch para o cliente avaliar no Google pelo celular": "Staff member handing the StarTouch NFC card to a customer to review on Google with their phone"
   },
   "h": {
-    "R$ 29,90 / unidade": "R$ 29,90 <small>/ unit</small>",
+    "R$ 39,90 / unidade": "R$ 39,90 <small>/ unit</small>",
     "PVC fosco premium, tamanho de cartão de crédito · como funciona": "Premium matte PVC, credit-card size · <a href=\"/cartao-avaliacao-google-nfc\">how it works</a>",
     "Sem mensalidadepaga uma vez só": "<strong>No monthly fee</strong>pay only once",
     "Painel vitalíciográtis, para sempre": "<strong>Lifetime dashboard</strong>free, forever",

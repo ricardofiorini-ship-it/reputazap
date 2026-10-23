@@ -38,7 +38,7 @@ O cliente final aproxima o celular do dispositivo NFC (placa, cartão ou pulseir
 ## Catálogo de produtos
 
 - **Placa NFC de Balcão** — para caixa, recepção ou bancada. Vista pelo cliente na saída.
-- **Cartão de Avaliação Google NFC** — PVC fosco, 8,5 × 5,4 cm (tamanho de cartão de crédito), NFC + QR Code. Fica com o atendente. R$ 29,90. Página: https://startouch.com.br/cartao-avaliacao-google-nfc
+- **Cartão de Avaliação Google NFC** — PVC fosco, 8,5 × 5,4 cm (tamanho de cartão de crédito), NFC + QR Code. Fica com o atendente. R$ 39,90. Página: https://startouch.com.br/cartao-avaliacao-google-nfc
 - **Placa de Balcão M** — 10 × 15 cm, R$ 49,90. **Placa de Balcão G** — 21 × 15 cm, R$ 79,90.
 - **Pulseira NFC** — silicone, usada no pulso por atendentes ou em eventos (esgotada no momento).
 
@@ -90,7 +90,7 @@ Não. A ativação leva 2 minutos: encosta o celular, cria conta, encontra o neg
 Sim, pelo painel, em segundos, sem trocar o produto físico.
 
 **Quanto custa?**
-O hardware é venda única (sem mensalidade): cartão R$ 29,90, placa M R$ 49,90, placa G R$ 79,90. O painel é grátis pra sempre, com ranking, concorrentes e relatório semanal. O Pro é opcional (R$ 19,90/mês) e traz o Menu Inteligente.
+O hardware é venda única (sem mensalidade): cartão R$ 39,90, placa M R$ 49,90, placa G R$ 79,90. O painel é grátis pra sempre, com ranking, concorrentes e relatório semanal. O Pro é opcional (R$ 19,90/mês) e traz o Menu Inteligente.
 
 **Em quanto tempo vejo resultado?**
 Negócio com 30 clientes/dia costuma ver as primeiras avaliações no mesmo dia da ativação. Efeito no ranking do Google aparece em 2-4 semanas.

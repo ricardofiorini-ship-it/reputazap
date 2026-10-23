@@ -9,7 +9,7 @@ import { tryboPedidoRecebidoEmail, tryboPedidoConfirmadoEmail, tryboDesbloqueioE
 import { assinaturaRecusadaEmail, assinaturaCobradaEmail, testeTerminandoEmail, assinaturaEncerradaEmail } from "./_lib/email-templates.js";
 import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia } from "./_lib/email-templates.js";
 import { resolvePlano } from "./_lib/plan.js";
-import { KIT_CATALOG } from "./_lib/catalogo-kit.js";
+import { KIT_CATALOG, diasDeProducao } from "./_lib/catalogo-kit.js";
 import { dadosDoCliente, enderecoCompleto } from "./_lib/pedido-cliente.js";
 import { entradaDoScore } from "./_lib/visibilidade.js";
 import { cotaFrete } from "./_lib/frenet.js";
@@ -294,7 +294,8 @@ async function notifyAdminKitOrder({ order, userId, provedor = "mercadopago", pa
     const nome = [d.transportadora, d.servico].filter(Boolean).join(" ") || "—";
     shippingHtml +=
       `<p><strong>Frete:</strong> ${escapeHtmlLite(nome)}` +
-      (fr.prazoDias ? ` · ${fr.prazoDias} dia(s) útil(eis)` : fr.prazoTexto ? ` · ${escapeHtmlLite(fr.prazoTexto)}` : "") + `<br/>` +
+      (fr.prazoTotalDias ? ` · prometido em ${fr.prazoTotalDias} dias úteis (${fr.producaoDias} de produção + ${fr.prazoDias} da transportadora)`
+        : fr.prazoDias ? ` · ${fr.prazoDias} dia(s) útil(eis)` : fr.prazoTexto ? ` · ${escapeHtmlLite(fr.prazoTexto)}` : "") + `<br/>` +
       (fr.gratis
         ? `<span style="color:#137333;font-weight:700;">Frete grátis</span> (pedido acima da faixa) — despache pelo serviço acima mesmo assim.`
         : `<strong>Pago pelo cliente: ${fmtBRL(fr.centavos || 0)}</strong> — despache por este serviço, não pelo mais barato do dia.`) +
@@ -1451,6 +1452,10 @@ async function resolveFreteKit({ cep, pais = "BR", items, produtosCentavos, codi
   }
   const gratis = produtosCentavos >= FRETE_GRATIS_ACIMA_CENTAVOS;
   const cotacao = await cotaFrete({ cep, items, modo: "unitario", valorCentavos: produtosCentavos });
+  // Prazo de CHEGADA = produção + transporte (mesma conta do api/frete.js,
+  // pra o número do checkout e do e-mail baterem com o da tela).
+  const producaoDias = diasDeProducao(items);
+  const comProducao = (f) => ({ ...f, producaoDias, prazoTotalDias: f.prazoDias ? f.prazoDias + producaoDias : null });
 
   if (gratis) {
     // Melhor opcao disponivel so pra registrar servico e prazo; o cliente paga 0.
@@ -1459,13 +1464,13 @@ async function resolveFreteKit({ cep, pais = "BR", items, produtosCentavos, codi
     if (cotacao?.erro) {
       console.warn(`[frete/kit] pedido com frete gratis seguiu sem cotacao (${cotacao.motivo}): ${cotacao.erro}`);
     }
-    return {
+    return comProducao({
       gratis: true, centavos: 0,
       transportadora: melhor?.transportadora || null,
       servico: melhor?.servico || null,
       prazoDias: melhor?.prazoDias ?? null,
       codigo: melhor?.codigo || null,
-    };
+    });
   }
 
   if (cotacao?.erro) return { erro: cotacao.erro, motivo: cotacao.motivo };
@@ -1478,11 +1483,11 @@ async function resolveFreteKit({ cep, pais = "BR", items, produtosCentavos, codi
       opcoes: cotacao.opcoes,
     };
   }
-  return {
+  return comProducao({
     gratis: false, centavos: escolhido.precoCentavos,
     transportadora: escolhido.transportadora, servico: escolhido.servico,
     prazoDias: escolhido.prazoDias ?? null, codigo: escolhido.codigo,
-  };
+  });
 }
 
 /**
@@ -1511,6 +1516,8 @@ function linhaDeFrete(frete) {
         name: `Frete — ${nome}`,
         description: frete.internacional
           ? `Envio internacional, ${frete.prazoTexto || "prazo estimado"} após a postagem. Impostos e taxas de importação do país de destino não incluídos — cobrados de quem recebe, na entrega.`
+          : frete.prazoTotalDias
+          ? `Chega em até ${frete.prazoTotalDias} dias úteis (${frete.producaoDias} de produção + ${frete.prazoDias} de transporte).`
           : frete.prazoDias
           ? `Entrega estimada em ${frete.prazoDias} dia(s) útil(eis) após a postagem.`
           : "Entrega para o endereço informado.",
@@ -1603,6 +1610,7 @@ function freteParaPedido(frete) {
   return {
     servico: frete.servico, transportadora: frete.transportadora,
     centavos: frete.centavos, prazoDias: frete.prazoDias,
+    ...(frete.prazoTotalDias ? { producaoDias: frete.producaoDias, prazoTotalDias: frete.prazoTotalDias } : {}),
     gratis: !!frete.gratis,
     // So no internacional: o despachante precisa do peso que foi cobrado (se
     // a caixa real passar dele, a DHL fatura a diferenca) e do dolar da conta.

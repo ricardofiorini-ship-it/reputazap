@@ -73,7 +73,7 @@
     "Finalizar compra": "去结算",
     "Continuar comprando": "继续购物",
     "🔒 Pagamento seguro via Stripe · PIX, cartão parcelado, Apple Pay e Google Pay": "🔒 通过 Stripe 安全支付 · 支持 PIX、信用卡分期、Apple Pay 和 Google Pay",
-    "R$ 29,90": "R$ 29,90",
+    "R$ 39,90": "R$ 39,90",
     "Dados para entrega": "收货信息",
     "Nome completo": "全名",
     "Email": "电子邮箱",
@@ -144,7 +144,7 @@
     "Atendente entregando o Cartão NFC StarTouch para o cliente avaliar no Google pelo celular": "店员把 StarTouch NFC 卡递给顾客，用手机在 Google 上评价"
   },
   "h": {
-    "R$ 29,90 / unidade": "R$ 29,90 <small>/ 张</small>",
+    "R$ 39,90 / unidade": "R$ 39,90 <small>/ 张</small>",
     "PVC fosco premium, tamanho de cartão de crédito · como funciona": "高级磨砂 PVC，信用卡大小 · <a href=\"/cartao-avaliacao-google-nfc\">了解使用方式</a>",
     "Sem mensalidadepaga uma vez só": "<strong>无月费</strong>一次付款",
     "Painel vitalíciográtis, para sempre": "<strong>终身控制面板</strong>永久免费",

@@ -336,7 +336,7 @@
       <div class="hc-top"><span class="badge badge-in"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>Mais vendido</span><span class="hc-kicker">Cartão NFC · 8,5 × 5,4 cm</span></div>
       <h2 class="hc-name">Cartão NFC para Avaliação no Google</h2>
       <p class="hc-desc">Ideal para cada atendente. Prático, discreto e fácil de usar no momento certo.</p>
-      <div class="hc-price">R$ 29,90 <small>/ unidade</small></div>
+      <div class="hc-price">R$ 39,90 <small>/ unidade</small></div>
       <ul class="hc-list">
         <li class="forte"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m5.7 5.7 12.6 12.6"/></svg>Sem mensalidade: você paga uma vez só</li>
         <li class="forte"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Painel grátis e vitalício para acompanhar suas avaliações</li>
@@ -443,7 +443,7 @@
   <img id="stImg" src="/img/kit/cartao-v2-1-160.webp" alt="" width="46" height="46"/>
   <div class="st-info">
     <div class="st-nm" id="stNome">Cartão NFC para Avaliação no Google</div>
-    <div class="st-pr" id="stPreco">R$ 29,90</div>
+    <div class="st-pr" id="stPreco">R$ 39,90</div>
   </div>
   <button class="btn btn-pri" id="stBtn" type="button">Comprar agora</button>
 </div>
@@ -535,7 +535,7 @@
 // Catalogo. Os ids sao o contrato com o servidor (KIT_CATALOG no billing.js)
 // e com os links de fora (/kit?add=cartao-nfc) — nao renomear.
 const PRODUCTS = [
-  { id: "cartao-nfc",   name: "Cartão NFC para Avaliação no Google", price: 29.90, thumb: "/img/kit/cartao-v2-1-160.webp", },
+  { id: "cartao-nfc",   name: "Cartão NFC para Avaliação no Google", price: 39.90, thumb: "/img/kit/cartao-v2-1-160.webp", },
   { id: "placa-mesa",   name: "Placa de Balcão M", price: 49.90, thumb: "/img/kit/placa-m-v2-1-160.webp" },
   { id: "placa-balcao", name: "Placa de Balcão G", price: 79.90, thumb: "/img/kit/gadget-placa-160.webp" },
   { id: "pulseira",     name: "Pulseira NFC", price: 109.90, soldOut: true, thumb: "/img/kit/gadget-pulseira-160.webp" },
@@ -884,7 +884,8 @@ function renderFrete() {
 
   if (!ehExterior() && sub >= FRETE_GRATIS_ACIMA) {
     msg.classList.add("ok");
-    const via = frete.opcoes[0] ? ` Enviamos por ${frete.opcoes[0].transportadora} ${frete.opcoes[0].servico}.` : "";
+    const o0 = frete.opcoes[0];
+    const via = o0 ? ` Enviamos por ${o0.transportadora} ${o0.servico}` + (o0.prazoTotalDias ? `, chega em até ${o0.prazoTotalDias} dias úteis (já com a produção).` : ".") : "";
     msg.textContent = `🎉 Frete grátis neste pedido.${via}`;
     atualizaResumo();
     return;
@@ -902,7 +903,7 @@ function renderFrete() {
     <label class="co-frete-opt">
       <input type="radio" name="frete_opt" value="${o.codigo}" ${o.codigo === frete.codigo ? "checked" : ""}/>
       <span class="fnome">${o.transportadora} ${o.servico}
-        ${o.prazoDias ? `<span class="fprazo">· ${o.prazoDias} dia(s) útil(eis)</span>` : o.internacional ? `<span class="fprazo">· <span>3 a 7 dias úteis</span></span>` : ""}</span>
+        ${o.prazoTotalDias ? `<span class="fprazo">· chega em até ${o.prazoTotalDias} dias úteis</span>` : o.prazoDias ? `<span class="fprazo">· ${o.prazoDias} dia(s) útil(eis)</span>` : o.internacional ? `<span class="fprazo">· <span>3 a 7 dias úteis</span></span>` : ""}</span>
       <span class="fpreco">${fmt(o.precoCentavos / 100)}</span>
     </label>`).join("");
 
@@ -918,6 +919,8 @@ function renderFrete() {
     ? "Envio internacional com rastreio. Prazo contado a partir da postagem (produção em até 2 dias úteis)."
     : falta > 0 && falta <= 80
     ? `Faltam ${fmt(falta)} em produtos pra o frete sair de graça.`
+    : frete.diasDeProducao
+    ? `O prazo já inclui ${frete.diasDeProducao} dias úteis de produção, contados da confirmação do pagamento.`
     : "Prazo contado a partir da postagem (produção em até 2 dias úteis).";
   atualizaResumo();
 }
@@ -950,7 +953,7 @@ async function cotarFrete() {
                 erro: d.error || (ext ? "Não consegui calcular o frete pra esse país." : "Não consegui calcular o frete pra esse CEP.") };
     } else {
       const maisBarata = d.opcoes[0];
-      frete = { status: "ok", opcoes: d.opcoes, codigo: maisBarata.codigo,
+      frete = { status: "ok", opcoes: d.opcoes, codigo: maisBarata.codigo, diasDeProducao: d.diasDeProducao || null,
                 valor: maisBarata.precoCentavos / 100 };
     }
   } catch (_) {

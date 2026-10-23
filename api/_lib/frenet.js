@@ -217,7 +217,7 @@ export async function cotaFrete({ cep, items, aliases, modo = "unitario", checar
 
   // VALOR DECLARADO. Por padrão é o preço de tabela do site, mas quem chama
   // pode mandar o seu: a revenda vende os MESMOS produtos por menos (cartão a
-  // R$ 13,90 em vez de R$ 29,90), e declarar o preço de varejo num pedido de
+  // R$ 13,90 em vez de R$ 39,90), e declarar o preço de varejo num pedido de
   // revenda infla o seguro — que entra no preço do frete. Declarar valor que
   // não é o da nota também é problema na hora de dar sinistro.
   const valorDeclarado = Number.isFinite(valorCentavos) && valorCentavos > 0
@@ -265,7 +265,11 @@ export async function cotaFrete({ cep, items, aliases, modo = "unitario", checar
       transportadora: String(s.Carrier || "").trim(),
       servico: String(s.ServiceDescription || "").trim(),
       precoCentavos: Math.round(Number(s.ShippingPrice) * 100),
-      prazoDias: parseInt(s.DeliveryTime, 10) || null
+      prazoDias: parseInt(s.DeliveryTime, 10) || null,
+      // A Frenet devolve dois prazos: DeliveryTime (com os dias extras
+      // configurados no painel dela) e OriginalDeliveryTime (o da
+      // transportadora). Guardado pra conferir qual dos dois o painel mostra.
+      prazoOriginalDias: parseInt(s.OriginalDeliveryTime, 10) || null
     }))
     .sort((a, b) => a.precoCentavos - b.precoCentavos)
     .slice(0, MAX_OPCOES);

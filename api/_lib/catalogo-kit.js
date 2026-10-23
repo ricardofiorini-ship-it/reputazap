@@ -29,7 +29,7 @@ export const KIT_CATALOG = {
   "cartao-nfc": {
     name: "Cartão de Avaliação NFC",
     description: "Cartão NFC tamanho carteira. Ideal pra atendimento, networking e aproximação rápida.",
-    price_cents: 2990,
+    price_cents: 3990,
     image: "https://startouch.com.br/gadget-cartao.png",
     category_id: "electronics",
     soldOut: false
@@ -109,6 +109,31 @@ export const LOGISTICA = {
     bruto: { comprimento: 6, largura: 6, altura: 1 }
   }
 };
+
+// ── Dias úteis de PRODUÇÃO, antes da postagem ─────────────────
+// O prazo da Frenet começa na POSTAGEM. O que o cliente quer saber é quando
+// chega, então a tela soma produção + transporte (23/10/2026). Antes a tela
+// mostrava só o da transportadora e uma nota "produção em até 2 dias", e o
+// número ficava menor que o prazo real.
+//
+// PLACAS +3 (23/10/2026, decisão do Ricardo): estão sendo produzidas. Quando o
+// estoque normalizar, zerar PRODUCAO_EXTRA_PLACAS e o prazo volta sozinho.
+const PRODUCAO_BASE = 2;
+const PRODUCAO_EXTRA_PLACAS = 3;
+export const PRODUCAO_DIAS = {
+  "placa-balcao": PRODUCAO_BASE + PRODUCAO_EXTRA_PLACAS,
+  "placa-mesa": PRODUCAO_BASE + PRODUCAO_EXTRA_PLACAS,
+  "cartao-nfc": PRODUCAO_BASE,
+  "cartao-trybo": PRODUCAO_BASE,
+  "pulseira": PRODUCAO_BASE
+};
+
+/** O pedido sai inteiro numa postagem só: vale o item mais demorado. */
+export function diasDeProducao(items) {
+  let dias = 0;
+  for (const it of items || []) dias = Math.max(dias, PRODUCAO_DIAS[it?.id] ?? PRODUCAO_BASE);
+  return dias || PRODUCAO_BASE;
+}
 
 // Produto no catálogo sem dados de despacho não pode ser vendido: o frete sai
 // errado ou sai zero, e zero é o pior dos dois porque parece que funcionou.

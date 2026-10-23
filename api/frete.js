@@ -21,6 +21,7 @@
 
 import { cotaFrete } from "./_lib/frenet.js";
 import { cotaInternacional } from "./_lib/frete-internacional.js";
+import { diasDeProducao } from "./_lib/catalogo-kit.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
 
 // De onde a falha veio → o que o cliente merece ver.
@@ -61,6 +62,13 @@ export default async function handler(req, res) {
 
   if (r.erro) {
     return res.status(STATUS[r.motivo] || 502).json({ error: r.erro, motivo: r.motivo });
+  }
+  // Varejo nacional: o prazo da tela é o de CHEGADA (produção + transporte).
+  // A revenda não passa por aqui — ela soma os 10 dias dela no revenda.js.
+  if (pais === "BR" && body.modo !== "consolidado") {
+    const producao = diasDeProducao(body.items);
+    r.diasDeProducao = producao;
+    r.opcoes = r.opcoes.map((o) => ({ ...o, prazoTotalDias: o.prazoDias ? o.prazoDias + producao : null }));
   }
   return res.json(r);
 }

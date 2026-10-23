@@ -114,7 +114,7 @@ Todos os dispositivos:
 
 ### Dispositivos (compra única)
 
-- Cartão de Avaliação Google NFC — 8,5 × 5,4 cm, PVC fosco, NFC + QR Code — R$ 29,90
+- Cartão de Avaliação Google NFC — 8,5 × 5,4 cm, PVC fosco, NFC + QR Code — R$ 39,90
 - Placa de Balcão M — 10 × 15 cm, PS preto 2 mm — R$ 49,90
 - Placa de Balcão G — 21 × 15 cm, PS preto 2 mm — R$ 79,90
 - Frete calculado pelo CEP, grátis acima de R$ 149 em produtos. Garantia de 3 meses contra defeito de fabricação.
