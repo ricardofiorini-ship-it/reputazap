@@ -47,7 +47,11 @@ async function dispatchToAll({ tip, period, artUrl, dry, forceTo, limit }) {
     skipped_dedupe: 0, skipped_no_email: 0, recipients: [], errors: []
   };
 
-  const { data: businesses, error: bizErr } = await supabase.from("businesses").select("user_id");
+  // Só conta com ficha no Google (23/10/2026). A dica é sobre avaliação no
+  // Google, e conta só da Trybo nasce sem place_id (trybo-003): sem o filtro,
+  // quem comprou um cartão de redes sociais recebia "como pedir avaliação".
+  const { data: businesses, error: bizErr } = await supabase
+    .from("businesses").select("user_id").not("place_id", "is", null);
   if (bizErr) { s.errors.push({ error: bizErr.message }); return s; }
   const userIds = [...new Set((businesses || []).map((b) => b.user_id).filter(Boolean))];
 

@@ -5,7 +5,7 @@ import { MercadoPagoConfig, PreApproval, Preference, Payment } from "mercadopago
 import crypto from "crypto";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
 import { pedidoRecebidoEmail, pedidoConfirmadoEmail } from "./_lib/email-templates.js";
-import { tryboPedidoRecebidoEmail, tryboPedidoConfirmadoEmail, remetenteTrybo } from "./_lib/email-trybo.js";
+import { tryboPedidoRecebidoEmail, tryboPedidoConfirmadoEmail, tryboDesbloqueioEmail, remetenteTrybo } from "./_lib/email-trybo.js";
 import { assinaturaRecusadaEmail, assinaturaCobradaEmail, testeTerminandoEmail, assinaturaEncerradaEmail } from "./_lib/email-templates.js";
 import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia } from "./_lib/email-templates.js";
 import { resolvePlano } from "./_lib/plan.js";
@@ -1949,14 +1949,12 @@ async function concluiDesbloqueioTrybo(session) {
       userId: order.user_id || "guest",
       emailType: "trybo_desbloqueio",
       to,
-      subject: "Botões avançados liberados — Trybo",
+      ...tryboDesbloqueioEmail({
+        nome: dadosDoCliente(order?.shipping).nome || session.customer_details?.name || null,
+        ref: extRef, totalCentavos: total,
+      }),
       from: remetenteTrybo() || undefined,
       lang: "pt",
-      html:
-        `<h2 style="margin:0 0 6px;">Pagamento confirmado ✅</h2>` +
-        `<p style="font-size:13px;color:#68757F;margin:0 0 16px;">Pedido <code>${escapeHtmlLite(extRef)}</code> · ${fmtBRL(total)}</p>` +
-        `<p style="font-size:15px;color:#3D4A57;line-height:1.6;">Os <strong>botões avançados</strong> já estão liberados em todos os cartões Trybo da sua conta — link livre, LinkedIn, Spotify e as demais redes. É só adicionar o botão no painel: <a href="https://startouch.com.br/painel-trybo">startouch.com.br/painel-trybo</a>.</p>` +
-        `<p style="font-size:14px;color:#68757F;line-height:1.6;">Pagamento único: não há mensalidade. Qualquer dúvida, é só responder este e-mail.</p>`,
       dedupeByMetadata: { key: "ref", value: extRef },
       metadata: { ref: extRef },
     });

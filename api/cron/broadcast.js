@@ -145,9 +145,13 @@ export default async function handler(req, res) {
   };
 
   const { data: businesses, error: bizErr } = await supabase
-    .from("businesses").select("id, user_id, plan, stripe_customer_id");
+    .from("businesses").select("id, user_id, plan, stripe_customer_id, place_id");
   if (bizErr) return res.status(500).json({ ...s, error: bizErr.message });
-  let userIds = [...new Set((businesses || []).map((b) => b.user_id).filter(Boolean))];
+  // Campanhas daqui são da StarTouch: conta só da Trybo (negócio sem ficha no
+  // Google, ver trybo-003) fica de fora (23/10/2026). Quem usa os dois segue
+  // recebendo — o negócio dele tem place_id.
+  let userIds = [...new Set((businesses || []).filter((b) => b.place_id).map((b) => b.user_id).filter(Boolean))];
+  s.skipped_so_trybo = new Set((businesses || []).map((b) => b.user_id).filter(Boolean)).size - userIds.length;
 
   if (campaign.soNaoAssinantes) {
     const assinantes = new Set((businesses || [])

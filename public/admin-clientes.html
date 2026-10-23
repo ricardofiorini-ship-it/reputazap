@@ -774,7 +774,9 @@ function applyFiltersAndRender() {
 
   tbody.innerHTML = list.map(c => {
     const phoneDigits = maskPhone(c.phone);
-    const waMsg = encodeURIComponent("Oi " + (c.name || "").split(" ")[0] + "! Aqui é o Ricardo do StarTouch, tudo bem?");
+    // Conta só da Trybo = negócio sem ficha no Google (trybo-003).
+    const marcaWa = (c.business && !c.business.place_id) ? "da Trybo" : "do StarTouch";
+    const waMsg = encodeURIComponent("Oi " + (c.name || "").split(" ")[0] + "! Aqui é o Ricardo " + marcaWa + ", tudo bem?");
     const waLink = phoneDigits ? `https://wa.me/55${phoneDigits}?text=${waMsg}` : null;
     const providerBadge = c.provider === "google"
       ? '<span class="badge badge-google">Google</span>'

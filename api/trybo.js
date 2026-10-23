@@ -19,6 +19,11 @@
 import { createClient } from "@supabase/supabase-js";
 import { montarUrl, destinoExiste, recalcularCartao } from "./_lib/trybo.js";
 import { limitou } from "./_lib/rate-limit.js";
+import { sendTransactionalEmail } from "./_lib/email-sender.js";
+import { adminDeviceActivatedEmail } from "./_lib/email-templates.js";
+import {
+  remetenteTrybo, tryboPrimeiroCartaoEmail, tryboOutroCartaoEmail, tryboCartaoTrocadoEmail
+} from "./_lib/email-trybo.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -483,6 +488,75 @@ async function handlePainel(req, res, user) {
   });
 }
 
+// ── E-MAILS (23/10/2026) ────────────────────────────────────
+// Par do que o api/plates.js faz na ativação da StarTouch: cliente + admin,
+// AGUARDADOS antes do res.json (serverless corta promessa solta) e nunca
+// derrubando a resposta — o cartão já está ativo, e um e-mail que falhou
+// não pode virar "não consegui ativar" na tela.
+function nomeDoUsuario(user) {
+  const m = user?.user_metadata || {};
+  return m.name || m.full_name || (user?.email || "").split("@")[0] || "";
+}
+const DO_LADO_TRYBO = () => ({ from: remetenteTrybo() || undefined, lang: "pt" });
+
+async function avisaAtivacao({ user, negocio, plate, apelido, destinos }) {
+  try {
+    const { count } = await supabase
+      .from("plates").select("id", { count: "exact", head: true })
+      .eq("business_id", negocio.id).eq("linha", "social").eq("status", "active");
+    const total = count || 1;
+    const nome = nomeDoUsuario(user);
+    const redes = (destinos || []).map((d) => d?.kind || d).filter((k) => typeof k === "string");
+    const envios = [];
+
+    const tmpl = total <= 1
+      ? tryboPrimeiroCartaoEmail({ nome, negocio: negocio.name, code: plate.code, apelido, redes })
+      : tryboOutroCartaoEmail({ nome, negocio: negocio.name, code: plate.code, apelido, total });
+    if (user.email) {
+      envios.push(sendTransactionalEmail({
+        userId: user.id,
+        emailType: total <= 1 ? "trybo_primeiro_cartao" : "trybo_outro_cartao",
+        to: user.email, subject: tmpl.subject, html: tmpl.html, ...DO_LADO_TRYBO(),
+        metadata: { plate_id: plate.id, code: plate.code, total },
+        dedupeByMetadata: { key: "plate_id", value: plate.id }
+      }));
+    }
+
+    const adminTo = process.env.ADMIN_NOTIFICATIONS_EMAIL;
+    if (adminTo) {
+      const a = adminDeviceActivatedEmail({
+        clientName: nome, clientEmail: user.email, bizName: negocio.name,
+        code: plate.code, channelName: apelido, productType: "cartao_social", totalDevices: total
+      });
+      envios.push(sendTransactionalEmail({
+        userId: user.id, emailType: "admin_device_activated", to: adminTo,
+        subject: "Trybo · " + a.subject, html: a.html, lang: "pt",
+        metadata: { plate_id: plate.id, code: plate.code, client_email: user.email, biz_id: negocio.id, linha: "social" },
+        dedupeByMetadata: { key: "plate_id", value: plate.id }
+      }));
+    }
+    const r = await Promise.allSettled(envios);
+    for (const x of r) if (x.status === "rejected") console.error("[trybo.ativar] e-mail falhou:", x.reason?.message || x.reason);
+  } catch (e) {
+    console.error("[trybo.ativar] avisos de ativação falharam (cartão segue ativo):", e?.message || e);
+  }
+}
+
+async function avisaTroca({ user, antigo, novo }) {
+  if (!user?.email) return;
+  try {
+    const t = tryboCartaoTrocadoEmail({ nome: nomeDoUsuario(user), antigo: antigo.code, novo, apelido: antigo.channel_name });
+    await sendTransactionalEmail({
+      userId: user.id, emailType: "trybo_cartao_trocado", to: user.email,
+      subject: t.subject, html: t.html, ...DO_LADO_TRYBO(),
+      metadata: { antigo: antigo.code, novo },
+      dedupeByMetadata: { key: "antigo", value: antigo.code }
+    });
+  } catch (e) {
+    console.error("[trybo.transferir] aviso de troca falhou (troca feita):", e?.message || e);
+  }
+}
+
 // ── POST ?action=renomear ───────────────────────────────────
 // body: { code, apelido }   "Camila · cadeira 2". Vazio = sem apelido.
 async function handleRenomear(req, res, user) {
@@ -599,6 +673,7 @@ async function handleTransferir(req, res, user) {
     return res.status(500).json({ error: "O cartão novo está funcionando, mas o antigo continua ativo. Bloqueie o antigo no painel." });
   }
 
+  await avisaTroca({ user, antigo, novo: alvo.code });
   return res.json({ ok: true, novo: alvo.code });
 }
 
@@ -813,6 +888,12 @@ async function handleAtivar(req, res, user) {
       error: "O cartão foi ativado, mas não consegui publicar os botões. Abra o painel e salve de novo."
     });
   }
+
+  await avisaAtivacao({
+    user, negocio, plate,
+    apelido: String(apelido || nome || "").trim().slice(0, 60) || null,
+    destinos: resultado.destinos
+  });
 
   return res.json({
     ok: true,

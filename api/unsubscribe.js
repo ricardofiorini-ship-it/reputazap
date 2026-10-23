@@ -28,17 +28,17 @@ async function disableEmail(userId, kind) {
   }
 }
 
-function page(title, msg) {
+function page(title, msg, trybo = false) {
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>${title} · StarTouch</title>
+<title>${title} · ${trybo ? "Trybo" : "StarTouch"}</title>
 <style>body{font-family:Arial,Helvetica,sans-serif;background:#F8F9FA;color:#202124;margin:0;display:grid;place-items:center;min-height:100vh;padding:24px}
 .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:32px;max-width:440px;text-align:center;box-shadow:0 6px 24px -8px rgba(15,23,42,.1)}
 h1{font-size:20px;margin:0 0 8px}p{font-size:14px;color:#5F6368;line-height:1.6;margin:0 0 8px}
 a{color:#1A73E8;text-decoration:none;font-weight:600}</style></head>
 <body><div class="card"><div style="font-size:42px;margin-bottom:8px">📭</div>
 <h1>${title}</h1><p>${msg}</p>
-<p style="margin-top:16px"><a href="https://startouch.com.br/app?login=1">Voltar pro painel</a></p></div></body></html>`;
+<p style="margin-top:16px"><a href="${trybo ? "https://startouch.com.br/painel-trybo" : "https://startouch.com.br/app?login=1"}">Voltar pro painel</a></p></div></body></html>`;
 }
 
 export default async function handler(req, res) {
@@ -62,10 +62,15 @@ export default async function handler(req, res) {
   }
   try {
     await disableEmail(u, k);
+    // k=trybo (resumo semanal da Trybo, 23/10/2026) desliga a mesma chave que
+    // o resumo da StarTouch (email_enabled) — sem coluna nova, sem SQL. Quem
+    // usa os dois produtos para de receber os dois resumos, e o texto diz isso.
     const msg = k === "tips"
       ? "Você não vai mais receber a <strong>dica da semana</strong>. Seu resumo semanal de desempenho continua chegando normalmente. Se mudar de ideia, é só reativar nas preferências do painel."
-      : "Você não vai mais receber o resumo semanal por email. Se mudar de ideia, é só reativar nas preferências do painel.";
-    return res.status(200).send(page("Pronto, você foi descadastrado", msg));
+      : k === "trybo"
+        ? "Você não vai mais receber os resumos semanais por e-mail. Os avisos importantes da sua conta (pedido, cartão ativado ou trocado) continuam chegando."
+        : "Você não vai mais receber o resumo semanal por email. Se mudar de ideia, é só reativar nas preferências do painel.";
+    return res.status(200).send(page("Pronto, você foi descadastrado", msg, k === "trybo"));
   } catch (e) {
     console.error("[unsubscribe] GET erro:", e);
     return res.status(500).send(page("Algo deu errado", "Não consegui processar agora. Tente de novo em instantes ou ajuste no painel."));

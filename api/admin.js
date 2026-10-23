@@ -24,7 +24,7 @@ import { dadosDoCliente, enderecoCompleto, textoDaEtiqueta }
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
 import { soStartouch } from "./_lib/linha.js";
 import { pedidoAtualizadoEmail } from "./_lib/email-templates.js";
-import { remetenteTrybo } from "./_lib/email-trybo.js";
+import { remetenteTrybo, tryboPedidoAtualizadoEmail } from "./_lib/email-trybo.js";
 import Stripe from "stripe";
 
 // Lista de emails autorizados como admin (hardcoded)
@@ -1395,14 +1395,22 @@ async function avisaClienteDoPedido({ pedido, destino, rastreio, admin }) {
   const to = pedido?.email || c.email;
   if (!to) return { enviado: false, erro: "pedido sem e-mail do cliente" };
 
-  const corpo = pedidoAtualizadoEmail({
+  const ehTrybo = (pedido.external_reference || "").startsWith("kit_trybo");
+  const dados = {
     nome: c.nome || c.name || null,
     ref: pedido.external_reference,
     estado: destino,
     rastreio: String(rastreio || "").trim().toUpperCase() || null,
     transportadora: c.frete?.transportadora || null,
-    ehRevenda: c.tipo === "revenda" || (pedido.external_reference || "").startsWith("revenda_"),
-  });
+  };
+  // Pedido do carrinho da Trybo: e-mail com a cara e o caminho de ativação
+  // da Trybo (23/10/2026). Antes saía o da StarTouch com remetente "Trybo".
+  const corpo = ehTrybo
+    ? tryboPedidoAtualizadoEmail(dados)
+    : pedidoAtualizadoEmail({
+        ...dados,
+        ehRevenda: c.tipo === "revenda" || (pedido.external_reference || "").startsWith("revenda_"),
+      });
   if (!corpo) return { enviado: false, motivo: "estado não manda e-mail" };
 
   // `userId` vazio faz o sender PULAR o envio (email-sender.js:62), e pedido de
@@ -1414,9 +1422,7 @@ async function avisaClienteDoPedido({ pedido, destino, rastreio, admin }) {
     userId: pedido.user_id || "guest",
     emailType: `pedido_${destino}`,
     to, subject: corpo.subject, html: corpo.html,
-    // Pedido do carrinho da Trybo sai com o remetente da Trybo (o texto destes
-    // avisos não cita marca nenhuma, então serve aos dois).
-    ...((pedido.external_reference || "").startsWith("kit_trybo") ? { from: remetenteTrybo() || undefined, lang: "pt" } : {}),
+    ...(ehTrybo ? { from: remetenteTrybo() || undefined, lang: "pt" } : {}),
     dedupeByMetadata: { key: "ref", value: pedido.external_reference },
     metadata: { ref: pedido.external_reference, por: admin?.email || null },
   });
