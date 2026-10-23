@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<script src="/consent.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Indicações — StarTouch Admin</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;background:#f6f7f9;color:#111820;line-height:1.55;padding:28px 16px 80px}
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+  .sub{font-size:14px;color:#68757F;margin-bottom:22px}
+  .card{background:#fff;border:1px solid #e3e8ed;border-radius:12px;padding:18px 20px;margin-bottom:14px}
+  #login{max-width:380px;margin:60px auto}
+  #login input{width:100%;padding:12px 14px;border:1px solid #dce2e8;border-radius:9px;font-size:15px;margin-bottom:10px;font-family:inherit}
+  .btn{background:#1A5FB4;color:#fff;border:none;border-radius:9px;padding:12px 18px;font-size:14.5px;font-weight:600;cursor:pointer;font-family:inherit}
+  .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .chip{background:#fff;border:1px solid #dce2e8;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;color:#3D4A57;cursor:pointer;font-family:inherit}
+  .chip.on{background:#1A5FB4;border-color:#1A5FB4;color:#fff}
+  .top{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .quem{flex:1 1 220px;min-width:0}
+  .nome{font-size:16px;font-weight:700}
+  .meta{font-size:12.5px;color:#68757F;word-break:break-word}
+  .valor{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+  .badge{display:inline-block;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .b-teste{background:#EAF1FA;color:#1A5FB4}
+  .b-pagando{background:#E4F2EC;color:#15654A}
+  .b-atrasado{background:#FFF8E1;color:#8A5A00}
+  .b-saiu{background:#F1F5F9;color:#475569}
+  .linha{font-size:13px;color:#3D4A57;margin-top:10px;padding-top:10px;border-top:1px solid #eef1f4}
+  .alerta{color:#B42318;font-size:13px;margin-top:6px;font-weight:600}
+  .erro{color:#9B2226;font-size:13px;margin-top:8px}
+  .vazio{text-align:center;color:#68757F;padding:40px 0}
+  a{color:#1A5FB4}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  th,td{text-align:left;padding:7px 6px;border-bottom:1px solid #eef1f4}
+  th{font-size:11.5px;color:#68757F}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .tabela{overflow-x:auto}
+  .b-liberada{background:#E4F2EC;color:#15654A}
+  .b-aguardando{background:#EAF1FA;color:#1A5FB4}
+  .b-paga{background:#F1F5F9;color:#475569}
+  .b-cancelada,.b-propria{background:#FDECEC;color:#9B2226}
+  .pix{font-family:ui-monospace,monospace;background:#F6F8FB;border-radius:6px;padding:2px 6px}
+  .btn.peq{padding:8px 12px;font-size:13px}
+  .btn.cinza{background:#fff;color:#9B2226;border:1px solid #f3c4c4}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="login" class="card" style="display:none">
+    <h1 style="font-size:20px">Admin — Indicações</h1>
+    <p class="sub">Entre com a conta de administrador.</p>
+    <input id="email" type="email" placeholder="E-mail" autocomplete="username"/>
+    <input id="senha" type="password" placeholder="Senha" autocomplete="current-password"/>
+    <button class="btn" style="width:100%" onclick="entrar()">Entrar</button>
+    <p id="loginErro" class="erro"></p>
+  </div>
+
+  <div id="app" style="display:none">
+    <h1>Divulgue e ganhe</h1>
+    <p class="sub" id="resumo">Carregando…</p>
+    <div id="lista"></div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// SESSÃO QUE NÃO CAI — mesma regra de `src/lib/sessao.js`
+// ============================================================
+// O token do Supabase vence em 1 HORA. Esta tela nasceu sem renovação: bastava
+// abrir a aba uma hora depois pra levar 401, e o código de baixo APAGAVA o
+// token e mostrava o login. Do lado de quem usa isso é "entrei e ele me
+// deslogou" — e pior, derrubava junto a sessão do /app, porque `rz_token` é a
+// MESMA chave das duas telas.
+//
+// Está copiado aqui, e não importado, porque `src/lib/` é empacotado pelo vite
+// e esta página é HTML estático servido direto. Se a regra mudar lá, muda aqui.
+const K_TOKEN = "rz_token", K_REFRESH = "rz_refresh", K_EXP = "rz_token_exp";
+const MARGEM_S = 60;  // renova ANTES de vencer; sem margem, chamada iniciada no
+                      // último segundo chega vencida no servidor.
+
+const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const gravar = (k,v) => { try { v==null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch {} };
+
+function salvarSessao(d){
+  if(!d) return;
+  if(d.token) gravar(K_TOKEN, d.token);
+  if(d.refresh_token) gravar(K_REFRESH, d.refresh_token);
+  if(d.expires_at) gravar(K_EXP, String(d.expires_at));
+}
+function limparSessao(){ gravar(K_TOKEN,null); gravar(K_REFRESH,null); gravar(K_EXP,null); }
+
+// Uma renovação por vez: o token de renovação é ROTATIVO, então dois pedidos
+// simultâneos com o mesmo token fariam o segundo falhar e derrubar a sessão.
+let renovando = null;
+async function renovar(){
+  const refresh = ler(K_REFRESH);
+  if(!refresh) return null;
+  if(renovando) return renovando;
+  renovando = (async () => {
+    try{
+      const r = await fetch("/api/login",{ method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ action:"refresh", refresh_token: refresh }) });
+      const d = await r.json().catch(()=>null);
+      if(!r.ok || !d?.token){ limparSessao(); return null; }
+      salvarSessao(d); return d.token;
+    }catch{
+      // Falha de REDE não é sessão inválida. Apagar aqui deslogaria quem só
+      // passou por um túnel.
+      return null;
+    }finally{ renovando = null; }
+  })();
+  return renovando;
+}
+
+async function TK(){
+  const t = ler(K_TOKEN);
+  if(!t) return null;
+  const exp = parseInt(ler(K_EXP) || "0", 10);
+  if(!exp) return t;  // sessão antiga, sem validade guardada: o 401 resolve
+  if(exp - MARGEM_S > Math.floor(Date.now()/1000)) return t;
+  return (await renovar()) || t;
+}
+
+// Envia com o token de agora; se levar 401, renova UMA vez e repete. Uma só —
+// repetir em laço transforma sessão morta em martelada no servidor.
+async function comSessao(url, opcoes = {}){
+  const monta = t => ({ ...opcoes, headers: { ...(opcoes.headers||{}), Authorization: "Bearer "+t } });
+  let t = await TK();
+  if(!t) return { semSessao: true };
+  let r = await fetch(url, monta(t));
+  if(r.status === 401){
+    const novo = await renovar();
+    if(!novo) return { semSessao: true };
+    r = await fetch(url, monta(novo));
+  }
+  return { resposta: r };
+}
+
+
+async function entrar(){
+  const email = document.getElementById("email").value.trim();
+  const senha = document.getElementById("senha").value;
+  const er = document.getElementById("loginErro"); er.textContent = "";
+  try{
+    const r = await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email,password:senha})});
+    const d = await r.json();
+    if(!r.ok || !d.token){ er.textContent = d.error || "Não consegui entrar."; return; }
+    // O PAR INTEIRO, não só o token de acesso. Guardar só o token era o que
+    // fazia a sessão morrer em 1h sem ter como renovar.
+    salvarSessao(d);
+    inicia();
+  }catch{ er.textContent = "Falha de conexão."; }
+}
+
+// Comissões por indicador (api/indicacao.js?action=admin). O estorno é
+// conferido AO VIVO no Stripe a cada abertura: venda estornada aparece como
+// cancelada mesmo que o pedido continue "pago" no banco.
+let dados = null;
+const brl = c => (Number(c||0)/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const dia = s => s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ROTULO = { aguardando:"Aguardando 7 dias", liberada:"Liberada", paga:"Paga", cancelada:"Cancelada", propria:"Compra própria" };
+
+async function carrega(){
+  const { resposta: r, semSessao } = await comSessao("/api/indicacao?action=admin");
+  if(semSessao){ limparSessao(); inicia(); return; }
+  const d = await r.json().catch(()=>({}));
+  // Erro aparece inteiro: um 500 virando lista vazia diria "ninguém indicou".
+  if(!r.ok){
+    document.getElementById("resumo").textContent = r.status === 403 ? "Sem acesso" : "Erro ao carregar";
+    document.getElementById("lista").innerHTML = `<div class="card vazio">${esc(d.error || ("O servidor respondeu "+r.status+"."))}</div>`;
+    return;
+  }
+  dados = d;
+  const ls = d.indicadores || [];
+  const aPagar = ls.filter(i => i.pix && i.totais.liberada >= d.minimo_centavos);
+  const total = aPagar.reduce((s,i)=>s+i.totais.liberada,0);
+  document.getElementById("resumo").textContent =
+    `${ls.length} indicador(es) com venda · ${aPagar.length} pra pagar agora (${brl(total)}) · mínimo ${brl(d.minimo_centavos)}`;
+  document.getElementById("lista").innerHTML = ls.length ? ls.map(cartao).join("")
+    : `<div class="card vazio">Nenhuma venda por indicação ainda.</div>`;
+}
+
+function cartao(g){
+  const quem = g.indicador ? `${esc(g.indicador.nome || "—")} · ${esc(g.indicador.email)}` : `<span class="alerta">Código ${esc(g.codigo)} sem conta conhecida</span>`;
+  const pix = g.pix ? `PIX: <span class="pix">${esc(g.pix.chave)}</span> · titular ${esc(g.pix.titular)}` : `<span class="alerta">Sem chave PIX cadastrada</span>`;
+  const liberadas = g.vendas.filter(v => v.situacao === "liberada").map(v => v.ref);
+  const podePagar = g.pix && g.totais.liberada >= dados.minimo_centavos;
+  const linhas = g.vendas.map(v => `<tr><td>${dia(v.data)}</td><td>${esc(v.ref)}</td><td class="num">${brl(v.produtos_centavos)}</td><td class="num">${brl(v.comissao_centavos)}</td>
+      <td><span class="badge b-${esc(v.situacao)}">${ROTULO[v.situacao]||esc(v.situacao)}${v.estornada?" (estorno)":""}</span>${v.paga_em?` <span class="meta">${dia(v.paga_em)}</span>`:""}</td>
+      <td>${["aguardando","liberada"].includes(v.situacao) ? `<button class="btn peq cinza" data-tirar="${esc(v.ref)}">Tirar</button>` : ""}</td></tr>`).join("");
+  return `<div class="card">
+    <div class="top">
+      <div class="quem"><div class="nome">${quem}</div><div class="meta">Código ${esc(g.codigo)} · ${pix}</div></div>
+      <div><div class="valor">${brl(g.totais.liberada)}</div><div class="meta" style="text-align:right">liberado · ${brl(g.totais.aguardando)} aguardando · ${brl(g.totais.paga)} já pago</div></div>
+    </div>
+    <div class="tabela"><table><thead><tr><th>Pago em</th><th>Pedido</th><th class="num">Produtos</th><th class="num">Comissão</th><th>Situação</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>
+    ${liberadas.length ? `<div class="linha">${podePagar
+      ? `<button class="btn peq" data-pagar="${esc(liberadas.join(","))}" data-valor="${g.totais.liberada}">Já paguei ${brl(g.totais.liberada)} por PIX</button>`
+      : `Ainda não dá pra pagar: ${g.pix ? "abaixo do mínimo de "+brl(dados.minimo_centavos) : "falta a chave PIX"}.`}</div>` : ""}
+  </div>`;
+}
+
+async function enviar(action, refs){
+  const { resposta: r } = await comSessao("/api/indicacao?action="+action, {
+    method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ refs }) });
+  if(!r || !r.ok){ document.getElementById("resumo").textContent = "Não consegui gravar. Tente de novo."; return; }
+  carrega();
+}
+
+document.getElementById("lista").addEventListener("click", (e) => {
+  const pagar = e.target.closest("[data-pagar]");
+  const tirar = e.target.closest("[data-tirar]");
+  if(pagar){
+    const refs = pagar.dataset.pagar.split(",");
+    if(window.confirm(`Confirmar que você JÁ FEZ o PIX de ${brl(pagar.dataset.valor)}? ${refs.length} venda(s) passam a constar como pagas.`)) enviar("marcar-paga", refs);
+  } else if(tirar){
+    if(window.confirm(`Tirar a venda ${tirar.dataset.tirar} da comissão? (devolução, fraude)`)) enviar("cancelar", [tirar.dataset.tirar]);
+  }
+});
+
+function inicia(){
+  if(!ler(K_TOKEN)){ document.getElementById("login").style.display="block";
+             document.getElementById("app").style.display="none"; return; }
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+  carrega();
+}
+inicia();
+</script>
+</body>
+</html>

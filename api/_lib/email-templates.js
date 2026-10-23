@@ -374,6 +374,24 @@ export function cupomVoltaEmail({ nome, itens, codigo, pct, expira, link }) {
 }
 
 /**
+ * DIVULGUE E GANHE — uma venda entrou pelo link do cliente. Não diz quem
+ * comprou (Política 1.12): só o valor da comissão e quando ela libera.
+ */
+export function indicacaoVendaEmail({ nome, comissaoCentavos, carenciaDias, temPix }) {
+  const saudacao = nome ? `Olá, ${escapeHtml(String(nome).split(" ")[0])}!` : "Olá!";
+  const body =
+    `<h2 style="margin:0 0 10px;font-size:22px;">Uma venda entrou pelo seu link 🎉</h2>` +
+    `<p style="font-size:15px;color:#3D4A57;line-height:1.6;margin:0 0 12px;">${saudacao} Alguém comprou na StarTouch pelo seu link de indicação. Sua comissão:</p>` +
+    `<div style="font-size:30px;font-weight:800;color:#137333;margin:6px 0 4px;">${brl(comissaoCentavos)}</div>` +
+    `<p style="font-size:14px;color:#3D4A57;line-height:1.6;margin:0 0 12px;">Ela fica liberada em ${carenciaDias} dias (o prazo que o comprador tem pra desistir da compra) e entra no próximo pagamento por PIX.</p>` +
+    (temPix ? "" :
+      `<p style="font-size:14px;color:#8A5A00;background:#FFF8E1;border-radius:10px;padding:10px 14px;line-height:1.5;"><strong>Falta cadastrar sua chave PIX</strong> pra gente conseguir te pagar.</p>`) +
+    cta("https://startouch.com.br/indique", temPix ? "Ver minhas indicações →" : "Cadastrar chave PIX →") +
+    `<p style="font-size:13px;color:#68757F;line-height:1.6;">Continue divulgando: cada venda pelo seu link rende 10% do valor dos produtos.</p>`;
+  return { subject: "Uma venda entrou pelo seu link de indicação", html: shell({ title: "Divulgue e ganhe", body }) };
+}
+
+/**
  * PEDIDO RECEBIDO — sai assim que a sessão de checkout fecha.
  *
  * No boleto isso acontece na EMISSÃO, então o texto NÃO pode dizer que está

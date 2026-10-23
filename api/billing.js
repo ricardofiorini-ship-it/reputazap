@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { MercadoPagoConfig, PreApproval, Preference, Payment } from "mercadopago";
 import crypto from "crypto";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
-import { pedidoRecebidoEmail, pedidoConfirmadoEmail } from "./_lib/email-templates.js";
+import { pedidoRecebidoEmail, pedidoConfirmadoEmail, indicacaoVendaEmail } from "./_lib/email-templates.js";
 import { tryboPedidoRecebidoEmail, tryboPedidoConfirmadoEmail, tryboDesbloqueioEmail, remetenteTrybo } from "./_lib/email-trybo.js";
 import { assinaturaRecusadaEmail, assinaturaCobradaEmail, testeTerminandoEmail, assinaturaEncerradaEmail } from "./_lib/email-templates.js";
 import { weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle, montaMarcoZero, metaDeConcorrencia } from "./_lib/email-templates.js";
@@ -12,6 +12,7 @@ import { resolvePlano } from "./_lib/plan.js";
 import { KIT_CATALOG, diasDeProducao } from "./_lib/catalogo-kit.js";
 import { validaCupom, descontoCentavos, cupomStripe } from "./_lib/cupom-volta.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
+import { codigoDoUsuario, codigoValido, normalizaCodigo as normalizaRef, comissaoCentavos, mapaDeIndicadores, CARENCIA_DIAS } from "./_lib/indicacao.js";
 import { dadosDoCliente, enderecoCompleto } from "./_lib/pedido-cliente.js";
 import { entradaDoScore } from "./_lib/visibilidade.js";
 import { cotaFrete } from "./_lib/frenet.js";
@@ -294,6 +295,12 @@ async function notifyAdminKitOrder({ order, userId, provedor = "mercadopago", pa
     shippingHtml +=
       `<p style="background:#E6F4EA;padding:10px 12px;border-radius:8px;">🏷️ <strong>Cupom ${escapeHtmlLite(ship.cupom_usado.codigo)}</strong> — ` +
       `${ship.cupom_usado.pct}% nos produtos (−${fmtBRL(ship.cupom_usado.desconto_centavos)}). Cliente que tinha abandonado o carrinho.</p>`;
+  }
+
+  if (ship?.indicacao?.codigo) {
+    shippingHtml +=
+      `<p style="background:#EAF1FA;padding:10px 12px;border-radius:8px;">🤝 <strong>Venda por indicação</strong> — código ${escapeHtmlLite(ship.indicacao.codigo)}, ` +
+      `comissão de ${fmtBRL(comissaoCentavos(order))} (libera em ${CARENCIA_DIAS} dias; ver /admin/indicacoes).</p>`;
   }
 
   // FRETE — qual servico despachar. Sem esta linha o despachante escolhe o mais
@@ -1667,6 +1674,17 @@ function montaCarrinhoStripe(items) {
 // Conferido AQUI, no servidor, mesmo que a tela já tenha conferido: o desconto
 // que vale é o que o servidor calcula. Cupom que caducou entre a tela e o
 // clique recusa o checkout com motivo "cupom", e a tela tira o cupom e avisa.
+// Divulgue e ganhe (_lib/indicacao.js): o código do link que trouxe o
+// comprador. Só o formato é conferido aqui — quem é o indicador, e se não é o
+// próprio comprador, se resolve na hora de calcular a comissão. Compra logada
+// pelo próprio link é descartada já aqui, que é o caso fácil.
+function indicacaoDoPedido(ref, compradorId = null) {
+  if (!codigoValido(ref)) return null;
+  const codigo = normalizaRef(ref);
+  if (compradorId && codigo === codigoDoUsuario(compradorId)) return null;
+  return { codigo };
+}
+
 async function cupomDoPedido(codigo, produtosCentavos) {
   if (!codigo) return null;
   const v = await validaCupom(codigo);
@@ -1679,7 +1697,8 @@ async function handleCheckoutKitStripe(req, res) {
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
   try {
     const { items = [], biz_name = "", ga_client_id = "", ga_session_id = "",
-            customer = {}, frete_codigo = "", cupom: cupomCodigo = "" } = parseJson(await getRawBody(req));
+            customer = {}, frete_codigo = "", cupom: cupomCodigo = "", ref = "" } = parseJson(await getRawBody(req));
+    const indicacao = indicacaoDoPedido(ref, auth.user.id);
     const carrinho = montaCarrinhoStripe(items);
     if (carrinho.erro) return res.status(400).json({ error: carrinho.erro });
 
@@ -1750,7 +1769,8 @@ async function handleCheckoutKitStripe(req, res) {
       total_cents: totalComFrete,
       status: "pending",
       shipping: { ...c, frete: freteParaPedido(frete), produtos_centavos: carrinho.totalCents,
-        ...(cupom ? { cupom_usado: { codigo: cupom.codigo, pct: cupom.pct, desconto_centavos: cupom.desconto } } : {}) },
+        ...(cupom ? { cupom_usado: { codigo: cupom.codigo, pct: cupom.pct, desconto_centavos: cupom.desconto } } : {}),
+        ...(indicacao ? { indicacao } : {}) },
     }, "stripe/checkout-kit");
 
     return res.json({ url: session.url });
@@ -1772,6 +1792,8 @@ async function handleCheckoutKitGuestStripe(req, res) {
     const { items = [], customer = {}, frete_codigo = "" } = body;
     // O cupom é da StarTouch: no carrinho da Trybo ele é ignorado.
     const cupomCodigo = body.marca === "trybo" ? "" : body.cupom;
+    // A indicação também é da StarTouch (a comissão é sobre produto StarTouch).
+    const indicacao = body.marca === "trybo" ? null : indicacaoDoPedido(body.ref);
 
     // CARRINHO DA TRYBO (19/10/2026): a mesma compra, com outra marca. Muda só
     // o que o cliente vê — a volta do pagamento (página da Trybo, não a loja
@@ -1844,7 +1866,8 @@ async function handleCheckoutKitGuestStripe(req, res) {
       total_cents: totalComFrete,
       status: "pending",
       shipping: { ...c, frete: freteParaPedido(frete), produtos_centavos: carrinho.totalCents,
-        ...(cupom ? { cupom_usado: { codigo: cupom.codigo, pct: cupom.pct, desconto_centavos: cupom.desconto } } : {}) },
+        ...(cupom ? { cupom_usado: { codigo: cupom.codigo, pct: cupom.pct, desconto_centavos: cupom.desconto } } : {}),
+        ...(indicacao ? { indicacao } : {}) },
     }, "stripe/checkout-kit-guest");
 
     return res.json({ url: session.url });
@@ -2543,6 +2566,8 @@ async function concluiPedidoStripe(session) {
     });
   }
 
+  if (!ehRevenda && order.shipping?.indicacao?.codigo) await avisaIndicador(order);
+
   const m = session.metadata || {};
   await sendGa4Purchase({
     clientId: m.ga_client_id,
@@ -2553,6 +2578,36 @@ async function concluiPedidoStripe(session) {
     origem: "stripe",
     shippingCents: Number(order?.shipping?.frete?.centavos || 0),
   });
+}
+
+// Divulgue e ganhe: avisa quem indicou que a venda entrou. Falha aqui nunca
+// derruba o fechamento do pedido — a comissão está no pedido e aparece no
+// painel do indicador de qualquer jeito.
+async function avisaIndicador(order) {
+  try {
+    const codigo = order.shipping.indicacao.codigo;
+    const ind = (await mapaDeIndicadores(supabase)).get(codigo);
+    if (!ind?.email) { console.warn(`[indicacao] venda ${order.external_reference} com código ${codigo} sem indicador conhecido`); return; }
+    const comprador = String(order.email || order.shipping?.email || "").toLowerCase();
+    if (order.user_id === ind.id || comprador === ind.email.toLowerCase()) {
+      console.log(`[indicacao] ${order.external_reference}: compra pelo próprio link — sem comissão`);
+      return;
+    }
+    const meta = ind.user_metadata || {};
+    const { subject, html } = indicacaoVendaEmail({
+      nome: meta.name || meta.full_name || "",
+      comissaoCentavos: comissaoCentavos(order),
+      carenciaDias: CARENCIA_DIAS,
+      temPix: !!meta.indica_pix?.chave,
+    });
+    await sendTransactionalEmail({
+      userId: ind.id, emailType: "indicacao_venda", to: ind.email, subject, html, lang: "pt",
+      dedupeByMetadata: { key: "ref", value: order.external_reference },
+      metadata: { ref: order.external_reference, codigo },
+    });
+  } catch (e) {
+    console.error(`[indicacao] FALHOU ao avisar o indicador de ${order?.external_reference}:`, e?.message || e);
+  }
 }
 
 // ── E-MAILS DA ASSINATURA (06/10/2026) ──

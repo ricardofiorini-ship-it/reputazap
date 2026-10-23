@@ -914,6 +914,24 @@ function avisoCupom() {
   }
   b.textContent = `🏷️ Cupom ${cupomAtivo.codigo} ativo: ${cupomAtivo.pct}% OFF nos produtos, aplicado no pagamento.`;
 }
+// ── Divulgue e ganhe: quem trouxe o comprador (/kit?ref=CODIGO) ──
+// Guardado 30 dias neste navegador; vale o ÚLTIMO link clicado. Só o código
+// do indicador — nada sobre quem compra. Política 1.12 §3.1.
+function refAtual() {
+  try {
+    const daUrl = (params.get("ref") || "").trim().toUpperCase();
+    if (/^[A-HJKMNP-Z2-9]{6}$/.test(daUrl)) {
+      localStorage.setItem("st_ref", JSON.stringify({ codigo: daUrl, ate: Date.now() + 30 * 86400000 }));
+      return daUrl;
+    }
+    const g = JSON.parse(localStorage.getItem("st_ref") || "null");
+    if (g && g.ate > Date.now()) return g.codigo;
+    localStorage.removeItem("st_ref");
+  } catch (_) {}
+  return "";
+}
+const refIndicacao = refAtual();
+
 async function carregarCupom() {
   // Voltou do pagamento: o cupom foi usado, não fica rondando a loja.
   if (params.get("compra") === "sucesso") { guardarCupom(null); return; }
@@ -1153,7 +1171,8 @@ coForm.addEventListener("submit", async (e) => {
   const headers = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
   const corpo = { items, customer, frete_codigo: frete.codigo || "", ...gaIds(),
-                  ...(cupomAtivo ? { cupom: cupomAtivo.codigo } : {}) };
+                  ...(cupomAtivo ? { cupom: cupomAtivo.codigo } : {}),
+                  ...(refIndicacao ? { ref: refIndicacao } : {}) };
   if (token) corpo.biz_name = bizName || "";
 
   try {
@@ -1166,7 +1185,8 @@ coForm.addEventListener("submit", async (e) => {
       res = await fetch("/api/billing?action=checkout-kit-guest", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items, customer, frete_codigo: frete.codigo || "", ...gaIds(),
-                               ...(cupomAtivo ? { cupom: cupomAtivo.codigo } : {}) })
+                               ...(cupomAtivo ? { cupom: cupomAtivo.codigo } : {}),
+                               ...(refIndicacao ? { ref: refIndicacao } : {}) })
       });
     }
     const data = await res.json();

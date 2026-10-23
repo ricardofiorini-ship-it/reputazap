@@ -334,6 +334,10 @@
       "destination": "/kit.html"
     },
     {
+      "source": "/indique",
+      "destination": "/indique.html"
+    },
+    {
       "source": "/ativar-placa",
       "destination": "/ativar-placa.html"
     },
@@ -380,6 +384,10 @@
     {
       "source": "/admin/pedidos",
       "destination": "/admin-pedidos.html"
+    },
+    {
+      "source": "/admin/indicacoes",
+      "destination": "/admin-indicacoes.html"
     },
     {
       "source": "/admin/assinaturas",

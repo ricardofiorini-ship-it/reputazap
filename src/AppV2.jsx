@@ -4711,6 +4711,11 @@ function EquipeModal({ onClose }) {
         }}>
           Equipe maior? Um cartão pra cada pessoa →
         </a>
+        <a href="/indique" style={{
+          display:'block', textAlign:'center', marginTop: 8, fontSize: 13, fontWeight: 600, color: T.textMid, textDecoration:'none'
+        }}>
+          Indique a StarTouch e ganhe 10% de cada venda →
+        </a>
       </Card>
     </div>
   )

@@ -1,6 +1,6 @@
 # Termos de Uso — StarTouch e Trybo
 
-**Versão 1.12 — vigente a partir de 19 de outubro de 2026**
+**Versão 1.13 — vigente a partir de 23 de outubro de 2026**
 
 ---
 
@@ -286,6 +286,20 @@ Você pode entregar cartões à sua equipe, cada um com os perfis do profissiona
 
 Vale o item 12. Sem conta ativa, o cartão continua levando ao último destino configurado, mas você deixa de poder alterá-lo, bloqueá-lo ou acompanhar a contagem.
 
+## 16. Programa Divulgue e Ganhe
+
+Quem tem conta na StarTouch, gratuita ou paga, pode participar do programa de indicação. A participação é opcional e começa quando você cadastra uma chave PIX na página startouch.com.br/indique e aceita estas condições.
+
+1. **Comissão.** Você recebe **10% do valor pago pelos produtos** (sem o frete e já descontados cupons e promoções) em cada compra feita no site startouch.com.br por meio do seu link de indicação.
+2. **Validade do link.** Conta a compra feita em até 30 dias depois do clique no seu link, no mesmo aparelho e navegador. Se o comprador clicar depois no link de outra pessoa, vale o último link clicado.
+3. **Liberação.** A comissão é liberada 7 dias depois da confirmação do pagamento, prazo em que o comprador pode desistir da compra. Venda cancelada, devolvida ou estornada não gera comissão, inclusive se o estorno ocorrer depois do pagamento da comissão, caso em que o valor é descontado das comissões seguintes.
+4. **Pagamento.** Pagamos por PIX, uma vez por mês, quando o total liberado chegar a R$ 50,00. Abaixo disso, o saldo acumula. O pagamento vai para a chave PIX cadastrada, e você responde pela exatidão dela.
+5. **O que não conta.** Compras pelo seu próprio link; vendas em marketplaces (Mercado Livre, Shopee, TikTok Shop, Amazon e outros); pedidos de revenda; produtos e serviços da Trybo; e a assinatura StarTouch Pro.
+6. **Conduta.** Não é permitido anunciar em buscadores ou redes sociais usando a marca StarTouch, enviar mensagens em massa a quem não pediu, nem prometer o que a StarTouch não oferece, em especial resultado garantido de avaliações ou de posição no Google. Fraude ou violação destas regras cancela as comissões ainda não pagas e encerra a participação.
+7. **Sem vínculo.** A participação não cria vínculo de emprego, representação comercial ou sociedade com a StarTouch. Eventuais tributos sobre o que você receber são de sua responsabilidade.
+8. **Privacidade do comprador.** Você vê a data e o valor de cada venda indicada, mas não quem comprou.
+9. **Mudanças.** A StarTouch pode alterar ou encerrar o programa avisando com antecedência mínima de 15 dias nesta página. Comissões já liberadas são sempre pagas.
+
 ---
 
 ## Histórico de versões
@@ -304,6 +318,7 @@ Vale o item 12. Sem conta ativa, o cartão continua levando ao último destino c
 | 1.9 | 07/10/2026 | O teste gratuito de 7 dias do StarTouch Pro (item 5.3) passa a **dispensar o cartão**. Sem cartão cadastrado ao fim do teste, a assinatura se encerra sem cobrança. O teste é oferecido uma vez por cliente. Testes iniciados antes desta data, já com cartão, seguem como contratados |
 | 1.10 | 12/10/2026 | A garantia dos dispositivos StarTouch e dos cartões Trybo contra defeito de fabricação passa de **12 meses para 3 meses (90 dias)**, contados do recebimento — o prazo da garantia legal. **Não retroage:** quem comprou até 11/10/2026 mantém os 12 meses vigentes na data da compra |
 | 1.12 | 19/10/2026 | Seção 15: cada cartão Trybo passa a levar a **até oito botões** (eram dois), e o cartão passa a ser vendido também pelo site, com as condições do item 4. O que se chamava "destino" passa a se chamar **botão** ("destinos avançados" viram "botões avançados"), sem mudança de condição. **Amplia o que o cliente recebe e não reduz direitos** |
+| 1.13 | 23/10/2026 | Inclusão da seção 16, **Programa Divulgue e Ganhe**: programa opcional de indicação, com comissão de 10% sobre os produtos vendidos pelo link do participante, liberada em 7 dias e paga por PIX a partir de R$ 50,00. **Cria uma opção nova e não altera nenhuma condição já existente** |
 | 1.11 | 13/10/2026 | Inclusão da **entrega fora do Brasil** (item 4), pela DHL Express: frete calculado por país e peso e exibido antes do pagamento, frete gratuito acima de R$ 149,00 restrito ao Brasil, e impostos de importação do país de destino por conta de quem recebe. Cria uma opção nova e **não altera nenhuma condição das entregas no Brasil** |
 
 ---

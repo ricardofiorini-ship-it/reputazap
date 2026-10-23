@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<script src="/consent.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Divulgue e ganhe — StarTouch</title>
+<meta name="description" content="Divulgue a StarTouch e ganhe 10% de cada venda feita pelo seu link. Pagamento por PIX."/>
+<link rel="canonical" href="https://startouch.com.br/indique"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  :root{--azul:#1A73E8;--azul-esc:#1A5FB4;--tinta:#202124;--cinza:#5F6368;--linha:#E3E8ED;--fundo:#F8F9FA;--verde:#137333;--verde-claro:#E6F4EA;--amarelo:#FFF8E1;--amarelo-tinta:#8A5A00}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--fundo);color:var(--tinta);line-height:1.55}
+  a{color:var(--azul-esc)}
+  .topo{background:#fff;border-bottom:1px solid var(--linha)}
+  .topo .in{max-width:880px;margin:0 auto;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+  .logo{font-weight:800;font-size:18px;color:var(--tinta);text-decoration:none}
+  .wrap{max-width:880px;margin:0 auto;padding:28px 16px 80px}
+  .hero{background:linear-gradient(135deg,#1A73E8,#1557B0);color:#fff;border-radius:18px;padding:30px 24px;margin-bottom:20px}
+  .hero .tag{display:inline-block;background:rgba(255,255,255,.18);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px}
+  .hero h1{font-size:clamp(26px,5vw,36px);line-height:1.15;letter-spacing:-.02em;margin-bottom:10px}
+  .hero p{font-size:16px;opacity:.92;max-width:560px}
+  .card{background:#fff;border:1px solid var(--linha);border-radius:14px;padding:20px;margin-bottom:16px}
+  .card h2{font-size:18px;margin-bottom:12px}
+  .passos{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+  .passo{background:#fff;border:1px solid var(--linha);border-radius:14px;padding:18px}
+  .passo .n{width:30px;height:30px;border-radius:50%;background:#E8F0FE;color:var(--azul);font-weight:800;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .passo b{display:block;margin-bottom:4px}
+  .passo span{font-size:14px;color:var(--cinza)}
+  .btn{display:inline-block;background:var(--azul);color:#fff;border:none;border-radius:10px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;font-family:inherit}
+  .btn.sec{background:#fff;color:var(--azul-esc);border:1px solid #c6d4ea}
+  .btn.zap{background:#1E8E3E}
+  .acoes{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .link-box{display:flex;gap:8px;flex-wrap:wrap}
+  .link-box input{flex:1 1 260px;min-width:0;padding:12px 14px;border:1px solid #c6d4ea;border-radius:10px;font-size:15px;font-family:ui-monospace,monospace;background:#F8FAFF}
+  .totais{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .tot{border:1px solid var(--linha);border-radius:12px;padding:14px}
+  .tot small{display:block;font-size:12px;color:var(--cinza);font-weight:600}
+  .tot strong{font-size:20px;font-variant-numeric:tabular-nums}
+  .tot.lib strong{color:var(--verde)}
+  @media(max-width:520px){.totais{grid-template-columns:1fr}}
+  label{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}
+  .campo{width:100%;padding:11px 13px;border:1px solid #c6d4ea;border-radius:10px;font-size:15px;font-family:inherit}
+  .aceite{display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:13.5px;color:var(--cinza);margin-top:12px}
+  .aceite input{margin-top:3px}
+  .ok{color:var(--verde);font-size:14px;margin-top:8px;font-weight:600}
+  .erro{color:#B42318;font-size:14px;margin-top:8px}
+  .aviso{background:var(--amarelo);color:var(--amarelo-tinta);border-radius:10px;padding:10px 14px;font-size:14px;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid #eef1f4}
+  th{font-size:12px;color:var(--cinza);font-weight:600}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .sit{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:#F1F5F9;color:#475569}
+  .sit.liberada{background:var(--verde-claro);color:var(--verde)}
+  .sit.aguardando{background:#EAF1FA;color:var(--azul-esc)}
+  .sit.paga{background:#E4F2EC;color:#15654A}
+  .regras li{margin:0 0 8px 18px;font-size:14.5px;color:#3D4A57}
+  .vazio{color:var(--cinza);font-size:14px}
+  .sub{color:var(--cinza);font-size:14px;margin:-6px 0 12px}
+</style>
+</head>
+<body>
+<header class="topo"><div class="in">
+  <a class="logo" href="/">StarTouch</a>
+  <a href="/kit">Loja</a>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <span class="tag">Divulgue e ganhe</span>
+    <h1>Indique a StarTouch e ganhe 10% de cada venda</h1>
+    <p>Você compartilha o seu link. Quem comprar o cartão ou a placa por ele gera uma comissão pra você, paga por PIX.</p>
+  </section>
+
+  <!-- Quem ainda não entrou -->
+  <section id="fora" hidden>
+    <div class="passos">
+      <div class="passo"><div class="n">1</div><b>Pegue seu link</b><span>Entre na sua conta StarTouch. O link é seu e não muda.</span></div>
+      <div class="passo"><div class="n">2</div><b>Compartilhe</b><span>Mande pra clientes, colegas e grupos: quem tem comércio e quer mais avaliações no Google.</span></div>
+      <div class="passo"><div class="n">3</div><b>Receba 10%</b><span>Cada compra pelo seu link vira comissão, paga por PIX todo mês.</span></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2>Pegue o seu link</h2>
+      <p class="sub" style="margin:0">Qualquer conta StarTouch participa, inclusive a gratuita.</p>
+      <div class="acoes">
+        <a class="btn" href="/app?next=/indique">Entrar e pegar meu link</a>
+        <a class="btn sec" href="/ativar?from=indique&next=/indique">Criar conta grátis</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quem já entrou -->
+  <section id="dentro" hidden>
+    <div class="card">
+      <h2>Seu link de indicação</h2>
+      <div class="link-box">
+        <input id="link" readonly aria-label="Seu link de indicação"/>
+        <button class="btn" id="copiar" type="button">Copiar</button>
+      </div>
+      <div class="acoes">
+        <a class="btn zap" id="zap" target="_blank" rel="noopener">Compartilhar no WhatsApp</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Suas comissões</h2>
+      <div class="totais">
+        <div class="tot"><small>Aguardando 7 dias</small><strong id="tAguardando">—</strong></div>
+        <div class="tot lib"><small>Liberado pra receber</small><strong id="tLiberada">—</strong></div>
+        <div class="tot"><small>Já pago</small><strong id="tPaga">—</strong></div>
+      </div>
+      <div id="vendas" style="margin-top:16px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Onde você recebe</h2>
+      <div id="pixAviso" class="aviso" hidden>Cadastre sua chave PIX pra gente conseguir te pagar.</div>
+      <form id="pixForm">
+        <label for="pixChave">Chave PIX</label>
+        <input class="campo" id="pixChave" maxlength="140" placeholder="CPF, e-mail, telefone ou chave aleatória" autocomplete="off"/>
+        <label for="pixTitular">Nome do titular da chave</label>
+        <input class="campo" id="pixTitular" maxlength="120" autocomplete="name"/>
+        <label class="aceite"><input type="checkbox" id="pixAceite"/> <span>Li e aceito as regras do programa abaixo e a cláusula "Divulgue e ganhe" dos <a href="/termos" target="_blank">Termos de Uso</a>.</span></label>
+        <div class="acoes"><button class="btn" type="submit">Salvar chave PIX</button></div>
+        <p id="pixMsg"></p>
+      </form>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Regras do programa</h2>
+    <ul class="regras">
+      <li>A comissão é de <strong>10% do valor pago pelos produtos</strong>, sem o frete e já com descontos, em compras feitas no site startouch.com.br pelo seu link.</li>
+      <li>Vale a compra feita em até <strong>30 dias</strong> depois do clique no seu link, no mesmo aparelho e navegador. Se a pessoa clicar no link de outra pessoa depois, vale o último.</li>
+      <li>A comissão é liberada <strong>7 dias depois do pagamento</strong>, prazo que o comprador tem pra desistir. Venda cancelada ou estornada não gera comissão.</li>
+      <li>O pagamento é por <strong>PIX, uma vez por mês</strong>, quando o valor liberado chegar a <strong>R$ 50</strong>. Abaixo disso, o saldo acumula pro mês seguinte.</li>
+      <li>Compras pelo seu próprio link não geram comissão. Vendas no Mercado Livre e em outros marketplaces, na revenda e da Trybo ficam de fora.</li>
+      <li>Não vale anúncio pago usando o nome StarTouch, envio de mensagens em massa sem pedido (spam) nem promessa que a StarTouch não faz. Fraude cancela as comissões.</li>
+      <li>Você não vê quem comprou: só a data e o valor de cada venda.</li>
+      <li>A StarTouch pode mudar ou encerrar o programa avisando antes. Comissão já liberada é sempre paga.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+// Sessão: mesma regra das telas de admin e do src/lib/sessao.js (o token vence
+// em 1h; renova com o refresh, uma vez por vez). Copiado, não importado:
+// esta página é HTML estático.
+const K_TOKEN = "rz_token", K_REFRESH = "rz_refresh", K_EXP = "rz_token_exp";
+const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const gravar = (k,v) => { try { v==null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch {} };
+let renovando = null;
+async function renovar(){
+  const refresh = ler(K_REFRESH);
+  if(!refresh) return null;
+  if(renovando) return renovando;
+  renovando = (async () => {
+    try{
+      const r = await fetch("/api/login",{ method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ action:"refresh", refresh_token: refresh }) });
+      const d = await r.json().catch(()=>null);
+      if(!r.ok || !d?.token){ gravar(K_TOKEN,null); gravar(K_REFRESH,null); gravar(K_EXP,null); return null; }
+      gravar(K_TOKEN,d.token); if(d.refresh_token) gravar(K_REFRESH,d.refresh_token); if(d.expires_at) gravar(K_EXP,String(d.expires_at));
+      return d.token;
+    }catch{ return null; } finally{ renovando = null; }
+  })();
+  return renovando;
+}
+async function comSessao(url, opcoes = {}){
+  let t = ler(K_TOKEN);
+  if(!t) return { semSessao:true };
+  const exp = parseInt(ler(K_EXP) || "0", 10);
+  if(exp && exp - 60 < Math.floor(Date.now()/1000)) t = (await renovar()) || t;
+  const monta = tk => ({ ...opcoes, headers:{ ...(opcoes.headers||{}), Authorization:"Bearer "+tk } });
+  let r = await fetch(url, monta(t));
+  if(r.status === 401){ const novo = await renovar(); if(!novo) return { semSessao:true }; r = await fetch(url, monta(novo)); }
+  return { resposta:r };
+}
+
+const brl = c => (Number(c||0)/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const dia = iso => iso ? new Date(iso).toLocaleDateString("pt-BR") : "—";
+const ROTULO = { aguardando:"Aguardando", liberada:"Liberada", paga:"Paga", cancelada:"Cancelada", propria:"Compra própria" };
+
+function mostrarFora(){ document.getElementById("fora").hidden = false; document.getElementById("dentro").hidden = true; }
+
+async function carregar(){
+  const { semSessao, resposta } = await comSessao("/api/indicacao?action=minha");
+  if(semSessao){ mostrarFora(); return; }
+  const d = await resposta.json().catch(()=>({}));
+  if(!resposta.ok){ mostrarFora(); return; }
+  document.getElementById("dentro").hidden = false;
+
+  document.getElementById("link").value = d.link;
+  const msg = `Conhece a StarTouch? É um cartão/placa que o cliente encosta o celular e já cai na tela de avaliar seu negócio no Google. Compra por aqui: ${d.link}`;
+  document.getElementById("zap").href = "https://wa.me/?text=" + encodeURIComponent(msg);
+
+  document.getElementById("tAguardando").textContent = brl(d.totais.aguardando);
+  document.getElementById("tLiberada").textContent = brl(d.totais.liberada);
+  document.getElementById("tPaga").textContent = brl(d.totais.paga);
+
+  const v = document.getElementById("vendas");
+  if(!d.vendas.length){
+    v.innerHTML = '<p class="vazio">Nenhuma venda pelo seu link ainda. Compartilhe e acompanhe aqui.</p>';
+  } else {
+    v.innerHTML = `<table><thead><tr><th>Data</th><th class="num">Produtos</th><th class="num">Comissão</th><th>Situação</th></tr></thead><tbody>` +
+      d.vendas.map(x => `<tr><td>${dia(x.data)}</td><td class="num">${brl(x.produtos_centavos)}</td><td class="num">${brl(x.comissao_centavos)}</td>` +
+        `<td><span class="sit ${x.situacao}">${ROTULO[x.situacao]||x.situacao}</span>${x.situacao==="aguardando"?`<br/><small style="color:#5F6368">libera ${dia(x.libera_em)}</small>`:""}</td></tr>`).join("") +
+      `</tbody></table>`;
+  }
+
+  if(d.pix){
+    document.getElementById("pixChave").value = d.pix.chave || "";
+    document.getElementById("pixTitular").value = d.pix.titular || "";
+    document.getElementById("pixAceite").checked = true;
+  } else {
+    document.getElementById("pixAviso").hidden = false;
+  }
+}
+
+document.getElementById("copiar").addEventListener("click", async () => {
+  const i = document.getElementById("link");
+  try { await navigator.clipboard.writeText(i.value); } catch { i.select(); document.execCommand("copy"); }
+  const b = document.getElementById("copiar"); b.textContent = "Copiado ✓"; setTimeout(()=>b.textContent="Copiar", 2000);
+});
+
+document.getElementById("pixForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const m = document.getElementById("pixMsg"); m.className = ""; m.textContent = "";
+  const corpo = { chave: document.getElementById("pixChave").value, titular: document.getElementById("pixTitular").value,
+                  aceite: document.getElementById("pixAceite").checked };
+  if(!corpo.aceite){ m.className="erro"; m.textContent="Marque que aceita as regras do programa."; return; }
+  const { semSessao, resposta } = await comSessao("/api/indicacao?action=pix", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(corpo) });
+  if(semSessao){ mostrarFora(); return; }
+  const d = await resposta.json().catch(()=>({}));
+  if(!resposta.ok){ m.className="erro"; m.textContent = d.error || "Não consegui salvar."; return; }
+  m.className="ok"; m.textContent="Chave PIX salva ✓";
+  document.getElementById("pixAviso").hidden = true;
+});
+
+carregar();
+</script>
+</body>
+</html>
