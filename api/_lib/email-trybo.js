@@ -23,13 +23,13 @@ function esc(v) {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-// Remetente com o nome da Trybo e o MESMO endereço da StarTouch: o domínio
-// verificado no Resend é startouch.com.br, e endereço de outro domínio seria
-// recusado. O nome é o que o cliente lê na caixa de entrada.
-export function remetenteTrybo(from = process.env.RESEND_FROM || "") {
-  const m = String(from).match(/<([^>]+)>/);
-  const endereco = m ? m[1] : (String(from).includes("@") ? String(from).trim() : null);
-  return endereco ? `Trybo <${endereco}>` : null;
+// Remetente da Trybo: endereço do PRÓPRIO domínio desde 23/10/2026, quando
+// trybo.co foi verificado no Resend (só envio; DNS na Hostinger, sem MX no @
+// — mesma regra da StarTouch). A resposta do cliente continua indo pra caixa
+// do REPLY_TO (email-sender.js): trybo.co não recebe e-mail.
+// TRYBO_FROM na Vercel troca o endereço sem deploy de código.
+export function remetenteTrybo() {
+  return (process.env.TRYBO_FROM || "").trim() || "Trybo <ola@trybo.co>";
 }
 
 function casca({ previa, titulo, corpo, botao, link, rodape }) {
