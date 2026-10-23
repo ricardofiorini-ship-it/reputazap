@@ -160,6 +160,9 @@ async function handleFunnel(req, res) {
   let i = 0;
   for (const r of (data || [])) {
     if (!sets[r.step]) continue;
+    // Cadastro da Trybo e da página de indicação não é o fim DESTE funil (o do
+    // visitante da StarTouch). Contá-los inflava o "Concluiu o cadastro".
+    if (r.step === "signup_complete" && ["trybo", "indique"].includes(r.meta?.source)) continue;
     // Sem anon_id (ex: signup_complete server-side) → conta cada evento.
     sets[r.step].add(r.anon_id || `evt-${i++}`);
   }
@@ -671,46 +674,55 @@ async function handleStats(req, res) {
   if (usersErr) return res.status(500).json({ error: usersErr.message });
   const totalClients = usersList?.users?.length || 0;
 
-  // Total de negócios
-  const { count: totalBusinesses } = await supabase
+  // Negócios: quantos, por plano e POR PRODUTO (23/10/2026). Conta só da
+  // Trybo = negócio sem place_id (a regra do CLAUDE.md); antes ela entrava em
+  // "Negócios cadastrados" e em "Total clientes" como se fosse da StarTouch.
+  const { data: bizData } = await supabase
     .from("businesses")
-    .select("*", { count: "exact", head: true });
-
-  // Negócios por plano
-  const { data: plansData } = await supabase
-    .from("businesses")
-    .select("plan");
-  const planCounts = (plansData || []).reduce((acc, b) => {
+    .select("user_id, plan, place_id");
+  const totalBusinesses = (bizData || []).length;
+  const planCounts = (bizData || []).reduce((acc, b) => {
     const p = b.plan || "free";
     acc[p] = (acc[p] || 0) + 1;
     return acc;
   }, {});
+  const produtoDoUser = new Map((bizData || []).map((b) => [b.user_id, b.place_id ? "startouch" : "trybo"]));
 
-  // Total de placas e por status
-  // linha-ok: painel do admin vê o estoque inteiro, das duas linhas
-  const { data: platesData } = await supabase
-    .from("plates")
-    .select("status");
-  const plateCounts = (platesData || []).reduce((acc, p) => {
-    acc[p.status] = (acc[p.status] || 0) + 1;
-    acc.total = (acc.total || 0) + 1;
-    return acc;
-  }, {});
-
-  // Ativações últimas 7 dias
-  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  // linha-ok: painel do admin — ativações de todas as linhas
-  const { count: activations7d } = await supabase
-    .from("plates")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "active")
-    .gte("activated_at", since);
-
-  // Cadastros últimos 7 dias (filtro no array — auth admin não tem filtro de data)
+  // Dispositivos por status e por linha. EM PÁGINAS: o Supabase corta em 1000
+  // calado, e com mais de 2 mil dispositivos este cartão mostrava metade.
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const signups7d = (usersList?.users || []).filter(u => {
-    return new Date(u.created_at).getTime() >= sevenDaysAgo;
-  }).length;
+  const plateCounts = { total: 0 };
+  const plateCountsPorLinha = { startouch: { total: 0 }, trybo: { total: 0 } };
+  const activations7dPorLinha = { startouch: 0, trybo: 0 };
+  for (let de = 0; de < 100000; de += 1000) {
+    // linha-ok: painel do admin vê o estoque inteiro, separado por linha aqui
+    const { data: pagina, error: pErr } = await supabase
+      .from("plates")
+      .select("status, linha, activated_at")
+      .order("code", { ascending: true })
+      .range(de, de + 999);
+    if (pErr) return res.status(500).json({ error: pErr.message });
+    for (const p of pagina || []) {
+      const l = p.linha === "social" ? "trybo" : "startouch";
+      plateCounts[p.status] = (plateCounts[p.status] || 0) + 1;
+      plateCounts.total++;
+      plateCountsPorLinha[l][p.status] = (plateCountsPorLinha[l][p.status] || 0) + 1;
+      plateCountsPorLinha[l].total++;
+      if (p.status === "active" && p.activated_at && Date.parse(p.activated_at) >= sevenDaysAgo) activations7dPorLinha[l]++;
+    }
+    if (!pagina || pagina.length < 1000) break;
+  }
+  const activations7d = activations7dPorLinha.startouch + activations7dPorLinha.trybo;
+
+  // Cadastros: total e últimos 7 dias, separados por produto.
+  const clientesPorProduto = { startouch: 0, trybo: 0, sem_negocio: 0 };
+  const signups7dPorProduto = { startouch: 0, trybo: 0, sem_negocio: 0 };
+  let signups7d = 0;
+  for (const u of usersList?.users || []) {
+    const prod = produtoDoUser.get(u.id) || "sem_negocio";
+    clientesPorProduto[prod]++;
+    if (new Date(u.created_at).getTime() >= sevenDaysAgo) { signups7d++; signups7dPorProduto[prod]++; }
+  }
 
   // Total de feedbacks (avaliações da peneira Pro)
   const { count: totalFeedbacks } = await supabase
@@ -726,7 +738,11 @@ async function handleStats(req, res) {
       planCounts,
       plateCounts,
       activations7d,
-      totalFeedbacks
+      totalFeedbacks,
+      clientesPorProduto,
+      signups7dPorProduto,
+      plateCountsPorLinha,
+      activations7dPorLinha
     }
   });
 }
@@ -756,7 +772,7 @@ async function handleListClients(req, res) {
     // linha-ok: lista de clientes do admin mostra todos os dispositivos da conta
     const { data: pagina, error: pErr } = await supabase
       .from("plates")
-      .select("business_id, status, code, product_type, total_taps, last_tapped_at, activated_at, channel_name")
+      .select("business_id, status, code, product_type, total_taps, last_tapped_at, activated_at, channel_name, linha")
       .not("business_id", "is", null)
       .order("code", { ascending: true })
       .range(de, de + 999);
@@ -861,7 +877,8 @@ async function handleListClients(req, res) {
             channel_name: p.channel_name,
             total_taps: p.total_taps,
             last_tapped_at: p.last_tapped_at,
-            activated_at: p.activated_at
+            activated_at: p.activated_at,
+            linha: p.linha
           }))
         },
         // Google: nota atual + inicial (do primeiro e ultimo snapshot)

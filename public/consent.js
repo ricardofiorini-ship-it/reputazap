@@ -93,7 +93,7 @@
       var q = new URLSearchParams(location.search);
       enviarCatraca({
         path: "/saida/" + String(nome).toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 30),
-        source: q.get("utm_source") || location.pathname,
+        source: q.get("utm_source") || PREFIXO_SITE + location.pathname,
         medium: q.get("utm_medium") || "",
         campaign: q.get("utm_campaign") || ""
       });
@@ -107,6 +107,12 @@
     if (el) contarSaida(el.getAttribute("data-saida"));
   }, true);
 
+  // TRYBO (23/10/2026): o trybo.co é servido pelo mesmo projeto e carrega este
+  // mesmo arquivo. Sem prefixo, a home da Trybo ("/") caía no balde da landing
+  // da StarTouch e /ativar no /ativar dela. Com "/trybo" na frente, as duas
+  // marcas ficam separadas no /admin/visitas sem coluna nova.
+  var PREFIXO_SITE = /(^|\.)trybo\.co$/.test(location.hostname) ? "/trybo" : "";
+
   function contarVisita() {
     try {
       var q = new URLSearchParams(location.search);
@@ -114,7 +120,7 @@
       try { ref = document.referrer ? new URL(document.referrer).hostname : ""; } catch (e) {}
       var externo = ref && ref !== location.hostname;
       enviarCatraca({
-        path: location.pathname,
+        path: PREFIXO_SITE + location.pathname,
         // Sem UTM, a origem é o site que mandou. O navegador interno do
         // Instagram costuma não mandar referrer nenhum — esse caso cai em
         // "(direto)" no servidor, e é uma limitação conhecida, não um bug.

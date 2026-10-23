@@ -85,7 +85,10 @@ export default async function handler(req, res) {
 
     // Fim do funil do convidado: cadastro concluído. Server-side pra não depender
     // do front (best-effort; anon_id vem do cliente se enviado, senão conta o evento).
-    const funnelPromise = logFunnel({ step: "signup_complete", anon_id, meta: { source: "register" } });
+    // A origem vai no evento pra o funil do convidado da StarTouch não contar
+    // cadastro que veio da Trybo ou da página de indicação (23/10/2026).
+    const origemCadastro = ehTrybo ? "trybo" : produto === "indique" ? "indique" : "register";
+    const funnelPromise = logFunnel({ step: "signup_complete", anon_id, meta: { source: origemCadastro } });
 
     // Retorna token direto se a sessão foi criada
     const token = data.session?.access_token || null;

@@ -132,7 +132,11 @@ async function authUser(req) {
 // do device e da aba. A conta viva do Google Ads (Star Touch) já importa
 // o evento `purchase` do GA4, então isso alimenta GA4 + Ads de uma vez.
 // Requer GA4_API_SECRET (chave do Measurement Protocol, criada no GA4).
-async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents, items, origem = "mp", shippingCents = 0 }) {
+// `marca` (23/10/2026): Trybo e StarTouch vendem pelo mesmo GA4 e pela mesma
+// conversão do Ads. Em vez de uma segunda tag (que exigiria revisar a Política
+// e o banner), cada venda sai com `affiliation` e `item_brand` — o GA4 separa
+// as duas marcas em qualquer relatório filtrando por esses campos.
+async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents, items, origem = "mp", shippingCents = 0, marca = "StarTouch" }) {
   const measurementId = process.env.GA4_MEASUREMENT_ID || "G-HCLV0Z640L";
   const apiSecret = process.env.GA4_API_SECRET;
   if (!apiSecret) {
@@ -147,6 +151,7 @@ async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents,
   const cid = (clientId && String(clientId).trim()) || `${origem}.${transactionId}`;
   const params = {
     transaction_id: String(transactionId),
+    affiliation: marca,
     currency: "BRL",
     value: Number(((valueCents || 0) / 100).toFixed(2)),
     engagement_time_msec: 1,
@@ -155,6 +160,7 @@ async function sendGa4Purchase({ clientId, sessionId, transactionId, valueCents,
       item_name: String(it.name || it.item_name || ""),
       quantity: Number(it.qty || it.quantity || 1),
       price: Number(it.unit_price ?? it.price ?? 0),
+      item_brand: marca,
     })),
   };
   if (sessionId) params.session_id = String(sessionId);
@@ -2048,7 +2054,7 @@ async function concluiDesbloqueioTrybo(session) {
   await sendGa4Purchase({
     clientId: m.ga_client_id, sessionId: m.ga_session_id,
     transactionId: pagamentoId, valueCents: total,
-    items: [TRYBO_DESTINOS_ITEM], origem: "stripe",
+    items: [TRYBO_DESTINOS_ITEM], origem: "stripe", marca: "Trybo",
   });
 }
 
@@ -2577,6 +2583,7 @@ async function concluiPedidoStripe(session) {
     items: order.items,
     origem: "stripe",
     shippingCents: Number(order?.shipping?.frete?.centavos || 0),
+    marca: extRef.startsWith("kit_trybo") ? "Trybo" : "StarTouch",
   });
 }
 

@@ -308,7 +308,8 @@ document.getElementById("fCriar").addEventListener("submit", (e) => {
     name: document.getElementById("cNome").value.trim(),
     email: document.getElementById("cEmail").value.trim(),
     phone: document.getElementById("cZap").value.trim(),
-    password: document.getElementById("cSenha").value
+    password: document.getElementById("cSenha").value,
+    produto: "indique"
   }, "cMsg", e.submitter || e.target.querySelector("button"));
 });
 document.getElementById("fEntrar").addEventListener("submit", (e) => {

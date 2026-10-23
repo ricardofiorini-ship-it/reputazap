@@ -59,6 +59,11 @@ const ORIGENS = new Set([
   "www.startouch.com.br",
   "reputazap.vercel.app",
   "localhost",
+  // Trybo (23/10/2026): mesmo projeto, mesma catraca. As páginas dela chegam
+  // com o prefixo /trybo (ver consent.js), então não se misturam com as da
+  // StarTouch no /admin/visitas.
+  "trybo.co",
+  "www.trybo.co",
 ]);
 
 function hostDe(valor) {

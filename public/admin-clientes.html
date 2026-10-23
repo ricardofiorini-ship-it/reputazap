@@ -361,6 +361,12 @@
       <option value="nunca">Nunca voltaram</option>
       <option value="nobiz">Sem negócio salvo</option>
     </select>
+    <select id="filter-produto">
+      <option value="">StarTouch e Trybo</option>
+      <option value="startouch">Só StarTouch</option>
+      <option value="trybo">Só Trybo</option>
+      <option value="ambos">Usa os dois</option>
+    </select>
     <select id="filter-status">
       <option value="">Todos status</option>
       <option value="active">Tem placa ativa</option>
@@ -554,11 +560,17 @@ function renderStats(stats) {
   const planPro = (stats.planCounts && stats.planCounts.pro) || 0;
   const platesActive = (stats.plateCounts && stats.plateCounts.active) || 0;
   const platesStock = (stats.plateCounts && stats.plateCounts.in_stock) || 0;
+  // Separação por produto (23/10/2026): conta só da Trybo = negócio sem ficha
+  // no Google. Antes tudo somava como se fosse StarTouch.
+  const cp = stats.clientesPorProduto || {}, sp = stats.signups7dPorProduto || {};
+  const pl = stats.plateCountsPorLinha || { startouch: {}, trybo: {} };
+  const at = stats.activations7dPorLinha || {};
   grid.innerHTML = `
     <div class="stat-card">
       <div class="label">Total clientes</div>
       <div class="value">${stats.totalClients}</div>
-      <div class="sub">+${stats.signups7d} nos últimos 7 dias</div>
+      <div class="sub">${cp.startouch || 0} StarTouch · ${cp.trybo || 0} Trybo · ${cp.sem_negocio || 0} sem negócio</div>
+      <div class="sub">+${stats.signups7d} em 7 dias (${sp.startouch || 0} ST · ${sp.trybo || 0} Trybo · ${sp.sem_negocio || 0} sem negócio)</div>
     </div>
     <div class="stat-card">
       <div class="label">Negócios cadastrados</div>
@@ -568,12 +580,13 @@ function renderStats(stats) {
     <div class="stat-card ${platesActive > 0 ? 'is-positive' : ''}">
       <div class="label">Dispositivos ativos</div>
       <div class="value">${platesActive}</div>
-      <div class="sub">+${stats.activations7d || 0} nos últimos 7 dias</div>
+      <div class="sub">${pl.startouch.active || 0} StarTouch · ${pl.trybo.active || 0} Trybo</div>
+      <div class="sub">+${stats.activations7d || 0} em 7 dias (${at.startouch || 0} ST · ${at.trybo || 0} Trybo)</div>
     </div>
     <div class="stat-card ${platesStock > 0 ? 'is-warning' : ''}">
       <div class="label">Em estoque</div>
       <div class="value">${platesStock}</div>
-      <div class="sub">Aguardando ativação</div>
+      <div class="sub">${pl.startouch.in_stock || 0} StarTouch · ${pl.trybo.in_stock || 0} Trybo, aguardando ativação</div>
     </div>
     <div class="stat-card">
       <div class="label">Feedbacks privados (Peneira)</div>
@@ -716,6 +729,15 @@ function filtrarPorUso(chave) {
   document.querySelector(".toolbar")?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
+// Qual produto o cliente usa. Trybo = negócio sem ficha no Google; quem tem
+// ficha E cartão Trybo usa os dois. Sem negócio não é nenhum dos dois ainda.
+function produtoDoCliente(c) {
+  if (!c.business) return "";
+  if (!c.business.place_id) return "trybo";
+  const temTrybo = (c.plates?.list || []).some(p => p.linha === "social");
+  return temTrybo ? "ambos" : "startouch";
+}
+
 function applyFiltersAndRender() {
   const q = document.getElementById("q").value.trim().toLowerCase();
   const plan = document.getElementById("filter-plan").value;
@@ -736,6 +758,9 @@ function applyFiltersAndRender() {
   }
   // Filtro plano
   if (plan) list = list.filter(c => (c.business?.plan || "free") === plan);
+  // Filtro produto
+  const produto = document.getElementById("filter-produto").value;
+  if (produto) list = list.filter(c => produtoDoCliente(c) === produto);
   // Filtro status
   if (status === "active")  list = list.filter(c => c.plates.active > 0);
   if (status === "zero")    list = list.filter(c => c.plates.active === 0 && c.business);
@@ -861,7 +886,7 @@ function applyFiltersAndRender() {
         <td>${c.phone ? escapeHtml(c.phone) : '<span class="muted">—</span>'}</td>
         <td class="cell-biz">
           ${c.business
-            ? `<strong>${escapeHtml(c.business.name || "(sem nome)")}</strong>
+            ? `<strong>${escapeHtml(c.business.name || "(sem nome)")}</strong>${produtoDoCliente(c) === "trybo" ? ' <span style="font-size:10.5px;font-weight:700;background:#151515;color:#fff;border-radius:6px;padding:1px 6px;">TRYBO</span>' : produtoDoCliente(c) === "ambos" ? ' <span style="font-size:10.5px;font-weight:700;background:#EDE7FB;color:#5B3FC4;border-radius:6px;padding:1px 6px;">+ TRYBO</span>' : ""}
                <div class="sub">${escapeHtml((c.business.address || "").slice(0, 50))}${(c.business.address || "").length > 50 ? "…" : ""}</div>`
             : '<span class="muted">não cadastrado</span>'}
         </td>
@@ -1046,7 +1071,7 @@ function showToast(msg) {
 // ────────────────────────────────────────────────────────────
 // FILTROS / EVENTOS
 // ────────────────────────────────────────────────────────────
-["q", "filter-plan", "filter-status", "filter-uso", "sort"].forEach(id => {
+["q", "filter-plan", "filter-produto", "filter-status", "filter-uso", "sort"].forEach(id => {
   document.getElementById(id).addEventListener("input", applyFiltersAndRender);
   document.getElementById(id).addEventListener("change", applyFiltersAndRender);
 });
