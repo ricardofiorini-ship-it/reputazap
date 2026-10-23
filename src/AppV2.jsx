@@ -252,7 +252,7 @@ const MOCK = {
       img:'/img/kit/placa-g-v3-1-800.webp',
       images:['/img/kit/placa-g-v3-1-800.webp','/img/kit/placa-tamanhos-800.webp','/img/kit/placa-g-v3-3-800.webp','/placa-g-4.png','/placa-g-5.png'],
       desc:'PS preto de 2 mm com NFC + QR Code. O cliente toca o celular e avalia no Google em segundos.',
-      specs:['PS preto 2 mm com base inclinada','21 × 15 cm (display de balcão)','NFC + QR Code de fallback impresso','Sem app — o cliente não instala nada'],
+      specs:['PS preto 2 mm com base inclinada','15 × 20 cm (display de balcão)','NFC + QR Code de fallback impresso','Sem app — o cliente não instala nada'],
       buyUrl:'/kit?add=placa-balcao'
     },
     {

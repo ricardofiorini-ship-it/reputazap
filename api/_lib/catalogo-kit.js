@@ -86,9 +86,9 @@ export const KIT_CATALOG = {
 export const LOGISTICA = {
   "placa-balcao": {
     peso: 0.500, comprimento: 24, largura: 18, altura: 4,
-    // 21 x 15 cm publicados no site; 0,5 cm e a espessura empilhada (chapa de
-    // PS 2 mm + a peca da base).
-    bruto: { comprimento: 21, largura: 15, altura: 0.5 }
+    // 15 x 20 cm (largura x altura; era 15 x 21 ate 23/10/2026); 0,5 cm e a
+    // espessura empilhada (chapa de PS 2 mm + a peca da base).
+    bruto: { comprimento: 20, largura: 15, altura: 0.5 }
   },
   "placa-mesa": {
     peso: 0.350, comprimento: 18, largura: 16, altura: 4,

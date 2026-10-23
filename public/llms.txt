@@ -39,7 +39,7 @@ O cliente final aproxima o celular do dispositivo NFC (placa, cartão ou pulseir
 
 - **Placa NFC de Balcão** — para caixa, recepção ou bancada. Vista pelo cliente na saída.
 - **Cartão de Avaliação Google NFC** — PVC fosco, 8,5 × 5,4 cm (tamanho de cartão de crédito), NFC + QR Code. Fica com o atendente. R$ 39,90. Página: https://startouch.com.br/cartao-avaliacao-google-nfc
-- **Placa de Balcão M** — 10 × 15 cm, R$ 49,90. **Placa de Balcão G** — 21 × 15 cm, R$ 79,90.
+- **Placa de Balcão M** — 10 × 15 cm, R$ 49,90. **Placa de Balcão G** — 15 × 20 cm, R$ 79,90.
 - **Pulseira NFC** — silicone, usada no pulso por atendentes ou em eventos (esgotada no momento).
 
 Todos os dispositivos apontam para o mesmo destino configurável e são gerenciados na mesma conta. Sem custo recorrente pelo hardware.
