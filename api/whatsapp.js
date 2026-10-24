@@ -31,6 +31,7 @@ import { responder, temConfiguracaoIA } from "./_lib/whatsapp-agente.js";
 import { sendRawEmail } from "./_lib/email-sender.js";
 import { cotaFrete } from "./_lib/frenet.js";
 import { KIT_CATALOG, diasDeProducao } from "./_lib/catalogo-kit.js";
+import { ehPedidoParaParar, criarModelos, situacaoModelos } from "./_lib/whatsapp-modelos.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -222,6 +223,15 @@ async function tratarMensagem(msg, nome) {
 
   if (process.env.WHATSAPP_BOT_DESLIGADO === "1") { console.log("[whatsapp] robô desligado — só registrou"); return; }
 
+  // PARAR: resposta fixa, sem IA. A linha gravada acima já é o registro —
+  // `pediuParar` lê dali e nenhum aviso automático sai mais pra este número.
+  if (ehPedidoParaParar(texto)) {
+    const resp = "Pronto, não te mando mais avisos automáticos por aqui. Se precisar de alguma coisa, é só escrever. 🙂";
+    const wamid = await enviarTexto(waId, resp);
+    await gravar({ wa_id: waId, direcao: "saida", wamid, texto: resp });
+    return;
+  }
+
   // Agrupa rajadas: só a última mensagem da rajada responde.
   await new Promise((ok) => setTimeout(ok, AGRUPAR_MS));
   const { data: ultima } = await supabase.from("whatsapp_mensagens").select("wamid")
@@ -375,6 +385,19 @@ async function processar(payload) {
 export default async function handler(req, res) {
   if (req.method === "GET") {
     const q = req.query || {};
+
+    // MODELOS dos avisos (Política 1.14): ?modelos=criar cadastra na Meta,
+    // ?modelos=ver mostra se já foram aprovados. Mesmo segredo do teste.
+    if (q.modelos !== undefined) {
+      const validos = [process.env.BROADCAST_SECRET, process.env.CRON_SECRET].map((v) => (v || "").trim()).filter(Boolean);
+      if (!validos.length || !validos.includes(String(q.secret || "").trim())) return res.status(404).end();
+      try {
+        if (q.modelos === "criar") return res.status(200).json({ criados: await criarModelos(), situacao: await situacaoModelos() });
+        return res.status(200).json({ situacao: await situacaoModelos() });
+      } catch (e) {
+        return res.status(500).json({ erro: e?.message || String(e) });
+      }
+    }
 
     // TESTE do assistente sem WhatsApp: /api/whatsapp?teste=<pergunta>&secret=<BROADCAST_SECRET>
     // Devolve a resposta que o robô daria. Não envia nada, não grava nada, e

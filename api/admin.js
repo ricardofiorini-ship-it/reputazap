@@ -28,6 +28,7 @@ import { remetenteTrybo, tryboPedidoAtualizadoEmail } from "./_lib/email-trybo.j
 import Stripe from "stripe";
 import { listarTodosUsuarios } from "./_lib/usuarios.js";
 import { responderPendente } from "./whatsapp.js";
+import { enviarAviso, primeiroNome } from "./_lib/whatsapp-modelos.js";
 
 // Lista de emails autorizados como admin (hardcoded)
 const ADMIN_EMAILS = new Set([
@@ -1550,6 +1551,9 @@ async function handlePedidoStatus(req, res, admin) {
     console.error(`[admin/pedidos] ${ref}: estado gravado, e-mail FALHOU:`, e?.message);
     aviso = { enviado: false, erro: e?.message || "falha no envio" };
   }
+  // WhatsApp, à parte do e-mail: só com consentimento, e uma falha aqui não
+  // muda o que a tela diz do e-mail.
+  aviso = { ...(aviso || {}), whatsapp: await avisaWhatsappDoPedido({ pedido, destino, rastreio }) };
 
   return res.json({ ok: true, pedido: data, aviso });
 }
@@ -1597,6 +1601,43 @@ async function avisaClienteDoPedido({ pedido, destino, rastreio, admin }) {
   if (r?.error) return { enviado: false, erro: r.error };
   if (r?.skipped) return { enviado: false, motivo: r.reason };
   return { enviado: true, para: to };
+}
+
+/**
+ * Aviso pelo WhatsApp quando o pedido anda (Política 1.14). Postado manda o
+ * rastreio; entregue pergunta se precisa de ajuda pra ativar — e não manda
+ * pra quem já tem dispositivo ativo, que ativou sem precisar de nós.
+ * Trybo e revenda ficam de fora: o modelo fala de ativar StarTouch.
+ */
+async function avisaWhatsappDoPedido({ pedido, destino, rastreio }) {
+  try {
+    const ref = pedido.external_reference || "";
+    const c = pedido?.shipping || {};
+    if (ref.startsWith("kit_trybo") || ref.startsWith("revenda_") || c.tipo === "revenda") return null;
+    if (!c.whatsapp_optin) return { enviado: false, motivo: "sem consentimento" };
+    const nome = primeiroNome(c.nome || c.name);
+    if (destino === "postado") {
+      const codigo = String(rastreio || pedido.tracking_code || "").trim().toUpperCase();
+      if (!codigo) return { enviado: false, motivo: "sem código de rastreio" };
+      return await enviarAviso("st_pedido_postado", c, [nome, codigo, c.frete?.transportadora || "Correios"]);
+    }
+    if (destino === "entregue") {
+      if (pedido.user_id) {
+        const { data: biz } = await supabase.from("businesses").select("id").eq("user_id", pedido.user_id);
+        const ids = (biz || []).map((b) => b.id);
+        if (ids.length) {
+          const { count } = await soStartouch(supabase.from("plates").select("id", { count: "exact", head: true })
+            .in("business_id", ids).eq("status", "active"));
+          if (count > 0) return { enviado: false, motivo: "já tem dispositivo ativo" };
+        }
+      }
+      return await enviarAviso("st_ativacao", c, [nome]);
+    }
+    return null;
+  } catch (e) {
+    console.error("[admin/pedidos] aviso WhatsApp falhou:", e?.message || e);
+    return { enviado: false, erro: e?.message || String(e) };
+  }
 }
 
 // ── ASSINATURAS: quem está em teste do Pro, quem paga, quem saiu (07/10/2026) ──

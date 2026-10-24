@@ -21,6 +21,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sendTransactionalEmail } from "../_lib/email-sender.js";
 import { cupomVoltaEmail } from "../_lib/email-templates.js";
 import { geraCodigo, CUPOM_PCT, CUPOM_VALIDADE_DIAS } from "../_lib/cupom-volta.js";
+import { enviarAviso, primeiroNome } from "../_lib/whatsapp-modelos.js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
@@ -132,6 +133,14 @@ export default async function handler(req, res) {
       }
       s.enviados++;
       s.destinatarios.push({ ref: pedido.external_reference, codigo });
+
+      // Mesmo cupom pelo WhatsApp, só pra quem marcou a caixinha no checkout
+      // (Política 1.14). Falha aqui não desfaz o e-mail, que já saiu.
+      if (pedido.shipping?.whatsapp_optin && !String(pedido.external_reference || "").startsWith("kit_trybo")) {
+        const ate = new Date(oferta.expira).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" });
+        const w = await enviarAviso("st_carrinho", pedido.shipping, [primeiroNome(nome), String(CUPOM_PCT), codigo, ate]);
+        if (w.enviado) s.whatsapp = (s.whatsapp || 0) + 1;
+      }
       await new Promise((ok) => setTimeout(ok, 250));
     } catch (e) {
       s.erros.push({ ref: pedido.external_reference, erro: e?.message || String(e) });

@@ -467,6 +467,10 @@
           <input name="phone" required inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999"/>
         </label>
       </div>
+      <label class="co-optin" style="display:flex;gap:8px;align-items:flex-start;font-size:13px;font-weight:400;color:#475569;margin:-4px 0 10px;cursor:pointer;">
+        <input type="checkbox" name="whatsapp_optin" value="1" style="margin-top:2px;width:auto;"/>
+        <span>Quero receber pelo WhatsApp os avisos deste pedido (pagamento, envio e ajuda para ativar). Para parar, é só responder PARAR.</span>
+      </label>
       <div class="co-row">
         <label>País de entrega
           <select name="country" id="coPais" autocomplete="country"><option value="BR">Brasil</option></select>
@@ -1139,6 +1143,7 @@ coForm.addEventListener("submit", async (e) => {
     city: (fd.get("city") || "").trim(),
     state: ehExterior() ? (fd.get("state") || "").trim() : (fd.get("state") || "").trim().toUpperCase(),
     country: paisSel.value,
+    whatsapp_optin: fd.get("whatsapp_optin") === "1",
   };
 
   if (!customer.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customer.email)) {

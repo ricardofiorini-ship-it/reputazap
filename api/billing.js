@@ -19,6 +19,7 @@ import { cotaFrete } from "./_lib/frenet.js";
 import { cotaInternacional } from "./_lib/frete-internacional.js";
 import { soStartouch, logsSoStartouch } from "./_lib/linha.js";
 import { recalcularCartao } from "./_lib/trybo.js";
+import { enviarAviso, primeiroNome } from "./_lib/whatsapp-modelos.js";
 import { TRIAL_DIAS_PRO, precoDoPro, jaTeveAssinatura } from "./_lib/stripe-pro.js";
 
 export const config = { api: { bodyParser: false } };
@@ -1573,6 +1574,9 @@ function leClienteEntrega(customer = {}) {
     neighborhood: (customer.neighborhood || "").toString().trim(),
     city: (customer.city || "").toString().trim(),
     state: (customer.state || "").toString().trim(),
+    // Consentimento pros avisos pelo WhatsApp (Politica 1.14): a data em que
+    // marcou, ou nada. Sem isso _lib/whatsapp-modelos.js nao manda nada.
+    whatsapp_optin: customer.whatsapp_optin === true ? new Date().toISOString() : null,
   };
   if (!c.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)) {
     return { erro: "Informe nome e um email válido." };
@@ -1610,6 +1614,7 @@ function leClienteEntregaExterior(customer, pais) {
     city: (customer.city || "").toString().trim(),
     state: (customer.state || "").toString().trim().slice(0, 60),
     country: pais,
+    whatsapp_optin: customer.whatsapp_optin === true ? new Date().toISOString() : null,
   };
   if (!/^[A-Z]{2}$/.test(pais)) return { erro: "Escolha o país de entrega." };
   if (!c.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)) {
@@ -2552,6 +2557,15 @@ async function concluiPedidoStripe(session) {
     order, extRef,
     totalCentavos: session.amount_total != null ? session.amount_total : order.total_cents,
   });
+
+  // Aviso pelo WhatsApp, só pra quem marcou a caixinha no checkout. A Trybo
+  // fica de fora: o número e o modelo são da StarTouch.
+  if (!ehRevenda && !extRef.startsWith("kit_trybo")) {
+    const f = order.shipping?.frete || {};
+    const prazo = f.prazoTotalDias || f.prazoDias;
+    await enviarAviso("st_pedido_pago", order.shipping,
+      [primeiroNome(order.shipping?.name), prazo ? String(prazo) : "poucos"]);
+  }
 
   if (ehRevenda) {
     await notifyAdminRevendaPaga({
