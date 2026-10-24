@@ -142,7 +142,7 @@
     "Preencha o endereço completo e a cidade.": "请填写完整地址和城市。",
     "3 a 7 dias úteis": "3 至 7 个工作日",
     "Atendente entregando o Cartão NFC StarTouch para o cliente avaliar no Google pelo celular": "店员把 StarTouch NFC 卡递给顾客，用手机在 Google 上评价",
-    "Quero receber pelo WhatsApp os avisos deste pedido (pagamento, envio e ajuda para ativar). Para parar, é só responder PARAR.": "我希望通过 WhatsApp 接收此订单的通知(付款、发货和激活帮助)。如需停止,只需回复 PARAR。"
+    "Quero receber pelo WhatsApp os avisos deste pedido (pagamento, envio, ajuda para ativar e uma pergunta sobre como foi). Para parar, é só responder PARAR.": "我希望通过 WhatsApp 接收此订单的通知(付款、发货、激活帮助以及一次体验询问)。如需停止,只需回复 PARAR。"
   },
   "h": {
     "R$ 39,90 / unidade": "R$ 39,90 <small>/ 张</small>",

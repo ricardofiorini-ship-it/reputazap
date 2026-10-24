@@ -1,6 +1,6 @@
 # Política de Privacidade — StarTouch
 
-**Versão 1.14 — vigente a partir de 24 de outubro de 2026**
+**Versão 1.15 — vigente a partir de 24 de outubro de 2026**
 
 ---
 
@@ -74,7 +74,7 @@ Quando você fala com a gente pelo WhatsApp (11) 97694-4026: seu número, o nome
 *Base legal:* execução de contrato e procedimentos preliminares a pedido do titular (Art. 7º, V).
 
 **Avisos do pedido pelo WhatsApp (opcional)**
-Se, ao finalizar a compra, você marcar a opção de receber avisos pelo WhatsApp, usamos o número informado no pedido e o seu primeiro nome para mandar, pelo WhatsApp (11) 97694-4026: a confirmação do pagamento com o prazo, o código de rastreio quando o pedido é postado, uma mensagem perguntando se precisa de ajuda para ativar quando ele é entregue e, se a compra ficar sem pagar, um único lembrete com o mesmo cupom de desconto enviado por e-mail. A opção vem desmarcada, guardamos a data em que foi marcada e, para parar, basta responder **PARAR** — nenhum aviso automático sai mais para aquele número. Os e-mails do pedido continuam saindo do mesmo jeito, com ou sem esta opção. Se você responder a um aviso, a conversa segue como atendimento, nas regras do item acima.
+Se, ao finalizar a compra, você marcar a opção de receber avisos pelo WhatsApp, usamos o número informado no pedido e o seu primeiro nome para mandar, pelo WhatsApp (11) 97694-4026: a confirmação do pagamento com o prazo, o código de rastreio quando o pedido é postado, uma mensagem perguntando se precisa de ajuda para ativar quando ele é entregue, alguns dias depois uma pergunta sobre como foi a sua experiência (uma nota de 0 a 10 e, se quiser, um comentário, guardados junto com o pedido) e, se a compra ficar sem pagar, um único lembrete com o mesmo cupom de desconto enviado por e-mail. A opção vem desmarcada, guardamos a data em que foi marcada e, para parar, basta responder **PARAR** — nenhum aviso automático sai mais para aquele número. Os e-mails do pedido continuam saindo do mesmo jeito, com ou sem esta opção. Se você responder a um aviso, a conversa segue como atendimento, nas regras do item acima.
 *Base legal:* consentimento (Art. 7º, I), que pode ser revogado a qualquer momento (Art. 8º, §5º).
 
 **Programa Divulgue e Ganhe (indicação)**
@@ -341,6 +341,7 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 | 1.8 | 13/10/2026 | Inclusão da **DHL Express** na seção 7, como operadora da entrega dos pedidos enviados para fora do Brasil. São os mesmos dados de entrega já coletados na compra, com a mesma finalidade (entregar o pedido); muda apenas quem transporta. Não reduz direitos nem amplia finalidades |
 | 1.9 | 19/10/2026 | Seção 4: a tela de escolha do cartão Trybo passa a mostrar até oito opções (eram duas). Alteração de redação: **não há dado novo** nem finalidade nova |
 | 1.10 | 20/10/2026 | Seção 4.1: corrigida a ressalva que dizia que a página intermediária consulta nossos servidores para exibir o nome do estabelecimento. Essa consulta deixou de existir em 03/10/2026; o único registro técnico que resta no trajeto é o da hospedagem, já declarado na seção 6.3. A mudança descreve **menos** tratamento do que a versão anterior: não reduz direitos nem amplia finalidades |
+| 1.15 | 24/10/2026 | Seção 3.1: os avisos do pedido pelo WhatsApp passam a incluir uma **pergunta sobre a experiência** (nota de 0 a 10 e comentário opcional, guardados com o pedido), feita uma vez por pedido e no máximo uma vez a cada 90 dias por número. Só para quem marca a opção no checkout, que passa a citar a pergunta. Mesma base legal (consentimento) e mesmo jeito de parar |
 | 1.14 | 24/10/2026 | Seções 3.1 e 7: inclusão dos **avisos do pedido pelo WhatsApp** — pagamento confirmado, rastreio, ajuda para ativar e um lembrete de compra não concluída —, só para quem marca a opção no checkout (vem desmarcada). Base legal: consentimento, revogável respondendo PARAR. Usa o telefone já informado no pedido. Cria uma finalidade nova, opcional |
 | 1.13 | 24/10/2026 | Seções 3.1, 7 e 9: inclusão do **atendimento por WhatsApp com assistente virtual** — número, nome do perfil e mensagens; a Meta (WhatsApp) e a Anthropic (o assistente) entram como operadoras; as mensagens são guardadas por 6 meses. Uma pessoa acompanha e decide sobre cancelamentos, estornos e reclamações. Cria uma finalidade nova, ligada ao atendimento que o próprio titular procura |
 | 1.12 | 23/10/2026 | Seção 3.1: inclusão do **Programa Divulgue e Ganhe** — chave PIX e nome do titular de quem participa, e o código de quem indicou guardado no navegador do comprador (30 dias) e no pedido. Nenhum dado do comprador é mostrado a quem indicou. Cria uma finalidade nova, opcional para o participante |

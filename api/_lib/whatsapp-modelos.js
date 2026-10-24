@@ -8,6 +8,7 @@
 //   st_pedido_postado  (utilidade)  rastreio
 //   st_ativacao        (utilidade)  "chegou? precisa de ajuda pra ativar?"
 //   st_carrinho        (marketing)  carrinho abandonado + cupom VOLTA
+//   st_opiniao         (marketing)  "de 0 a 10, quanto recomendaria?" (fase 3)
 //
 // SÓ para quem marcou, no checkout, que aceita avisos pelo WhatsApp
 // (orders.shipping.whatsapp_optin) e não pediu pra parar depois (respondeu
@@ -41,6 +42,11 @@ export const MODELOS = {
     texto: "Oi, {{1}}! Seu StarTouch já chegou? 😊\n\nPara ativar, encoste o celular no cartão ou na placa (ou aponte a câmera para o QR Code) e siga os passos. Leva uns 2 minutos.\n\nSe travar em alguma parte, me responda aqui que eu te ajudo.",
     exemplo: ["Ana"]
   },
+  st_opiniao: {
+    categoria: "MARKETING",
+    texto: "Oi, {{1}}! Faz alguns dias que seu pedido da StarTouch chegou. Posso te fazer uma pergunta rápida?\n\nDe 0 a 10, quanto você recomendaria a StarTouch para um amigo? É só responder com o número.",
+    exemplo: ["Ana"]
+  },
   st_carrinho: {
     categoria: "MARKETING",
     texto: "Oi, {{1}}! Vi que seu pedido na StarTouch ficou pela metade.\n\nSe ainda fizer sentido, separei {{2}}% de desconto na sua primeira compra com o cupom {{3}}, válido até {{4}}. O link para finalizar também foi para o seu e-mail.\n\nFicou alguma dúvida? É só responder aqui.",
@@ -68,6 +74,19 @@ export const primeiroNome = (nome) => (String(nome || "").trim().split(/\s+/)[0]
 /** A mensagem é um pedido pra parar os avisos? (só a palavra, sem mais nada) */
 export const ehPedidoParaParar = (texto) =>
   /^\s*(parar|pare|sair|stop|cancelar avisos|não quero mais|nao quero mais)\s*[.!]*\s*$/i.test(texto || "");
+
+/**
+ * Nota da pesquisa de opinião numa resposta curta ("9", "nota 10", "8!").
+ * Devolve 0-10 ou null. Mensagem longa não conta: aí é conversa, não nota.
+ */
+export function notaDaResposta(texto) {
+  const t = String(texto || "").trim();
+  if (!t || t.length > 40) return null;
+  const nums = t.match(/\d+/g) || [];
+  if (nums.length !== 1) return null;
+  const n = Number(nums[0]);
+  return n >= 0 && n <= 10 ? n : null;
+}
 
 /** O cliente respondeu PARAR (ou parecido) em algum momento? */
 export async function pediuParar(waId) {

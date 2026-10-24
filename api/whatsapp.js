@@ -31,7 +31,7 @@ import { responder, temConfiguracaoIA } from "./_lib/whatsapp-agente.js";
 import { sendRawEmail } from "./_lib/email-sender.js";
 import { cotaFrete } from "./_lib/frenet.js";
 import { KIT_CATALOG, diasDeProducao } from "./_lib/catalogo-kit.js";
-import { ehPedidoParaParar, criarModelos, situacaoModelos } from "./_lib/whatsapp-modelos.js";
+import { ehPedidoParaParar, criarModelos, situacaoModelos, notaDaResposta, numeroWhatsapp } from "./_lib/whatsapp-modelos.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -210,6 +210,77 @@ async function chamarRicardo(waId, nome, { motivo, resumo }) {
   return "Feito: o Ricardo foi avisado e vai responder por aqui. O assistente não responde mais nesta conversa por enquanto.";
 }
 
+// ── Pesquisa de opinião (fase 3) ─────────────────────────────────
+// O cron nps-whatsapp manda o modelo st_opiniao e marca o pedido com
+// shipping.nps = { perguntado_em }. A resposta chega aqui:
+//   1º a nota (0-10)  → 9-10 agradece e convida pro Divulgue e Ganhe;
+//                       0-8 pergunta o que faltou;
+//   2º o comentário   → 7-8 vai pro Ricardo por e-mail; 0-6 passa a conversa
+//                       pra ele (o robô se cala, como em chamar_ricardo).
+// Resposta que não é nota nem comentário esperado segue pro assistente.
+const NPS_JANELA_MS = 7 * 24 * HORA_MS;
+
+async function pedidoDaPesquisa(waId) {
+  const desde = new Date(Date.now() - NPS_JANELA_MS).toISOString();
+  const { data } = await supabase.from("orders").select("id, external_reference, shipping")
+    .gte("shipping->nps->>perguntado_em", desde).limit(200);
+  const fim = waId.slice(-10);
+  return (data || []).filter((o) => numeroWhatsapp(o.shipping?.phone, o.shipping?.country)?.slice(-10) === fim)
+    .sort((a, b) => Date.parse(b.shipping.nps.perguntado_em) - Date.parse(a.shipping.nps.perguntado_em))[0] || null;
+}
+
+async function responderFixo(waId, texto) {
+  const wamid = await enviarTexto(waId, texto);
+  await gravar({ wa_id: waId, direcao: "saida", wamid, texto });
+}
+
+async function tratarNps(waId, nome, texto) {
+  const pedido = await pedidoDaPesquisa(waId);
+  if (!pedido) return false;
+  const nps = pedido.shipping.nps;
+  const salvar = (novo) => supabase.from("orders")
+    .update({ shipping: { ...pedido.shipping, nps: { ...nps, ...novo } } }).eq("id", pedido.id);
+
+  if (nps.nota == null) {
+    const nota = notaDaResposta(texto);
+    if (nota == null) return false;
+    const agora = new Date().toISOString();
+    if (nota >= 9) {
+      await salvar({ nota, respondido_em: agora, etapa: "fim" });
+      const avaliar = (process.env.STARTOUCH_AVALIACAO_URL || "").trim();
+      await responderFixo(waId, "Que bom demais, obrigado! 🙌\n\n" +
+        "Se conhece alguém que também precisa de mais avaliações no Google: no Divulgue e Ganhe você recebe 10% de cada venda feita pelo seu link. É só entrar aqui: https://startouch.com.br/indique" +
+        (avaliar ? `\n\nE se puder deixar sua opinião sobre a gente, ajuda muito: ${avaliar}` : ""));
+    } else {
+      await salvar({ nota, respondido_em: agora, etapa: "comentario" });
+      await responderFixo(waId, nota >= 7
+        ? "Obrigado! E o que faltou pra ser 10? Pode falar sem cerimônia, eu passo direto pro Ricardo."
+        : "Poxa, sinto muito. Me conta o que aconteceu? Eu passo direto pro Ricardo, que cuida disso pessoalmente.");
+    }
+    console.log(`[whatsapp] pesquisa: nota ${nota} (${pedido.external_reference})`);
+    return true;
+  }
+
+  if (nps.etapa === "comentario") {
+    await salvar({ comentario: String(texto).slice(0, 2000), etapa: "fim" });
+    if (nps.nota <= 6) {
+      await chamarRicardo(waId, nome, { motivo: `Nota ${nps.nota} na pesquisa de opinião`, resumo: `Pedido ${pedido.external_reference}. Comentário: ${String(texto).slice(0, 500)}` });
+      await responderFixo(waId, "Obrigado por contar. Já passei pro Ricardo, e ele te responde por aqui.");
+    } else {
+      await avisarAdmin(`Pesquisa: nota ${nps.nota} de ${nome || "+" + waId}`, `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+          <h2 style="margin:0 0 8px;">O que faltou pra ser 10</h2>
+          <p><strong>Cliente:</strong> ${esc(nome || "—")} · +${esc(waId)} · pedido ${esc(pedido.external_reference)}</p>
+          <p><strong>Nota:</strong> ${nps.nota}</p>
+          <p style="background:#F1F3F4;padding:12px;border-radius:8px;">${esc(texto)}</p>
+        </div>`);
+      await responderFixo(waId, "Anotado, obrigado! Já passei pro Ricardo. 🙂");
+    }
+    return true;
+  }
+  return false;
+}
+
 // ── Uma mensagem do cliente ──────────────────────────────────────
 async function tratarMensagem(msg, nome) {
   const waId = soDigitos(msg.from);
@@ -252,6 +323,7 @@ async function tratarMensagem(msg, nome) {
     && Date.now() - Date.parse(ultimoControle.criado_em) < PAUSA_HUMANO_MS ? ultimoControle : null;
   if (pausa) { console.log(`[whatsapp] conversa com pessoa (${pausa.direcao}) — robô quieto`); return; }
 
+  if (await tratarNps(waId, nome, texto)) return;
   await gerarEEnviar(waId, nome, linhas, texto);
 }
 

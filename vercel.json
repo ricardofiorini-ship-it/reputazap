@@ -530,6 +530,14 @@
       "schedule": "20 11-23 * * *"
     },
     {
+      "path": "/api/cron/nps-whatsapp",
+      "schedule": "30 14 * * *"
+    },
+    {
+      "path": "/api/cron/whatsapp-semanal",
+      "schedule": "0 11 * * 1"
+    },
+    {
       "path": "/api/cron/plan-sweep",
       "schedule": "0 5 * * *"
     },
