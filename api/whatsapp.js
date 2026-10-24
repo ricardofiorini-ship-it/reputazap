@@ -287,6 +287,28 @@ async function processar(payload) {
 export default async function handler(req, res) {
   if (req.method === "GET") {
     const q = req.query || {};
+
+    // TESTE do assistente sem WhatsApp: /api/whatsapp?teste=<pergunta>&secret=<BROADCAST_SECRET>
+    // Devolve a resposta que o robô daria. Não envia nada, não grava nada, e
+    // "chamar o Ricardo" vira só um aviso na resposta (sem e-mail).
+    if (q.teste !== undefined) {
+      const validos = [process.env.BROADCAST_SECRET, process.env.CRON_SECRET].map((v) => (v || "").trim()).filter(Boolean);
+      if (!validos.length || !validos.includes(String(q.secret || "").trim())) return res.status(404).end();
+      const chamadas = [];
+      try {
+        const r = await responder([{ role: "user", content: String(q.teste).slice(0, 1000) }], async (ferramenta, input) => {
+          chamadas.push({ ferramenta, input });
+          if (ferramenta === "consultar_pedidos") return (input.email || input.numero_pedido) ? consultarPedidos("0", input) : "Nenhum pedido com o telefone deste WhatsApp (teste sem telefone).";
+          if (ferramenta === "verificar_codigo") return verificarCodigo(input);
+          if (ferramenta === "chamar_ricardo") return "Feito (TESTE: nenhum e-mail foi enviado).";
+          return "Ferramenta desconhecida.";
+        });
+        return res.status(200).json({ modelo: process.env.WHATSAPP_MODEL || "claude-opus-5-5", pergunta: q.teste, resposta: r.texto, ferramentas_usadas: chamadas, recusou: !!r.recusou });
+      } catch (e) {
+        return res.status(500).json({ erro: e?.message || String(e) });
+      }
+    }
+
     const token = (process.env.WHATSAPP_VERIFY_TOKEN || "").trim();
     if (q["hub.mode"] === "subscribe" && token && q["hub.verify_token"] === token) {
       return res.status(200).send(String(q["hub.challenge"] || ""));

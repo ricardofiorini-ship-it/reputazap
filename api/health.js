@@ -211,6 +211,15 @@ export default async function handler(req, res) {
     services.push({ name: "Mercado Pago", ok: false, error: "MP_ACCESS_TOKEN ausente" });
   }
 
+  // Chave da Anthropic (assistente do WhatsApp). Lista os modelos: confere a
+  // chave sem gastar um token.
+  if ((process.env.ANTHROPIC_API_KEY || "").trim()) {
+    const r = await ping("https://api.anthropic.com/v1/models?limit=1", {
+      headers: { "x-api-key": process.env.ANTHROPIC_API_KEY.trim(), "anthropic-version": "2023-06-01" }
+    });
+    services.push({ name: "Anthropic — chave da API", ok: r.ok, status: r.status, error: r.ok ? null : (r.error || "chave recusada") });
+  }
+
   // WhatsApp (24/10/2026). Só entra no painel depois que o número foi ligado
   // (WHATSAPP_PHONE_NUMBER_ID existe): a partir daí, faltar qualquer peça
   // deixaria o cliente sem resposta e ninguém saberia.
