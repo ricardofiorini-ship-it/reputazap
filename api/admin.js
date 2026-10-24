@@ -27,6 +27,7 @@ import { pedidoAtualizadoEmail } from "./_lib/email-templates.js";
 import { remetenteTrybo, tryboPedidoAtualizadoEmail } from "./_lib/email-trybo.js";
 import Stripe from "stripe";
 import { listarTodosUsuarios } from "./_lib/usuarios.js";
+import { responderPendente } from "./whatsapp.js";
 
 // Lista de emails autorizados como admin (hardcoded)
 const ADMIN_EMAILS = new Set([
@@ -1284,7 +1285,11 @@ async function handleWhatsappDevolver(req, res, admin) {
   const { error } = await supabase.from("whatsapp_mensagens").insert({ wa_id: waId, direcao: "saida", texto: "[conversa devolvida ao robô]" });
   if (error) return res.status(500).json({ error: error.message });
   console.log(`[admin] conversa do WhatsApp devolvida ao robô por ${admin.email}`);
-  return res.json({ ok: true });
+  // Se o cliente ficou esperando, o robô responde já (ver responderPendente).
+  let resultado = { respondeu: false, motivo: "erro" };
+  try { resultado = await responderPendente(waId); }
+  catch (e) { console.error("[admin] devolver: resposta imediata falhou:", e?.message || e); }
+  return res.json({ ok: true, ...resultado });
 }
 
 async function handleWhatsapp(req, res) {

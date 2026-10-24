@@ -203,16 +203,25 @@ async function tratarMensagem(msg, nome) {
     && Date.now() - Date.parse(ultimoControle.criado_em) < PAUSA_HUMANO_MS ? ultimoControle : null;
   if (pausa) { console.log(`[whatsapp] conversa com pessoa (${pausa.direcao}) — robô quieto`); return; }
 
-  // Histórico em ordem, só o que foi dito (cliente e assistente), juntando
-  // mensagens seguidas do mesmo lado — a API alterna os papéis.
+  await gerarEEnviar(waId, nome, linhas, texto);
+}
+
+// Monta o histórico, pede a resposta ao assistente e envia. Usado pela
+// mensagem nova do cliente e pelo "Devolver ao robô" do admin.
+async function gerarEEnviar(waId, nome, linhas, texto) {
+  // Histórico em ordem, só o que foi dito, juntando mensagens seguidas do
+  // mesmo lado — a API alterna os papéis. O que o RICARDO escreveu pelo app
+  // entra do lado do atendimento, marcado: quando a conversa volta pro robô,
+  // ele precisa saber o que a pessoa já combinou com o cliente.
   const historico = [];
   for (const l of (linhas || []).slice().reverse()) {
-    if (l.direcao !== "entrada" && l.direcao !== "saida") continue;
+    if (l.direcao !== "entrada" && l.direcao !== "saida" && l.direcao !== "humano") continue;
     if (l.direcao === "saida" && (l.texto || "").startsWith(MARCA_DEVOLVIDA)) continue;   // marcador, não fala do robô
     const role = l.direcao === "entrada" ? "user" : "assistant";
+    const conteudo = l.direcao === "humano" ? `[Ricardo, da equipe, escreveu:] ${l.texto || ""}` : (l.texto || "");
     const ult = historico[historico.length - 1];
-    if (ult && ult.role === role) ult.content += "\n" + (l.texto || "");
-    else historico.push({ role, content: l.texto || "" });
+    if (ult && ult.role === role) ult.content += "\n" + conteudo;
+    else historico.push({ role, content: conteudo });
   }
   while (historico.length && historico[0].role !== "user") historico.shift();
   const recorte = historico.slice(-HISTORICO_MAX);
@@ -261,6 +270,25 @@ async function tratarMensagem(msg, nome) {
        <p><strong>Erro:</strong> ${esc(e?.message || e)}</p>
        <p><strong>Cliente:</strong> +${esc(waId)} · <a href="https://wa.me/${esc(waId)}">abrir</a></p>`);
   }
+}
+
+/**
+ * "Devolver ao robô" (admin): se a última mensagem do cliente ficou sem
+ * resposta, o robô responde AGORA — senão os dois ficam se esperando. Só
+ * dentro de 24h da última mensagem do cliente (fora disso a Meta só aceita
+ * modelo aprovado). Devolve { respondeu, motivo }.
+ */
+export async function responderPendente(waId) {
+  const desde = new Date(Date.now() - 24 * HORA_MS).toISOString();
+  const { data: linhas, error } = await supabase.from("whatsapp_mensagens").select("direcao, texto, criado_em")
+    .eq("wa_id", waId).gte("criado_em", desde).order("criado_em", { ascending: false }).limit(60);
+  if (error) throw new Error(error.message);
+  const ultimaFala = (linhas || []).find((l) => l.direcao === "entrada" || l.direcao === "humano"
+    || (l.direcao === "saida" && !(l.texto || "").startsWith(MARCA_DEVOLVIDA)));
+  if (!ultimaFala) return { respondeu: false, motivo: "fora_24h" };
+  if (ultimaFala.direcao !== "entrada") return { respondeu: false, motivo: "nada_pendente" };
+  await gerarEEnviar(waId, "", linhas, ultimaFala.texto || "");
+  return { respondeu: true };
 }
 
 // O Ricardo respondeu pelo app (coexistência): registra e pausa o robô.

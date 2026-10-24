@@ -256,7 +256,12 @@ document.getElementById("lista").addEventListener("click", async e => {
     dev.disabled = true; dev.textContent = "Devolvendo…";
     const { resposta: r } = await comSessao("/api/admin?action=whatsapp-devolver", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ wa_id: dev.dataset.devolver }) });
     if (!r || !r.ok) { dev.disabled = false; dev.textContent = "Falhou — tentar de novo"; return; }
-    carrega(); return;
+    const d = await r.json().catch(()=>({}));
+    document.getElementById("resumo").textContent = d.respondeu
+      ? "Devolvido: o robô já respondeu a última mensagem do cliente."
+      : d.motivo === "fora_24h" ? "Devolvido. O cliente falou há mais de 24h: o robô responde quando ele escrever de novo."
+      : "Devolvido: o robô responde a próxima mensagem do cliente.";
+    setTimeout(carrega, 2500); return;
   }
   const card = e.target.closest(".conversa"); if(!card) return;
   const wa = card.dataset.wa;
