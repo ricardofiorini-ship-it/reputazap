@@ -225,7 +225,7 @@ function desenhaLista(){
       </div>
       <div class="linha">${c.mensagens_cliente} do cliente · ${c.respostas_robo} do robô · ${c.respostas_voce} suas
         · <a href="https://wa.me/${esc(c.wa_id)}" target="_blank" rel="noopener">Abrir no WhatsApp</a>
-        ${["voce","precisa_voce"].includes(c.situacao) ? ` · <button class="btn" type="button" data-devolver="${esc(c.wa_id)}" style="padding:5px 10px;font-size:12.5px">Devolver ao robô</button>` : ""}</div>
+        ${["voce","precisa_voce","sem_resposta"].includes(c.situacao) ? ` · <button class="btn" type="button" data-devolver="${esc(c.wa_id)}" style="padding:5px 10px;font-size:12.5px">Devolver ao robô</button>` : ""}</div>
       <div class="historico" ${aberta===c.wa_id?"":"hidden"}></div>
     </div>`).join("")
     : `<div class="card vazio">${dados.total ? "Nenhuma conversa neste filtro." : "Nenhuma conversa no período."}</div>`;
