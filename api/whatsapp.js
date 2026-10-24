@@ -390,7 +390,7 @@ export default async function handler(req, res) {
     // ?modelos=ver mostra se já foram aprovados. Mesmo segredo do teste.
     if (q.modelos !== undefined) {
       const validos = [process.env.BROADCAST_SECRET, process.env.CRON_SECRET].map((v) => (v || "").trim()).filter(Boolean);
-      if (!validos.length || !validos.includes(String(q.secret || "").trim())) return res.status(404).end();
+      if (!validos.length || !validos.includes(String(q.secret || "").trim().replace(/ /g, "+"))) return res.status(404).end();
       try {
         if (q.modelos === "criar") return res.status(200).json({ criados: await criarModelos(), situacao: await situacaoModelos() });
         return res.status(200).json({ situacao: await situacaoModelos() });
@@ -404,7 +404,7 @@ export default async function handler(req, res) {
     // "chamar o Ricardo" vira só um aviso na resposta (sem e-mail).
     if (q.teste !== undefined) {
       const validos = [process.env.BROADCAST_SECRET, process.env.CRON_SECRET].map((v) => (v || "").trim()).filter(Boolean);
-      if (!validos.length || !validos.includes(String(q.secret || "").trim())) return res.status(404).end();
+      if (!validos.length || !validos.includes(String(q.secret || "").trim().replace(/ /g, "+"))) return res.status(404).end();
       const chamadas = [];
       try {
         const r = await responder([{ role: "user", content: String(q.teste).slice(0, 1000) }], async (ferramenta, input) => {
