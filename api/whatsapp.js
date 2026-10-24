@@ -177,9 +177,9 @@ async function tratarMensagem(msg, nome) {
     : `[o cliente mandou ${msg.type === "image" ? "uma imagem" : msg.type === "audio" ? "um áudio" : msg.type === "document" ? "um arquivo" : msg.type === "sticker" ? "uma figurinha" : "uma mensagem do tipo " + msg.type}]`;
 
   const nova = await gravar({ wa_id: waId, direcao: "entrada", wamid: msg.id, texto });
-  if (!nova) return;   // reenvio da Meta
+  if (!nova) { console.log("[whatsapp] mensagem repetida (reenvio da Meta) — ignorada"); return; }
 
-  if (process.env.WHATSAPP_BOT_DESLIGADO === "1") return;
+  if (process.env.WHATSAPP_BOT_DESLIGADO === "1") { console.log("[whatsapp] robô desligado — só registrou"); return; }
 
   // Agrupa rajadas: só a última mensagem da rajada responde.
   await new Promise((ok) => setTimeout(ok, AGRUPAR_MS));
@@ -195,7 +195,7 @@ async function tratarMensagem(msg, nome) {
   // Pessoa na conversa? O robô fica quieto.
   const pausa = (linhas || []).find((l) => (l.direcao === "humano" || l.direcao === "escalado")
     && Date.now() - Date.parse(l.criado_em) < PAUSA_HUMANO_MS);
-  if (pausa) return;
+  if (pausa) { console.log(`[whatsapp] conversa com pessoa (${pausa.direcao}) — robô quieto`); return; }
 
   // Histórico em ordem, só o que foi dito (cliente e assistente), juntando
   // mensagens seguidas do mesmo lado — a API alterna os papéis.
@@ -246,6 +246,7 @@ async function tratarMensagem(msg, nome) {
   try {
     const wamid = await enviarTexto(waId, resposta);
     await gravar({ wa_id: waId, direcao: "saida", wamid, texto: resposta });
+    console.log(`[whatsapp] respondido (${resposta === MSG_FALHA ? "mensagem de falha" : "assistente"})`);
   } catch (e) {
     console.error(`[whatsapp] ENVIO FALHOU para +${waId}:`, e?.message || e);
     await avisarAdmin(`WhatsApp: resposta não foi enviada a ${nome || "+" + waId}`,
@@ -263,6 +264,12 @@ async function tratarEco(eco) {
 }
 
 async function processar(payload) {
+  // Uma linha por evento, sem conteúdo de mensagem: é o que diz, no log da
+  // Vercel, se a Meta está entregando (o caminho de sucesso não escrevia nada,
+  // e "não chegou" ficava indistinguível de "chegou e deu certo").
+  const resumo = (payload?.entry || []).flatMap((e) => (e.changes || []).map((c) =>
+    `${c.field}:${(c.value?.messages || []).length}msg/${(c.value?.message_echoes || []).length}eco/${(c.value?.statuses || []).length}st`));
+  console.log(`[whatsapp] evento recebido ${resumo.join(" ") || "(vazio)"}`);
   for (const entrada of payload?.entry || []) {
     for (const mudanca of entrada?.changes || []) {
       const v = mudanca?.value || {};
