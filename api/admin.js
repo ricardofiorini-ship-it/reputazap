@@ -94,6 +94,7 @@ export default async function handler(req, res) {
     if (action === "assinaturas")  return await handleAssinaturas(req, res);
     if (action === "trocar-negocio") return await handleTrocarNegocio(req, res, admin);
     if (action === "whatsapp")       return await handleWhatsapp(req, res);
+    if (action === "whatsapp-devolver") return await handleWhatsappDevolver(req, res, admin);
     return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects, funnel, visitas, grid-suggest, grid, pedidos, pedido-status ou assinaturas" });
   } catch (err) {
     console.error("[admin] erro:", err);
@@ -1273,6 +1274,19 @@ async function handleTrocarNegocio(req, res, admin) {
 // número, com a última mensagem e em que pé está. Com ?wa_id: a conversa
 // inteira daquele número. Só lê o que o assistente já guarda (Política §3.1,
 // 6 meses) — nada novo é coletado por causa desta tela.
+// Devolve a conversa ao robô: ele volta a responder esse número na próxima
+// mensagem, mesmo dentro das 12h de pausa. Grava um marcador (linha `saida`
+// que o histórico do robô ignora) em vez de apagar o registro de quem falou.
+async function handleWhatsappDevolver(req, res, admin) {
+  if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
+  const waId = String(req.body?.wa_id || "").replace(/\D/g, "");
+  if (!waId) return res.status(400).json({ error: "wa_id obrigatório" });
+  const { error } = await supabase.from("whatsapp_mensagens").insert({ wa_id: waId, direcao: "saida", texto: "[conversa devolvida ao robô]" });
+  if (error) return res.status(500).json({ error: error.message });
+  console.log(`[admin] conversa do WhatsApp devolvida ao robô por ${admin.email}`);
+  return res.json({ ok: true });
+}
+
 async function handleWhatsapp(req, res) {
   const waId = String(req.query.wa_id || "").replace(/\D/g, "");
   if (waId) {

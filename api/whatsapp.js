@@ -39,6 +39,8 @@ const PAUSA_HUMANO_MS = 12 * HORA_MS;   // depois que o Ricardo fala, o robô se
 const AGRUPAR_MS = 4000;                // espera mensagens seguidas antes de responder
 const HISTORICO_MAX = 20;
 
+export const MARCA_DEVOLVIDA = "[conversa devolvida ao robô]";
+
 const MSG_FALHA = "Recebi sua mensagem! Já chamei o Ricardo, da nossa equipe, e ele te responde por aqui em breve. 🙂";
 
 async function lerCorpo(req) {
@@ -192,9 +194,13 @@ async function tratarMensagem(msg, nome) {
     .eq("wa_id", waId).gte("criado_em", desde).order("criado_em", { ascending: false }).limit(60);
   if (error) throw new Error(error.message);
 
-  // Pessoa na conversa? O robô fica quieto.
-  const pausa = (linhas || []).find((l) => (l.direcao === "humano" || l.direcao === "escalado")
-    && Date.now() - Date.parse(l.criado_em) < PAUSA_HUMANO_MS);
+  // Pessoa na conversa? O robô fica quieto — a não ser que a conversa tenha
+  // sido DEVOLVIDA ao robô depois (botão em /admin/whatsapp, que grava uma
+  // linha `saida` com o marcador abaixo). Vale o evento mais recente.
+  const ultimoControle = (linhas || []).find((l) => l.direcao === "humano" || l.direcao === "escalado"
+    || (l.direcao === "saida" && (l.texto || "").startsWith(MARCA_DEVOLVIDA)));
+  const pausa = ultimoControle && ultimoControle.direcao !== "saida"
+    && Date.now() - Date.parse(ultimoControle.criado_em) < PAUSA_HUMANO_MS ? ultimoControle : null;
   if (pausa) { console.log(`[whatsapp] conversa com pessoa (${pausa.direcao}) — robô quieto`); return; }
 
   // Histórico em ordem, só o que foi dito (cliente e assistente), juntando
@@ -202,6 +208,7 @@ async function tratarMensagem(msg, nome) {
   const historico = [];
   for (const l of (linhas || []).slice().reverse()) {
     if (l.direcao !== "entrada" && l.direcao !== "saida") continue;
+    if (l.direcao === "saida" && (l.texto || "").startsWith(MARCA_DEVOLVIDA)) continue;   // marcador, não fala do robô
     const role = l.direcao === "entrada" ? "user" : "assistant";
     const ult = historico[historico.length - 1];
     if (ult && ult.role === role) ult.content += "\n" + (l.texto || "");
@@ -257,9 +264,14 @@ async function tratarMensagem(msg, nome) {
 }
 
 // O Ricardo respondeu pelo app (coexistência): registra e pausa o robô.
+// Reação (emoji segurando a mensagem) não é "assumir a conversa" — um toque
+// sem querer calava o robô por 12h (24/10/2026). Só mensagem de verdade pausa.
+const ECO_QUE_NAO_PAUSA = new Set(["reaction", "unsupported", "system"]);
+
 async function tratarEco(eco) {
   const waId = soDigitos(eco.to);
   if (!waId) return;
+  if (ECO_QUE_NAO_PAUSA.has(eco.type)) { console.log(`[whatsapp] eco do tipo ${eco.type} — não pausa o robô`); return; }
   await gravar({ wa_id: waId, direcao: "humano", wamid: eco.id || null, texto: eco.text?.body || `[${eco.type}]` });
 }
 

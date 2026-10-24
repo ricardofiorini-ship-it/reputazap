@@ -224,7 +224,8 @@ function desenhaLista(){
           <div style="text-align:right;margin-top:4px"><span class="badge b-${c.situacao}">${ROTULO[c.situacao]}</span></div></div>
       </div>
       <div class="linha">${c.mensagens_cliente} do cliente · ${c.respostas_robo} do robô · ${c.respostas_voce} suas
-        · <a href="https://wa.me/${esc(c.wa_id)}" target="_blank" rel="noopener">Abrir no WhatsApp</a></div>
+        · <a href="https://wa.me/${esc(c.wa_id)}" target="_blank" rel="noopener">Abrir no WhatsApp</a>
+        ${["voce","precisa_voce"].includes(c.situacao) ? ` · <button class="btn" type="button" data-devolver="${esc(c.wa_id)}" style="padding:5px 10px;font-size:12.5px">Devolver ao robô</button>` : ""}</div>
       <div class="historico" ${aberta===c.wa_id?"":"hidden"}></div>
     </div>`).join("")
     : `<div class="card vazio">${dados.total ? "Nenhuma conversa neste filtro." : "Nenhuma conversa no período."}</div>`;
@@ -248,8 +249,15 @@ document.getElementById("filtros").addEventListener("click", e => {
   const b = e.target.closest("[data-filtro]"); if(!b) return;
   filtro = b.dataset.filtro; desenhaFiltros(); desenhaLista();
 });
-document.getElementById("lista").addEventListener("click", e => {
+document.getElementById("lista").addEventListener("click", async e => {
   if (e.target.closest("a")) return;
+  const dev = e.target.closest("[data-devolver]");
+  if (dev) {
+    dev.disabled = true; dev.textContent = "Devolvendo…";
+    const { resposta: r } = await comSessao("/api/admin?action=whatsapp-devolver", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ wa_id: dev.dataset.devolver }) });
+    if (!r || !r.ok) { dev.disabled = false; dev.textContent = "Falhou — tentar de novo"; return; }
+    carrega(); return;
+  }
   const card = e.target.closest(".conversa"); if(!card) return;
   const wa = card.dataset.wa;
   if (aberta === wa) { aberta = null; card.querySelector(".historico").hidden = true; return; }
