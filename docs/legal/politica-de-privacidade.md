@@ -1,6 +1,6 @@
 # Política de Privacidade — StarTouch
 
-**Versão 1.12 — vigente a partir de 23 de outubro de 2026**
+**Versão 1.13 — vigente a partir de 24 de outubro de 2026**
 
 ---
 
@@ -68,6 +68,10 @@ O CPF ou CNPJ é exigido pelo processador de pagamentos e pela legislação fisc
 **Lembrete de compra não concluída**
 Se você preenche seus dados de entrega na loja e não conclui o pagamento, podemos enviar **um único e-mail**, cerca de um dia depois, lembrando do pedido e oferecendo um cupom de desconto para a primeira compra. Usamos apenas o nome, o e-mail e os itens escolhidos, já informados no pedido. Não enviamos um segundo lembrete, e quem já comprou conosco não recebe. Se não quiser recebê-lo, escreva para privacidade@startouch.com.br.
 *Base legal:* legítimo interesse (Art. 7º, IX), limitado a uma mensagem sobre a compra que você mesmo iniciou.
+
+**Atendimento por WhatsApp**
+Quando você fala com a gente pelo WhatsApp (11) 97694-4026: seu número, o nome do seu perfil no WhatsApp e as mensagens trocadas. As mensagens são respondidas primeiro por um **assistente virtual com inteligência artificial**, que pode consultar a situação dos seus pedidos (procurados pelo telefone do WhatsApp, ou pelo e-mail ou número do pedido que você informar) e o estado de um código de dispositivo. Uma pessoa da equipe acompanha as conversas e assume quando precisa. O assistente não toma decisões sobre você: cancelamentos, estornos e reclamações são sempre tratados por uma pessoa.
+*Base legal:* execução de contrato e procedimentos preliminares a pedido do titular (Art. 7º, V).
 
 **Programa Divulgue e Ganhe (indicação)**
 Se você participa do programa: a chave PIX e o nome do titular que você cadastra, e a data em que aceitou as regras. Seu código de indicação é calculado a partir da sua conta e não exige dado novo. Em cada pedido feito pelo seu link, guardamos o código de indicação junto do pedido, para calcular a comissão. Você vê a data e o valor de cada venda indicada; **não mostramos quem comprou**.
@@ -231,6 +235,8 @@ Utilizamos prestadores de serviço que atuam como **operadores**, tratando dados
 | **Meta** | Mensuração de campanhas publicitárias | Dados de navegação e identificador de navegador |
 | **ViaCEP** | Preenchimento automático de endereço | CEP informado |
 | **DHL Express** | Entrega de pedidos enviados para fora do Brasil | Nome, telefone, e-mail, endereço de entrega e, se informado, documento fiscal do destinatário |
+| **Meta (WhatsApp)** | Troca de mensagens no atendimento por WhatsApp | Número, nome do perfil e mensagens |
+| **Anthropic** | Assistente virtual que responde o atendimento por WhatsApp | Mensagens da conversa e, quando consultados, situação e itens do pedido |
 | **OpenAI, Google e Perplexity** | Consultas do produto IA Radar | Nome, categoria e cidade do estabelecimento — dados de empresa, não de pessoa física |
 
 Também poderemos compartilhar dados quando houver determinação legal, ordem judicial ou requisição de autoridade competente, e em caso de reorganização societária, hipótese em que a presente Política continuará aplicável.
@@ -263,6 +269,7 @@ Nenhum sistema é imune a incidentes. Caso ocorra incidente de segurança com ri
 | Pedidos e dados fiscais | 5 anos, contados do encerramento do exercício, por exigência fiscal |
 | Preferências de alerta | Enquanto a conta existir |
 | Registro de e-mails enviados | 12 meses |
+| Mensagens do atendimento por WhatsApp | 6 meses |
 | Leads que não se tornaram clientes | 24 meses a partir do cadastro |
 | Histórico de visibilidade do estabelecimento no Google | 24 meses |
 | Registro de toques nos dispositivos | Indefinidamente — não contém dado pessoal |
@@ -330,6 +337,7 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 | 1.8 | 13/10/2026 | Inclusão da **DHL Express** na seção 7, como operadora da entrega dos pedidos enviados para fora do Brasil. São os mesmos dados de entrega já coletados na compra, com a mesma finalidade (entregar o pedido); muda apenas quem transporta. Não reduz direitos nem amplia finalidades |
 | 1.9 | 19/10/2026 | Seção 4: a tela de escolha do cartão Trybo passa a mostrar até oito opções (eram duas). Alteração de redação: **não há dado novo** nem finalidade nova |
 | 1.10 | 20/10/2026 | Seção 4.1: corrigida a ressalva que dizia que a página intermediária consulta nossos servidores para exibir o nome do estabelecimento. Essa consulta deixou de existir em 03/10/2026; o único registro técnico que resta no trajeto é o da hospedagem, já declarado na seção 6.3. A mudança descreve **menos** tratamento do que a versão anterior: não reduz direitos nem amplia finalidades |
+| 1.13 | 24/10/2026 | Seções 3.1, 7 e 9: inclusão do **atendimento por WhatsApp com assistente virtual** — número, nome do perfil e mensagens; a Meta (WhatsApp) e a Anthropic (o assistente) entram como operadoras; as mensagens são guardadas por 6 meses. Uma pessoa acompanha e decide sobre cancelamentos, estornos e reclamações. Cria uma finalidade nova, ligada ao atendimento que o próprio titular procura |
 | 1.12 | 23/10/2026 | Seção 3.1: inclusão do **Programa Divulgue e Ganhe** — chave PIX e nome do titular de quem participa, e o código de quem indicou guardado no navegador do comprador (30 dias) e no pedido. Nenhum dado do comprador é mostrado a quem indicou. Cria uma finalidade nova, opcional para o participante |
 | 1.11 | 23/10/2026 | Seção 3.1: inclusão do **lembrete de compra não concluída** — um único e-mail, com cupom de desconto, para quem preencheu os dados de entrega e não pagou. Usa dados já coletados no pedido (nome, e-mail e itens) e vale apenas para pedidos iniciados a partir desta versão. Amplia a finalidade do uso do e-mail do pedido, por isso é declarada aqui antes de entrar em funcionamento |
 | 1.3 | 07/09/2026 | Mudança de controladora: a ZAYOR BRASIL LTDA (CNPJ 68.972.361/0001-33) sucede a GT6 Brasil Comércio Varejista de Produtos Diversos Ltda, inclusive quanto aos dados já coletados (seção 1.1); atualização do endereço para o da nova sede. **Não é alteração meramente declaratória** como as duas anteriores — muda quem responde pelo tratamento —, mas não reduz direitos, não amplia finalidades e não altera nenhuma operação de tratamento |

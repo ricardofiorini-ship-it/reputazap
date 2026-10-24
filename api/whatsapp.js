@@ -1,0 +1,310 @@
+// ============================================================
+// WhatsApp (11) 97694-4026 — webhook da Meta + assistente (24/10/2026)
+// ============================================================
+// GET  verificação do webhook (hub.mode / hub.verify_token / hub.challenge)
+// POST mensagens novas (campo `messages`) e respostas que o Ricardo manda
+//      pelo app do WhatsApp Business (campo `smb_message_echoes`, modo
+//      "coexistência": o mesmo número no app E na API).
+//
+// Fluxo de uma mensagem do cliente:
+//   1. confere a assinatura (X-Hub-Signature-256 com o App Secret) e responde
+//      200 NA HORA — a Meta reenvia o que demora;
+//   2. grava a mensagem (o wamid é único: reenvio da Meta não responde 2x);
+//   3. espera alguns segundos: quem manda 3 mensagens seguidas recebe UMA
+//      resposta, dada pela última;
+//   4. se o Ricardo respondeu pelo app nas últimas 12h, ou se a conversa foi
+//      passada pra ele, o robô fica quieto;
+//   5. senão o assistente (_lib/whatsapp-agente.js) responde.
+//
+// Falha calada é o bug nº1 daqui: se a IA ou o envio falhar, o cliente recebe
+// "já chamei o Ricardo" e o admin recebe e-mail. Nunca silêncio dos dois lados.
+//
+// Envs: WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_VERIFY_TOKEN,
+// WHATSAPP_APP_SECRET, ANTHROPIC_API_KEY. Opcionais: WHATSAPP_MODEL,
+// WHATSAPP_GRAPH_VERSION (padrão v26.0), WHATSAPP_BOT_DESLIGADO=1 (o robô só
+// registra, não responde). Tabela: supabase/schema-whatsapp.sql.
+// ============================================================
+import crypto from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
+import { waitUntil } from "@vercel/functions";
+import { responder, temConfiguracaoIA } from "./_lib/whatsapp-agente.js";
+import { sendRawEmail } from "./_lib/email-sender.js";
+
+export const config = { api: { bodyParser: false } };
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+const GRAPH = (process.env.WHATSAPP_GRAPH_VERSION || "v26.0").trim();
+const HORA_MS = 3600000;
+const PAUSA_HUMANO_MS = 12 * HORA_MS;   // depois que o Ricardo fala, o robô se cala
+const AGRUPAR_MS = 4000;                // espera mensagens seguidas antes de responder
+const HISTORICO_MAX = 20;
+
+const MSG_FALHA = "Recebi sua mensagem! Já chamei o Ricardo, da nossa equipe, e ele te responde por aqui em breve. 🙂";
+
+async function lerCorpo(req) {
+  const partes = [];
+  for await (const p of req) partes.push(p);
+  return Buffer.concat(partes);
+}
+
+function assinaturaOk(raw, header) {
+  const segredo = (process.env.WHATSAPP_APP_SECRET || "").trim();
+  if (!segredo) return false;   // sem segredo, não aceita nada (fecha por padrão)
+  const esperado = "sha256=" + crypto.createHmac("sha256", segredo).update(raw).digest("hex");
+  const a = Buffer.from(String(header || ""));
+  const b = Buffer.from(esperado);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+const soDigitos = (s) => String(s || "").replace(/\D/g, "");
+
+async function gravar(linha) {
+  const { error } = await supabase.from("whatsapp_mensagens").insert(linha);
+  if (error && !/duplicate|unique/i.test(error.message)) {
+    console.error(`[whatsapp] NÃO gravou (${linha.direcao}): ${error.message}` +
+      (/relation|does not exist|schema cache/i.test(error.message) ? " — rode supabase/schema-whatsapp.sql" : ""));
+    throw new Error(error.message);
+  }
+  return !error;   // false = já existia (reenvio da Meta)
+}
+
+async function enviarTexto(para, texto) {
+  const r = await fetch(`https://graph.facebook.com/${GRAPH}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}` },
+    body: JSON.stringify({
+      messaging_product: "whatsapp", recipient_type: "individual",
+      to: para, type: "text", text: { preview_url: true, body: String(texto).slice(0, 4000) }
+    })
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(`Meta respondeu ${r.status}: ${d?.error?.message || JSON.stringify(d).slice(0, 200)}`);
+  return d?.messages?.[0]?.id || null;
+}
+
+async function avisarAdmin(assunto, html) {
+  const admin = process.env.ADMIN_NOTIFICATIONS_EMAIL;
+  if (!admin) { console.error("[whatsapp] ADMIN_NOTIFICATIONS_EMAIL ausente — aviso não saiu:", assunto); return; }
+  const r = await sendRawEmail({ to: admin, subject: assunto, html });
+  if (r?.error) console.error("[whatsapp] aviso ao admin falhou:", r.error);
+}
+
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// ── Ferramentas do assistente (o "como" de cada uma) ─────────────
+const SITUACAO = {
+  pending: "aguardando pagamento", paid: "pago, na fila de produção", em_producao: "em produção",
+  postado: "postado", entregue: "entregue", cancelado: "cancelado"
+};
+
+function resumoPedido(o, completo) {
+  const itens = (Array.isArray(o.items) ? o.items : []).map((i) => `${i.qty || 1}× ${i.name || i.id}`).join(", ");
+  const partes = [
+    `Pedido ${o.external_reference}`,
+    `situação: ${SITUACAO[o.status] || o.status}`,
+    `feito em ${new Date(o.created_at).toLocaleDateString("pt-BR")}`,
+    o.paid_at ? `pago em ${new Date(o.paid_at).toLocaleDateString("pt-BR")}` : null,
+    itens ? `itens: ${itens}` : null,
+    o.shipping?.frete?.prazoTotalDias ? `prazo prometido: até ${o.shipping.frete.prazoTotalDias} dias úteis` : null,
+    o.shipped_at ? `postado em ${new Date(o.shipped_at).toLocaleDateString("pt-BR")}` : null,
+    completo && o.tracking_code ? `rastreio: ${o.tracking_code}` : null
+  ];
+  return partes.filter(Boolean).join(" · ");
+}
+
+async function consultarPedidos(waId, { email, numero_pedido }) {
+  const campos = "external_reference, status, items, shipping, created_at, paid_at, shipped_at, tracking_code, email";
+  if (numero_pedido || email) {
+    let q = supabase.from("orders").select(campos).order("created_at", { ascending: false }).limit(5);
+    q = numero_pedido ? q.eq("external_reference", String(numero_pedido).trim()) : q.ilike("email", String(email).trim());
+    const { data, error } = await q;
+    if (error) throw new Error(error.message);
+    if (!data?.length) return "Nenhum pedido encontrado com esse dado.";
+    return data.map((o) => resumoPedido(o, false)).join("\n") +
+      "\n(Rastreio e endereço só são mostrados quando o pedido tem o mesmo telefone deste WhatsApp.)";
+  }
+  // Pelo telefone: compara os últimos 10 dígitos (DDD + número), que é o que
+  // sobrevive às grafias (+55, com ou sem 9, com traço).
+  const alvo = soDigitos(waId).slice(-10);
+  const desde = new Date(Date.now() - 180 * 24 * HORA_MS).toISOString();
+  const { data, error } = await supabase.from("orders").select(campos)
+    .gte("created_at", desde).order("created_at", { ascending: false }).limit(1000);
+  if (error) throw new Error(error.message);
+  const meus = (data || []).filter((o) => {
+    const tel = soDigitos(o.shipping?.phone || o.shipping?.whatsapp || o.shipping?.telefone);
+    return tel && tel.slice(-10) === alvo;
+  }).slice(0, 5);
+  if (!meus.length) return "Nenhum pedido com o telefone deste WhatsApp nos últimos 6 meses. Peça o e-mail da compra ou o número do pedido.";
+  return meus.map((o) => resumoPedido(o, true)).join("\n");
+}
+
+const PRODUTO = { cartao_nfc: "cartão NFC", placa_balcao: "placa de balcão", placa_mesa: "placa de balcão M", pulseira_nfc: "pulseira NFC", cartao_social: "cartão Trybo" };
+
+async function verificarCodigo({ codigo }) {
+  const c = String(codigo || "").toUpperCase().replace(/\s+/g, "").trim();
+  if (!c) return "Código vazio.";
+  // linha-ok: o atendimento confere código das duas marcas (StarTouch e Trybo)
+  const { data, error } = await supabase.from("plates").select("code, status, product_type, linha").eq("code", c).maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return `O código ${c} não existe. Confira se digitou igual ao impresso (letra O e número 0 não são usados nos códigos novos).`;
+  const marca = data.linha === "social" ? "Trybo" : "StarTouch";
+  const estado = data.status === "active" ? "já está ATIVADO (ligado a uma conta)"
+    : data.status === "disabled" ? "está DESATIVADO — precisa de uma pessoa da equipe"
+    : "ainda NÃO foi ativado — pode ativar normalmente";
+  return `${c}: ${PRODUTO[data.product_type] || data.product_type} ${marca}, ${estado}.`;
+}
+
+async function chamarRicardo(waId, nome, { motivo, resumo }) {
+  await gravar({ wa_id: waId, direcao: "escalado", texto: `${motivo} — ${resumo}` });
+  await avisarAdmin(`WhatsApp: ${nome || "+" + waId} precisa de você`, `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+      <h2 style="margin:0 0 8px;">📲 Conversa passada pra você</h2>
+      <p><strong>Cliente:</strong> ${esc(nome || "—")} · +${esc(waId)}</p>
+      <p><strong>Motivo:</strong> ${esc(motivo)}</p>
+      <p><strong>Resumo:</strong> ${esc(resumo)}</p>
+      <p><a href="https://wa.me/${esc(waId)}" style="display:inline-block;background:#1E8E3E;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:700;">Abrir a conversa</a></p>
+      <p style="color:#68757F;font-size:13px;">O assistente fica quieto nessa conversa pelas próximas 12 horas, ou até você responder.</p>
+    </div>`);
+  return "Feito: o Ricardo foi avisado e vai responder por aqui. O assistente não responde mais nesta conversa por enquanto.";
+}
+
+// ── Uma mensagem do cliente ──────────────────────────────────────
+async function tratarMensagem(msg, nome) {
+  const waId = soDigitos(msg.from);
+  const texto = msg.type === "text" ? msg.text?.body || ""
+    : msg.type === "button" ? msg.button?.text || ""
+    : msg.type === "interactive" ? (msg.interactive?.button_reply?.title || msg.interactive?.list_reply?.title || "")
+    : `[o cliente mandou ${msg.type === "image" ? "uma imagem" : msg.type === "audio" ? "um áudio" : msg.type === "document" ? "um arquivo" : msg.type === "sticker" ? "uma figurinha" : "uma mensagem do tipo " + msg.type}]`;
+
+  const nova = await gravar({ wa_id: waId, direcao: "entrada", wamid: msg.id, texto });
+  if (!nova) return;   // reenvio da Meta
+
+  if (process.env.WHATSAPP_BOT_DESLIGADO === "1") return;
+
+  // Agrupa rajadas: só a última mensagem da rajada responde.
+  await new Promise((ok) => setTimeout(ok, AGRUPAR_MS));
+  const { data: ultima } = await supabase.from("whatsapp_mensagens").select("wamid")
+    .eq("wa_id", waId).eq("direcao", "entrada").order("criado_em", { ascending: false }).limit(1).maybeSingle();
+  if (ultima?.wamid && ultima.wamid !== msg.id) return;
+
+  const desde = new Date(Date.now() - 24 * HORA_MS).toISOString();
+  const { data: linhas, error } = await supabase.from("whatsapp_mensagens").select("direcao, texto, criado_em")
+    .eq("wa_id", waId).gte("criado_em", desde).order("criado_em", { ascending: false }).limit(60);
+  if (error) throw new Error(error.message);
+
+  // Pessoa na conversa? O robô fica quieto.
+  const pausa = (linhas || []).find((l) => (l.direcao === "humano" || l.direcao === "escalado")
+    && Date.now() - Date.parse(l.criado_em) < PAUSA_HUMANO_MS);
+  if (pausa) return;
+
+  // Histórico em ordem, só o que foi dito (cliente e assistente), juntando
+  // mensagens seguidas do mesmo lado — a API alterna os papéis.
+  const historico = [];
+  for (const l of (linhas || []).slice().reverse()) {
+    if (l.direcao !== "entrada" && l.direcao !== "saida") continue;
+    const role = l.direcao === "entrada" ? "user" : "assistant";
+    const ult = historico[historico.length - 1];
+    if (ult && ult.role === role) ult.content += "\n" + (l.texto || "");
+    else historico.push({ role, content: l.texto || "" });
+  }
+  while (historico.length && historico[0].role !== "user") historico.shift();
+  const recorte = historico.slice(-HISTORICO_MAX);
+  if (recorte[0]?.role !== "user") recorte.shift();
+  if (!recorte.length) return;
+  if (nome) recorte[0] = { role: "user", content: `[Nome no WhatsApp: ${nome}]\n${recorte[0].content}` };
+
+  let resultado;
+  try {
+    if (!temConfiguracaoIA()) throw new Error("ANTHROPIC_API_KEY ausente");
+    resultado = await responder(recorte, async (ferramenta, input) => {
+      if (ferramenta === "consultar_pedidos") return consultarPedidos(waId, input);
+      if (ferramenta === "verificar_codigo") return verificarCodigo(input);
+      if (ferramenta === "chamar_ricardo") return chamarRicardo(waId, nome, input);
+      return "Ferramenta desconhecida.";
+    });
+  } catch (e) {
+    console.error(`[whatsapp] assistente FALHOU para +${waId}:`, e?.message || e);
+    resultado = { texto: null, erro: e?.message || String(e) };
+  }
+
+  let resposta = resultado.texto;
+  if (!resposta) {
+    // Sem resposta boa (erro, recusa, laço): o cliente não fica no vácuo e o
+    // admin fica sabendo.
+    resposta = MSG_FALHA;
+    if (!resultado.escalou) {
+      await gravar({ wa_id: waId, direcao: "escalado", texto: `assistente sem resposta (${resultado.erro || (resultado.recusou ? "recusa" : "laço")})` });
+      await avisarAdmin(`WhatsApp: assistente não respondeu ${nome || "+" + waId}`,
+        `<p>O assistente não conseguiu responder e o cliente recebeu "já chamei o Ricardo".</p>
+         <p><strong>Cliente:</strong> ${esc(nome || "—")} · +${esc(waId)}</p>
+         <p><strong>Última mensagem:</strong> ${esc(texto)}</p>
+         <p><strong>Motivo técnico:</strong> ${esc(resultado.erro || (resultado.recusou ? "recusa do modelo" : "laço de ferramentas"))}</p>
+         <p><a href="https://wa.me/${esc(waId)}">Abrir a conversa</a></p>`);
+    }
+  }
+
+  try {
+    const wamid = await enviarTexto(waId, resposta);
+    await gravar({ wa_id: waId, direcao: "saida", wamid, texto: resposta });
+  } catch (e) {
+    console.error(`[whatsapp] ENVIO FALHOU para +${waId}:`, e?.message || e);
+    await avisarAdmin(`WhatsApp: resposta não foi enviada a ${nome || "+" + waId}`,
+      `<p>A Meta recusou o envio da resposta. O cliente está sem retorno.</p>
+       <p><strong>Erro:</strong> ${esc(e?.message || e)}</p>
+       <p><strong>Cliente:</strong> +${esc(waId)} · <a href="https://wa.me/${esc(waId)}">abrir</a></p>`);
+  }
+}
+
+// O Ricardo respondeu pelo app (coexistência): registra e pausa o robô.
+async function tratarEco(eco) {
+  const waId = soDigitos(eco.to);
+  if (!waId) return;
+  await gravar({ wa_id: waId, direcao: "humano", wamid: eco.id || null, texto: eco.text?.body || `[${eco.type}]` });
+}
+
+async function processar(payload) {
+  for (const entrada of payload?.entry || []) {
+    for (const mudanca of entrada?.changes || []) {
+      const v = mudanca?.value || {};
+      if (mudanca.field === "smb_message_echoes") {
+        for (const eco of v.message_echoes || []) {
+          try { await tratarEco(eco); } catch (e) { console.error("[whatsapp] eco falhou:", e?.message); }
+        }
+        continue;
+      }
+      if (mudanca.field !== "messages") continue;
+      for (const st of v.statuses || []) {
+        if (st.status === "failed") console.error(`[whatsapp] Meta: envio FALHOU para ${st.recipient_id}:`, JSON.stringify(st.errors || []).slice(0, 300));
+      }
+      const nome = v.contacts?.[0]?.profile?.name || "";
+      for (const msg of v.messages || []) {
+        try { await tratarMensagem(msg, nome); } catch (e) { console.error("[whatsapp] mensagem falhou:", e?.message || e); }
+      }
+    }
+  }
+}
+
+export default async function handler(req, res) {
+  if (req.method === "GET") {
+    const q = req.query || {};
+    const token = (process.env.WHATSAPP_VERIFY_TOKEN || "").trim();
+    if (q["hub.mode"] === "subscribe" && token && q["hub.verify_token"] === token) {
+      return res.status(200).send(String(q["hub.challenge"] || ""));
+    }
+    return res.status(403).send("forbidden");
+  }
+  if (req.method !== "POST") return res.status(405).end();
+
+  const raw = await lerCorpo(req);
+  if (!assinaturaOk(raw, req.headers["x-hub-signature-256"])) {
+    console.warn("[whatsapp] assinatura inválida ou WHATSAPP_APP_SECRET ausente — evento ignorado");
+    return res.status(401).end();
+  }
+  let payload;
+  try { payload = JSON.parse(raw.toString("utf8")); } catch { return res.status(400).end(); }
+
+  // Responde já; o trabalho continua depois da resposta (a Meta reenvia o
+  // que demora, e a resposta da IA leva alguns segundos).
+  waitUntil(processar(payload).catch((e) => console.error("[whatsapp] processamento falhou:", e?.message || e)));
+  return res.status(200).end();
+}

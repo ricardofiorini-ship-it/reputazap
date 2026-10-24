@@ -491,6 +491,9 @@
     },
     "api/cron/broadcast.js": {
       "maxDuration": 800
+    },
+    "api/whatsapp.js": {
+      "maxDuration": 120
     }
   },
   "crons": [

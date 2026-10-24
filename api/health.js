@@ -211,6 +211,19 @@ export default async function handler(req, res) {
     services.push({ name: "Mercado Pago", ok: false, error: "MP_ACCESS_TOKEN ausente" });
   }
 
+  // WhatsApp (24/10/2026). Só entra no painel depois que o número foi ligado
+  // (WHATSAPP_PHONE_NUMBER_ID existe): a partir daí, faltar qualquer peça
+  // deixaria o cliente sem resposta e ninguém saberia.
+  if (process.env.WHATSAPP_PHONE_NUMBER_ID) {
+    const faltam = ["WHATSAPP_TOKEN", "WHATSAPP_VERIFY_TOKEN", "WHATSAPP_APP_SECRET", "ANTHROPIC_API_KEY"]
+      .filter((k) => !(process.env[k] || "").trim());
+    services.push({
+      name: "WhatsApp — assistente", ok: faltam.length === 0,
+      error: faltam.length ? `faltando ${faltam.join(", ")} — mensagens ficam sem resposta` : null,
+      ...(process.env.WHATSAPP_BOT_DESLIGADO === "1" ? { note: "robô desligado (WHATSAPP_BOT_DESLIGADO=1): só registra" } : {})
+    });
+  }
+
   // ── Que versão está no ar AGORA ──────────────────────────────
   // A Vercel injeta estas variáveis em toda function, sem configuração. Sem
   // isso, "o deploy subiu?" só se responde abrindo o painel e confiando na

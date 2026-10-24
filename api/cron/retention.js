@@ -36,6 +36,8 @@ const ALVOS = [
   // A Política diz "24 meses a partir do cadastro" porque radar_leads não tem
   // coluna de último contato. O texto foi ajustado ao dado, não o contrário.
   { tabela: "radar_leads",  coluna: "created_at",   prazo: "24 months", schema: "supabase/schema-radar.sql" },
+  // Atendimento por WhatsApp (24/10/2026, Política 1.13): 6 meses.
+  { tabela: "whatsapp_mensagens", coluna: "criado_em", prazo: "6 months", schema: "supabase/schema-whatsapp.sql" },
   // Histórico de visibilidade (15/09/2026). 24 meses porque é o que permite
   // comparação ano-contra-ano — a única pergunta que a série responde e que
   // um prazo menor impediria. Não guarda dado de pessoa natural (place_id é
