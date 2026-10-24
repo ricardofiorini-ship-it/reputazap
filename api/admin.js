@@ -93,6 +93,7 @@ export default async function handler(req, res) {
     if (action === "pedido-status") return await handlePedidoStatus(req, res, admin);
     if (action === "assinaturas")  return await handleAssinaturas(req, res);
     if (action === "trocar-negocio") return await handleTrocarNegocio(req, res, admin);
+    if (action === "whatsapp")       return await handleWhatsapp(req, res);
     return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects, funnel, visitas, grid-suggest, grid, pedidos, pedido-status ou assinaturas" });
   } catch (err) {
     console.error("[admin] erro:", err);
@@ -1265,6 +1266,76 @@ async function handleTrocarNegocio(req, res, admin) {
   if (error) return res.status(500).json({ error: error.message });
   console.log("[admin] TROCA DE NEGOCIO pelo admin:", { por: admin.email, business_id: atual.id, de: atual.place_id, de_nome: atual.name, para: placeId, para_nome: nome });
   return res.json({ ok: true, de: { place_id: atual.place_id, name: atual.name }, business: data });
+}
+
+// ATENDIMENTOS DO WHATSAPP (24/10/2026) — a tela /admin/whatsapp.
+// Sem ?wa_id: lista as conversas dos últimos N dias (padrão 7), uma por
+// número, com a última mensagem e em que pé está. Com ?wa_id: a conversa
+// inteira daquele número. Só lê o que o assistente já guarda (Política §3.1,
+// 6 meses) — nada novo é coletado por causa desta tela.
+async function handleWhatsapp(req, res) {
+  const waId = String(req.query.wa_id || "").replace(/\D/g, "");
+  if (waId) {
+    const { data, error } = await supabase.from("whatsapp_mensagens")
+      .select("direcao, texto, criado_em").eq("wa_id", waId)
+      .order("criado_em", { ascending: true }).limit(1000);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ wa_id: waId, mensagens: data || [] });
+  }
+
+  const dias = Math.min(Math.max(parseInt(req.query.dias, 10) || 7, 1), 180);
+  const desde = new Date(Date.now() - dias * 86400000).toISOString();
+  const linhas = [];
+  for (let de = 0; de < 50000; de += 1000) {
+    const { data, error } = await supabase.from("whatsapp_mensagens")
+      .select("wa_id, direcao, texto, criado_em").gte("criado_em", desde)
+      .order("criado_em", { ascending: true }).range(de, de + 999);
+    if (error) {
+      const faltando = /relation|does not exist|schema cache/i.test(error.message);
+      return res.status(500).json({ error: faltando ? "Tabela whatsapp_mensagens não existe — rode supabase/schema-whatsapp.sql" : error.message });
+    }
+    linhas.push(...(data || []));
+    if (!data || data.length < 1000) break;
+  }
+
+  const porNumero = new Map();
+  for (const l of linhas) {
+    if (!porNumero.has(l.wa_id)) porNumero.set(l.wa_id, { wa_id: l.wa_id, mensagens: 0, robo: 0, voce: 0, ultima: null, ultimoEscalado: null, ultimoHumano: null, ultimaEntrada: null, ultimaSaida: null });
+    const c = porNumero.get(l.wa_id);
+    if (l.direcao === "entrada") { c.mensagens++; c.ultimaEntrada = l; }
+    if (l.direcao === "saida") { c.robo++; c.ultimaSaida = l; }
+    if (l.direcao === "humano") { c.voce++; c.ultimoHumano = l; }
+    if (l.direcao === "escalado") c.ultimoEscalado = l;
+    if (l.direcao !== "escalado") c.ultima = l;
+  }
+
+  const t = (l) => (l ? Date.parse(l.criado_em) : 0);
+  const conversas = [...porNumero.values()].map((c) => {
+    // Em que pé está, do ponto de vista de quem atende:
+    //   precisa_voce  o robô passou pra você e você ainda não respondeu
+    //   sem_resposta  o cliente falou por último e ninguém respondeu
+    //   voce          você respondeu por último
+    //   robo          o robô respondeu por último
+    let situacao;
+    if (c.ultimoEscalado && t(c.ultimoEscalado) > t(c.ultimoHumano)) situacao = "precisa_voce";
+    else if (c.ultima?.direcao === "entrada") situacao = "sem_resposta";
+    else if (c.ultima?.direcao === "humano") situacao = "voce";
+    else situacao = "robo";
+    return {
+      wa_id: c.wa_id, situacao,
+      mensagens_cliente: c.mensagens, respostas_robo: c.robo, respostas_voce: c.voce,
+      ultima_direcao: c.ultima?.direcao || null,
+      ultima_texto: (c.ultima?.texto || "").slice(0, 160),
+      ultima_em: c.ultima?.criado_em || c.ultimoEscalado?.criado_em || null,
+      motivo_escalado: c.ultimoEscalado && situacao === "precisa_voce" ? (c.ultimoEscalado.texto || "").slice(0, 200) : null
+    };
+  }).sort((a, b) => {
+    const peso = { precisa_voce: 0, sem_resposta: 1, voce: 2, robo: 2 };
+    return (peso[a.situacao] - peso[b.situacao]) || (Date.parse(b.ultima_em || 0) - Date.parse(a.ultima_em || 0));
+  });
+
+  const contagem = conversas.reduce((acc, c) => { acc[c.situacao] = (acc[c.situacao] || 0) + 1; return acc; }, {});
+  return res.json({ dias, total: conversas.length, contagem, conversas });
 }
 
 async function handlePedidos(req, res) {

@@ -402,6 +402,10 @@
       "destination": "/admin-indicacoes.html"
     },
     {
+      "source": "/admin/whatsapp",
+      "destination": "/admin-whatsapp.html"
+    },
+    {
       "source": "/admin/assinaturas",
       "destination": "/admin-assinaturas.html"
     },

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<script src="/consent.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WhatsApp — StarTouch Admin</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;background:#f6f7f9;color:#111820;line-height:1.55;padding:28px 16px 80px}
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+  .sub{font-size:14px;color:#68757F;margin-bottom:22px}
+  .card{background:#fff;border:1px solid #e3e8ed;border-radius:12px;padding:18px 20px;margin-bottom:14px}
+  #login{max-width:380px;margin:60px auto}
+  #login input{width:100%;padding:12px 14px;border:1px solid #dce2e8;border-radius:9px;font-size:15px;margin-bottom:10px;font-family:inherit}
+  .btn{background:#1A5FB4;color:#fff;border:none;border-radius:9px;padding:12px 18px;font-size:14.5px;font-weight:600;cursor:pointer;font-family:inherit}
+  .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .chip{background:#fff;border:1px solid #dce2e8;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;color:#3D4A57;cursor:pointer;font-family:inherit}
+  .chip.on{background:#1A5FB4;border-color:#1A5FB4;color:#fff}
+  .top{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .quem{flex:1 1 220px;min-width:0}
+  .nome{font-size:16px;font-weight:700}
+  .meta{font-size:12.5px;color:#68757F;word-break:break-word}
+  .valor{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+  .badge{display:inline-block;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .b-teste{background:#EAF1FA;color:#1A5FB4}
+  .b-pagando{background:#E4F2EC;color:#15654A}
+  .b-atrasado{background:#FFF8E1;color:#8A5A00}
+  .b-saiu{background:#F1F5F9;color:#475569}
+  .linha{font-size:13px;color:#3D4A57;margin-top:10px;padding-top:10px;border-top:1px solid #eef1f4}
+  .alerta{color:#B42318;font-size:13px;margin-top:6px;font-weight:600}
+  .erro{color:#9B2226;font-size:13px;margin-top:8px}
+  .vazio{text-align:center;color:#68757F;padding:40px 0}
+  a{color:#1A5FB4}
+  .conversa{cursor:pointer}
+  .conversa.precisa_voce{border-left:4px solid #B42318}
+  .conversa.sem_resposta{border-left:4px solid #E3A008}
+  .b-precisa_voce{background:#FDECEC;color:#9B2226}
+  .b-sem_resposta{background:#FFF8E1;color:#8A5A00}
+  .b-voce{background:#EAF1FA;color:#1A5FB4}
+  .b-robo{background:#E4F2EC;color:#15654A}
+  .barra{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .barra select{padding:8px 10px;border:1px solid #dce2e8;border-radius:9px;font-family:inherit;font-size:14px}
+  .historico{margin-top:12px;padding-top:12px;border-top:1px solid #eef1f4;display:flex;flex-direction:column;gap:8px;cursor:default}
+  .msg{max-width:80%;padding:8px 12px;border-radius:12px;font-size:14px;white-space:pre-wrap;word-break:break-word}
+  .msg .de{font-size:11px;color:#68757F;margin-bottom:2px;font-weight:600}
+  .msg.entrada{background:#F1F5F9;align-self:flex-start}
+  .msg.saida{background:#E4F2EC;align-self:flex-end}
+  .msg.humano{background:#EAF1FA;align-self:flex-end}
+  .msg.escalado{background:#FDECEC;align-self:center;font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="login" class="card" style="display:none">
+    <h1 style="font-size:20px">Admin — WhatsApp</h1>
+    <p class="sub">Entre com a conta de administrador.</p>
+    <input id="email" type="email" placeholder="E-mail" autocomplete="username"/>
+    <input id="senha" type="password" placeholder="Senha" autocomplete="current-password"/>
+    <button class="btn" style="width:100%" onclick="entrar()">Entrar</button>
+    <p id="loginErro" class="erro"></p>
+  </div>
+
+  <div id="app" style="display:none">
+    <h1>Atendimentos do WhatsApp</h1>
+    <p class="sub" id="resumo">Carregando…</p>
+    <div class="barra">
+      <select id="dias" aria-label="Período">
+        <option value="1">Hoje</option>
+        <option value="7" selected>7 dias</option>
+        <option value="30">30 dias</option>
+        <option value="180">6 meses</option>
+      </select>
+      <button class="btn" id="atualizar" type="button" style="padding:8px 14px;font-size:13.5px">Atualizar</button>
+    </div>
+    <div class="filtros" id="filtros"></div>
+    <div id="lista"></div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// SESSÃO QUE NÃO CAI — mesma regra de `src/lib/sessao.js`
+// ============================================================
+// O token do Supabase vence em 1 HORA. Esta tela nasceu sem renovação: bastava
+// abrir a aba uma hora depois pra levar 401, e o código de baixo APAGAVA o
+// token e mostrava o login. Do lado de quem usa isso é "entrei e ele me
+// deslogou" — e pior, derrubava junto a sessão do /app, porque `rz_token` é a
+// MESMA chave das duas telas.
+//
+// Está copiado aqui, e não importado, porque `src/lib/` é empacotado pelo vite
+// e esta página é HTML estático servido direto. Se a regra mudar lá, muda aqui.
+const K_TOKEN = "rz_token", K_REFRESH = "rz_refresh", K_EXP = "rz_token_exp";
+const MARGEM_S = 60;  // renova ANTES de vencer; sem margem, chamada iniciada no
+                      // último segundo chega vencida no servidor.
+
+const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const gravar = (k,v) => { try { v==null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch {} };
+
+function salvarSessao(d){
+  if(!d) return;
+  if(d.token) gravar(K_TOKEN, d.token);
+  if(d.refresh_token) gravar(K_REFRESH, d.refresh_token);
+  if(d.expires_at) gravar(K_EXP, String(d.expires_at));
+}
+function limparSessao(){ gravar(K_TOKEN,null); gravar(K_REFRESH,null); gravar(K_EXP,null); }
+
+// Uma renovação por vez: o token de renovação é ROTATIVO, então dois pedidos
+// simultâneos com o mesmo token fariam o segundo falhar e derrubar a sessão.
+let renovando = null;
+async function renovar(){
+  const refresh = ler(K_REFRESH);
+  if(!refresh) return null;
+  if(renovando) return renovando;
+  renovando = (async () => {
+    try{
+      const r = await fetch("/api/login",{ method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ action:"refresh", refresh_token: refresh }) });
+      const d = await r.json().catch(()=>null);
+      if(!r.ok || !d?.token){ limparSessao(); return null; }
+      salvarSessao(d); return d.token;
+    }catch{
+      // Falha de REDE não é sessão inválida. Apagar aqui deslogaria quem só
+      // passou por um túnel.
+      return null;
+    }finally{ renovando = null; }
+  })();
+  return renovando;
+}
+
+async function TK(){
+  const t = ler(K_TOKEN);
+  if(!t) return null;
+  const exp = parseInt(ler(K_EXP) || "0", 10);
+  if(!exp) return t;  // sessão antiga, sem validade guardada: o 401 resolve
+  if(exp - MARGEM_S > Math.floor(Date.now()/1000)) return t;
+  return (await renovar()) || t;
+}
+
+// Envia com o token de agora; se levar 401, renova UMA vez e repete. Uma só —
+// repetir em laço transforma sessão morta em martelada no servidor.
+async function comSessao(url, opcoes = {}){
+  const monta = t => ({ ...opcoes, headers: { ...(opcoes.headers||{}), Authorization: "Bearer "+t } });
+  let t = await TK();
+  if(!t) return { semSessao: true };
+  let r = await fetch(url, monta(t));
+  if(r.status === 401){
+    const novo = await renovar();
+    if(!novo) return { semSessao: true };
+    r = await fetch(url, monta(novo));
+  }
+  return { resposta: r };
+}
+
+
+async function entrar(){
+  const email = document.getElementById("email").value.trim();
+  const senha = document.getElementById("senha").value;
+  const er = document.getElementById("loginErro"); er.textContent = "";
+  try{
+    const r = await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email,password:senha})});
+    const d = await r.json();
+    if(!r.ok || !d.token){ er.textContent = d.error || "Não consegui entrar."; return; }
+    // O PAR INTEIRO, não só o token de acesso. Guardar só o token era o que
+    // fazia a sessão morrer em 1h sem ter como renovar.
+    salvarSessao(d);
+    inicia();
+  }catch{ er.textContent = "Falha de conexão."; }
+}
+
+// Atendimentos do WhatsApp (api/admin.js?action=whatsapp). Lido do banco a
+// cada abertura; "Atualizar" relê sem recarregar a página.
+let dados = null, filtro = "", aberta = null;
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fone = n => { const d = String(n||""); return d.length >= 12 ? `+${d.slice(0,2)} (${d.slice(2,4)}) ${d.slice(4,-4)}-${d.slice(-4)}` : "+" + d; };
+const quando = iso => {
+  if (!iso) return "—";
+  const d = new Date(iso), hoje = new Date();
+  const h = d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  return d.toDateString() === hoje.toDateString() ? `hoje ${h}` : `${d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})} ${h}`;
+};
+const ROTULO = { precisa_voce:"⚠️ Precisa de você", sem_resposta:"⏳ Sem resposta", voce:"👤 Você respondeu", robo:"🤖 Robô respondeu" };
+const QUEM = { entrada:"Cliente", saida:"🤖 Robô", humano:"👤 Você", escalado:"⚠️ Passou pra você" };
+
+async function carrega(){
+  const dias = document.getElementById("dias").value;
+  const { resposta: r, semSessao } = await comSessao("/api/admin?action=whatsapp&dias=" + dias);
+  if(semSessao){ limparSessao(); inicia(); return; }
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok){
+    document.getElementById("resumo").textContent = r.status === 403 ? "Sem acesso" : "Erro ao carregar";
+    document.getElementById("lista").innerHTML = `<div class="card vazio">${esc(d.error || ("O servidor respondeu "+r.status+"."))}</div>`;
+    return;
+  }
+  dados = d;
+  const c = d.contagem || {};
+  document.getElementById("resumo").textContent =
+    `${d.total} conversa(s) nos últimos ${d.dias} dia(s) · ${c.precisa_voce||0} precisam de você · ${c.sem_resposta||0} sem resposta`;
+  desenhaFiltros(); desenhaLista();
+}
+
+function desenhaFiltros(){
+  const c = dados.contagem || {};
+  const ops = [["","Todas",dados.total],["precisa_voce","Precisam de você",c.precisa_voce||0],["sem_resposta","Sem resposta",c.sem_resposta||0],["robo","Robô respondeu",c.robo||0],["voce","Você respondeu",c.voce||0]];
+  document.getElementById("filtros").innerHTML = ops.map(([v,l,n]) =>
+    `<button class="chip ${filtro===v?"on":""}" data-filtro="${v}">${l} (${n})</button>`).join("");
+}
+
+function desenhaLista(){
+  const ls = dados.conversas.filter(c => !filtro || c.situacao === filtro);
+  document.getElementById("lista").innerHTML = ls.length ? ls.map(c => `
+    <div class="card conversa ${c.situacao}" data-wa="${esc(c.wa_id)}">
+      <div class="top">
+        <div class="quem"><div class="nome">${esc(fone(c.wa_id))}</div>
+          <div class="meta">${QUEM[c.ultima_direcao]||""}: ${esc(c.ultima_texto)}</div>
+          ${c.motivo_escalado ? `<div class="alerta">Motivo: ${esc(c.motivo_escalado)}</div>` : ""}</div>
+        <div><div class="meta" style="text-align:right">${quando(c.ultima_em)}</div>
+          <div style="text-align:right;margin-top:4px"><span class="badge b-${c.situacao}">${ROTULO[c.situacao]}</span></div></div>
+      </div>
+      <div class="linha">${c.mensagens_cliente} do cliente · ${c.respostas_robo} do robô · ${c.respostas_voce} suas
+        · <a href="https://wa.me/${esc(c.wa_id)}" target="_blank" rel="noopener">Abrir no WhatsApp</a></div>
+      <div class="historico" ${aberta===c.wa_id?"":"hidden"}></div>
+    </div>`).join("")
+    : `<div class="card vazio">${dados.total ? "Nenhuma conversa neste filtro." : "Nenhuma conversa no período."}</div>`;
+  if (aberta) abreHistorico(aberta);
+}
+
+async function abreHistorico(wa){
+  const card = document.querySelector(`.conversa[data-wa="${wa}"]`);
+  if(!card) return;
+  const box = card.querySelector(".historico");
+  box.hidden = false; box.innerHTML = '<div class="meta">Carregando…</div>';
+  const { resposta: r } = await comSessao("/api/admin?action=whatsapp&wa_id=" + encodeURIComponent(wa));
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok){ box.innerHTML = `<div class="alerta">${esc(d.error||"Erro")}</div>`; return; }
+  box.innerHTML = (d.mensagens||[]).map(m => `
+    <div class="msg ${m.direcao}"><div class="de">${QUEM[m.direcao]||m.direcao} · ${quando(m.criado_em)}</div>
+      <div class="txt">${esc(m.texto||"")}</div></div>`).join("") || '<div class="meta">Sem mensagens.</div>';
+}
+
+document.getElementById("filtros").addEventListener("click", e => {
+  const b = e.target.closest("[data-filtro]"); if(!b) return;
+  filtro = b.dataset.filtro; desenhaFiltros(); desenhaLista();
+});
+document.getElementById("lista").addEventListener("click", e => {
+  if (e.target.closest("a")) return;
+  const card = e.target.closest(".conversa"); if(!card) return;
+  const wa = card.dataset.wa;
+  if (aberta === wa) { aberta = null; card.querySelector(".historico").hidden = true; return; }
+  document.querySelectorAll(".historico").forEach(h => h.hidden = true);
+  aberta = wa; abreHistorico(wa);
+});
+document.getElementById("dias").addEventListener("change", carrega);
+document.getElementById("atualizar").addEventListener("click", carrega);
+
+function inicia(){
+  if(!ler(K_TOKEN)){ document.getElementById("login").style.display="block";
+             document.getElementById("app").style.display="none"; return; }
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+  carrega();
+}
+inicia();
+</script>
+</body>
+</html>
