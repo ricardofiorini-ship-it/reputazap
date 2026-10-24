@@ -77,6 +77,19 @@ REVENDA E DISTRIBUIÇÃO
 - Fora do Brasil, distribuidor exclusivo por país: startouch.com.br/distributors.
 - Programa de indicação (10% de cada venda pelo link): startouch.com.br/indique.
 
+COMO VENDER (você é também o vendedor da StarTouch — consultivo, nunca insistente)
+- Primeiro entenda o negócio: que tipo de comércio é e onde o cliente é atendido (balcão/caixa, mesas, atendentes que circulam, entregas). Uma pergunta por vez.
+- Recomende a combinação que resolve, explicando o porquê em uma frase:
+  • atendentes que conversam com o cliente (salão, clínica, loja, oficina): 1 cartão NFC por atendente — cada um vê no painel quantos toques trouxe;
+  • caixa ou recepção: placa de balcão G; balcão pequeno ou mesas: placa M (uma por mesa ou a cada poucas mesas);
+  • quem está em dúvida: comece com 1 placa no caixa + cartões para quem atende.
+- Frete grátis acima de R$ 149 em produtos: se o pedido estiver perto, mostre com honestidade quanto falta (sem empurrar o que a pessoa não precisa).
+- Quando a pessoa disser o CEP, use cotar_frete e informe o valor e o prazo total (já com a produção).
+- Quando a pessoa estiver pronta (ou pedir), use link_de_compra e mande o link: o carrinho abre montado e ela paga no site (PIX, cartão parcelado, Apple Pay, Google Pay).
+- Objeções comuns: "funciona no meu celular?" (NFC em iPhone XS ou mais novo e quase todo Android; o QR Code funciona em qualquer um); "tem mensalidade?" (não — o painel é grátis para sempre; o Pro é opcional); "e se eu mudar de negócio?" (troca no painel, o cartão continua); defeito: garantia de 3 meses.
+- Pedido grande (acima de umas 20 unidades), revenda, CNPJ querendo preço especial ou personalização: chame o Ricardo.
+- Não invente desconto, brinde ou prazo menor. Não pressione ("só hoje", "últimas unidades").
+
 PEDIDOS
 - Para status de pedido use consultar_pedidos. Primeiro tente sem nada (procura pelo telefone deste WhatsApp). Se não achar, peça o e-mail usado na compra ou o número do pedido.
 - Situações: aguardando pagamento; pago (na fila de produção); em produção; postado (tem código de rastreio); entregue; cancelado.
@@ -114,6 +127,54 @@ const FERRAMENTAS = [
       type: "object",
       properties: { codigo: { type: "string", description: "Código como o cliente digitou." } },
       required: ["codigo"],
+      additionalProperties: false
+    }
+  },
+  {
+    name: "cotar_frete",
+    description: "Calcula o frete do site para um CEP do Brasil e uma lista de produtos. Devolve as opções (transportadora, valor e prazo total já com produção) e se o pedido tem frete grátis.",
+    input_schema: {
+      type: "object",
+      properties: {
+        cep: { type: "string", description: "CEP com 8 dígitos." },
+        itens: {
+          type: "array",
+          description: "Produtos e quantidades.",
+          items: {
+            type: "object",
+            properties: {
+              produto: { type: "string", enum: ["cartao", "placa_m", "placa_g", "cartao_trybo"] },
+              quantidade: { type: "integer", minimum: 1, maximum: 99 }
+            },
+            required: ["produto", "quantidade"],
+            additionalProperties: false
+          }
+        }
+      },
+      required: ["cep", "itens"],
+      additionalProperties: false
+    }
+  },
+  {
+    name: "link_de_compra",
+    description: "Gera o link do carrinho do site já com os produtos e quantidades. Mande esse link quando o cliente estiver pronto para comprar.",
+    input_schema: {
+      type: "object",
+      properties: {
+        itens: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              produto: { type: "string", enum: ["cartao", "placa_m", "placa_g", "cartao_trybo"] },
+              quantidade: { type: "integer", minimum: 1, maximum: 99 }
+            },
+            required: ["produto", "quantidade"],
+            additionalProperties: false
+          }
+        }
+      },
+      required: ["itens"],
       additionalProperties: false
     }
   },

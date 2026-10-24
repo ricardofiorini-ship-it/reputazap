@@ -29,6 +29,8 @@ import { createClient } from "@supabase/supabase-js";
 import { waitUntil } from "@vercel/functions";
 import { responder, temConfiguracaoIA } from "./_lib/whatsapp-agente.js";
 import { sendRawEmail } from "./_lib/email-sender.js";
+import { cotaFrete } from "./_lib/frenet.js";
+import { KIT_CATALOG, diasDeProducao } from "./_lib/catalogo-kit.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -156,6 +158,43 @@ async function verificarCodigo({ codigo }) {
   return `${c}: ${PRODUTO[data.product_type] || data.product_type} ${marca}, ${estado}.`;
 }
 
+// ── Ferramentas de venda (25/10/2026) ──────────────────────────────
+const PRODUTO_ID = { cartao: "cartao-nfc", placa_m: "placa-mesa", placa_g: "placa-balcao", cartao_trybo: "cartao-trybo" };
+const FRETE_GRATIS_ACIMA_CENTAVOS = 14900;
+const reais = (c) => (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+function itensDoCatalogo(itens) {
+  return (Array.isArray(itens) ? itens : [])
+    .map((i) => ({ id: PRODUTO_ID[i.produto], qty: Math.min(Math.max(parseInt(i.quantidade, 10) || 1, 1), 99) }))
+    .filter((i) => i.id && KIT_CATALOG[i.id]);
+}
+
+async function cotarFrete({ cep, itens }) {
+  const items = itensDoCatalogo(itens);
+  if (!items.length) return "Nenhum produto válido.";
+  const esgotado = items.find((i) => KIT_CATALOG[i.id].soldOut);
+  if (esgotado) return `${KIT_CATALOG[esgotado.id].name} está esgotado.`;
+  const produtos = items.reduce((s, i) => s + KIT_CATALOG[i.id].price_cents * i.qty, 0);
+  const r = await cotaFrete({ cep, items, modo: "unitario", valorCentavos: produtos });
+  if (r.erro) return `Não consegui cotar: ${r.erro}`;
+  const producao = diasDeProducao(items);
+  const gratis = produtos >= FRETE_GRATIS_ACIMA_CENTAVOS;
+  const linhas = r.opcoes.map((o) => `${o.transportadora} ${o.servico}: ${gratis ? "GRÁTIS" : reais(o.precoCentavos)}, chega em até ${o.prazoDias ? o.prazoDias + producao : "?"} dias úteis`);
+  return `Produtos: ${reais(produtos)}. ` +
+    (gratis ? "Frete grátis (acima de R$ 149 em produtos) — vai pela opção mais em conta."
+      : `Faltam ${reais(FRETE_GRATIS_ACIMA_CENTAVOS - produtos)} em produtos para o frete grátis.`) +
+    `\nOpções:\n${linhas.join("\n")}\n(Prazo = ${producao} dias úteis de produção + transporte.)`;
+}
+
+function linkDeCompra({ itens }) {
+  const items = itensDoCatalogo(itens);
+  if (!items.length) return "Nenhum produto válido.";
+  const ids = items.flatMap((i) => Array(i.qty).fill(i.id));
+  const produtos = items.reduce((s, i) => s + KIT_CATALOG[i.id].price_cents * i.qty, 0);
+  return `https://startouch.com.br/kit?add=${ids.join(",")}&utm_source=whatsapp&utm_medium=chat&utm_campaign=atendimento` +
+    `\n(Total em produtos: ${reais(produtos)}${produtos >= FRETE_GRATIS_ACIMA_CENTAVOS ? ", com frete grátis" : ", frete calculado pelo CEP no site"}.)`;
+}
+
 async function chamarRicardo(waId, nome, { motivo, resumo }) {
   await gravar({ wa_id: waId, direcao: "escalado", texto: `${motivo} — ${resumo}` });
   await avisarAdmin(`WhatsApp: ${nome || "+" + waId} precisa de você`, `
@@ -235,6 +274,8 @@ async function gerarEEnviar(waId, nome, linhas, texto) {
     resultado = await responder(recorte, async (ferramenta, input) => {
       if (ferramenta === "consultar_pedidos") return consultarPedidos(waId, input);
       if (ferramenta === "verificar_codigo") return verificarCodigo(input);
+      if (ferramenta === "cotar_frete") return cotarFrete(input);
+      if (ferramenta === "link_de_compra") return linkDeCompra(input);
       if (ferramenta === "chamar_ricardo") return chamarRicardo(waId, nome, input);
       return "Ferramenta desconhecida.";
     });
@@ -347,6 +388,8 @@ export default async function handler(req, res) {
           chamadas.push({ ferramenta, input });
           if (ferramenta === "consultar_pedidos") return (input.email || input.numero_pedido) ? consultarPedidos("0", input) : "Nenhum pedido com o telefone deste WhatsApp (teste sem telefone).";
           if (ferramenta === "verificar_codigo") return verificarCodigo(input);
+      if (ferramenta === "cotar_frete") return cotarFrete(input);
+      if (ferramenta === "link_de_compra") return linkDeCompra(input);
           if (ferramenta === "chamar_ricardo") return "Feito (TESTE: nenhum e-mail foi enviado).";
           return "Ferramenta desconhecida.";
         });

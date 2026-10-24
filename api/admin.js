@@ -1354,7 +1354,31 @@ async function handleWhatsapp(req, res) {
   });
 
   const contagem = conversas.reduce((acc, c) => { acc[c.situacao] = (acc[c.situacao] || 0) + 1; return acc; }, {});
-  return res.json({ dias, total: conversas.length, contagem, conversas });
+
+  // VENDAS DEPOIS DE UMA CONVERSA (25/10/2026): pedido PAGO no período, feito
+  // DEPOIS da primeira mensagem daquele número, com o mesmo telefone na entrega
+  // (últimos 10 dígitos: DDD + número). É a pergunta "o robô traz dinheiro?".
+  // Conta também quem comprou por link de marketplace? Não — só a loja do site.
+  const primeiraConversa = new Map();
+  for (const l of linhas) if (!primeiraConversa.has(l.wa_id.slice(-10))) primeiraConversa.set(l.wa_id.slice(-10), Date.parse(l.criado_em));
+  const vendas = { pedidos: 0, total_centavos: 0, numeros: [] };
+  if (primeiraConversa.size) {
+    const { data: pedidos } = await supabase.from("orders")
+      .select("total_cents, status, shipping, created_at").gte("created_at", desde)
+      .in("status", ["paid", "em_producao", "postado", "entregue"]).limit(2000);
+    for (const o of pedidos || []) {
+      const tel = String(o.shipping?.phone || o.shipping?.whatsapp || o.shipping?.telefone || "").replace(/\D/g, "").slice(-10);
+      const inicio = tel && primeiraConversa.get(tel);
+      if (inicio && Date.parse(o.created_at) >= inicio) {
+        vendas.pedidos++; vendas.total_centavos += o.total_cents || 0;
+        if (!vendas.numeros.includes(tel)) vendas.numeros.push(tel);
+      }
+    }
+  }
+  for (const c of conversas) c.comprou = vendas.numeros.includes(c.wa_id.slice(-10));
+  delete vendas.numeros;
+
+  return res.json({ dias, total: conversas.length, contagem, vendas, conversas });
 }
 
 async function handlePedidos(req, res) {

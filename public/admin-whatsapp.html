@@ -201,7 +201,8 @@ async function carrega(){
   dados = d;
   const c = d.contagem || {};
   document.getElementById("resumo").textContent =
-    `${d.total} conversa(s) nos últimos ${d.dias} dia(s) · ${c.precisa_voce||0} precisam de você · ${c.sem_resposta||0} sem resposta`;
+    `${d.total} conversa(s) nos últimos ${d.dias} dia(s) · ${c.precisa_voce||0} precisam de você · ${c.sem_resposta||0} sem resposta` +
+    (d.vendas ? ` · 💰 ${d.vendas.pedidos} venda(s) depois de conversar (${(d.vendas.total_centavos/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})})` : "");
   desenhaFiltros(); desenhaLista();
 }
 
@@ -221,7 +222,7 @@ function desenhaLista(){
           <div class="meta">${QUEM[c.ultima_direcao]||""}: ${esc(c.ultima_texto)}</div>
           ${c.motivo_escalado ? `<div class="alerta">Motivo: ${esc(c.motivo_escalado)}</div>` : ""}</div>
         <div><div class="meta" style="text-align:right">${quando(c.ultima_em)}</div>
-          <div style="text-align:right;margin-top:4px"><span class="badge b-${c.situacao}">${ROTULO[c.situacao]}</span></div></div>
+          <div style="text-align:right;margin-top:4px"><span class="badge b-${c.situacao}">${ROTULO[c.situacao]}</span>${c.comprou ? ' <span class="badge b-robo">💰 Comprou</span>' : ""}</div></div>
       </div>
       <div class="linha">${c.mensagens_cliente} do cliente · ${c.respostas_robo} do robô · ${c.respostas_voce} suas
         · <a href="https://wa.me/${esc(c.wa_id)}" target="_blank" rel="noopener">Abrir no WhatsApp</a>
