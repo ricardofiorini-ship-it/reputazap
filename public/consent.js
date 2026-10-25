@@ -88,7 +88,10 @@
   // individualize), entao cabe no que a Politica §6.5 ja declara. O evento do
   // GA4 vai junto e segue o Consent Mode como qualquer outro.
   // Uso: <a href="..." data-saida="mercado-livre">.
-  function contarSaida(nome) {
+  // WHATSAPP (24/10/2026): todo link wa.me conta sozinho, sem marcar um por
+  // um — path "/saida/whatsapp", mesma catraca, e evento GA4 próprio
+  // (`whatsapp_click`), pra não misturar com saída pra marketplace.
+  function contarSaida(nome, evento) {
     try {
       var q = new URLSearchParams(location.search);
       enviarCatraca({
@@ -98,13 +101,17 @@
         campaign: q.get("utm_campaign") || ""
       });
       if (typeof window.gtag === "function") {
-        window.gtag("event", "marketplace_click", { marketplace: nome, pagina: location.pathname });
+        if (evento === "whatsapp_click") window.gtag("event", "whatsapp_click", { pagina: location.pathname });
+        else window.gtag("event", "marketplace_click", { marketplace: nome, pagina: location.pathname });
       }
     } catch (e) { /* idem */ }
   }
   document.addEventListener("click", function (ev) {
-    var el = ev.target && ev.target.closest ? ev.target.closest("[data-saida]") : null;
-    if (el) contarSaida(el.getAttribute("data-saida"));
+    if (!ev.target || !ev.target.closest) return;
+    var el = ev.target.closest("[data-saida]");
+    if (el) { contarSaida(el.getAttribute("data-saida")); return; }
+    var wa = ev.target.closest('a[href*="wa.me/"]');
+    if (wa) contarSaida("whatsapp", "whatsapp_click");
   }, true);
 
   // TRYBO (23/10/2026): o trybo.co é servido pelo mesmo projeto e carrega este
