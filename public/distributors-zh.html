@@ -309,6 +309,8 @@
         <p class="aviso">我们仅将这些信息用于评估您的申请并与您联系。请参阅我们的<a href="/privacidade?lang=zh">隐私政策</a>。</p>
         <div class="campo cheio"><button class="btn" type="submit" id="enviar">提交申请</button></div>
         <p id="msg" role="status"></p>
+        <a class="dist-wa" href="https://wa.me/5511976944026?text=%E6%82%A8%E5%A5%BD%21%E6%88%91%E6%9C%89%E5%85%B4%E8%B6%A3%E6%88%90%E4%B8%BA%20StarTouch%20%E7%BB%8F%E9%94%80%E5%95%86%E3%80%82" target="_blank" rel="noopener">💬 提交前有疑问?在 WhatsApp 上联系我们</a>
+        <style>.dist-wa{display:flex;justify-content:center;margin-top:12px;padding:10px 12px;border:1px solid #c8eed6;background:#effaf3;border-radius:10px;color:#137333;font-size:14px;font-weight:600;text-decoration:none;text-align:center;}.dist-wa:hover{background:#e3f6ea;}</style>
       </form>
     </div>
   </div>
@@ -343,5 +345,26 @@ document.getElementById("form").addEventListener("submit", async (e) => {
   }
 });
 </script>
+<!-- WhatsApp StarTouch — floating button -->
+<a href="https://wa.me/5511976944026?text=%E6%82%A8%E5%A5%BD%21%E6%88%91%E6%9C%89%E5%85%B4%E8%B6%A3%E6%88%90%E4%B8%BA%20StarTouch%20%E7%BB%8F%E9%94%80%E5%95%86%E3%80%82"
+   target="_blank" rel="noreferrer"
+   aria-label="通过 WhatsApp 联系 StarTouch +55 11 97694-4026"
+   title="StarTouch · WhatsApp +55 11 97694-4026"
+   id="st-wa-fab"
+   style="position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:50%;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(37,211,102,0.38),0 2px 6px rgba(0,0,0,0.10);z-index:9999;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease;">
+  <span aria-hidden="true" id="st-wa-halo" style="position:absolute;inset:0;border-radius:50%;background:#25D366;opacity:0.35;animation:stWaPulse 1.8s ease-out infinite;"></span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="34" height="34" aria-hidden="true" style="position:relative;">
+    <path fill="currentColor" d="M16.001 3C9.373 3 4 8.373 4 15c0 2.252.624 4.36 1.706 6.165L4 29l8.06-1.667A11.94 11.94 0 0 0 16.001 27C22.628 27 28 21.627 28 15S22.628 3 16.001 3Zm0 21.6c-1.747 0-3.4-.46-4.825-1.293l-.345-.205-4.78.988.999-4.654-.225-.359A9.55 9.55 0 0 1 6.4 15c0-5.293 4.308-9.6 9.601-9.6 5.293 0 9.6 4.307 9.6 9.6 0 5.293-4.307 9.6-9.6 9.6Zm5.522-7.182c-.302-.151-1.792-.884-2.07-.985-.279-.101-.481-.151-.683.151-.202.302-.783.985-.96 1.187-.176.202-.353.227-.655.076-.302-.151-1.276-.47-2.43-1.5-.898-.8-1.504-1.79-1.681-2.093-.176-.302-.019-.466.132-.616.135-.135.302-.353.453-.53.151-.176.202-.302.302-.504.101-.202.05-.378-.025-.53-.076-.151-.683-1.647-.936-2.256-.247-.594-.498-.513-.683-.523l-.581-.01c-.202 0-.53.076-.806.378-.279.302-1.061 1.037-1.061 2.528 0 1.49 1.087 2.93 1.238 3.132.151.202 2.14 3.27 5.187 4.586.725.313 1.29.5 1.731.64.727.231 1.388.198 1.91.12.583-.087 1.792-.732 2.045-1.439.252-.706.252-1.31.176-1.439-.076-.126-.279-.202-.581-.353Z"/>
+  </svg>
+</a>
+<style>
+  @keyframes stWaPulse { 0%{transform:scale(1);opacity:.35} 70%{transform:scale(1.65);opacity:0} 100%{transform:scale(1.65);opacity:0} }
+  #st-wa-fab:hover { transform: translateY(-2px) scale(1.05); box-shadow:0 14px 30px rgba(37,211,102,0.48),0 4px 12px rgba(0,0,0,0.12); }
+  @media (prefers-reduced-motion: reduce) { #st-wa-halo { display:none; } }
+</style>
+<script>
+  setTimeout(function(){ var h=document.getElementById('st-wa-halo'); if(h) h.style.display='none'; }, 8000);
+</script>
+
 </body>
 </html>
