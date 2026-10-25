@@ -247,6 +247,9 @@ async function tratarNps(waId, nome, texto) {
     const agora = new Date().toISOString();
     if (nota >= 9) {
       await salvar({ nota, respondido_em: agora, etapa: "fim" });
+      // NÃO pôr aqui o link do Trustpilot: ele proíbe convidar só quem deu nota
+      // alta. O convite dele vai pra todo comprador (cópia oculta no e-mail de
+      // pagamento confirmado, billing.js). Esta env é pra destino que permita.
       const avaliar = (process.env.STARTOUCH_AVALIACAO_URL || "").trim();
       await responderFixo(waId, "Que bom demais, obrigado! 🙌\n\n" +
         "Se conhece alguém que também precisa de mais avaliações no Google: no Divulgue e Ganhe você recebe 10% de cada venda feita pelo seu link. É só entrar aqui: https://startouch.com.br/indique" +

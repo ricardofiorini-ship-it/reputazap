@@ -2438,6 +2438,8 @@ async function avisaClientePedidoRecebido({ session, stripe, extRef }) {
 }
 
 /** "Pagamento confirmado" — so quando o dinheiro entrou de verdade. */
+const TRUSTPILOT_BCC = (process.env.TRUSTPILOT_BCC ?? "startouch.com.br+6f319a3134@invite.trustpilot.com").trim();
+
 async function avisaClientePedidoPago({ order, extRef, totalCentavos }) {
   // ESTA FUNCAO ATENDE OS DOIS TIPOS DE PEDIDO (revenda e kit), e era a unica
   // que fazia isso lendo UM vocabulario so. A revenda grava `nome`, a compra do
@@ -2456,10 +2458,16 @@ async function avisaClientePedidoPago({ order, extRef, totalCentavos }) {
         nome: cliente.nome || null, ref: extRef, totalCentavos,
         ehRevenda: extRef.startsWith("revenda_"),
       });
+  // Convite do Trustpilot (Política 1.16): a cópia oculta faz o Trustpilot
+  // mandar, dias depois, o convite pra avaliar. TODO comprador da StarTouch
+  // recebe — o Trustpilot proíbe convidar só quem gostou, então nada de
+  // filtrar pela nota da pesquisa. TRUSTPILOT_BCC="" na Vercel desliga.
+  const trustpilot = !trybo && !extRef.startsWith("revenda_") ? TRUSTPILOT_BCC : "";
   await sendTransactionalEmail({
     userId: order?.user_id || "guest",
     emailType: "pedido_confirmado",
     to, subject, html,
+    ...(trustpilot ? { bcc: trustpilot } : {}),
     ...(trybo ? { from: remetenteTrybo() || undefined, lang: "pt" } : {}),
     dedupeByMetadata: { key: "ref", value: extRef },
     metadata: { ref: extRef },
