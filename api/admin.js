@@ -1254,7 +1254,24 @@ async function handleTrocarNegocio(req, res, admin) {
   const { data: atual, error: e1 } = await supabase.from("businesses")
     .select("id, place_id, name").eq("user_id", userId).maybeSingle();
   if (e1) return res.status(500).json({ error: e1.message });
-  if (!atual) return res.status(404).json({ error: "Conta sem negócio" });
+  // Conta que entrou e parou antes de escolher o negócio (25/10/2026): o admin
+  // vincula por ela, gravando o mesmo que o savebiz grava num negócio novo.
+  if (!atual) {
+    const { data: u } = await supabase.auth.admin.getUserById(userId);
+    if (!u?.user) return res.status(404).json({ error: "Conta não encontrada" });
+    const meta = u.user.user_metadata || {};
+    await supabase.from("profiles").upsert({ id: userId, name: meta.name || meta.full_name || "Usuário", phone: meta.phone || "" }, { onConflict: "id" });
+    const { data, error } = await supabase.from("businesses").insert({
+      user_id: userId, place_id: placeId, name: nome,
+      address: String(b.address || "").trim() || null,
+      rating: Number.isFinite(Number(b.rating)) ? Number(b.rating) : null,
+      total_reviews: Number.isFinite(Number(b.total)) ? Number(b.total) : null,
+      plan: "free"
+    }).select().single();
+    if (error) return res.status(500).json({ error: error.message });
+    console.log("[admin] NEGOCIO VINCULADO pelo admin:", { por: admin.email, business_id: data.id, para: placeId, para_nome: nome });
+    return res.json({ ok: true, criado: true, business: data });
+  }
   if (atual.place_id === placeId) return res.json({ ok: true, igual: true, business: atual });
 
   const patch = {
