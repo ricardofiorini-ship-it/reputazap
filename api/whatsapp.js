@@ -39,7 +39,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 const GRAPH = (process.env.WHATSAPP_GRAPH_VERSION || "v26.0").trim();
 const HORA_MS = 3600000;
 const PAUSA_HUMANO_MS = 12 * HORA_MS;   // depois que o Ricardo fala, o robô se cala
-const AGRUPAR_MS = 4000;                // espera mensagens seguidas antes de responder
+const AGRUPAR_MS = 6000;                // espera mensagens seguidas antes de responder
 const HISTORICO_MAX = 20;
 
 export const MARCA_DEVOLVIDA = "[conversa devolvida ao robô]";
@@ -369,12 +369,24 @@ async function tratarMensagem(msg, nome) {
       return;
     }
   }
-  await gerarEEnviar(waId, nome, linhas, texto);
+  await gerarEEnviar(waId, nome, linhas, texto, msg.id);
+}
+
+// Chegou mensagem nova do cliente enquanto a resposta era gerada? (27/10/2026)
+// Caso: "Tem como me explicar tudo sobre" + "Como funciona", 7s de
+// intervalo — a espera acima não cobre quem digita em pedaços, e saíam duas
+// explicações quase iguais. Quem responde é o atendimento da mensagem mais
+// nova, que já enxerga as duas.
+async function foiSuperada(waId, wamid) {
+  if (!wamid) return false;
+  const { data } = await supabase.from("whatsapp_mensagens").select("wamid")
+    .eq("wa_id", waId).eq("direcao", "entrada").order("criado_em", { ascending: false }).limit(1).maybeSingle();
+  return !!(data?.wamid && data.wamid !== wamid);
 }
 
 // Monta o histórico, pede a resposta ao assistente e envia. Usado pela
 // mensagem nova do cliente e pelo "Devolver ao robô" do admin.
-async function gerarEEnviar(waId, nome, linhas, texto) {
+async function gerarEEnviar(waId, nome, linhas, texto, wamidGatilho = null) {
   // Histórico em ordem, só o que foi dito, juntando mensagens seguidas do
   // mesmo lado — a API alterna os papéis. O que o RICARDO escreveu pelo app
   // entra do lado do atendimento, marcado: quando a conversa volta pro robô,
@@ -397,12 +409,20 @@ async function gerarEEnviar(waId, nome, linhas, texto) {
   // apelido, nome de outra pessoa ou da loja, e ouvir "Oi, Mãe do João!" de
   // um robô soa errado. O nome segue só nos e-mails pro admin.
 
-  // Já se apresentou como IA a este número nos últimos 30 dias?
+  // Primeira conversa? = nunca se apresentou E o cliente não tinha escrito
+  // antes desta rajada (30 dias). A segunda parte existe porque conversa que
+  // já vinha rolando ganhava "Oi! Eu sou o assistente virtual" no meio da
+  // venda (27/10/2026) — as respostas de antes da regra não tinham a frase.
   const desde30 = new Date(Date.now() - 30 * 24 * HORA_MS).toISOString();
-  const { data: apresentou } = await supabase.from("whatsapp_mensagens").select("id")
-    .eq("wa_id", waId).eq("direcao", "saida").gte("criado_em", desde30)
-    .ilike("texto", "%assistente virtual%").limit(1);
-  const primeira = !(apresentou || []).length;
+  const antesDaRajada = new Date(Date.now() - 10 * 60000).toISOString();
+  const [{ data: apresentou }, { data: escreveuAntes }] = await Promise.all([
+    supabase.from("whatsapp_mensagens").select("id")
+      .eq("wa_id", waId).eq("direcao", "saida").gte("criado_em", desde30)
+      .ilike("texto", "%assistente virtual%").limit(1),
+    supabase.from("whatsapp_mensagens").select("id")
+      .eq("wa_id", waId).eq("direcao", "entrada").gte("criado_em", desde30).lt("criado_em", antesDaRajada).limit(1)
+  ]);
+  const primeira = !(apresentou || []).length && !(escreveuAntes || []).length;
   if (primeira) {
     const ult = recorte.length - 1;
     recorte[ult] = { ...recorte[ult], content: `[Esta é a sua primeira resposta a este cliente: comece se apresentando como o assistente virtual da StarTouch, uma inteligência artificial.]\n${recorte[ult].content}` };
@@ -425,6 +445,12 @@ async function gerarEEnviar(waId, nome, linhas, texto) {
   }
 
   let resposta = resultado.texto;
+  // Superada por mensagem mais nova: cala. Exceto se já passou pro Ricardo —
+  // aí a próxima rodada fica quieta (pausa) e o aviso ao cliente é este.
+  if (!resultado.escalou && await foiSuperada(waId, wamidGatilho)) {
+    console.log("[whatsapp] cliente mandou mais coisa enquanto eu respondia — a resposta sai pela mensagem nova");
+    return;
+  }
   if (resposta && resposta.includes(SEM_RESPOSTA)) {
     console.log("[whatsapp] assistente decidiu não responder (cliente só encerrou)");
     return;
