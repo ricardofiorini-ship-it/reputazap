@@ -2396,6 +2396,15 @@ function AccountSection({ user }) {
   const [trocando, setTrocando] = React.useState(false)
   const [avisoSenha, setAvisoSenha] = React.useState('')
 
+  // Troca do e-mail de login (27/10/2026): fechada como a senha. Só envia o
+  // link — o e-mail muda quando o cliente clica nele, no endereço novo.
+  const [abrirEmail, setAbrirEmail] = React.useState(false)
+  const [emailNovo, setEmailNovo]   = React.useState('')
+  const [senhaEmail, setSenhaEmail] = React.useState('')
+  const [pedindoEmail, setPedindoEmail] = React.useState(false)
+  const [avisoEmail, setAvisoEmail] = React.useState('')
+  const [temSenha, setTemSenha] = React.useState(true)
+
   // Os dados da pessoa vêm do SERVIDOR, não do localStorage: o que está
   // guardado no navegador é do instante do login e envelhece — se o cliente
   // trocar o nome aqui e abrir noutro aparelho, lá ainda estaria o antigo.
@@ -2407,6 +2416,7 @@ function AccountSection({ user }) {
         setNome(r.user?.name || '')
         setFone(r.user?.phone || '')
         setEmail(r.user?.email || user?.email || '')
+        setTemSenha(r.tem_senha !== false)
       })
       .catch(() => { if (vivo) setNome(user?.name || '') })
       .finally(() => { if (vivo) setCarregando(false) })
@@ -2458,6 +2468,23 @@ function AccountSection({ user }) {
     setTrocando(false)
   }
 
+  async function pedirTrocaEmail() {
+    setAvisoEmail('')
+    setPedindoEmail(true)
+    try {
+      const r = await apiCall('/api/conta?action=email', {
+        method: 'POST',
+        body: JSON.stringify({ email_novo: emailNovo, senha_atual: senhaEmail })
+      })
+      setSenhaEmail(''); setEmailNovo('')
+      setAbrirEmail(false)
+      setAviso('ok:Enviamos um link para ' + (r.enviado_para || 'o novo e-mail') + '. O e-mail só muda quando você clicar nele.')
+    } catch (e) {
+      setAvisoEmail('err:' + (e.message || 'Não foi possível pedir a troca'))
+    }
+    setPedindoEmail(false)
+  }
+
   const botao = {
     background: T.blue, color:'#fff', border:'none', borderRadius: 8,
     padding:'10px 18px', fontSize: 13.5, fontWeight: 700, cursor:'pointer'
@@ -2472,7 +2499,7 @@ function AccountSection({ user }) {
       <CampoEditavel label="Nome completo" value={nome} onChange={setNome}
         placeholder={carregando ? 'Carregando…' : 'Seu nome'} disabled={carregando}/>
       <ConfigField label="Email" value={email} type="email" readOnly
-        hint="É também seu login. Para trocar o e-mail, fale com a gente na Central de ajuda."/>
+        hint="É também seu login."/>
       <CampoEditavel label="Telefone" value={fone} onChange={setFone} type="tel"
         placeholder={carregando ? 'Carregando…' : '(11) 99999-9999'} disabled={carregando}
         hint="Usado só pra falar com você. Não aparece pros seus clientes."/>
@@ -2485,6 +2512,9 @@ function AccountSection({ user }) {
         </button>
         <button onClick={() => { setAbrirSenha(v => !v); setAvisoSenha('') }} style={botaoClaro}>
           {abrirSenha ? 'Cancelar' : 'Alterar senha'}
+        </button>
+        <button onClick={() => { setAbrirEmail(v => !v); setAvisoEmail('') }} style={botaoClaro}>
+          {abrirEmail ? 'Cancelar' : 'Trocar e-mail'}
         </button>
       </div>
       <AvisoConta texto={aviso}/>
@@ -2513,6 +2543,39 @@ function AccountSection({ user }) {
             celular destravado na mão trocaria sua senha e você perderia a conta.
             Esqueceu a atual? Saia e use "Esqueci minha senha" na tela de entrada.
           </div>
+        </div>
+      )}
+
+      {abrirEmail && (
+        <div style={{
+          marginTop: 16, padding: 14, background: T.bg,
+          border:'1px solid '+T.border, borderRadius: 10
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 10 }}>
+            Trocar e-mail
+          </div>
+          {temSenha ? (
+            <>
+              <CampoEditavel label="Novo e-mail" value={emailNovo} onChange={setEmailNovo} type="email"/>
+              <CampoEditavel label="Senha atual" value={senhaEmail} onChange={setSenhaEmail} type="password"/>
+              <button onClick={pedirTrocaEmail} disabled={pedindoEmail || !emailNovo || !senhaEmail}
+                style={{ ...botao,
+                  background: (pedindoEmail || !emailNovo || !senhaEmail) ? T.textDim : T.blue,
+                  cursor: pedindoEmail ? 'wait' : 'pointer' }}>
+                {pedindoEmail ? 'Enviando…' : 'Enviar link de confirmação'}
+              </button>
+              <AvisoConta texto={avisoEmail}/>
+              <div style={{ fontSize: 11.5, color: T.textDim, marginTop: 10, lineHeight: 1.5 }}>
+                Mandamos um link para o e-mail novo. A troca só acontece quando você clicar nele,
+                e o e-mail atual recebe um aviso. A senha continua a mesma.
+              </div>
+            </>
+          ) : (
+            <div style={{ fontSize: 12.5, color: T.textMuted || T.textDim, lineHeight: 1.6 }}>
+              Sua conta entra pelo Google e não tem senha. Para trocar o e-mail, saia, use
+              "Esqueci minha senha" na tela de entrada para criar uma senha e depois volte aqui.
+            </div>
+          )}
         </div>
       )}
     </ConfigSectionCard>

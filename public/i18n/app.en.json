@@ -246,7 +246,6 @@
   "Carregando…": "Loading…",
   "Seu nome": "Your name",
   "Email": "Email",
-  "É também seu login. Para trocar o e-mail, fale com a gente na Central de ajuda.": "It's also your login. To change your email, contact us through the Help center.",
   "Telefone": "Phone",
   "Usado só pra falar com você. Não aparece pros seus clientes.": "Used only to contact you. Your customers never see it.",
   "Salvar alterações": "Save changes",
@@ -1396,7 +1395,15 @@
   "Ou cole no campo do nome o": "Or paste into the name field the",
   "link do seu negócio no Google Maps": "link to your business on Google Maps",
   "(no Maps: abra o negócio → Compartilhar → Copiar link).": "(in Maps: open the business → Share → Copy link).",
-  "Não é nenhum desses? Confira o CEP, ou cole no campo do nome o link do seu negócio no Google Maps (Compartilhar → Copiar link).": "None of these? Check the CEP, or paste your business's Google Maps link into the name field (Share → Copy link)."
+  "Não é nenhum desses? Confira o CEP, ou cole no campo do nome o link do seu negócio no Google Maps (Compartilhar → Copiar link).": "None of these? Check the CEP, or paste your business's Google Maps link into the name field (Share → Copy link).",
+  "Não foi possível pedir a troca": "Couldn't request the change",
+  "É também seu login.": "It's also your sign-in.",
+  "Trocar e-mail": "Change email",
+  "Novo e-mail": "New email",
+  "Enviando…": "Sending…",
+  "Enviar link de confirmação": "Send confirmation link",
+  "Mandamos um link para o e-mail novo. A troca só acontece quando você clicar nele, e o e-mail atual recebe um aviso. A senha continua a mesma.": "We'll send a link to the new email. The change only happens when you click it, and your current email gets a notice. Your password stays the same.",
+  "Sua conta entra pelo Google e não tem senha. Para trocar o e-mail, saia, use \"Esqueci minha senha\" na tela de entrada para criar uma senha e depois volte aqui.": "Your account signs in with Google and has no password. To change the email, sign out, use \"Forgot my password\" on the sign-in screen to create a password, then come back here."
  },
  "p": [
   [
@@ -1826,6 +1833,10 @@
   [
    "^(.+?) dispositivos ainda levam direto à avaliação no Google, sem menu\\.$",
    "$1 devices still go straight to the Google review, without a menu."
+  ],
+  [
+   "^Enviamos um link para (.+?)\\. O e-mail só muda quando você clicar nele\\.$",
+   "We sent a link to $1. Your email only changes when you click it."
   ]
  ],
  "px": [

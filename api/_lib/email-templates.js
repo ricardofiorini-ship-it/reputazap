@@ -892,6 +892,64 @@ export function deviceUnlinkedEmail({ userName, bizName, code, channelName, prod
 }
 
 // ─────────────────────────────────────────────────────────────
+// 7a. TROCA DO E-MAIL DE LOGIN (27/10/2026) — api/conta.js
+// ─────────────────────────────────────────────────────────────
+// Dois e-mails, cada um com uma função. A CONFIRMAÇÃO vai pro endereço NOVO:
+// prova que a pessoa recebe ali (e-mail digitado errado deixaria a conta sem
+// acesso). O AVISO vai pro endereço ANTIGO, depois da troca: é a metade de
+// segurança, igual ao `deviceUnlinkedEmail` — quem pegou o celular destravado
+// consegue trocar, mas o dono fica sabendo no mesmo minuto.
+export function emailTrocaConfirmarEmail({ userName, link, novo }) {
+  const name = escapeHtml(userName?.split(" ")[0] || "tudo bem?");
+  return {
+    subject: "Confirme o seu novo e-mail na StarTouch",
+    html: shell({
+      title: "TROCA DE E-MAIL",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
+          ${name}, confirme o seu novo e-mail
+        </h1>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 6px;">
+          Recebemos um pedido para que <strong>${escapeHtml(novo)}</strong> passe a ser o e-mail de acesso da sua conta.
+        </p>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0;">
+          A troca só acontece quando você clicar no botão abaixo. O link vale por 24 horas.
+        </p>
+        ${cta(link, "Confirmar o novo e-mail")}
+        <p style="font-size:13.5px;color:#5F6368;line-height:1.6;margin:16px 0 0;">
+          Depois da troca, você entra com o e-mail novo e a mesma senha. O seu negócio, os seus dispositivos e o histórico continuam como estão.
+        </p>
+        <p style="font-size:13.5px;color:#5F6368;line-height:1.6;margin:12px 0 0;">
+          <strong>Não pediu isso?</strong> É só ignorar este e-mail: nada muda.
+        </p>
+      `
+    })
+  };
+}
+
+export function emailTrocadoEmail({ userName, novo }) {
+  const name = escapeHtml(userName?.split(" ")[0] || "tudo bem?");
+  return {
+    subject: "O e-mail de acesso da sua conta StarTouch foi trocado",
+    html: shell({
+      title: "E-MAIL TROCADO",
+      headerColor: "#B91C1C",
+      body: `
+        <h1 style="margin:0 0 12px;font-size:22px;color:#202124;line-height:1.3;">
+          ${name}, o e-mail da sua conta foi trocado
+        </h1>
+        <p style="font-size:15px;color:#5F6368;line-height:1.6;margin:0 0 6px;">
+          A partir de agora, o acesso ao painel é feito com <strong>${escapeHtml(novo)}</strong>. Este endereço deixou de ser o login da conta.
+        </p>
+        <p style="font-size:13.5px;color:#5F6368;line-height:1.6;margin:16px 0 0;">
+          <strong>Não foi você?</strong> Responda este e-mail agora mesmo. Guardamos o registro da troca e conseguimos devolver a conta a você.
+        </p>
+      `
+    })
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
 // 7b. ASSINATURA PRO — os avisos de cobrança (06/10/2026)
 // ─────────────────────────────────────────────────────────────
 // Até aqui a cobrança acontecia calada: o teste acabava, o cartão era cobrado

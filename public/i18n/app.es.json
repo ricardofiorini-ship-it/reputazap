@@ -246,7 +246,6 @@
   "Carregando…": "Cargando…",
   "Seu nome": "Tu nombre",
   "Email": "Correo",
-  "É também seu login. Para trocar o e-mail, fale com a gente na Central de ajuda.": "También es tu usuario. Para cambiar el correo, escríbenos desde el Centro de ayuda.",
   "Telefone": "Teléfono",
   "Usado só pra falar com você. Não aparece pros seus clientes.": "Solo lo usamos para contactarte. Tus clientes no lo ven.",
   "Salvar alterações": "Guardar cambios",
@@ -1396,7 +1395,15 @@
   "Ou cole no campo do nome o": "O pega en el campo del nombre el",
   "link do seu negócio no Google Maps": "enlace de tu negocio en Google Maps",
   "(no Maps: abra o negócio → Compartilhar → Copiar link).": "(en Maps: abre el negocio → Compartir → Copiar enlace).",
-  "Não é nenhum desses? Confira o CEP, ou cole no campo do nome o link do seu negócio no Google Maps (Compartilhar → Copiar link).": "¿No es ninguno de estos? Revisa el CEP, o pega en el campo del nombre el enlace de tu negocio en Google Maps (Compartir → Copiar enlace)."
+  "Não é nenhum desses? Confira o CEP, ou cole no campo do nome o link do seu negócio no Google Maps (Compartilhar → Copiar link).": "¿No es ninguno de estos? Revisa el CEP, o pega en el campo del nombre el enlace de tu negocio en Google Maps (Compartir → Copiar enlace).",
+  "Não foi possível pedir a troca": "No se pudo solicitar el cambio",
+  "É também seu login.": "También es tu acceso.",
+  "Trocar e-mail": "Cambiar correo",
+  "Novo e-mail": "Correo nuevo",
+  "Enviando…": "Enviando…",
+  "Enviar link de confirmação": "Enviar enlace de confirmación",
+  "Mandamos um link para o e-mail novo. A troca só acontece quando você clicar nele, e o e-mail atual recebe um aviso. A senha continua a mesma.": "Enviamos un enlace al correo nuevo. El cambio solo ocurre cuando hagas clic en él, y tu correo actual recibe un aviso. La contraseña sigue siendo la misma.",
+  "Sua conta entra pelo Google e não tem senha. Para trocar o e-mail, saia, use \"Esqueci minha senha\" na tela de entrada para criar uma senha e depois volte aqui.": "Tu cuenta entra con Google y no tiene contraseña. Para cambiar el correo, cierra sesión, usa \"Olvidé mi contraseña\" en la pantalla de acceso para crear una contraseña y luego vuelve aquí."
  },
  "p": [
   [
@@ -1826,6 +1833,10 @@
   [
    "^(.+?) dispositivos ainda levam direto à avaliação no Google, sem menu\\.$",
    "$1 dispositivos todavía llevan directo a la reseña en Google, sin menú."
+  ],
+  [
+   "^Enviamos um link para (.+?)\\. O e-mail só muda quando você clicar nele\\.$",
+   "Enviamos un enlace a $1. El correo solo cambia cuando hagas clic en él."
   ]
  ],
  "px": [

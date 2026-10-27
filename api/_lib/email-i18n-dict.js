@@ -326,7 +326,22 @@ export default {
    "Colete mais avaliações.": "Collect more reviews.",
    "📊 Sua semana no Google — seu negócio": "📊 Your week on Google — your business",
    "🎯 Primeiro toque no seu StarTouch em seu negócio!": "🎯 First tap on your StarTouch at your business!",
-   "Quem teve mais toques": "Most taps"
+   "Quem teve mais toques": "Most taps",
+   "Confirme o seu novo e-mail na StarTouch": "Confirm your new email on StarTouch",
+   "TROCA DE E-MAIL": "EMAIL CHANGE",
+   "Recebemos um pedido para que": "We received a request for",
+   "passe a ser o e-mail de acesso da sua conta.": "to become the sign-in email for your account.",
+   "Confirmar o novo e-mail": "Confirm the new email",
+   "Depois da troca, você entra com o e-mail novo e a mesma senha. O seu negócio, os seus dispositivos e o histórico continuam como estão.": "After the change, you sign in with the new email and the same password. Your business, your devices and your history stay as they are.",
+   "Não pediu isso?": "Didn't request this?",
+   "É só ignorar este e-mail: nada muda.": "Just ignore this email: nothing will change.",
+   "tudo bem?, confirme o seu novo e-mail": "Confirm your new email",
+   "O e-mail de acesso da sua conta StarTouch foi trocado": "The sign-in email for your StarTouch account has been changed",
+   "E-MAIL TROCADO": "EMAIL CHANGED",
+   "A partir de agora, o acesso ao painel é feito com": "From now on, you sign in to the dashboard with",
+   ". Este endereço deixou de ser o login da conta.": ". This address is no longer the account's sign-in.",
+   "Responda este e-mail agora mesmo. Guardamos o registro da troca e conseguimos devolver a conta a você.": "Reply to this email right away. We keep a record of the change and can give the account back to you.",
+   "tudo bem?, o e-mail da sua conta foi trocado": "Your account's email has been changed"
   },
   "p": [
    [
@@ -732,6 +747,18 @@ export default {
    [
     "^Apareça em mais lugares da sua região \\(você não aparece em ([\\d.,:/]+) dos ([\\d.,:/]+) pontos medidos ao redor do seu endereço\\)\\.$",
     "Show up in more places in your area (you don't appear at $1 of the $2 points measured around your address)."
+   ],
+   [
+    "^(.+?), confirme o seu novo e-mail$",
+    "$1, confirm your new email"
+   ],
+   [
+    "^A troca só acontece quando você clicar no botão abaixo\\. O link vale por ([\\d.,:/]+) horas\\.$",
+    "The change only happens when you click the button below. The link is valid for $1 hours."
+   ],
+   [
+    "^(.+?), o e-mail da sua conta foi trocado$",
+    "$1, your account's email has been changed"
    ]
   ],
   "px": [],
@@ -1067,7 +1094,22 @@ export default {
    "Colete mais avaliações.": "Consigue más reseñas.",
    "📊 Sua semana no Google — seu negócio": "📊 Tu semana en Google — tu negocio",
    "🎯 Primeiro toque no seu StarTouch em seu negócio!": "🎯 ¡Primer toque en tu StarTouch en tu negocio!",
-   "Quem teve mais toques": "Quién tuvo más toques"
+   "Quem teve mais toques": "Quién tuvo más toques",
+   "Confirme o seu novo e-mail na StarTouch": "Confirma tu nuevo correo en StarTouch",
+   "TROCA DE E-MAIL": "CAMBIO DE CORREO",
+   "Recebemos um pedido para que": "Recibimos una solicitud para que",
+   "passe a ser o e-mail de acesso da sua conta.": "pase a ser el correo de acceso de tu cuenta.",
+   "Confirmar o novo e-mail": "Confirmar el nuevo correo",
+   "Depois da troca, você entra com o e-mail novo e a mesma senha. O seu negócio, os seus dispositivos e o histórico continuam como estão.": "Después del cambio, entras con el correo nuevo y la misma contraseña. Tu negocio, tus dispositivos y el historial siguen igual.",
+   "Não pediu isso?": "¿No lo pediste?",
+   "É só ignorar este e-mail: nada muda.": "Solo ignora este correo: nada cambia.",
+   "tudo bem?, confirme o seu novo e-mail": "Confirma tu nuevo correo",
+   "O e-mail de acesso da sua conta StarTouch foi trocado": "Se cambió el correo de acceso de tu cuenta StarTouch",
+   "E-MAIL TROCADO": "CORREO CAMBIADO",
+   "A partir de agora, o acesso ao painel é feito com": "A partir de ahora, el acceso al panel se hace con",
+   ". Este endereço deixou de ser o login da conta.": ". Esta dirección dejó de ser el acceso de la cuenta.",
+   "Responda este e-mail agora mesmo. Guardamos o registro da troca e conseguimos devolver a conta a você.": "Responde este correo ahora mismo. Guardamos el registro del cambio y podemos devolverte la cuenta.",
+   "tudo bem?, o e-mail da sua conta foi trocado": "Se cambió el correo de tu cuenta"
   },
   "p": [
    [
@@ -1473,6 +1515,18 @@ export default {
    [
     "^Apareça em mais lugares da sua região \\(você não aparece em ([\\d.,:/]+) dos ([\\d.,:/]+) pontos medidos ao redor do seu endereço\\)\\.$",
     "Aparece en más lugares de tu zona (no apareces en $1 de los $2 puntos medidos alrededor de tu dirección)."
+   ],
+   [
+    "^(.+?), confirme o seu novo e-mail$",
+    "$1, confirma tu nuevo correo"
+   ],
+   [
+    "^A troca só acontece quando você clicar no botão abaixo\\. O link vale por ([\\d.,:/]+) horas\\.$",
+    "El cambio solo ocurre cuando hagas clic en el botón de abajo. El enlace es válido por $1 horas."
+   ],
+   [
+    "^(.+?), o e-mail da sua conta foi trocado$",
+    "$1, se cambió el correo de tu cuenta"
    ]
   ],
   "px": [],
@@ -1808,7 +1862,22 @@ export default {
    "Colete mais avaliações.": "收集更多评价。",
    "📊 Sua semana no Google — seu negócio": "📊 你在 Google 的一周——你的商家",
    "🎯 Primeiro toque no seu StarTouch em seu negócio!": "🎯 你的商家的 StarTouch 迎来了第一次触碰！",
-   "Quem teve mais toques": "触碰最多的"
+   "Quem teve mais toques": "触碰最多的",
+   "Confirme o seu novo e-mail na StarTouch": "在 StarTouch 确认你的新邮箱",
+   "TROCA DE E-MAIL": "更换邮箱",
+   "Recebemos um pedido para que": "我们收到一项请求，希望将",
+   "passe a ser o e-mail de acesso da sua conta.": "设为你账户的登录邮箱。",
+   "Confirmar o novo e-mail": "确认新邮箱",
+   "Depois da troca, você entra com o e-mail novo e a mesma senha. O seu negócio, os seus dispositivos e o histórico continuam como estão.": "更换后，请使用新邮箱和原密码登录。你的商家、设备和历史记录都保持不变。",
+   "Não pediu isso?": "不是你本人申请的？",
+   "É só ignorar este e-mail: nada muda.": "忽略此邮件即可：不会有任何变化。",
+   "tudo bem?, confirme o seu novo e-mail": "请确认你的新邮箱",
+   "O e-mail de acesso da sua conta StarTouch foi trocado": "你的 StarTouch 账户登录邮箱已更换",
+   "E-MAIL TROCADO": "邮箱已更换",
+   "A partir de agora, o acesso ao painel é feito com": "从现在起，请使用以下邮箱登录控制面板：",
+   ". Este endereço deixou de ser o login da conta.": "。此地址已不再是该账户的登录邮箱。",
+   "Responda este e-mail agora mesmo. Guardamos o registro da troca e conseguimos devolver a conta a você.": "请立即回复此邮件。我们保留了更换记录，可以把账户还给你。",
+   "tudo bem?, o e-mail da sua conta foi trocado": "你账户的邮箱已更换"
   },
   "p": [
    [
@@ -2214,6 +2283,18 @@ export default {
    [
     "^Apareça em mais lugares da sua região \\(você não aparece em ([\\d.,:/]+) dos ([\\d.,:/]+) pontos medidos ao redor do seu endereço\\)\\.$",
     "在你所在地区更多位置出现（在你地址周围测量的 $2 个点中，有 $1 个点没有你）。"
+   ],
+   [
+    "^(.+?), confirme o seu novo e-mail$",
+    "$1，请确认你的新邮箱"
+   ],
+   [
+    "^A troca só acontece quando você clicar no botão abaixo\\. O link vale por ([\\d.,:/]+) horas\\.$",
+    "只有在你点击下方按钮后才会更换。链接有效期为 $1 小时。"
+   ],
+   [
+    "^(.+?), o e-mail da sua conta foi trocado$",
+    "$1，你账户的邮箱已更换"
    ]
   ],
   "px": [],

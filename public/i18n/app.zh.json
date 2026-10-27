@@ -246,7 +246,6 @@
   "Carregando…": "加载中…",
   "Seu nome": "你的姓名",
   "Email": "邮箱",
-  "É também seu login. Para trocar o e-mail, fale com a gente na Central de ajuda.": "这也是你的登录账号。如需更换邮箱，请通过帮助中心联系我们。",
   "Telefone": "电话",
   "Usado só pra falar com você. Não aparece pros seus clientes.": "仅用于与你联系，你的顾客看不到。",
   "Salvar alterações": "保存更改",
@@ -1396,7 +1395,15 @@
   "Ou cole no campo do nome o": "或者在名称栏粘贴",
   "link do seu negócio no Google Maps": "你的店铺在 Google 地图上的链接",
   "(no Maps: abra o negócio → Compartilhar → Copiar link).": "（在地图中：打开店铺 → 分享 → 复制链接）。",
-  "Não é nenhum desses? Confira o CEP, ou cole no campo do nome o link do seu negócio no Google Maps (Compartilhar → Copiar link).": "都不是？请核对 CEP，或在名称栏粘贴你的店铺在 Google 地图上的链接（分享 → 复制链接）。"
+  "Não é nenhum desses? Confira o CEP, ou cole no campo do nome o link do seu negócio no Google Maps (Compartilhar → Copiar link).": "都不是？请核对 CEP，或在名称栏粘贴你的店铺在 Google 地图上的链接（分享 → 复制链接）。",
+  "Não foi possível pedir a troca": "无法提交更换申请",
+  "É também seu login.": "这也是你的登录账号。",
+  "Trocar e-mail": "更换邮箱",
+  "Novo e-mail": "新邮箱",
+  "Enviando…": "发送中…",
+  "Enviar link de confirmação": "发送确认链接",
+  "Mandamos um link para o e-mail novo. A troca só acontece quando você clicar nele, e o e-mail atual recebe um aviso. A senha continua a mesma.": "我们会向新邮箱发送一个链接。只有在你点击后才会更换，当前邮箱也会收到通知。密码保持不变。",
+  "Sua conta entra pelo Google e não tem senha. Para trocar o e-mail, saia, use \"Esqueci minha senha\" na tela de entrada para criar uma senha e depois volte aqui.": "你的账户通过 Google 登录，没有密码。如需更换邮箱，请先退出，在登录页面使用“忘记密码”创建密码，然后再回到这里。"
  },
  "p": [
   [
@@ -1826,6 +1833,10 @@
   [
    "^(.+?) dispositivos ainda levam direto à avaliação no Google, sem menu\\.$",
    "$1 台设备仍直接跳转到 Google 评价，没有菜单。"
+  ],
+  [
+   "^Enviamos um link para (.+?)\\. O e-mail só muda quando você clicar nele\\.$",
+   "我们已向 $1 发送了链接。只有在你点击后，邮箱才会更换。"
   ]
  ],
  "px": [

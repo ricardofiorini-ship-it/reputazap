@@ -22,7 +22,7 @@ import {
   welcomeEmail, tapsHistoryNewsEmail, revendaNewsEmail,
   pedidoRecebidoEmail, pedidoAtualizadoEmail, pedidoConfirmadoEmail,
   businessLinkedEmail, firstDeviceEmail, firstReviewEmail,
-  additionalDeviceEmail, deviceUnlinkedEmail,
+  additionalDeviceEmail, deviceUnlinkedEmail, emailTrocaConfirmarEmail, emailTrocadoEmail,
   assinaturaRecusadaEmail, assinaturaCobradaEmail, testeTerminandoEmail, assinaturaEncerradaEmail,
   negativeReviewEmail, weeklyReportEmail, planoTrabalhoEmail,
   weeklyDigestEmail, pickWeeklyTip, emailScore, nextMilestone, latestArticle,
@@ -84,6 +84,10 @@ add("additionalDevice:sem-apelido", () => additionalDeviceEmail({ userName: null
 for (const pt of ["placa_balcao", "placa_mesa", "placa_parede", "pulseira_nfc", "cartao_nfc", null]) {
   add(`deviceUnlinked:${pt || "generico"}`, () => deviceUnlinkedEmail({ userName: S("nome"), bizName: S("negocio"), code: S("codigo"), channelName: S("apelido"), productType: pt }));
 }
+add("emailTrocaConfirmar", () => emailTrocaConfirmarEmail({ userName: S("nome"), link: "https://startouch.com.br/api/conta?action=confirmar-email&t=teste", novo: S("email") }));
+add("emailTrocaConfirmar:sem-nome", () => emailTrocaConfirmarEmail({ userName: null, link: "https://startouch.com.br/api/conta?action=confirmar-email&t=teste", novo: S("email") }));
+add("emailTrocado", () => emailTrocadoEmail({ userName: S("nome"), novo: S("email") }));
+add("emailTrocado:sem-nome", () => emailTrocadoEmail({ userName: null, novo: S("email") }));
 add("deviceUnlinked:sem-apelido-sem-nomes", () => deviceUnlinkedEmail({ userName: null, bizName: null, code: S("codigo"), productType: "cartao_nfc" }));
 
 // ── Assinatura Pro ─────────────────────────────────────────────────────
