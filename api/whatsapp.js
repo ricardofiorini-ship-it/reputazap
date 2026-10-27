@@ -78,6 +78,12 @@ function ehSoFecho(texto, tipo) {
 // Resposta do assistente quando decide que não há o que responder.
 const SEM_RESPOSTA = "[SEM_RESPOSTA]";
 
+// Mensagem que a Meta entrega como "unsupported" (enquete, visualização
+// única, mensagem editada...): o robô não tem o que ler. Resposta fixa, sem
+// IA, e UMA vez — caso de 26/10/2026: o outro lado era um sistema automático
+// e o "não consegui abrir" virou pingue-pongue de 7 voltas.
+const MSG_ILEGIVEL = "Oi! Aqui é o assistente virtual da StarTouch. Não consegui abrir essa mensagem por aqui. Pode me escrever em texto?";
+
 async function lerCorpo(req) {
   const partes = [];
   for await (const p of req) partes.push(p);
@@ -358,6 +364,24 @@ async function tratarMensagem(msg, nome) {
   const pausa = ultimoControle && ultimoControle.direcao !== "saida"
     && Date.now() - Date.parse(ultimoControle.criado_em) < PAUSA_HUMANO_MS ? ultimoControle : null;
   if (pausa) { console.log(`[whatsapp] conversa com pessoa (${pausa.direcao}) — robô quieto`); return; }
+
+  // Robô falando com robô (26 e 27/10/2026): o atendimento automático de outra
+  // empresa responde cada mensagem nossa com o MESMO texto. Texto longo que já
+  // chegou igualzinho nas últimas 24h é máquina — calar quebra o laço. (Texto
+  // curto repetido, tipo "sim", é gente respondendo duas perguntas.)
+  const normal = (s) => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
+  if (msg.type === "text" && normal(texto).length >= 20
+    && (linhas || []).filter((l) => l.direcao === "entrada" && normal(l.texto) === normal(texto)).length >= 2) {
+    console.log("[whatsapp] mesmo texto de novo — parece resposta automática de outro sistema, sem resposta");
+    return;
+  }
+
+  if (msg.type === "unsupported") {
+    const ultimaSaida = (linhas || []).find((l) => l.direcao === "saida");
+    if (ultimaSaida?.texto === MSG_ILEGIVEL) { console.log("[whatsapp] outra mensagem ilegível — já pedi texto, sem resposta"); return; }
+    await responderFixo(waId, MSG_ILEGIVEL);
+    return;
+  }
 
   if (await tratarNps(waId, nome, texto)) return;
 
