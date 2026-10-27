@@ -46,6 +46,38 @@ export const MARCA_DEVOLVIDA = "[conversa devolvida ao robô]";
 
 const MSG_FALHA = "Recebi sua mensagem! Já chamei o Ricardo, da nossa equipe, e ele te responde por aqui em breve. 🙂";
 
+// Toda conversa começa com o robô dizendo que é uma IA (27/10/2026). O marcador
+// é a própria frase: se nenhuma resposta dos últimos 30 dias a contém, a
+// próxima é a primeira e precisa se apresentar.
+const MARCA_IA = /assistente virtual/i;
+const APRESENTACAO = "Oi! Aqui é o assistente virtual da StarTouch, uma inteligência artificial. O Ricardo, da equipe, acompanha as conversas.";
+
+// "Ok, obrigado" não é pedido de atendimento (27/10/2026). Caso: aviso
+// automático de "pedido postado", a cliente responde "Ok obrigada" e o robô
+// começava a atender como se ela tivesse perguntado algo. Mensagem feita só
+// destas palavras (ou só de emoji/figurinha/reação) fica sem resposta — a não
+// ser que a última fala nossa tenha sido uma PERGUNTA, porque aí "ok" pode
+// ser um "sim" e quem decide é o assistente. Saudação ("boa noite") fica de
+// fora de propósito: costuma ser o começo de um pedido.
+const PALAVRAS_DE_FECHO = new Set(("ok okay okey oki okk blz beleza obrigado obrigada obrigadao obg obgd obgda brigado brigada "
+  + "valeu vlw certo ta bom show perfeito perfeita otimo otima top joia combinado entendi entendido legal maravilha "
+  + "massa tmj grato grata agradeco agradecido agradecida muito mto mt sim nao aguardo aguardando fico no de nada "
+  + "amem deus abencoe bjs beijos abraco abracos abs isso e eh ah uhum hum k rs thanks thank you gracias").split(" "));
+
+function ehSoFecho(texto, tipo) {
+  if (tipo === "reaction" || tipo === "sticker") return true;
+  if (tipo !== "text") return false;
+  const bruto = String(texto || "");
+  const palavras = bruto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+    .replace(/(.)\1{2,}/g, "$1")          // "valeuuu", "obrigadaaa", "kkkk"
+    .split(/[^a-z]+/).filter(Boolean);
+  if (!palavras.length) return /\p{Extended_Pictographic}/u.test(bruto);   // só emoji: 👍 🙏
+  return palavras.length <= 8 && palavras.every((p) => PALAVRAS_DE_FECHO.has(p));
+}
+
+// Resposta do assistente quando decide que não há o que responder.
+const SEM_RESPOSTA = "[SEM_RESPOSTA]";
+
 async function lerCorpo(req) {
   const partes = [];
   for await (const p of req) partes.push(p);
@@ -290,6 +322,7 @@ async function tratarMensagem(msg, nome) {
   const texto = msg.type === "text" ? msg.text?.body || ""
     : msg.type === "button" ? msg.button?.text || ""
     : msg.type === "interactive" ? (msg.interactive?.button_reply?.title || msg.interactive?.list_reply?.title || "")
+    : msg.type === "reaction" ? `[o cliente reagiu com ${msg.reaction?.emoji || "um emoji"}]`
     : `[o cliente mandou ${msg.type === "image" ? "uma imagem" : msg.type === "audio" ? "um áudio" : msg.type === "document" ? "um arquivo" : msg.type === "sticker" ? "uma figurinha" : "uma mensagem do tipo " + msg.type}]`;
 
   const nova = await gravar({ wa_id: waId, direcao: "entrada", wamid: msg.id, texto });
@@ -327,6 +360,15 @@ async function tratarMensagem(msg, nome) {
   if (pausa) { console.log(`[whatsapp] conversa com pessoa (${pausa.direcao}) — robô quieto`); return; }
 
   if (await tratarNps(waId, nome, texto)) return;
+
+  if (ehSoFecho(texto, msg.type)) {
+    const ultimaNossa = (linhas || []).find((l) => (l.direcao === "saida" || l.direcao === "humano")
+      && !(l.texto || "").startsWith(MARCA_DEVOLVIDA));
+    if (!(ultimaNossa?.texto || "").includes("?")) {
+      console.log("[whatsapp] só agradecimento/ok — sem resposta");
+      return;
+    }
+  }
   await gerarEEnviar(waId, nome, linhas, texto);
 }
 
@@ -351,7 +393,20 @@ async function gerarEEnviar(waId, nome, linhas, texto) {
   const recorte = historico.slice(-HISTORICO_MAX);
   if (recorte[0]?.role !== "user") recorte.shift();
   if (!recorte.length) return;
-  if (nome) recorte[0] = { role: "user", content: `[Nome no WhatsApp: ${nome}]\n${recorte[0].content}` };
+  // O nome do perfil do WhatsApp NÃO vai pro assistente (27/10/2026): é
+  // apelido, nome de outra pessoa ou da loja, e ouvir "Oi, Mãe do João!" de
+  // um robô soa errado. O nome segue só nos e-mails pro admin.
+
+  // Já se apresentou como IA a este número nos últimos 30 dias?
+  const desde30 = new Date(Date.now() - 30 * 24 * HORA_MS).toISOString();
+  const { data: apresentou } = await supabase.from("whatsapp_mensagens").select("id")
+    .eq("wa_id", waId).eq("direcao", "saida").gte("criado_em", desde30)
+    .ilike("texto", "%assistente virtual%").limit(1);
+  const primeira = !(apresentou || []).length;
+  if (primeira) {
+    const ult = recorte.length - 1;
+    recorte[ult] = { ...recorte[ult], content: `[Esta é a sua primeira resposta a este cliente: comece se apresentando como o assistente virtual da StarTouch, uma inteligência artificial.]\n${recorte[ult].content}` };
+  }
 
   let resultado;
   try {
@@ -370,6 +425,11 @@ async function gerarEEnviar(waId, nome, linhas, texto) {
   }
 
   let resposta = resultado.texto;
+  if (resposta && resposta.includes(SEM_RESPOSTA)) {
+    console.log("[whatsapp] assistente decidiu não responder (cliente só encerrou)");
+    return;
+  }
+  if (resposta && primeira && !MARCA_IA.test(resposta)) resposta = `${APRESENTACAO}\n\n${resposta}`;
   if (!resposta) {
     // Sem resposta boa (erro, recusa, laço): o cliente não fica no vácuo e o
     // admin fica sabendo.
