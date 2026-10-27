@@ -95,6 +95,7 @@ export default async function handler(req, res) {
     if (action === "pedido-status") return await handlePedidoStatus(req, res, admin);
     if (action === "assinaturas")  return await handleAssinaturas(req, res);
     if (action === "trocar-negocio") return await handleTrocarNegocio(req, res, admin);
+    if (action === "trocar-email")   return await handleTrocarEmail(req, res, admin);
     if (action === "whatsapp")       return await handleWhatsapp(req, res);
     if (action === "whatsapp-devolver") return await handleWhatsappDevolver(req, res, admin);
     return res.status(400).json({ error: "Ação desconhecida. Use ?action=stats, list-clients, delete-user, prospects, funnel, visitas, grid-suggest, grid, pedidos, pedido-status ou assinaturas" });
@@ -1242,6 +1243,31 @@ function familiaDoPedido(o) {
 // a mesma (UNIQUE user_id), então dispositivos e plano vão junto; o marco zero
 // das avaliações recomeça e o termo de busca da loja antiga é zerado — iguais
 // à troca do painel. Só POST, com o place_id conferido de antemão.
+// Troca o e-mail de LOGIN de uma conta (27/10/2026). Pedido de cliente que
+// cadastrou com o e-mail pessoal e quer o da loja. O e-mail só mora no auth
+// (profiles não guarda), então basta o auth — negócio, dispositivos e plano
+// ficam presos ao user_id e não mudam. `email_confirm` evita que o Supabase
+// mande link de confirmação e deixe a conta num meio-termo. A conferência de
+// que o pedido é legítimo (resposta vinda do e-mail atual) é do admin, antes.
+async function handleTrocarEmail(req, res, admin) {
+  if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
+  const userId = String(req.body?.user_id || "");
+  const email = String(req.body?.email || "").trim().toLowerCase();
+  if (!/^[0-9a-f-]{36}$/i.test(userId)) return res.status(400).json({ error: "user_id inválido" });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: "E-mail inválido" });
+  const { data: u, error: e1 } = await supabase.auth.admin.getUserById(userId);
+  if (e1 || !u?.user) return res.status(404).json({ error: "Conta não encontrada" });
+  const antigo = u.user.email;
+  if (antigo === email) return res.json({ ok: true, igual: true, email });
+  const { data, error } = await supabase.auth.admin.updateUserById(userId, { email, email_confirm: true });
+  if (error) {
+    const jaUsado = /already|registered|exists/i.test(error.message || "");
+    return res.status(jaUsado ? 409 : 500).json({ error: jaUsado ? "Esse e-mail já é login de outra conta." : error.message });
+  }
+  console.log("[admin] TROCA DE EMAIL pelo admin:", { por: admin.email, user_id: userId, de: antigo, para: data.user.email });
+  return res.json({ ok: true, de: antigo, email: data.user.email });
+}
+
 async function handleTrocarNegocio(req, res, admin) {
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
   const b = req.body || {};

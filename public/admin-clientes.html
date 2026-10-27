@@ -900,6 +900,7 @@ function applyFiltersAndRender() {
             ${c.plates.total > 0 ? `<button onclick="showPlates('${c.user_id}')" title="Ver dispositivos">📦</button>` : ""}
             ${waLink ? `<a class="is-wa" href="${waLink}" target="_blank" rel="noopener" title="Abrir WhatsApp">💬</a>` : ""}
             <a href="mailto:${escapeHtml(c.email)}" title="Enviar email">✉</a>
+            <button onclick="askTrocarEmail('${c.user_id}')" title="Trocar o e-mail de login">✏️</button>
             <button class="is-danger" onclick="askDelete('${c.user_id}')" title="Apagar este cliente">🗑️</button>
           </div>
         </td>
@@ -945,6 +946,34 @@ window.showPlates = function(userId) {
 document.getElementById("modal").addEventListener("click", (e) => {
   if (e.target.id === "modal") e.currentTarget.classList.remove("show");
 });
+
+// ────────────────────────────────────────────────────────────
+// TROCAR E-MAIL DE LOGIN (27/10/2026)
+// Só depois de o cliente confirmar respondendo DO E-MAIL ATUAL: pedido só
+// por WhatsApp não prova que a pessoa é dona da conta.
+// ────────────────────────────────────────────────────────────
+window.askTrocarEmail = async function(userId) {
+  const c = allClients.find(x => x.user_id === userId);
+  if (!c) return;
+  const novo = (prompt(`Novo e-mail de login para ${c.name || c.email}\n(atual: ${c.email})`) || "").trim().toLowerCase();
+  if (!novo) return;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(novo)) { alert("E-mail inválido."); return; }
+  if (!confirm(`Trocar o login\n\nde: ${c.email}\npara: ${novo}\n\nO cliente confirmou respondendo do e-mail ATUAL?`)) return;
+  try {
+    const r = await fetch("/api/admin?action=trocar-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + getToken() },
+      body: JSON.stringify({ user_id: userId, email: novo })
+    });
+    const data = await r.json();
+    if (!r.ok) { alert("Erro: " + (data.error || "falha ao trocar")); return; }
+    c.email = data.email;
+    applyFiltersAndRender();
+    showToast(`✅ Login trocado para ${data.email}. O cliente já entra com o e-mail novo (a senha continua a mesma).`);
+  } catch (e) {
+    alert("Erro de rede: " + e.message);
+  }
+};
 
 // ────────────────────────────────────────────────────────────
 // DELETE CLIENTE (cascade + voltar placas pro estoque)
