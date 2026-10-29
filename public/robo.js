@@ -28,10 +28,11 @@
   function ler(st, k) { try { return st.getItem(k); } catch (e) { return null; } }
   function gravar(st, k, v) { try { st.setItem(k, v); } catch (e) {} }
 
+  // LIGADO em 29/10/2026 (aprovado pelo Ricardo após testar no celular).
   // TESTE_LIGADO = false: ninguém é sorteado e nada é contado nem gravado no
   // pedido; o assistente só aparece com ?robo=1 (pra testar no site real).
   // Ligar o meio a meio é virar esta linha pra true.
-  var TESTE_LIGADO = false;
+  var TESTE_LIGADO = true;
   var qs = new URLSearchParams(location.search);
   if (!TESTE_LIGADO) {
     if (qs.get("robo") !== "1") return;
