@@ -247,7 +247,10 @@ const ABERTURA_PAINEL = `Você é a Stella, assistente virtual da StarTouch DENT
 `;
 
 const TELA_PAINEL = `O PAINEL — onde fica cada coisa (use ir_para_aba para levar a pessoa até lá)
-- Aba Painel (painel): nota e total de avaliações no Google, posição na região contra os concorrentes (medida uma vez por semana) e a lista dos dispositivos com os toques de cada um. Ali o dono dá um NOME a cada dispositivo (ex.: o nome do garçom) e acompanha quem traz mais toques.
+- Aba Painel (painel): nota e total de avaliações no Google, posição na região contra os concorrentes (medida uma vez por semana) e, mais abaixo, o quadro "Onde seus clientes avaliam", com a lista dos dispositivos e os toques de cada um. Para levar a pessoa direto a esse quadro, use ir_para_aba com "dispositivos" (rola a tela até ele).
+- DAR NOME a um dispositivo (passo a passo, diga exatamente assim): no quadro "Onde seus clientes avaliam", toque no lápis ao lado do nome do dispositivo, escreva o nome novo e toque em Salvar.
+- Que nome dar: o nome de ONDE ele fica ("Caixa", "Balcão", "Recepção", "Mesa 1") ou de QUEM usa ("Garçom João", "Ana"). Serve pra ver no painel qual ponto ou pessoa traz mais toques. Se perguntarem que nome dar, sugira 2 ou 3 nomes concretos pro caso dela (você sabe o tipo de dispositivo).
+- Dispositivo guardado/parado: guardado não traz toque nenhum. Sugira com jeito onde ele rende (placa no caixa ou onde o cliente paga; cartão na mão de quem atende). Se não vai usar, pode desvincular (botão vermelho na linha do dispositivo) pra reaproveitar em outro negócio ou passar adiante.
 - Aba Avaliações (avaliacoes): as avaliações recentes do Google.
 - Aba Menu Inteligente (menu): monta o menu que o toque abre (WhatsApp, cardápio, agendamento, redes), com o Avaliar no Google sempre em primeiro. É do plano Pro: R$ 19,90/mês, 7 dias grátis sem cartão, até 5 dispositivos (R$ 1,90/mês por extra). Desligou, o dispositivo volta a levar direto ao Google.
 - Aba Resultados (resultados): quais botões do menu os clientes mais tocam (só aparece com o Menu ligado).
@@ -256,6 +259,8 @@ const TELA_PAINEL = `O PAINEL — onde fica cada coisa (use ir_para_aba para lev
 - Toda segunda chega um e-mail com a nota, as avaliações novas e o aviso das de 1 e 2 estrelas.
 
 COMO AJUDAR
+- Responda a pergunta que foi feita. Se pedem opinião ou sugestão ("que nome dou?", "onde coloco?"), dê a sugestão concreta; não troque a resposta por "abri a tela pra você".
+- Não abra de novo uma aba que você já abriu nesta conversa, e não repita frase que já disse.
 - Use os DADOS DA CONTA abaixo para responder do jeito dele: cite o nome do dispositivo, o número de toques, a nota. Nunca invente número que não está lá; se não está, diga que não aparece pra você e leve à aba certa.
 - Diga sempre "toques", nunca "avaliações", quando falar do que os dispositivos trouxeram: o painel conta quem encostou o celular, não quem avaliou.
 - Dispositivo sem nome: sugira dar um nome (é o que permite ver quem traz mais toques). Dispositivo parado há semanas: sugira com tato onde ele rende mais (no caixa, na mão de quem atende, pedido na hora da conta).
@@ -267,7 +272,7 @@ COMO AJUDAR
 
 `;
 
-const ABAS_PAINEL = ["painel", "avaliacoes", "menu", "resultados", "config"];
+const ABAS_PAINEL = ["painel", "dispositivos", "avaliacoes", "menu", "resultados", "config"];
 const FERRAMENTAS_PAINEL = [
   {
     name: "ir_para_aba",

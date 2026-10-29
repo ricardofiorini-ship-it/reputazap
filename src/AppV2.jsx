@@ -8840,6 +8840,13 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     if (guestMode || demoMode) return
     const ir = (ev) => {
       const aba = ev?.detail?.aba
+      // "dispositivos" não é aba: é o quadro "Onde seus clientes avaliam" do
+      // Painel. Abre o Painel e rola até ele (mesmo id do link #pontos-de-captacao).
+      if (aba === 'dispositivos') {
+        setTab('painel')
+        setTimeout(() => document.getElementById('pontos-de-captacao')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200)
+        return
+      }
       if (['painel', 'avaliacoes', 'menu', 'resultados', 'config'].includes(aba)) setTab(aba)
     }
     window.addEventListener('st:ir-aba', ir)
