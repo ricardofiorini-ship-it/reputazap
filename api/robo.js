@@ -520,7 +520,7 @@ export default async function handler(req, res) {
     if (painel && nome === "ir_para_aba") {
       if (!ABAS_PAINEL.includes(input.aba)) return "Aba desconhecida.";
       acoes.push({ tipo: "aba", aba: input.aba });
-      return `Feito: a aba ${input.aba} está aberta na tela.`;
+      return `Feito: ${input.aba} está aberto na tela. Abrir a tela NÃO responde a pergunta: explique em uma ou duas frases o passo a passo, com os rótulos do MANUAL.`;
     }
     if (painel && nome === "ativar_dispositivo") {
       acoes.push({ tipo: "ativar" });
@@ -547,7 +547,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const r = await responder(conversa, executar, { sistema, ferramentas, modelo: MODELO });
+    const r = await responder(conversa, executar, { sistema, ferramentas, modelo: MODELO, juntarTextos: true });
     if (!r.texto) {
       // Recusa ou laço de ferramentas: melhor passar pra gente do que inventar.
       console.warn(`[robo] sem texto (recusou=${!!r.recusou}, laco=${!!r.laco})`);

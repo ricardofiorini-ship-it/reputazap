@@ -218,9 +218,10 @@ const FERRAMENTAS = [
  * `opcoes` deixa outro assistente (o do site, api/robo.js) usar o mesmo laço
  * com o próprio roteiro e as próprias ferramentas. Sem ela, é o do WhatsApp.
  */
-export async function responder(historico, executar, { sistema = ROTEIRO, ferramentas = FERRAMENTAS, modelo = MODELO } = {}) {
+export async function responder(historico, executar, { sistema = ROTEIRO, ferramentas = FERRAMENTAS, modelo = MODELO, juntarTextos = false } = {}) {
   const messages = historico.map((m) => ({ role: m.role, content: m.content }));
   let escalou = false;
+  const textosAntes = [];
 
   for (let volta = 0; volta < MAX_VOLTAS; volta++) {
     const resposta = await cliente().beta.messages.create({
@@ -241,9 +242,18 @@ export async function responder(historico, executar, { sistema = ROTEIRO, ferram
     }
 
     const usos = resposta.content.filter((b) => b.type === "tool_use");
+    const textoDaVolta = resposta.content.filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
     if (resposta.stop_reason !== "tool_use" || usos.length === 0) {
-      const texto = resposta.content.filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
+      const texto = [...textosAntes, textoDaVolta].filter(Boolean).join("\n").trim();
       return { texto: texto || null, escalou, recusou: false };
+    }
+    // O TEXTO ESCRITO JUNTO COM A FERRAMENTA (29/10/2026). A IA costuma
+    // explicar e agir no mesmo turno ("toque no lápis… [abre a aba]"); antes,
+    // esse texto era descartado e só valia o da volta seguinte — que às vezes
+    // vinha vazio. Na Stella isso gerou resposta em branco. Opt-in: o WhatsApp
+    // segue como estava até ser testado com isso ligado.
+    if (juntarTextos && textoDaVolta) {
+      textosAntes.push(textoDaVolta.split("\n").filter((l) => !/^\s*SUGEST(?:O|Õ)ES\s*:/i.test(l)).join("\n").trim());
     }
 
     // O turno do assistente volta INTEIRO (blocos de raciocínio inclusive),
