@@ -76,34 +76,34 @@
   // ---------- textos da janela (a resposta da IA já vem na língua da pessoa) ----------
   var L = (window.stLang || "pt").slice(0, 2);
   var TX = {
-    pt: { nome: "Assistente StarTouch", sub: "Inteligência artificial · responde na hora",
-      ola: "Oi! Sou o assistente virtual da StarTouch, uma IA. Que tipo de negócio você tem?",
+    pt: { nome: "Stella", sub: "Assistente virtual (IA) · StarTouch",
+      ola: "Oi! Sou a Stella, assistente virtual da StarTouch, uma IA. Que tipo de negócio você tem?",
       chips: ["Como funciona?", "Qual devo escolher?", "Ver minha empresa no Google", "Frete e prazo"],
-      ph: "Escreva sua pergunta…", enviar: "Enviar", fechar: "Fechar", abrir: "Falar com o assistente",
+      ph: "Escreva sua pergunta…", enviar: "Enviar", fechar: "Fechar", abrir: "Fale com a Stella",
       aviso: "IA: pode errar. A conversa não é guardada; não escreva dados pessoais.", politica: "Privacidade",
       teaser: "Quer ajuda pra escolher? Vejo sua empresa no Google em 10 segundos.",
       erro: "Não consegui responder agora. Quer falar com a gente no WhatsApp?", limite: "Muitas mensagens em pouco tempo. Continue pelo WhatsApp:",
       wa: "Continuar no WhatsApp", verCarrinho: "Ver carrinho", pagar: "Finalizar compra", demo: "Encostou, avaliou." },
-    en: { nome: "StarTouch Assistant", sub: "Artificial intelligence · instant replies",
-      ola: "Hi! I'm StarTouch's virtual assistant, an AI. What kind of business do you have?",
+    en: { nome: "Stella", sub: "Virtual assistant (AI) · StarTouch",
+      ola: "Hi! I'm Stella, StarTouch's virtual assistant, an AI. What kind of business do you have?",
       chips: ["How does it work?", "Which one should I pick?", "Check my business on Google", "Shipping and delivery"],
-      ph: "Type your question…", enviar: "Send", fechar: "Close", abrir: "Chat with the assistant",
+      ph: "Type your question…", enviar: "Send", fechar: "Close", abrir: "Chat with Stella",
       aviso: "AI: it can make mistakes. The chat isn't stored; don't share personal data.", politica: "Privacy",
       teaser: "Need help choosing? I'll check your business on Google in 10 seconds.",
       erro: "I couldn't answer right now. Want to talk to us on WhatsApp?", limite: "Too many messages in a short time. Continue on WhatsApp:",
       wa: "Continue on WhatsApp", verCarrinho: "View cart", pagar: "Checkout", demo: "Tap, review." },
-    es: { nome: "Asistente StarTouch", sub: "Inteligencia artificial · responde al instante",
-      ola: "¡Hola! Soy el asistente virtual de StarTouch, una IA. ¿Qué tipo de negocio tienes?",
+    es: { nome: "Stella", sub: "Asistente virtual (IA) · StarTouch",
+      ola: "¡Hola! Soy Stella, la asistente virtual de StarTouch, una IA. ¿Qué tipo de negocio tienes?",
       chips: ["¿Cómo funciona?", "¿Cuál elijo?", "Ver mi empresa en Google", "Envío y plazo"],
-      ph: "Escribe tu pregunta…", enviar: "Enviar", fechar: "Cerrar", abrir: "Hablar con el asistente",
+      ph: "Escribe tu pregunta…", enviar: "Enviar", fechar: "Cerrar", abrir: "Habla con Stella",
       aviso: "IA: puede equivocarse. La conversación no se guarda; no escribas datos personales.", politica: "Privacidad",
       teaser: "¿Te ayudo a elegir? Veo tu empresa en Google en 10 segundos.",
       erro: "No pude responder ahora. ¿Hablamos por WhatsApp?", limite: "Demasiados mensajes en poco tiempo. Sigue por WhatsApp:",
       wa: "Seguir en WhatsApp", verCarrinho: "Ver carrito", pagar: "Finalizar compra", demo: "Acercó, reseñó." },
-    zh: { nome: "StarTouch 助手", sub: "人工智能 · 即时回复",
-      ola: "你好！我是 StarTouch 的虚拟助手（人工智能）。你经营什么类型的生意？",
+    zh: { nome: "Stella", sub: "虚拟助手（人工智能）· StarTouch",
+      ola: "你好！我是 Stella，StarTouch 的虚拟助手（人工智能）。你经营什么类型的生意？",
       chips: ["怎么用？", "我该选哪个？", "查看我的商家", "运费和时效"],
-      ph: "输入你的问题…", enviar: "发送", fechar: "关闭", abrir: "与助手聊天",
+      ph: "输入你的问题…", enviar: "发送", fechar: "关闭", abrir: "和 Stella 聊天",
       aviso: "人工智能可能出错。对话不会被保存；请勿填写个人信息。", politica: "隐私",
       teaser: "需要帮你挑选吗？10 秒查看你的商家在 Google 上的情况。",
       erro: "暂时无法回答。要通过 WhatsApp 联系我们吗？", limite: "消息过于频繁。请通过 WhatsApp 继续：",
@@ -119,7 +119,8 @@
     ".str-fab{position:fixed;left:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:9998;height:56px;padding:0 18px 0 8px;border:none;border-radius:999px;background:var(--a);color:#fff;display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 10px 24px -6px rgba(26,115,232,.55);transition:transform .18s ease}" +
     ".str-fab:hover{transform:translateY(-2px)}" +
     "body.sticky-on .str-fab,body.sticky-on .str-teaser{bottom:calc(82px + env(safe-area-inset-bottom,0px))}" +
-    ".str-cara{width:40px;height:40px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}" +
+    ".str-cara{width:40px;height:40px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;box-shadow:0 0 0 2px #fff}" +
+    ".str-cara img{width:100%;height:100%;object-fit:cover;display:block}" +
     ".str-olho{animation:strPisca 4.5s infinite;transform-origin:center}" +
     "@keyframes strPisca{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}" +
     ".str-teaser{position:fixed;left:20px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:9998;max-width:270px;background:#fff;color:var(--t);border:1px solid var(--b);border-radius:16px 16px 16px 4px;padding:12px 34px 12px 14px;font-size:14px;line-height:1.4;box-shadow:0 14px 34px -12px rgba(15,23,42,.35);cursor:pointer;animation:strSobe .35s ease}" +
@@ -184,7 +185,10 @@
   raiz.setAttribute("data-i18n-skip", "");
   document.body.appendChild(raiz);
 
-  var CARA = '<svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="8" width="22" height="18" rx="7" fill="#1A73E8"/><rect x="14.5" y="3" width="3" height="5" rx="1.5" fill="#1A73E8"/><circle cx="16" cy="3.5" r="2.2" fill="#FBBC05"/><g class="str-olho"><circle cx="12" cy="16.5" r="2.4" fill="#fff"/><circle cx="20" cy="16.5" r="2.4" fill="#fff"/></g><rect x="12" y="21" width="8" height="1.8" rx=".9" fill="#fff"/></svg>';
+  // Rosto da Stella (29/10/2026, aprovado pelo Ricardo): ilustração, de propósito —
+  // foto realista faria a pessoa achar que fala com uma atendente, e a IA nunca
+  // finge ser pessoa. O nome e o "(IA)" ficam sempre visíveis.
+  var CARA = '<img src="/img/stella.png" alt="" width="40" height="40" decoding="async">';
 
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
   function txt(tag, cls, s) { var e = document.createElement(tag); if (cls) e.className = cls; e.textContent = s; return e; }
