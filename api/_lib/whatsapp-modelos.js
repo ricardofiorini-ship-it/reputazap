@@ -51,6 +51,18 @@ export const MODELOS = {
     categoria: "MARKETING",
     texto: "Oi, {{1}}! Vi que seu pedido na StarTouch ficou pela metade.\n\nSe ainda fizer sentido, separei {{2}}% de desconto na sua primeira compra com o cupom {{3}}, válido até {{4}}. O link para finalizar também foi para o seu e-mail.\n\nFicou alguma dúvida? É só responder aqui.",
     exemplo: ["Ana", "20", "VOLTA-K7M2QX", "31/10"]
+  },
+  // O MESMO aviso, com o carrinho pronto num botão (29/10/2026, pedido do
+  // Ricardo: "mande o link do pedido no carrinho já com o cupom"). O botão
+  // abre o /kit com os itens e o cupom aplicados — a pessoa não monta nada de
+  // novo. A Meta só aceita variável no FIM da URL, por isso o {{1}} do botão é
+  // a query inteira. Enquanto este modelo não é aprovado, o cron cai no
+  // st_carrinho acima (sem botão).
+  st_carrinho_link: {
+    categoria: "MARKETING",
+    texto: "Oi, {{1}}! Vi que seu pedido na StarTouch ficou pela metade.\n\nSe ainda fizer sentido, separei {{2}}% de desconto na sua primeira compra com o cupom {{3}}, válido até {{4}}. O botão abaixo abre seu carrinho com o desconto já aplicado.\n\nFicou alguma dúvida? É só responder aqui.",
+    exemplo: ["Ana", "20", "VOLTA-K7M2QX", "31/10"],
+    botao: { texto: "Finalizar com desconto", url: "https://startouch.com.br/kit?{{1}}", exemplo: "cupom=VOLTA-K7M2QX&add=cartao-nfc&utm_source=whatsapp&utm_medium=cupom&utm_campaign=carrinho_abandonado" }
   }
 };
 
@@ -95,15 +107,17 @@ export async function pediuParar(waId) {
   return (data || []).some((l) => ehPedidoParaParar(l.texto));
 }
 
-function textoFinal(nomeModelo, params) {
-  return MODELOS[nomeModelo].texto.replace(/\{\{(\d+)\}\}/g, (_, n) => params[Number(n) - 1] ?? "");
+function textoFinal(nomeModelo, params, botao = null) {
+  const m = MODELOS[nomeModelo];
+  const texto = m.texto.replace(/\{\{(\d+)\}\}/g, (_, n) => params[Number(n) - 1] ?? "");
+  return m.botao && botao ? `${texto}\n[${m.botao.texto}: ${m.botao.url.replace("{{1}}", botao)}]` : texto;
 }
 
 /**
  * Envia um aviso com modelo. `shipping` é o orders.shipping do pedido (tem
  * telefone, país e o consentimento). Devolve { enviado, motivo }.
  */
-export async function enviarAviso(nomeModelo, shipping, params) {
+export async function enviarAviso(nomeModelo, shipping, params, { botao = null } = {}) {
   try {
     if (!MODELOS[nomeModelo]) return { enviado: false, motivo: "modelo desconhecido" };
     if (!shipping?.whatsapp_optin) return { enviado: false, motivo: "sem consentimento" };
@@ -119,7 +133,11 @@ export async function enviarAviso(nomeModelo, shipping, params) {
         messaging_product: "whatsapp", recipient_type: "individual", to: para, type: "template",
         template: {
           name: nomeModelo, language: { code: "pt_BR" },
-          components: [{ type: "body", parameters: params.map((p) => ({ type: "text", text: String(p).slice(0, 200) })) }]
+          components: [
+            { type: "body", parameters: params.map((p) => ({ type: "text", text: String(p).slice(0, 200) })) },
+            // Parte variável da URL do botão (modelos com `botao`).
+            ...(botao && MODELOS[nomeModelo].botao ? [{ type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: String(botao) }] }] : [])
+          ]
         }
       })
     });
@@ -130,7 +148,7 @@ export async function enviarAviso(nomeModelo, shipping, params) {
     }
     // Vai pro histórico: se o cliente responder ao aviso, o robô sabe do que se trata.
     await supabase.from("whatsapp_mensagens").insert({
-      wa_id: para, direcao: "saida", wamid: d?.messages?.[0]?.id || null, texto: textoFinal(nomeModelo, params)
+      wa_id: para, direcao: "saida", wamid: d?.messages?.[0]?.id || null, texto: textoFinal(nomeModelo, params, botao)
     });
     console.log(`[whatsapp-aviso] ${nomeModelo} enviado`);
     return { enviado: true };
@@ -149,7 +167,10 @@ export async function criarModelos() {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}` },
       body: JSON.stringify({
         name: nome, language: "pt_BR", category: m.categoria,
-        components: [{ type: "BODY", text: m.texto, example: { body_text: [m.exemplo] } }]
+        components: [
+          { type: "BODY", text: m.texto, example: { body_text: [m.exemplo] } },
+          ...(m.botao ? [{ type: "BUTTONS", buttons: [{ type: "URL", text: m.botao.texto, url: m.botao.url, example: [m.botao.url.replace("{{1}}", m.botao.exemplo)] }] }] : [])
+        ]
       })
     });
     const d = await r.json().catch(() => ({}));

@@ -7,8 +7,9 @@
 // (8h às 20h de Brasília): e-mail de desconto às 3h da manhã é ruído.
 //
 // Quem NÃO recebe:
-//   - quem já tem pedido pago (com qualquer e-mail igual) — não é 1ª compra,
-//     e cobre também quem voltou e comprou sozinho;
+//   - quem já comprou: qualquer pedido pago (inclusive já em produção,
+//     postado ou entregue), casando por e-mail, telefone ou CPF/CNPJ — não é
+//     1ª compra, e cobre também quem voltou e comprou sozinho;
 //   - quem já recebeu um cupom antes (um por e-mail, pra sempre);
 //   - carrinho da Trybo (outra marca) e revenda (outro preço, outro fluxo);
 //   - pedido criado ANTES de CUPOM_DESDE: o dado foi coletado sob a Política
@@ -39,13 +40,56 @@ function checkAuth(req) {
   return validos.includes(bearer) || validos.includes(String(req.query.secret || "").trim());
 }
 
-function linkDoCarrinho(codigo, itens) {
+// A parte depois do "?" do link do carrinho: cupom + itens + origem. O e-mail
+// usa o link inteiro; o botão do WhatsApp só aceita a parte variável no fim.
+function queryDoCarrinho(codigo, itens, origem = "email") {
   const ids = [];
   for (const i of Array.isArray(itens) ? itens : []) {
     for (let n = 0; n < Math.min(Number(i.qty) || 1, 10); n++) ids.push(i.id);
   }
   const add = ids.length ? `&add=${encodeURIComponent(ids.join(","))}` : "";
-  return `https://startouch.com.br/kit?cupom=${encodeURIComponent(codigo)}${add}&utm_source=email&utm_medium=cupom&utm_campaign=carrinho_abandonado`;
+  return `cupom=${encodeURIComponent(codigo)}${add}&utm_source=${origem}&utm_medium=cupom&utm_campaign=carrinho_abandonado`;
+}
+function linkDoCarrinho(codigo, itens) {
+  return `https://startouch.com.br/kit?${queryDoCarrinho(codigo, itens)}`;
+}
+
+// QUEM JÁ COMPROU (29/10/2026). Antes só valia `status = "paid"` — mas o
+// pedido sai de "paid" quando o Ricardo move pra produção/postado/entregue,
+// então um cliente com pedido ENTREGUE que abandonasse um carrinho novo
+// ganhava 20% de "primeira compra". Agora conta qualquer pedido pago (pela
+// data de pagamento OU por um estado pós-pagamento), e casa também pelo
+// telefone e pelo CPF/CNPJ — quem comprou com outro e-mail não ganha cupom.
+const ESTADOS_PAGOS = ["paid", "em_producao", "postado", "entregue"];
+const soDigitos = (v) => String(v || "").replace(/\D/g, "");
+async function compradores() {
+  const [porData, porEstado] = await Promise.all([
+    supabase.from("orders").select("email, shipping").not("paid_at", "is", null).limit(1000),
+    supabase.from("orders").select("email, shipping").in("status", ESTADOS_PAGOS).limit(1000)
+  ]);
+  if (porData.error || porEstado.error) throw new Error("compradores: " + (porData.error || porEstado.error).message);
+  const c = { emails: new Set(), fones: new Set(), docs: new Set(), total: 0 };
+  for (const o of [...(porData.data || []), ...(porEstado.data || [])]) {
+    c.total++;
+    const sh = o.shipping || {};
+    for (const e of [o.email, sh.email]) if (e) c.emails.add(String(e).trim().toLowerCase());
+    for (const f of [sh.phone, sh.whatsapp]) { const d = soDigitos(f); if (d.length >= 10) c.fones.add(d.slice(-10)); }
+    for (const d of [sh.cpf_cnpj, sh.cnpj]) { const x = soDigitos(d); if (x.length >= 11) c.docs.add(x); }
+  }
+  // A janela de 1000 linhas enche um dia; aí a lista fica incompleta e o
+  // cupom poderia ir pra cliente antigo. Grita em vez de errar calado.
+  if ((porData.data || []).length >= 1000 || (porEstado.data || []).length >= 1000) {
+    console.warn("[carrinho-abandonado] lista de compradores CORTADA em 1000 — a checagem de 'já comprou' pode deixar passar cliente antigo. Paginar.");
+  }
+  return c;
+}
+function jaComprou(c, email, shipping) {
+  const sh = shipping || {};
+  if (c.emails.has(String(email || "").trim().toLowerCase())) return true;
+  const fone = soDigitos(sh.phone || sh.whatsapp).slice(-10);
+  if (fone.length === 10 && c.fones.has(fone)) return true;
+  const doc = soDigitos(sh.cpf_cnpj || sh.cnpj);
+  return doc.length >= 11 && c.docs.has(doc);
 }
 
 export default async function handler(req, res) {
@@ -95,13 +139,23 @@ export default async function handler(req, res) {
   }
   s.candidatos = porEmail.size;
 
+  // Sem a lista de compradores, não manda nada: cupom de "primeira compra"
+  // pra cliente antigo é pior do que um dia sem lembrete.
+  let quemComprou;
+  try { quemComprou = await compradores(); }
+  catch (e) {
+    console.error("[carrinho-abandonado] FALHOU ao ler compradores — nenhum cupom enviado:", e?.message || e);
+    return res.status(500).json({ ...s, erro: e?.message || String(e) });
+  }
+
   for (const [email, pedido] of porEmail) {
     if (s.enviados >= limit) break;
     try {
+      if (jaComprou(quemComprou, email, pedido.shipping)) { s.pulados_ja_comprou++; continue; }
       const { data: historico, error: eh } = await supabase
-        .from("orders").select("status, shipping").ilike("email", email).limit(200);
+        .from("orders").select("status, paid_at, shipping").ilike("email", email).limit(200);
       if (eh) throw new Error("histórico: " + eh.message);
-      if ((historico || []).some((o) => o.status === "paid")) { s.pulados_ja_comprou++; continue; }
+      if ((historico || []).some((o) => o.paid_at || ESTADOS_PAGOS.includes(o.status))) { s.pulados_ja_comprou++; continue; }
       if ((historico || []).some((o) => o.shipping?.cupom_oferecido)) { s.pulados_ja_tem_cupom++; continue; }
 
       const codigo = geraCodigo();
@@ -138,7 +192,14 @@ export default async function handler(req, res) {
       // (Política 1.14). Falha aqui não desfaz o e-mail, que já saiu.
       if (pedido.shipping?.whatsapp_optin && !String(pedido.external_reference || "").startsWith("kit_trybo")) {
         const ate = new Date(oferta.expira).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" });
-        const w = await enviarAviso("st_carrinho", pedido.shipping, [primeiroNome(nome), String(CUPOM_PCT), codigo, ate]);
+        const params = [primeiroNome(nome), String(CUPOM_PCT), codigo, ate];
+        // Primeiro o modelo com o botão do carrinho pronto; se a Meta ainda
+        // não aprovou (ou recusar), cai no antigo, sem botão — o cupom sai igual.
+        let w = await enviarAviso("st_carrinho_link", pedido.shipping, params, { botao: queryDoCarrinho(codigo, itens, "whatsapp") });
+        if (!w.enviado && !/consentimento|parar|telefone|não configurado/i.test(w.motivo || "")) {
+          console.warn(`[carrinho-abandonado] st_carrinho_link não saiu (${w.motivo}) — mandando o modelo sem botão`);
+          w = await enviarAviso("st_carrinho", pedido.shipping, params);
+        }
         if (w.enviado) s.whatsapp = (s.whatsapp || 0) + 1;
       }
       await new Promise((ok) => setTimeout(ok, 250));
