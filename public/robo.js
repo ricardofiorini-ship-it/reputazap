@@ -88,7 +88,7 @@
       ola: "Oi! Sou a Stella, assistente virtual da StarTouch, uma IA. Que tipo de negócio você tem?",
       chips: ["Como funciona?", "Qual devo escolher?", "Ver minha empresa no Google", "Frete e prazo"],
       ph: "Escreva sua pergunta…", enviar: "Enviar", fechar: "Fechar", abrir: "Fale com a Stella",
-      aviso: "IA: pode errar. A conversa não é guardada; não escreva dados pessoais.", politica: "Privacidade",
+      aviso: "IA: pode errar. A conversa não é guardada; não escreva dados pessoais.", politica: "Privacidade", humano: "Falar com uma pessoa", humanoMsg: "Oi! Quero falar com uma pessoa da equipe.",
       teaser: "Quer ajuda pra escolher? Vejo sua empresa no Google em 10 segundos.",
       erro: "Não consegui responder agora. Quer falar com a gente no WhatsApp?", limite: "Muitas mensagens em pouco tempo. Continue pelo WhatsApp:",
       wa: "Continuar no WhatsApp", verCarrinho: "Ver carrinho", pagar: "Finalizar compra", demo: "Encostou, avaliou." },
@@ -96,7 +96,7 @@
       ola: "Hi! I'm Stella, StarTouch's virtual assistant, an AI. What kind of business do you have?",
       chips: ["How does it work?", "Which one should I pick?", "Check my business on Google", "Shipping and delivery"],
       ph: "Type your question…", enviar: "Send", fechar: "Close", abrir: "Chat with Stella",
-      aviso: "AI: it can make mistakes. The chat isn't stored; don't share personal data.", politica: "Privacy",
+      aviso: "AI: it can make mistakes. The chat isn't stored; don't share personal data.", politica: "Privacy", humano: "Talk to a person", humanoMsg: "Hi! I'd like to talk to a person from the team.",
       teaser: "Need help choosing? I'll check your business on Google in 10 seconds.",
       erro: "I couldn't answer right now. Want to talk to us on WhatsApp?", limite: "Too many messages in a short time. Continue on WhatsApp:",
       wa: "Continue on WhatsApp", verCarrinho: "View cart", pagar: "Checkout", demo: "Tap, review." },
@@ -104,7 +104,7 @@
       ola: "¡Hola! Soy Stella, la asistente virtual de StarTouch, una IA. ¿Qué tipo de negocio tienes?",
       chips: ["¿Cómo funciona?", "¿Cuál elijo?", "Ver mi empresa en Google", "Envío y plazo"],
       ph: "Escribe tu pregunta…", enviar: "Enviar", fechar: "Cerrar", abrir: "Habla con Stella",
-      aviso: "IA: puede equivocarse. La conversación no se guarda; no escribas datos personales.", politica: "Privacidad",
+      aviso: "IA: puede equivocarse. La conversación no se guarda; no escribas datos personales.", politica: "Privacidad", humano: "Hablar con una persona", humanoMsg: "¡Hola! Quiero hablar con una persona del equipo.",
       teaser: "¿Te ayudo a elegir? Veo tu empresa en Google en 10 segundos.",
       erro: "No pude responder ahora. ¿Hablamos por WhatsApp?", limite: "Demasiados mensajes en poco tiempo. Sigue por WhatsApp:",
       wa: "Seguir en WhatsApp", verCarrinho: "Ver carrito", pagar: "Finalizar compra", demo: "Acercó, reseñó." },
@@ -112,7 +112,7 @@
       ola: "你好！我是 Stella，StarTouch 的虚拟助手（人工智能）。你经营什么类型的生意？",
       chips: ["怎么用？", "我该选哪个？", "查看我的商家", "运费和时效"],
       ph: "输入你的问题…", enviar: "发送", fechar: "关闭", abrir: "和 Stella 聊天",
-      aviso: "人工智能可能出错。对话不会被保存；请勿填写个人信息。", politica: "隐私",
+      aviso: "人工智能可能出错。对话不会被保存；请勿填写个人信息。", politica: "隐私", humano: "联系真人客服", humanoMsg: "你好！我想和团队的工作人员沟通。",
       teaser: "需要帮你挑选吗？10 秒查看你的商家在 Google 上的情况。",
       erro: "暂时无法回答。要通过 WhatsApp 联系我们吗？", limite: "消息过于频繁。请通过 WhatsApp 继续：",
       wa: "在 WhatsApp 继续", verCarrinho: "查看购物车", pagar: "去结算", demo: "一碰即评。" }
@@ -155,8 +155,10 @@
     ".str-teaser button{position:absolute;top:6px;right:6px;border:none;background:none;color:var(--m);font-size:18px;cursor:pointer;width:24px;height:24px}" +
     "@keyframes strSobe{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}" +
     ".str-painel{position:fixed;left:20px;bottom:20px;z-index:9999;width:380px;height:min(600px,calc(100vh - 110px));background:#fff;border:1px solid var(--b);border-radius:20px;box-shadow:0 24px 60px -18px rgba(15,23,42,.45);display:flex;flex-direction:column;overflow:hidden;animation:strSobe .25s ease}" +
-    ".str-dir .str-fab{left:auto;right:24px;bottom:88px}.str-dir .str-teaser{left:auto;right:24px;bottom:152px;border-radius:16px 16px 4px 16px}.str-dir .str-painel{left:auto;right:20px}" +
-    "@media(max-width:767px){.str-dir .str-fab{right:16px;left:auto;bottom:calc(140px + env(safe-area-inset-bottom,0px))}.str-dir .str-teaser{right:16px;left:auto;bottom:calc(204px + env(safe-area-inset-bottom,0px))}}" +
+    "#st-wa-fab,[data-wa-fab]{display:none!important}" +
+    ".str-aviso a.str-humano{color:#1E8E3E;font-weight:700}" +
+    ".str-dir .str-fab{left:auto;right:24px;bottom:24px}.str-dir .str-teaser{left:auto;right:24px;bottom:88px;border-radius:16px 16px 4px 16px}.str-dir .str-painel{left:auto;right:20px}" +
+    "@media(max-width:767px){.str-dir .str-fab{right:16px;left:auto;bottom:calc(76px + env(safe-area-inset-bottom,0px))}.str-dir .str-teaser{right:16px;left:auto;bottom:calc(140px + env(safe-area-inset-bottom,0px))}}" +
     "@media(max-width:759px){.str-painel{left:0;right:0;bottom:0;width:auto;height:62vh;border-radius:20px 20px 0 0}.str-fab{left:14px;padding-right:14px}.str-teaser{left:14px}}" +
     ".str-topo{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;background:var(--a);color:#fff}" +
     ".str-topo .str-cara{width:36px;height:36px}" +
@@ -306,6 +308,16 @@
     a.target = "_blank";
     a.rel = "noopener";
     aviso.appendChild(a);
+    // Caminho pro humano SEMPRE visível (29/10/2026): com a Stella, o botão
+    // flutuante do WhatsApp sai da tela. A mensagem pronta faz o robô do
+    // WhatsApp passar direto pro Ricardo, em vez de conversar de novo.
+    aviso.appendChild(document.createTextNode(" · "));
+    var h = txt("a", "str-humano", T.humano);
+    h.href = "https://wa.me/" + WA + "?text=" + encodeURIComponent(T.humanoMsg);
+    h.target = "_blank";
+    h.rel = "noopener";
+    h.addEventListener("click", function () { contar("humano"); });
+    aviso.appendChild(h);
     painel.appendChild(aviso);
 
     raiz.appendChild(painel);

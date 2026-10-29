@@ -871,6 +871,7 @@ function SupportFAB({ isMobile }) {
       href={href}
       target="_blank"
       rel="noreferrer"
+      data-wa-fab=""
       aria-label={`Falar com suporte StarTouch no WhatsApp ${SUPPORT_WA_DISPLAY}`}
       title={`Suporte StarTouch · WhatsApp ${SUPPORT_WA_DISPLAY}`}
       onMouseEnter={() => setHover(true)}
