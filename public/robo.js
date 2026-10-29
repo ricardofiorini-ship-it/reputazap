@@ -377,6 +377,12 @@
       // Depois das ações (que podem pôr botões de carrinho/WhatsApp na conversa),
       // pra as opções ficarem por último, logo acima do campo de digitar.
       var sug = (res.d.sugestoes || []).filter(function (s) { return typeof s === "string" && s; });
+      // A IA às vezes esquece a linha de opções: aí entram as do início que a
+      // pessoa ainda não tocou — nunca deixar a conversa sem botão.
+      if (!sug.length) {
+        var ditas = conversa.map(function (m) { return m.content; });
+        sug = T.chips.filter(function (c) { return ditas.indexOf(c) < 0; });
+      }
       if (sug.length) setTimeout(function () { mostrarChips(sug.slice(0, 3)); }, (res.d.acoes || []).length * 500 + 50);
     }).catch(function () {
       dig.remove();
