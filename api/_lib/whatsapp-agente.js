@@ -228,7 +228,9 @@ export async function responder(historico, executar, { sistema = ROTEIRO, ferram
       betas: ["server-side-fallback-2026-07-01"],
       fallbacks: "default",
       output_config: { effort: "low" },
-      system: [{ type: "text", text: sistema, cache_control: { type: "ephemeral" } }],
+      // `sistema` pode vir em blocos já marcados (o painel da Stella separa a
+      // parte fixa, com cache, dos dados da conta); texto puro vira um bloco só.
+      system: Array.isArray(sistema) ? sistema : [{ type: "text", text: sistema, cache_control: { type: "ephemeral" } }],
       tools: ferramentas,
       messages
     });

@@ -8847,6 +8847,15 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
         setTimeout(() => document.getElementById('pontos-de-captacao')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200)
         return
       }
+      // config_conta / config_negocio / config_plano: Configurações já na
+      // seção certa (os mesmos hashes do menu do avatar; o efeito de hash rola).
+      const secao = { config_conta: 'conta', config_negocio: 'negocio', config_plano: 'plano' }[aba]
+      if (secao) {
+        window.location.hash = secao
+        setTab('config')
+        setTimeout(() => document.getElementById(secao)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200)
+        return
+      }
       if (['painel', 'avaliacoes', 'menu', 'resultados', 'config'].includes(aba)) setTab(aba)
     }
     window.addEventListener('st:ir-aba', ir)

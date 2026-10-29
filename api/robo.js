@@ -24,7 +24,9 @@ import { cotarFrete, itensDoCatalogo } from "./_lib/ferramentas-venda.js";
 import { buscarPelaApiNova } from "./_lib/places-area-servico.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
 import { createClient } from "@supabase/supabase-js";
-import { LINHA_STARTOUCH } from "./_lib/linha.js";
+import { LINHA_STARTOUCH, logsSoStartouch } from "./_lib/linha.js";
+import { PESOS, VOLUME_CHEIO } from "./_lib/score-core.js";
+import { MANUAL_PAINEL } from "./_lib/stella-manual-painel.js";
 
 const MODELO = (process.env.ROBO_MODEL || process.env.WHATSAPP_MODEL || "").trim() || "claude-opus-5-5";
 const MAX_MENSAGENS = 24;      // a conversa que chega; mais que isso, ficam as últimas
@@ -277,17 +279,19 @@ const ABERTURA_PAINEL = `Você é a Stella, assistente virtual da StarTouch DENT
 
 `;
 
-const TELA_PAINEL = `O PAINEL — onde fica cada coisa (use ir_para_aba para levar a pessoa até lá)
-- Aba Painel (painel): nota e total de avaliações no Google, posição na região contra os concorrentes (medida uma vez por semana) e, mais abaixo, o quadro "Onde seus clientes avaliam", com a lista dos dispositivos e os toques de cada um. Para levar a pessoa direto a esse quadro, use ir_para_aba com "dispositivos" (rola a tela até ele).
-- DAR NOME a um dispositivo (passo a passo, diga exatamente assim): no quadro "Onde seus clientes avaliam", toque no lápis ao lado do nome do dispositivo, escreva o nome novo e toque em Salvar.
-- Que nome dar: o nome de ONDE ele fica ("Caixa", "Balcão", "Recepção", "Mesa 1") ou de QUEM usa ("Garçom João", "Ana"). Serve pra ver no painel qual ponto ou pessoa traz mais toques. Se perguntarem que nome dar, sugira 2 ou 3 nomes concretos pro caso dela (você sabe o tipo de dispositivo).
-- Dispositivo guardado/parado: guardado não traz toque nenhum. Sugira com jeito onde ele rende (placa no caixa ou onde o cliente paga; cartão na mão de quem atende). Se não vai usar, pode desvincular (botão vermelho na linha do dispositivo) pra reaproveitar em outro negócio ou passar adiante.
-- Aba Avaliações (avaliacoes): as avaliações recentes do Google.
-- Aba Menu Inteligente (menu): monta o menu que o toque abre (WhatsApp, cardápio, agendamento, redes), com o Avaliar no Google sempre em primeiro. É do plano Pro: R$ 19,90/mês, até 5 dispositivos (R$ 1,90/mês por extra). O teste de 7 dias grátis é UM por cliente: antes de falar em teste, olhe a linha "Pro" dos DADOS DA CONTA — se diz que já teve, não ofereça teste. Desligou, o dispositivo volta a levar direto ao Google.
-- Aba Resultados (resultados): quais botões do menu os clientes mais tocam (só aparece com o Menu ligado).
-- Configurações (config): dados do negócio, "Trocar negócio vinculado" (o dispositivo e o plano continuam), e-mail e senha da conta, plano.
-- Ativar um dispositivo novo: ativar_dispositivo abre a janela de ativação aqui mesmo.
-- Toda segunda chega um e-mail com a nota, as avaliações novas e o aviso das de 1 e 2 estrelas.
+const TELA_PAINEL = `LEVAR A PESSOA ATÉ O LUGAR (ir_para_aba)
+- painel, avaliacoes, menu, resultados (só Pro): as abas.
+- dispositivos: rola o Painel até "Onde seus clientes avaliam" (renomear, zerar, desvincular, ativar, toques por período).
+- config_conta (e-mail, senha), config_negocio (palavra-chave do ranking, trocar negócio vinculado), config_plano (assinatura, cartão, cancelar).
+- ativar_dispositivo abre a janela de ativação aqui mesmo.
+Quando explicar um caminho, diga o passo com os rótulos do MANUAL (ex.: toque no lápis ao lado do nome → escreva → "Salvar") e leve até lá.
+
+NOMES DE DISPOSITIVO
+- Use o nome de ONDE ele fica ("Caixa", "Balcão", "Recepção", "Mesa 1") ou de QUEM usa ("Garçom João", "Ana"); serve pra ver qual ponto ou pessoa traz mais toques. Se pedirem sugestão, dê 2 ou 3 nomes concretos pro caso.
+- Dispositivo guardado/parado não traz toque nenhum: sugira com jeito onde ele rende (placa onde o cliente paga; cartão na mão de quem atende, pedido na hora da conta), ou desvincular pra reaproveitar.
+
+PRO E TESTE GRÁTIS
+- R$ 19,90/mês, até 5 dispositivos com menu (R$ 1,90/mês por extra). O teste de 7 dias grátis é UM por cliente: olhe a linha "Pro" dos DADOS DA CONTA antes de falar em teste — se diz que já teve, não ofereça teste.
 
 COMO AJUDAR
 - Responda a pergunta que foi feita. Se pedem opinião ou sugestão ("que nome dou?", "onde coloco?"), dê a sugestão concreta; não troque a resposta por "abri a tela pra você".
@@ -303,7 +307,7 @@ COMO AJUDAR
 
 `;
 
-const ABAS_PAINEL = ["painel", "dispositivos", "avaliacoes", "menu", "resultados", "config"];
+const ABAS_PAINEL = ["painel", "dispositivos", "avaliacoes", "menu", "resultados", "config_conta", "config_negocio", "config_plano"];
 const FERRAMENTAS_PAINEL = [
   {
     name: "ir_para_aba",
@@ -370,20 +374,41 @@ async function contextoDoPainel(token) {
   if (eBiz) throw new Error(`businesses: ${eBiz.message}`);
   if (!biz) return { texto: "DADOS DA CONTA: ainda não há negócio ligado a esta conta (cadastro incompleto). Ajude a ativar o primeiro dispositivo." };
 
-  const colunas = "product_type, channel_name, total_taps, last_tapped_at, activated_at";
+  const colunas = "id, product_type, channel_name, total_taps, last_tapped_at, activated_at";
   let plates = await s.from("plates").select(colunas + ", experience_enabled")
     .eq("business_id", biz.id).eq("linha", LINHA_STARTOUCH).limit(60);
   // Coluna do Menu ausente num banco antigo não pode calar a Stella.
   if (plates.error) plates = await s.from("plates").select(colunas).eq("business_id", biz.id).eq("linha", LINHA_STARTOUCH).limit(60);
-  const [hist, menus] = await Promise.all([
+  const desde30 = new Date(Date.now() - 30 * 86400000).toISOString();
+  const [hist, menus, toques] = await Promise.all([
     s.from("review_history").select("on_date, rating, reviews").eq("business_id", biz.id).order("on_date", { ascending: false }).limit(1),
-    s.from("experiences").select("id", { count: "exact", head: true }).eq("business_id", biz.id).not("published", "is", null).is("archived_at", null)
+    s.from("experiences").select("id", { count: "exact", head: true }).eq("business_id", biz.id).not("published", "is", null).is("archived_at", null),
+    // Toques dos últimos 30 dias por dispositivo (pra "quantos essa semana?").
+    // plate_taps já não tem o toque repetido (trava de 24/09). Teto de 1000
+    // linhas do Supabase: acima disso o número sai marcado como "1000+".
+    logsSoStartouch(s.from("plate_taps").select("plate_id, tapped_at").eq("business_id", biz.id).gte("tapped_at", desde30)).limit(1000)
   ]);
+  const desde7 = Date.now() - 7 * 86400000;
+  const porPlaca = {};
+  for (const t of toques.data || []) {
+    const c = porPlaca[t.plate_id] || (porPlaca[t.plate_id] = { d7: 0, d30: 0 });
+    c.d30++;
+    if (Date.parse(t.tapped_at) >= desde7) c.d7++;
+  }
+  const cortado = (toques.data || []).length >= 1000 ? "+" : "";
 
   const linhas = [];
   linhas.push(`- Negócio: ${biz.name}${biz.address ? ` (${biz.address})` : ""}. Plano: ${biz.plan === "pro" ? "Pro (tem o Menu Inteligente)" : "gratuito"}. Cliente desde ${dataBR(biz.created_at)}.`);
   const h = hist.data?.[0];
   if (h) linhas.push(`- No Google (medição de ${dataBR(h.on_date)}): nota ${h.rating ?? "?"}, ${h.reviews} avaliações. Quando entrou na StarTouch tinha ${biz.total_reviews ?? "?"}.`);
+  // Partes do Score que dá pra calcular daqui (mesma conta de _lib/score-core.js).
+  // Posição e perfil dependem da medição do mapa e do perfil do Google, que não
+  // estão aqui: pra esses, a Stella manda ao "Por que N? Ver o que falta".
+  if (h) {
+    const notaPts = Math.round((Math.max(0, Math.min(5, Number(h.rating) || 0)) / 5) * PESOS.nota);
+    const volPts = Math.round(Math.min((Number(h.reviews) || 0) / VOLUME_CHEIO, 1) * PESOS.volume);
+    linhas.push(`- Score StarTouch, partes que dá pra calcular: nota ${notaPts} de ${PESOS.nota}; volume de avaliações ${volPts} de ${PESOS.volume} (enche com ${VOLUME_CHEIO} avaliações). Posição na região (${PESOS.posicao}) e perfil completo (${PESOS.perfil}) não estão nos meus dados.`);
+  }
   else if (biz.total_reviews != null) linhas.push(`- Avaliações no Google quando entrou na StarTouch: ${biz.total_reviews}. (Ainda sem medição semanal.)`);
   const lista = plates.data || [];
   if (!lista.length) linhas.push("- Dispositivos ativos: nenhum ainda.");
@@ -393,7 +418,9 @@ async function contextoDoPainel(token) {
       const nome = p.channel_name ? `"${p.channel_name}"` : "sem nome";
       const ultimo = p.last_tapped_at ? `último em ${dataBR(p.last_tapped_at)}` : "nenhum toque ainda";
       const menu = p.experience_enabled ? ", abre o Menu" : "";
-      linhas.push(`  • ${nome} (${NOME_PRODUTO[p.product_type] || "dispositivo"}): ${p.total_taps || 0} toques, ${ultimo}, ativado em ${dataBR(p.activated_at)}${menu}`);
+      const c = porPlaca[p.id] || { d7: 0, d30: 0 };
+      const recentes = toques.error ? "" : `; últimos 7 dias: ${c.d7}${cortado}, últimos 30 dias: ${c.d30}${cortado}`;
+      linhas.push(`  • ${nome} (${NOME_PRODUTO[p.product_type] || "dispositivo"}): ${p.total_taps || 0} toques no total${recentes}, ${ultimo}, ativado em ${dataBR(p.activated_at)}${menu}`);
     }
     if (lista.length > 30) linhas.push(`  • e mais ${lista.length - 30}.`);
   }
@@ -449,7 +476,13 @@ export default async function handler(req, res) {
     if (ctx.erro) return res.status(ctx.erro).json({ error: "sessão" });
     // Os dados da conta vão no fim, depois dos fatos fixos: o começo do
     // roteiro (igual pra todos) continua aproveitando o cache da IA.
-    sistema = ABERTURA_PAINEL + COMO_FALAR + DIFERENCIAIS + TELA_PAINEL + ROTEIRO_NEGOCIO + "\n\n" + ctx.texto;
+    // Parte fixa (igual pra todo cliente) num bloco com cache; os dados da
+    // conta num bloco à parte, sem cache — senão cada conta pagaria o manual
+    // inteiro de novo a cada mensagem.
+    sistema = [
+      { type: "text", text: ABERTURA_PAINEL + COMO_FALAR + DIFERENCIAIS + TELA_PAINEL + MANUAL_PAINEL + "\n" + ROTEIRO_NEGOCIO, cache_control: { type: "ephemeral" } },
+      { type: "text", text: ctx.texto }
+    ];
     ferramentas = FERRAMENTAS_PAINEL;
   } else {
     conversa[conversa.length - 1].content += `\n\n[carrinho agora: ${descreverCarrinho(body?.carrinho)}]`;
