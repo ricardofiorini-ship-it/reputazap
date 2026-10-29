@@ -40,6 +40,8 @@ COMO FALAR — CURTO É REGRA, não estilo
 - Mostre em vez de escrever: se a tela pode mostrar (produto, demonstração, carrinho), use a ferramenta e escreva menos.
 - Texto simples, sem markdown, sem listas, no máximo 1 emoji. Responda na língua de quem escreve.
 - Consultivo, nunca insistente. Nunca invente.
+- Termine TODA resposta com uma linha final assim: SUGESTOES: opção 1 | opção 2 | opção 3
+  São botões que a pessoa toca em vez de digitar: 2 ou 3, até 5 palavras cada, escritos como a PESSOA falaria ("Quanto fica o frete?", "Pôr 3 no carrinho", "Ver minha empresa no Google"), na língua dela, ligados ao próximo passo natural da conversa. Se você fez uma pergunta, as opções são respostas prováveis a ela (ex.: "Tenho um caixa" | "Atendo nas mesas"). Não repita opção que a pessoa já usou.
 
 O QUE A STARTOUCH TEM DE DIFERENTE — o cartão é só a porta de entrada
 A maioria do mercado vende só um chip que abre o Google. A StarTouch vem com uma plataforma inclusa na compra, sem mensalidade. Use UM destes por vez, quando encaixar na conversa (nunca a lista inteira). Mesmo quando perguntarem direto "o que vocês têm de diferente?", responda em 2 frases com os 2 que mais servem e pergunte o tipo de negócio, pra escolher os próximos:
@@ -204,6 +206,18 @@ function limparConversa(bruto) {
   return juntas;
 }
 
+// As opções de toque vêm na última linha do texto ("SUGESTOES: a | b | c"),
+// e não numa ferramenta: ferramenta custaria mais uma ida e volta à IA (uns
+// 3s a mais em cada resposta). A linha sai do texto antes de ir pra tela e
+// pro histórico. Sem a linha, a janela simplesmente não mostra opções.
+function separarSugestoes(bruto) {
+  const m = String(bruto).match(/\n?[ \t]*SUGEST(?:O|Õ)ES\s*:\s*(.+?)\s*$/i);
+  if (!m) return { texto: String(bruto).trim(), sugestoes: [] };
+  const sugestoes = m[1].split("|").map((s) => s.trim().replace(/^["“]|["”]$/g, ""))
+    .filter((s) => s && s.length <= 40).slice(0, 3);
+  return { texto: String(bruto).slice(0, m.index).trim(), sugestoes };
+}
+
 function descreverCarrinho(bruto) {
   const nomes = { "cartao-nfc": "Cartão NFC", "placa-mesa": "Placa de Balcão M", "placa-balcao": "Placa de Balcão G", "cartao-trybo": "Cartão Trybo" };
   const itens = (Array.isArray(bruto) ? bruto : [])
@@ -273,7 +287,8 @@ export default async function handler(req, res) {
       console.warn(`[robo] sem texto (recusou=${!!r.recusou}, laco=${!!r.laco})`);
       return res.json({ texto: null, acoes: [...acoes, { tipo: "whatsapp", texto: "Oi! Vim pelo site e tenho uma dúvida." }] });
     }
-    return res.json({ texto: r.texto, acoes });
+    const { texto, sugestoes } = separarSugestoes(r.texto);
+    return res.json({ texto, acoes, sugestoes });
   } catch (e) {
     console.error("[robo] FALHOU:", e?.status || "", e?.message || e);
     return res.status(502).json({ error: "falhou" });

@@ -374,6 +374,10 @@
         balao("assistant", res.d.texto);
       }
       executar(res.d.acoes || []);
+      // Depois das ações (que podem pôr botões de carrinho/WhatsApp na conversa),
+      // pra as opções ficarem por último, logo acima do campo de digitar.
+      var sug = (res.d.sugestoes || []).filter(function (s) { return typeof s === "string" && s; });
+      if (sug.length) setTimeout(function () { mostrarChips(sug.slice(0, 3)); }, (res.d.acoes || []).length * 500 + 50);
     }).catch(function () {
       dig.remove();
       balao("assistant", T.erro);
