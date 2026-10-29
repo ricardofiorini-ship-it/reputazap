@@ -1631,6 +1631,16 @@ function leClienteEntregaExterior(customer, pais) {
   return { cliente: c };
 }
 
+// TESTE DO ASSISTENTE DO SITE (29/10/2026, Política 1.17). Metade de quem
+// visita a loja vê o assistente; a outra metade, não. O pedido guarda em qual
+// metade a pessoa caiu ("sem" / "com") e se ela chegou a conversar
+// ("conversou") — é o que responde se o assistente vende mais ou é enfeite.
+// Só esses três valores entram; qualquer outra coisa é ignorada.
+function roboDoPedido(valor) {
+  const v = String(valor || "");
+  return ["sem", "com", "conversou"].includes(v) ? { robo: v } : {};
+}
+
 // Bloco `frete` gravado em `orders.shipping`, no MESMO formato que a revenda ja
 // usa — o tradutor (`_lib/pedido-cliente.js`) le dali. Terceiro formato pro
 // mesmo dado e como nasceu o bug dos dois vocabularios; um basta.
@@ -1708,7 +1718,7 @@ async function handleCheckoutKitStripe(req, res) {
   if (auth.error) return res.status(auth.status).json({ error: auth.error });
   try {
     const { items = [], biz_name = "", ga_client_id = "", ga_session_id = "",
-            customer = {}, frete_codigo = "", cupom: cupomCodigo = "", ref = "" } = parseJson(await getRawBody(req));
+            customer = {}, frete_codigo = "", cupom: cupomCodigo = "", ref = "", robo = "" } = parseJson(await getRawBody(req));
     const indicacao = indicacaoDoPedido(ref, auth.user.id);
     const carrinho = montaCarrinhoStripe(items);
     if (carrinho.erro) return res.status(400).json({ error: carrinho.erro });
@@ -1781,7 +1791,7 @@ async function handleCheckoutKitStripe(req, res) {
       status: "pending",
       shipping: { ...c, frete: freteParaPedido(frete), produtos_centavos: carrinho.totalCents,
         ...(cupom ? { cupom_usado: { codigo: cupom.codigo, pct: cupom.pct, desconto_centavos: cupom.desconto } } : {}),
-        ...(indicacao ? { indicacao } : {}) },
+        ...(indicacao ? { indicacao } : {}), ...roboDoPedido(robo) },
     }, "stripe/checkout-kit");
 
     return res.json({ url: session.url });
@@ -1878,7 +1888,7 @@ async function handleCheckoutKitGuestStripe(req, res) {
       status: "pending",
       shipping: { ...c, frete: freteParaPedido(frete), produtos_centavos: carrinho.totalCents,
         ...(cupom ? { cupom_usado: { codigo: cupom.codigo, pct: cupom.pct, desconto_centavos: cupom.desconto } } : {}),
-        ...(indicacao ? { indicacao } : {}) },
+        ...(indicacao ? { indicacao } : {}), ...roboDoPedido(body.robo) },
     }, "stripe/checkout-kit-guest");
 
     return res.json({ url: session.url });

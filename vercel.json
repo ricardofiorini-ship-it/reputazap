@@ -498,6 +498,9 @@
     },
     "api/whatsapp.js": {
       "maxDuration": 120
+    },
+    "api/robo.js": {
+      "maxDuration": 60
     }
   },
   "crons": [

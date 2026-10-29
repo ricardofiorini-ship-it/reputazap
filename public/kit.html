@@ -1178,7 +1178,7 @@ coForm.addEventListener("submit", async (e) => {
   const url = token ? "/api/billing?action=checkout-kit" : "/api/billing?action=checkout-kit-guest";
   const headers = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
-  const corpo = { items, customer, frete_codigo: frete.codigo || "", ...gaIds(),
+  const corpo = { items, customer, frete_codigo: frete.codigo || "", ...gaIds(), ...roboDoTeste(),
                   ...(cupomAtivo ? { cupom: cupomAtivo.codigo } : {}),
                   ...(refIndicacao ? { ref: refIndicacao } : {}) };
   if (token) corpo.biz_name = bizName || "";
@@ -1192,7 +1192,7 @@ coForm.addEventListener("submit", async (e) => {
       localStorage.removeItem("rz_token");
       res = await fetch("/api/billing?action=checkout-kit-guest", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items, customer, frete_codigo: frete.codigo || "", ...gaIds(),
+        body: JSON.stringify({ items, customer, frete_codigo: frete.codigo || "", ...gaIds(), ...roboDoTeste(),
                                ...(cupomAtivo ? { cupom: cupomAtivo.codigo } : {}),
                                ...(refIndicacao ? { ref: refIndicacao } : {}) })
       });
@@ -1277,7 +1277,33 @@ if (addParam) {
 renderCart();
 if (itemCount() > 0 && params.get("compra") !== "sucesso") openDrawer();
 carregarCupom();
+
+// ── Ponte com o assistente da loja (/robo.js, 29/10/2026) ───────
+// O assistente mexe na loja SÓ por aqui: pôr no carrinho, abrir o carrinho,
+// ir pro pagamento, achar o card de um produto. Ele nunca toca em preço nem
+// no checkout em si — quem cobra continua sendo o mesmo caminho do botão.
+function roboDoTeste() {
+  try { return window.stRobo ? { robo: window.stRobo.grupoDoPedido() } : {}; } catch (e) { return {}; }
+}
+window.stLoja = {
+  produtos: PRODUCTS.map(p => ({ id: p.id, nome: p.name, preco: p.price, esgotado: !!p.soldOut })),
+  carrinho: () => cartItems(),
+  adicionar(id, qtd) {
+    const p = PRODUCTS.find(x => x.id === id);
+    if (!p || p.soldOut) return false;
+    cart[id] = (cart[id] || 0) + Math.max(1, Math.min(99, qtd | 0 || 1));
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "add_to_cart", { currency: "BRL", value: p.price * cart[id], items: [{ item_id: p.id, item_name: p.name, price: p.price, quantity: cart[id] }], origem: "assistente" });
+    }
+    renderCart();
+    return true;
+  },
+  abrirCarrinho: () => openDrawer(),
+  finalizar: () => { if (itemCount() > 0) { closeDrawer(); handleCheckout(); } },
+  cardDo: (id) => { const b = document.querySelector(`[data-comprar="${id}"]`); return b ? (b.closest("article") || b) : null; }
+};
 </script>
+<script src="/robo.js" defer></script>
 
 <!-- WhatsApp de suporte StarTouch — botão flutuante -->
 <a href="https://wa.me/5511976944026?text=Oi!%20Tenho%20uma%20duvida%20sobre%20o%20kit%20StarTouch."

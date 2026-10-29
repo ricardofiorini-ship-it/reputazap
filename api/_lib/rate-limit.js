@@ -172,6 +172,10 @@ export const LIMITES = {
   // IA custa por token e é o mais caro por chamada — mantém o 5/h de antes,
   // agora valendo de verdade (era por instância).
   radar:       { nome: "radar",       porIpHora: 5,  globalDia: 100 },
+  // Assistente da loja (29/10/2026): cada mensagem é uma chamada à IA (e às
+  // vezes ao Places). 40/h é uma conversa longa folgada; o teto global segura
+  // laço com troca de IP. Estourou = a janela mostra o WhatsApp, não some.
+  robo:        { nome: "robo",        porIpHora: 40, globalDia: 1500 },
   // Painel de cliente: generoso e SEM teto global — não pode quebrar pra quem paga.
   bizinfo:     { nome: "bizinfo",     porIpHora: 120 },
   reviews:     { nome: "reviews",     porIpHora: 120 },
