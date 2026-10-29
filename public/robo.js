@@ -28,11 +28,18 @@
   function ler(st, k) { try { return st.getItem(k); } catch (e) { return null; } }
   function gravar(st, k, v) { try { st.setItem(k, v); } catch (e) {} }
 
+  // TESTE_LIGADO = false: ninguém é sorteado e nada é contado nem gravado no
+  // pedido; o assistente só aparece com ?robo=1 (pra testar no site real).
+  // Ligar o meio a meio é virar esta linha pra true.
+  var TESTE_LIGADO = false;
   var qs = new URLSearchParams(location.search);
+  if (!TESTE_LIGADO) {
+    if (qs.get("robo") !== "1") return;
+  }
   var grupo = ler(localStorage, K_GRUPO);
   if (grupo !== "com" && grupo !== "sem") {
     grupo = Math.random() < 0.5 ? "com" : "sem";
-    gravar(localStorage, K_GRUPO, grupo);
+    if (TESTE_LIGADO) gravar(localStorage, K_GRUPO, grupo);
   }
   if (qs.get("robo") === "1") grupo = "com";
   if (qs.get("robo") === "0") grupo = "sem";
@@ -43,10 +50,13 @@
     var t = parseInt(ler(localStorage, K_CONVERSOU) || "0", 10);
     return t && Date.now() - t < 30 * 86400000;
   }
-  window.stRobo = { grupoDoPedido: function () { return grupo === "sem" ? "sem" : (conversou() ? "conversou" : "com"); } };
+  // Fora do teste (só ?robo=1), o pedido não leva marca nenhuma: seria o
+  // Ricardo testando, e contaminaria a conta do meio a meio.
+  if (TESTE_LIGADO) window.stRobo = { grupoDoPedido: function () { return grupo === "sem" ? "sem" : (conversou() ? "conversou" : "com"); } };
 
   // ---------- contadores (catraca, sem dado pessoal) ----------
   function contar(evento) {
+    if (!TESTE_LIGADO) return;
     try {
       var corpo = JSON.stringify({
         path: "/robo/" + evento,
