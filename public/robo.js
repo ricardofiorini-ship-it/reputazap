@@ -168,6 +168,8 @@
     ".str-msg{max-width:86%;padding:10px 13px;border-radius:16px;font-size:14.5px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word}" +
     ".str-ia{align-self:flex-start;background:#fff;border:1px solid var(--b);color:var(--t);border-bottom-left-radius:4px}" +
     ".str-eu{align-self:flex-end;background:var(--a);color:#fff;border-bottom-right-radius:4px}" +
+    ".str-img{align-self:flex-start;display:block;max-width:86%;border-radius:14px;overflow:hidden;border:1px solid var(--b);background:#fff}" +
+    ".str-img img{display:block;width:100%;height:auto;max-height:260px;object-fit:contain;background:#fff}" +
     ".str-chips{display:flex;flex-wrap:wrap;gap:6px;align-self:flex-start}" +
     ".str-chip{border:1px solid var(--a);background:#fff;color:var(--a);border-radius:999px;padding:7px 12px;font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}" +
     ".str-chip.cheio{background:var(--a);color:#fff}.str-chip.wa{border-color:#1E8E3E;background:#1E8E3E;color:#fff}" +
@@ -449,6 +451,7 @@
         else if (a.tipo === "carrinho") porNoCarrinho(a.itens || []);
         else if (a.tipo === "pagar") irPagar();
         else if (a.tipo === "whatsapp") botaoWhatsapp(a.texto);
+        else if (a.tipo === "imagem") mostrarImagem(a.src, a.alt);
         else if (a.tipo === "aba") irParaAba(a.aba);
         else if (a.tipo === "ativar") { contar("ativar"); recolherNoCelular(); window.dispatchEvent(new CustomEvent("st:ativar-dispositivo", { cancelable: true })); }
         else if (a.tipo === "loja") irParaLoja(a.itens || []);
@@ -515,6 +518,24 @@
     if (!ids.length) return;
     contar("loja");
     setTimeout(function () { location.href = "/kit?add=" + encodeURIComponent(ids.join(",")).replace(/%2C/g, ",") + "&utm_source=painel&utm_medium=stella"; }, 1200);
+  }
+  // Imagem do álbum (api/robo.js, ALBUM). Só caminho nosso, começando por
+  // /img/ — o servidor já filtra, e aqui confere de novo antes de pôr na tela.
+  function mostrarImagem(src, alt) {
+    if (!lista || !/^\/img\/[a-z0-9\/_.-]+$/i.test(String(src || ""))) return;
+    contar("imagem");
+    var a = el("a", "str-img");
+    a.href = src;
+    a.target = "_blank";
+    a.rel = "noopener";
+    var img = el("img");
+    img.src = src;
+    img.alt = alt || "";
+    img.loading = "lazy";
+    img.addEventListener("load", rolarFim);
+    a.appendChild(img);
+    lista.appendChild(a);
+    rolarFim();
   }
   function irPagar() {
     if (!loja.carrinho().length) return;

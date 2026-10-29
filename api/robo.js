@@ -43,7 +43,7 @@ const ABERTURA_LOJA = `Você é a Stella, assistente virtual da StarTouch DENTRO
 const COMO_FALAR = `COMO FALAR — CURTO É REGRA, não estilo
 - No máximo 2 frases curtas, uns 30 palavras no total. Texto longo num chat dá preguiça e a pessoa desiste. Se o assunto pede mais, diga o essencial e ofereça: "quer que eu explique X?".
 - Uma ideia por mensagem e, no máximo, uma pergunta (no fim). Nunca liste preço, prazo e recurso tudo de uma vez.
-- Mostre em vez de escrever: se a tela pode mostrar (produto, demonstração, carrinho), use a ferramenta e escreva menos.
+- Mostre em vez de escrever: se a tela pode mostrar (produto, demonstração, carrinho) ou uma imagem do álbum explica melhor (mostrar_imagem: como fica o menu, tamanho das placas, toques por pessoa), use a ferramenta e escreva menos.
 - Texto simples, sem markdown, sem listas, no máximo 1 emoji. Responda na língua de quem escreve.
 - Consultivo, nunca insistente. Nunca invente.
 - Termine TODA resposta (inclusive as em que você usou ferramentas) com uma linha final assim: SUGESTOES: opção 1 | opção 2 | opção 3
@@ -179,6 +179,37 @@ const FERRAMENTAS = [
   }
 ];
 
+// ÁLBUM DA STELLA (29/10/2026). Imagens que ela pode mostrar dentro da
+// conversa. Só imagens nossas, escolhidas a dedo e conferidas: nada gerado na
+// hora (mostraria o que o produto não faz). Ficaram de fora o "Dashboard" de
+// step-card-3 (números e campos que o painel real não tem) e o kit com
+// pulseira (esgotada). Imagem nova: conferir que ela mostra o produto como ele
+// é, e descrever aqui o que se vê nela — é a descrição que a IA lê pra escolher.
+const ALBUM = {
+  menu_inteligente: { src: "/img/step-card-2.webp", alt: "Menu Inteligente aberto no celular",
+    descricao: "celular com o Menu Inteligente aberto: 'Avaliar no Google' em primeiro e 'Falar com a equipe' (WhatsApp) embaixo" },
+  cartao_em_uso: { src: "/img/kit/cartao-v2-1-800.webp", alt: "Atendente oferece o cartão e o cliente aproxima o celular",
+    descricao: "foto de uma atendente oferecendo o cartão NFC no balcão e o cliente aproximando o celular; mostra como funciona na prática" },
+  cartoes_equipe: { src: "/img/kit/cartao-v2-3-800.webp", alt: "Cartões com o nome de cada pessoa e os toques no painel",
+    descricao: "três cartões com nomes (Ana, Pedro, Lucas) e o painel mostrando os toques de cada pessoa; ilustra o toques por atendente" },
+  placa_balcao: { src: "/img/kit/placa-g-v3-1-400.webp", alt: "Placa de balcão StarTouch",
+    descricao: "a placa de balcão preta com NFC e QR Code, 'Avalie nossa empresa!'" },
+  placas_tamanhos: { src: "/img/kit/placa-tamanhos-400.webp", alt: "Placas M (10 × 15 cm) e G (15 × 20 cm) lado a lado",
+    descricao: "as placas M (10 × 15 cm) e G (15 × 20 cm) lado a lado, com as medidas" },
+};
+const FERRAMENTA_IMAGEM = {
+  name: "mostrar_imagem",
+  description: "Mostra uma imagem dentro da conversa. Use quando uma imagem explica melhor que texto (como fica o menu, como funciona, tamanho da placa, toques por pessoa). No máximo uma por resposta, e escreva menos quando mostrar. Imagens: " +
+    Object.entries(ALBUM).map(([id, a]) => `${id} = ${a.descricao}`).join("; ") + ".",
+  input_schema: {
+    type: "object",
+    properties: { imagem: { type: "string", enum: Object.keys(ALBUM) } },
+    required: ["imagem"],
+    additionalProperties: false
+  }
+};
+FERRAMENTAS.push(FERRAMENTA_IMAGEM);
+
 // Linha resumida de um resultado do Places — sem foto, sem horário, sem nada
 // que não ajude a conversa.
 function linhaDoNegocio(p) {
@@ -312,7 +343,8 @@ const FERRAMENTAS_PAINEL = [
       additionalProperties: false
     }
   },
-  FERRAMENTAS.find((f) => f.name === "falar_com_pessoa")
+  FERRAMENTAS.find((f) => f.name === "falar_com_pessoa"),
+  FERRAMENTA_IMAGEM
 ];
 
 const NOME_PRODUTO = { cartao_nfc: "cartão", placa_balcao: "placa de balcão", placa_mesa: "placa de mesa", pulseira_nfc: "pulseira" };
@@ -465,6 +497,13 @@ export default async function handler(req, res) {
       if (!itens.length) return "Nenhum produto válido.";
       acoes.push({ tipo: "loja", itens });
       return "Feito: a loja vai abrir com os itens no carrinho.";
+    }
+    if (nome === "mostrar_imagem") {
+      const img = ALBUM[input.imagem];
+      if (!img) return "Imagem desconhecida.";
+      if (acoes.some((a) => a.tipo === "imagem")) return "Já tem uma imagem nesta resposta.";
+      acoes.push({ tipo: "imagem", src: img.src, alt: img.alt });
+      return "Feito: a imagem apareceu na conversa. Comente em uma frase, sem descrevê-la toda.";
     }
     if (nome === "falar_com_pessoa") {
       acoes.push({ tipo: "whatsapp", texto: String(input.resumo || "").slice(0, 300) });
