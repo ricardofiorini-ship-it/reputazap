@@ -25,7 +25,7 @@
   // sessão — o visitante do painel de demonstração fica de fora. Lá não há
   // meio a meio (não é venda de loja): PAINEL_LIGADO = false deixa ela
   // escondida (só ?robo=1) até o Ricardo aprovar; true = aparece pra todos.
-  var PAINEL_LIGADO = false;
+  var PAINEL_LIGADO = true;   // ligado pra todos em 29/10/2026 (aprovado pelo Ricardo)
   var noPainel = !loja && /^\/app(\/|$)/.test(location.pathname);
   if (!loja && !noPainel) return;
   var tokenPainel = function () { try { return localStorage.getItem("rz_token"); } catch (e) { return null; } };
