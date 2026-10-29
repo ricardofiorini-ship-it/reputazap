@@ -252,7 +252,7 @@ const TELA_PAINEL = `O PAINEL — onde fica cada coisa (use ir_para_aba para lev
 - Que nome dar: o nome de ONDE ele fica ("Caixa", "Balcão", "Recepção", "Mesa 1") ou de QUEM usa ("Garçom João", "Ana"). Serve pra ver no painel qual ponto ou pessoa traz mais toques. Se perguntarem que nome dar, sugira 2 ou 3 nomes concretos pro caso dela (você sabe o tipo de dispositivo).
 - Dispositivo guardado/parado: guardado não traz toque nenhum. Sugira com jeito onde ele rende (placa no caixa ou onde o cliente paga; cartão na mão de quem atende). Se não vai usar, pode desvincular (botão vermelho na linha do dispositivo) pra reaproveitar em outro negócio ou passar adiante.
 - Aba Avaliações (avaliacoes): as avaliações recentes do Google.
-- Aba Menu Inteligente (menu): monta o menu que o toque abre (WhatsApp, cardápio, agendamento, redes), com o Avaliar no Google sempre em primeiro. É do plano Pro: R$ 19,90/mês, 7 dias grátis sem cartão, até 5 dispositivos (R$ 1,90/mês por extra). Desligou, o dispositivo volta a levar direto ao Google.
+- Aba Menu Inteligente (menu): monta o menu que o toque abre (WhatsApp, cardápio, agendamento, redes), com o Avaliar no Google sempre em primeiro. É do plano Pro: R$ 19,90/mês, até 5 dispositivos (R$ 1,90/mês por extra). O teste de 7 dias grátis é UM por cliente: antes de falar em teste, olhe a linha "Pro" dos DADOS DA CONTA — se diz que já teve, não ofereça teste. Desligou, o dispositivo volta a levar direto ao Google.
 - Aba Resultados (resultados): quais botões do menu os clientes mais tocam (só aparece com o Menu ligado).
 - Configurações (config): dados do negócio, "Trocar negócio vinculado" (o dispositivo e o plano continuam), e-mail e senha da conta, plano.
 - Ativar um dispositivo novo: ativar_dispositivo abre a janela de ativação aqui mesmo.
@@ -333,7 +333,8 @@ async function contextoDoPainel(token) {
   const { data: u, error: eAuth } = await s.auth.getUser(token);
   if (eAuth || !u?.user) return { erro: 401 };
   const { data: biz, error: eBiz } = await s.from("businesses")
-    .select("id, name, address, plan, created_at, total_reviews").eq("user_id", u.user.id).maybeSingle();
+    .select("id, name, address, plan, created_at, total_reviews, stripe_subscription_id, stripe_subscription_status, stripe_current_period_end, stripe_cancel_at_period_end")
+    .eq("user_id", u.user.id).maybeSingle();
   if (eBiz) throw new Error(`businesses: ${eBiz.message}`);
   if (!biz) return { texto: "DADOS DA CONTA: ainda não há negócio ligado a esta conta (cadastro incompleto). Ajude a ativar o primeiro dispositivo." };
 
@@ -365,6 +366,24 @@ async function contextoDoPainel(token) {
     if (lista.length > 30) linhas.push(`  • e mais ${lista.length - 30}.`);
   }
   linhas.push(`- Menus publicados no Menu Inteligente: ${menus.error ? "não consegui ver" : (menus.count || 0)}.`);
+
+  // SITUAÇÃO DO PRO (29/10/2026). Sem isto a Stella ofereceu "7 dias grátis"
+  // a quem já tinha usado o teste — e o teste é um por cliente (stripe-pro.js,
+  // jaTeveAssinatura): quem volta paga desde o 1º dia. "Já teve" aqui é lido
+  // do banco (id de assinatura gravado), sem consultar o Stripe a cada
+  // mensagem; na dúvida, a regra manda NÃO prometer o teste.
+  const teveAssinatura = String(biz.stripe_subscription_id || "").startsWith("sub_");
+  const status = biz.stripe_subscription_status || "";
+  const fim = biz.stripe_current_period_end ? dataBR(biz.stripe_current_period_end) : null;
+  if (biz.plan === "pro") {
+    if (status === "trialing") linhas.push(`- Pro: em TESTE GRÁTIS${fim ? ` até ${fim}` : ""}. Pra continuar depois do teste, precisa cadastrar o cartão (aviso no topo do painel); sem cartão, o menu para de abrir e o dispositivo volta ao Google.`);
+    else linhas.push(`- Pro: ativo${fim ? `, ${biz.stripe_cancel_at_period_end ? `cancelado, vale até ${fim}` : `renova em ${fim}`}` : ""}.`);
+  } else if (teveAssinatura) {
+    linhas.push(`- Pro: JÁ TEVE (o teste grátis já foi usado). NÃO ofereça 7 dias grátis: assinar de novo cobra R$ 19,90 desde o primeiro dia.` +
+      ((menus.count || 0) > 0 ? " Os menus dele estão guardados, mas pararam de abrir quando o Pro terminou; pra voltarem, é só inserir os dados de pagamento no aviso do topo do painel." : ""));
+  } else {
+    linhas.push("- Pro: nunca assinou — tem direito aos 7 dias grátis, sem cartão.");
+  }
   return { texto: `DADOS DA CONTA (lidos agora do sistema, ${dataBR(new Date().toISOString())}):\n${linhas.join("\n")}\n\n` };
 }
 
