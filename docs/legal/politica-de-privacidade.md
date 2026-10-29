@@ -1,6 +1,6 @@
 # Política de Privacidade — StarTouch
 
-**Versão 1.17 — vigente a partir de 29 de outubro de 2026**
+**Versão 1.18 — vigente a partir de 29 de outubro de 2026**
 
 ---
 
@@ -77,6 +77,10 @@ Quando você fala com a gente pelo WhatsApp (11) 97694-4026: seu número, o nome
 Na loja do site pode aparecer um **assistente virtual com inteligência artificial**, que conversa com você, mostra os produtos na tela, calcula o frete pelo CEP que você informar e, se você pedir, procura o seu estabelecimento no Google pelo nome e pela cidade que você digitar. O que você escreve é enviado à Anthropic, que gera a resposta, e **não é guardado por nós**: a conversa fica só no seu navegador e some quando você fecha a aba. Não precisa informar dados pessoais para usar o assistente, e ele não os pede. O assistente não toma decisões sobre você nem conclui compras: quem paga é você, no mesmo formulário de sempre.
 Para saber se o assistente ajuda, ele aparece para metade dos visitantes da loja, escolhida por sorteio. O resultado do sorteio fica guardado no seu navegador e, se você comprar, o pedido registra apenas se o assistente apareceu para você e se vocês conversaram. Também contamos, de forma agregada e sem identificar ninguém, quantas vezes o assistente foi aberto e usado (seção 6.5).
 *Base legal:* procedimentos preliminares a contrato, a pedido do titular (Art. 7º, V); para o sorteio e o registro no pedido, legítimo interesse em melhorar a loja (Art. 7º, IX), com direito de oposição.
+
+**Assistente virtual no painel**
+No painel de gestão, o mesmo assistente pode ajudar você a usar a plataforma. Para responder sobre a sua conta, ele lê, no momento da pergunta, os dados do seu negócio que o painel já mostra: nome e endereço do estabelecimento, plano, nota e total de avaliações no Google, e a lista dos seus dispositivos com o apelido que você deu a cada um, os toques e as datas. Esses dados e o que você escreve vão à Anthropic só para gerar a resposta e **não são guardados por nós**: a conversa fica no seu navegador até você fechar a aba. Se você dá aos dispositivos o nome de pessoas da sua equipe, esses apelidos também são lidos; o assistente não pede nem guarda nenhum outro dado delas.
+*Base legal:* execução do contrato de uso da plataforma (Art. 7º, V).
 
 **Avisos do pedido pelo WhatsApp (opcional)**
 Se, ao finalizar a compra, você marcar a opção de receber avisos pelo WhatsApp, usamos o número informado no pedido e o seu primeiro nome para mandar, pelo WhatsApp (11) 97694-4026: a confirmação do pagamento com o prazo, o código de rastreio quando o pedido é postado, uma mensagem perguntando se precisa de ajuda para ativar quando ele é entregue, alguns dias depois uma pergunta sobre como foi a sua experiência (uma nota de 0 a 10 e, se quiser, um comentário, guardados junto com o pedido) e, se a compra ficar sem pagar, um único lembrete com o mesmo cupom de desconto enviado por e-mail. A opção vem desmarcada, guardamos a data em que foi marcada e, para parar, basta responder **PARAR** — nenhum aviso automático sai mais para aquele número. Os e-mails do pedido continuam saindo do mesmo jeito, com ou sem esta opção. Se você responder a um aviso, a conversa segue como atendimento, nas regras do item acima.
@@ -250,7 +254,7 @@ Utilizamos prestadores de serviço que atuam como **operadores**, tratando dados
 | **Trustpilot** | Envio do convite para avaliar a compra | Nome, e-mail e número do pedido |
 | **DHL Express** | Entrega de pedidos enviados para fora do Brasil | Nome, telefone, e-mail, endereço de entrega e, se informado, documento fiscal do destinatário |
 | **Meta (WhatsApp)** | Troca de mensagens no atendimento por WhatsApp e envio dos avisos do pedido a quem os pediu | Número, nome do perfil e mensagens; nos avisos, primeiro nome, prazo, código de rastreio e cupom |
-| **Anthropic** | Assistente virtual que responde o atendimento por WhatsApp e conversa na loja do site | Mensagens da conversa e, quando consultados, situação e itens do pedido; na loja, também o carrinho e o resultado das pesquisas no Google feitas a seu pedido |
+| **Anthropic** | Assistente virtual que responde o atendimento por WhatsApp e conversa na loja do site e no painel | Mensagens da conversa e, quando consultados, situação e itens do pedido; na loja, também o carrinho e o resultado das pesquisas no Google feitas a seu pedido; no painel, os dados do negócio e dos dispositivos descritos na seção 3.1 |
 | **OpenAI, Google e Perplexity** | Consultas do produto IA Radar | Nome, categoria e cidade do estabelecimento — dados de empresa, não de pessoa física |
 
 Também poderemos compartilhar dados quando houver determinação legal, ordem judicial ou requisição de autoridade competente, e em caso de reorganização societária, hipótese em que a presente Política continuará aplicável.
@@ -284,7 +288,7 @@ Nenhum sistema é imune a incidentes. Caso ocorra incidente de segurança com ri
 | Preferências de alerta | Enquanto a conta existir |
 | Registro de e-mails enviados | 12 meses |
 | Mensagens do atendimento por WhatsApp | 6 meses |
-| Conversa com o assistente da loja | Não guardamos. Fica só no seu navegador, até você fechar a aba |
+| Conversa com o assistente da loja e do painel | Não guardamos. Fica só no seu navegador, até você fechar a aba |
 | Leads que não se tornaram clientes | 24 meses a partir do cadastro |
 | Histórico de visibilidade do estabelecimento no Google | 24 meses |
 | Registro de toques nos dispositivos | Indefinidamente — não contém dado pessoal |
@@ -352,6 +356,7 @@ Alterações que reduzam direitos ou ampliem finalidades de tratamento serão co
 | 1.8 | 13/10/2026 | Inclusão da **DHL Express** na seção 7, como operadora da entrega dos pedidos enviados para fora do Brasil. São os mesmos dados de entrega já coletados na compra, com a mesma finalidade (entregar o pedido); muda apenas quem transporta. Não reduz direitos nem amplia finalidades |
 | 1.9 | 19/10/2026 | Seção 4: a tela de escolha do cartão Trybo passa a mostrar até oito opções (eram duas). Alteração de redação: **não há dado novo** nem finalidade nova |
 | 1.10 | 20/10/2026 | Seção 4.1: corrigida a ressalva que dizia que a página intermediária consulta nossos servidores para exibir o nome do estabelecimento. Essa consulta deixou de existir em 03/10/2026; o único registro técnico que resta no trajeto é o da hospedagem, já declarado na seção 6.3. A mudança descreve **menos** tratamento do que a versão anterior: não reduz direitos nem amplia finalidades |
+| 1.18 | 29/10/2026 | Seções 3.1, 7 e 9: o assistente virtual passa a existir também **no painel**. Para responder sobre a conta, ele lê no momento da pergunta os dados que o painel já mostra (negócio, plano, nota, dispositivos com apelidos e toques), que vão à Anthropic só para gerar a resposta e **não são guardados**. Nenhum dado novo é coletado: são dados já tratados para prestar o serviço, usados na mesma finalidade |
 | 1.17 | 29/10/2026 | Seções 3.1, 7 e 9: inclusão do **assistente virtual na loja do site**. A conversa vai à Anthropic para gerar a resposta e **não é guardada** por nós; fica só no navegador de quem conversa. O assistente aparece para metade dos visitantes, por sorteio, e o pedido registra apenas se ele apareceu e se houve conversa. Cria uma finalidade nova, ligada a uma conversa que o próprio titular inicia, e não exige nenhum dado pessoal |
 | 1.16 | 24/10/2026 | Seções 3.1 e 7: inclusão do **convite para avaliar a StarTouch no Trustpilot** — nome, e-mail e número do pedido de quem compra na StarTouch vão para o Trustpilot, que envia um único convite. Todos os compradores recebem, sem filtro pela opinião. Base legal: legítimo interesse, com direito de oposição. O Trustpilot entra como operador |
 | 1.15 | 24/10/2026 | Seção 3.1: os avisos do pedido pelo WhatsApp passam a incluir uma **pergunta sobre a experiência** (nota de 0 a 10 e comentário opcional, guardados com o pedido), feita uma vez por pedido e no máximo uma vez a cada 90 dias por número. Só para quem marca a opção no checkout, que passa a citar a pergunta. Mesma base legal (consentimento) e mesmo jeito de parar |

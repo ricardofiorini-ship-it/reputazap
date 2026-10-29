@@ -21,7 +21,15 @@
   "use strict";
   if (window.stRobo) return;
   var loja = window.stLoja;
-  if (!loja) return;
+  // PAINEL (/app, 29/10/2026): a mesma Stella, pra quem já é cliente. Só com
+  // sessão — o visitante do painel de demonstração fica de fora. Lá não há
+  // meio a meio (não é venda de loja): PAINEL_LIGADO = false deixa ela
+  // escondida (só ?robo=1) até o Ricardo aprovar; true = aparece pra todos.
+  var PAINEL_LIGADO = false;
+  var noPainel = !loja && /^\/app(\/|$)/.test(location.pathname);
+  if (!loja && !noPainel) return;
+  var tokenPainel = function () { try { return localStorage.getItem("rz_token"); } catch (e) { return null; } };
+  if (noPainel && !tokenPainel()) return;
 
   // ---------- grupo do teste ----------
   var K_GRUPO = "st_robo_grupo", K_CONVERSOU = "st_robo_conversou", K_CONVERSA = "st_robo_conversa", K_VISTO = "st_robo_visto";
@@ -34,16 +42,15 @@
   // Ligar o meio a meio é virar esta linha pra true.
   var TESTE_LIGADO = true;
   var qs = new URLSearchParams(location.search);
-  if (!TESTE_LIGADO) {
-    if (qs.get("robo") !== "1") return;
-  }
-  var grupo = ler(localStorage, K_GRUPO);
-  if (grupo !== "com" && grupo !== "sem") {
+  var ligadoAqui = noPainel ? PAINEL_LIGADO : TESTE_LIGADO;
+  if (!ligadoAqui && qs.get("robo") !== "1") return;
+  var grupo = noPainel ? "painel" : ler(localStorage, K_GRUPO);
+  if (!noPainel && grupo !== "com" && grupo !== "sem") {
     grupo = Math.random() < 0.5 ? "com" : "sem";
     if (TESTE_LIGADO) gravar(localStorage, K_GRUPO, grupo);
   }
-  if (qs.get("robo") === "1") grupo = "com";
-  if (qs.get("robo") === "0") grupo = "sem";
+  if (!noPainel && qs.get("robo") === "1") grupo = "com";
+  if (!noPainel && qs.get("robo") === "0") grupo = "sem";
 
   // "conversou" vale 30 dias: quem conversou hoje e volta amanhã pra comprar
   // ainda conta como venda com conversa.
@@ -53,14 +60,14 @@
   }
   // Fora do teste (só ?robo=1), o pedido não leva marca nenhuma: seria o
   // Ricardo testando, e contaminaria a conta do meio a meio.
-  if (TESTE_LIGADO) window.stRobo = { grupoDoPedido: function () { return grupo === "sem" ? "sem" : (conversou() ? "conversou" : "com"); } };
+  if (TESTE_LIGADO && !noPainel) window.stRobo = { grupoDoPedido: function () { return grupo === "sem" ? "sem" : (conversou() ? "conversou" : "com"); } };
 
   // ---------- contadores (catraca, sem dado pessoal) ----------
   function contar(evento) {
-    if (!TESTE_LIGADO) return;
+    if (!ligadoAqui) return;
     try {
       var corpo = JSON.stringify({
-        path: "/robo/" + evento,
+        path: (noPainel ? "/robo-painel/" : "/robo/") + evento,
         source: qs.get("utm_source") || location.pathname,
         medium: qs.get("utm_medium") || "",
         campaign: grupo
@@ -70,6 +77,7 @@
       if (typeof window.gtag === "function") window.gtag("event", "assistente", { acao: evento, grupo: grupo });
     } catch (e) { /* contador nunca quebra a página */ }
   }
+  if (noPainel) K_VISTO += "_painel", K_CONVERSA += "_painel";
   if (!ler(sessionStorage, K_VISTO)) { gravar(sessionStorage, K_VISTO, "1"); contar("visto-" + grupo); }
   if (grupo === "sem") return;
 
@@ -110,6 +118,25 @@
       wa: "在 WhatsApp 继续", verCarrinho: "查看购物车", pagar: "去结算", demo: "一碰即评。" }
   };
   var T = TX[L] || TX.pt;
+  var TX_PAINEL = {
+    pt: { ola: "Oi! Sou a Stella, assistente virtual da StarTouch, uma IA. Posso te ajudar com o painel, seus dispositivos ou o Menu Inteligente.",
+      chips: ["Como estão meus toques?", "Como dou nome aos cartões?", "O que é o Menu Inteligente?", "Ativar um dispositivo"],
+      aviso: "IA: pode errar. Ela lê os dados do seu painel pra responder; a conversa não é guardada.",
+      teaser: "Quer ajuda pra tirar mais dos seus cartões? É só perguntar." },
+    en: { ola: "Hi! I'm Stella, StarTouch's virtual assistant, an AI. I can help with your dashboard, your devices or the Smart Menu.",
+      chips: ["How are my taps doing?", "How do I name my cards?", "What is the Smart Menu?", "Activate a device"],
+      aviso: "AI: it can make mistakes. It reads your dashboard data to answer; the chat isn't stored.",
+      teaser: "Want help getting more out of your cards? Just ask." },
+    es: { ola: "¡Hola! Soy Stella, la asistente virtual de StarTouch, una IA. Puedo ayudarte con el panel, tus dispositivos o el Menú Inteligente.",
+      chips: ["¿Cómo van mis toques?", "¿Cómo nombro mis tarjetas?", "¿Qué es el Menú Inteligente?", "Activar un dispositivo"],
+      aviso: "IA: puede equivocarse. Lee los datos de tu panel para responder; la conversación no se guarda.",
+      teaser: "¿Te ayudo a sacarle más provecho a tus tarjetas? Solo pregunta." },
+    zh: { ola: "你好！我是 Stella，StarTouch 的虚拟助手（人工智能）。我可以帮你使用面板、设备或智能菜单。",
+      chips: ["我的触碰情况如何？", "怎么给卡片命名？", "什么是智能菜单？", "激活设备"],
+      aviso: "人工智能可能出错。它会读取你的面板数据来回答；对话不会被保存。",
+      teaser: "想更好地利用你的卡片吗？尽管问我。" }
+  };
+  if (noPainel) { var P = TX_PAINEL[L] || TX_PAINEL.pt; for (var k in P) T[k] = P[k]; }
   var WA = "5511976944026";
   var celular = function () { return window.matchMedia("(max-width:759px)").matches; };
 
@@ -128,6 +155,8 @@
     ".str-teaser button{position:absolute;top:6px;right:6px;border:none;background:none;color:var(--m);font-size:18px;cursor:pointer;width:24px;height:24px}" +
     "@keyframes strSobe{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}" +
     ".str-painel{position:fixed;left:20px;bottom:20px;z-index:9999;width:380px;height:min(600px,calc(100vh - 110px));background:#fff;border:1px solid var(--b);border-radius:20px;box-shadow:0 24px 60px -18px rgba(15,23,42,.45);display:flex;flex-direction:column;overflow:hidden;animation:strSobe .25s ease}" +
+    ".str-dir .str-fab{left:auto;right:24px;bottom:88px}.str-dir .str-teaser{left:auto;right:24px;bottom:152px;border-radius:16px 16px 4px 16px}.str-dir .str-painel{left:auto;right:20px}" +
+    "@media(max-width:767px){.str-dir .str-fab{right:16px;left:auto;bottom:calc(140px + env(safe-area-inset-bottom,0px))}.str-dir .str-teaser{right:16px;left:auto;bottom:calc(204px + env(safe-area-inset-bottom,0px))}}" +
     "@media(max-width:759px){.str-painel{left:0;right:0;bottom:0;width:auto;height:62vh;border-radius:20px 20px 0 0}.str-fab{left:14px;padding-right:14px}.str-teaser{left:14px}}" +
     ".str-topo{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;background:var(--a);color:#fff}" +
     ".str-topo .str-cara{width:36px;height:36px}" +
@@ -181,7 +210,7 @@
   document.head.appendChild(st);
 
   var raiz = document.createElement("div");
-  raiz.className = "str-root";
+  raiz.className = "str-root" + (noPainel ? " str-dir" : "");
   raiz.setAttribute("data-i18n-skip", "");
   document.body.appendChild(raiz);
 
@@ -361,8 +390,8 @@
 
     fetch("/api/robo", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mensagens: conversa, carrinho: loja.carrinho(), lang: L })
+      headers: noPainel ? { "Content-Type": "application/json", "Authorization": "Bearer " + tokenPainel() } : { "Content-Type": "application/json" },
+      body: JSON.stringify(noPainel ? { modo: "painel", mensagens: conversa, lang: L } : { mensagens: conversa, carrinho: loja.carrinho(), lang: L })
     }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (d) { return { status: r.status, d: d }; });
     }).then(function (res) {
@@ -408,6 +437,9 @@
         else if (a.tipo === "carrinho") porNoCarrinho(a.itens || []);
         else if (a.tipo === "pagar") irPagar();
         else if (a.tipo === "whatsapp") botaoWhatsapp(a.texto);
+        else if (a.tipo === "aba") irParaAba(a.aba);
+        else if (a.tipo === "ativar") { contar("ativar"); recolherNoCelular(); window.dispatchEvent(new CustomEvent("st:ativar-dispositivo", { cancelable: true })); }
+        else if (a.tipo === "loja") irParaLoja(a.itens || []);
       }, i * 500);
     });
   }
@@ -458,6 +490,19 @@
       loja.abrirCarrinho();
       linhaDeBotoes([chipAcao(T.pagar, function () { irPagar(); }, "cheio")]);
     }
+  }
+  // Painel: troca de aba por evento (o AppV2 escuta "st:ir-aba"), sem recarregar.
+  function irParaAba(aba) {
+    contar("aba-" + aba);
+    recolherNoCelular();
+    window.dispatchEvent(new CustomEvent("st:ir-aba", { detail: { aba: aba } }));
+  }
+  function irParaLoja(itens) {
+    var ids = [];
+    itens.forEach(function (i) { for (var n = 0; n < Math.min(99, i.qty || 1); n++) ids.push(i.id); });
+    if (!ids.length) return;
+    contar("loja");
+    setTimeout(function () { location.href = "/kit?add=" + encodeURIComponent(ids.join(",")).replace(/%2C/g, ",") + "&utm_source=painel&utm_medium=stella"; }, 1200);
   }
   function irPagar() {
     if (!loja.carrinho().length) return;

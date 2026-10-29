@@ -8832,6 +8832,19 @@ export default function AppV2({ user = null, onLogout, demoMode = false, guestMo
     return () => window.removeEventListener('st:ativar-dispositivo', abrir)
   }, [guestMode, demoMode])
 
+  // A Stella (public/robo.js, 29/10/2026) leva o cliente até uma aba pelo
+  // mesmo caminho: um evento. Só abas que existem pra todo logado — a de
+  // Resultados se protege sozinha (volta pro painel sem o Menu).
+  React.useEffect(() => {
+    if (guestMode || demoMode) return
+    const ir = (ev) => {
+      const aba = ev?.detail?.aba
+      if (['painel', 'avaliacoes', 'menu', 'resultados', 'config'].includes(aba)) setTab(aba)
+    }
+    window.addEventListener('st:ir-aba', ir)
+    return () => window.removeEventListener('st:ir-aba', ir)
+  }, [guestMode, demoMode])
+
   // Hashes válidos por aba (preservados ao trocar de aba — outros são limpos)
   const VALID_HASHES_BY_TAB = {
     config: ['conta', 'negocio', 'plano'],
