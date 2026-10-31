@@ -49,7 +49,7 @@ const MSG_FALHA = "Recebi sua mensagem! Já chamei o Ricardo, da nossa equipe, e
 // é a própria frase: se nenhuma resposta dos últimos 30 dias a contém, a
 // próxima é a primeira e precisa se apresentar.
 const MARCA_IA = /assistente virtual/i;
-const APRESENTACAO = "Oi! Aqui é o assistente virtual da StarTouch, uma inteligência artificial. O Ricardo, da equipe, acompanha as conversas.";
+const APRESENTACAO = "Oi! Aqui é o assistente virtual da StarTouch (sou uma inteligência artificial), e o Ricardo, da equipe, também acompanha as conversas.";
 
 // "Ok, obrigado" não é pedido de atendimento (27/10/2026). Caso: aviso
 // automático de "pedido postado", a cliente responde "Ok obrigada" e o robô
@@ -414,7 +414,7 @@ async function gerarEEnviar(waId, nome, linhas, texto, wamidGatilho = null) {
   const primeira = !(apresentou || []).length && !(escreveuAntes || []).length;
   if (primeira) {
     const ult = recorte.length - 1;
-    recorte[ult] = { ...recorte[ult], content: `[Esta é a sua primeira resposta a este cliente: comece se apresentando como o assistente virtual da StarTouch, uma inteligência artificial.]\n${recorte[ult].content}` };
+    recorte[ult] = { ...recorte[ult], content: `[Esta é a sua primeira resposta a este cliente: comece se apresentando como o assistente virtual da StarTouch (uma inteligência artificial), numa frase curta.]\n${recorte[ult].content}` };
   }
 
   let resultado;

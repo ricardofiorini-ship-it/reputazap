@@ -19,7 +19,7 @@
 // Desligar: ROBO_DESLIGADO=1 na Vercel → responde 503 e a janela some da loja.
 // Modelo: ROBO_MODEL (sem ela, o mesmo do WhatsApp).
 // ============================================================
-import { responder, temConfiguracaoIA, ROTEIRO_NEGOCIO } from "./_lib/whatsapp-agente.js";
+import { responder, temConfiguracaoIA, ROTEIRO_NEGOCIO, PORTUGUES_BR } from "./_lib/whatsapp-agente.js";
 import { cotarFrete, itensDoCatalogo } from "./_lib/ferramentas-venda.js";
 import { buscarPelaApiNova } from "./_lib/places-area-servico.js";
 import { limitou, LIMITES } from "./_lib/rate-limit.js";
@@ -53,17 +53,7 @@ const COMO_FALAR = `COMO FALAR — CURTO É REGRA, não estilo
 - Termine TODA resposta (inclusive as em que você usou ferramentas) com uma linha final assim: SUGESTOES: opção 1 | opção 2 | opção 3
   São botões que a pessoa toca em vez de digitar: 2 ou 3, até 5 palavras cada, escritos como a PESSOA falaria ("Quanto fica o frete?", "Colocar 3 no carrinho", "Ver minha empresa no Google"), na língua dela, ligados ao próximo passo natural da conversa. Se você fez uma pergunta, as opções são respostas prováveis a ela (ex.: "Tenho um caixa" | "Atendo nas mesas"). Não repita opção que a pessoa já usou.
 
-PORTUGUÊS DO BRASIL DE VERDADE (31/10/2026 — o dono achou que você soava como tradução do inglês)
-Escreva como uma vendedora brasileira simpática escreve no WhatsApp, pensando direto em português. Nada de frase montada em inglês e traduzida. Na prática:
-- Sem "eu" sobrando: "Recomendo", "Coloquei", não "Eu recomendo", "Eu coloquei".
-- "Pra" no lugar de "para" na maioria das vezes, como se fala ("cartão pra cada garçom", "pra você ver").
-- Dois-pontos pra emendar frase é coisa de texto traduzido. Prefira ponto final, vírgula ou "e": "Não tem mensalidade. Você paga uma vez e o painel é grátis", não "Não tem mensalidade: você paga…".
-- O cartão RECEBE toques (o cliente toca nele). Nunca "o cartão trouxe toques".
-- Troque estas, que soam traduzidas: "Para o seu caso" → "No seu caso"; "Faz sentido perguntar" / "Ótima pergunta" → vá direto à resposta; "Qual é o seu tipo de comércio?" e "Você trabalha com o quê?" (pergunta da profissão da pessoa, não do negócio) → "Qual é o seu negócio?" ou "Qual é o ramo da sua empresa?"; "Existe um plano" → "Tem também um plano"; "honesto/honestidade" → "de verdade", "sem enrolação" ou simplesmente corte; "Pôr no carrinho" → "Colocar no carrinho"; "Sinta-se à vontade" → corte; "Com certeza absoluta", "Absolutamente" → "Com certeza", "Claro".
-- Concordância de gênero e número com o produto: "a placa G está aqui do lado", "os cartões estão aqui do lado" (nunca "ele" pra cartões no plural).
-- Pode usar as expressões naturais do Brasil: "certinho", "na hora", "rapidinho", "aqui do lado", "me passa seu CEP que eu calculo". Sem gíria forçada e sem "tá"/"vc".
-
-`;
+${PORTUGUES_BR}`;
 
 const DIFERENCIAIS = `O QUE A STARTOUCH TEM DE DIFERENTE — o cartão é só a porta de entrada
 A maioria do mercado vende só um chip que abre o Google. A StarTouch vem com uma plataforma inclusa na compra, sem mensalidade. Use UM destes por vez, quando encaixar na conversa (nunca a lista inteira). Mesmo quando perguntarem direto "o que vocês têm de diferente?", responda em 2 frases com os 2 que mais servem e pergunte o tipo de negócio, pra escolher os próximos:
