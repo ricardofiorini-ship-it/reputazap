@@ -85,7 +85,7 @@
   var L = (window.stLang || "pt").slice(0, 2);
   var TX = {
     pt: { nome: "Stella", sub: "Assistente virtual (IA) · StarTouch",
-      ola: "Oi! Sou a Stella, assistente virtual da StarTouch, uma IA. Que tipo de negócio você tem?",
+      ola: "Oi! Sou a Stella, assistente virtual da StarTouch (sou uma IA). Qual é o seu negócio?",
       chips: ["Como funciona?", "Qual devo escolher?", "Ver minha empresa no Google", "Frete e prazo"],
       ph: "Escreva sua pergunta…", enviar: "Enviar", fechar: "Fechar", abrir: "Fale com a Stella",
       aviso: "IA: pode errar. A conversa não é guardada; não escreva dados pessoais.", politica: "Privacidade", humano: "Falar com uma pessoa", humanoMsg: "Oi! Quero falar com uma pessoa da equipe.",
@@ -119,7 +119,7 @@
   };
   var T = TX[L] || TX.pt;
   var TX_PAINEL = {
-    pt: { ola: "Oi! Sou a Stella, assistente virtual da StarTouch, uma IA. Posso te ajudar com o painel, seus dispositivos ou o Menu Inteligente.",
+    pt: { ola: "Oi! Sou a Stella, assistente virtual da StarTouch (sou uma IA). Posso te ajudar com o painel, os seus dispositivos e o Menu Inteligente.",
       chips: ["Como estão meus toques?", "Como dou nome aos cartões?", "O que é o Menu Inteligente?", "Ativar um dispositivo"],
       aviso: "IA: pode errar. Ela lê os dados do seu painel pra responder; a conversa não é guardada.",
       teaser: "Quer ajuda pra tirar mais dos seus cartões? É só perguntar." },
