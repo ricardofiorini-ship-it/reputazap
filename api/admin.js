@@ -639,6 +639,19 @@ async function handleVisitas(req, res) {
       .sort((a, b) => b.hits - a.hits)
       .slice(0, 20),
     por_campanha: soma("campaign").filter((c) => c.nome !== "(nenhuma)").slice(0, 20),
+    // Funil da Stella (31/10/2026): os eventos dela são pequenos demais pra
+    // entrar no top 20 de páginas, então vêm inteiros aqui, por grupo do teste.
+    robo: (() => {
+      const m = {};
+      for (const r of linhas) {
+        if (!/^\/robo(-painel)?\//.test(r.path || "")) continue;
+        const k = `${r.path}|${r.campaign}`;
+        m[k] = (m[k] || 0) + (r.hits || 0);
+      }
+      return Object.entries(m)
+        .map(([k, hits]) => { const [path, grupo] = k.split("|"); return { path, grupo, hits }; })
+        .sort((a, b) => a.path.localeCompare(b.path));
+    })(),
   });
 }
 
