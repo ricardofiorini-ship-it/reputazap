@@ -112,7 +112,6 @@
     "Calculando o frete…": "Calculating shipping…",
     "Não consegui calcular o frete pra esse CEP.": "We couldn't calculate shipping for this CEP.",
     "Erro de conexão ao calcular o frete.": "Connection error while calculating shipping.",
-    "Prazo contado a partir da postagem (produção em até 2 dias úteis).": "Delivery time counts from dispatch (production takes up to 2 business days).",
     "buscando…": "searching…",
     "CEP não encontrado": "CEP not found",
     "inválido": "invalid",
@@ -136,7 +135,6 @@
     "Impostos e taxas de importação do seu país não estão incluídos: quando existem, são cobrados pela alfândega de quem recebe, na entrega.": "Import duties and taxes in your country are not included: when they apply, customs charges them to the recipient on delivery.",
     "🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149 no Brasil": "🔒 Secure payment via Stripe · 🚚 Free shipping in Brazil over R$ 149",
     "Escolha o país pra calcular o frete.": "Choose the country to calculate shipping.",
-    "Envio internacional com rastreio. Prazo contado a partir da postagem (produção em até 2 dias úteis).": "International shipping with tracking. Delivery time counts from dispatch (production takes up to 2 business days).",
     "Não consegui calcular o frete pra esse país.": "Couldn't calculate shipping for this country.",
     "Informe um telefone com código do país — a DHL usa pra entregar.": "Enter a phone number with country code — DHL uses it for delivery.",
     "Preencha o endereço completo e a cidade.": "Fill in the full address and the city.",
@@ -144,7 +142,9 @@
     "Atendente entregando o Cartão NFC StarTouch para o cliente avaliar no Google pelo celular": "Staff member handing the StarTouch NFC card to a customer to review on Google with their phone",
     "Quero receber pelo WhatsApp os avisos deste pedido (pagamento, envio, ajuda para ativar e uma pergunta sobre como foi). Para parar, é só responder PARAR.": "I want to receive this order's updates via WhatsApp (payment, shipping, activation help and a question about how it went). To stop, just reply PARAR.",
     "💬 Ficou com dúvida? Pergunte no WhatsApp: resposta na hora": "💬 Have a question? Ask on WhatsApp: instant reply",
-    "💬 Dúvida sobre frete, prazo ou pagamento? Fale no WhatsApp": "💬 Questions about shipping, delivery time or payment? Chat on WhatsApp"
+    "💬 Dúvida sobre frete, prazo ou pagamento? Fale no WhatsApp": "💬 Questions about shipping, delivery time or payment? Chat on WhatsApp",
+    "Envio internacional com rastreio. Pronta entrega: prazo contado a partir da postagem.": "International shipping with tracking. Ready to ship: delivery time counted from dispatch.",
+    "Pronta entrega: postamos logo depois da confirmação do pagamento.": "Ready to ship: we dispatch right after payment is confirmed."
   },
   "h": {
     "R$ 39,90 / unidade": "R$ 39,90 <small>/ unit</small>",

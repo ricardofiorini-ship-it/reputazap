@@ -318,7 +318,7 @@ async function notifyAdminKitOrder({ order, userId, provedor = "mercadopago", pa
     const nome = [d.transportadora, d.servico].filter(Boolean).join(" ") || "—";
     shippingHtml +=
       `<p><strong>Frete:</strong> ${escapeHtmlLite(nome)}` +
-      (fr.prazoTotalDias ? ` · prometido em ${fr.prazoTotalDias} dias úteis (${fr.producaoDias} de produção + ${fr.prazoDias} da transportadora)`
+      (fr.prazoTotalDias ? ` · prometido em ${fr.prazoTotalDias} dias úteis (${fr.producaoDias ? `${fr.producaoDias} de produção + ${fr.prazoDias} da transportadora` : "pronta entrega: postar logo"})`
         : fr.prazoDias ? ` · ${fr.prazoDias} dia(s) útil(eis)` : fr.prazoTexto ? ` · ${escapeHtmlLite(fr.prazoTexto)}` : "") + `<br/>` +
       (fr.gratis
         ? `<span style="color:#137333;font-weight:700;">Frete grátis</span> (pedido acima da faixa) — despache pelo serviço acima mesmo assim.`
@@ -1541,7 +1541,7 @@ function linhaDeFrete(frete) {
         description: frete.internacional
           ? `Envio internacional, ${frete.prazoTexto || "prazo estimado"} após a postagem. Impostos e taxas de importação do país de destino não incluídos — cobrados de quem recebe, na entrega.`
           : frete.prazoTotalDias
-          ? `Chega em até ${frete.prazoTotalDias} dias úteis (${frete.producaoDias} de produção + ${frete.prazoDias} de transporte).`
+          ? (frete.producaoDias ? `Chega em até ${frete.prazoTotalDias} dias úteis (${frete.producaoDias} de produção + ${frete.prazoDias} de transporte).` : `Pronta entrega: chega em até ${frete.prazoTotalDias} dias úteis.`)
           : frete.prazoDias
           ? `Entrega estimada em ${frete.prazoDias} dia(s) útil(eis) após a postagem.`
           : "Entrega para o endereço informado.",

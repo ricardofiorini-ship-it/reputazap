@@ -83,7 +83,7 @@ export const ROTEIRO_NEGOCIO = `O QUE VENDEMOS (preços no site startouch.com.br
 COMPRA, FRETE E PRAZO (site)
 - Pagamento pelo Stripe: PIX, cartão (parcelado), Apple Pay e Google Pay. Não aceitamos boleto.
 - Frete calculado pelo CEP na hora da compra. Grátis acima de R$ 149 em produtos (só no Brasil). Também enviamos para outros países pela DHL.
-- Prazo = produção + transporte. Produção: até 2 dias úteis para cartões, até 5 dias úteis para placas. O prazo total aparece em cada opção de frete antes de pagar.
+- PRONTA ENTREGA: cartão NFC e placas M e G estão em estoque, sem prazo de produção. O prazo é só o do transporte, depois do pagamento confirmado. (Cartão Trybo: até 2 dias úteis de produção.) O prazo total aparece em cada opção de frete antes de pagar.
 - Garantia de 3 meses contra defeito de fabricação.
 - Não prometemos número de avaliações nem posição no Google. Não vendemos nem ajudamos com avaliações falsas — se pedirem, recuse com educação.
 

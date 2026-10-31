@@ -972,7 +972,7 @@ function renderFrete() {
   if (!ehExterior() && sub >= FRETE_GRATIS_ACIMA) {
     msg.classList.add("ok");
     const o0 = frete.opcoes[0];
-    const via = o0 ? ` Enviamos por ${o0.transportadora} ${o0.servico}` + (o0.prazoTotalDias ? `, chega em até ${o0.prazoTotalDias} dias úteis (já com a produção).` : ".") : "";
+    const via = o0 ? ` Enviamos por ${o0.transportadora} ${o0.servico}` + (o0.prazoTotalDias ? `, chega em até ${o0.prazoTotalDias} dias úteis.` : ".") : "";
     msg.textContent = `🎉 Frete grátis neste pedido.${via}`;
     atualizaResumo();
     return;
@@ -1003,12 +1003,12 @@ function renderFrete() {
 
   // Empurrão pro frete grátis — só quando está perto o bastante pra valer.
   msg.textContent = ehExterior()
-    ? "Envio internacional com rastreio. Prazo contado a partir da postagem (produção em até 2 dias úteis)."
+    ? "Envio internacional com rastreio. Pronta entrega: prazo contado a partir da postagem."
     : falta > 0 && falta <= 80
     ? `Faltam ${fmt(falta)} em produtos pra o frete sair de graça.`
     : frete.diasDeProducao
     ? `O prazo já inclui ${frete.diasDeProducao} dias úteis de produção, contados da confirmação do pagamento.`
-    : "Prazo contado a partir da postagem (produção em até 2 dias úteis).";
+    : "Pronta entrega: postamos logo depois da confirmação do pagamento.";
   atualizaResumo();
 }
 

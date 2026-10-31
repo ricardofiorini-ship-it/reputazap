@@ -118,21 +118,26 @@ export const LOGISTICA = {
 //
 // PLACAS +3 (23/10/2026, decisão do Ricardo): estão sendo produzidas. Quando o
 // estoque normalizar, zerar PRODUCAO_EXTRA_PLACAS e o prazo volta sozinho.
+//
+// PRONTA ENTREGA (31/10/2026, decisão do Ricardo): cartão NFC e as duas placas
+// estão em estoque, então o prazo de produção deles é ZERO e o cliente vê só o
+// prazo da transportadora. Quando algum voltar a ser feito sob encomenda, é só
+// pôr o número de dias de novo aqui — tela, e-mail e robôs leem daqui.
+// Cartão Trybo e pulseira seguem com 2 (não entraram na decisão).
 const PRODUCAO_BASE = 2;
-const PRODUCAO_EXTRA_PLACAS = 3;
 export const PRODUCAO_DIAS = {
-  "placa-balcao": PRODUCAO_BASE + PRODUCAO_EXTRA_PLACAS,
-  "placa-mesa": PRODUCAO_BASE + PRODUCAO_EXTRA_PLACAS,
-  "cartao-nfc": PRODUCAO_BASE,
+  "placa-balcao": 0,
+  "placa-mesa": 0,
+  "cartao-nfc": 0,
   "cartao-trybo": PRODUCAO_BASE,
   "pulseira": PRODUCAO_BASE
 };
 
-/** O pedido sai inteiro numa postagem só: vale o item mais demorado. */
+/** O pedido sai inteiro numa postagem só: vale o item mais demorado. 0 = pronta entrega. */
 export function diasDeProducao(items) {
   let dias = 0;
   for (const it of items || []) dias = Math.max(dias, PRODUCAO_DIAS[it?.id] ?? PRODUCAO_BASE);
-  return dias || PRODUCAO_BASE;
+  return dias;
 }
 
 // Produto no catálogo sem dados de despacho não pode ser vendido: o frete sai

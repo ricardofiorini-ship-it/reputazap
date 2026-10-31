@@ -35,7 +35,7 @@ export async function cotarFrete({ cep, itens }) {
   return `Produtos: ${reais(produtos)}. ` +
     (gratis ? "Frete grátis (acima de R$ 149 em produtos) — vai pela opção mais em conta."
       : `Faltam ${reais(FRETE_GRATIS_ACIMA_CENTAVOS - produtos)} em produtos para o frete grátis.`) +
-    `\nOpções:\n${linhas.join("\n")}\n(Prazo = ${producao} dias úteis de produção + transporte.)`;
+    `\nOpções:\n${linhas.join("\n")}\n` + (producao ? `(Prazo = ${producao} dias úteis de produção + transporte.)` : "(Pronta entrega: o prazo é só o do transporte.)");
 }
 
 export function linkDeCompra({ itens }) {

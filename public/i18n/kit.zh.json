@@ -112,7 +112,6 @@
     "Calculando o frete…": "正在计算运费…",
     "Não consegui calcular o frete pra esse CEP.": "无法计算该 CEP 的运费。",
     "Erro de conexão ao calcular o frete.": "计算运费时连接出错。",
-    "Prazo contado a partir da postagem (produção em até 2 dias úteis).": "时效从发货起计算（生产最多需 2 个工作日）。",
     "buscando…": "查询中…",
     "CEP não encontrado": "未找到该 CEP",
     "inválido": "无效",
@@ -136,7 +135,6 @@
     "Impostos e taxas de importação do seu país não estão incluídos: quando existem, são cobrados pela alfândega de quem recebe, na entrega.": "不含你所在国家的进口关税和税费：如有，将由海关在交货时向收件人收取。",
     "🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149 no Brasil": "🔒 通过 Stripe 安全支付 · 🚚 巴西境内满 R$ 149 免运费",
     "Escolha o país pra calcular o frete.": "请选择国家以计算运费。",
-    "Envio internacional com rastreio. Prazo contado a partir da postagem (produção em até 2 dias úteis).": "国际快递，可追踪。时效从寄出起计算（生产需最多 2 个工作日）。",
     "Não consegui calcular o frete pra esse país.": "无法计算该国家的运费。",
     "Informe um telefone com código do país — a DHL usa pra entregar.": "请填写带国家区号的电话——DHL 派送时会使用。",
     "Preencha o endereço completo e a cidade.": "请填写完整地址和城市。",
@@ -144,7 +142,9 @@
     "Atendente entregando o Cartão NFC StarTouch para o cliente avaliar no Google pelo celular": "店员把 StarTouch NFC 卡递给顾客，用手机在 Google 上评价",
     "Quero receber pelo WhatsApp os avisos deste pedido (pagamento, envio, ajuda para ativar e uma pergunta sobre como foi). Para parar, é só responder PARAR.": "我希望通过 WhatsApp 接收此订单的通知(付款、发货、激活帮助以及一次体验询问)。如需停止,只需回复 PARAR。",
     "💬 Ficou com dúvida? Pergunte no WhatsApp: resposta na hora": "💬 有疑问?在 WhatsApp 上提问:即时回复",
-    "💬 Dúvida sobre frete, prazo ou pagamento? Fale no WhatsApp": "💬 对运费、时效或付款有疑问?在 WhatsApp 上联系我们"
+    "💬 Dúvida sobre frete, prazo ou pagamento? Fale no WhatsApp": "💬 对运费、时效或付款有疑问?在 WhatsApp 上联系我们",
+    "Envio internacional com rastreio. Pronta entrega: prazo contado a partir da postagem.": "国际快递，可追踪。现货供应：时效从发货起计算。",
+    "Pronta entrega: postamos logo depois da confirmação do pagamento.": "现货供应：付款确认后立即发货。"
   },
   "h": {
     "R$ 39,90 / unidade": "R$ 39,90 <small>/ 张</small>",

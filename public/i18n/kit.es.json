@@ -112,7 +112,6 @@
     "Calculando o frete…": "Calculando el envío…",
     "Não consegui calcular o frete pra esse CEP.": "No pudimos calcular el envío para este CEP.",
     "Erro de conexão ao calcular o frete.": "Error de conexión al calcular el envío.",
-    "Prazo contado a partir da postagem (produção em até 2 dias úteis).": "El plazo cuenta desde el despacho (producción en hasta 2 días hábiles).",
     "buscando…": "buscando…",
     "CEP não encontrado": "CEP no encontrado",
     "inválido": "inválido",
@@ -136,7 +135,6 @@
     "Impostos e taxas de importação do seu país não estão incluídos: quando existem, são cobrados pela alfândega de quem recebe, na entrega.": "Los impuestos y tasas de importación de tu país no están incluidos: cuando existen, la aduana los cobra a quien recibe, en la entrega.",
     "🔒 Pagamento seguro via Stripe · 🚚 Frete grátis acima de R$ 149 no Brasil": "🔒 Pago seguro vía Stripe · 🚚 Envío gratis en Brasil a partir de R$ 149",
     "Escolha o país pra calcular o frete.": "Elige el país para calcular el envío.",
-    "Envio internacional com rastreio. Prazo contado a partir da postagem (produção em até 2 dias úteis).": "Envío internacional con seguimiento. El plazo se cuenta desde el despacho (producción en hasta 2 días hábiles).",
     "Não consegui calcular o frete pra esse país.": "No pude calcular el envío para ese país.",
     "Informe um telefone com código do país — a DHL usa pra entregar.": "Ingresa un teléfono con código de país — DHL lo usa para entregar.",
     "Preencha o endereço completo e a cidade.": "Completa la dirección y la ciudad.",
@@ -144,7 +142,9 @@
     "Atendente entregando o Cartão NFC StarTouch para o cliente avaliar no Google pelo celular": "Empleada entregando la tarjeta NFC StarTouch al cliente para reseñar en Google con el celular",
     "Quero receber pelo WhatsApp os avisos deste pedido (pagamento, envio, ajuda para ativar e uma pergunta sobre como foi). Para parar, é só responder PARAR.": "Quiero recibir por WhatsApp los avisos de este pedido (pago, envío, ayuda para activar y una pregunta sobre cómo fue). Para dejar de recibirlos, basta responder PARAR.",
     "💬 Ficou com dúvida? Pergunte no WhatsApp: resposta na hora": "💬 ¿Tienes dudas? Pregunta por WhatsApp: respuesta al instante",
-    "💬 Dúvida sobre frete, prazo ou pagamento? Fale no WhatsApp": "💬 ¿Dudas sobre envío, plazo o pago? Escríbenos por WhatsApp"
+    "💬 Dúvida sobre frete, prazo ou pagamento? Fale no WhatsApp": "💬 ¿Dudas sobre envío, plazo o pago? Escríbenos por WhatsApp",
+    "Envio internacional com rastreio. Pronta entrega: prazo contado a partir da postagem.": "Envío internacional con seguimiento. Entrega inmediata: el plazo cuenta desde el despacho.",
+    "Pronta entrega: postamos logo depois da confirmação do pagamento.": "Entrega inmediata: despachamos apenas se confirma el pago."
   },
   "h": {
     "R$ 39,90 / unidade": "R$ 39,90 <small>/ unidad</small>",
