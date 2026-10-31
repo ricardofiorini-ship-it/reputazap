@@ -22,7 +22,7 @@ import { validaTransicao, camposDaTransicao, destinosPossiveis, pulaEnvio, ROTUL
 import { dadosDoCliente, enderecoCompleto, textoDaEtiqueta }
   from "./_lib/pedido-cliente.js";
 import { sendTransactionalEmail } from "./_lib/email-sender.js";
-import { soStartouch } from "./_lib/linha.js";
+import { soStartouch, LINHA_TRYBO } from "./_lib/linha.js";
 import { pedidoAtualizadoEmail } from "./_lib/email-templates.js";
 import { remetenteTrybo, tryboPedidoAtualizadoEmail } from "./_lib/email-trybo.js";
 import Stripe from "stripe";
@@ -89,6 +89,7 @@ export default async function handler(req, res) {
     if (action === "prospects")    return await handleProspects(req, res);
     if (action === "funnel")       return await handleFunnel(req, res);
     if (action === "visitas")      return await handleVisitas(req, res);
+    if (action === "trybo")        return await handleTryboResumo(req, res);
     if (action === "grid-suggest") return await handleGridSuggest(req, res);
     if (action === "grid")         return await handleGrid(req, res);
     if (action === "pedidos")      return await handlePedidos(req, res);
@@ -652,6 +653,83 @@ async function handleVisitas(req, res) {
         .map(([k, hits]) => { const [path, grupo] = k.split("|"); return { path, grupo, hits }; })
         .sort((a, b) => a.path.localeCompare(b.path));
     })(),
+  });
+}
+
+// ── TRYBO: retrato do produto num lugar só (31/10/2026) ──────
+// Só leitura. A Trybo ficou "no automático" e os números dela estavam
+// espalhados: visitas na catraca (paths /trybo…), vendas em orders
+// (kit_trybo / trybo_), cartões em plates (linha social), toques em plate_taps
+// (código TRY-) e cliques por rede em experience_events. Por dia, em horário
+// de Brasília.
+async function handleTryboResumo(req, res) {
+  const dias = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 120);
+  const desdeIso = new Date(Date.now() - dias * 86400000).toISOString();
+  const desdeDia = new Date(Date.now() - (dias - 1) * 86400000 - 3 * 3600000).toISOString().slice(0, 10);
+  const diaBR = (iso) => new Date(Date.parse(iso) - 3 * 3600000).toISOString().slice(0, 10);
+  const porDia = {};
+  const soma = (d, campo, n = 1) => { const r = porDia[d] || (porDia[d] = {}); r[campo] = (r[campo] || 0) + n; };
+  const paginas = async (monta) => {
+    const out = [];
+    for (let de = 0; de < 50000; de += 1000) {
+      const { data, error } = await monta().range(de, de + 999);
+      if (error) throw new Error(error.message);
+      out.push(...(data || []));
+      if (!data || data.length < 1000) break;
+    }
+    return out;
+  };
+
+  // Visitas (catraca): paths da Trybo e saídas pra ela.
+  const hits = await paginas(() => supabase.from("page_hits")
+    .select("dia, path, source, medium, hits").gte("dia", desdeDia).like("path", "/trybo%").order("dia"));
+  const porPagina = {}, porCanal = {};
+  for (const h of hits) {
+    soma(h.dia, "visitas", h.hits || 0);
+    porPagina[h.path] = (porPagina[h.path] || 0) + (h.hits || 0);
+    const k = `${h.source} / ${h.medium}`;
+    porCanal[k] = (porCanal[k] || 0) + (h.hits || 0);
+  }
+
+  // Vendas: cartão (kit_trybo…) e desbloqueio dos destinos (trybo_…).
+  const pedidos = await paginas(() => supabase.from("orders")
+    .select("external_reference, status, total_cents, created_at, paid_at")
+    .gte("created_at", desdeIso).like("external_reference", "%trybo%").order("created_at"));
+  const pago = (o) => !!o.paid_at || ["paid", "in_production", "shipped", "delivered"].includes(o.status);
+  for (const o of pedidos) {
+    const tipo = (o.external_reference || "").startsWith("kit_trybo") ? "cartao" : "destinos";
+    soma(diaBR(o.created_at), `checkout_${tipo}`);
+    if (pago(o)) { soma(diaBR(o.created_at), `pago_${tipo}`); soma(diaBR(o.created_at), "receita", (o.total_cents || 0) / 100); }
+  }
+
+  // Cartões: estoque e ativações. linha-ok: aqui a consulta É da linha Trybo.
+  const cartoes = await paginas(() => supabase.from("plates")
+    .select("id, code, status, activated_at, business_id").eq("linha", LINHA_TRYBO).order("id"));
+  const porStatus = {};
+  for (const p of cartoes) {
+    porStatus[p.status] = (porStatus[p.status] || 0) + 1;
+    if (p.activated_at && p.activated_at >= desdeIso) soma(diaBR(p.activated_at), "ativacoes");
+  }
+  const negociosAtivos = new Set(cartoes.filter((p) => p.status === "active").map((p) => p.business_id)).size;
+
+  // Toques e cliques por rede. linha-ok: filtrado pelo prefixo TRY- da Trybo.
+  const toques = await paginas(() => supabase.from("plate_taps")
+    .select("tapped_at, is_bot, device").like("code", "TRY-%").gte("tapped_at", desdeIso).order("tapped_at"));
+  for (const t of toques) if (!t.is_bot) soma(diaBR(t.tapped_at), "toques");
+  // linha-ok: cliques só dos cartões TRY- (Trybo).
+  const cliques = await paginas(() => supabase.from("experience_events")
+    .select("happened_at, action").like("code", "TRY-%").eq("kind", "click").gte("happened_at", desdeIso).order("happened_at"));
+  const porRede = {};
+  for (const e of cliques) { soma(diaBR(e.happened_at), "cliques"); porRede[e.action] = (porRede[e.action] || 0) + 1; }
+
+  const ordena = (o) => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([nome, n]) => ({ nome, n }));
+  return res.json({
+    dias,
+    cartoes: { total: cartoes.length, por_status: porStatus, negocios_com_cartao_ativo: negociosAtivos },
+    por_dia: Object.keys(porDia).sort().map((d) => ({ dia: d, ...porDia[d] })),
+    por_pagina: ordena(porPagina).slice(0, 25),
+    por_canal: ordena(porCanal).slice(0, 15),
+    cliques_por_rede: ordena(porRede),
   });
 }
 
